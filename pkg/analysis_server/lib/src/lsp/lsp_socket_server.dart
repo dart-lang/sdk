@@ -52,6 +52,8 @@ class LspSocketServer implements AbstractSocketServer {
   /// The performance logger.
   final PerformanceLogger? performanceLogger;
 
+  final Map<String, String>? environment;
+
   LspSocketServer(
     this.analysisServerOptions,
     this.diagnosticServer,
@@ -60,8 +62,9 @@ class LspSocketServer implements AbstractSocketServer {
     this.instrumentationService,
     this.sessionLogger,
     this.detachableFileSystemManager,
-    this.performanceLogger,
-  );
+    this.performanceLogger, {
+    this.environment,
+  });
 
   /// Create an analysis server which will communicate with the client using the
   /// given serverChannel.
@@ -112,6 +115,7 @@ class LspSocketServer implements AbstractSocketServer {
       detachableFileSystemManager: detachableFileSystemManager,
       enableBlazeWatcher: true,
       performanceLogger: performanceLogger,
+      environment: environment,
     );
     detachableFileSystemManager?.setAnalysisServer(server);
   }

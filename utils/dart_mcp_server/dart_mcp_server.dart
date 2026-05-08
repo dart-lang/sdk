@@ -12,12 +12,25 @@ import 'package:dart_mcp_server/dart_mcp_server.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 void main(List<String> args) async {
-  exitCode = await DartMCPServer.run(
-    args,
-    analytics: Analytics(
-      tool: DashTool.dartTool,
-      // The actual version is part up to the first space.
-      dartVersion: Platform.version.split(' ').first,
-    ),
-  );
+  DashTool? tool;
+  if (Platform.environment['DASH__TOOL'] case final toolEnv?) {
+    try {
+      tool = DashTool.fromLabel(toolEnv);
+    } catch (e) {
+      // Ignore errors, but don't track analytics for unrecognized tools.
+    }
+  } else {
+    // We default to the `dart` tool if none specified.
+    tool = DashTool.dartTool;
+  }
+
+  final analytics = tool != null
+      ? Analytics(
+          tool: tool,
+          // The actual version is the part up to the first space.
+          dartVersion: Platform.version.split(' ').first,
+        )
+      : null;
+
+  exitCode = await DartMCPServer.run(args, analytics: analytics);
 }

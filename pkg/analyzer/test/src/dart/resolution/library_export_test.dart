@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExportDirectiveResolutionTest);
   });
@@ -153,19 +153,12 @@ ExportDirective
       ifKeyword: if
       leftParenthesis: (
       name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: library
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: html
-            element: <null>
-            staticType: null
+        tokens
+          dart
+          .
+          library
+          .
+          html
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
@@ -175,19 +168,12 @@ ExportDirective
       ifKeyword: if
       leftParenthesis: (
       name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: library
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: io
-            element: <null>
-            staticType: null
+        tokens
+          dart
+          .
+          library
+          .
+          io
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
@@ -227,19 +213,12 @@ ExportDirective
       ifKeyword: if
       leftParenthesis: (
       name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: library
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: html
-            element: <null>
-            staticType: null
+        tokens
+          dart
+          .
+          library
+          .
+          html
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
@@ -249,19 +228,12 @@ ExportDirective
       ifKeyword: if
       leftParenthesis: (
       name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: library
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: io
-            element: <null>
-            staticType: null
+        tokens
+          dart
+          .
+          library
+          .
+          io
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
@@ -301,19 +273,12 @@ ExportDirective
       ifKeyword: if
       leftParenthesis: (
       name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: library
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: html
-            element: <null>
-            staticType: null
+        tokens
+          dart
+          .
+          library
+          .
+          html
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
@@ -323,19 +288,12 @@ ExportDirective
       ifKeyword: if
       leftParenthesis: (
       name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: library
-            element: <null>
-            staticType: null
-          SimpleIdentifier
-            token: io
-            element: <null>
-            staticType: null
+        tokens
+          dart
+          .
+          library
+          .
+          io
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'

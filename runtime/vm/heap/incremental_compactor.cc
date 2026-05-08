@@ -176,7 +176,7 @@ class PrologueTask : public SafepointTask {
 
 bool GCIncrementalCompactor::SelectEvacuationCandidates(PageSpace* old_space) {
   // Only evacuate pages that are at least half empty.
-  constexpr intptr_t kEvacuationThreshold = kPageSize / 2;
+  constexpr intptr_t kEvacuationThreshold = Page::kPageSize / 2;
 
   // Evacuate no more than this amount of objects. This puts a bound on the
   // stop-the-world evacuate step that is similar to the existing longest
@@ -780,7 +780,7 @@ class EpilogueTask : public SafepointTask {
       intptr_t obj_size = raw_obj->untag()->HeapSize(tags);
       if (UntaggedObject::IsMarked(tags)) {
         raw_obj->untag()->ClearMarkBitUnsynchronized();
-        ASSERT(IsAllocatableInNewSpace(obj_size));
+        ASSERT(Heap::IsAllocatableInNewSpace(obj_size));
         raw_obj->untag()->VisitPointers(visitor);
       } else {
         uword free_end = current + obj_size;

@@ -9,6 +9,17 @@ Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:is
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # dart:io is not supported.
 Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # dart:io is not supported.
 Language/Types/Interface_Types/subtype_t27: Skip # https://github.com/dart-lang/sdk/issues/42641
+LanguageFeatures/Augmentations/metadata_A01_t01.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t02.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t03.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t04.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t05.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t06.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t07.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t08.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t09.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t10.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t11.dart: SkipByDesign # dart:mirrors is not supported
 LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # dart:ffi is not supported.
 LibTest/ffi/*: SkipByDesign # dart:ffi is not supported.
 LibTest/html/*: SkipByDesign # dart:html is not supported.

@@ -44,7 +44,7 @@ void testConcurrentModification(List<int> list) {
       list.clear();
       list.addAll([0, 1, 2, 3]);
       Expect.throws(() {
-        list.forEach((var element) {
+        list.forEach((element) {
           if (element == when) action();
         });
       }, (e) => e is ConcurrentModificationError);

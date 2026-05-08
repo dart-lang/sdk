@@ -30,9 +30,11 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
     if (usage != null) {
       var cpuPercentage = usage.cpuPercentage;
       if (cpuPercentage != null) {
-        buf.writeln(writeOption('CPU', printPercentage(cpuPercentage / 100.0)));
+        buf.writeln(
+          formatOption('CPU', printPercentage(cpuPercentage / 100.0)),
+        );
       }
-      buf.writeln(writeOption('Memory', '${usage.memoryMB.round()} MB'));
+      buf.writeln(formatOption('Memory', '${usage.memoryMB.round()} MB'));
 
       h3('VM');
 
@@ -40,7 +42,7 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
         p('Service protocol not enabled.');
       } else {
         buf.writeln(
-          writeOption(
+          formatOption(
             'Service protocol connection available at',
             '${serviceProtocolInfo.serverUri}',
           ),

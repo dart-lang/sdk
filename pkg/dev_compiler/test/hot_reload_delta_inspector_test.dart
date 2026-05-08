@@ -547,7 +547,7 @@ String generateFakePackagesFile({
 }) {
   return '''
 {
-  "configVersion": 0,
+  "configVersion": 2,
   "packages": [
     {
       "name": "$packageName",

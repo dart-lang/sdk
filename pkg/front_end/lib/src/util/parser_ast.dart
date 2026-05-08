@@ -990,13 +990,22 @@ extension TopLevelDeclarationExtension on TopLevelDeclarationEnd {
 
 // Coverage-ignore(suite): Not run.
 extension MixinDeclarationExtension on MixinDeclarationEnd {
-  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+  ClassOrMixinOrExtensionBodyEnd? getClassOrMixinOrExtensionBody() {
     for (ParserAstNode child in children!) {
       if (child is ClassOrMixinOrExtensionBodyEnd) {
         return child;
       }
     }
-    throw "Not found.";
+    return null;
+  }
+
+  NoMixinBodyHandle? getNoMixinBody() {
+    for (ParserAstNode child in children!) {
+      if (child is NoMixinBodyHandle) {
+        return child;
+      }
+    }
+    return null;
   }
 
   IdentifierHandle getMixinIdentifier() {
@@ -1259,13 +1268,22 @@ extension ExtensionDeclarationExtension on ExtensionDeclarationEnd {
     return begin.name;
   }
 
-  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+  ClassOrMixinOrExtensionBodyEnd? getClassOrMixinOrExtensionBody() {
     for (ParserAstNode child in children!) {
       if (child is ClassOrMixinOrExtensionBodyEnd) {
         return child;
       }
     }
-    throw "Not found.";
+    return null;
+  }
+
+  NoExtensionBodyHandle? getNoExtensionBody() {
+    for (ParserAstNode child in children!) {
+      if (child is NoExtensionBodyHandle) {
+        return child;
+      }
+    }
+    return null;
   }
 }
 

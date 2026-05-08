@@ -45,6 +45,6 @@ class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
     if (match == null) {
       return null;
     }
-    return match.group(1);
+    return match[1];
   }
 }

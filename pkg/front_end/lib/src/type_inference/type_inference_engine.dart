@@ -17,6 +17,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/extension_scope.dart';
+import '../kernel/assigned_variables_impl.dart';
 import '../kernel/benchmarker.dart' show Benchmarker;
 import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
@@ -374,13 +375,26 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     required ExtensionScope extensionScope,
     InferenceDataForTesting? dataForTesting,
   }) {
-    AssignedVariables<TreeNode, ExpressionVariable> assignedVariables;
+    AssignedVariablesImpl assignedVariables;
+    bool isClosureContextLoweringEnabled = libraryBuilder
+        .loader
+        .target
+        .backendTarget
+        .flags
+        .isClosureContextLoweringEnabled;
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
-      assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
-          new AssignedVariablesForTesting<TreeNode, ExpressionVariable>();
+      dataForTesting.flowAnalysisResult.assignedVariables =
+          new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
+      assignedVariables = new AssignedVariablesImpl(
+        dataForTesting.flowAnalysisResult.assignedVariables!,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      );
     } else {
-      assignedVariables = new AssignedVariables<TreeNode, ExpressionVariable>();
+      assignedVariables = new AssignedVariablesImpl(
+        new AssignedVariables<TreeNode, VariableDeclaration>(),
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      );
     }
     if (benchmarker == null) {
       return new TypeInferrerImpl(
@@ -442,7 +456,7 @@ class FlowAnalysisResult {
   final List<TreeNode> definitelyUnassignedNodes = [];
 
   /// The assigned variables information that computed for the member.
-  AssignedVariablesForTesting<TreeNode, ExpressionVariable>? assignedVariables;
+  AssignedVariablesForTesting<TreeNode, VariableDeclaration>? assignedVariables;
 
   /// For each expression that led to an error because it was not promoted, a
   /// string describing the reason it was not promoted.
@@ -457,14 +471,14 @@ class FlowAnalysisResult {
 class OperationsCfe
     with
         TypeAnalyzerOperationsMixin<
-          ExpressionVariable,
+          VariableDeclaration,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
         >
     implements
         TypeAnalyzerOperations<
-          ExpressionVariable,
+          VariableDeclaration,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
@@ -574,6 +588,11 @@ class OperationsCfe
   }
 
   @override
+  SharedTypeView flatten(SharedTypeView type) {
+    return new SharedTypeView(typeEnvironment.flatten(type.unwrapTypeView()));
+  }
+
+  @override
   bool isAlwaysExhaustiveType(SharedTypeView type) {
     return computeIsAlwaysExhaustiveType(
       type.unwrapTypeView(),
@@ -586,7 +605,7 @@ class OperationsCfe
   bool isExtensionTypeInternal(DartType type) => type is ExtensionType;
 
   @override
-  bool isFinal(ExpressionVariable variable) {
+  bool isFinal(VariableDeclaration variable) {
     return variable.isFinal;
   }
 
@@ -674,12 +693,12 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView variableType(ExpressionVariable variable) {
+  SharedTypeView variableType(VariableDeclaration variable) {
     // When late variables get lowered, their type is changed, but the
     // original type is stored in `VariableDeclarationImpl.lateType`, so we
     // use that if it exists.
-    DartType? lateType = variable is InternalExpressionVariable
-        ? (variable as InternalExpressionVariable).lateType
+    DartType? lateType = variable is InternalVariable
+        ? (variable as InternalVariable).lateType
         : null;
     return new SharedTypeView(lateType ?? variable.type);
   }
@@ -763,7 +782,7 @@ class OperationsCfe
   }
 
   @override
-  bool isVariableFinal(ExpressionVariable node) {
+  bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }
 
@@ -980,6 +999,11 @@ class OperationsCfe
   }
 
   @override
+  FutureOrType futureOrTypeInternal(DartType argumentType) {
+    return new FutureOrType(argumentType, Nullability.nonNullable);
+  }
+
+  @override
   InterfaceType futureTypeInternal(DartType argumentType) {
     return new InterfaceType(
       typeEnvironment.coreTypes.futureClass,
@@ -1083,7 +1107,7 @@ class OperationsCfe
 
   @override
   TypeConstraintGenerator<
-    ExpressionVariable,
+    VariableDeclaration,
     TypeDeclarationType,
     TypeDeclaration,
     TreeNode
@@ -1172,7 +1196,7 @@ class OperationsCfe
 class TypeInferenceResultForTesting
     extends
         shared.TypeConstraintGenerationDataForTesting<
-          ExpressionVariable,
+          VariableDeclaration,
           TreeNode
         > {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};

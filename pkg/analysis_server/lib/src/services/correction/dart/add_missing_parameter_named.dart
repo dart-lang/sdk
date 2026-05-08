@@ -91,6 +91,9 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
   ) async {
     _parameterName = node.name;
+    // It isn't valid to have a private named parameter that is not assigning a
+    // value to a field, so we can't support this case.
+    if (Identifier.isPrivateName(_parameterName)) return;
 
     // We expect that the node is part of a NamedExpression.
     var namedExpression = node.parent?.parent;
@@ -113,7 +116,8 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
       return;
     }
 
-    // We cannot add named parameters when there are positional positional.
+    // We can't add named parameters when there are optional positional
+    // parameters.
     if (context.optionalPositional.isNotEmpty) {
       return;
     }

@@ -926,10 +926,12 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     final offsetInt = offset.toInt();
     int start = _findFirstItemBefore(
       -offsetInt - bufferLength,
+      // ignore: dead_code
       _lastVisibleInterval != null ? _lastVisibleInterval.start : 0,
     );
     int end = _findFirstItemAfter(
       -offsetInt + viewLength + bufferLength,
+      // ignore: dead_code
       _lastVisibleInterval != null ? _lastVisibleInterval.end : 0,
     );
     _lastVisibleInterval = Interval(start, Math.max(start, end));

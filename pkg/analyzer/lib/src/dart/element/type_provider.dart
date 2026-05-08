@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:collection/collection.dart';
 
 const Map<String, Set<String>> _nonSubtypableClassMap = {
   'dart:async': _nonSubtypableDartAsyncClassNames,
@@ -600,7 +601,23 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElementImpl _getClassElement(LibraryElementImpl library, String name) {
     var element = library.getClass(name);
     if (element == null) {
-      throw StateError('No definition of type $name');
+      var source = library.source;
+      var location = '${source.uri}';
+      if (source.fullName.isNotEmpty) {
+        location += ' (${source.fullName})';
+      }
+
+      const maxClassCount = 10;
+      var classNames = library.classes.map((c) => c.name).nonNulls.sorted();
+      var classNamesStr = classNames.take(maxClassCount).join(', ');
+
+      var message = 'No definition of type $name in $location.';
+      if (classNames.length <= maxClassCount) {
+        message += ' Found ${classNames.length} classes: $classNamesStr';
+      } else {
+        message += ' Found ${classNames.length} classes: $classNamesStr, ...';
+      }
+      throw StateError(message);
     }
     return element;
   }

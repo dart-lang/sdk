@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../messages/codes.dart' as codes;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
 import '../scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'formal_parameter_kind.dart';
@@ -209,9 +210,16 @@ class ModifierContext {
   ) {
     token = _parseModifiers(token);
 
-    if (parameterKind != FormalParameterKind.optionalNamed) {
-      reportExtraneousModifier(requiredToken);
+    if (memberKind == MemberKind.PrimaryConstructor) {
+      if (!parameterKind.isNamed) {
+        reportExtraneousModifier(requiredToken);
+      }
+    } else {
+      if (parameterKind != FormalParameterKind.optionalNamed) {
+        reportExtraneousModifier(requiredToken);
+      }
     }
+
     switch (memberKind) {
       case MemberKind.StaticMethod:
       case MemberKind.TopLevelMethod:
@@ -224,7 +232,21 @@ class ModifierContext {
       case MemberKind.ExtensionTypeStaticMethod:
         reportExtraneousModifierInExtensionType(this.covariantToken);
       case MemberKind.PrimaryConstructor:
-        reportExtraneousModifierInPrimaryConstructor(this.covariantToken);
+        if (covariantToken != null) {
+          if (parser.isPrimaryConstructorsFeatureEnabled) {
+            if (varFinalOrConst == null || !varFinalOrConst!.isA(Keyword.VAR)) {
+              parser.reportRecoverableError(
+                covariantToken!,
+                diag.invalidCovariantModifierInPrimaryConstructor,
+              );
+            }
+          } else {
+            parser.reportRecoverableErrorWithToken(
+              covariantToken!,
+              diag.extraneousModifierInPrimaryConstructor,
+            );
+          }
+        }
       case MemberKind.Catch:
       case MemberKind.Factory:
       case MemberKind.FunctionTypeAlias:
@@ -242,7 +264,7 @@ class ModifierContext {
       if (varFinalOrConst != null) {
         parser.reportRecoverableError(
           varFinalOrConst!,
-          codes.codeFunctionTypedParameterVar,
+          diag.functionTypedParameterVar,
         );
       }
     }
@@ -273,10 +295,7 @@ class ModifierContext {
     _afterFactory = true;
     token = _parseModifiers(token);
     if (abstractToken != null) {
-      parser.reportRecoverableError(
-        abstractToken!,
-        codes.codeAbstractClassMember,
-      );
+      parser.reportRecoverableError(abstractToken!, diag.abstractClassMember);
     }
     reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
@@ -360,10 +379,7 @@ class ModifierContext {
           throw 'Internal Error: Unhandled modifier: $value';
         }
       } else if (_afterFactory && identical('factory', value)) {
-        parser.reportRecoverableErrorWithToken(
-          next,
-          codes.codeDuplicatedModifier,
-        );
+        parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
         token = next;
       } else {
         break;
@@ -388,7 +404,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     return next;
   }
 
@@ -419,7 +435,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     return next;
   }
 
@@ -439,14 +455,11 @@ class ModifierContext {
 
     // Recovery
     if (constToken != null) {
-      parser.reportRecoverableErrorWithToken(
-        next,
-        codes.codeDuplicatedModifier,
-      );
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     } else if (covariantToken != null) {
       reportConflictingModifiers(next, covariantToken!);
     } else if (finalToken != null) {
-      parser.reportRecoverableError(next, codes.codeConstAndFinal);
+      parser.reportRecoverableError(next, diag.constAndFinal);
     } else if (varToken != null) {
       reportConflictingModifiers(next, varToken!);
     } else {
@@ -476,16 +489,13 @@ class ModifierContext {
 
     // Recovery
     if (covariantToken != null) {
-      parser.reportRecoverableErrorWithToken(
-        next,
-        codes.codeDuplicatedModifier,
-      );
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
       reportConflictingModifiers(next, constToken!);
     } else if (staticToken != null) {
-      parser.reportRecoverableError(next, codes.codeCovariantAndStatic);
+      parser.reportRecoverableError(next, diag.covariantAndStatic);
     } else {
       throw 'Internal Error: Unhandled recovery: $next';
     }
@@ -517,7 +527,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     return next;
   }
 
@@ -531,16 +541,13 @@ class ModifierContext {
 
     // Recovery
     if (finalToken != null) {
-      parser.reportRecoverableErrorWithToken(
-        next,
-        codes.codeDuplicatedModifier,
-      );
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
-      parser.reportRecoverableError(next, codes.codeConstAndFinal);
+      parser.reportRecoverableError(next, diag.constAndFinal);
     } else if (varToken != null) {
-      parser.reportRecoverableError(next, codes.codeFinalAndVar);
+      parser.reportRecoverableError(next, diag.finalAndVar);
     } else if (lateToken != null) {
       reportModifierOutOfOrder(next, lateToken!.lexeme);
     } else {
@@ -566,7 +573,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     return next;
   }
 
@@ -589,7 +596,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     return next;
   }
 
@@ -613,12 +620,9 @@ class ModifierContext {
 
     // Recovery
     if (covariantToken != null) {
-      parser.reportRecoverableError(next, codes.codeCovariantAndStatic);
+      parser.reportRecoverableError(next, diag.covariantAndStatic);
     } else if (staticToken != null) {
-      parser.reportRecoverableErrorWithToken(
-        next,
-        codes.codeDuplicatedModifier,
-      );
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else {
@@ -637,16 +641,13 @@ class ModifierContext {
 
     // Recovery
     if (varToken != null) {
-      parser.reportRecoverableErrorWithToken(
-        next,
-        codes.codeDuplicatedModifier,
-      );
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
       reportConflictingModifiers(next, constToken!);
     } else if (finalToken != null) {
-      parser.reportRecoverableError(next, codes.codeFinalAndVar);
+      parser.reportRecoverableError(next, diag.finalAndVar);
     } else {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
@@ -656,19 +657,16 @@ class ModifierContext {
   void reportConflictingModifiers(Token modifier, Token earlierModifier) {
     parser.reportRecoverableError(
       modifier,
-      codes.codeConflictingModifiers.withArgumentsOld(
-        modifier.lexeme,
-        earlierModifier.lexeme,
+      diag.conflictingModifiers.withArguments(
+        modifier: modifier.lexeme,
+        earlierModifier: earlierModifier.lexeme,
       ),
     );
   }
 
   void reportExtraneousModifier(Token? modifier) {
     if (modifier != null) {
-      parser.reportRecoverableErrorWithToken(
-        modifier,
-        codes.codeExtraneousModifier,
-      );
+      parser.reportRecoverableErrorWithToken(modifier, diag.extraneousModifier);
     }
   }
 
@@ -677,24 +675,24 @@ class ModifierContext {
   void reportTopLevelModifierError(Token? modifier, Token afterModifiers) {
     if (modifier != null) {
       if (modifier.isA(Keyword.CONST) && afterModifiers.isA(Keyword.CLASS)) {
-        parser.reportRecoverableError(modifier, codes.codeConstClass);
+        parser.reportRecoverableError(modifier, diag.constClass);
       } else if (modifier.isA(Keyword.EXTERNAL)) {
         if (afterModifiers.isA(Keyword.CLASS)) {
-          parser.reportRecoverableError(modifier, codes.codeExternalClass);
+          parser.reportRecoverableError(modifier, diag.externalClass);
         } else if (afterModifiers.isA(Keyword.ENUM)) {
-          parser.reportRecoverableError(modifier, codes.codeExternalEnum);
+          parser.reportRecoverableError(modifier, diag.externalEnum);
         } else if (afterModifiers.isA(Keyword.TYPEDEF)) {
-          parser.reportRecoverableError(modifier, codes.codeExternalTypedef);
+          parser.reportRecoverableError(modifier, diag.externalTypedef);
         } else {
           parser.reportRecoverableErrorWithToken(
             modifier,
-            codes.codeExtraneousModifier,
+            diag.extraneousModifier,
           );
         }
       } else {
         parser.reportRecoverableErrorWithToken(
           modifier,
-          codes.codeExtraneousModifier,
+          diag.extraneousModifier,
         );
       }
     }
@@ -704,7 +702,7 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
         modifier,
-        codes.codeExtraneousModifierInExtension,
+        diag.extraneousModifierInExtension,
       );
     }
   }
@@ -713,7 +711,7 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
         modifier,
-        codes.codeExtraneousModifierInExtensionType,
+        diag.extraneousModifierInExtensionType,
       );
     }
   }
@@ -722,7 +720,7 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
         modifier,
-        codes.codeExtraneousModifierInPrimaryConstructor,
+        diag.extraneousModifierInPrimaryConstructor,
       );
     }
   }
@@ -730,9 +728,9 @@ class ModifierContext {
   void reportModifierOutOfOrder(Token modifier, String beforeModifier) {
     parser.reportRecoverableError(
       modifier,
-      codes.codeModifierOutOfOrder.withArgumentsOld(
-        modifier.lexeme,
-        beforeModifier,
+      diag.modifierOutOfOrder.withArguments(
+        modifier: modifier.lexeme,
+        expectedLaterModifier: beforeModifier,
       ),
     );
   }

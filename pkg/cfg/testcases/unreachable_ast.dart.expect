@@ -146,29 +146,77 @@ B2 = CatchBlock() idom:B0
   DirectCall print(v13)
   Throw(v15)
 
+--- unreachableStringInterpolation
+B0 = EntryBlock()
+  Constant("x = ")
+  Constant(", boom = ")
+  v6 = Constant("Bye")
+  Constant(null)
+  Parameter(x)
+  Parameter(y)
+  Throw(v6)
+
+--- unreachableListLiteral
+B0 = EntryBlock()
+  Constant(<int>)
+  Constant(1)
+  Constant(2)
+  Constant(3)
+  Constant(4)
+  Constant(5)
+  Constant(6)
+  Constant(7)
+  Constant(8)
+  Constant(9)
+  v11 = Constant("Bye")
+  Constant(null)
+  Throw(v11)
+
+--- unreachableMapLiteral
+B0 = EntryBlock()
+  Constant(<int, String>)
+  Constant(10)
+  Constant("aa")
+  Constant(20)
+  Constant("bb")
+  Constant(30)
+  v7 = Constant("Bye")
+  Constant(null)
+  Throw(v7)
+
+--- unreachableLogicExpr
+B0 = EntryBlock() dominates:(B6, B10, B5)
+  v8 = Constant(true)
+  v16 = Constant("Bye")
+  Constant(null)
+  v19 = Constant(false)
+  v1 = Parameter(c1)
+  v2 = Parameter(c2)
+  Parameter(c3)
+  Branch(v1, true: B5, false: B6)
+B5 = TargetBlock() idom:B0 dominates:(B14, B13)
+  Branch(v2, true: B13, false: B14)
+B13 = TargetBlock() idom:B5
+  Goto(B10)
+B14 = TargetBlock() idom:B5
+  Throw(v16)
+B6 = TargetBlock() idom:B0
+  Goto(B10)
+B10 = JoinBlock(B6, B13) idom:B0
+  v24 = Phi(v8, v19)
+  Return(v24)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
   Return(v1)
 
---- getter unreachableFieldInitializer
-B0 = EntryBlock()
-  v1 = LoadStaticField(unreachableFieldInitializer)
-  Return(v1)
-
---- setter unreachableFieldInitializer
-B0 = EntryBlock()
-  v4 = Constant(null)
-  v1 = Parameter(#value)
-  StoreStaticField(unreachableFieldInitializer, v1)
-  Return(v4)
-
 --- field-init unreachableFieldInitializer
 B0 = EntryBlock()
+  Constant(<num>)
   Constant(10)
   Constant(1)
   v4 = Constant("Bye")
   Constant(null)
-  TypeArguments(<num>)
   Throw(v4)
 

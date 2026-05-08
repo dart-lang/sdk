@@ -50,9 +50,11 @@ f() {
 
   Future<void> test_formalParameter_hasType() async {
     await resolveTestCode('''
+// @dart = 3.10
 void f(var int a) {}
 ''');
     await assertHasFix('''
+// @dart = 3.10
 void f(int a) {}
 ''');
   }

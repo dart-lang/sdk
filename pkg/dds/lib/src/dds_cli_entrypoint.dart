@@ -141,6 +141,7 @@ ${argParser.usage}
           : null,
       enableServicePortFallback: enableServicePortFallback,
       uriConverter: uriConverter,
+      appName: argResults[DartDevelopmentServiceOptions.appNameOption],
     );
     final dtdInfo = dds.hostedDartToolingDaemon;
     stderr.write(json.encode({
@@ -153,6 +154,7 @@ ${argParser.usage}
           // is no mechanism for exposing URIs.
           'uri': dtdInfo.localUri.toString(),
         },
+      'name': dds.appName,
     }));
   } catch (e, st) {
     writeErrorResponse(e, st);

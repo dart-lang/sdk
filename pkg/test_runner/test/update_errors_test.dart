@@ -387,15 +387,18 @@ moreBadCode(arg);
 """);
 
   // Doesn't crash with RangeError.
-  expectUpdate("""
-x
-// [error line 1, column 1, length 0]
-// [cfe] Whatever""", errors: [
-    makeError(line: 1, column: 1, length: 0, cfeError: "Foo"),
-  ], expected: """
-x
-// [error column 1]
-// [cfe] Foo""");
+  // Note: we use singly-quoted strings here so that when the test runner tries
+  // to analyze this file it won't get confused.
+  expectUpdate(
+    "x\n"
+    "// [error line 1, column 1, length 0]\n"
+    "// [cfe] Whatever",
+    errors: [makeError(line: 1, column: 1, length: 0, cfeError: "Foo")],
+    expected:
+        "x\n"
+        "// [error column 1]\n"
+        "// [cfe] Foo",
+  );
 
   contextMessages();
   regression();

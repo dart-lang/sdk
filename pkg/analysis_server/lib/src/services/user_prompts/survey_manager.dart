@@ -46,10 +46,9 @@ class SurveyManager {
     // Delay the first check slightly because there are other prompts that
     // may appear at startup (fetching packages, analytics, "dart fix") that
     // we aren't coordinated with.
-    Duration initialDelay = const Duration(minutes: 5),
-    Duration checkFrequency = const Duration(hours: 24),
-  }) : _initialDelay = initialDelay,
-       _checkFrequency = checkFrequency {
+    this._initialDelay = const Duration(minutes: 5),
+    this._checkFrequency = const Duration(hours: 24),
+  }) {
     _timer = Timer(_initialDelay, checkForSurveys);
   }
 

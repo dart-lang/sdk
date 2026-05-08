@@ -1,0 +1,53 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+final class C<T extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+
+  [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "hello")]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  final field self::C::T% t;
+
+  [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->i]
+  final field self::C::U% u;
+
+  [@vm.unboxing-info.metadata=[!regcc]]
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "hello")] self::C::T% t, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] self::C::U% u) → self::C<self::C::T%, self::C::U%>
+    : self::C::t = t, self::C::u = u, super core::Object::•()
+    ;
+
+  [@vm.unreachable.metadata=]
+  @#C4
+  @#C6
+  static factory f<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(self::C::f::T% t, self::C::f::U% u) → self::C<self::C::f::T%, self::C::f::U%> /* redirection-target: self::C::•<self::C::f::T%, self::C::f::U%>*/
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::C<core::String, core::int> tc = new self::C::•<core::String, core::int>("hello", 42);
+  core::print([@vm.direct-call.metadata=#lib::C.t] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "hello")] tc.{self::C::t}{core::String});
+  core::print([@vm.direct-call.metadata=#lib::C.u] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] tc.{self::C::u}{core::int});
+}
+
+[@vm.unreachable.metadata=]
+static synthetic method _#TC#new#tearOff<T extends core::Object? = dynamic>(self::_#TC#new#tearOff::T% t, core::int u) → self::C<self::_#TC#new#tearOff::T%, core::int>
+  throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+
+[@vm.unreachable.metadata=]
+static synthetic method _#TC#f#tearOff<T extends core::Object? = dynamic>(self::_#TC#f#tearOff::T% t, core::int u) → self::C<self::_#TC#f#tearOff::T%, core::int>
+  throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = "vm:never-inline"
+  #C3 = null
+  #C4 = core::pragma {name:#C2, options:#C3}
+  #C5 = "dart2js:noInline"
+  #C6 = core::pragma {name:#C5, options:#C3}
+}

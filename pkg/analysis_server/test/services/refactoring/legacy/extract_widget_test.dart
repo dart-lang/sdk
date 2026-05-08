@@ -371,7 +371,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = C();
+  final C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -394,7 +394,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = C();
+  final C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -476,7 +476,7 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo = '';
+  final String foo = '';
 
   @override
   Widget build(BuildContext context) {
@@ -504,7 +504,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo = '';
+  final String foo = '';
 
   @override
   Widget build(BuildContext context) {
@@ -720,7 +720,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = C();
+  final C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -738,7 +738,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = C();
+  final C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -806,6 +806,7 @@ class Test extends StatelessWidget {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   String field;
 
@@ -832,10 +833,12 @@ class MyWidget extends StatelessWidget {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 abstract class MySuperWidget extends StatelessWidget {
   String field = '';
 }
 
+// ignore: must_be_immutable
 class MyWidget extends MySuperWidget {
   @override
   Widget build(BuildContext context) {
@@ -863,7 +866,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = C();
+  final C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -886,7 +889,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = C();
+  final C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -1031,8 +1034,8 @@ class MyWidget extends StatelessWidget {
 class Test extends StatelessWidget {
   const Test({
     super.key,
-    required String field,
-  }) : _field = field;
+    required this._field,
+  });
 
   final String _field;
 
@@ -1090,6 +1093,55 @@ class Test extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text('$field $_field');
+  }
+}
+''');
+  }
+
+  Future<void> test_parameters_private_unsupported() async {
+    await indexTestUnit(r'''
+// @dart=3.10
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String _field;
+
+  MyWidget(this._field);
+
+  @override
+  Widget build(BuildContext context) {
+    return ^Text(_field);
+  }
+}
+''');
+    _createRefactoring();
+
+    await _assertSuccessfulRefactoring('''
+// @dart=3.10
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String _field;
+
+  MyWidget(this._field);
+
+  @override
+  Widget build(BuildContext context) {
+    return Test(field: _field);
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    super.key,
+    required String field,
+  }) : _field = field;
+
+  final String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(_field);
   }
 }
 ''');

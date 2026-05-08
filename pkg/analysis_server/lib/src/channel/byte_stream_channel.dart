@@ -105,8 +105,8 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   ByteStreamServerChannel(
     this._instrumentationService,
     this._sessionLogger, {
-    RequestStatisticsHelper? requestStatistics,
-  }) : _requestStatistics = requestStatistics {
+    this._requestStatistics,
+  }) {
     _requestStatistics?.serverChannel = this;
   }
 

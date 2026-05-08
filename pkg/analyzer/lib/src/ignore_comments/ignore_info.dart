@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -83,16 +84,6 @@ sealed class IgnoredElement {
 /// Information about analysis `//ignore:` and `//ignore_for_file:` comments
 /// within a source file.
 class IgnoreInfo {
-  /// A regular expression for matching 'ignore' comments.
-  ///
-  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
-  static final RegExp ignoreMatcher = RegExp(r'//+[ ]*ignore:');
-
-  /// A regular expression for matching 'ignore_for_file' comments.
-  ///
-  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
-  static final RegExp ignoreForFileMatcher = RegExp(r'//[ ]*ignore_for_file:');
-
   /// A regular expression for matching 'ignore' comments in a .yaml file.
   ///
   /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
@@ -218,6 +209,83 @@ class IgnoreInfo {
     return ignoredDiagnostics.any(
       (name) => name._matches(diagnosticCode, pluginName: pluginName),
     );
+  }
+
+  /// If [s] starts as a 'ignore' comments.
+  ///
+  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
+  static bool isIgnoreComment(String s) {
+    int end = s.length;
+    if (end < 9) return false;
+
+    // Require 2 slashes.
+    if (s.codeUnitAt(0) != $SLASH) return false;
+    if (s.codeUnitAt(1) != $SLASH) return false;
+
+    // Allow more slashes.
+    int from = 2;
+    for (; from < end; from++) {
+      if (s.codeUnitAt(from) != $SLASH) break;
+    }
+
+    // Skip any spaces.
+    for (; from < end; from++) {
+      if (s.codeUnitAt(from) != $SPACE) break;
+    }
+
+    // Does the string match 'ignore:' now?
+    if (end - from < 7) return false;
+    if (s.codeUnitAt(from++) != $i) return false;
+    if (s.codeUnitAt(from++) != $g) return false;
+    if (s.codeUnitAt(from++) != $n) return false;
+    if (s.codeUnitAt(from++) != $o) return false;
+    if (s.codeUnitAt(from++) != $r) return false;
+    if (s.codeUnitAt(from++) != $e) return false;
+    if (s.codeUnitAt(from++) != $COLON) return false;
+    return true;
+  }
+
+  /// If [s] starts as a 'ignore_for_file' comments.
+  ///
+  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
+  static bool isIgnoreForFileComment(String s) {
+    int end = s.length;
+    if (end < 18) return false;
+
+    // Require 2 slashes.
+    if (s.codeUnitAt(0) != $SLASH) return false;
+    if (s.codeUnitAt(1) != $SLASH) return false;
+
+    // We don't (currently?) allow more than 2 slashes.
+    int from = 2;
+    // for (; from < end; from++) {
+    //   if (s.codeUnitAt(from) != $SLASH) break;
+    // }
+
+    // Skip any spaces.
+    for (; from < end; from++) {
+      if (s.codeUnitAt(from) != $SPACE) break;
+    }
+
+    // Does the string match 'ignore_for_file:' now?
+    if (end - from < 16) return false;
+    if (s.codeUnitAt(from++) != $i) return false;
+    if (s.codeUnitAt(from++) != $g) return false;
+    if (s.codeUnitAt(from++) != $n) return false;
+    if (s.codeUnitAt(from++) != $o) return false;
+    if (s.codeUnitAt(from++) != $r) return false;
+    if (s.codeUnitAt(from++) != $e) return false;
+    if (s.codeUnitAt(from++) != $_) return false;
+    if (s.codeUnitAt(from++) != $f) return false;
+    if (s.codeUnitAt(from++) != $o) return false;
+    if (s.codeUnitAt(from++) != $r) return false;
+    if (s.codeUnitAt(from++) != $_) return false;
+    if (s.codeUnitAt(from++) != $f) return false;
+    if (s.codeUnitAt(from++) != $i) return false;
+    if (s.codeUnitAt(from++) != $l) return false;
+    if (s.codeUnitAt(from++) != $e) return false;
+    if (s.codeUnitAt(from++) != $COLON) return false;
+    return true;
   }
 }
 
@@ -412,9 +480,9 @@ extension CompilationUnitExtension on CompilationUnit {
       var comment = currentToken.precedingComments;
       while (comment != null) {
         var lexeme = comment.lexeme;
-        if (lexeme.startsWith(IgnoreInfo.ignoreMatcher)) {
+        if (IgnoreInfo.isIgnoreComment(lexeme)) {
           result.add(comment);
-        } else if (lexeme.startsWith(IgnoreInfo.ignoreForFileMatcher)) {
+        } else if (IgnoreInfo.isIgnoreForFileComment(lexeme)) {
           result.add(comment);
         }
         comment = comment.next as CommentToken?;

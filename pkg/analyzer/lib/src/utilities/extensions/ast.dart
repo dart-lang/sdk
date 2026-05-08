@@ -82,7 +82,7 @@ extension AstNodeExtension on AstNode {
   }
 
   InterfaceElement? get enclosingInterfaceElement =>
-      enclosingInstanceElement.ifTypeOrNull();
+      enclosingInstanceElement.tryCast();
 
   AstNode? get enclosingUnitChild {
     for (var node in withAncestors) {
@@ -124,8 +124,8 @@ extension AstNodeNullableExtension on AstNode? {
     var self = this;
     return switch (self) {
       BlockClassBody() => self.members,
+      BlockEnumBody() => self.members,
       ClassDeclarationImpl() => self.body.members,
-      EnumBody() => self.members,
       EnumDeclaration() => self.body.members,
       ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
@@ -161,9 +161,17 @@ extension CompilationUnitExtension on CompilationUnit {
   }
 }
 
+extension ExpressionExtension on Expression {
+  /// Whether this expression is found in a [CommentReference].
+  bool get inCommentReference =>
+      parent is CommentReference ||
+      parent?.parent is CommentReference ||
+      parent?.parent?.parent is CommentReference;
+}
+
 extension ExtensionElementExtension on ExtensionElement {
   InterfaceElement? get extendedInterfaceElement =>
-      extendedType.ifTypeOrNull<InterfaceType>()?.element;
+      extendedType.tryCast<InterfaceType>()?.element;
 }
 
 extension FieldDeclarationExtension on FieldDeclaration {

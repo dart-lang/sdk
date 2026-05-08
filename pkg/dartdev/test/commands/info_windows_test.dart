@@ -40,22 +40,27 @@ void main() {
     });
   }, skip: !Platform.isWindows);
 
-  group('info windows', () {
-    late TestProject p;
+  group(
+    'info windows',
+    () {
+      late TestProject p;
 
-    test('shows process info', () async {
-      p = project(mainSrc: 'void main() {}');
-      final runResult = await p.run(['info']);
+      test('shows process info', () async {
+        p = project(mainSrc: 'void main() {}');
+        final runResult = await p.run(['info']);
 
-      expect(runResult.stderr, isEmpty);
-      expect(runResult.exitCode, 0);
+        expect(runResult.stderr, isEmpty);
+        expect(runResult.exitCode, 0);
 
-      var output = runResult.stdout as String;
+        var output = runResult.stdout as String;
 
-      expect(output, contains('providing this information'));
-      expect(output, contains('## Process info'));
-      expect(output, contains(RegExp(r'\|\s+Memory')));
-      expect(output, contains(RegExp(r'\|\s+dart.exe ')));
-    });
-  }, timeout: longTimeout, skip: !Platform.isWindows);
+        expect(output, contains('providing this information'));
+        expect(output, contains('## Process info'));
+        expect(output, contains(RegExp(r'\|\s+Memory')));
+        expect(output, contains(RegExp(r'\|\s+dart.exe ')));
+      });
+    },
+    timeout: longTimeout,
+    skip: !Platform.isWindows,
+  );
 }

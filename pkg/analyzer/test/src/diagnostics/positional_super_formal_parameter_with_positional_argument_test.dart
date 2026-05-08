@@ -18,7 +18,34 @@ main() {
 @reflectiveTest
 class PositionalSuperFormalParameterWithPositionalArgumentTest
     extends PubPackageResolutionTest {
-  test_notReported() async {
+  test_primaryConstructor_notReported() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+class B(super.a) extends A {
+  this : super();
+}
+''');
+  }
+
+  test_primaryConstructor_reported() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A(int a, int b);
+}
+
+class B(super.a) extends A {
+  this : super(0);
+}
+''',
+      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 46, 1)],
+    );
+  }
+
+  test_secondaryConstructor_notReported() async {
     await assertNoErrorsInCode(r'''
 class A {
   A(int a);
@@ -30,7 +57,7 @@ class B extends A {
 ''');
   }
 
-  test_reported() async {
+  test_secondaryConstructor_reported() async {
     await assertErrorsInCode(
       r'''
 class A {

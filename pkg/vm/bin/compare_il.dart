@@ -72,8 +72,10 @@ class TestCase {
   final String phasesFilter;
   final LibraryMirror library;
 
-  late final phases =
-      phasesFilter.split(',').expand(_expandPhasePattern).toList();
+  late final phases = phasesFilter
+      .split(',')
+      .expand(_expandPhasePattern)
+      .toList();
 
   TestCase({
     required this.className,
@@ -119,8 +121,9 @@ class TestCase {
         break;
     }
 
-    final phaseName =
-        (printBefore || printAfter) ? pattern.substring(1) : pattern;
+    final phaseName = (printBefore || printAfter)
+        ? pattern.substring(1)
+        : pattern;
 
     if (!printBefore && !printAfter) {
       printAfter = true;
@@ -160,8 +163,9 @@ Future<Set<TestCase>> _loadTestCases(String testFile) async {
       _ => null,
     };
     final name = MirrorSystem.getName(decl.simpleName);
-    final className =
-        decl.isTopLevel ? "::" : MirrorSystem.getName(decl.owner!.simpleName);
+    final className = decl.isTopLevel
+        ? "::"
+        : MirrorSystem.getName(decl.owner!.simpleName);
     return (className: className, name: name, accessorKind: accessor);
   }
 
@@ -230,8 +234,8 @@ Renamer _loadRenames(String? renamesFile) {
     return (v) => v;
   }
 
-  final list =
-      (jsonDecode(File(renamesFile).readAsStringSync()) as List).cast<String>();
+  final list = (jsonDecode(File(renamesFile).readAsStringSync()) as List)
+      .cast<String>();
 
   final renamesMap = <String, String>{
     for (var i = 0; i < list.length; i += 2) list[i]: list[i + 1],

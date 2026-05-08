@@ -48,6 +48,7 @@ mixin InferableTypeBuilderMixin {
   void registerInferredTypeListener(InferredTypeListener onType) {
     if (isExplicit) return;
     if (hasType) {
+      // Coverage-ignore-block(suite): Not run.
       onType.onInferredType(type);
     } else {
       (_listeners ??= []).add(onType);

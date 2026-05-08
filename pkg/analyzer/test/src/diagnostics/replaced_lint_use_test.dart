@@ -70,4 +70,25 @@ void f() { }
       [error(diag.replacedLintUse, 11, 12)],
     );
   }
+
+  test_messageText() async {
+    await assertErrorsInCode(
+      r'''
+// ignore_for_file: removed_lint
+
+void f() { }
+''',
+      [
+        error(
+          diag.replacedLintUse,
+          20,
+          12,
+          messageContains: [
+            "'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'",
+          ],
+          correctionContains: "Replace 'removed_lint' with 'replacing_lint'.",
+        ),
+      ],
+    );
+  }
 }

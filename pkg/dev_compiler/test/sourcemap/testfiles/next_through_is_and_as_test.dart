@@ -27,7 +27,7 @@ void main() {
       print("but it's not even even!");
     }
   }
-  // ignore: unnecessary_type_check
+  // ignore: dead_code, unnecessary_type_check
   /*bc:14*/ if (hex is! int) {
     print('hex is not int');
   }

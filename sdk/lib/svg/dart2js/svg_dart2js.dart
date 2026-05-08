@@ -2677,7 +2677,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
     Element parentElement;
-    if (match != null && match.group(1)!.toLowerCase() == 'svg') {
+    if (match != null && match[1]!.toLowerCase() == 'svg') {
       parentElement = document.body!;
     } else {
       parentElement = new SvgSvgElement();

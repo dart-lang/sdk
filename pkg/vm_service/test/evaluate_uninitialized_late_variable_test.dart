@@ -44,7 +44,7 @@ final tests = <IsolateTest>[
       // access the late variables' values. The CFE team is working on a better
       // solution.
       expect(e.code, RPCErrorKind.kExpressionCompilationError.code);
-      expect(e.message, 'Expression compilation error');
+      expect(e.message, contains('Expression compilation error'));
       expect(
         e.details,
         contains("Error: The variable 'x' "

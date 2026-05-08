@@ -37,4 +37,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53676.dart:15:7 -> S
 Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53676.dart:15:7 -> ListConstant(const <Type>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53676.dart:15:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///regress_53676.dart:15:7 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 20, effectively constant: 8
+Extra constant evaluation: evaluated: 21, effectively constant: 8

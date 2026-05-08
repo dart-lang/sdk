@@ -27,8 +27,8 @@ const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
 
 const _desc =
-    r'''Avoid runtime type tests with JS interop types where the result may not
-    be platform-consistent.''';
+    'Avoid runtime type tests with JS interop types where the result may not '
+    'be platform-consistent.';
 
 const Set<String> _sdkWebLibraries = {
   'dart:html',
@@ -218,6 +218,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
+    diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
     diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
     diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
     diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
@@ -233,8 +234,9 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
     RuleContext context,
   ) {
     var visitor = _Visitor(this, context.typeSystem);
-    registry.addIsExpression(this, visitor);
     registry.addAsExpression(this, visitor);
+    registry.addCatchClause(this, visitor);
+    registry.addIsExpression(this, visitor);
   }
 }
 
@@ -415,6 +417,20 @@ class _Visitor extends SimpleAstVisitor<void> {
         node,
         arguments: [leftType, rightType],
         diagnosticCode: code,
+      );
+    }
+  }
+
+  @override
+  void visitCatchClause(CatchClause node) {
+    var catchType = node.exceptionType?.type;
+    if (catchType == null) return;
+    if (interopTypeChecker.hasInteropType(catchType)) {
+      rule.reportAtNode(
+        node.exceptionType,
+        arguments: [catchType],
+        diagnosticCode:
+            diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
       );
     }
   }

@@ -4,9 +4,9 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 class UseResultVerifier {
   final DiagnosticReporter _diagnosticReporter;
@@ -104,16 +104,14 @@ class UseResultVerifier {
 
     var message = annotation.useResultMessage;
     if (message == null || message.isEmpty) {
-      _diagnosticReporter.atNode(
-        toAnnotate,
-        diag.unusedResult,
-        arguments: [displayName],
+      _diagnosticReporter.report(
+        diag.unusedResult.withArguments(name: displayName).at(toAnnotate),
       );
     } else {
-      _diagnosticReporter.atNode(
-        toAnnotate,
-        diag.unusedResultWithMessage,
-        arguments: [displayName, message],
+      _diagnosticReporter.report(
+        diag.unusedResultWithMessage
+            .withArguments(name: displayName, message: message)
+            .at(toAnnotate),
       );
     }
   }

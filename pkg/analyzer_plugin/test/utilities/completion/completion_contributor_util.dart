@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -495,7 +496,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       request!.result.unit,
       request!.offset,
     );
-    var range = target.computeReplacementRange(request!.offset);
+    var range = target.computeReplacementRange(
+      request!.offset,
+      isDotShorthandEnabled: result.libraryElement.featureSet.isEnabled(
+        Feature.dot_shorthands,
+      ),
+    );
     replacementOffset = range.offset;
     replacementLength = range.length;
 

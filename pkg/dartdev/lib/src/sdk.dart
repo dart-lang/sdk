@@ -12,8 +12,11 @@ import 'core.dart';
 // Moved to dart2native so it can be used there without causing a cycle.
 export 'package:dart2native/sdk.dart';
 
-bool checkArtifactExists(String path,
-    {bool logError = true, bool warnIfBuildRoot = false}) {
+bool checkArtifactExists(
+  String path, {
+  bool logError = true,
+  bool warnIfBuildRoot = false,
+}) {
   if (warnIfBuildRoot && Sdk().runFromBuildRoot) {
     final file = p.basename(path);
     log.stderr(
@@ -24,9 +27,7 @@ bool checkArtifactExists(String path,
   }
   if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound) {
     if (logError) {
-      log.stderr(
-        'Could not find $path. Have you built the full Dart SDK?',
-      );
+      log.stderr('Could not find $path. Have you built the full Dart SDK?');
     }
     return false;
   }

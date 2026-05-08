@@ -131,11 +131,11 @@ extension Q on self::Foo {
   static field staticFieldOfQInitialized = self::Q|staticFieldOfQInitialized;
 }
 static field core::int topLevelField;
-static field core::int P|staticFieldOfE;
+static field core::int P|staticFieldOfE = null;
 static field core::int? nullableTopLevelField;
 late static field core::int lateTopLevelField;
 static field core::int topLevelFieldWithInitializer = 42;
-static field core::int? Q|staticFieldOfQ;
+static field core::int? Q|staticFieldOfQ = null;
 late static field core::int Q|lateStaticFieldOfQ;
 static field core::int Q|staticFieldOfQInitialized = 42;
 static method main() → dynamic {}

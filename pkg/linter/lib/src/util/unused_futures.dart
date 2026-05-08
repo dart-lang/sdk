@@ -26,11 +26,7 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
   /// might report on it.
   final IsInterestingFilter _isInteresting;
 
-  UnusedFuturesVisitor({
-    required AnalysisRule rule,
-    required IsInterestingFilter isInteresting,
-  }) : _rule = rule,
-       _isInteresting = isInteresting;
+  UnusedFuturesVisitor({required this._rule, required this._isInteresting});
 
   @override
   void visitCascadeExpression(CascadeExpression node) {

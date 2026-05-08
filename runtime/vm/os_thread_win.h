@@ -16,66 +16,7 @@
 
 namespace dart {
 
-typedef DWORD ThreadLocalKey;
 typedef HANDLE ThreadJoinId;
-
-static const ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-
-class ThreadInlineImpl {
- private:
-  ThreadInlineImpl() {}
-  ~ThreadInlineImpl() {}
-
-  static uword GetThreadLocal(ThreadLocalKey key) {
-    ASSERT(key != kUnsetThreadLocalKey);
-    return reinterpret_cast<uword>(TlsGetValue(key));
-  }
-
-  friend class OSThread;
-  friend unsigned int __stdcall ThreadEntry(void* data_ptr);
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
-};
-
-typedef void (*ThreadDestructor)(void* parameter);
-
-class ThreadLocalEntry {
- public:
-  ThreadLocalEntry(ThreadLocalKey key, ThreadDestructor destructor)
-      : key_(key), destructor_(destructor) {}
-
-  ThreadLocalKey key() const { return key_; }
-
-  ThreadDestructor destructor() const { return destructor_; }
-
- private:
-  ThreadLocalKey key_;
-  ThreadDestructor destructor_;
-
-  DISALLOW_ALLOCATION();
-};
-
-template <typename T>
-class MallocGrowableArray;
-
-class ThreadLocalData : public AllStatic {
- public:
-  static void RunDestructors();
-
- private:
-  static void AddThreadLocal(ThreadLocalKey key, ThreadDestructor destructor);
-  static void RemoveThreadLocal(ThreadLocalKey key);
-
-  static Mutex* mutex_;
-  static MallocGrowableArray<ThreadLocalEntry>* thread_locals_;
-
-  static void Init();
-  static void Cleanup();
-
-  friend class OS;
-  friend class OSThread;
-};
 
 }  // namespace dart
 

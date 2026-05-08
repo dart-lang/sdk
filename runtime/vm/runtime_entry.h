@@ -84,16 +84,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
   extern "C" void DRT_##name(NativeArguments arguments);
 
-#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count, func)                  \
-  extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
-      true, false, /*can_lazy_deopt=*/false)
-
-#define DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(name, argument_count, func)            \
-  extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
-      true, true, /*can_lazy_deopt=*/false)
-
 #define DECLARE_LEAF_RUNTIME_ENTRY(type, name, ...)                            \
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
   extern "C" type DLRT_##name(__VA_ARGS__);
@@ -106,11 +96,21 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 #undef DECLARE_LEAF_RUNTIME_ENTRY
 
 // See StubCode::GenerateFfiCallbackTrampolineStub.
+struct CallbackMetadata {
+  uword entry_point;
+  uword type;  // FfiCallbackMetadata::CallType
+  uword epilogue;
+};
 extern "C" Thread* DLRT_GetFfiCallbackMetadata(uword trampoline,
-                                               uword* out_entry_point,
-                                               uword* out_callback_kind);
-extern "C" void DLRT_ExitTemporaryIsolate();
-extern "C" void DLRT_ExitIsolateGroupBoundIsolate();
+                                               CallbackMetadata* out);
+#if defined(HOST_ARCH_IA32)
+extern "C" void* DLRT_ExitTemporaryIsolate();
+#else
+extern "C" void* DLRT_ExitTemporaryIsolate(Thread*);
+#endif
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread*);
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread*);
+extern "C" void* DLRT_ExitSyncCallback(Thread*);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

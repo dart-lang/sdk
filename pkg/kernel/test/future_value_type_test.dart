@@ -54,21 +54,27 @@ const Map<String, String> data = {
 
 void main() {
   Env env = new Env('')
-    ..extendWithTypeParameters('X,'
-        'X_extends_FutureInt extends Future<int>,'
-        'X_extends_FutureOrInt extends FutureOr<int>');
+    ..extendWithTypeParameters(
+      'X,'
+      'X_extends_FutureInt extends Future<int>,'
+      'X_extends_FutureOrInt extends FutureOr<int>',
+    );
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);
-    DartType actualOutputType =
-        computeFutureValueType(env.coreTypes, inputType);
+    DartType actualOutputType = computeFutureValueType(
+      env.coreTypes,
+      inputType,
+    );
     print(
-        'futureValueType($inputType) = $actualOutputType: $expectedOutputType');
+      'futureValueType($inputType) = $actualOutputType: $expectedOutputType',
+    );
     Expect.equals(
-        expectedOutputType,
-        actualOutputType,
-        "Unexpected future value type of $inputType ('$input'):\n"
-        "Expected: ${expectedOutputType} ('$output')\n"
-        "Actual: ${actualOutputType}");
+      expectedOutputType,
+      actualOutputType,
+      "Unexpected future value type of $inputType ('$input'):\n"
+      "Expected: ${expectedOutputType} ('$output')\n"
+      "Actual: ${actualOutputType}",
+    );
   });
 }

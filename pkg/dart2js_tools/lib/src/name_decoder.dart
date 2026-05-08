@@ -85,7 +85,7 @@ class MinifiedNameDecoder extends ErrorMapDecoder {
     StackTraceLine? line,
     TargetEntry? entry,
   ) {
-    var minifiedName = match.group(1);
+    var minifiedName = match[1];
     return mapping!.globalNames[minifiedName];
   }
 }
@@ -101,7 +101,7 @@ class CannotReadPropertyDecoder extends ErrorMapDecoder {
     StackTraceLine? line,
     TargetEntry? entry,
   ) {
-    var minifiedName = match.group(1);
+    var minifiedName = match[1];
     var name = mapping!.instanceNames[minifiedName];
     if (name == null) return null;
     return "Cannot read property '$name' of";
@@ -176,8 +176,8 @@ class NoSuchMethodDecoder1 extends NoSuchMethodDecoderBase {
     StackTraceLine? line,
     TargetEntry? entry,
   ) {
-    var minifiedName = match.group(1);
-    var suffix = match.group(2) ?? '';
+    var minifiedName = match[1];
+    var suffix = match[2] ?? '';
     var name = _translateMinifiedName(mapping!, minifiedName);
     if (name == null) return null;
     return "NoSuchMethodError: method not found: $name$suffix";
@@ -197,7 +197,7 @@ class NoSuchMethodDecoder2 extends NoSuchMethodDecoderBase {
     StackTraceLine? line,
     TargetEntry? entry,
   ) {
-    var minifiedName = match.group(1);
+    var minifiedName = match[1];
     var name = _translateMinifiedName(mapping!, minifiedName);
     if (name == null) return null;
     return "NoSuchMethodError: method not found: $name";
@@ -215,7 +215,7 @@ class UnhandledNotAFunctionError extends ErrorMapDecoder {
     StackTraceLine? line,
     TargetEntry? entry,
   ) {
-    var minifiedName = match.group(1);
+    var minifiedName = match[1];
     var name = mapping!.instanceNames[minifiedName];
     if (name == null) return null;
     return "Error: $name is not a function";

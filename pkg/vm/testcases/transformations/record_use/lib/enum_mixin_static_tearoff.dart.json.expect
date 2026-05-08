@@ -1,0 +1,63 @@
+{
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "enum",
+          "name": "MyEnum"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "staticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/enum_mixin_static_tearoff.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "mixin",
+          "name": "MyMixin"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "staticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/enum_mixin_static_tearoff.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "type": "tearoff"
+          }
+        ]
+      },
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "type": "tearoff"
+          }
+        ]
+      }
+    ]
+  }
+}

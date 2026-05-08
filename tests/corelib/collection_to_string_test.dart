@@ -272,7 +272,7 @@ populateRandomCollection(
   bool exact,
   StringBuffer stringRep,
   List beingMade,
-  var coll,
+  coll,
   String delimiters,
 ) {
   beingMade.add(coll);

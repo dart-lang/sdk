@@ -319,4 +319,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_super_up
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_super_upwards.dart:205:21 -> StringConstant("x")
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_super_upwards.dart:211:20 -> StringConstant("x")
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index_super_upwards.dart:211:20 -> StringConstant("x")
-Extra constant evaluation: evaluated: 653, effectively constant: 101
+Extra constant evaluation: evaluated: 754, effectively constant: 101

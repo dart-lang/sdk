@@ -148,6 +148,49 @@ class C extends B {}
 ''');
   }
 
+  test_augment_withClause_crossFile_error_nonAbstractClassInheritsAbstractMember() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+mixin M {
+  int foo();
+}
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class A with M {}
+''');
+
+    await assertErrorsInFile2(a, [
+      error(diag.nonAbstractClassInheritsAbstractMemberOne, 48, 1),
+    ]);
+    await assertErrorsInFile2(b, [
+      error(diag.nonAbstractClassInheritsAbstractMemberOne, 33, 1),
+    ]);
+  }
+
+  test_augment_withClause_sameFile_error_nonAbstractClassInheritsAbstractMember() async {
+    await assertErrorsInCode(
+      r'''
+mixin M {
+  int foo();
+}
+
+class A {}
+
+augment class A with M {}
+''',
+      [
+        error(diag.nonAbstractClassInheritsAbstractMemberOne, 32, 1),
+        error(diag.nonAbstractClassInheritsAbstractMemberOne, 52, 1),
+      ],
+    );
+  }
+
   test_class_notAbstract_hasConcreteSubtype_method() async {
     await assertErrorsInCode(
       '''

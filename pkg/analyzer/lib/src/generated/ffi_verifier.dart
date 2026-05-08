@@ -9,14 +9,23 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+
+typedef SubtypeOfStructDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({
+        required String subclassName,
+        required String superclassName,
+      })
+    >;
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -167,7 +176,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // No classes from the FFI may be explicitly implemented.
     void checkSupertype(
       NamedType typename,
-      DiagnosticCode subtypeOfStructCode,
+      SubtypeOfStructDiagnosticCode subtypeOfStructCode,
     ) {
       var superName = typename.element?.name;
       if (superName == _allocatorClassName ||
@@ -175,10 +184,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       if (typename.isCompoundSubtype || typename.isAbiSpecificIntegerSubtype) {
-        _diagnosticReporter.atNode(
-          typename,
-          subtypeOfStructCode,
-          arguments: [node.namePart.typeName.lexeme, typename.name.lexeme],
+        _diagnosticReporter.report(
+          subtypeOfStructCode
+              .withArguments(
+                subclassName: node.namePart.typeName.lexeme,
+                superclassName: typename.name.lexeme,
+              )
+              .at(typename),
         );
       }
     }
@@ -538,7 +550,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           // Function annotated with something that isn't a function type.
           _diagnosticReporter.report(
             diag.mustBeANativeFunctionType
-                .withArguments(type: 'T', functionName: 'Native')
+                .withArguments(type: ffiSignature, functionName: 'Native')
                 .at(errorNode),
           );
         } else {
@@ -642,10 +654,73 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var ffiParameterTypes = ffiSignature.normalParameterTypes.flattenVarArgs();
     var ffiParameters = ffiSignature.formalParameters;
-
-    if ((declarationElement is MethodElement ||
+    var dartType = declarationElement.type;
+    var enclosingElement = declarationElement.enclosingElement;
+    var isInstanceMember =
+        (declarationElement is MethodElement ||
             declarationElement is PropertyAccessorElement) &&
-        !declarationElement.isStatic) {
+        !declarationElement.isStatic;
+
+    var isExtensionLikeInstanceMember =
+        isInstanceMember &&
+        (enclosingElement is ExtensionElement ||
+            enclosingElement is ExtensionTypeElement);
+
+    if (isExtensionLikeInstanceMember) {
+      // Extension members require a receiver argument in the Native annotation.
+      if (formalParameters.length + 1 != ffiParameterTypes.length) {
+        _diagnosticReporter.report(
+          diag.ffiNativeUnexpectedNumberOfParameters
+              .withArguments(
+                expected: formalParameters.length + 1,
+                actual: ffiParameterTypes.length,
+              )
+              .at(errorToken),
+        );
+        return;
+      }
+
+      var receiverType = switch (enclosingElement) {
+        ExtensionElement() => enclosingElement.extendedType,
+        ExtensionTypeElement() => enclosingElement.thisType,
+        _ => null,
+      };
+
+      // Keep the receiver pointer restriction diagnostic for extensions.
+      if (ffiSignature.normalParameterTypes[0].isPointer &&
+          (receiverType is! InterfaceType ||
+              !_extendsNativeFieldWrapperClass1(receiverType))) {
+        _diagnosticReporter.report(
+          diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer
+              .at(errorToken),
+        );
+        return;
+      }
+
+      if (receiverType is! TypeImpl) {
+        return;
+      }
+
+      // Include receiver when validating the full function type.
+      dartType = FunctionTypeImpl.v2(
+        typeParameters: dartType.typeParameters,
+        formalParameters: [
+          FormalParameterElementImpl.synthetic(
+            null,
+            receiverType,
+            ParameterKind.REQUIRED,
+          ),
+          ...dartType.formalParameters,
+        ],
+        returnType: dartType.returnType,
+        nullabilitySuffix: dartType.nullabilitySuffix,
+      );
+
+      // Explicit parameters in the declaration start after the receiver.
+      // Note that ffiParameters is intentionally not sliced for extensions,
+      // because dartType above is augmented with a synthetic receiver.
+      ffiParameterTypes = ffiParameterTypes.sublist(1);
+    } else if (isInstanceMember) {
       // Instance methods must have the receiver as an extra parameter in the
       // Native annotation.
       if (formalParameters.length + 1 != ffiParameterTypes.length) {
@@ -663,8 +738,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Receiver can only be Pointer if the class extends
       // NativeFieldWrapperClass1.
       if (ffiSignature.normalParameterTypes[0].isPointer) {
-        var cls = declarationElement.enclosingElement as InterfaceElement;
-        if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
+        var receiverType = switch (enclosingElement) {
+          InterfaceElement() => enclosingElement.thisType,
+          ExtensionElement(extendedType: InterfaceType type) => type,
+          _ => null,
+        };
+        if (!_extendsNativeFieldWrapperClass1(receiverType)) {
           _diagnosticReporter.report(
             diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer
                 .at(errorToken),
@@ -707,7 +786,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    var dartType = declarationElement.type;
     var nativeType = FunctionTypeImpl.v2(
       typeParameters: ffiSignature.typeParameters,
       formalParameters: ffiParameters,
@@ -1165,14 +1243,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       allowVoid: true,
       allowEmptyStruct: true,
     )) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(
               executableName:
                   '$_allocatorExtensionName.$_allocateExtensionMethodName',
             )
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -1418,11 +1495,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     var dartType = typeArgumentTypes[0];
     if (!_isValidFfiNativeType(dartType)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: '$errorClass.create')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -1433,11 +1509,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var T = targetType.typeArguments[0];
 
       if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
-        AstNode errorNode = node;
         _diagnosticReporter.report(
           diag.nonConstantTypeArgument
               .withArguments(executableName: 'elementAt')
-              .at(errorNode),
+              .at(node),
         );
       }
     }
@@ -1982,11 +2057,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       allowEmptyStruct: true,
       allowArray: true,
     )) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: '[]')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -1996,11 +2070,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateRefPrefixedIdentifier(PrefixedIdentifierImpl node) {
     var targetType = node.prefix.staticType;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: 'ref')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -2008,11 +2081,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateRefPropertyAccess(PropertyAccessImpl node) {
     var targetType = node.realTarget.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: 'ref')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -2038,11 +2110,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     var T = typeArgumentTypes[0];
     if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: 'sizeOf')
-            .at(errorNode),
+            .at(node),
       );
     }
   }

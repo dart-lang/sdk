@@ -480,10 +480,6 @@ intptr_t OS::ActivationFrameAlignment() {
   return alignment;
 }
 
-int OS::NumberOfAvailableProcessors() {
-  return sysconf(_SC_NPROCESSORS_CONF);
-}
-
 uintptr_t OS::CurrentRSS() {
   zx_info_task_stats_t task_stats;
   zx_handle_t process = zx_process_self();

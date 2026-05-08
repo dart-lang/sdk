@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/accessor
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
-import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 // Several "report" functions intentionally return a `Null`-typed value.
@@ -83,11 +83,13 @@ class CodeFragmentParser {
         }
         accessors.add(accessor);
       } else {
-        diagnosticReporter.atOffset(
-          offset: token.offset + delta,
-          length: token.length,
-          diagnosticCode: diag.wrongToken,
-          arguments: ['.', token.kind.displayName],
+        diagnosticReporter.report(
+          diag.wrongToken
+              .withArguments(
+                validKinds: '.',
+                actualKind: token.kind.displayName,
+              )
+              .atOffset(offset: token.offset + delta, length: token.length),
         );
         return null;
       }
@@ -116,11 +118,10 @@ class CodeFragmentParser {
     var expression = _parseLogicalAndExpression();
     if (currentIndex < _tokens.length) {
       var token = _tokens[currentIndex];
-      diagnosticReporter.atOffset(
-        offset: token.offset + delta,
-        length: token.length,
-        diagnosticCode: diag.unexpectedTransformSetToken,
-        arguments: [token.kind.displayName],
+      diagnosticReporter.report(
+        diag.unexpectedTransformSetToken
+            .withArguments(tokenKind: token.kind.displayName)
+            .atOffset(offset: token.offset + delta, length: token.length),
       );
       return null;
     }
@@ -154,20 +155,21 @@ class CodeFragmentParser {
         offset = last.offset;
         length = last.length;
       }
-      diagnosticReporter.atOffset(
-        offset: offset + delta,
-        length: length,
-        diagnosticCode: diag.missingToken,
-        arguments: [validKindsDisplayString()],
+      diagnosticReporter.report(
+        diag.missingToken
+            .withArguments(validKinds: validKindsDisplayString())
+            .atOffset(offset: offset + delta, length: length),
       );
       return null;
     }
     if (!validKinds.contains(token.kind)) {
-      diagnosticReporter.atOffset(
-        offset: token.offset + delta,
-        length: token.length,
-        diagnosticCode: diag.wrongToken,
-        arguments: [validKindsDisplayString(), token.kind.displayName],
+      diagnosticReporter.report(
+        diag.wrongToken
+            .withArguments(
+              validKinds: validKindsDisplayString(),
+              actualKind: token.kind.displayName,
+            )
+            .atOffset(offset: token.offset + delta, length: token.length),
       );
       return null;
     }
@@ -236,11 +238,10 @@ class CodeFragmentParser {
       advance();
       return TypeArgumentAccessor(argumentIndex);
     } else {
-      diagnosticReporter.atOffset(
-        offset: token.offset + delta,
-        length: token.length,
-        diagnosticCode: diag.unknownAccessor,
-        arguments: [identifier],
+      diagnosticReporter.report(
+        diag.unknownAccessor
+            .withArguments(accessor: identifier)
+            .atOffset(offset: token.offset + delta, length: token.length),
       );
       return null;
     }
@@ -317,11 +318,10 @@ class CodeFragmentParser {
         var variableName = token.lexeme;
         var generator = variableScope.lookup(variableName);
         if (generator == null) {
-          diagnosticReporter.atOffset(
-            offset: token.offset + delta,
-            length: token.length,
-            diagnosticCode: diag.undefinedVariable,
-            arguments: [variableName],
+          diagnosticReporter.report(
+            diag.undefinedVariable
+                .withArguments(key: variableName)
+                .atOffset(offset: token.offset + delta, length: token.length),
           );
           return null;
         }
@@ -348,10 +348,8 @@ class CodeFragmentParser {
       offset = token.offset + delta;
       length = token.length;
     }
-    diagnosticReporter.atOffset(
-      offset: offset,
-      length: length,
-      diagnosticCode: diag.expectedPrimary,
+    diagnosticReporter.report(
+      diag.expectedPrimary.atOffset(offset: offset, length: length),
     );
     return null;
   }
@@ -475,11 +473,10 @@ class _CodeFragmentScanner {
 
   /// Report the presence of an invalid character at the given [offset].
   Null _reportInvalidCharacter(int offset) {
-    _diagnosticReporter.atOffset(
-      offset: offset + delta,
-      length: 1,
-      diagnosticCode: diag.invalidCharacter,
-      arguments: [content.substring(offset, offset + 1)],
+    _diagnosticReporter.report(
+      diag.invalidCharacter
+          .withArguments(text: content.substring(offset, offset + 1))
+          .atOffset(offset: offset + delta, length: 1),
     );
     return null;
   }

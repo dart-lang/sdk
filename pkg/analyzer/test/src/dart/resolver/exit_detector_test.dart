@@ -4,11 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../ast/parse_base.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -23,7 +22,7 @@ main() {
 /// Tests for the [ExitDetector] that require that the control flow and spread
 /// experiments be enabled.
 @reflectiveTest
-class ExitDetectorForCodeAsUiTest extends ParseBase {
+class ExitDetectorForCodeAsUiTest extends ParserDiagnosticsTest {
   test_for_condition() async {
     _assertTrue('[for (; throw 0;) 0]');
   }
@@ -117,18 +116,14 @@ class ExitDetectorForCodeAsUiTest extends ParseBase {
   }
 
   void _assertHasReturn(String expressionCode, bool expected) {
-    var path = convertPath('/test/lib/test.dart');
-
-    newFile(path, '''
+    var parseResult = parseStringWithErrors('''
 void f() { // ref
   $expressionCode;
 }
 ''');
+    parseResult.assertNoErrors();
 
-    var parseResult = parseUnit(path);
-    expect(parseResult.diagnostics, isEmpty);
-
-    var findNode = FindNode(parseResult.content, parseResult.unit);
+    var findNode = parseResult.findNode;
 
     var block = findNode.block('{ // ref');
     var statement = block.statements.single as ExpressionStatement;
@@ -147,7 +142,7 @@ void f() { // ref
 ///
 /// See [ExitDetectorResolvedStatementTest] for tests that require the AST to be resolved.
 @reflectiveTest
-class ExitDetectorParsedStatementTest extends ParseBase {
+class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
   test_asExpression() async {
     _assertFalse('a as Object;');
   }
@@ -923,18 +918,14 @@ on String catch (e, s) { return 1; }
   }
 
   void _assertHasReturn(String statementCode, bool expected) {
-    var path = convertPath('/test/lib/test.dart');
-
-    newFile(path, '''
+    var parseResult = parseStringWithErrors('''
 void f() { // ref
   $statementCode
 }
 ''');
+    parseResult.assertNoErrors();
 
-    var parseResult = parseUnit(path);
-    expect(parseResult.diagnostics, isEmpty);
-
-    var findNode = FindNode(parseResult.content, parseResult.unit);
+    var findNode = parseResult.findNode;
 
     var block = findNode.block('{ // ref');
     var statement = block.statements.single;

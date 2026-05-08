@@ -29,14 +29,14 @@ const Map<String, String> data = {
   'FutureOr<FutureOr<Object?>>': 'FutureOr<FutureOr<Object?>>',
   '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>':
       '(List<Object>, {required List<Object> a, List<Object> b})'
-          ' -> List<Object>',
+      ' -> List<Object>',
   '(List<Object>, {required List<Object> a, List<Object> b}) ->? List<Object>':
       '(List<Object>, {required List<Object> a, List<Object> b})'
-          ' -> List<Object>',
+      ' -> List<Object>',
   '(List<Object>?, {required List<Object?> a, List<Object?>? b})'
           ' ->? List<Object?>':
       '(List<Object>?, {required List<Object?> a, List<Object?>? b})'
-          ' -> List<Object?>',
+      ' -> List<Object?>',
   'X': 'X & Object',
   'X?': 'X & Object',
   'X_extends_Object': 'X_extends_Object',
@@ -60,21 +60,24 @@ const Map<String, String> data = {
 
 void main() {
   Env env = new Env('')
-    ..extendWithTypeParameters('X,'
-        'X_extends_Object extends Object,'
-        'X_extends_dynamic extends dynamic,'
-        'Y extends X,'
-        'Y_extends_dynamic extends X_extends_dynamic');
+    ..extendWithTypeParameters(
+      'X,'
+      'X_extends_Object extends Object,'
+      'X_extends_dynamic extends dynamic,'
+      'Y extends X,'
+      'Y_extends_dynamic extends X_extends_dynamic',
+    );
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);
     DartType actualOutputType = computeNonNull(inputType);
     print('legacyErasure($inputType) = $actualOutputType: $expectedOutputType');
     Expect.equals(
-        expectedOutputType,
-        actualOutputType,
-        "Unexpected NonNull of $inputType ('$input'):\n"
-        "Expected: ${expectedOutputType} ('$output')\n"
-        "Actual: ${actualOutputType}");
+      expectedOutputType,
+      actualOutputType,
+      "Unexpected NonNull of $inputType ('$input'):\n"
+      "Expected: ${expectedOutputType} ('$output')\n"
+      "Actual: ${actualOutputType}",
+    );
   });
 }

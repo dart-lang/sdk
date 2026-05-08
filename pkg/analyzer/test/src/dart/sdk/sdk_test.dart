@@ -3,15 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
+import 'package:analyzer/src/context/builder.dart' show locateEmbedderYamlFor;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../../embedder_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,43 +20,55 @@ main() {
 }
 
 @reflectiveTest
-class EmbedderSdkTest extends EmbedderRelatedTest {
+class EmbedderSdkTest with ResourceProviderMixin {
+  final String foxLibPath = '/home/.pub-cache/fox/lib';
+
+  void setUp() {
+    newFolder(foxLibPath);
+    newFile('/home/.pub-cache/fox/lib/_embedder.yaml', r'''
+embedded_libs:
+  "dart:deep": "deep/directory/file.dart"
+  "dart:core" : "core/core.dart"
+  "dart:fox": "slippy.dart"
+''');
+  }
+
   void test_allowedExperimentsJson() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
-    EmbedderSdk sdk = EmbedderSdk(
+    var foxLib = getFolder(foxLibPath);
+    var embedderYaml = locateEmbedderYamlFor(foxLib);
+    EmbedderSdk sdk = EmbedderSdk.new2(
       resourceProvider,
-      locator.embedderYamls,
+      foxLib,
+      embedderYaml,
       languageVersion: Version.parse('2.10.0'),
     );
 
     expect(sdk.allowedExperimentsJson, isNull);
 
-    newFile('$foxLib/_internal/allowed_experiments.json', 'foo bar');
+    newFile('$foxLibPath/_internal/allowed_experiments.json', 'foo bar');
     expect(sdk.allowedExperimentsJson, 'foo bar');
   }
 
   void test_creation() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
-    EmbedderSdk sdk = EmbedderSdk(
+    var foxLib = getFolder(foxLibPath);
+    var embedderYaml = locateEmbedderYamlFor(foxLib);
+    EmbedderSdk sdk = EmbedderSdk.new2(
       resourceProvider,
-      locator.embedderYamls,
+      foxLib,
+      embedderYaml,
       languageVersion: Version.parse('2.10.0'),
     );
 
-    expect(sdk.urlMappings, hasLength(5));
+    expect(sdk.urlMappings, hasLength(3));
   }
 
   void test_fromFileUri() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
-    EmbedderSdk sdk = EmbedderSdk(
+    var foxLib = getFolder(foxLibPath);
+    var embedderYaml = locateEmbedderYamlFor(foxLib);
+    EmbedderSdk sdk = EmbedderSdk.new2(
       resourceProvider,
-      locator.embedderYamls,
+      foxLib,
+      embedderYaml,
       languageVersion: Version.parse('2.10.0'),
     );
 
@@ -70,34 +80,34 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, getFile(posixPath).path);
     }
 
-    expectSource('$foxLib/slippy.dart', 'dart:fox');
-    expectSource('$foxLib/deep/directory/file.dart', 'dart:deep');
-    expectSource('$foxLib/deep/directory/part.dart', 'dart:deep/part.dart');
+    expectSource('$foxLibPath/slippy.dart', 'dart:fox');
+    expectSource('$foxLibPath/deep/directory/file.dart', 'dart:deep');
+    expectSource('$foxLibPath/deep/directory/part.dart', 'dart:deep/part.dart');
   }
 
   void test_getSdkLibrary() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
-    EmbedderSdk sdk = EmbedderSdk(
+    var foxLib = getFolder(foxLibPath);
+    var embedderYaml = locateEmbedderYamlFor(foxLib);
+    EmbedderSdk sdk = EmbedderSdk.new2(
       resourceProvider,
-      locator.embedderYamls,
+      foxLib,
+      embedderYaml,
       languageVersion: Version.parse('2.10.0'),
     );
 
     var lib = sdk.getSdkLibrary('dart:fox')!;
     expect(lib, isNotNull);
-    expect(lib.path, getFile('$foxLib/slippy.dart').path);
+    expect(lib.path, getFile('$foxLibPath/slippy.dart').path);
     expect(lib.shortName, 'dart:fox');
   }
 
   void test_mapDartUri() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
-    EmbedderSdk sdk = EmbedderSdk(
+    var foxLib = getFolder(foxLibPath);
+    var embedderYaml = locateEmbedderYamlFor(foxLib);
+    EmbedderSdk sdk = EmbedderSdk.new2(
       resourceProvider,
-      locator.embedderYamls,
+      foxLib,
+      embedderYaml,
       languageVersion: Version.parse('2.10.0'),
     );
 
@@ -108,10 +118,10 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, getFile(posixPath).path);
     }
 
-    expectSource('dart:core', '$foxLib/core/core.dart');
-    expectSource('dart:fox', '$foxLib/slippy.dart');
-    expectSource('dart:deep', '$foxLib/deep/directory/file.dart');
-    expectSource('dart:deep/part.dart', '$foxLib/deep/directory/part.dart');
+    expectSource('dart:core', '$foxLibPath/core/core.dart');
+    expectSource('dart:fox', '$foxLibPath/slippy.dart');
+    expectSource('dart:deep', '$foxLibPath/deep/directory/file.dart');
+    expectSource('dart:deep/part.dart', '$foxLibPath/deep/directory/part.dart');
   }
 }
 

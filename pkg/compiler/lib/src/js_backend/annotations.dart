@@ -91,7 +91,7 @@ enum PragmaAnnotation {
   lateCheck('late:check'),
 
   loadLibraryPriority('load-priority', hasOption: true),
-  resourceIdentifier('resource-identifier'),
+  recordUse('record-use'),
 
   throwWithoutHelperFrame('stack-starts-at-throw'),
 
@@ -117,10 +117,11 @@ enum PragmaAnnotation {
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
     typesCheck: {parameterCheck, downcastCheck},
+    recordUse: {noInline, noElision},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
     noInline: {tryInline},
-    tryInline: {noInline, resourceIdentifier},
+    tryInline: {noInline, recordUse},
     typesTrust: {typesCheck, parameterCheck, downcastCheck},
     typesCheck: {typesTrust, parameterTrust, downcastTrust},
     parameterTrust: {parameterCheck},
@@ -131,7 +132,7 @@ enum PragmaAnnotation {
     asCheck: {asTrust},
     lateTrust: {lateCheck},
     lateCheck: {lateTrust},
-    resourceIdentifier: {tryInline},
+    recordUse: {tryInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -143,6 +144,7 @@ enum PragmaAnnotation {
     // Aliases
     'never-inline': noInline,
     'prefer-inline': tryInline,
+    'resource-identifier': recordUse,
   };
 }
 
@@ -154,7 +156,7 @@ ir.Library _enclosingLibrary(ir.TreeNode node) {
   }
 }
 
-EnumSet<PragmaAnnotation> processMemberAnnotations(
+EnumSet<PragmaAnnotation> processPragmaAnnotations(
   CompilerOptions options,
   DiagnosticReporter reporter,
   ir.Annotatable node,
@@ -211,6 +213,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
   }
 
   Map<PragmaAnnotation, EnumSet<PragmaAnnotation>> reportedExclusions = {};
+  EnumSet<PragmaAnnotation> impliedAnnotations = EnumSet.empty();
   for (PragmaAnnotation annotation in annotations.iterable(
     PragmaAnnotation.values,
   )) {
@@ -227,6 +230,8 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
                   "@pragma('dart2js:${other.name}').",
             },
           );
+        } else {
+          impliedAnnotations = impliedAnnotations.add(other);
         }
       }
     }
@@ -269,7 +274,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       }
     }
   }
-  return annotations;
+  return annotations.union(impliedAnnotations);
 }
 
 abstract class AnnotationsData {
@@ -360,8 +365,12 @@ abstract class AnnotationsData {
   /// loader.
   String getLoadLibraryPriority(ir.LoadLibrary node);
 
-  /// Determines whether [member] is annotated as a resource identifier.
-  bool methodIsResourceIdentifier(FunctionEntity member);
+  /// Determines whether [member] is annotated with `RecordUse()`.
+  bool shouldRecordMethodUses(FunctionEntity member);
+
+  /// Returns `true` if instances of [clazz] should be recorded when
+  /// used as annotations.
+  bool shouldRecordConstInstances(ClassEntity clazz);
 
   /// Is this node in a context requesting that the captured stack in a `throw`
   /// expression generates extra code to avoid having a runtime helper on the
@@ -393,11 +402,14 @@ class AnnotationsDataImpl implements AnnotationsData {
   final CheckPolicy _defaultLateVariableCheckPolicy;
   final bool _defaultDisableInlining;
 
+  /// Pragma annotations for classes.
+  final Map<ClassEntity, EnumSet<PragmaAnnotation>> classPragmaAnnotations;
+
   /// Pragma annotations for members. These are captured for the K-entities and
   /// translated to J-entities.
   // TODO(49475): Change the queries that use [pragmaAnnotation] to use the
   // DirectivesContext so that we can avoid the need for persisting annotations.
-  final Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations;
+  final Map<MemberEntity, EnumSet<PragmaAnnotation>> memberPragmaAnnotations;
 
   /// Pragma annotation environments for annotatable places in the Kernel
   /// AST. These annotations generated on demand and not precomputed or
@@ -413,7 +425,8 @@ class AnnotationsDataImpl implements AnnotationsData {
   AnnotationsDataImpl(
     CompilerOptions options,
     this._reporter,
-    this.pragmaAnnotations,
+    this.classPragmaAnnotations,
+    this.memberPragmaAnnotations,
   ) : _options = options,
       _defaultParameterCheckPolicy = options.defaultParameterCheckPolicy,
       _defaultImplicitDowncastCheckPolicy =
@@ -430,18 +443,28 @@ class AnnotationsDataImpl implements AnnotationsData {
     DataSourceReader source,
   ) {
     source.begin(tag);
-    Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations = source
-        .readMemberMap(
+    Map<ClassEntity, EnumSet<PragmaAnnotation>> classPragmaAnnotations = source
+        .readClassMap(() => EnumSet.fromRawBits(source.readInt()));
+    Map<MemberEntity, EnumSet<PragmaAnnotation>> memberPragmaAnnotations =
+        source.readMemberMap(
           (MemberEntity member) => EnumSet.fromRawBits(source.readInt()),
         );
     source.end(tag);
-    return AnnotationsDataImpl(options, reporter, pragmaAnnotations);
+    return AnnotationsDataImpl(
+      options,
+      reporter,
+      classPragmaAnnotations,
+      memberPragmaAnnotations,
+    );
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeMemberMap(pragmaAnnotations, (
+    sink.writeClassMap(classPragmaAnnotations, (EnumSet<PragmaAnnotation> set) {
+      sink.writeInt(set.mask.bits);
+    });
+    sink.writeMemberMap(memberPragmaAnnotations, (
       MemberEntity member,
       EnumSet<PragmaAnnotation> set,
     ) {
@@ -451,7 +474,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   bool _hasPragma(MemberEntity member, PragmaAnnotation annotation) {
-    EnumSet<PragmaAnnotation>? set = pragmaAnnotations[member];
+    EnumSet<PragmaAnnotation>? set = memberPragmaAnnotations[member];
     return set != null && set.contains(annotation);
   }
 
@@ -477,8 +500,21 @@ class AnnotationsDataImpl implements AnnotationsData {
       _hasPragma(member, PragmaAnnotation.disableFinal);
 
   @override
-  bool hasNoElision(MemberEntity member) =>
-      _hasPragma(member, PragmaAnnotation.noElision);
+  bool hasNoElision(MemberEntity member) {
+    if (_hasPragma(member, PragmaAnnotation.noElision)) {
+      return true;
+    }
+    final cls = member.enclosingClass;
+    if (cls != null &&
+        member is ConstructorEntity &&
+        (classPragmaAnnotations[cls]?.contains(PragmaAnnotation.recordUse) ??
+            false)) {
+      // If record use is recording const instances and constructor invocations
+      // of this class, then do not remove any constructor parameters.
+      return true;
+    }
+    return false;
+  }
 
   @override
   bool hasNoThrows(MemberEntity member) =>
@@ -491,13 +527,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   CheckPolicy getParameterCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = memberPragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.parameterTrust)) {
+        if (annotations.contains(PragmaAnnotation.parameterTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.parameterCheck)) {
           return CheckPolicy.checked;
@@ -510,13 +542,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = memberPragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
+        if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
@@ -529,13 +557,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   CheckPolicy getConditionCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = memberPragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
+        if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
@@ -548,7 +572,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   CheckPolicy getExplicitCastCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = memberPragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.asTrust)) {
           return CheckPolicy.trusted;
@@ -563,7 +587,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   CheckPolicy getIndexBoundsCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = memberPragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.indexBoundsTrust)) {
           return CheckPolicy.trusted;
@@ -610,7 +634,7 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   DirectivesContext _getContext(ir.Annotatable node) {
     return _nodeToContextMap[node] ??= _findContext(node.parent!).extend(
-      processMemberAnnotations(
+      processPragmaAnnotations(
         _options,
         _reporter,
         node,
@@ -654,14 +678,20 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  bool methodIsResourceIdentifier(MemberEntity member) {
-    EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+  bool shouldRecordMethodUses(FunctionEntity member) {
+    EnumSet<PragmaAnnotation>? annotations = memberPragmaAnnotations[member];
     if (annotations != null) {
-      if (annotations.contains(PragmaAnnotation.resourceIdentifier)) {
+      if (annotations.contains(PragmaAnnotation.recordUse)) {
         return true;
       }
     }
     return false;
+  }
+
+  @override
+  bool shouldRecordConstInstances(ClassEntity clazz) {
+    EnumSet<PragmaAnnotation>? set = classPragmaAnnotations[clazz];
+    return set != null && set.contains(PragmaAnnotation.recordUse);
   }
 
   @override
@@ -690,19 +720,34 @@ class AnnotationsDataImpl implements AnnotationsData {
 }
 
 class AnnotationsDataBuilder {
-  Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations = {};
+  Map<MemberEntity, EnumSet<PragmaAnnotation>> memberPragmaAnnotations = {};
+  Map<ClassEntity, EnumSet<PragmaAnnotation>> classPragmaAnnotations = {};
 
   void registerPragmaAnnotations(
     MemberEntity member,
     EnumSet<PragmaAnnotation> annotations,
   ) {
     if (annotations.isNotEmpty) {
-      pragmaAnnotations[member] = annotations;
+      memberPragmaAnnotations[member] = annotations;
+    }
+  }
+
+  void registerPragmaAnnotationsForClass(
+    ClassEntity cls,
+    EnumSet<PragmaAnnotation> annotations,
+  ) {
+    if (annotations.isNotEmpty) {
+      classPragmaAnnotations[cls] = annotations;
     }
   }
 
   AnnotationsData close(CompilerOptions options, DiagnosticReporter reporter) {
-    return AnnotationsDataImpl(options, reporter, pragmaAnnotations);
+    return AnnotationsDataImpl(
+      options,
+      reporter,
+      classPragmaAnnotations,
+      memberPragmaAnnotations,
+    );
   }
 }
 

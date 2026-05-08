@@ -65,13 +65,56 @@ int _min(int a, int b) => a < b ? a : b;
 /// Allocate a new digits list of even length.
 Uint32List _newDigits(int length) => Uint32List(length + (length & 1));
 
+class _DivRemResult {
+  Uint32List? get dividendDigits => _dividendDigits;
+  int? get dividendUsed => _dividendUsed;
+  Uint32List? get divisorDigits => _divisorDigits;
+  int? get divisorUsed => _divisorUsed;
+
+  Uint32List get quoRemDigits => _quoRemDigits;
+  int get quoRemUsed => _quoRemUsed;
+  int get remUsed => _remUsed;
+  int get rem_nsh => _rem_nsh;
+
+  void update(
+    Uint32List dividendDigits,
+    int dividendUsed,
+    Uint32List divisorDigits,
+    int divisorUsed,
+    Uint32List quoRemDigits,
+    int quoRemUsed,
+    int remUsed,
+    int rem_nsh,
+  ) {
+    _dividendDigits = dividendDigits;
+    _dividendUsed = dividendUsed;
+    _divisorDigits = divisorDigits;
+    _divisorUsed = divisorUsed;
+    _quoRemDigits = quoRemDigits;
+    _quoRemUsed = quoRemUsed;
+    _remUsed = remUsed;
+    _rem_nsh = rem_nsh;
+  }
+
+  Uint32List? _dividendDigits;
+  int? _dividendUsed;
+  Uint32List? _divisorDigits;
+  int? _divisorUsed;
+
+  late Uint32List _quoRemDigits;
+  late int _quoRemUsed;
+  late int _remUsed;
+  late int _rem_nsh;
+}
+
 /**
  * An implementation for the arbitrarily large integer.
  *
  * The integer number is represented by a sign, an array of 32-bit unsigned
  * integers in little endian format, and a number of used digits in that array.
  */
-class _BigIntImpl implements BigInt {
+@pragma("vm:entry-point")
+final class _BigIntImpl implements BigInt {
   // Bits per digit.
   static const int _digitBits = 32;
   static const int _digitBase = 1 << _digitBits;
@@ -81,14 +124,22 @@ class _BigIntImpl implements BigInt {
   static const int _halfDigitBits = _digitBits >> 1;
   static const int _halfDigitMask = (1 << _halfDigitBits) - 1;
 
+  @pragma('vm:shared')
   static final _BigIntImpl zero = _BigIntImpl._fromInt(0);
+  @pragma('vm:shared')
   static final _BigIntImpl one = _BigIntImpl._fromInt(1);
+  @pragma('vm:shared')
   static final _BigIntImpl two = _BigIntImpl._fromInt(2);
 
+  @pragma('vm:shared')
   static final _BigIntImpl _minusOne = -one;
+  @pragma('vm:shared')
   static final _BigIntImpl _oneDigitMask = _BigIntImpl._fromInt(_digitMask);
+  @pragma('vm:shared')
   static final _BigIntImpl _twoDigitMask = (one << (2 * _digitBits)) - one;
+  @pragma('vm:shared')
   static final _BigIntImpl _oneBillion = _BigIntImpl._fromInt(1000000000);
+
   static const int _minInt = -0x8000000000000000;
   static const int _maxInt = 0x7fffffffffffffff;
 
@@ -106,14 +157,7 @@ class _BigIntImpl implements BigInt {
   );
 
   // Result cache for last _divRem call.
-  static Uint32List? _lastDividendDigits;
-  static int? _lastDividendUsed;
-  static Uint32List? _lastDivisorDigits;
-  static int? _lastDivisorUsed;
-  static late Uint32List _lastQuoRemDigits;
-  static late int _lastQuoRemUsed;
-  static late int _lastRemUsed;
-  static late int _lastRem_nsh;
+  external static _DivRemResult get _cachedDivRemResult;
 
   /// Whether this bigint is negative.
   final bool _isNegative;
@@ -125,6 +169,9 @@ class _BigIntImpl implements BigInt {
   /// be strictly greater than `_used`.
   /// Also, `_digits.length` must always be even, because intrinsics on 64-bit
   /// platforms may process a digit pair as a 64-bit value.
+  ///
+  /// Uint32List normally prevent pragma('vm:deeply-immutable')-check, but
+  /// this class is explicitly allow-listed in deeply_immutable.dart.
   final Uint32List _digits;
 
   /// The number of used entries in [_digits].
@@ -322,10 +369,7 @@ class _BigIntImpl implements BigInt {
     return _parseRadix(nonNullMatch, radix, isNegative);
   }
 
-  static RegExp _parseRE = RegExp(
-    r'^\s*([+-]?)((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$',
-    caseSensitive: false,
-  );
+  external static RegExp get _parseRE;
 
   /// Finds the amount significant digits in the provided [digits] array.
   static int _normalize(int used, Uint32List digits) {
@@ -1389,11 +1433,12 @@ class _BigIntImpl implements BigInt {
     _divRem(other);
     // Return quotient, i.e.
     // _lastQuoRem_digits[_lastRem_used.._lastQuoRem_used-1] with proper sign.
-    var lastQuo_used = _lastQuoRemUsed - _lastRemUsed;
+    var lastQuo_used =
+        _cachedDivRemResult.quoRemUsed - _cachedDivRemResult.remUsed;
     var quo_digits = _cloneDigits(
-      _lastQuoRemDigits,
-      _lastRemUsed,
-      _lastQuoRemUsed,
+      _cachedDivRemResult.quoRemDigits,
+      _cachedDivRemResult.remUsed,
+      _cachedDivRemResult.quoRemUsed,
       lastQuo_used,
     );
     var quo = _BigIntImpl._(false, lastQuo_used, quo_digits);
@@ -1414,14 +1459,14 @@ class _BigIntImpl implements BigInt {
     // Return remainder, i.e.
     // denormalized _lastQuoRem_digits[0.._lastRem_used-1] with proper sign.
     var remDigits = _cloneDigits(
-      _lastQuoRemDigits,
+      _cachedDivRemResult.quoRemDigits,
       0,
-      _lastRemUsed,
-      _lastRemUsed,
+      _cachedDivRemResult.remUsed,
+      _cachedDivRemResult.remUsed,
     );
-    var rem = _BigIntImpl._(false, _lastRemUsed, remDigits);
-    if (_lastRem_nsh > 0) {
-      rem = rem >> _lastRem_nsh; // Denormalize remainder.
+    var rem = _BigIntImpl._(false, _cachedDivRemResult.remUsed, remDigits);
+    if (_cachedDivRemResult.rem_nsh > 0) {
+      rem = rem >> _cachedDivRemResult.rem_nsh; // Denormalize remainder.
     }
     if (_isNegative && (rem._used > 0)) {
       rem = -rem;
@@ -1431,18 +1476,18 @@ class _BigIntImpl implements BigInt {
 
   /// Computes this ~/ other and this.remainder(other).
   ///
-  /// Stores the result in [_lastQuoRemDigits], [_lastQuoRemUsed] and
-  /// [_lastRemUsed]. The [_lastQuoRemDigits] contains the digits of *both*, the
+  /// Stores the result in [_cachedDivRemResult]'s [quoRemDigits], [quoRemUsed]
+  /// and [remUsed]. The [quoRemDigits] contains the digits of *both*, the
   /// quotient and the remainder.
   ///
   /// Caches the input to avoid doing the work again when users write
   /// `a ~/ b` followed by a `a % b`.
   void _divRem(_BigIntImpl other) {
     // Check if result is already cached.
-    if ((this._used == _lastDividendUsed) &&
-        (other._used == _lastDivisorUsed) &&
-        identical(this._digits, _lastDividendDigits) &&
-        identical(other._digits, _lastDivisorDigits)) {
+    if ((this._used == _cachedDivRemResult.dividendUsed) &&
+        (other._used == _cachedDivRemResult.divisorUsed) &&
+        identical(this._digits, _cachedDivRemResult.dividendDigits) &&
+        identical(other._digits, _cachedDivRemResult.divisorDigits)) {
       return;
     }
     assert(_used >= other._used);
@@ -1561,14 +1606,16 @@ class _BigIntImpl implements BigInt {
       i -= d0;
     }
     // Cache result.
-    _lastDividendDigits = _digits;
-    _lastDividendUsed = _used;
-    _lastDivisorDigits = other._digits;
-    _lastDivisorUsed = other._used;
-    _lastQuoRemDigits = resultDigits;
-    _lastQuoRemUsed = resultUsed;
-    _lastRemUsed = yUsed;
-    _lastRem_nsh = nsh;
+    _cachedDivRemResult.update(
+      _digits,
+      _used,
+      other._digits,
+      other._used,
+      resultDigits,
+      resultUsed,
+      yUsed,
+      nsh,
+    );
   }
 
   // Customized version of _rem() minimizing allocations for use in reduction.

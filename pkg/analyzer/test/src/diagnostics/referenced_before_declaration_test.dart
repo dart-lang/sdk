@@ -67,6 +67,44 @@ main() {
 ''');
   }
 
+  test_forElement_forPartsWithDeclarations_initializer() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  [for (var x = x;;) x];
+}
+''',
+      [
+        error(
+          diag.referencedBeforeDeclaration,
+          27,
+          1,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_forStatement_forPartsWithDeclarations_initializer() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  for (var x = x;;) {
+    x;
+  }
+}
+''',
+      [
+        error(
+          diag.referencedBeforeDeclaration,
+          26,
+          1,
+          contextMessages: [message(testFile, 22, 1)],
+        ),
+      ],
+    );
+  }
+
   test_hideInBlock_comment() async {
     await assertErrorsInCode(
       r'''

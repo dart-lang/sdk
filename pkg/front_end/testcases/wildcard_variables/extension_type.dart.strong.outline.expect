@@ -8,9 +8,9 @@ extension type Id(core::int _) {
   constructor • = self::Id|constructor#;
   constructor tearoff • = self::Id|constructor#_#new#tearOff;
 }
-static extension-type-member method Id|constructor#(core::int _) → self::Id% /* erasure=core::int, declared=! */
+static extension-type-member method Id|constructor#(wildcard core::int _#wc0#formal) → self::Id% /* erasure=core::int, declared=! */
   ;
-static extension-type-member synthetic method Id|constructor#_#new#tearOff(core::int _) → self::Id% /* erasure=core::int, declared=! */
-  return self::Id|constructor#(_);
+static extension-type-member synthetic method Id|constructor#_#new#tearOff(core::int _#wc0#formal) → self::Id% /* erasure=core::int, declared=! */
+  return self::Id|constructor#(_#wc0#formal);
 static extension-type-member method Id|<(lowered final self::Id% /* erasure=core::int, declared=! */ #this, self::Id% /* erasure=core::int, declared=! */ other) → dynamic
   ;

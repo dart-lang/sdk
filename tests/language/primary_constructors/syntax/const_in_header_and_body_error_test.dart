@@ -29,7 +29,7 @@ extension type const C(int x) {
 }
 
 enum const E1(final int x) {
-  one(x: 1);
+  one(1);
   const this : assert(x != 2);
   //^
   // [analyzer] unspecified

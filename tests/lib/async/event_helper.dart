@@ -81,7 +81,7 @@ class Events implements EventSink {
   factory Events.capture(Stream stream, {bool cancelOnError}) = CaptureEvents;
 
   // EventSink interface.
-  void add(var value) {
+  void add(value) {
     if (trace) print("Events#$hashCode: add($value)");
     events.add(new DataEvent(value));
   }
@@ -100,7 +100,7 @@ class Events implements EventSink {
   /**
    * Error shorthand, for writing events manually.
    */
-  void error(var value, [StackTrace? stackTrace]) {
+  void error(value, [StackTrace? stackTrace]) {
     addError(value, stackTrace);
   }
 

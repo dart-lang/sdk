@@ -81,7 +81,7 @@ class ReplaceTopBottomVisitor {
 
     return aliasElement.instantiateImpl(
       typeArguments: newTypeArguments,
-      nullabilitySuffix: type.nullabilitySuffix,
+      nullabilitySuffix: alias.nullabilitySuffix,
     );
   }
 

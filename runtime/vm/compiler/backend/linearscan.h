@@ -403,7 +403,7 @@ class FlowGraphAllocator : public ValueObject {
 // where instruction expects the value (if slot contains a fixed location) or
 // asks register allocator to allocate storage (register or spill slot) for
 // this use with certain properties (if slot contains an unallocated location).
-class UsePosition : public ZoneAllocated {
+class UsePosition : public ZoneObject {
  public:
   UsePosition(intptr_t pos, UsePosition* next, Location* location_slot)
       : pos_(pos), location_slot_(location_slot), hint_(nullptr), next_(next) {
@@ -445,7 +445,7 @@ class UsePosition : public ZoneAllocated {
 // the end position.  The interval can cover zero or more uses.
 // Note: currently all uses of the same SSA value are linked together into a
 // single list (and not split between UseIntervals).
-class UseInterval : public ZoneAllocated {
+class UseInterval : public ZoneObject {
  public:
   UseInterval(intptr_t start, intptr_t end, UseInterval* next)
       : start_(start), end_(end), next_(next) {}
@@ -506,7 +506,7 @@ class AllocationFinger : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(AllocationFinger);
 };
 
-class SafepointPosition : public ZoneAllocated {
+class SafepointPosition : public ZoneObject {
  public:
   SafepointPosition(intptr_t pos, LocationSummary* locs)
       : pos_(pos), locs_(locs), next_(nullptr) {}
@@ -526,7 +526,7 @@ class SafepointPosition : public ZoneAllocated {
 };
 
 // LiveRange represents a sequence of UseIntervals for a given SSA value.
-class LiveRange : public ZoneAllocated {
+class LiveRange : public ZoneObject {
  public:
   explicit LiveRange(intptr_t vreg, Representation rep)
       : vreg_(vreg),

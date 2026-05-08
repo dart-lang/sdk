@@ -17,7 +17,10 @@ void fieldValidator(PubspecValidationContext ctx) {
   for (var field in contents.nodes.keys) {
     var name = ctx.asString(field);
     if (field is YamlNode && name != null && _deprecatedFields.contains(name)) {
-      ctx.reportErrorForNode(field, diag.deprecatedField, [name]);
+      ctx.reportErrorForNode(
+        field,
+        diag.deprecatedField.withArguments(fieldName: name),
+      );
     }
   }
 }

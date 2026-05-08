@@ -423,6 +423,19 @@ class C {
     );
   }
 
+  test_unused_fromDeclaringParameter() async {
+    await assertDiagnostics(
+      r'''
+class C(var int _x) {
+  void m() {
+    print(_x);
+  }
+}
+''',
+      [lint(8, 10)],
+    );
+  }
+
   test_unused_multiple() async {
     await assertDiagnostics(
       r'''

@@ -1270,7 +1270,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -1284,7 +1284,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -1755,14 +1755,14 @@ library
             #F2 isOriginDeclaration f (nameOffset:58) (firstTokenOffset:58) (offset:58)
               element: <testLibrary>::@class::A::@field::f
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F4 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::A::@getter::f
           setters
-            #F5 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F5 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::A::@setter::f
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
@@ -1788,11 +1788,11 @@ library
           getter: <testLibrary>::@class::A::@getter::f
           setter: <testLibrary>::@class::A::@setter::f
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
-        synthetic isOriginVariable f
+        isOriginVariable f
           reference: <testLibrary>::@class::A::@getter::f
           firstFragment: #F4
           returnType: int Function<T>(T)
@@ -1801,7 +1801,7 @@ library
                 int
           variable: <testLibrary>::@class::A::@field::f
       setters
-        synthetic isOriginVariable f
+        isOriginVariable f
           reference: <testLibrary>::@class::A::@setter::f
           firstFragment: #F5
           formalParameters
@@ -1844,7 +1844,7 @@ library
             #F2 T (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -1859,7 +1859,7 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
@@ -1890,7 +1890,7 @@ library
             #F2 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -1905,7 +1905,7 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
@@ -1936,7 +1936,7 @@ library
             #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -1951,7 +1951,7 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
@@ -2040,7 +2040,7 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -2055,7 +2055,7 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
@@ -2086,7 +2086,7 @@ library
             #F2 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -2101,7 +2101,7 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
@@ -2481,7 +2481,7 @@ library
         #F1 class D (nameOffset:55) (firstTokenOffset:49) (offset:55)
           element: <testLibrary>::@class::D
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -2497,7 +2497,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -2629,10 +2629,6 @@ library
 ''');
   }
 
-  @SkippedTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/45291',
-    reason: 'Type dynamic is special, no support for its aliases yet',
-  )
   test_typedef_nonFunction_aliasElement_dynamic() async {
     var library = await buildLibrary(r'''
 typedef A = dynamic;
@@ -2640,8 +2636,35 @@ void f(A a) {}
 ''');
 
     checkElementText(library, r'''
-typedef A = dynamic;
-void f(dynamic<aliasElement: self::@typeAlias::A> a) {}
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::A
+      functions
+        #F2 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:21) (offset:26)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F3 requiredPositional a (nameOffset:30) (firstTokenOffset:28) (offset:30)
+              element: <testLibrary>::@function::f::@formalParameter::a
+  typeAliases
+    A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
+      aliasedType: dynamic
+  functions
+    isOriginDeclaration f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional a
+          firstFragment: #F3
+          type: dynamic
+            alias: <testLibrary>::@typeAlias::A
+      returnType: void
 ''');
   }
 
@@ -2788,10 +2811,6 @@ library
 ''');
   }
 
-  @SkippedTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/45291',
-    reason: 'Type Never is special, no support for its aliases yet',
-  )
   test_typedef_nonFunction_aliasElement_never() async {
     var library = await buildLibrary(r'''
 typedef A1 = Never;
@@ -2801,10 +2820,63 @@ void f2(A2<int> a) {}
 ''');
 
     checkElementText(library, r'''
-typedef A1 = Never;
-typedef A2<T> = Never?;
-void f1(Never<aliasElement: self::@typeAlias::A1> a) {}
-void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 A1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::A1
+        #F2 A2 (nameOffset:28) (firstTokenOffset:20) (offset:28)
+          element: <testLibrary>::@typeAlias::A2
+          typeParameters
+            #F3 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
+              element: #E0 T
+      functions
+        #F4 isOriginDeclaration f1 (nameOffset:49) (firstTokenOffset:44) (offset:49)
+          element: <testLibrary>::@function::f1
+          formalParameters
+            #F5 requiredPositional a (nameOffset:55) (firstTokenOffset:52) (offset:55)
+              element: <testLibrary>::@function::f1::@formalParameter::a
+        #F6 isOriginDeclaration f2 (nameOffset:66) (firstTokenOffset:61) (offset:66)
+          element: <testLibrary>::@function::f2
+          formalParameters
+            #F7 requiredPositional a (nameOffset:77) (firstTokenOffset:69) (offset:77)
+              element: <testLibrary>::@function::f2::@formalParameter::a
+  typeAliases
+    A1
+      reference: <testLibrary>::@typeAlias::A1
+      firstFragment: #F1
+      aliasedType: Never
+    A2
+      reference: <testLibrary>::@typeAlias::A2
+      firstFragment: #F2
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+      aliasedType: Never?
+  functions
+    isOriginDeclaration f1
+      reference: <testLibrary>::@function::f1
+      firstFragment: #F4
+      formalParameters
+        #E1 requiredPositional a
+          firstFragment: #F5
+          type: Never
+            alias: <testLibrary>::@typeAlias::A1
+      returnType: void
+    isOriginDeclaration f2
+      reference: <testLibrary>::@function::f2
+      firstFragment: #F6
+      formalParameters
+        #E2 requiredPositional a
+          firstFragment: #F7
+          type: Never?
+            alias: <testLibrary>::@typeAlias::A2
+              typeArguments
+                int
+      returnType: void
 ''');
   }
 
@@ -2913,10 +2985,6 @@ library
 ''');
   }
 
-  @SkippedTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/45291',
-    reason: 'Type void is special, no support for its aliases yet',
-  )
   test_typedef_nonFunction_aliasElement_void() async {
     var library = await buildLibrary(r'''
 typedef A = void;
@@ -2924,8 +2992,35 @@ void f(A a) {}
 ''');
 
     checkElementText(library, r'''
-typedef A = void;
-void f(void<aliasElement: self::@typeAlias::A> a) {}
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::A
+      functions
+        #F2 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F3 requiredPositional a (nameOffset:27) (firstTokenOffset:25) (offset:27)
+              element: <testLibrary>::@function::f::@formalParameter::a
+  typeAliases
+    A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
+      aliasedType: void
+  functions
+    isOriginDeclaration f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional a
+          firstFragment: #F3
+          type: void
+            alias: <testLibrary>::@typeAlias::A
+      returnType: void
 ''');
   }
 
@@ -2950,13 +3045,13 @@ library
             #F3 U (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: #E1 U
           constructors
-            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F5 class B (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::B
           constructors
-            #F6 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -2975,7 +3070,7 @@ library
         #E1 U
           firstFragment: #F3
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
     class B
@@ -2987,7 +3082,7 @@ library
             typeArguments
               String
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
   typeAliases
@@ -3022,25 +3117,25 @@ library
             #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@class::C
           constructors
-            #F7 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
           element: <testLibrary>::@class::D
           constructors
-            #F9 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3057,21 +3152,21 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F6
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
     class D
@@ -3081,7 +3176,7 @@ library
         B
         C
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
   typeAliases
@@ -3116,25 +3211,25 @@ library
             #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@class::C
           constructors
-            #F7 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
           element: <testLibrary>::@class::D
           constructors
-            #F9 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3151,21 +3246,21 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F6
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
     class D
@@ -3179,7 +3274,7 @@ library
               int
         C
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
   typeAliases
@@ -3208,7 +3303,7 @@ library
         #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -3219,7 +3314,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -3245,7 +3340,7 @@ library
         #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -3256,7 +3351,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -3284,13 +3379,13 @@ library
         #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
@@ -3299,7 +3394,7 @@ library
             #F6 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
               element: #E0 U
           constructors
-            #F7 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -3313,14 +3408,14 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F3
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
     class C
@@ -3333,7 +3428,7 @@ library
         A
         B
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
   typeAliases
@@ -3364,19 +3459,19 @@ library
         #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
           element: <testLibrary>::@class::C
           constructors
-            #F6 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -3387,14 +3482,14 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F3
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
     class C
@@ -3404,7 +3499,7 @@ library
         A
         B
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
   typeAliases
@@ -3434,13 +3529,13 @@ library
             #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3454,7 +3549,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
@@ -3465,7 +3560,7 @@ library
         A<int>
           alias: <testLibrary>::@typeAlias::X
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
   typeAliases
@@ -3497,13 +3592,13 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
@@ -3522,7 +3617,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
@@ -3533,7 +3628,7 @@ library
         M1
         M2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
   mixins
@@ -3576,13 +3671,13 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
@@ -3601,7 +3696,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
@@ -3614,7 +3709,7 @@ library
           alias: <testLibrary>::@typeAlias::X
         M2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
   mixins
@@ -3651,7 +3746,7 @@ library
         #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -3662,7 +3757,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -3692,13 +3787,13 @@ library
             #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3712,7 +3807,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
@@ -3721,7 +3816,7 @@ library
       supertype: A<int>
         alias: <testLibrary>::@typeAlias::X
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           superConstructor: ConstructorMember
@@ -3754,13 +3849,13 @@ library
             #F2 T (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3777,7 +3872,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
@@ -3788,7 +3883,7 @@ library
           typeArguments
             A<int>
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           superConstructor: ConstructorMember
@@ -3820,7 +3915,7 @@ library
         #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -3831,7 +3926,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -3861,13 +3956,13 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::D
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3881,14 +3976,14 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
   typeAliases
@@ -3918,13 +4013,13 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::D
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3938,7 +4033,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class D
@@ -3947,7 +4042,7 @@ library
       supertype: A<int?>
         alias: <testLibrary>::@typeAlias::X
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
           superConstructor: ConstructorMember
@@ -3976,7 +4071,7 @@ library
         #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -3987,7 +4082,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -4013,7 +4108,7 @@ library
         #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -4024,7 +4119,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
@@ -4089,6 +4184,7 @@ library
         #E0 requiredPositional a
           firstFragment: #F3
           type: dynamic
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -4288,6 +4384,7 @@ library
         #E0 requiredPositional a
           firstFragment: #F3
           type: Never
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -4325,6 +4422,99 @@ library
         #E0 requiredPositional a
           firstFragment: #F3
           type: Never?
+            alias: <testLibrary>::@typeAlias::A
+      returnType: void
+''');
+  }
+
+  test_typedef_nonFunction_using_notGeneric_nullability() async {
+    var library = await buildLibrary(r'''
+typedef A1 = String;
+typedef A2 = String?;
+void f1(A1 a) {}
+void f2(A1? a) {}
+void f3(A2 a) {}
+void f4(A2? a) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 A1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::A1
+        #F2 A2 (nameOffset:29) (firstTokenOffset:21) (offset:29)
+          element: <testLibrary>::@typeAlias::A2
+      functions
+        #F3 isOriginDeclaration f1 (nameOffset:48) (firstTokenOffset:43) (offset:48)
+          element: <testLibrary>::@function::f1
+          formalParameters
+            #F4 requiredPositional a (nameOffset:54) (firstTokenOffset:51) (offset:54)
+              element: <testLibrary>::@function::f1::@formalParameter::a
+        #F5 isOriginDeclaration f2 (nameOffset:65) (firstTokenOffset:60) (offset:65)
+          element: <testLibrary>::@function::f2
+          formalParameters
+            #F6 requiredPositional a (nameOffset:72) (firstTokenOffset:68) (offset:72)
+              element: <testLibrary>::@function::f2::@formalParameter::a
+        #F7 isOriginDeclaration f3 (nameOffset:83) (firstTokenOffset:78) (offset:83)
+          element: <testLibrary>::@function::f3
+          formalParameters
+            #F8 requiredPositional a (nameOffset:89) (firstTokenOffset:86) (offset:89)
+              element: <testLibrary>::@function::f3::@formalParameter::a
+        #F9 isOriginDeclaration f4 (nameOffset:100) (firstTokenOffset:95) (offset:100)
+          element: <testLibrary>::@function::f4
+          formalParameters
+            #F10 requiredPositional a (nameOffset:107) (firstTokenOffset:103) (offset:107)
+              element: <testLibrary>::@function::f4::@formalParameter::a
+  typeAliases
+    A1
+      reference: <testLibrary>::@typeAlias::A1
+      firstFragment: #F1
+      aliasedType: String
+    A2
+      reference: <testLibrary>::@typeAlias::A2
+      firstFragment: #F2
+      aliasedType: String?
+  functions
+    isOriginDeclaration f1
+      reference: <testLibrary>::@function::f1
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional a
+          firstFragment: #F4
+          type: String
+            alias: <testLibrary>::@typeAlias::A1
+      returnType: void
+    isOriginDeclaration f2
+      reference: <testLibrary>::@function::f2
+      firstFragment: #F5
+      formalParameters
+        #E1 requiredPositional a
+          firstFragment: #F6
+          type: String?
+            alias: <testLibrary>::@typeAlias::A1
+              nullabilitySuffix: NullabilitySuffix.question
+      returnType: void
+    isOriginDeclaration f3
+      reference: <testLibrary>::@function::f3
+      firstFragment: #F7
+      formalParameters
+        #E2 requiredPositional a
+          firstFragment: #F8
+          type: String?
+            alias: <testLibrary>::@typeAlias::A2
+      returnType: void
+    isOriginDeclaration f4
+      reference: <testLibrary>::@function::f4
+      firstFragment: #F9
+      formalParameters
+        #E3 requiredPositional a
+          firstFragment: #F10
+          type: String?
+            alias: <testLibrary>::@typeAlias::A2
+              nullabilitySuffix: NullabilitySuffix.question
       returnType: void
 ''');
   }
@@ -4374,6 +4564,9 @@ library
         #E1 requiredPositional a
           firstFragment: #F4
           type: dynamic
+            alias: <testLibrary>::@typeAlias::A
+              typeArguments
+                dynamic
       returnType: void
     isOriginDeclaration f2
       reference: <testLibrary>::@function::f2
@@ -4394,6 +4587,7 @@ library
 typedef A<T> = T?;
 void f1(A a) {}
 void f2(A<int> a) {}
+void f3(A<int>? a) {}
 ''');
     checkElementText(library, r'''
 library
@@ -4418,6 +4612,11 @@ library
           formalParameters
             #F6 requiredPositional a (nameOffset:50) (firstTokenOffset:43) (offset:50)
               element: <testLibrary>::@function::f2::@formalParameter::a
+        #F7 isOriginDeclaration f3 (nameOffset:61) (firstTokenOffset:56) (offset:61)
+          element: <testLibrary>::@function::f3
+          formalParameters
+            #F8 requiredPositional a (nameOffset:72) (firstTokenOffset:64) (offset:72)
+              element: <testLibrary>::@function::f3::@formalParameter::a
   typeAliases
     A
       reference: <testLibrary>::@typeAlias::A
@@ -4434,6 +4633,9 @@ library
         #E1 requiredPositional a
           firstFragment: #F4
           type: dynamic
+            alias: <testLibrary>::@typeAlias::A
+              typeArguments
+                dynamic
       returnType: void
     isOriginDeclaration f2
       reference: <testLibrary>::@function::f2
@@ -4445,6 +4647,18 @@ library
             alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
+      returnType: void
+    isOriginDeclaration f3
+      reference: <testLibrary>::@function::f3
+      firstFragment: #F7
+      formalParameters
+        #E3 requiredPositional a
+          firstFragment: #F8
+          type: int?
+            alias: <testLibrary>::@typeAlias::A
+              typeArguments
+                int
+              nullabilitySuffix: NullabilitySuffix.question
       returnType: void
 ''');
   }
@@ -4482,6 +4696,7 @@ library
         #E0 requiredPositional a
           firstFragment: #F3
           type: void
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }

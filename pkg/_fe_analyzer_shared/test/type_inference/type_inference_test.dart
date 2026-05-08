@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
@@ -293,6 +294,75 @@ main() {
   });
 
   group('Expressions:', () {
+    group('await:', () {
+      group('AwaitExpressionResult:', () {
+        test('operandType', () {
+          h.run([
+            await_(expr('int')).checkExpressionTypeAnalysisResult((result) {
+              result as AwaitExpressionResult;
+              expect(result.operandType.toString(), 'int');
+            }),
+          ]);
+        });
+      });
+
+      group('Downward inference:', () {
+        test('Schema is FutureOr<S>', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<int>'),
+            ).inTypeSchema('FutureOr<int>'),
+          ]);
+        });
+
+        test('Schema is FutureOr<S>?', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<int>?'),
+            ).inTypeSchema('FutureOr<int>?'),
+          ]);
+        });
+
+        test('Schema is dynamic', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<_>'),
+            ).inTypeSchema('dynamic'),
+          ]);
+        });
+
+        test('Schema is other type', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<int>'),
+            ).inTypeSchema('int'),
+          ]);
+        });
+      });
+
+      group('Upward inference:', () {
+        test('Operand has type Future<S>', () {
+          h.run([await_(expr('Future<int>')).checkType('int')]);
+        });
+
+        test('Operand has type FutureOr<S>', () {
+          h.run([await_(expr('FutureOr<int>')).checkType('int')]);
+        });
+
+        test('Operand has type Future<S>?', () {
+          h.run([await_(expr('Future<int>?')).checkType('int?')]);
+        });
+
+        test('Operand has type FutureOr<S>?', () {
+          h.run([await_(expr('FutureOr<int>?')).checkType('int?')]);
+        });
+
+        test('Operand has other type', () {
+          h.run([await_(expr('int')).checkType('int')]);
+        });
+      });
+    });
+
     group('cascade:', () {
       group('IR:', () {
         test('not null-aware', () {
@@ -328,55 +398,91 @@ main() {
     group('integer literal', () {
       test('double type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: true,
-          ).checkType('double').checkIR('1.0f').inTypeSchema('double'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  true,
+                );
+              })
+              .checkType('double')
+              .checkIR('1.0f')
+              .inTypeSchema('double'),
         ]);
       });
 
       test('int type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('int'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('int'),
         ]);
       });
 
       test('num type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('num'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('num'),
         ]);
       });
 
       test('double? type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: true,
-          ).checkType('double').checkIR('1.0f').inTypeSchema('double?'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  true,
+                );
+              })
+              .checkType('double')
+              .checkIR('1.0f')
+              .inTypeSchema('double?'),
         ]);
       });
 
       test('int? type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('int?'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('int?'),
         ]);
       });
 
       test('unknown type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('_'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('_'),
         ]);
       });
 
@@ -389,10 +495,16 @@ main() {
         //     x = 1;
         //   }
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('String'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('String'),
         ]);
       });
     });
@@ -1901,6 +2013,137 @@ main() {
               );
             },
           );
+        });
+      });
+    });
+
+    group('Yield:', () {
+      group('YieldExpressionResult:', () {
+        group('operandType:', () {
+          test('yield', () {
+            h.run([
+              yield_(expr('int')).checkStatementTypeAnalysisResult((result) {
+                result as YieldStatementResult;
+                expect(result.operandType.toString(), 'int');
+              }),
+            ]);
+          });
+
+          test('yield*', () {
+            h.run([
+              yield_(
+                isYieldStar: true,
+                expr('List<int>'),
+              ).checkStatementTypeAnalysisResult((result) {
+                result as YieldStatementResult;
+                expect(result.operandType.toString(), 'List<int>');
+              }),
+            ]);
+          });
+        });
+      });
+
+      group('Downward inference:', () {
+        group('with unknown context:', () {
+          group('yield:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(expr('int').checkSchema('_'))],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(expr('int').checkSchema('_'))],
+              );
+            });
+          });
+
+          group('yield*:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(isYieldStar: true, expr('int').checkSchema('_'))],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(isYieldStar: true, expr('int').checkSchema('_'))],
+              );
+            });
+          });
+        });
+
+        group('with known context:', () {
+          group('yield:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('int'),
+                ),
+                [yield_(expr('int').checkSchema('int'))],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('int'),
+                ),
+                [yield_(expr('int').checkSchema('int'))],
+              );
+            });
+          });
+
+          group('yield*:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('int'),
+                ),
+                [
+                  yield_(
+                    isYieldStar: true,
+                    expr('int').checkSchema('Iterable<int>'),
+                  ),
+                ],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('int'),
+                ),
+                [
+                  yield_(
+                    isYieldStar: true,
+                    expr('int').checkSchema('Stream<int>'),
+                  ),
+                ],
+              );
+            });
+          });
         });
       });
     });
@@ -3447,6 +3690,13 @@ main() {
           x
               .pattern()
               .assign(expr('int').checkSchema('num'))
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as PatternAssignmentAnalysisResult).patternSchema
+                      .toString(),
+                  'num',
+                );
+              })
               .inTypeSchema('Object'),
         ]);
       });

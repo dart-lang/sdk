@@ -114,18 +114,18 @@ class LspMetaModelCleaner {
     // spaces.
     text = text.replaceAllMapped(
       _sourceCommentWrappingNewlinesPattern,
-      (match) => match.group(0)!.replaceAll('\n', ' '),
+      (match) => match[0]!.replaceAll('\n', ' '),
     );
 
     // Replace any references to other types with a format that's valid for
     // Dart.
     text = text.replaceAllMapped(
       _sourceCommentDocumentLinksPattern,
-      (match) => '[${match.group(1)!}]',
+      (match) => '[${match[1]!}]',
     );
     text = text.replaceAllMapped(
       _sourceCommentReferencesPattern,
-      (match) => '[${match.group(1)!}]',
+      (match) => '[${match[1]!}]',
     );
 
     // Replace any references to Thenable/Promise to Future.

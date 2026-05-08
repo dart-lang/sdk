@@ -74,7 +74,13 @@ final tests = <VMTest>[
     // Trigger an error by issuing an HTTP PUT.
     result = await postToDevFS(content: fileContents, omitDevFsUri: true);
     if (result case {'error': {'data': {'details': final String details}}}) {
-      expect(details.contains("expects the 'path' parameter"), true);
+      print(details);
+      expect(
+        // TODO(bkonyi): remove the 'path' case once we move to the new VM
+        // service implementation.
+        details.contains(RegExp("expects the '(uri|path)' parameter")),
+        true,
+      );
     } else {
       invalidResponse(result);
     }

@@ -158,8 +158,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isSameLine(Token token1, Token token2) =>
-      _lineInfo.getLocation(token1.offset).lineNumber ==
-      _lineInfo.getLocation(token2.end).lineNumber;
+      _lineInfo.onSameLine(token1.offset, token2.end);
 
   bool _shouldAllowTrailingCommaException(AstNode lastNode) {
     // No exceptions are allowed if the last argument is named.

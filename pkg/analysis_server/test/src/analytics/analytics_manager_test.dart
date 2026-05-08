@@ -12,6 +12,7 @@ import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -465,9 +466,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
     await manager.changedPlugins(
-      _MockPluginManager(
-        pluginIsolates: [_pluginIsolate('a'), _pluginIsolate('b')],
-      ),
+      TestPluginManager()
+        ..pluginIsolates.addAll([_pluginIsolate('a'), _pluginIsolate('b')]),
     );
     await manager.shutdown();
     analytics.assertEvents([
@@ -754,25 +754,4 @@ class _MockAnalytics implements NoOpAnalytics {
 
   @override
   void suppressTelemetry() {}
-}
-
-class _MockPluginManager implements PluginManager {
-  @override
-  List<PluginIsolate> pluginIsolates;
-
-  _MockPluginManager({this.pluginIsolates = const []});
-
-  @override
-  Set<String> get contextRootsWithNoPlugins => {};
-
-  @override
-  List<PluginIsolate> get legacyPluginIsolates =>
-      pluginIsolates.where((i) => i.isLegacy).toList();
-
-  @override
-  List<PluginIsolate> get newPluginIsolates =>
-      pluginIsolates.where((i) => !i.isLegacy).toList();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

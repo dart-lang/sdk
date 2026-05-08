@@ -100,9 +100,9 @@ StackFrameLocation? _parseStackFrame(String input) {
   final match = _stackFrameLocationPattern.firstMatch(input);
   if (match == null) return null;
 
-  final uriMatch = match.group(1);
-  final lineMatch = match.group(2);
-  final colMatch = match.group(3);
+  final uriMatch = match[1];
+  final lineMatch = match[2];
+  final colMatch = match[3];
 
   var uri = uriMatch != null ? Uri.tryParse(uriMatch) : null;
   final line = lineMatch != null ? int.tryParse(lineMatch) : null;

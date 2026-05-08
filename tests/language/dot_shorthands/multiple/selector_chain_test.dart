@@ -5,8 +5,6 @@
 // Dot shorthands selector chains in collections, cascades, `??` and other
 // contexts.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import 'dart:async';
 
 import '../dot_shorthand_helper.dart';

@@ -203,10 +203,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
       if (element.name case var name?) {
-        diagnosticReporter.atNode(
-          node,
-          diag.prefixIdentifierNotFollowedByDot,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.prefixIdentifierNotFollowedByDot
+              .withArguments(name: name)
+              .at(node),
         );
       }
     } else if (element == null) {
@@ -216,10 +216,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,
       )) {
-        diagnosticReporter.atNode(
-          node,
-          diag.undefinedIdentifier,
-          arguments: [node.name],
+        diagnosticReporter.report(
+          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
         );
       }
     }
@@ -326,10 +324,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    _resolver.diagnosticReporter.atNode(
-      node,
-      diag.extensionAsExpression,
-      arguments: [node.name],
+    _resolver.diagnosticReporter.report(
+      diag.extensionAsExpression.withArguments(name: node.name).at(node),
     );
 
     if (node is PrefixedIdentifierImpl) {

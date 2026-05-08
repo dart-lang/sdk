@@ -34,9 +34,9 @@ test(x) {
 }
 
 class A {
-  foo(var x) => x;
+  foo(x) => x;
 }
 
 class B implements A {
-  foo(var x) => x - 87;
+  foo(x) => x - 87;
 }

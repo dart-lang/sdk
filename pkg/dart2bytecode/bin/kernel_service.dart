@@ -20,21 +20,26 @@ Uint8List _generateBytecode(
   CoreTypes coreTypes,
   ClassHierarchy hierarchy,
   Target target,
-  bool enableAsserts,
-) {
+  bool enableAsserts, {
+  Set<Library> extraLoadedLibraries = const {},
+}) {
   final byteSink = new BytesSink();
-  generateBytecode(component, byteSink,
-      libraries: libraries,
-      coreTypes: coreTypes,
-      hierarchy: hierarchy,
-      target: target,
-      options: BytecodeOptions(
-        enableAsserts: enableAsserts,
-        emitSourcePositions: true,
-        emitLocalVarInfo: true,
-        emitInstanceFieldInitializers: true,
-        embedSourceText: true,
-      ));
+  generateBytecode(
+    component,
+    byteSink,
+    libraries: libraries,
+    extraLoadedLibraries: extraLoadedLibraries,
+    coreTypes: coreTypes,
+    hierarchy: hierarchy,
+    target: target,
+    options: BytecodeOptions(
+      enableAsserts: enableAsserts,
+      emitSourcePositions: true,
+      emitLocalVarInfo: true,
+      emitInstanceFieldInitializers: true,
+      embedSourceText: true,
+    ),
+  );
   return byteSink.builder.takeBytes();
 }
 

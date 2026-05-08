@@ -40,7 +40,7 @@ class IntPriority extends Priority {
  * querying of the queues.
  */
 abstract class TypedElement<V> {
-  bool typeEquals(var other);
+  bool typeEquals(other);
 }
 
 class StringTypedElement<V> extends TypedElement {

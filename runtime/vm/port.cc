@@ -312,21 +312,6 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
 #endif
 }
 
-void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
-  SafepointMutexLocker ml(mutex_);
-  if (ports_ == nullptr) {
-    return;
-  }
-  Object& msg_handler = Object::Handle();
-  for (auto& entry : *ports_) {
-    if (entry.handler == handler) {
-      OS::PrintErr("Port = %" Pd64 "\n", entry.port);
-      msg_handler = DartLibraryCalls::LookupHandler(entry.port);
-      OS::PrintErr("Handler = %s\n", msg_handler.ToCString());
-    }
-  }
-}
-
 PortHandler::~PortHandler() {}
 
 #if defined(DEBUG)

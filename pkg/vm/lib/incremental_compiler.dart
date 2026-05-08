@@ -103,6 +103,7 @@ class IncrementalCompiler {
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     ClassHierarchy classHierarchy = _pendingDeltas.last.classHierarchy;
     CoreTypes coreTypes = _pendingDeltas.last.coreTypes;
+    Set<Library> neededDillLibraries = <Library>{};
     for (IncrementalCompilerResult deltaResult in _pendingDeltas) {
       Component delta = deltaResult.component;
       if (delta.mainMethod != null) {
@@ -112,7 +113,10 @@ class IncrementalCompiler {
       for (Library library in delta.libraries) {
         bool isPlatform =
             library.importUri.isScheme("dart") && !library.isSynthetic;
-        if (!includePlatform && isPlatform) continue;
+        if (!includePlatform && isPlatform) {
+          neededDillLibraries.add(library);
+          continue;
+        }
         combined[library.importUri] = library;
       }
     }
@@ -125,6 +129,7 @@ class IncrementalCompiler {
       )..setMainMethodAndMode(mainMethod?.reference, true),
       classHierarchy: classHierarchy,
       coreTypes: coreTypes,
+      neededDillLibraries: neededDillLibraries,
     );
     if (_pendingDeltas.length == 1) {
       // With only one delta to "merge" we can copy over the metadata.
@@ -166,15 +171,14 @@ class IncrementalCompiler {
     }
     uriToSource.addAll(candidate.uriToSource);
 
-    _lastKnownGood =
-        lastKnownGood = new IncrementalCompilerResult(
-          new Component(
-            libraries: combined.values.toList(),
-            uriToSource: uriToSource,
-          )..setMainMethodAndMode(candidate.mainMethod?.reference, true),
-          classHierarchy: result.classHierarchy,
-          coreTypes: result.coreTypes,
-        );
+    _lastKnownGood = lastKnownGood = new IncrementalCompilerResult(
+      new Component(
+        libraries: combined.values.toList(),
+        uriToSource: uriToSource,
+      )..setMainMethodAndMode(candidate.mainMethod?.reference, true),
+      classHierarchy: result.classHierarchy,
+      coreTypes: result.coreTypes,
+    );
     for (final repo in candidate.metadata.values) {
       lastKnownGood.component.addMetadataRepository(repo);
     }

@@ -77,9 +77,6 @@ extern InvalidClass kUWordMax;
 extern InvalidClass kNewObjectAlignmentOffset;
 extern InvalidClass kOldObjectAlignmentOffset;
 extern InvalidClass kNewObjectBitPosition;
-extern InvalidClass kPageSize;
-extern InvalidClass kPageSizeInWords;
-extern InvalidClass kPageMask;
 extern InvalidClass kObjectAlignment;
 extern InvalidClass kObjectAlignmentLog2;
 extern InvalidClass kObjectAlignmentMask;
@@ -298,18 +295,9 @@ constexpr word kWordMin = -(static_cast<uword>(1) << (kBitsPerWord - 1));
 constexpr uword kUwordMax = static_cast<word>(-1);
 
 // The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
-#if !defined(DART_COMPRESSED_POINTERS)
-constexpr intptr_t kSmiBits = kBitsPerWord - 2;
-#else
-constexpr intptr_t kSmiBits = 30;
-#endif
+constexpr intptr_t kSmiBits = kCompressedWordSize * kBitsPerByte - 2;
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
-
-// Information about heap pages.
-extern const word kPageSize;
-extern const word kPageSizeInWords;
-extern const word kPageMask;
 
 static constexpr intptr_t kObjectAlignment = ObjectAlignment::kObjectAlignment;
 
@@ -420,9 +408,11 @@ class UntaggedObject : public AllStatic {
   static const word kCardRememberedBit;
   static const word kCanonicalBit;
   static const word kNewOrEvacuationCandidateBit;
+  static const word kAlwaysSetBit;
   static const word kOldAndNotRememberedBit;
   static const word kNotMarkedBit;
-  static const word kImmutableBit;
+  static const word kShallowImmutableBit;
+  static const word kDeeplyImmutableBit;
   static const word kSizeTagPos;
   static const word kSizeTagSize;
   static const word kClassIdTagPos;
@@ -432,7 +422,6 @@ class UntaggedObject : public AllStatic {
   static const word kHashTagSize;
 #endif
   static const word kSizeTagMaxSizeTag;
-  static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
   static const word kGenerationalBarrierMask;
   static const word kIncrementalBarrierMask;
@@ -1504,6 +1493,7 @@ class ClosureData : public AllStatic {
 class Page : public AllStatic {
  public:
   static const word kBytesPerCardLog2;
+  static const word kPageMask;
 
   static word card_table_offset();
   static word original_top_offset();
@@ -1512,6 +1502,8 @@ class Page : public AllStatic {
 
 class Heap : public AllStatic {
  public:
+  static const word kNewAllocatableSize;
+
   // Return true if an object with the given instance size is allocatable
   // in new space on the target.
   static bool IsAllocatableInNewSpace(intptr_t instance_size);

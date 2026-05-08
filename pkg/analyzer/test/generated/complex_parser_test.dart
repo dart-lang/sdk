@@ -5,14 +5,10 @@
 /// @docImport 'simple_parser_test.dart';
 library;
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/ast_type_matchers.dart';
-import 'parser_test_base.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -27,589 +23,2026 @@ main() {
 ///
 /// Simpler tests should be defined in the class [SimpleParserTest].
 @reflectiveTest
-class ComplexParserTest extends FastaParserTestCase {
+class ComplexParserTest extends ParserDiagnosticsTest {
   void test_additiveExpression_normal() {
-    var expression = parseExpression("x + y - z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x + y - z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_additiveExpression_noSpaces() {
-    var expression = parseExpression("i+1") as BinaryExpression;
-    expect(expression.leftOperand, isSimpleIdentifier);
-    expect(expression.rightOperand, isIntegerLiteral);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  i+1;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: i
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+''');
   }
 
   void test_additiveExpression_precedence_multiplicative_left() {
-    var expression = parseExpression("x * y + z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x * y + z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_additiveExpression_precedence_multiplicative_left_withSuper() {
-    var expression = parseExpression("super * y - z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super * y - z;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_additiveExpression_precedence_multiplicative_right() {
-    var expression = parseExpression("x + y * z") as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x + y * z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: +
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_additiveExpression_super() {
-    var expression = parseExpression("super + y - z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super + y - z;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_assignableExpression_arguments_normal_chain() {
-    var propertyAccess1 = parseExpression("a(b)(c).d(e).f") as PropertyAccess;
-    expect(propertyAccess1.propertyName.name, "f");
-    //
-    // a(b)(c).d(e)
-    //
-    var invocation2 = propertyAccess1.target as MethodInvocation;
-    expect(invocation2.methodName.name, "d");
-    expect(invocation2.typeArguments, isNull);
-    ArgumentList argumentList2 = invocation2.argumentList;
-    expect(argumentList2, isNotNull);
-    expect(argumentList2.arguments, hasLength(1));
-    //
-    // a(b)(c)
-    //
-    var invocation3 = invocation2.target as FunctionExpressionInvocation;
-    expect(invocation3.typeArguments, isNull);
-    ArgumentList argumentList3 = invocation3.argumentList;
-    expect(argumentList3, isNotNull);
-    expect(argumentList3.arguments, hasLength(1));
-    //
-    // a(b)
-    //
-    var invocation4 = invocation3.function as MethodInvocation;
-    expect(invocation4.methodName.name, "a");
-    expect(invocation4.typeArguments, isNull);
-    ArgumentList argumentList4 = invocation4.argumentList;
-    expect(argumentList4, isNotNull);
-    expect(argumentList4.arguments, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  a(b)(c).d(e).f;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+PropertyAccess
+  target: MethodInvocation
+    target: FunctionExpressionInvocation
+      function: MethodInvocation
+        methodName: SimpleIdentifier
+          token: a
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: c
+        rightParenthesis: )
+    operator: .
+    methodName: SimpleIdentifier
+      token: d
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: e
+      rightParenthesis: )
+  operator: .
+  propertyName: SimpleIdentifier
+    token: f
+''');
   }
 
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
-    _validate_assignableExpression_arguments_normal_chain_typeArguments(
-      "a<E>(b)<F>(c).d<G>(e).f",
-    );
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  a<E>(b)<F>(c).d<G>(e).f;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+PropertyAccess
+  target: MethodInvocation
+    target: FunctionExpressionInvocation
+      function: MethodInvocation
+        methodName: SimpleIdentifier
+          token: a
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: F
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: c
+        rightParenthesis: )
+    operator: .
+    methodName: SimpleIdentifier
+      token: d
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: G
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: e
+      rightParenthesis: )
+  operator: .
+  propertyName: SimpleIdentifier
+    token: f
+''');
   }
 
   void test_assignmentExpression_compound() {
-    var expression = parseExpression("x = y = 0") as AssignmentExpression;
-    expect(expression.leftHandSide, isSimpleIdentifier);
-    expect(expression.rightHandSide, isAssignmentExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x = y = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+  operator: =
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
+      token: y
+    operator: =
+    rightHandSide: IntegerLiteral
+      literal: 0
+''');
   }
 
   void test_assignmentExpression_indexExpression() {
-    var expression = parseExpression("x[1] = 0") as AssignmentExpression;
-    expect(expression.leftHandSide, isIndexExpression);
-    expect(expression.rightHandSide, isIntegerLiteral);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x[1] = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+    rightBracket: ]
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+''');
   }
 
   void test_assignmentExpression_prefixedIdentifier() {
-    var expression = parseExpression("x.y = 0") as AssignmentExpression;
-    expect(expression.leftHandSide, isPrefixedIdentifier);
-    expect(expression.rightHandSide, isIntegerLiteral);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x.y = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+    period: .
+    identifier: SimpleIdentifier
+      token: y
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+''');
   }
 
   void test_assignmentExpression_propertyAccess() {
-    var expression = parseExpression("super.y = 0") as AssignmentExpression;
-    expect(expression.leftHandSide, isPropertyAccess);
-    expect(expression.rightHandSide, isIntegerLiteral);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super.y = 0;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+    operator: .
+    propertyName: SimpleIdentifier
+      token: y
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+''');
   }
 
   void test_binary_operator_written_out_expression() {
-    var expression =
-        parseExpression(
-              'x xor y',
-              diagnostics: [expectedError(diag.binaryOperatorWrittenOut, 2, 3)],
-            )
-            as BinaryExpression;
-    var lhs = expression.leftOperand as SimpleIdentifier;
-    expect(lhs.name, 'x');
-    expect(expression.operator.lexeme, '^');
-    var rhs = expression.rightOperand as SimpleIdentifier;
-    expect(rhs.name, 'y');
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x xor y;
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 15, 3)]);
+
+    var node = parseResult.findNode.singleBlock;
+    assertParsedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: x
+        variables
+          VariableDeclaration
+            name: xor
+      semicolon: ; <synthetic>
+    ExpressionStatement
+      expression: SimpleIdentifier
+        token: y
+      semicolon: ;
+  rightBracket: }
+''');
   }
 
   void test_binary_operator_written_out_expression_logical() {
-    var expression =
-        parseExpression(
-              'x > 0 and y > 1',
-              diagnostics: [expectedError(diag.binaryOperatorWrittenOut, 6, 3)],
-            )
-            as BinaryExpression;
-    var lhs = expression.leftOperand as BinaryExpression;
-    expect((lhs.leftOperand as SimpleIdentifier).name, 'x');
-    expect(lhs.operator.lexeme, '>');
-    expect((lhs.rightOperand as IntegerLiteral).value, 0);
+    // Report `and` and recover with a synthetic `&&` in the parsed AST.
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x > 0 and y > 1;
+}
+''');
+    parseResult.assertErrors([error(diag.binaryOperatorWrittenOut, 19, 3)]);
 
-    expect(expression.operator.lexeme, '&&');
-
-    var rhs = expression.rightOperand as BinaryExpression;
-    expect((rhs.leftOperand as SimpleIdentifier).name, 'y');
-    expect(rhs.operator.lexeme, '>');
-    expect((rhs.rightOperand as IntegerLiteral).value, 1);
+    var node = parseResult.findNode.singleBlock;
+    assertParsedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: BinaryExpression
+        leftOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+        operator: && <synthetic>
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: y
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 1
+      semicolon: ;
+  rightBracket: }
+''');
   }
 
   void test_bitwiseAndExpression_normal() {
-    var expression = parseExpression("x & y & z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x & y & z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: &
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseAndExpression_precedence_equality_left() {
-    var expression = parseExpression("x == y && z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x == y && z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ==
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseAndExpression_precedence_equality_right() {
-    var expression = parseExpression("x && y == z") as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x && y == z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: &&
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ==
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_bitwiseAndExpression_super() {
-    var expression = parseExpression("super & y & z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super & y & z;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: &
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseOrExpression_normal() {
-    var expression = parseExpression("x | y | z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x | y | z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: |
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseOrExpression_precedence_xor_left() {
-    var expression = parseExpression("x ^ y | z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x ^ y | z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: |
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseOrExpression_precedence_xor_right() {
-    var expression = parseExpression("x | y ^ z") as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x | y ^ z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: |
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_bitwiseOrExpression_super() {
-    var expression = parseExpression("super | y | z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super | y | z;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: |
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseXorExpression_normal() {
-    var expression = parseExpression("x ^ y ^ z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x ^ y ^ z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ^
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseXorExpression_precedence_and_left() {
-    var expression = parseExpression("x & y ^ z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x & y ^ z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ^
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_bitwiseXorExpression_precedence_and_right() {
-    var expression = parseExpression("x ^ y & z") as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x ^ y & z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ^
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_bitwiseXorExpression_super() {
-    var expression = parseExpression("super ^ y ^ z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super ^ y ^ z;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ^
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_cascade_withAssignment() {
-    var cascade =
-        parseExpression("new Map()..[3] = 4 ..[0] = 11") as CascadeExpression;
-    Expression target = cascade.target;
-    for (Expression section in cascade.cascadeSections) {
-      expect(section, isAssignmentExpression);
-      Expression lhs = (section as AssignmentExpression).leftHandSide;
-      expect(lhs, isIndexExpression);
-      IndexExpression index = lhs as IndexExpression;
-      expect(index.isCascaded, isTrue);
-      expect(index.realTarget, same(target));
-    }
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  new Map()..[3] = 4 ..[0] = 11;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: Map
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+  cascadeSections
+    AssignmentExpression
+      leftHandSide: IndexExpression
+        period: ..
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 3
+        rightBracket: ]
+      operator: =
+      rightHandSide: IntegerLiteral
+        literal: 4
+    AssignmentExpression
+      leftHandSide: IndexExpression
+        period: ..
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 0
+        rightBracket: ]
+      operator: =
+      rightHandSide: IntegerLiteral
+        literal: 11
+''');
   }
 
   void test_conditionalExpression_precedence_ifNullExpression() {
-    var expression = parseExpression('a ?? b ? y : z') as ConditionalExpression;
-    expect(expression.condition, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  a ?? b ? y : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: a
+    operator: ??
+    rightOperand: SimpleIdentifier
+      token: b
+  question: ?
+  thenExpression: SimpleIdentifier
+    token: y
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_logicalOrExpression() {
-    var expression = parseExpression("a | b ? y : z") as ConditionalExpression;
-    expect(expression.condition, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  a | b ? y : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: a
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: b
+  question: ?
+  thenExpression: SimpleIdentifier
+    token: y
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableType_as() {
-    var statement =
-        parseStatement('x as bool ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    Expression condition = expression.condition;
-    expect(condition, isAsExpression);
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x as bool ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: AsExpression
+    expression: SimpleIdentifier
+      token: x
+    asOperator: as
+    type: NamedType
+      name: bool
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableType_as2() {
-    var statement =
-        parseStatement('x as bool? ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    var asExpression = expression.condition as AsExpression;
-    var type = asExpression.type as NamedType;
-    expect(type.question!.lexeme, '?');
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x as bool? ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: AsExpression
+    expression: SimpleIdentifier
+      token: x
+    asOperator: as
+    type: NamedType
+      name: bool
+      question: ?
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableType_as3() {
-    var statement =
-        parseStatement('(x as bool?) ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    var condition = expression.condition as ParenthesizedExpression;
-    var asExpression = condition.expression as AsExpression;
-    var type = asExpression.type as NamedType;
-    expect(type.question!.lexeme, '?');
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  (x as bool?) ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: ParenthesizedExpression
+    leftParenthesis: (
+    expression: AsExpression
+      expression: SimpleIdentifier
+        token: x
+      asOperator: as
+      type: NamedType
+        name: bool
+        question: ?
+    rightParenthesis: )
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableType_is() {
-    var statement =
-        parseStatement('x is String ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    Expression condition = expression.condition;
-    expect(condition, isIsExpression);
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x is String ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: IsExpression
+    expression: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: NamedType
+      name: String
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableType_is2() {
-    var statement =
-        parseStatement('x is String? ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    var isExpression = expression.condition as IsExpression;
-    var type = isExpression.type as NamedType;
-    expect(type.question!.lexeme, '?');
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x is String? ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: IsExpression
+    expression: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: NamedType
+      name: String
+      question: ?
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableType_is3() {
-    var statement =
-        parseStatement('(x is String?) ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    var condition = expression.condition as ParenthesizedExpression;
-    var isExpression = condition.expression as IsExpression;
-    var type = isExpression.type as NamedType;
-    expect(type.question!.lexeme, '?');
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  (x is String?) ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: ParenthesizedExpression
+    leftParenthesis: (
+    expression: IsExpression
+      expression: SimpleIdentifier
+        token: x
+      isOperator: is
+      type: NamedType
+        name: String
+        question: ?
+    rightParenthesis: )
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg1_is() {
-    var statement =
-        parseStatement('x is String<S> ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    Expression condition = expression.condition;
-    expect(condition, TypeMatcher<IsExpression>());
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, TypeMatcher<ParenthesizedExpression>());
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, TypeMatcher<SimpleIdentifier>());
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x is String<S> ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: IsExpression
+    expression: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: NamedType
+      name: String
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: S
+        rightBracket: >
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg1GFT_is() {
-    var statement =
-        parseStatement('x is String<S> Function() ? (x + y) : z;')
-            as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    Expression condition = expression.condition;
-    expect(condition, TypeMatcher<IsExpression>());
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, TypeMatcher<ParenthesizedExpression>());
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, TypeMatcher<SimpleIdentifier>());
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x is String<S> Function() ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: IsExpression
+    expression: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: GenericFunctionType
+      returnType: NamedType
+        name: String
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+          rightBracket: >
+      functionKeyword: Function
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg2_is() {
-    var statement =
-        parseStatement('x is String<S,T> ? (x + y) : z;')
-            as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    Expression condition = expression.condition;
-    expect(condition, TypeMatcher<IsExpression>());
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, TypeMatcher<ParenthesizedExpression>());
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, TypeMatcher<SimpleIdentifier>());
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x is String<S,T> ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: IsExpression
+    expression: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: NamedType
+      name: String
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: S
+          NamedType
+            name: T
+        rightBracket: >
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_prefixedNullableType_is() {
-    var statement =
-        parseStatement('x is p.A ? (x + y) : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x is p.A ? (x + y) : z;
+}
+''');
+    parseResult.assertNoErrors();
 
-    var condition = expression.condition;
-    expect(condition, TypeMatcher<IsExpression>());
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, TypeMatcher<ParenthesizedExpression>());
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, TypeMatcher<SimpleIdentifier>());
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: IsExpression
+    expression: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+      name: A
+  question: ?
+  thenExpression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+    rightParenthesis: )
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_precedence_withAssignment() {
-    var statement =
-        parseStatement('b ? c = true : g();') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    expect(expression.condition, TypeMatcher<SimpleIdentifier>());
-    expect(expression.thenExpression, TypeMatcher<AssignmentExpression>());
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  b ? c = true : g();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: b
+  question: ?
+  thenExpression: AssignmentExpression
+    leftHandSide: SimpleIdentifier
+      token: c
+    operator: =
+    rightHandSide: BooleanLiteral
+      literal: true
+  colon: :
+  elseExpression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+''');
   }
 
   void test_conditionalExpression_precedence_withAssignment2() {
-    var statement =
-        parseStatement('b.x ? c = true : g();') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    expect(expression.condition, TypeMatcher<PrefixedIdentifier>());
-    expect(expression.thenExpression, TypeMatcher<AssignmentExpression>());
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  b.x ? c = true : g();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: b
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+  question: ?
+  thenExpression: AssignmentExpression
+    leftHandSide: SimpleIdentifier
+      token: c
+    operator: =
+    rightHandSide: BooleanLiteral
+      literal: true
+  colon: :
+  elseExpression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+''');
   }
 
   void test_conditionalExpression_prefixedValue() {
-    var statement = parseStatement('a.b ? y : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    expect(expression.condition, TypeMatcher<PrefixedIdentifier>());
-    expect(expression.thenExpression, TypeMatcher<SimpleIdentifier>());
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  a.b ? y : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+    period: .
+    identifier: SimpleIdentifier
+      token: b
+  question: ?
+  thenExpression: SimpleIdentifier
+    token: y
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_conditionalExpression_prefixedValue2() {
-    var statement = parseStatement('a.b ? x.y : z;') as ExpressionStatement;
-    var expression = statement.expression as ConditionalExpression;
-    expect(expression.condition, TypeMatcher<PrefixedIdentifier>());
-    expect(expression.thenExpression, TypeMatcher<PrefixedIdentifier>());
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  a.b ? x.y : z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+    period: .
+    identifier: SimpleIdentifier
+      token: b
+  question: ?
+  thenExpression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+    period: .
+    identifier: SimpleIdentifier
+      token: y
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_constructor_initializer_withParenthesizedExpression() {
-    CompilationUnit unit = parseCompilationUnit(r'''
+    var parseResult = parseStringWithErrors(r'''
 class C {
-  C() :
-    this.a = (b == null ? c : d) {
-  }
-}''');
-    NodeList<CompilationUnitMember> declarations = unit.declarations;
-    expect(declarations, hasLength(1));
+  C() : this.a = (b == null ? c : d);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorFieldInitializer;
+    assertParsedNodeText(node, r'''
+ConstructorFieldInitializer
+  thisKeyword: this
+  period: .
+  fieldName: SimpleIdentifier
+    token: a
+  equals: =
+  expression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ConditionalExpression
+      condition: BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: b
+        operator: ==
+        rightOperand: NullLiteral
+          literal: null
+      question: ?
+      thenExpression: SimpleIdentifier
+        token: c
+      colon: :
+      elseExpression: SimpleIdentifier
+        token: d
+    rightParenthesis: )
+''');
   }
 
   void test_equalityExpression_normal() {
-    var expression =
-        parseExpression(
-              "x == y != z",
-              codes: [diag.equalityCannotBeEqualityOperand],
-            )
-            as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x == y != z;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 20, 2),
+    ]);
+
+    var node = parseResult.findNode.singleBlock;
+    assertParsedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: BinaryExpression
+        leftOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: ==
+          rightOperand: SimpleIdentifier
+            token: y
+        operator: !=
+        rightOperand: SimpleIdentifier
+          token: z
+      semicolon: ;
+  rightBracket: }
+''');
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    var expression = parseExpression("x is y == z") as BinaryExpression;
-    expect(expression.leftOperand, isIsExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x is y == z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: IsExpression
+    expression: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: NamedType
+      name: y
+  operator: ==
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_equalityExpression_precedence_relational_right() {
-    var expression = parseExpression("x == y is z") as BinaryExpression;
-    expect(expression.rightOperand, isIsExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x == y is z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ==
+  rightOperand: IsExpression
+    expression: SimpleIdentifier
+      token: y
+    isOperator: is
+    type: NamedType
+      name: z
+''');
   }
 
   void test_equalityExpression_super() {
-    var expression =
-        parseExpression(
-              "super == y != z",
-              codes: [diag.equalityCannotBeEqualityOperand],
-            )
-            as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super == y != z;
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 38, 2),
+    ]);
+
+    var node = parseResult.findNode.singleBlock;
+    assertParsedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: BinaryExpression
+        leftOperand: BinaryExpression
+          leftOperand: SuperExpression
+            superKeyword: super
+          operator: ==
+          rightOperand: SimpleIdentifier
+            token: y
+        operator: !=
+        rightOperand: SimpleIdentifier
+          token: z
+      semicolon: ;
+  rightBracket: }
+''');
   }
 
   void test_ifNullExpression() {
-    var expression = parseExpression('x ?? y ?? z') as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x ?? y ?? z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ??
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_ifNullExpression_precedence_logicalOr_left() {
-    var expression = parseExpression('x || y ?? z') as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x || y ?? z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_ifNullExpression_precedence_logicalOr_right() {
-    var expression = parseExpression('x ?? y || z') as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x ?? y || z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ??
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_logicalAndExpression() {
-    var expression = parseExpression("x && y && z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x && y && z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
-    var expression = parseExpression("x | y < z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x | y < z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: <
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
-    var expression = parseExpression("x < y | z") as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x < y | z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: <
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_logicalAndExpressionStatement() {
-    // Assert that `<` and `>` are not interpreted as type arguments.
-    var statement = parseStatement("C<T && T>U;") as ExpressionStatement;
-    var expression = statement.expression as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    // Ensure `<` and `>` are parsed as operators, not type arguments.
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  C<T && T>U;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: C
+    operator: <
+    rightOperand: SimpleIdentifier
+      token: T
+  operator: &&
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: T
+    operator: >
+    rightOperand: SimpleIdentifier
+      token: U
+''');
   }
 
   void test_logicalOrExpression() {
-    var expression = parseExpression("x || y || z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x || y || z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_left() {
-    var expression = parseExpression("x && y || z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x && y || z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_right() {
-    var expression = parseExpression("x || y && z") as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x || y && z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ||
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_methodInvocation1() {
-    // Assert that `<` and `>` are not interpreted as type arguments.
-    var statement = parseStatement("f(a < b, c > 3);") as ExpressionStatement;
-    assertNoErrors();
-    var method = statement.expression as MethodInvocation;
-    expect(method.argumentList.arguments, hasLength(2));
+    // Ensure `<` and `>` in arguments are parsed as operators, not type args.
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  f(a < b, c > 3);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: IntegerLiteral
+          literal: 3
+    rightParenthesis: )
+''');
   }
 
   void test_methodInvocation2() {
-    // Assert that `<` and `>` are not interpreted as type arguments.
-    var statement = parseStatement("f(a < b, c >> 3);") as ExpressionStatement;
-    assertNoErrors();
-    var method = statement.expression as MethodInvocation;
-    expect(method.argumentList.arguments, hasLength(2));
+    // Ensure `<` and `>` in arguments are parsed as operators, not type args.
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  f(a < b, c >> 3);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >>
+        rightOperand: IntegerLiteral
+          literal: 3
+    rightParenthesis: )
+''');
   }
 
   void test_methodInvocation3() {
-    // Assert that `<` and `>` are not interpreted as type arguments.
-    var statement =
-        parseStatement("f(a < b, c < d >> 3);") as ExpressionStatement;
-    assertNoErrors();
-    var method = statement.expression as MethodInvocation;
-    expect(method.argumentList.arguments, hasLength(2));
+    // Ensure `<` and `>` in arguments are parsed as operators, not type args.
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  f(a < b, c < d >> 3);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: <
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: d
+          operator: >>
+          rightOperand: IntegerLiteral
+            literal: 3
+    rightParenthesis: )
+''');
   }
 
   void test_multipleLabels_statement() {
-    var statement = parseStatement("a: b: c: return x;") as LabeledStatement;
-    expect(statement.labels, hasLength(3));
-    expect(statement.statement, isReturnStatement);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  a: b: c: return x;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleLabeledStatement;
+    assertParsedNodeText(node, r'''
+LabeledStatement
+  labels
+    Label
+      label: SimpleIdentifier
+        token: a
+      colon: :
+    Label
+      label: SimpleIdentifier
+        token: b
+      colon: :
+    Label
+      label: SimpleIdentifier
+        token: c
+      colon: :
+  statement: ReturnStatement
+    returnKeyword: return
+    expression: SimpleIdentifier
+      token: x
+    semicolon: ;
+''');
   }
 
   void test_multiplicativeExpression_normal() {
-    var expression = parseExpression("x * y / z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x * y / z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: /
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_multiplicativeExpression_precedence_unary_left() {
-    var expression = parseExpression("-x * y") as BinaryExpression;
-    expect(expression.leftOperand, isPrefixExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  -x * y;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: PrefixExpression
+    operator: -
+    operand: SimpleIdentifier
+      token: x
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: y
+''');
   }
 
   void test_multiplicativeExpression_precedence_unary_right() {
-    var expression = parseExpression("x * -y") as BinaryExpression;
-    expect(expression.rightOperand, isPrefixExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x * -y;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: *
+  rightOperand: PrefixExpression
+    operator: -
+    operand: SimpleIdentifier
+      token: y
+''');
   }
 
   void test_multiplicativeExpression_super() {
-    var expression = parseExpression("super * y / z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super * y / z;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: /
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_relationalExpression_precedence_shift_right() {
-    var expression = parseExpression("x << y is z") as IsExpression;
-    expect(expression.expression, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x << y is z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+IsExpression
+  expression: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: <<
+    rightOperand: SimpleIdentifier
+      token: y
+  isOperator: is
+  type: NamedType
+    name: z
+''');
   }
 
   void test_shiftExpression_normal() {
-    var expression = parseExpression("x >> 4 << 3") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x >> 4 << 3;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: >>
+    rightOperand: IntegerLiteral
+      literal: 4
+  operator: <<
+  rightOperand: IntegerLiteral
+    literal: 3
+''');
   }
 
   void test_shiftExpression_precedence_additive_left() {
-    var expression = parseExpression("x + y << z") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x + y << z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: <<
+  rightOperand: SimpleIdentifier
+    token: z
+''');
   }
 
   void test_shiftExpression_precedence_additive_right() {
-    var expression = parseExpression("x << y + z") as BinaryExpression;
-    expect(expression.rightOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x << y + z;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: <<
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: z
+''');
   }
 
   void test_shiftExpression_super() {
-    var expression = parseExpression("super >> 4 << 3") as BinaryExpression;
-    expect(expression.leftOperand, isBinaryExpression);
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f() {
+    super >> 4 << 3;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: >>
+    rightOperand: IntegerLiteral
+      literal: 4
+  operator: <<
+  rightOperand: IntegerLiteral
+    literal: 3
+''');
   }
 
   void test_topLevelFunction_nestedGenericFunction() {
-    parseCompilationUnit('''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   void g<T>() {
   }
 }
 ''');
-  }
+    parseResult.assertNoErrors();
 
-  void _validate_assignableExpression_arguments_normal_chain_typeArguments(
-    String code, [
-    List<DiagnosticCode> codes = const <DiagnosticCode>[],
-  ]) {
-    var propertyAccess1 = parseExpression(code, codes: codes) as PropertyAccess;
-    expect(propertyAccess1.propertyName.name, "f");
-    //
-    // a<E>(b)<F>(c).d<G>(e)
-    //
-    var invocation2 = propertyAccess1.target as MethodInvocation;
-    expect(invocation2.methodName.name, "d");
-    expect(invocation2.typeArguments, isNotNull);
-    ArgumentList argumentList2 = invocation2.argumentList;
-    expect(argumentList2, isNotNull);
-    expect(argumentList2.arguments, hasLength(1));
-    //
-    // a<E>(b)<F>(c)
-    //
-    var invocation3 = invocation2.target as FunctionExpressionInvocation;
-    expect(invocation3.typeArguments, isNotNull);
-    ArgumentList argumentList3 = invocation3.argumentList;
-    expect(argumentList3, isNotNull);
-    expect(argumentList3.arguments, hasLength(1));
-    //
-    // a(b)
-    //
-    var invocation4 = invocation3.function as MethodInvocation;
-    expect(invocation4.methodName.name, "a");
-    expect(invocation4.typeArguments, isNotNull);
-    ArgumentList argumentList4 = invocation4.argumentList;
-    expect(argumentList4, isNotNull);
-    expect(argumentList4.arguments, hasLength(1));
+    var node = parseResult
+        .findNode
+        .singleFunctionDeclarationStatement
+        .functionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: g
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+''');
   }
 }

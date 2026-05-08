@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field mai::B b;
+  const constructor •({required mai::B b}) → self::A
+    : self::A::b = b, super core::Object::•()
+    ;
+}
+static final field self::A a;
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+class B extends core::Object /*hasConstConstructor*/  {
+  final field mai::C c;
+  const constructor •({required mai::C c}) → mai::B
+    : mai::B::c = c, super core::Object::•()
+    ;
+  static method f(mai::C c) → mai::B
+    ;
+}
+class C extends core::Object {
+  constructor f(core::num n) → mai::C
+    ;
+}

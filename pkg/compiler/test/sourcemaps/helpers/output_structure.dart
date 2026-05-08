@@ -384,15 +384,15 @@ class LibraryBlock extends AbstractEntity {
       BasicEntity? next;
       Match? matchFunction = TOP_LEVEL_FUNCTION.firstMatch(line);
       if (matchFunction != null) {
-        next = TopLevelFunction(matchFunction.group(1)!, index);
+        next = TopLevelFunction(matchFunction[1]!, index);
       } else {
         Match? matchClass = TOP_LEVEL_CLASS.firstMatch(line);
         if (matchClass != null) {
-          next = LibraryClass(matchClass.group(1)!, index);
+          next = LibraryClass(matchClass[1]!, index);
         } else {
           Match? matchValue = TOP_LEVEL_VALUE.firstMatch(line);
           if (matchValue != null) {
-            next = TopLevelValue(matchValue.group(1)!, index);
+            next = TopLevelValue(matchValue[1]!, index);
           }
         }
       }
@@ -511,7 +511,7 @@ class LibraryClass extends BasicEntity {
       BasicEntity? next;
       Match? match = MEMBER_FUNCTION.firstMatch(line);
       if (match != null) {
-        next = MemberFunction(match.group(1)!, index);
+        next = MemberFunction(match[1]!, index);
       } else {
         match = STATICS.firstMatch(line);
         if (match != null) {
@@ -519,11 +519,11 @@ class LibraryClass extends BasicEntity {
         } else {
           match = MEMBER_OBJECT.firstMatch(line);
           if (match != null) {
-            next = MemberObject(match.group(1)!, index);
+            next = MemberObject(match[1]!, index);
           } else {
             match = MEMBER_VALUE.firstMatch(line);
             if (match != null) {
-              next = MemberValue(match.group(1)!, index);
+              next = MemberValue(match[1]!, index);
             }
           }
         }
@@ -595,7 +595,7 @@ class Statics extends BasicEntity {
       BasicEntity? next;
       Match? matchFunction = STATIC_FUNCTION.firstMatch(line);
       if (matchFunction != null) {
-        next = MemberFunction(matchFunction.group(1)!, index);
+        next = MemberFunction(matchFunction[1]!, index);
       }
       if (next != null) {
         if (current != null) {

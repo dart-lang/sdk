@@ -1451,6 +1451,27 @@ const LinterLintWithoutArguments invalidCasePatterns =
 
 /// Parameters:
 /// Object p0: undocumented
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType = LinterLintTemplate(
+  name: 'invalid_runtime_check_with_js_interop_types',
+  problemMessage:
+      "Catch clause with type '{0}' checks whether the caught value is a JS "
+      "interop type, which might not be platform-consistent.",
+  correctionMessage:
+      "Remove the type in the catch clause and try using 'isA' from "
+      "'dart:js_interop' within the catch block to check if the value is a "
+      "JS interop type.",
+  uniqueName:
+      'invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type',
+  withArguments:
+      _withArgumentsInvalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: undocumented
 /// Object p1: undocumented
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
@@ -1480,6 +1501,9 @@ invalidRuntimeCheckWithJsInteropTypesDartIsJs = LinterLintTemplate(
   problemMessage:
       "Runtime check between '{0}' and '{1}' checks whether a Dart value is a JS "
       "interop type, which might not be platform-consistent.",
+  correctionMessage:
+      "Try using 'isA' from 'dart:js_interop' to check if the Dart value is "
+      "a JS interop type.",
   uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_is_js',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
@@ -2737,6 +2761,16 @@ securePubspecUrls = LinterLintTemplate(
   expectedTypes: [ExpectedType.object],
 );
 
+/// No parameters.
+const LinterLintWithoutArguments simpleDirectivePaths =
+    LinterLintWithoutArguments(
+      name: 'simple_directive_paths',
+      problemMessage: "Use simple directive paths.",
+      correctionMessage: "Try simplifying the directive path.",
+      uniqueName: 'simple_directive_paths',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String memberName: The redundant member name.
 /// String memberType: The type of the matched object. Whether a field,
@@ -2752,6 +2786,7 @@ simplifyVariablePattern = LinterLintTemplate(
   problemMessage:
       "The {1} identification '{0}:' is redundant and can be removed.",
   correctionMessage: "Try removing the redundant {1} identification.",
+  hasPublishedDocs: true,
   uniqueName: 'simplify_variable_pattern',
   withArguments: _withArgumentsSimplifyVariablePattern,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -3118,9 +3153,9 @@ const LinterLintWithoutArguments unnecessaryGettersSetters =
     );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnore = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3131,13 +3166,13 @@ unnecessaryIgnore = LinterLintTemplate(
   hasPublishedDocs: true,
   uniqueName: 'unnecessary_ignore',
   withArguments: _withArgumentsUnnecessaryIgnore,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnoreFile = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3147,13 +3182,13 @@ unnecessaryIgnoreFile = LinterLintTemplate(
   correctionMessage: "Try removing the ignore comment.",
   uniqueName: 'unnecessary_ignore_file',
   withArguments: _withArgumentsUnnecessaryIgnoreFile,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnoreName = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3163,13 +3198,13 @@ unnecessaryIgnoreName = LinterLintTemplate(
   correctionMessage: "Try removing the name from the list.",
   uniqueName: 'unnecessary_ignore_name',
   withArguments: _withArgumentsUnnecessaryIgnoreName,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnoreNameFile = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3179,7 +3214,7 @@ unnecessaryIgnoreNameFile = LinterLintTemplate(
   correctionMessage: "Try removing the name from the list.",
   uniqueName: 'unnecessary_ignore_name_file',
   withArguments: _withArgumentsUnnecessaryIgnoreNameFile,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -3811,6 +3846,19 @@ const LinterLintWithoutArguments validRegexps = LinterLintWithoutArguments(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments varWithNoTypeAnnotation =
+    LinterLintWithoutArguments(
+      name: 'var_with_no_type_annotation',
+      problemMessage:
+          "Avoid declaring parameters with `var` and no type annotation.",
+      correctionMessage:
+          "Try removing the keyword 'var' or replacing `var` with a type "
+          "annotation.",
+      uniqueName: 'var_with_no_type_annotation',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments visitRegisteredNodes =
     LinterLintWithoutArguments(
       name: 'visit_registered_nodes',
@@ -4066,6 +4114,16 @@ LocatableDiagnostic _withArgumentsImplicitReopen({
 }
 
 LocatableDiagnostic
+_withArgumentsInvalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType({
+  required Object p0,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
+    [p0],
+  );
+}
+
+LocatableDiagnostic
 _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartAsJs({
   required Object p0,
   required Object p1,
@@ -4282,22 +4340,26 @@ LocatableDiagnostic _withArgumentsThrowInFinally({required Object p0}) {
   return LocatableDiagnosticImpl(diag.throwInFinally, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUnnecessaryIgnore({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnore, [p0]);
+LocatableDiagnostic _withArgumentsUnnecessaryIgnore({required String name}) {
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnore, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnnecessaryIgnoreFile({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreFile, [p0]);
+LocatableDiagnostic _withArgumentsUnnecessaryIgnoreFile({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreFile, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnnecessaryIgnoreName({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreName, [p0]);
+LocatableDiagnostic _withArgumentsUnnecessaryIgnoreName({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnnecessaryIgnoreNameFile({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreNameFile, [p0]);
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreNameFile, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnreachableFromMain({required Object p0}) {

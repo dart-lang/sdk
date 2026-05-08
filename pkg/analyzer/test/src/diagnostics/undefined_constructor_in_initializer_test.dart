@@ -15,7 +15,29 @@ main() {
 
 @reflectiveTest
 class UndefinedConstructorInInitializerTest extends PubPackageResolutionTest {
-  test_explicit_named() async {
+  test_explicit_named_defined_constructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+}
+class B extends A {
+  B() : super.named();
+}
+''');
+  }
+
+  test_explicit_named_defined_primaryConstructorBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+}
+class B() extends A {
+  this : super.named();
+}
+''');
+  }
+
+  test_explicit_named_notDefined_constructor() async {
     await assertErrorsInCode(
       r'''
 class A {}
@@ -34,18 +56,26 @@ class B extends A {
     );
   }
 
-  test_explicit_named_defined() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A.named() {}
+  test_explicit_named_notDefined_primateConstructorBody() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+class B() extends A {
+  this : super.named();
 }
-class B extends A {
-  B() : super.named();
-}
-''');
+''',
+      [
+        error(
+          diag.undefinedConstructorInInitializer,
+          42,
+          13,
+          messageContains: ["class 'A'", "named 'named'"],
+        ),
+      ],
+    );
   }
 
-  test_explicit_unnamed_defined() async {
+  test_explicit_unnamed_defined_constructor() async {
     await assertNoErrorsInCode(r'''
 class A {
   A() {}
@@ -56,15 +86,42 @@ class B extends A {
 ''');
   }
 
-  test_redirecting_defined() async {
+  test_explicit_unnamed_defined_primaryConstructorBody() async {
     await assertNoErrorsInCode(r'''
-class Foo {
-  Foo.ctor();
+class A {
+  A() {}
 }
-class Bar extends Foo {
-  Bar() : this.ctor();
-  Bar.ctor() : super.ctor();
+class B() extends A {
+  this : super();
 }
 ''');
+  }
+
+  test_explicit_unnamed_notDefined_constructor() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.named() {}
+}
+class B extends A {
+  B() : super();
+}
+''',
+      [error(diag.undefinedConstructorInInitializerDefault, 55, 7)],
+    );
+  }
+
+  test_explicit_unnamed_notDefined_primaryConstructorBody() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.named() {}
+}
+class B() extends A {
+  this : super();
+}
+''',
+      [error(diag.undefinedConstructorInInitializerDefault, 58, 7)],
+    );
   }
 }

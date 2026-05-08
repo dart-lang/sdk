@@ -57,7 +57,7 @@ extension Extension on core::String {
   static set property = set self::Extension|property;
   static field field = self::Extension|field;
 }
-static field dynamic Extension|field;
+static field dynamic Extension|field = null;
 static extension-member method Extension|method() → dynamic {}
 static extension-member get Extension|getter() → dynamic
   return null;

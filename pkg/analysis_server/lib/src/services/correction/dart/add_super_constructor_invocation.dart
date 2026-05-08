@@ -7,35 +7,131 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddSuperConstructorInvocation extends MultiCorrectionProducer {
   AddSuperConstructorInvocation({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    var targetConstructor = node.parent;
-    if (targetConstructor is! ConstructorDeclaration) {
-      return const [];
-    }
+    var node = this.node;
+    if (node is PrimaryConstructorDeclaration) {
+      var superType = _supertypeOfClass(node.parent);
+      if (superType == null) return const [];
 
-    var targetClassNode = targetConstructor.parent?.parent;
-    if (targetClassNode is! ClassDeclaration) {
-      return const [];
-    }
+      var body = node.body;
+      return _producersFromPrimary(superType, node, body);
+    } else if (node is PrimaryConstructorBody) {
+      var declaration = node.declaration;
+      if (declaration == null) return const [];
 
-    var targetClassElement = targetClassNode.declaredFragment?.element;
-    var superType = targetClassElement?.supertype;
-    if (superType == null) {
-      return const [];
-    }
+      var superType = _supertypeOfClass(node.parent?.parent);
+      if (superType == null) return const [];
 
-    var initializers = targetConstructor.initializers;
+      return _producersFromPrimary(superType, declaration, node);
+    } else if (node is ConstructorDeclaration) {
+      var superType = _supertypeOfClass(node.parent?.parent);
+      if (superType == null) return const [];
+
+      return _producersFromSecondary(superType, node);
+    } else {
+      var targetConstructor = node.parent;
+      if (targetConstructor is! ConstructorDeclaration) return const [];
+
+      var superType = _supertypeOfClass(targetConstructor.parent?.parent);
+      if (superType == null) return const [];
+
+      return _producersFromSecondary(superType, targetConstructor);
+    }
+  }
+
+  List<ResolvedCorrectionProducer> _producersFromPrimary(
+    InterfaceType superType,
+    PrimaryConstructorDeclaration declaration,
+    PrimaryConstructorBody? body,
+  ) {
+    SourceRange editRange;
+    List<String> prefixParts = [];
+    List<String> suffixParts = [];
+    if (body == null) {
+      var classDeclaration = declaration.parent;
+      if (classDeclaration case ClassDeclaration(:var body)) {
+        if (body is BlockClassBody) {
+          editRange = range.startOffsetLength(body.leftBracket.end, 0);
+          prefixParts = ['', '  this : '];
+          if (body.leftBracket.end == body.rightBracket.offset) {
+            suffixParts = [';', ''];
+          } else {
+            suffixParts = [';'];
+          }
+        } else {
+          editRange = (body as EmptyClassBody).semicolon.sourceRange;
+          prefixParts = [' {', '  this : '];
+          suffixParts = [';', '}'];
+        }
+      } else if (classDeclaration case EnumDeclaration(:var body)) {
+        if (body is BlockEnumBody) {
+          editRange = range.startOffsetLength(body.leftBracket.end, 0);
+          prefixParts = ['', '  this : '];
+          suffixParts = [';'];
+        } else {
+          editRange = (body as EmptyEnumBody).semicolon.sourceRange;
+          prefixParts = [' {', '  this : '];
+          suffixParts = [';', '}'];
+        }
+      } else {
+        return const [];
+      }
+    } else {
+      var initializers = body.initializers;
+      if (initializers.isEmpty) {
+        var colon = body.colon;
+        if (colon == null) {
+          editRange = range.startOffsetLength(body.thisKeyword.end, 0);
+          prefixParts = [' : '];
+          suffixParts = [''];
+        } else {
+          editRange = range.startOffsetLength(colon.end, 0);
+          prefixParts = [' '];
+          suffixParts = [''];
+        }
+      } else {
+        editRange = range.startOffsetLength(initializers.last.end, 0);
+        prefixParts = [', '];
+        suffixParts = [''];
+      }
+    }
+    var producers = <ResolvedCorrectionProducer>[];
+    for (var superConstructor in superType.constructors) {
+      // Only propose public constructors.
+      var name = superConstructor.name;
+      if (name != null && !Identifier.isPrivateName(name)) {
+        producers.add(
+          _AddInvocation(
+            context: context,
+            constructor: superConstructor,
+            editRange: editRange,
+            prefixParts: prefixParts,
+            suffixParts: suffixParts,
+          ),
+        );
+      }
+    }
+    return producers;
+  }
+
+  List<ResolvedCorrectionProducer> _producersFromSecondary(
+    InterfaceType superType,
+    ConstructorDeclaration constructor,
+  ) {
+    var initializers = constructor.initializers;
     int insertOffset;
     String prefix;
     if (initializers.isEmpty) {
-      insertOffset = targetConstructor.parameters.end;
+      insertOffset = constructor.parameters.end;
       prefix = ' : ';
     } else {
       var lastInitializer = initializers[initializers.length - 1];
@@ -43,16 +139,30 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       prefix = ', ';
     }
     var producers = <ResolvedCorrectionProducer>[];
-    for (var constructor in superType.constructors) {
+    for (var superConstructor in superType.constructors) {
       // Only propose public constructors.
-      var name = constructor.name;
+      var name = superConstructor.name;
       if (name != null && !Identifier.isPrivateName(name)) {
         producers.add(
-          _AddInvocation(constructor, insertOffset, prefix, context: context),
+          _AddInvocation(
+            context: context,
+            constructor: superConstructor,
+            editRange: range.startOffsetLength(insertOffset, 0),
+            prefixParts: [prefix],
+            suffixParts: [''],
+          ),
         );
       }
     }
     return producers;
+  }
+
+  InterfaceType? _supertypeOfClass(AstNode? node) {
+    if (node is! ClassDeclaration) {
+      return null;
+    }
+    var targetClassElement = node.declaredFragment?.element;
+    return targetClassElement?.supertype;
   }
 }
 
@@ -63,16 +173,20 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   final ConstructorElement _constructor;
 
   /// The offset at which the initializer is to be inserted.
-  final int _insertOffset;
+  final SourceRange _editRange;
 
   /// The prefix to be added before the actual invocation.
-  final String _prefix;
+  final List<String> _prefixParts;
 
-  _AddInvocation(
-    this._constructor,
-    this._insertOffset,
-    this._prefix, {
+  /// The suffix to be added after the actual invocation.
+  final List<String> _suffixParts;
+
+  _AddInvocation({
     required super.context,
+    required this._constructor,
+    required this._editRange,
+    required this._prefixParts,
+    required this._suffixParts,
   });
 
   @override
@@ -121,8 +235,9 @@ class _AddInvocation extends ResolvedCorrectionProducer {
       }
     }
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(_insertOffset, (builder) {
-        builder.write(_prefix);
+      var eol = builder.eol;
+      builder.addReplacement(_editRange, (builder) {
+        builder.write(_prefixParts.join(eol));
         // add super constructor name
         builder.write('super');
         if (constructorName != 'new') {
@@ -163,6 +278,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           );
         }
         builder.write(')');
+        builder.write(_suffixParts.join(eol));
       });
     });
   }

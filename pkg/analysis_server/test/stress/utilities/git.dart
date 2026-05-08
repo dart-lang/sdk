@@ -43,8 +43,8 @@ class BlobDiff {
     var currentHunk = hunks.isEmpty ? null : hunks.last;
     if (line.startsWith('@@')) {
       var match = hunkHeaderRegExp.matchAsPrefix(line)!;
-      var srcLine = int.parse(match.group(1)!);
-      var dstLine = int.parse(match.group(2)!);
+      var srcLine = int.parse(match[1]!);
+      var dstLine = int.parse(match[2]!);
       hunks.add(DiffHunk(srcLine, dstLine));
     } else if (currentHunk != null && line.startsWith('+')) {
       currentHunk.addLines.add(line.substring(1));

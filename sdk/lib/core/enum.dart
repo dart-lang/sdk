@@ -105,9 +105,11 @@ abstract interface class Enum {
 abstract class _Enum implements Enum {
   // See http://dartbug.com/51657 for discussion of dart2js pragma.
   @pragma('dart2js:noElision')
+  @pragma('wasm:entry-point')
   final int index;
 
   @pragma('dyn-module:language-impl:callable')
+  @pragma('wasm:entry-point')
   final String _name;
 
   @pragma('dyn-module:language-impl:callable')

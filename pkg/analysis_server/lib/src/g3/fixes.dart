@@ -62,7 +62,7 @@ class LintFixTester {
       includedPaths: [path],
       resourceProvider: _resourceProvider,
       sdkPath: sdkPath,
-      packagesFile: packageConfigPath,
+      packageConfigFile: packageConfigPath,
       withFineDependencies: true,
     );
     var analysisContext = collection.contextFor(path);
@@ -140,8 +140,7 @@ class LintFixTesterWithFixes {
   final LintFixTester _parent;
   final List<Fix> fixes;
 
-  LintFixTesterWithFixes({required LintFixTester parent, required this.fixes})
-    : _parent = parent;
+  LintFixTesterWithFixes({required this._parent, required this.fixes});
 
   void assertNoFixes() {
     if (fixes.isNotEmpty) {
@@ -162,10 +161,7 @@ class LintFixTesterWithSingleFix {
   final LintFixTesterWithFixes _parent;
   final Fix fix;
 
-  LintFixTesterWithSingleFix({
-    required LintFixTesterWithFixes parent,
-    required this.fix,
-  }) : _parent = parent;
+  LintFixTesterWithSingleFix({required this._parent, required this.fix});
 
   void assertFixedContentOfFile({
     required String path,

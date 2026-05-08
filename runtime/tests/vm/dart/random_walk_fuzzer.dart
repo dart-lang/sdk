@@ -102,7 +102,7 @@ List<Candidate<ObjectMirror>> candidateReceivers = <Candidate<ObjectMirror>>[];
 List<Candidate<InstanceMirror>> candidateArguments =
     <Candidate<InstanceMirror>>[];
 
-void addInstance(var instance) {
+void addInstance(instance) {
   addInstanceMirror(reflect(instance));
 }
 

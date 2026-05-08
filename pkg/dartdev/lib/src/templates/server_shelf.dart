@@ -8,12 +8,12 @@ import 'common.dart' as common;
 /// A generator for a server app using `package:shelf`.
 class ServerShelfGenerator extends DefaultGenerator {
   ServerShelfGenerator()
-      : super(
-          'server-shelf',
-          'Server app',
-          'A server app using package:shelf.',
-          categories: const ['dart', 'server'],
-        ) {
+    : super(
+        'server-shelf',
+        'Server app',
+        'A server app using package:shelf.',
+        categories: const ['dart', 'server'],
+      ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);
@@ -22,23 +22,16 @@ class ServerShelfGenerator extends DefaultGenerator {
     addFile('Dockerfile', _dockerfile);
     addFile('.dockerignore', _dockerignore);
     addFile('test/server_test.dart', _test);
-    setEntrypoint(
-      addFile('bin/server.dart', _main),
-    );
+    setEntrypoint(addFile('bin/server.dart', _main));
   }
 
   @override
-  String getInstallInstructions(
-    String directory, {
-    String? scriptPath,
-  }) =>
-      super.getInstallInstructions(
-        directory,
-        scriptPath: 'bin/server',
-      );
+  String getInstallInstructions(String directory, {String? scriptPath}) =>
+      super.getInstallInstructions(directory, scriptPath: 'bin/server');
 }
 
-final String _pubspec = '''
+final String _pubspec =
+    '''
 name: __projectName__
 description: A server app using the shelf package and Docker.
 version: 1.0.0

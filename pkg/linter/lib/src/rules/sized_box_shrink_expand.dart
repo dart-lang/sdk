@@ -42,8 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     // Only interested in the default constructor for the SizedBox widget
-    if (!isExactWidgetTypeSizedBox(node.staticType) ||
-        node.constructorName.name != null) {
+    if (!node.isWidgetTypeSizedBox || node.constructorName.name != null) {
       return;
     }
 

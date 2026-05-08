@@ -57,9 +57,9 @@ List<String> generateReloadVersions(String fileContent) {
     final line = lines[i];
     final m = includeIn.firstMatch(line);
     if (m != null) {
-      final annotation = int.parse(m.group(1) as String);
+      final annotation = int.parse(m[1] as String);
       reloadAnnotation[i] = annotation;
-      reloadPlusAnnotation[i] = m.group(2) == '+';
+      reloadPlusAnnotation[i] = m[2] == '+';
     } else {
       // No annotation means include always.
       reloadPlusAnnotation[i] = true;

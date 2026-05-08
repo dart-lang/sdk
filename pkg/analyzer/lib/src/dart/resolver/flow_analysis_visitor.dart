@@ -123,29 +123,10 @@ class FlowAnalysisHelper {
     var typeAnnotation = node.type;
 
     flow!.asExpression_end(
-      expression,
+      flow!.getExpressionInfo(expression),
       subExpressionType: SharedTypeView(expression.typeOrThrow),
       castType: SharedTypeView(typeAnnotation.typeOrThrow),
     );
-  }
-
-  void assignmentExpression(AssignmentExpressionImpl node) {
-    if (flow == null) return;
-
-    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow!.ifNullExpression_rightBegin(
-        node.leftHandSide,
-        SharedTypeView(node.readType!),
-      );
-    }
-  }
-
-  void assignmentExpression_afterRight(AssignmentExpression node) {
-    if (flow == null) return;
-
-    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow!.ifNullExpression_end();
-    }
   }
 
   /// This method is called whenever the [ResolverVisitor] enters the body or
@@ -163,7 +144,7 @@ class FlowAnalysisHelper {
   /// will be visited.
   void bodyOrInitializer_enter(
     AstNodeImpl node,
-    FormalParameterListImpl? parameters, {
+    List<FormalParameterElementImpl>? parameters, {
     void Function(AstVisitor<Object?> visitor)? visit,
   }) {
     inferenceLogWriter?.enterBodyOrInitializer(node);
@@ -230,9 +211,21 @@ class FlowAnalysisHelper {
     flow!.handleContinue(target);
   }
 
+  void declarePrimaryConstructorParameters(
+    List<FormalParameterElementImpl> primaryConstructorParameters,
+  ) {
+    for (var parameter in primaryConstructorParameters) {
+      flow!.declare(
+        parameter,
+        SharedTypeView(parameter.type),
+        initialized: true,
+      );
+    }
+  }
+
   void executableDeclaration_enter(
     AstNodeImpl node,
-    FormalParameterList? parameters, {
+    List<FormalParameterElementImpl>? parameters, {
     required bool isClosure,
   }) {
     if (isClosure) {
@@ -240,14 +233,10 @@ class FlowAnalysisHelper {
     }
 
     if (parameters != null) {
-      for (var parameter in parameters.parameters) {
-        // TODO(paulberry): try to remove this cast by changing `parameters` to
-        // a `FormalParameterListImpl`
-        var declaredElement =
-            parameter.declaredFragment!.element as PromotableElementImpl;
+      for (var parameter in parameters) {
         flow!.declare(
-          declaredElement,
-          SharedTypeView(declaredElement.type),
+          parameter,
+          SharedTypeView(parameter.type),
           initialized: true,
         );
       }
@@ -264,7 +253,13 @@ class FlowAnalysisHelper {
   }
 
   void for_bodyBegin(AstNode node, ExpressionImpl? condition) {
-    flow?.for_bodyBegin(node is StatementImpl ? node : null, condition);
+    flow?.for_bodyBegin(
+      node is StatementImpl ? node : null,
+      switch (condition) {
+        null => flow?.booleanLiteral(true),
+        var condition => flow?.getExpressionInfo(condition),
+      },
+    );
   }
 
   void for_conditionBegin(AstNodeImpl node) {
@@ -307,12 +302,14 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.isExpression_end(
+    flow!.storeExpressionInfo(
       node,
-      expression,
-      node.notOperator != null,
-      subExpressionType: SharedTypeView(expression.typeOrThrow),
-      checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
+      flow!.isExpression_end(
+        flow!.getExpressionInfo(expression),
+        node.notOperator != null,
+        subExpressionType: SharedTypeView(expression.typeOrThrow),
+        checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
+      ),
     );
   }
 
@@ -362,7 +359,7 @@ class FlowAnalysisHelper {
   static AssignedVariables<AstNodeImpl, PromotableElementImpl>
   computeAssignedVariables(
     AstNodeImpl node,
-    FormalParameterListImpl? parameters, {
+    List<FormalParameterElementImpl>? parameters, {
     bool retainDataForTesting = false,
     void Function(AstVisitor<Object?> visitor)? visit,
   }) {
@@ -567,6 +564,16 @@ class TypeSystemOperations
         what.unwrapTypeView<TypeImpl>(),
       ),
     );
+  }
+
+  @override
+  SharedTypeView flatten(SharedTypeView type) {
+    return typeSystem.flatten(type.unwrapTypeView()).wrapSharedTypeView();
+  }
+
+  @override
+  SharedType futureOrTypeInternal(TypeImpl argumentType) {
+    return typeSystem.typeProvider.futureOrType(argumentType);
   }
 
   @override
@@ -982,6 +989,22 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    node.target?.accept(this);
+    var parameters = node.parameters;
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        var element = parameter.declaredFragment?.element;
+        if (element is FormalParameterElementImpl) {
+          assignedVariables.declare(element);
+        }
+      }
+      parameters.accept(this);
+    }
+    node.body.accept(this);
+  }
+
+  @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var element = node.element;
     if (element is PromotableElementImpl) {
@@ -1065,7 +1088,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       throw StateError('Should not visit top level declarations');
     }
     assignedVariables.beginNode();
-    _declareParameters(node.functionExpression.parameters);
+    var element = node.declaredFragment!.element;
+    _declareParameters(element.formalParameters);
     super.visitFunctionDeclaration(node);
     assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
@@ -1079,7 +1103,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       return super.visitFunctionExpression(node);
     }
     assignedVariables.beginNode();
-    _declareParameters(node.parameters);
+    var element = node.declaredFragment!.element;
+    _declareParameters(element.formalParameters);
     super.visitFunctionExpression(node);
     assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
@@ -1232,10 +1257,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.endNode(node);
   }
 
-  void _declareParameters(FormalParameterListImpl? parameters) {
+  void _declareParameters(List<FormalParameterElementImpl>? parameters) {
     if (parameters == null) return;
-    for (var parameter in parameters.parameters) {
-      assignedVariables.declare(parameter.declaredFragment!.element);
+    for (var parameter in parameters) {
+      assignedVariables.declare(parameter);
     }
   }
 
@@ -1271,7 +1296,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         assignedVariables.declare(variable);
       } else if (forLoopParts is ForEachPartsWithPatternImpl) {
         for (var variable in forLoopParts.variables) {
-          assignedVariables.declare(variable.element);
+          assignedVariables.declare(variable);
         }
       } else {
         throw StateError('Unrecognized for loop parts');
@@ -1316,10 +1341,16 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   @override
   TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
     var variable = node.element as InternalVariableElement;
-    if (variable is PromotableElementImpl) {
-      var promotedType = isRead
-          ? _manager.flow?.variableRead(node, variable)
-          : _manager.flow?.promotedType(variable);
+    var flow = _manager.flow;
+    if (variable is PromotableElementImpl && flow != null) {
+      SharedTypeView? promotedType;
+      if (isRead) {
+        ExpressionInfo expressionInfo;
+        (promotedType, expressionInfo) = flow.variableRead(variable);
+        flow.storeExpressionInfo(node, expressionInfo);
+      } else {
+        promotedType = flow.promotedType(variable);
+      }
       if (promotedType != null) {
         return promotedType.unwrapTypeView<TypeImpl>();
       }

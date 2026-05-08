@@ -81,7 +81,7 @@ void setup() {
 expectTypeName(expectedName, s) {
   var m = new RegExp(r"Instance of '(.*)'").firstMatch(s);
   Expect.isNotNull(m);
-  var name = m!.group(1);
+  var name = m![1];
   Expect.isTrue(
     expectedName == name || name!.length <= 3 || name!.startsWith('minified:'),
     "Is '$expectedName' or minified: '$name'",

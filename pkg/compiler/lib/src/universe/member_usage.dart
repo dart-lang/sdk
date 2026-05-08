@@ -800,14 +800,11 @@ class ParameterUsage {
 
   ParameterUsage.cloned(
     this._parameterStructure, {
-    required bool hasInvoke,
-    required int? providedPositionalParameters,
-    required bool areAllTypeParametersProvided,
-    required Set<String>? unprovidedNamedParameters,
-  }) : _hasInvoke = hasInvoke,
-       _providedPositionalParameters = providedPositionalParameters,
-       _areAllTypeParametersProvided = areAllTypeParametersProvided,
-       _unprovidedNamedParameters = unprovidedNamedParameters;
+    required this._hasInvoke,
+    required this._providedPositionalParameters,
+    required this._areAllTypeParametersProvided,
+    required this._unprovidedNamedParameters,
+  });
 
   bool invoke(CallStructure callStructure) {
     if (isFullyUsed) return false;

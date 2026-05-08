@@ -177,12 +177,6 @@ void IdleTimeHandler::InitializeWithHeap(Heap* heap) {
   heap_ = heap;
 }
 
-bool IdleTimeHandler::ShouldCheckForIdle() {
-  MutexLocker ml(&mutex_);
-  return idle_start_time_ > 0 && FLAG_idle_timeout_micros != 0 &&
-         disabled_counter_ == 0;
-}
-
 void IdleTimeHandler::UpdateStartIdleTime() {
   MutexLocker ml(&mutex_);
   if (disabled_counter_ == 0) {
@@ -333,7 +327,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       safepoint_handler_(new SafepointHandler(this)),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
-      saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
       sentinel_field_table_(new FieldTable(/*isolate=*/nullptr)),
       shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
@@ -364,8 +357,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       cache_mutex_(),
       handler_info_cache_(),
       catch_entry_moves_cache_(),
-      tag_table_lock_(),
-      tag_table_(GrowableObjectArray::null()) {
+      tag_table_lock_() {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
     intptr_t max_worker_threads;
@@ -598,10 +590,6 @@ void IsolateGroup::Shutdown() {
 void IsolateGroup::set_heap(std::unique_ptr<Heap> heap) {
   idle_time_handler_.InitializeWithHeap(heap.get());
   heap_ = std::move(heap);
-}
-
-void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
-  saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
 
 static constexpr intptr_t kActiveMutatorPreemptionTimeout = 120;
@@ -967,10 +955,6 @@ void IsolateGroup::ClearCatchEntryMovesCacheLocked() {
          (thread->task_kind() == Thread::kScavengerTask) ||
          (thread->task_kind() == Thread::kIncrementalCompactorTask));
   catch_entry_moves_cache_.Clear();
-}
-
-void IsolateGroup::set_tag_table(const GrowableObjectArray& value) {
-  tag_table_ = value.ptr();
 }
 
 void IsolateGroup::RehashConstants(Become* become) {
@@ -1557,11 +1541,17 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-    const Object& msg_handler = Object::Handle(
+    Object& msg_handler = Object::Handle(
         zone, DartLibraryCalls::HandleMessage(message->dest_port(), msg));
-    if (msg_handler.IsError()) {
+    while (msg_handler.IsError()) {
       status = ProcessUnhandledException(Error::Cast(msg_handler));
-    } else if (msg_handler.IsNull()) {
+      if (status == kOK) {
+        msg_handler = DartLibraryCalls::DrainMicrotaskQueue();
+      } else {
+        break;
+      }
+    }
+    if (msg_handler.IsNull()) {
       // If the port has been closed then the message will be dropped at this
       // point. Make sure to post to the delivery failure port in that case.
     } else {
@@ -2618,7 +2608,10 @@ void Isolate::Shutdown() {
 #if !defined(PRODUCT)
     HandleScope handle_scope(thread);
     debugger()->Shutdown();
-    Profiler::IsolateShutdown(thread);
+#endif
+
+#if defined(DART_INCLUDE_PROFILER)
+    Profiler::IsolateShutdown(this);
 #endif
   }
 
@@ -2696,6 +2689,9 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group = isolate_group->UnregisterIsolateDecrementCount();
   if (shutdown_group) {
     KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
+#if defined(DART_INCLUDE_PROFILER)
+    Profiler::IsolateGroupShutdown(isolate_group);
+#endif
 
     if (!is_vm_isolate) {
       Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
@@ -2908,15 +2904,6 @@ void IsolateGroup::ForEachIsolate(
   }
 }
 
-Isolate* IsolateGroup::FirstIsolate() const {
-  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return FirstIsolateLocked();
-}
-
-Isolate* IsolateGroup::FirstIsolateLocked() const {
-  return isolates_.IsEmpty() ? nullptr : isolates_.First();
-}
-
 void IsolateGroup::ForEachMutatorAtASafepoint(
     std::function<void(Thread* thread)> function) {
   auto thread = Thread::Current();
@@ -2970,8 +2957,6 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     isolate->VisitObjectPointers(visitor, validate_frames);
   }
   VisitStackPointers(visitor, validate_frames);
-
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
 }
 
 void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
@@ -2990,10 +2975,6 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
       if (object_store() != nullptr) {
         object_store()->VisitObjectPointers(visitor);
       }
-      break;
-    case kSavedUnlinkedCalls:
-      visitor->VisitPointer(
-          reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
       break;
     case kInitialFieldTable:
       initial_field_table()->VisitObjectPointers(visitor);
@@ -3260,7 +3241,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  if (FLAG_profiler) {
+  if (Profiler::IsRunning()) {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
@@ -3632,9 +3613,6 @@ void Isolate::PauseEventHandler() {
 #endif  // !defined(PRODUCT)
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
-  if (visitor == nullptr) {
-    return;
-  }
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate(
         [&](Isolate* isolate) { visitor->VisitIsolate(isolate); });
@@ -3649,20 +3627,7 @@ intptr_t Isolate::IsolateListLength() {
   return count;
 }
 
-Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
-  Isolate* match = nullptr;
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->ForEachIsolate([&](Isolate* isolate) {
-      if (isolate->main_port() == port) {
-        match = isolate;
-      }
-    });
-  });
-  return match;
-}
-
 std::unique_ptr<char[]> Isolate::LookupIsolateNameByPort(Dart_Port port) {
-  MonitorLocker ml(isolate_creation_monitor_);
   std::unique_ptr<char[]> result;
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {

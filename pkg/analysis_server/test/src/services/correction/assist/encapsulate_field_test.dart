@@ -403,6 +403,29 @@ class A {
   set field(int? value) {
     _field = value;
   }
+  A({this._field});
+}
+''');
+  }
+
+  Future<void> test_named_formalParameter_noPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.10
+class A {
+  int? ^field;
+  A({this.field});
+}
+''');
+    await assertHasAssist('''
+// @dart=3.10
+class A {
+  int? _field;
+
+  int? get field => _field;
+
+  set field(int? value) {
+    _field = value;
+  }
   A({int? field}) : _field = field;
 }
 ''');
@@ -417,6 +440,32 @@ class C {
 }
 ''');
     await assertHasAssist('''
+class C {
+  var _foo;
+
+  get foo => _foo;
+
+  set foo(value) {
+    _foo = value;
+  }
+
+  C({required this._foo});
+}
+''');
+  }
+
+  Future<void>
+  test_named_formalParameter_noType_noPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.10
+class C {
+  var ^foo;
+
+  C({required this.foo});
+}
+''');
+    await assertHasAssist('''
+// @dart=3.10
 class C {
   var _foo;
 
@@ -453,7 +502,60 @@ class C {
     _foo = value;
   }
 
+  C({required this._foo});
+}
+''');
+  }
+
+  Future<void>
+  test_named_formalParameter_prefixedType_noPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.10
+import 'dart:math' as math;
+
+class C {
+  math.Random ^foo;
+
+  C({required this.foo});
+}
+''');
+    await assertHasAssist('''
+// @dart=3.10
+import 'dart:math' as math;
+
+class C {
+  math.Random _foo;
+
+  math.Random get foo => _foo;
+
+  set foo(math.Random value) {
+    _foo = value;
+  }
+
   C({required math.Random foo}) : _foo = foo;
+}
+''');
+  }
+
+  Future<void> test_named_noPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.10
+class A {
+  int? ^field;
+  A({int? field}) : field = field;
+}
+''');
+    await assertHasAssist('''
+// @dart=3.10
+class A {
+  int? _field;
+
+  int? get field => _field;
+
+  set field(int? value) {
+    _field = value;
+  }
+  A({int? field}) : _field = field;
 }
 ''');
   }
@@ -476,7 +578,7 @@ class B extends A {
   set field(int? value) {
     _field = value;
   }
-  B({int? field}) : _field = field, super();
+  B({this._field}) : super();
 }
 ''');
   }

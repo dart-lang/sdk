@@ -2,22 +2,22 @@ library test.qualified.main;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/qualified.dart:13:11: Error: The name of a constructor must match the name of the enclosing class.
+// pkg/front_end/testcases/general/qualified.dart:15:11: Error: The name of a constructor must match the name of the enclosing class.
 //   factory WrongName() => throw '';
 //           ^^^^^^^^^
-// pkg/front_end/testcases/general/qualified.dart:11:7: Context: The name of the enclosing class is 'Bad'.
+// pkg/front_end/testcases/general/qualified.dart:13:7: Context: The name of the enclosing class is 'Bad'.
 // class Bad extends lib.Missing {
 //       ^^^
 //
-// pkg/front_end/testcases/general/qualified.dart:11:19: Error: Type 'lib.Missing' not found.
+// pkg/front_end/testcases/general/qualified.dart:13:19: Error: Type 'lib.Missing' not found.
 // class Bad extends lib.Missing {
 //                   ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/qualified.dart:12:3: Error: Type 'lib.Missing' not found.
+// pkg/front_end/testcases/general/qualified.dart:14:3: Error: Type 'lib.Missing' not found.
 //   lib.Missing method() {}
 //   ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/qualified.dart:18:32: Error: The type 'lib.VoidFunction' which is an alias of 'void Function()' can't be used as supertype.
+// pkg/front_end/testcases/general/qualified.dart:20:32: Error: The type 'lib.VoidFunction' which is an alias of 'void Function()' can't be used as supertype.
 // class IllegalSupertype extends lib.VoidFunction {}
 //                                ^
 // pkg/front_end/testcases/general/qualified_lib.dart:27:9: Context: The issue arises via this type alias.

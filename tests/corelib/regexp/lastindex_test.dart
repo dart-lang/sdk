@@ -32,13 +32,15 @@ void main() {
   var re = new RegExp(r"[^\s$]+");
   var accumulate = "";
   var match;
-  for (var match in re.allMatches("  abcdefg"))
-    accumulate += match.group(0)! + "; ";
+  for (var match in re.allMatches("  abcdefg")) {
+    accumulate += match[0]! + "; ";
+  }
   assertEquals(accumulate, "abcdefg; ");
 
   re = new RegExp(r"\d");
   accumulate = "";
-  for (var match in re.allMatches("123456789"))
-    accumulate += match.group(0)! + "; ";
+  for (var match in re.allMatches("123456789")) {
+    accumulate += match[0]! + "; ";
+  }
   assertEquals(accumulate, "1; 2; 3; 4; 5; 6; 7; 8; 9; ");
 }

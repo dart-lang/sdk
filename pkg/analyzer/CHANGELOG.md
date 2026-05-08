@@ -1,4 +1,100 @@
-## 10.0.0-dev
+## 12.1.0-dev
+
+* Support type aliases for `dynamic`, `Never`, and `void`. As a result, it is no longer safe to assume that
+  there is a single instance of `DynamicType`, `NeverType`, or `VoidType`. Use type checks (`is DynamicType`) instead of `identical()`.
+
+## 12.0.0
+
+* Added `InstantiatedTypeAliasElement.nullabilitySuffix`.
+* Support empty bodies (`;`) in enums, extensions, and mixins, representing
+  them in the AST with `EmptyEnumBody` and `EmptyClassBody`.
+* **Breaking Change:** `ClassBody` is now a `sealed class` with subclasses
+  `BlockClassBody` and `EmptyClassBody`. Getters like `.members`, `.leftBracket`,
+  and `.rightBracket` are available on `BlockClassBody`. This affects
+  `ClassDeclaration`, `ExtensionDeclaration`, and `MixinDeclaration` bodies.
+* **Breaking Change:** `EnumBody` is now a `sealed class` with subclasses
+  `BlockEnumBody` and `EmptyEnumBody`. Getters like `.members`, `.leftBracket`,
+  and `.rightBracket` are available on `BlockEnumBody`.
+* **Breaking Change:** Remove `LibraryIdentifier`. `LibraryDirective.name` and
+  `PartOfDirective.libraryName` now return `DottedName?`.
+* **Breaking Change:** `DottedName.components` (NodeList<SimpleIdentifier>) is
+  replaced with `DottedName.tokens` (List<Token>).
+
+## 11.0.0
+
+* Remove deprecated `ClassDeclaration.leftBracket`.
+* Remove deprecated `ClassDeclaration.members`.
+* Remove deprecated `ClassDeclaration.name`.
+* Remove deprecated `ClassDeclaration.rightBracket`.
+* Remove deprecated `ClassDeclaration.typeParameters`.
+* Remove deprecated `EnumDeclaration.constants`.
+* Remove deprecated `EnumDeclaration.leftBracket`.
+* Remove deprecated `EnumDeclaration.members`.
+* Remove deprecated `EnumDeclaration.name`.
+* Remove deprecated `EnumDeclaration.rightBracket`.
+* Remove deprecated `EnumDeclaration.semicolon`.
+* Remove deprecated `EnumDeclaration.typeParameters`.
+* Remove deprecated `ExtensionDeclaration.leftBracket`.
+* Remove deprecated `ExtensionDeclaration.members`.
+* Remove deprecated `ExtensionDeclaration.rightBracket`.
+* Remove deprecated `ExtensionTypeDeclaration.constKeyword`.
+* Remove deprecated `ExtensionTypeDeclaration.leftBracket`.
+* Remove deprecated `ExtensionTypeDeclaration.members`.
+* Remove deprecated `ExtensionTypeDeclaration.name`.
+* Remove deprecated `ExtensionTypeDeclaration.representation`.
+* Remove deprecated `ExtensionTypeDeclaration.rightBracket`.
+* Remove deprecated `ExtensionTypeDeclaration.typeParameters`.
+* Remove deprecated `ConstructorDeclaration.returnType`.
+* Remove deprecated `MixinDeclaration.leftBracket`.
+* Remove deprecated `MixinDeclaration.members`.
+* Remove deprecated `MixinDeclaration.rightBracket`.
+* Remove deprecated `NamedCompilationUnitMember`.
+* Remove deprecated `RepresentationConstructorName`.
+* Remove deprecated `RepresentationDeclaration`.
+* Remove deprecated `ConstructorElement.isSynthetic`.
+* Remove deprecated `ConstructorFragment.isSynthetic`.
+* Remove deprecated `Element.isSynthetic`.
+* Remove deprecated `ExecutableFragment.isSynthetic`.
+* Remove deprecated `PropertyAccessorElement.isSynthetic`.
+* Remove deprecated `PropertyInducingElement.isSynthetic`.
+* Remove deprecated `PropertyInducingFragment.isSynthetic`.
+* Remove deprecated `visitNamedCompilationUnitMember`.
+* Remove deprecated `visitRepresentationConstructorName`.
+* Remove deprecated `visitRepresentationDeclaration`.
+* Remove deprecated `RuleVisitorRegistry.addRepresentationConstructorName`.
+* Remove deprecated `RuleVisitorRegistry.addRepresentationDeclaration`.
+* `ClassDeclaration`, `EnumDeclaration`, `FunctionDeclaration`,
+  `MixinDeclaration`, and `TypeAlias` now implement `CompilationUnitMember`
+  directly (instead of `NamedCompilationUnitMember`).
+
+## 10.3.0-dev
+
+* Internal changes only
+
+## 10.2.0
+
+* Deprecate `RuleVisitorRegistry.addRepresentationConstructorName`.
+* Deprecate `RuleVisitorRegistry.addRepresentationDeclaration`.
+
+## 10.1.0
+
+* Add `TypeSystem.futureValueType`.
+* Remove experimental `ConstructorElement.isDeclaring`.
+* Stabilize `ConstructorElement.isPrimary`.
+* Stabilize `FieldElement.declaringFormalParameter`.
+* Stabilize `FieldFormalParameterElement.isDeclaring` and `privateName`.
+* Stabilize `FieldFormalParameterFragment.privateName`.
+* Deprecate `LibraryFragment.isSynthetic`, use `isOriginNotExistingFile` instead.
+
+## 10.0.2
+
+* Internal changes only
+
+## 10.0.1
+
+* Require version ^1.18.0 of the meta package.
+
+## 10.0.0
 * Deprecations in `ClassDeclaration`:
   * Properties `leftBracket`, `members`, `rightBracket` are deprecated; use
     `body` instead.

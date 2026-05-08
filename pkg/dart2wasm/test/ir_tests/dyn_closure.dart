@@ -7,13 +7,7 @@
 // globalFilter=foo|bar
 
 void main() {
-  final objects = <dynamic>[
-    () {},
-    foo,
-    bar,
-    'a',
-    1,
-  ];
+  final objects = <dynamic>[() {}, foo, bar, 'a', 1];
   final emptyClosure = objects[0];
   final fooClosure = objects[1];
   final barClosure = objects[2];

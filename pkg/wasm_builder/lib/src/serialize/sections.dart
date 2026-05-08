@@ -451,25 +451,15 @@ class ExportSection extends Section {
       final name = d.readName();
       final kind = d.readByte();
       final index = d.readUnsigned();
-      switch (kind) {
-        case 0x00:
-          exports.add(ir.FunctionExport(name, functions[index]));
-          break;
-        case 0x01:
-          exports.add(ir.TableExport(name, tables[index]));
-          break;
-        case 0x02:
-          exports.add(ir.MemoryExport(name, memories[index]));
-          break;
-        case 0x03:
-          exports.add(ir.GlobalExport(name, globals[index]));
-          break;
-        case 0x04:
-          exports.add(ir.TagExport(name, tags[index]));
-          break;
-        default:
-          throw "Invalid export kind: $kind";
-      }
+      final export = switch (kind) {
+        0x00 => ir.FunctionExport(name, functions[index]),
+        0x01 => ir.TableExport(name, tables[index]),
+        0x02 => ir.MemoryExport(name, memories[index]),
+        0x03 => ir.GlobalExport(name, globals[index]),
+        0x04 => ir.TagExport(name, tags[index]),
+        _ => throw "Invalid export kind: $kind",
+      };
+      exports.add(export);
     }
     return ir.Exports(exports);
   }
@@ -744,9 +734,9 @@ class NameSection extends CustomSection {
   static const String customSectionName = 'name';
 
   final String? moduleName;
-  final List<ir.BaseFunction> functions;
+  final ir.Functions functions;
   final List<List<ir.DefType>> types;
-  final List<ir.Global> globals;
+  final ir.Globals globals;
 
   NameSection(
     this.moduleName,
@@ -815,7 +805,8 @@ class NameSection extends CustomSection {
 
     int functionsWithLocalNamesCount = 0;
     final localNames = Serializer();
-    for (final function in functions) {
+    for (int i = 0; i < functions.length; i++) {
+      final function = functions[i];
       if (function is ir.DefinedFunction) {
         if (function.localNames.isNotEmpty) {
           localNames.writeUnsigned(function.finalizableIndex.value);
@@ -986,5 +977,53 @@ class SourceMapSection extends CustomSection {
       return null;
     }
     return Uri.parse(d.readName());
+  }
+}
+
+class RemovableIfUnusedSection extends CustomSection {
+  static const String customSectionName = 'binaryen.removable.if.unused';
+
+  final ir.Functions functions;
+
+  RemovableIfUnusedSection(this.functions) : super([]);
+
+  @override
+  void serializeContents(Serializer s) {
+    final functionsToAnnotate = [
+      ...functions.imported.where((f) => f.isPure),
+      ...functions.defined.where((f) => f.isPure),
+    ];
+    if (functionsToAnnotate.isNotEmpty) {
+      s.writeName(customSectionName);
+      s.writeUnsigned(functionsToAnnotate.length);
+      for (final function in functionsToAnnotate) {
+        s.writeUnsigned(function.index);
+        s.writeUnsigned(1); // Number of hints
+        s.writeUnsigned(0); // Offset (0 == function-level)
+        s.writeUnsigned(0); // always 0
+      }
+    }
+  }
+
+  static void deserialize(Deserializer? d, ir.Functions functions) {
+    if (d == null) return;
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final functionIndex = d.readUnsigned();
+      final numHints = d.readUnsigned();
+      for (int j = 0; j < numHints; j++) {
+        final offset = d.readUnsigned(); // Offset (0 == function-level)
+        if (offset != 0) {
+          throw UnsupportedError(
+              'Only function-level ($customSectionName) annotation supported.');
+        }
+        final data = d.readUnsigned(); // always 0
+        if (data != 0) {
+          throw StateError('Expected 0 but got $data');
+        }
+        functions[functionIndex].isPure = true;
+      }
+    }
   }
 }

@@ -18,6 +18,8 @@ const kVmPlatformConstPragmaName = "vm:platform-const";
 const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
 const kVmFfiNative = "vm:ffi:native";
 const kVmSharedPragmaName = "vm:shared";
+const kVmDeeplyImmutablePragmaName = "vm:deeply-immutable";
+const kVmInvisiblePragmaName = "vm:invisible";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
@@ -32,6 +34,7 @@ const kDynModuleCanBeOverriddenImplicitlyPragmaName =
     "dyn-module:can-be-overridden-implicitly";
 const kDynModuleCallablePragmaName = "dyn-module:callable";
 const kDynModuleImplicitlyCallablePragmaName = "dyn-module:implicitly-callable";
+const kDynModuleCanBeUsedAsTypePragmaName = "dyn-module:can-be-used-as-type";
 const kDynModuleEntryPointPragmaName = "dyn-module:entry-point";
 
 abstract class ParsedPragma {}
@@ -44,6 +47,7 @@ enum PragmaEntryPointType {
   GetterOnly,
   SetterOnly,
   CallOnly,
+  CanBeUsedAsType,
 }
 
 enum PragmaRecognizedType { AsmIntrinsic, GraphIntrinsic, Other }
@@ -94,6 +98,14 @@ class ParsedDynModuleEntryPointPragma implements ParsedPragma {
 
 class ParsedVmSharedPragma implements ParsedPragma {
   const ParsedVmSharedPragma();
+}
+
+class ParsedVmDeeplyImmutablePragma implements ParsedPragma {
+  const ParsedVmDeeplyImmutablePragma();
+}
+
+class ParsedVmInvisiblePragma implements ParsedPragma {
+  const ParsedVmInvisiblePragma();
 }
 
 abstract class PragmaAnnotationParser {
@@ -234,6 +246,10 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return const ParsedEntryPointPragma(
           PragmaEntryPointType.CanBeOverridden,
         );
+      case kDynModuleCanBeUsedAsTypePragmaName:
+        return const ParsedEntryPointPragma(
+          PragmaEntryPointType.CanBeUsedAsType,
+        );
       case kDynModuleCallablePragmaName:
       case kDynModuleImplicitlyCallablePragmaName:
         return getEntryPointTypeFromOptions(options, pragmaName);
@@ -241,6 +257,10 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return const ParsedDynModuleEntryPointPragma();
       case kVmSharedPragmaName:
         return const ParsedVmSharedPragma();
+      case kVmDeeplyImmutablePragmaName:
+        return const ParsedVmDeeplyImmutablePragma();
+      case kVmInvisiblePragmaName:
+        return const ParsedVmInvisiblePragma();
       default:
         return null;
     }

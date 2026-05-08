@@ -1,0 +1,121 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:9:8: Error: No type was provided to find the dot shorthand 'new'.
+//   x = .new(1); // Error.
+//        ^^^
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:10:8: Error: No type was provided to find the dot shorthand 'new'.
+//   x = .new; // Error.
+//        ^^^
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:11:8: Error: No type was provided to find the dot shorthand 'getter'.
+//   x = .getter; // Error.
+//        ^^^^^^
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:12:8: Error: No type was provided to find the dot shorthand 'method'.
+//   x = .method(); // Error.
+//        ^^^^^^
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:13:8: Error: No type was provided to find the dot shorthand 'named'.
+//   x = .named(1); // Error.
+//        ^^^^^
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:17:19: Error: No type was provided to find the dot shorthand 'new'.
+//   constX = const .new(1); // Error.
+//                   ^^^
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:18:19: Error: No type was provided to find the dot shorthand 'named'.
+//   constX = const .named(1); // Error.
+//                   ^^^^^
+//
+import self as self;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method test() → void {
+  mai::_E% /* erasure=dart.core::int, declared=! */ x = mai::one;
+  x = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:9:8: Error: No type was provided to find the dot shorthand 'new'.
+  x = .new(1); // Error.
+       ^^^" as{TypeError,ForDynamic} mai::_E% /* erasure=dart.core::int, declared=! */;
+  x = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:10:8: Error: No type was provided to find the dot shorthand 'new'.
+  x = .new; // Error.
+       ^^^" as{TypeError,ForDynamic} mai::_E% /* erasure=dart.core::int, declared=! */;
+  x = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:11:8: Error: No type was provided to find the dot shorthand 'getter'.
+  x = .getter; // Error.
+       ^^^^^^" as{TypeError,ForDynamic} mai::_E% /* erasure=dart.core::int, declared=! */;
+  x = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:12:8: Error: No type was provided to find the dot shorthand 'method'.
+  x = .method(); // Error.
+       ^^^^^^" as{TypeError,ForDynamic} mai::_E% /* erasure=dart.core::int, declared=! */;
+  x = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:13:8: Error: No type was provided to find the dot shorthand 'named'.
+  x = .named(1); // Error.
+       ^^^^^" as{TypeError,ForDynamic} mai::_E% /* erasure=dart.core::int, declared=! */;
+  x = mai::_E|constructor#(1);
+  mai::_EConst% /* erasure=dart.core::int, declared=! */ constX = #C1;
+  constX = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:17:19: Error: No type was provided to find the dot shorthand 'new'.
+  constX = const .new(1); // Error.
+                  ^^^" as{TypeError,ForDynamic} mai::_EConst% /* erasure=dart.core::int, declared=! */;
+  constX = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type/main.dart:18:19: Error: No type was provided to find the dot shorthand 'named'.
+  constX = const .named(1); // Error.
+                  ^^^^^" as{TypeError,ForDynamic} mai::_EConst% /* erasure=dart.core::int, declared=! */;
+  constX = #C1;
+}
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+typedef Public_E = mai::_E% /* erasure=core::int, declared=! */;
+typedef Public_EConst = mai::_EConst% /* erasure=core::int, declared=! */;
+extension type _E(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  static get getter = get mai::_E|getter;
+  static method method = mai::_E|method;
+  constructor • = mai::_E|constructor#;
+  constructor tearoff • = mai::_E|constructor#_#new#tearOff;
+  constructor named = mai::_E|constructor#named;
+  constructor tearoff named = mai::_E|constructor#_#named#tearOff;
+}
+extension type _EConst(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  constructor • = mai::_EConst|constructor#;
+  constructor tearoff • = mai::_EConst|constructor#_#new#tearOff;
+  constructor named = mai::_EConst|constructor#named;
+  constructor tearoff named = mai::_EConst|constructor#_#named#tearOff;
+}
+static final field mai::_E% /* erasure=core::int, declared=! */ one = mai::_E|constructor#(1);
+static const field mai::_EConst% /* erasure=core::int, declared=! */ constOne = #C1;
+static extension-type-member method _E|constructor#(core::int x) → mai::_E% /* erasure=core::int, declared=! */ {
+  lowered final mai::_E% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _E|constructor#_#new#tearOff(core::int x) → mai::_E% /* erasure=core::int, declared=! */
+  return mai::_E|constructor#(x);
+static extension-type-member get _E|getter() → mai::_E% /* erasure=core::int, declared=! */
+  return mai::_E|constructor#(1);
+static extension-type-member method _E|method() → mai::_E% /* erasure=core::int, declared=! */
+  return mai::_E|constructor#(1);
+static extension-type-member method _E|constructor#named(core::int x) → mai::_E% /* erasure=core::int, declared=! */ {
+  lowered final mai::_E% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _E|constructor#_#named#tearOff(core::int x) → mai::_E% /* erasure=core::int, declared=! */
+  return mai::_E|constructor#named(x);
+static extension-type-member const method _EConst|constructor#(core::int x) → mai::_EConst% /* erasure=core::int, declared=! */ {
+  lowered final mai::_EConst% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _EConst|constructor#_#new#tearOff(core::int x) → mai::_EConst% /* erasure=core::int, declared=! */
+  return mai::_EConst|constructor#(x);
+static extension-type-member const method _EConst|constructor#named(core::int x) → mai::_EConst% /* erasure=core::int, declared=! */ {
+  lowered final mai::_EConst% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _EConst|constructor#_#named#tearOff(core::int x) → mai::_EConst% /* erasure=core::int, declared=! */
+  return mai::_EConst|constructor#named(x);
+
+constants  {
+  #C1 = 1
+}

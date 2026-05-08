@@ -28,4 +28,11 @@ extension type ErroneousInlineClass(int a, String b) {
   void test() {}
 }
 
-void test( InlineClass inlineClass, GenericInlineClass<String> genericInlineClass, FunctionInlineClass<String> functionInlineClass, GenericFunctionInlineClass genericFunctionInlineClass, DynamicInlineClass dynamicInlineClass, ErroneousInlineClass erroneousInlineClass, PrivateInlineClass privateInlineClass) {}
+void test(
+    InlineClass inlineClass,
+    GenericInlineClass<String> genericInlineClass,
+    FunctionInlineClass<String> functionInlineClass,
+    GenericFunctionInlineClass genericFunctionInlineClass,
+    DynamicInlineClass dynamicInlineClass,
+    ErroneousInlineClass erroneousInlineClass,
+    PrivateInlineClass privateInlineClass) {}

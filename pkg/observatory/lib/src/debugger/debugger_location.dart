@@ -79,16 +79,16 @@ class DebuggerLocation {
     Match match, {
     bool package = false,
   }) async {
-    var scriptName = match.group(1);
+    var scriptName = match[1];
     if (package) {
       scriptName = "package:$scriptName";
     }
     if (scriptName != null) {
       scriptName = scriptName.substring(0, scriptName.length - 1);
     }
-    var lineStr = match.group(2);
+    var lineStr = match[2];
     assert(lineStr != null);
-    var colStr = match.group(3);
+    var colStr = match[3];
     if (colStr != null) {
       colStr = colStr.substring(1);
     }
@@ -245,8 +245,8 @@ class DebuggerLocation {
     Match match,
   ) {
     Isolate isolate = debugger.isolate;
-    var base = match.group(1)!;
-    var qualifier = match.group(2);
+    var base = match[1]!;
+    var qualifier = match[2];
 
     return _lookupClass(isolate, base).then((classes) {
       var functions = [];
@@ -269,7 +269,7 @@ class DebuggerLocation {
           for (var function in cls.functions) {
             if (function.kind == M.FunctionKind.constructor) {
               // Constructor names are class-qualified.
-              if (match.group(0) == function.name) {
+              if (match[0] == function.name) {
                 functions.add(function);
               }
             } else {
@@ -281,15 +281,13 @@ class DebuggerLocation {
         }
       }
       if (functions.length == 0) {
-        return new DebuggerLocation.error(
-          "Function '${match.group(0)}' not found",
-        );
+        return new DebuggerLocation.error("Function '${match[0]}' not found");
       } else if (functions.length == 1) {
         return new DebuggerLocation.func(functions[0]);
       } else {
         // TODO(turnidge): Allow the user to disambiguate.
         return new DebuggerLocation.error(
-          "Function '${match.group(0)}' is ambiguous",
+          "Function '${match[0]}' is ambiguous",
         );
       }
     });
@@ -327,8 +325,8 @@ class DebuggerLocation {
     Match match,
   ) {
     Isolate isolate = debugger.isolate;
-    var base = match.group(1) ?? '';
-    var qualifier = match.group(2);
+    var base = match[1] ?? '';
+    var qualifier = match[2];
 
     if (qualifier == null) {
       return _lookupClass(isolate, base, allowPrefix: true).then((classes) {
@@ -353,11 +351,11 @@ class DebuggerLocation {
         for (var cls in classes) {
           for (var function in cls.functions) {
             if (function.kind == M.FunctionKind.constructor) {
-              if (function.name!.startsWith(match.group(0)!)) {
+              if (function.name!.startsWith(match[0]!)) {
                 completions.add(function.name!);
               }
             } else {
-              if (function.qualifiedName!.startsWith(match.group(0)!)) {
+              if (function.qualifiedName!.startsWith(match[0]!)) {
                 completions.add(function.qualifiedName!);
               }
             }
@@ -382,7 +380,7 @@ class DebuggerLocation {
     var lineStr;
     var lineStrComplete = false;
     var colStr;
-    if (_startsWithDigit(match.group(1)!)) {
+    if (_startsWithDigit(match[1]!)) {
       // CASE 1: We have matched a prefix of (lineStr:)(colStr)
       var frame = await _currentFrame(debugger);
       if (frame == null) {
@@ -390,21 +388,21 @@ class DebuggerLocation {
       }
       scriptName = frame.location!.script.name;
       scriptNameComplete = true;
-      lineStr = match.group(1) ?? '';
+      lineStr = match[1] ?? '';
       if (lineStr.endsWith(':')) {
         lineStr = lineStr.substring(0, lineStr.length - 1);
         lineStrComplete = true;
       }
-      colStr = match.group(2) ?? '';
+      colStr = match[2] ?? '';
     } else {
       // CASE 2: We have matched a prefix of (scriptName:)(lineStr)(:colStr)
-      scriptName = match.group(1) ?? '';
+      scriptName = match[1] ?? '';
       if (scriptName.endsWith(':')) {
         scriptName = scriptName.substring(0, scriptName.length - 1);
         scriptNameComplete = true;
       }
-      lineStr = match.group(2) ?? '';
-      colStr = match.group(3) ?? '';
+      lineStr = match[2] ?? '';
+      colStr = match[3] ?? '';
       if (colStr.startsWith(':')) {
         lineStrComplete = true;
         colStr = colStr.substring(1);

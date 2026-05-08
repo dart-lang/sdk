@@ -22,18 +22,23 @@ A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter dev
 
   @override
   ArgParser createArgParser() => dart_mcp_server.createArgParser(
-      usageLineLength: dartdevUsageLineLength, includeHelp: false);
+    usageLineLength: dartdevUsageLineLength,
+    includeHelp: false,
+  );
 
   DartMCPServerCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose, hidden: true) {
-    argParser.addFlag(_experimentFlag,
-        // This flag is no longer required but we are leaving it in for
-        // backwards compatibility.
-        hide: true,
-        defaultsTo: false,
-        help: 'A required flag in order to use this command. Passing this '
-            'flag is an acknowledgement that you understand it is an '
-            'experimental feature with no stability guarantees.');
+    : super(cmdName, cmdDescription, verbose, hidden: true) {
+    argParser.addFlag(
+      _experimentFlag,
+      // This flag is no longer required but we are leaving it in for
+      // backwards compatibility.
+      hide: true,
+      defaultsTo: false,
+      help:
+          'A required flag in order to use this command. Passing this '
+          'flag is an acknowledgement that you understand it is an '
+          'experimental feature with no stability guarantees.',
+    );
   }
 
   @override
@@ -50,13 +55,9 @@ A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter dev
       forwardedArgs.removeWhere((arg) => arg.endsWith(_experimentFlag));
     }
     try {
-      VmInteropHandler.run(
-        sdk.dartMCPServerAotSnapshot,
-        [
-          ...forwardedArgs,
-        ],
-        useExecProcess: false,
-      );
+      VmInteropHandler.run(sdk.dartMCPServerAotSnapshot, [
+        ...forwardedArgs,
+      ], useExecProcess: false);
       return 0;
     } catch (e, st) {
       log.stderr('Error: launching Dart MCP server failed');

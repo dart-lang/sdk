@@ -240,7 +240,7 @@ class Path {
 
     var segmentsToJoin = [
       if (isAbs) '',
-      if (drive != null) drive,
+      ?drive,
       if (newSegs.isEmpty) ...[
         if (isAbs) '' else '.'
       ] else ...[

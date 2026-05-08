@@ -289,6 +289,11 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitClosureCall(ClosureCall instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitDynamicCall(DynamicCall instr) {
     _setNonConstant(instr);
   }
@@ -324,6 +329,22 @@ final class ConstantPropagation extends Pass
 
   @override
   void visitThrow(Throw instr) {}
+
+  @override
+  void visitNullCheck(NullCheck instr) {
+    if (_isNonConstant(instr.operand)) {
+      _setNonConstant(instr);
+      return;
+    }
+    ConstantValue? operand = _getConstantValue(instr.operand);
+    if (operand != null) {
+      if (!operand.isNull) {
+        _setResult(instr, operand);
+      } else {
+        _setNonConstant(instr);
+      }
+    }
+  }
 
   @override
   void visitTypeParameters(TypeParameters instr) {
@@ -367,8 +388,52 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitTypeLiteral(TypeLiteral instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitAllocateObject(AllocateObject instr) {
     _setNonConstant(instr);
+  }
+
+  @override
+  void visitAllocateClosure(AllocateClosure instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitAllocateListLiteral(AllocateListLiteral instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitAllocateMapLiteral(AllocateMapLiteral instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation instr) {
+    for (int i = 0, n = instr.inputCount; i < n; ++i) {
+      if (_isNonConstant(instr.inputDefAt(i))) {
+        _setNonConstant(instr);
+        return;
+      }
+    }
+    final operands = <ConstantValue>[];
+    for (int i = 0, n = instr.inputCount; i < n; ++i) {
+      final operand = _getConstantValue(instr.inputDefAt(i));
+      if (operand == null) {
+        return;
+      }
+      operands.add(operand);
+    }
+    ConstantValue? result = constantFolding.stringInterpolation(operands);
+    if (result != null) {
+      _setResult(instr, result);
+    } else {
+      _setNonConstant(instr);
+    }
   }
 
   @override
@@ -462,6 +527,47 @@ final class ConstantPropagation extends Pass
       ConstantValue? result = constantFolding.unaryDoubleOp(instr.op, operand);
       _setResult(instr, result);
     }
+  }
+
+  @override
+  void visitUnaryBoolOp(UnaryBoolOp instr) {
+    if (_isNonConstant(instr.operand)) {
+      _setNonConstant(instr);
+      return;
+    }
+    ConstantValue? operand = _getConstantValue(instr.operand);
+    if (operand != null) {
+      ConstantValue? result = constantFolding.unaryBoolOp(instr.op, operand);
+      _setResult(instr, result);
+    }
+  }
+
+  @override
+  void visitAllocateList(AllocateList instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitSetListElement(SetListElement instr) {}
+
+  @override
+  void visitBoxInt(BoxInt instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitBoxDouble(BoxDouble instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitUnboxInt(UnboxInt instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitUnboxDouble(UnboxDouble instr) {
+    _setNonConstant(instr);
   }
 
   @override

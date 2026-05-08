@@ -51,15 +51,18 @@ Monitor* ThreadInterrupter::monitor_ = nullptr;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 
-void ThreadInterrupter::Init(intptr_t period) {
+void ThreadInterrupter::Init() {
   ASSERT(!initialized_);
-  if (monitor_ == nullptr) {
-    monitor_ = new Monitor();
-  }
-  ASSERT(monitor_ != nullptr);
+  monitor_ = new Monitor();
   initialized_ = true;
-  shutdown_ = false;
-  interrupt_period_ = period;
+  shutdown_ = true;
+}
+
+void ThreadInterrupter::Cleanup() {
+  Shutdown();
+  delete monitor_;
+  monitor_ = nullptr;
+  initialized_ = false;
 }
 
 void ThreadInterrupter::Startup() {
@@ -70,6 +73,7 @@ void ThreadInterrupter::Startup() {
   ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadJoinId);
   {
     MonitorLocker startup_ml(monitor_);
+    shutdown_ = false;
     OSThread::Start("Dart Profiler ThreadInterrupter", ThreadMain, 0);
     while (!thread_running_) {
       startup_ml.Wait();
@@ -81,7 +85,7 @@ void ThreadInterrupter::Startup() {
   }
 }
 
-void ThreadInterrupter::Cleanup() {
+void ThreadInterrupter::Shutdown() {
   {
     MonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
@@ -101,7 +105,6 @@ void ThreadInterrupter::Cleanup() {
   ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(interrupter_thread_id_);
   interrupter_thread_id_ = OSThread::kInvalidThreadJoinId;
-  initialized_ = false;
 
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter shut down.\n");
@@ -110,16 +113,12 @@ void ThreadInterrupter::Cleanup() {
 
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
+  ASSERT(period > 0);
   if (!initialized_) {
     // Profiler may not be enabled.
     return;
   }
   MonitorLocker ml(monitor_);
-  if (shutdown_) {
-    return;
-  }
-  ASSERT(initialized_);
-  ASSERT(period > 0);
   interrupt_period_ = period;
 }
 
@@ -230,14 +229,6 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     shutdown_ml.Notify();
   }
 }
-
-#if !defined(DART_HOST_OS_ANDROID)
-void* ThreadInterrupter::PrepareCurrentThread() {
-  return nullptr;
-}
-
-void ThreadInterrupter::CleanupCurrentThreadState(void* state) {}
-#endif
 
 #endif  // defined(DART_INCLUDE_PROFILER)
 

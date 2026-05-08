@@ -97,9 +97,6 @@ class ClassFinalizer : public AllStatic {
   static void PrintClassInformation(const Class& cls);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  static void ReportError(const Error& error);
-  static void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Verify implicit offsets recorded in the VM for direct access to fields of
   // Dart instances (e.g: _TypedListView, _ByteDataView).

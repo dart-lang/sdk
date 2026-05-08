@@ -209,8 +209,13 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     checkArtifact(artifact!);
     if (compiler == Compiler.dart2wasm) {
       return [
-        Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
-            ['--d8', ...arguments], environmentOverrides)
+        Dart2WasmCommandLineCommand(
+            moniker,
+            'pkg/dart2wasm/tool/run_benchmark',
+            // Default stack trace limit in V8 is 10, which hides some of the
+            // stack frames we check in stack trace tests.
+            ['--d8', '--shell-option=--stack-trace-limit=20', ...arguments],
+            environmentOverrides)
       ];
     } else {
       return [
@@ -378,8 +383,10 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
       case Sanitizer.hwasan:
       case Sanitizer.asan:
-      case Sanitizer.msan:
         multiplier *= 2;
+        break;
+      case Sanitizer.msan:
+        multiplier *= 3;
         break;
       case Sanitizer.tsan:
         multiplier *= 6;

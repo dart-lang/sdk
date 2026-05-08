@@ -14,6 +14,7 @@ import '../builder/declaration_builders.dart';
 import '../source/source_library_builder.dart';
 import 'combined_member_signature.dart';
 import 'hierarchy/class_member.dart';
+import 'kernel_helper.dart';
 import 'kernel_target.dart';
 
 class ForwardingNode {
@@ -416,13 +417,18 @@ class ForwardingNode {
           named: namedArguments,
         );
         superCall = new SuperMethodInvocation(
+          new ThisExpression(),
           name,
           arguments,
           superTarget as Procedure,
         );
         break;
       case ProcedureKind.Getter:
-        superCall = new SuperPropertyGet(name, superTarget);
+        superCall = new SuperPropertyGet(
+          new ThisExpression(),
+          name,
+          superTarget,
+        );
         break;
       case ProcedureKind.Setter:
         DartType superParameterType = _combinedMemberSignature
@@ -445,15 +451,20 @@ class ForwardingNode {
               ..fileOffset = fileOffset;
           }
         }
-        superCall = new SuperPropertySet(name, expression, superTarget);
+        superCall = new SuperPropertySet(
+          new ThisExpression(),
+          name,
+          expression,
+          superTarget,
+        );
         break;
       // Coverage-ignore(suite): Not run.
       default:
         unhandled('$kind', '_createForwardingImplIfNeeded', -1, null);
     }
-    function.body = new ReturnStatement(superCall)
-      ..fileOffset = procedure.fileOffset
-      ..parent = function;
+    function.registerFunctionBody(
+      new ReturnStatement(superCall)..fileOffset = procedure.fileOffset,
+    );
     procedure.transformerFlags |= TransformerFlag.superCalls;
     procedure.stubKind = isForwardingStub
         ? ProcedureStubKind.ConcreteForwardingStub
@@ -575,11 +586,9 @@ class ForwardingNode {
     if (hasUpdate) {
       procedure.signatureType = signatureType;
     }
-    procedure.function.body = new ReturnStatement(result)
-      ..fileOffset = procedure.fileOffset
-      ..parent = procedure.function;
-    procedure.function.asyncMarker = AsyncMarker.Sync;
-    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
+    procedure.function.registerFunctionBody(
+      new ReturnStatement(result)..fileOffset = procedure.fileOffset,
+    );
 
     procedure.isAbstract = false;
     procedure.stubKind = ProcedureStubKind.NoSuchMethodForwarder;

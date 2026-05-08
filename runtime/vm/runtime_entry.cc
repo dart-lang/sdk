@@ -209,6 +209,16 @@ void OnEveryRuntimeEntryCall(Thread* thread,
 #define DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(name, argument_count)               \
   DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/false)
 
+#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count, func)                  \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, false, /*can_lazy_deopt=*/false)
+
+#define DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(name, argument_count, func)            \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, true, /*can_lazy_deopt=*/false)
+
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));
@@ -457,11 +467,15 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
 }
 
 static Heap::Space SpaceForRuntimeAllocation() {
-  return UNLIKELY(FLAG_runtime_allocate_old) ? Heap::kOld : Heap::kNew;
+  if (FLAG_runtime_allocate_old) [[unlikely]] {
+    return Heap::kOld;
+  } else {
+    return Heap::kNew;
+  }
 }
 
 static void RuntimeAllocationEpilogue(Thread* thread) {
-  if (UNLIKELY(FLAG_runtime_allocate_spill_tlab)) {
+  if (FLAG_runtime_allocate_spill_tlab) [[unlikely]] {
     static RelaxedAtomic<uword> count = 0;
     if ((count++ % 10) == 0) {
       thread->heap()->new_space()->AbandonRemainingTLAB(thread);
@@ -2545,7 +2559,7 @@ static bool IsSingleTarget(IsolateGroup* isolate_group,
     if (!table->HasValidClassAt(cid)) continue;
     cls = table->At(cid);
     if (cls.is_abstract()) continue;
-    if (!cls.is_allocated()) continue;
+    if (!cls.is_allocated() && !cls.is_declared_in_bytecode()) continue;
     other_target = Resolver::ResolveDynamicAnyArgs(zone, cls, name,
                                                    /*allow_add=*/false);
     if (other_target.ptr() != target.ptr()) {
@@ -2576,14 +2590,14 @@ static void SaveUnlinkedCall(Zone* zone,
                              uword frame_pc,
                              const UnlinkedCall& unlinked_call) {
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
-  if (isolate_group->saved_unlinked_calls() == Array::null()) {
+  if (isolate_group->object_store()->saved_unlinked_calls() == Array::null()) {
     const auto& initial_map =
         Array::Handle(zone, HashTables::New<UnlinkedCallMap>(16, Heap::kOld));
-    isolate_group->set_saved_unlinked_calls(initial_map);
+    isolate_group->object_store()->set_saved_unlinked_calls(initial_map);
   }
 
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
+  UnlinkedCallMap unlinked_call_map(
+      zone, isolate_group->object_store()->saved_unlinked_calls());
   const auto& pc = Integer::Handle(zone, Integer::NewFromUint64(frame_pc));
   // Some other isolate might have updated unlinked_call_map[pc] too, but
   // their update should be identical to ours.
@@ -2591,21 +2605,24 @@ static void SaveUnlinkedCall(Zone* zone,
       zone, UnlinkedCall::RawCast(
                 unlinked_call_map.InsertOrGetValue(pc, unlinked_call)));
   RELEASE_ASSERT(new_or_old_value.ptr() == unlinked_call.ptr());
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  isolate_group->object_store()->set_saved_unlinked_calls(
+      unlinked_call_map.Release());
 }
 
 static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
                                         IsolateGroup* isolate_group,
                                         uword pc) {
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
-  ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
+  ASSERT(isolate_group->object_store()->saved_unlinked_calls() !=
+         Array::null());
+  UnlinkedCallMap unlinked_call_map(
+      zone, isolate_group->object_store()->saved_unlinked_calls());
 
   const auto& pc_integer = Integer::Handle(zone, Integer::NewFromUint64(pc));
   const auto& unlinked_call = UnlinkedCall::Cast(
       Object::Handle(zone, unlinked_call_map.GetOrDie(pc_integer)));
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  isolate_group->object_store()->set_saved_unlinked_calls(
+      unlinked_call_map.Release());
   return unlinked_call.ptr();
 }
 
@@ -4687,7 +4704,7 @@ DEFINE_RUNTIME_ENTRY(CheckedStoreIntoShared, 2) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
-  FfiCallbackMetadata::EnsureTriviallyImmutable(zone, value);
+  value.EnsureDeeplyImmutable(zone);
 
   field.SetStaticValue(value);
   arguments.SetReturn(field);
@@ -4841,7 +4858,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   ObjectPtr result =
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (UNLIKELY(IsErrorClassId(result->GetClassId()))) {
+  if (IsErrorClassId(result->GetClassId())) [[unlikely]] {
     // Must not leak handles in the caller's zone.
     HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger
@@ -4916,7 +4933,7 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
     result = interpreter->Resume(thread, fp, sp, value.ptr(), exception.ptr(),
                                  stack_trace.ptr());
   }
-  if (UNLIKELY(IsErrorClassId(result.GetClassId()))) {
+  if (IsErrorClassId(result.GetClassId())) [[unlikely]] {
     Exceptions::PropagateError(Error::Cast(result));
   }
   arguments.SetReturn(result);
@@ -4972,9 +4989,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(ExitSafepoint,
                           DLRT_ExitSafepoint);
 
 namespace {
-Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
-                               uword* out_entry_point,
-                               uword* out_trampoline_type) {
+Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata) {
   // NOTE: This is only thread safe if the user is using the API correctly.
   // Otherwise, the callback could have been deleted and replaced, in which case
   // IsLive would still be true. Or it could have been deleted after we looked
@@ -4984,8 +4999,6 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
   // after free errors. Trying to lock FfiCallbackMetadata::lock_, or any
   // similar lock, leads to deadlocks.
 
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-  *out_entry_point = metadata.target_entry_point();
   Isolate* target_isolate = metadata.target_isolate();
 
   Isolate* current_isolate = nullptr;
@@ -5018,70 +5031,80 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
   return temp_thread;
 }
 
-Thread* HandleSyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
-                              uword* out_entry_point,
-                              uword* out_trampoline_type) {
+Thread* HandleIsolateGroupBoundSyncFfiCallback(
+    FfiCallbackMetadata::Metadata metadata) {
   Thread* current_thread = Thread::Current();
-
-  if (metadata.is_isolate_group_bound()) {
-    *out_entry_point = metadata.target_entry_point();
-    *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-  } else {
-    Isolate* target_isolate = metadata.target_isolate();
-    *out_entry_point = metadata.target_entry_point();
-    *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-    if (current_thread == nullptr) {
-      FATAL("Cannot invoke native callback outside an isolate.");
-    }
-    if (current_thread->no_callback_scope_depth() != 0) {
-      FATAL("Cannot invoke native callback when API callbacks are prohibited.");
-    }
-    if (current_thread->is_unwind_in_progress()) {
-      FATAL("Cannot invoke native callback while unwind error propagates.");
-    }
-    if (!current_thread->IsDartMutatorThread()) {
-      FATAL("Native callbacks must be invoked on the mutator thread.");
-    }
-    if (current_thread->isolate() != target_isolate) {
-      FATAL("Cannot invoke native callback from a different isolate.");
-    }
-    if (current_thread->execution_state() != Thread::kThreadInNative) {
-      FATAL("Cannot invoke native callback from a leaf call.");
-    }
-  }
 
   if (current_thread != nullptr) {
     current_thread->ExitSafepointFromNative();
     current_thread->set_execution_state(Thread::kThreadInVM);
   }
 
-  if (metadata.is_isolate_group_bound()) {
-    Isolate* current_isolate =
-        current_thread != nullptr ? current_thread->isolate() : nullptr;
+  Isolate* current_isolate =
+      current_thread != nullptr ? current_thread->isolate() : nullptr;
 
-    if (current_thread != nullptr) {
-      Thread::ExitIsolate(/*isolate_shutdown=*/false);
-    }
-    Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
-                                       /*bypass_safepoint=*/false);
-    auto new_thread = Thread::Current();
-    new_thread->set_execution_state(Thread::kThreadInVM);
-    // We need to go back to current thread after we come back from
-    // the callback.
-    new_thread->set_unboxed_int64_runtime_arg(
-        reinterpret_cast<intptr_t>(current_thread));
-    new_thread->set_unboxed_int64_runtime_second_arg(
-        reinterpret_cast<intptr_t>(current_isolate));
-    current_thread = new_thread;
+  if (current_thread != nullptr) {
+    Thread::ExitIsolate(/*isolate_shutdown=*/false);
   }
+  Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
+                                     /*bypass_safepoint=*/false);
+  auto new_thread = Thread::Current();
+  new_thread->set_execution_state(Thread::kThreadInVM);
+  // We need to go back to current thread after we come back from
+  // the callback.
+  new_thread->set_unboxed_int64_runtime_arg(
+      reinterpret_cast<intptr_t>(current_thread));
+  new_thread->set_unboxed_int64_runtime_second_arg(
+      reinterpret_cast<intptr_t>(current_isolate));
+  current_thread = new_thread;
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
 
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", current_thread);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
-                     (void*)*out_entry_point);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
-                     (void*)*out_trampoline_type);
+  return current_thread;
+}
+
+void FfiCallbackThreadChecks(Thread* thread, Isolate* target_isolate) {
+  if (thread->no_callback_scope_depth() != 0) {
+    FATAL("Cannot invoke native callback when API callbacks are prohibited.");
+  }
+  if (thread->is_unwind_in_progress()) {
+    FATAL("Cannot invoke native callback while unwind error propagates.");
+  }
+  if (!thread->IsDartMutatorThread()) {
+    FATAL("Native callbacks must be invoked on the mutator thread.");
+  }
+  if (thread->isolate() != target_isolate) {
+    FATAL("Cannot invoke native callback from a different isolate.");
+  }
+}
+
+Thread* HandleIsolateBoundSyncFfiCallback(
+    FfiCallbackMetadata::Metadata metadata,
+    CallbackMetadata* out) {
+  Thread* current_thread = Thread::Current();
+
+  Isolate* target_isolate = metadata.target_isolate();
+  if (current_thread == nullptr) {
+    if (!PortMap::IsOwnedByCurrentThread(target_isolate->main_port())) {
+      FATAL("Cannot invoke native callback outside an isolate.");
+    }
+    Thread::EnterIsolate(target_isolate);
+    current_thread = Thread::Current();
+    FfiCallbackThreadChecks(current_thread, target_isolate);
+    out->epilogue =
+        reinterpret_cast<uword>(&DLRT_ExitSyncCallbackTargetIsolate);
+  } else {
+    FfiCallbackThreadChecks(current_thread, target_isolate);
+    if (current_thread->execution_state() != Thread::kThreadInNative) {
+      FATAL("Cannot invoke native callback from a leaf call.");
+    }
+    current_thread->ExitSafepointFromNative();
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitSyncCallback);
+  }
+
+  current_thread->set_execution_state(Thread::kThreadInVM);
+  current_thread->set_unboxed_int64_runtime_arg(metadata.context());
+
   return current_thread;
 }
 }  // namespace
@@ -5091,13 +5114,11 @@ Thread* HandleSyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
 // a runtime entry because we can't use Thread to look it up.
 extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     FfiCallbackMetadata::Trampoline trampoline,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
+    CallbackMetadata* out) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
                      reinterpret_cast<void*>(trampoline));
-  ASSERT(out_entry_point != nullptr);
-  ASSERT(out_trampoline_type != nullptr);
+  ASSERT(out != nullptr);
 
   if (!Isolate::IsolateCreationEnabled()) {
     FATAL("GetFfiCallbackMetadata called after shutdown %p",
@@ -5122,20 +5143,57 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     FATAL("Callback invoked after it has been deleted.");
   }
 
+  Thread* thread = nullptr;
+
+  out->entry_point = metadata.target_entry_point();
+  switch (metadata.trampoline_type()) {
+    default:
+      out->type = 0;  // Call
+      break;
+    case FfiCallbackMetadata::TrampolineType::kAsync:
+      out->type = 1;  // Tail call.
+      break;
+#if defined(TARGET_ARCH_IA32)
+    case FfiCallbackMetadata::TrampolineType::kSyncStackDelta4:
+    case FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBoundStackDelta4:
+      out->type = 2;  // Call, ret4.
+      break;
+#endif
+  }
+
   if (metadata.trampoline_type() ==
       FfiCallbackMetadata::TrampolineType::kAsync) {
-    return HandleAsyncFfiCallback(metadata, out_entry_point,
-                                  out_trampoline_type);
+    thread = HandleAsyncFfiCallback(metadata);
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate);
+  } else if (metadata.is_isolate_group_bound()) {
+    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata);
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitIsolateGroupBoundIsolate);
   } else {
-    return HandleSyncFfiCallback(metadata, out_entry_point,
-                                 out_trampoline_type);
+    thread = HandleIsolateBoundSyncFfiCallback(metadata, out);
   }
+
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", thread);
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
+                     reinterpret_cast<void*>(out->entry_point));
+  return thread;
 }
 
-extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
+#if defined(USING_MEMORY_SANITIZER)
+// There is a __msan_unpoison_param but no __msan_unpoison_retval. Trick MSAN
+// into unpoisoning the largest value that an FFI callback might return. The
+// actual result registers will be overridden in the FFI callback stub.
+struct LargestReturn {
+  float x, y, w, z;
+};
+extern "C" LargestReturn dart_msan_unpoison_retval() {
+  return {0, 0, 0, 0};
+}
+#endif
+
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread* thread) {
   TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
-  Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   Isolate* source_isolate =
       reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
   // Need to accommodate ExitIsolateGroupAsHelper assumptions.
@@ -5145,12 +5203,50 @@ extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
     Thread::EnterIsolate(source_isolate);
     Thread::Current()->EnterSafepoint();
   }
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
 }
 
-extern "C" void DLRT_ExitTemporaryIsolate() {
-  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
-  Thread* thread = Thread::Current();
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread* thread) {
+  TRACE_RUNTIME_CALL("ExitSyncCallbackTargetIsolate%s", "");
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
+  thread->set_execution_state(Thread::kThreadInVM);
+  Thread::ExitIsolate(/*isolate_shutdown=*/false);
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
+}
+
+extern "C" void* DLRT_ExitSyncCallback(Thread* thread) {
+  ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
+
+  thread->EnterSafepointToNative();
+
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
+}
+
+#if defined(HOST_ARCH_IA32)
+// A function with arguments isn't compatible with the tail-call because on IA32
+// the arguments are on the stack and caller pops.
+extern "C" void* DLRT_ExitTemporaryIsolate() {
+  Thread* thread = Thread::Current();
+#else
+extern "C" void* DLRT_ExitTemporaryIsolate(Thread* thread) {
+#endif
+  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
+  ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   Isolate* source_isolate =
       reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
 
@@ -5169,6 +5265,7 @@ extern "C" void DLRT_ExitTemporaryIsolate() {
     thread->EnterSafepoint();
   }
   TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");
+  return nullptr;
 }
 
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {
@@ -5231,7 +5328,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(PropagateError,
                           DLRT_PropagateError);
 
 DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
-  SafepointWriteRwLocker locker(
+  // Running the initializer means running arbitrary Dart code that might yield
+  // to a reload safepoint or have its active mutator slot stolen. Make sure we
+  // likewise yield while waiting for the lock to avoid the holder of the lock
+  // being blocked on locker-waiters for reload or a mutator slot.
+  ReloadableStealableWriteRwLocker locker(
       thread, thread->isolate_group()->shared_field_initializer_rwlock());
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Object& result = Object::Handle(zone, field.StaticValue());
@@ -5243,6 +5344,13 @@ DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
     ASSERT(result.ptr() != Object::sentinel().ptr());
   }
   arguments.SetReturn(result);
+}
+
+// Throw if the value is not immutable.
+//   Arg0: Value to check.
+DEFINE_RUNTIME_ENTRY(EnsureDeeplyImmutable, 1) {
+  const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  value.EnsureDeeplyImmutable(zone);
 }
 
 #if defined(USING_MEMORY_SANITIZER)

@@ -26,7 +26,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <climits>
-#include <locale>
 #include <cmath>
 
 #include "string-to-double.h"
@@ -52,9 +51,8 @@ namespace double_conversion {
 namespace {
 
 inline char ToLower(char ch) {
-  static const std::ctype<char>& cType =
-      std::use_facet<std::ctype<char> >(std::locale::classic());
-  return cType.tolower(ch);
+  if (ch >= 'A' && ch <= 'Z') return ch - 'A' + 'a';
+  return ch;
 }
 
 inline char Pass(char ch) {

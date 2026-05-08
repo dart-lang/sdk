@@ -14,6 +14,12 @@ class A<T> {
     }
   }
 
+  void baz<S>() {
+    print(List);
+    print(T);
+    print(Map<S, T>);
+  }
+
   factory A() => A<T>._();
   A._();
 }

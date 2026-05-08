@@ -129,7 +129,7 @@ class Flags {
 
   static const String mergeFragmentsThreshold = '--merge-fragments-threshold';
 
-  static const String writeResources = '--write-resources';
+  static const String writeRecordedUses = '--write-resources';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';

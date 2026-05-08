@@ -6,15 +6,15 @@ import "dart:core" as core;
 [493]  field core::String? s;
 [503]  field core::int? i;
 [516]  field core::double? d;
-[478]  synthetic constructor •() → self::X1
+[478]  synthetic constructor [-1] [-1] •() → self::X1
 [-1]    ;
 }
 [528]class X2 extends core::Object {
 [543]  field core::String? s2;
 [554]  field core::int? i;
 [567]  field core::double? d;
-[528]  synthetic constructor •() → self::X2
+[528]  synthetic constructor [-1] [-1] •() → self::X2
 [-1]    ;
 }
-[222]static method method([229] dynamic o) → void
+[222]static method [228] [469] method([229] dynamic o) → void
 [-1]  ;

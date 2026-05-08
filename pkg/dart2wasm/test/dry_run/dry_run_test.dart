@@ -9,15 +9,15 @@ import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:expect/expect.dart';
 
-final dartAotExecutable = Uri.parse(Platform.resolvedExecutable)
-    .resolve('dartaotruntime')
-    .toFilePath();
-final dart2wasmSnapshot = Uri.parse(Platform.resolvedExecutable)
-    .resolve('snapshots/dart2wasm_product.snapshot')
-    .toFilePath();
-final platformDill = Uri.parse(Platform.resolvedExecutable)
-    .resolve('../lib/_internal/dart2wasm_platform.dill')
-    .toFilePath();
+final dartAotExecutable = Uri.parse(
+  Platform.resolvedExecutable,
+).resolve('dartaotruntime').toFilePath();
+final dart2wasmSnapshot = Uri.parse(
+  Platform.resolvedExecutable,
+).resolve('snapshots/dart2wasm_product.snapshot').toFilePath();
+final platformDill = Uri.parse(
+  Platform.resolvedExecutable,
+).resolve('../lib/_internal/dart2wasm_platform.dill').toFilePath();
 
 class TestExpectation {
   final int expectedErrorCode;
@@ -25,15 +25,22 @@ class TestExpectation {
   final int lineNumber;
 
   TestExpectation(
-      this.expectedErrorCode, this.expectedErrorSubstring, this.lineNumber);
+    this.expectedErrorCode,
+    this.expectedErrorSubstring,
+    this.lineNumber,
+  );
 
   factory TestExpectation.fromLine(String line, int lineNumber) {
     final errorText = line.replaceAll('// DRY_RUN:', '').trim().split(',');
     final expectedErrorCode = int.parse(errorText[0].trim());
-    final expectedErrorSubstring =
-        errorText.length > 1 ? errorText.sublist(1).join(',').trim() : null;
+    final expectedErrorSubstring = errorText.length > 1
+        ? errorText.sublist(1).join(',').trim()
+        : null;
     return TestExpectation(
-        expectedErrorCode, expectedErrorSubstring, lineNumber);
+      expectedErrorCode,
+      expectedErrorSubstring,
+      lineNumber,
+    );
   }
 }
 
@@ -45,8 +52,14 @@ class TestFinding {
   final int? errorLine;
   final int? errorColumn;
 
-  TestFinding(this.rawString, this.errorCode, this.problemMessage,
-      this.errorSourceUri, this.errorLine, this.errorColumn);
+  TestFinding(
+    this.rawString,
+    this.errorCode,
+    this.problemMessage,
+    this.errorSourceUri,
+    this.errorLine,
+    this.errorColumn,
+  );
 
   factory TestFinding.fromLine(String line) {
     final parts = line.split(' - ');
@@ -58,15 +71,17 @@ class TestFinding {
     final problemMessage = parts[1];
     final errorCodeStart = problemMessage.lastIndexOf('(');
     final errorCodeEnd = problemMessage.lastIndexOf(')');
-    final errorCode =
-        int.parse(problemMessage.substring(errorCodeStart + 1, errorCodeEnd));
+    final errorCode = int.parse(
+      problemMessage.substring(errorCodeStart + 1, errorCodeEnd),
+    );
     return TestFinding(
-        line,
-        errorCode,
-        problemMessage.substring(0, errorCodeStart).trim(),
-        Uri.parse(uri),
-        lineNumber,
-        columnNumber);
+      line,
+      errorCode,
+      problemMessage.substring(0, errorCodeStart).trim(),
+      Uri.parse(uri),
+      lineNumber,
+      columnNumber,
+    );
   }
 }
 
@@ -115,9 +130,10 @@ class TestResults {
 
 class TestCase {
   final Uri path;
+  final List<String> compilerFlags;
   final List<TestExpectation> expectations;
 
-  TestCase(this.path, this.expectations);
+  TestCase(this.path, this.compilerFlags, this.expectations);
 
   String get name => path.pathSegments.last.replaceAll('.dart', '');
 }
@@ -133,6 +149,7 @@ Future<TestResults> runTest(TestCase testCase) async {
       testCase.path.toFilePath(),
       '--platform=$platformDill',
       '--dry-run',
+      ...testCase.compilerFlags,
       'out.wasm',
     ]);
   } catch (e, s) {
@@ -211,18 +228,30 @@ Future<List<TestCase>> _loadTestCases() async {
 Future<TestCase> _parseTestCase(Uri path) async {
   final fileContents = await File.fromUri(path).readAsString();
   final lines = fileContents.split('\n');
+  // Bespoke flags syntax over the SDK test syntax of `// dart2wasmOptions=`
+  // as the value of the latter can't be passed directly to dart2wasm.
+  const compilerFlagsComment = '// compilerFlags=';
+  final compilerFlags = <String>[];
   final expectations = <TestExpectation>[];
   int lineIndex = 0;
   for (final line in lines) {
     if (line.contains('// DRY_RUN:')) {
       final nextNonCommentLine =
           lines.indexWhere((l) => !l.trim().startsWith('//'), lineIndex + 1) +
-              1;
+          1;
       expectations.add(TestExpectation.fromLine(line, nextNonCommentLine));
+    } else if (line.contains(compilerFlagsComment)) {
+      compilerFlags.addAll(
+        line
+            .substring(
+              line.indexOf(compilerFlagsComment) + compilerFlagsComment.length,
+            )
+            .split(' '),
+      );
     }
     lineIndex++;
   }
-  return TestCase(path, expectations);
+  return TestCase(path, compilerFlags, expectations);
 }
 
 List<TestFinding> _parseTestFindings(String result) {
@@ -237,33 +266,41 @@ List<TestFinding> _parseTestFindings(String result) {
 }
 
 void _checkFindings(
-    List<TestFinding> findings, List<TestExpectation> expectations) {
+  List<TestFinding> findings,
+  List<TestExpectation> expectations,
+) {
   Expect.equals(
-      findings.length,
-      expectations.length,
-      'Incorrect number of findings. '
-      'Expected: ${expectations.length}, Actual: ${findings.length}\n'
-      'Findings:\n${findings.map((e) => e.rawString).join('\n')}}');
+    findings.length,
+    expectations.length,
+    'Incorrect number of findings. '
+    'Expected: ${expectations.length}, Actual: ${findings.length}\n'
+    'Findings:\n${findings.map((e) => e.rawString).join('\n')}}',
+  );
   for (final expectation in expectations) {
     final lineNumber = expectation.lineNumber;
-    final lineFindings =
-        findings.where((finding) => finding.errorLine == lineNumber);
+    final lineFindings = findings.where(
+      (finding) => finding.errorLine == lineNumber,
+    );
 
     final matchingFinding = lineFindings.firstWhereOrNull(
-        (finding) => finding.errorCode == expectation.expectedErrorCode);
+      (finding) => finding.errorCode == expectation.expectedErrorCode,
+    );
 
     Expect.isNotNull(
       matchingFinding,
       'No finding found for expectation on line $lineNumber',
     );
     Expect.equals(
-        expectation.expectedErrorCode,
-        matchingFinding!.errorCode,
-        'Unexpected error code for expectation on line $lineNumber. '
-        'Expected: ${expectation.expectedErrorCode}, Actual: ${matchingFinding.errorCode}');
+      expectation.expectedErrorCode,
+      matchingFinding!.errorCode,
+      'Unexpected error code for expectation on line $lineNumber. '
+      'Expected: ${expectation.expectedErrorCode}, Actual: ${matchingFinding.errorCode}',
+    );
     if (expectation.expectedErrorSubstring != null) {
       Expect.contains(
-          expectation.expectedErrorSubstring!, matchingFinding.problemMessage);
+        expectation.expectedErrorSubstring!,
+        matchingFinding.problemMessage,
+      );
     }
   }
 }
@@ -301,6 +338,9 @@ Future<int> main(List<String> args) async {
     }
   }
 
-  return reportResults(results,
-      configuration: configuration, logDir: outputDirectory);
+  return reportResults(
+    results,
+    configuration: configuration,
+    logDir: outputDirectory,
+  );
 }

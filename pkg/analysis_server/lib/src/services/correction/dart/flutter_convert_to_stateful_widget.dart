@@ -16,8 +16,6 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
   FlutterConvertToStatefulWidget({required super.context});
 
@@ -267,7 +265,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
   }
 
   MethodDeclaration? _findBuildMethod(ClassDeclaration widgetClass) {
-    for (var member in widgetClass.members2) {
+    for (var member in widgetClass.body.members) {
       if (member is MethodDeclaration && member.name.lexeme == 'build') {
         var parameters = member.parameters;
         if (parameters != null && parameters.parameters.length == 1) {

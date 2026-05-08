@@ -30,10 +30,13 @@ augment augment int field = 0;
 augment external int field;
 external augment int field;
 
+augment augment mixin Mixin {}
+
 augment augment class Class {}
 abstract augment class Class {}
 
 augment augment class Class = Object with Mixin;
 abstract augment class Class = Object with Mixin;
 
-augment augment mixin Mixin {}
+augment class Class = Object with Mixin;
+augment abstract class Class = Object with Mixin;

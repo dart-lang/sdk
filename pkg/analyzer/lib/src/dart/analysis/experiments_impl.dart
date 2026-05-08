@@ -155,6 +155,7 @@ List<bool> restrictEnableFlagsToVersion({
 // TODO(paulberry): if this method ever needs to be exposed via the analyzer
 // public API, consider making a version that reports validation results using
 // the AnalysisError type.
+@visibleForTesting
 Iterable<ConflictingFlagLists> validateFlagCombination(
   List<String> flags1,
   List<String> flags2,
@@ -242,6 +243,7 @@ Map<int, bool> _flagStringsToMap(List<String> flags) {
 }
 
 /// Indication of a conflict between two lists of flags.
+@visibleForTesting
 class ConflictingFlagLists {
   /// Info about which feature the user requested conflicting values for
   final ExperimentalFeature feature;

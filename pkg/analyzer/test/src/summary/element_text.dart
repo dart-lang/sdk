@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -351,11 +350,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
-      _sink.writeIf(e.isDeclaring, 'declaring ');
       _sink.writeIf(e.isFactory, 'factory ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
 
@@ -421,8 +417,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.isExternal, 'external ');
       _sink.writeIf(f.isConst, 'const ');
       _sink.writeIf(f.isFactory, 'factory ');
@@ -576,8 +570,6 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isCovariant, 'covariant ');
@@ -634,7 +626,7 @@ class _Element2Writer extends _AbstractElementWriter {
       if (e.hasEnclosingTypeParameterReference) {
         _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
       }
-      // _writeDocumentation(e.documentationComment);
+      _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
@@ -672,8 +664,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
       _assertHasExactlyOneTrue([
@@ -716,7 +706,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
-      // _writeDocumentation(f.documentationComment);
+      _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
@@ -766,6 +756,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
+      _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
       _writeElementList(
@@ -827,6 +818,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
+      _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
       _writeFragmentList(
@@ -946,8 +938,6 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
@@ -1006,8 +996,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginVariable]);
       _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
@@ -1265,6 +1253,7 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeLibraryFragment(LibraryFragmentImpl f) {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
+      _sink.writeIf(f.isOriginNotExistingFile, 'isOriginNotExistingFile ');
 
       var uriStr = f.source.uri.toString();
       if (uriStr == 'package:test/test.dart') {
@@ -1372,8 +1361,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeMethodElement(MethodElementImpl e) {
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
@@ -1562,8 +1549,6 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
@@ -1627,8 +1612,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([
         f.isOriginDeclaration,
@@ -1769,8 +1752,6 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(type, isNotNull);
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isLate, 'late ');
       _sink.writeIf(e.isFinal, 'final ');
@@ -1836,8 +1817,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
       _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginGetterSetter]);
@@ -1974,15 +1953,18 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeTypeInferenceError(TopLevelInferenceError? error) {
-    if (error != null) {
-      String kindName = error.kind.toString();
-      kindName = kindName.removePrefixOrSelf('TopLevelInferenceErrorKind.');
-      _sink.writelnWithIndent('typeInferenceError: $kindName');
-      _sink.withIndent(() {
-        if (kindName == 'dependencyCycle') {
-          _sink.writelnWithIndent('arguments: ${error.arguments}');
-        }
-      });
+    switch (error) {
+      case null:
+        break;
+      case TopLevelInferenceErrorDependencyCycle(:var cycle):
+        _sink.writelnWithIndent('typeInferenceError: dependencyCycle');
+        _sink.withIndent(() {
+          _sink.writelnWithIndent('arguments: $cycle');
+        });
+      case TopLevelInferenceErrorNoCombinedSuperSignature():
+        _sink.writelnWithIndent(
+          'typeInferenceError: overrideNoCombinedSuperSignature',
+        );
     }
   }
 

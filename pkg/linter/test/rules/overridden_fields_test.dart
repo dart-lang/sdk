@@ -306,15 +306,15 @@ class GC34 extends GC33 {
         error(diag.overrideOnNonOverridingField, 120, 1),
         lint(127, 5),
         lint(194, 9),
-        error(diag.mixinInheritsFromNotObject, 273, 4),
+        error(diag.classUsedAsMixin, 273, 4),
         lint(301, 9),
         lint(343, 5),
         lint(418, 9),
-        error(diag.mixinInheritsFromNotObject, 472, 4),
+        error(diag.classUsedAsMixin, 472, 4),
         lint(500, 9),
         lint(542, 5),
         lint(617, 9),
-        error(diag.mixinInheritsFromNotObject, 751, 4),
+        error(diag.classUsedAsMixin, 751, 4),
         lint(779, 9),
         lint(821, 4),
         lint(883, 1),
@@ -363,6 +363,19 @@ class B extends A {
 }
 ''',
       [lint(53, 2)],
+    );
+  }
+
+  test_publicFieldFromDeclaringParameter() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  int x = 0;
+}
+
+class B(var int x) extends A {}
+''',
+      [lint(42, 1)],
     );
   }
 

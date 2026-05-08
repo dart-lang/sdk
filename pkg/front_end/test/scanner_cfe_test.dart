@@ -5,16 +5,16 @@
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     as usedForFuzzTesting;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:front_end/src/codes/cfe_codes.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as fe_diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -73,12 +73,14 @@ class ScannerTest_Cfe_UTF8 extends ScannerTest_Cfe {
     // Translate error tokens
     if (result.hasErrors) {
       while (token is ErrorToken) {
-        translateErrorToken(token, (
-          DiagnosticCode errorCode,
-          int offset,
-          List<Object>? arguments,
-        ) {
-          listener.errors.add(new TestError(offset, errorCode, arguments));
+        translateErrorToken(token, (LocatedDiagnostic locatedDiagnostic) {
+          listener.errors.add(
+            new TestError(
+              locatedDiagnostic.offset,
+              locatedDiagnostic.locatableDiagnostic.code,
+              locatedDiagnostic.locatableDiagnostic.arguments,
+            ),
+          );
         });
         token = token.next!;
       }
@@ -141,12 +143,14 @@ class ScannerTest_Cfe extends ScannerTestBase {
     // Translate error tokens
     if (result.hasErrors) {
       while (token is ErrorToken) {
-        translateErrorToken(token, (
-          DiagnosticCode errorCode,
-          int offset,
-          List<Object>? arguments,
-        ) {
-          listener.errors.add(new TestError(offset, errorCode, arguments));
+        translateErrorToken(token, (LocatedDiagnostic locatedDiagnostic) {
+          listener.errors.add(
+            new TestError(
+              locatedDiagnostic.offset,
+              locatedDiagnostic.locatableDiagnostic.code,
+              locatedDiagnostic.locatableDiagnostic.arguments,
+            ),
+          );
         });
         token = token.next!;
       }
@@ -358,7 +362,10 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_interpolation_missingIdentifier() {
     Token token = scan("'\$x\$'");
-    expect((token as ErrorToken).errorCode, same(codeUnexpectedDollarInString));
+    expect(
+      (token as ErrorToken).errorCode,
+      same(fe_diag.unexpectedDollarInString),
+    );
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 1, lexeme: "'");
@@ -391,11 +398,11 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_interpolation_block() {
     Token token = scan(r'"foo ${bar');
-    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unmatchedToken));
     var interpolationStartErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, '"');
 
     token = token.next!;
@@ -427,19 +434,19 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_interpolation_block2() {
     Token token = scan(r'"foo ${bar(baz[');
-    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unmatchedToken));
     var openSquareBracketErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unmatchedToken));
     var openParenErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unmatchedToken));
     var interpolationStartErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, '"');
 
     token = token.next!;
@@ -505,10 +512,13 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_missing_interpolation_identifier() {
     Token token = scan(r'"foo $');
-    expect((token as ErrorToken).errorCode, same(codeUnexpectedDollarInString));
+    expect(
+      (token as ErrorToken).errorCode,
+      same(fe_diag.unexpectedDollarInString),
+    );
 
     token = token.next!;
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, '"');
 
     token = token.next!;
@@ -533,7 +543,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_multi_unterminated() {
     Token token = scan("'''string");
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, "'''");
 
     token = token.next!;
@@ -549,7 +559,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_raw_multi_unterminated() {
     Token token = scan("r'''string");
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, "r'''");
 
     token = token.next!;
@@ -565,7 +575,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_raw_simple_unterminated_eof() {
     Token token = scan("r'string");
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, "r'");
 
     token = token.next!;
@@ -581,7 +591,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_raw_simple_unterminated_eol() {
     Token token = scan("r'string\n");
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, "r'");
 
     token = token.next!;
@@ -597,7 +607,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_eof() {
     Token token = scan("'string");
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, "'");
 
     token = token.next!;
@@ -613,7 +623,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_eol() {
     Token token = scan("'string\n");
-    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as ErrorToken).errorCode, same(fe_diag.unterminatedString));
     expect((token as UnterminatedString).start, "'");
 
     token = token.next!;

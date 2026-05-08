@@ -4,17 +4,54 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(
+      InvalidCovariantModifierInPrimaryConstructorWithoutTypeTest,
+    );
+    defineReflectiveTests(
+      InvalidCovariantModifierInPrimaryConstructorWithTypeTest,
+    );
     defineReflectiveTests(ReplaceFinalWithVarBulkTest);
     defineReflectiveTests(ReplaceFinalWithVarTest);
     defineReflectiveTests(ReplaceFinalWithVarTypedRemoveTest);
   });
+}
+
+@reflectiveTest
+class InvalidCovariantModifierInPrimaryConstructorWithoutTypeTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.replaceFinalWithVar;
+
+  Future<void> test_withoutType() async {
+    await resolveTestCode(r'''
+class C(covariant final v);
+''');
+    await assertHasFix(r'''
+class C(covariant var v);
+''');
+  }
+}
+
+@reflectiveTest
+class InvalidCovariantModifierInPrimaryConstructorWithTypeTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.removeUnnecessaryFinal;
+
+  Future<void> test_withType() async {
+    await resolveTestCode(r'''
+class C<T>(covariant final T v);
+''');
+    await assertHasFix(r'''
+class C<T>(covariant T v);
+''');
+  }
 }
 
 @reflectiveTest
@@ -49,6 +86,23 @@ class ReplaceFinalWithVarTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.unnecessary_final;
+
+  Future<void> test_forIn_pattern() async {
+    await resolveTestCode(r'''
+void foo(Map<String, String> map) {
+  for (final MapEntry(:key, :value) in map.entries) {
+    print('$key: $value');
+  }
+}
+''');
+    await assertHasFix(r'''
+void foo(Map<String, String> map) {
+  for (var MapEntry(:key, :value) in map.entries) {
+    print('$key: $value');
+  }
+}
+''');
+  }
 
   Future<void> test_function_forLoop() async {
     await resolveTestCode('''
@@ -87,6 +141,23 @@ f() {
 f() {
   if (0 case var a){
     print(a);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCase_pattern() async {
+    await resolveTestCode(r'''
+void foo(Map<String, String> map) {
+  if (map case final m) {
+    print('Map has ${m.length} entries');
+  }
+}
+''');
+    await assertHasFix(r'''
+void foo(Map<String, String> map) {
+  if (map case var m) {
+    print('Map has ${m.length} entries');
   }
 }
 ''');
@@ -138,6 +209,21 @@ void f() {
 void f() {
   var a = 1;
   print(a);
+}
+''');
+  }
+
+  Future<void> test_pattern() async {
+    await resolveTestCode('''
+void foo(int a) {
+  final int(:isEven) = a;
+  print(isEven);
+}
+''');
+    await assertHasFix('''
+void foo(int a) {
+  var int(:isEven) = a;
+  print(isEven);
 }
 ''');
   }
@@ -207,5 +293,22 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_ifCase_pattern() async {
+    await resolveTestCode(r'''
+void foo(Map<String, String> map) {
+  if (map case final Map<String, String> m) {
+    print('Map has ${m.length} entries');
+  }
+}
+''');
+    await assertHasFix(r'''
+void foo(Map<String, String> map) {
+  if (map case Map<String, String> m) {
+    print('Map has ${m.length} entries');
+  }
+}
+''');
   }
 }

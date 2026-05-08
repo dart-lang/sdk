@@ -4,30 +4,30 @@
 
 import '../ir/ir.dart' as ir;
 
-export 'data_segments.dart' show DataSegmentsBuilder;
 export 'data_segment.dart' show DataSegmentBuilder;
-export 'exports.dart' show ExportsBuilder;
-export 'globals.dart' show GlobalsBuilder;
-export 'global.dart' show GlobalBuilder;
-export 'functions.dart' show FunctionsBuilder;
-export 'function.dart' show FunctionBuilder;
+export 'data_segments.dart' show DataSegmentsBuilder;
 export 'elements.dart' show ElementsBuilder;
-export 'memories.dart' show MemoriesBuilder;
-export 'module.dart' show ModuleBuilder;
-export 'tables.dart' show TablesBuilder;
-export 'table.dart' show TableBuilder;
-export 'tags.dart' show TagsBuilder;
-export 'types.dart' show TypesBuilder;
+export 'exports.dart' show ExportsBuilder;
+export 'function.dart' show FunctionBuilder;
+export 'functions.dart' show FunctionsBuilder;
+export 'global.dart' show GlobalBuilder;
+export 'globals.dart' show GlobalsBuilder;
 export 'instructions.dart'
     show
-        InstructionsBuilder,
-        Label,
-        ValidationError,
-        TryTableCatch,
         Catch,
         CatchAll,
+        CatchAllRef,
         CatchRef,
-        CatchAllRef;
+        InstructionsBuilder,
+        Label,
+        TryTableCatch,
+        ValidationError;
+export 'memories.dart' show MemoriesBuilder;
+export 'module.dart' show ModuleBuilder;
+export 'table.dart' show TableBuilder;
+export 'tables.dart' show TablesBuilder;
+export 'tags.dart' show TagsBuilder;
+export 'types.dart' show TypesBuilder;
 
 mixin Builder<T> {
   T? _built;

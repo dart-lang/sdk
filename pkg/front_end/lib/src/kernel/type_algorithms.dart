@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
@@ -300,12 +301,12 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
             issues.add(
               new NonSimplicityIssue(
                 parameter,
-                codeBoundIssueViaRawTypeWithNonSimpleBounds.withArgumentsOld(
-                  type.declaration!.name,
+                diag.boundIssueViaRawTypeWithNonSimpleBounds.withArguments(
+                  typeName: type.declaration!.name,
                 ),
                 <LocatedMessage>[
-                  codeNonSimpleBoundViaVariable
-                      .withArgumentsOld(dependency.declaration!.name)
+                  diag.nonSimpleBoundViaVariable
+                      .withArguments(typeName: dependency.declaration!.name)
                       .withLocation(
                         dependent.fileUri!,
                         dependent.fileOffset,
@@ -321,8 +322,8 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
           issues.add(
             new NonSimplicityIssue(
               parameter,
-              codeBoundIssueViaRawTypeWithNonSimpleBounds.withArgumentsOld(
-                type.declaration!.name,
+              diag.boundIssueViaRawTypeWithNonSimpleBounds.withArguments(
+                typeName: type.declaration!.name,
               ),
               const <LocatedMessage>[],
             ),
@@ -581,8 +582,8 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       issues.add(
         new NonSimplicityIssue(
           declaration,
-          codeBoundIssueViaLoopNonSimplicity.withArgumentsOld(
-            cycle.single.type.declaration!.name,
+          diag.boundIssueViaLoopNonSimplicity.withArguments(
+            typeName: cycle.single.type.declaration!.name,
           ),
           null,
         ),
@@ -592,8 +593,8 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       List<LocatedMessage> context = <LocatedMessage>[];
       for (RawTypeCycleElement cycleElement in cycle) {
         context.add(
-          codeNonSimpleBoundViaReference
-              .withArgumentsOld(cycleElement.type.declaration!.name)
+          diag.nonSimpleBoundViaReference
+              .withArguments(typeName: cycleElement.type.declaration!.name)
               .withLocation(
                 cycleElement.typeParameterBuilder!.fileUri!,
                 cycleElement.typeParameterBuilder!.fileOffset,
@@ -605,9 +606,9 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       issues.add(
         new NonSimplicityIssue(
           declaration,
-          codeBoundIssueViaCycleNonSimplicity.withArgumentsOld(
-            declaration.name,
-            cycle.first.type.declaration!.name,
+          diag.boundIssueViaCycleNonSimplicity.withArguments(
+            typeName: declaration.name,
+            firstTypeInCycle: cycle.first.type.declaration!.name,
           ),
           context,
         ),
@@ -930,7 +931,7 @@ class ComputeDefaultTypeContext {
 
     if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
       _problemReporting.addProblem(
-        codeGenericFunctionTypeInBound,
+        diag.genericFunctionTypeInBound,
         charOffset,
         typeParameterName.length,
         fileUri,

@@ -1466,6 +1466,22 @@ void f(_, _) {}
     );
   }
 
+  test_nullAwareElement_referenceAfter_awaitInSpread() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [?(await Future.value())];
+  context /* ref */;
+}
+''');
+    var block = findNode.expressionStatement('await').parent!;
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(
+      block.asyncStateFor(reference, contextElement),
+      AsyncState.asynchronous,
+    );
+  }
+
   test_postfix_referenceAfter_awaitInExpression() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -2240,6 +2256,18 @@ Future<void> f() async {}
 ''',
       [lint(107, 9)],
     );
+  }
+
+  test_await_beforeReferenceToContext_inVariableDeclaration() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+Future<int> f(BuildContext context) async => 0;
+
+void foo(BuildContext context) async {
+  var x = 1 == 2 ? await f(context) : 7;
+}
+''');
   }
 
   test_await_beforeReferenceToContext_nullAsserted() async {

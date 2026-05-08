@@ -412,7 +412,7 @@ int64_t Simulator::Call(intx_t entry,
 }
 
 void Simulator::Execute() {
-  if (LIKELY(FLAG_trace_sim_after == ULLONG_MAX)) {
+  if (FLAG_trace_sim_after == ULLONG_MAX) [[likely]] {
     ExecuteNoTrace();
   } else {
     ExecuteTrace();
@@ -2194,7 +2194,7 @@ typedef intx_t (*SimulatorLeafRuntimeCall)(intx_t r0,
 // SimulatorLeafRuntimeCall. We can call them all from here only because in
 // X64's calling conventions a function can be called with extra arguments
 // and the callee will see the first arguments and won't unbalance the stack.
-NO_SANITIZE_UNDEFINED("function")
+NO_SANITIZE_UNDEFINED_FUNCTION
 static intx_t InvokeLeafRuntime(SimulatorLeafRuntimeCall target,
                                 intx_t r0,
                                 intx_t r1,
@@ -2221,7 +2221,7 @@ typedef double (*SimulatorLeafFloatRuntimeCall)(double d0,
 // SimulatorFloatLeafRuntimeCall. We can call them all from here only because in
 // X64's calling conventions a function can be called with extra arguments
 // and the callee will see the first arguments and won't unbalance the stack.
-NO_SANITIZE_UNDEFINED("function")
+NO_SANITIZE_UNDEFINED_FUNCTION
 static double InvokeFloatLeafRuntime(SimulatorLeafFloatRuntimeCall target,
                                      double d0,
                                      double d1,
@@ -2398,9 +2398,9 @@ void Simulator::InterpretAMOSWAP(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
   type desired = get_xreg(instr.rs2());
-  type result = atomic->exchange(desired, instr.memory_order());
+  type result = atomic.exchange(desired, instr.memory_order());
   set_xreg(instr.rd(), sign_extend(result));
 }
 
@@ -2411,9 +2411,9 @@ void Simulator::InterpretAMOADD(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
   type arg = get_xreg(instr.rs2());
-  type result = atomic->fetch_add(arg, instr.memory_order());
+  type result = atomic.fetch_add(arg, instr.memory_order());
   set_xreg(instr.rd(), sign_extend(result));
 }
 
@@ -2424,9 +2424,9 @@ void Simulator::InterpretAMOXOR(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
   type arg = get_xreg(instr.rs2());
-  type result = atomic->fetch_xor(arg, instr.memory_order());
+  type result = atomic.fetch_xor(arg, instr.memory_order());
   set_xreg(instr.rd(), sign_extend(result));
 }
 
@@ -2437,9 +2437,9 @@ void Simulator::InterpretAMOAND(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
   type arg = get_xreg(instr.rs2());
-  type result = atomic->fetch_and(arg, instr.memory_order());
+  type result = atomic.fetch_and(arg, instr.memory_order());
   set_xreg(instr.rd(), sign_extend(result));
 }
 
@@ -2450,9 +2450,9 @@ void Simulator::InterpretAMOOR(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
   type arg = get_xreg(instr.rs2());
-  type result = atomic->fetch_or(arg, instr.memory_order());
+  type result = atomic.fetch_or(arg, instr.memory_order());
   set_xreg(instr.rd(), sign_extend(result));
 }
 
@@ -2463,14 +2463,15 @@ void Simulator::InterpretAMOMIN(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
-  type expected = atomic->load(std::memory_order_relaxed);
+  // TODO(c++26): fetch_max
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
+  type expected = atomic.load(std::memory_order_relaxed);
   type compare = get_xreg(instr.rs2());
   type desired;
   do {
     desired = expected < compare ? expected : compare;
   } while (
-      !atomic->compare_exchange_weak(expected, desired, instr.memory_order()));
+      !atomic.compare_exchange_weak(expected, desired, instr.memory_order()));
   set_xreg(instr.rd(), sign_extend(expected));
 }
 
@@ -2481,14 +2482,15 @@ void Simulator::InterpretAMOMAX(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
-  type expected = atomic->load(std::memory_order_relaxed);
+  // TODO(c++26): fetch_max
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
+  type expected = atomic.load(std::memory_order_relaxed);
   type compare = get_xreg(instr.rs2());
   type desired;
   do {
     desired = expected > compare ? expected : compare;
   } while (
-      !atomic->compare_exchange_weak(expected, desired, instr.memory_order()));
+      !atomic.compare_exchange_weak(expected, desired, instr.memory_order()));
   set_xreg(instr.rd(), sign_extend(expected));
 }
 
@@ -2499,8 +2501,8 @@ void Simulator::InterpretLOADORDERED(Instr instr) {
     Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
-  type value = atomic->load(instr.memory_order());
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
+  type value = atomic.load(instr.memory_order());
   set_xreg(instr.rd(), sign_extend(value));
 }
 
@@ -2512,8 +2514,8 @@ void Simulator::InterpretSTOREORDERED(Instr instr) {
   }
   memory_.FlushAddress(addr);
   type value = get_xreg(instr.rs2());
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
-  atomic->store(value, instr.memory_order());
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
+  atomic.store(value, instr.memory_order());
 }
 
 template <typename type>
@@ -2524,8 +2526,8 @@ void Simulator::InterpretAMOCAS(Instr instr) {
   }
   type expected = get_xreg(instr.rd());
   type desired = get_xreg(instr.rs2());
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
-  atomic->compare_exchange_weak(expected, desired, instr.memory_order());
+  std::atomic_ref<type> atomic(*reinterpret_cast<type*>(addr));
+  atomic.compare_exchange_weak(expected, desired, instr.memory_order());
   set_xreg(instr.rd(), expected);
 }
 

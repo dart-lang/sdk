@@ -446,10 +446,7 @@ template("build_gen_snapshot_dart_io") {
     deps = [ "//third_party/zlib" ]
 
     if (is_fuchsia) {
-      deps += [
-        "$fuchsia_sdk/fidl/fuchsia.io",
-        "$fuchsia_sdk/fidl/fuchsia.kernel",
-      ]
+      deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
 
@@ -567,10 +564,7 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      deps += [
-        "$fuchsia_sdk/fidl/fuchsia.io",
-        "$fuchsia_sdk/fidl/fuchsia.kernel",
-      ]
+      deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
 
@@ -678,13 +672,13 @@ template("bin_to_assembly") {
       invoker.symbol,
       "--target_os",
       current_os,
+      "--target_arch",
+      current_cpu,
     ]
     if (defined(invoker.size_symbol)) {
       args += [
         "--size_symbol_name",
         invoker.size_symbol,
-        "--target_arch",
-        current_cpu,
       ]
     }
     if (invoker.executable) {
@@ -886,7 +880,6 @@ template("dart_executable") {
       ":crashpad",
       ":icudtl_cc",
       "//third_party/boringssl",
-      "//third_party/icu:icui18n",
       "//third_party/icu:icuuc",
       "//third_party/zlib",
     ]

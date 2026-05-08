@@ -693,7 +693,7 @@ class Place : public ValueObject {
   intptr_t id_;
 };
 
-class ZonePlace : public ZoneAllocated {
+class ZonePlace : public ZoneObject {
  public:
   explicit ZonePlace(const Place& place) : place_(place) {}
 
@@ -711,7 +711,7 @@ Place* Place::Wrap(Zone* zone, const Place& place, intptr_t id) {
 
 // Correspondence between places connected through outgoing phi moves on the
 // edge that targets join.
-class PhiPlaceMoves : public ZoneAllocated {
+class PhiPlaceMoves : public ZoneObject {
  public:
   // Record a move from the place with id |from| to the place with id |to| at
   // the given block.
@@ -755,7 +755,7 @@ class PhiPlaceMoves : public ZoneAllocated {
 // A map from aliases to a set of places sharing the alias. Additionally
 // carries a set of places that can be aliased by side-effects, essentially
 // those that are affected by calls.
-class AliasedSet : public ZoneAllocated {
+class AliasedSet : public ZoneObject {
  public:
   AliasedSet(Zone* zone,
              FlowGraph* graph,
@@ -4396,7 +4396,7 @@ class TryCatchAnalyzer : public ValueObject {
     return false;
   }
 
-  struct ParameterInfo : public ZoneAllocated {
+  struct ParameterInfo : public ZoneObject {
     explicit ParameterInfo(ParameterInstr* instr) : instr(instr) {}
 
     ParameterInstr* instr;

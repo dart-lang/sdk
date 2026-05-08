@@ -12,7 +12,6 @@ import 'package:analysis_server/src/status/utilities/library_cycle_extensions.da
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -42,7 +41,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   Future<void> generateContent(Map<String, String> params) async {
     var driverMap = SplayTreeMap.of(
       server.driverMap,
-      (a, b) => a.shortName.compareTo(b.shortName),
+      (a, b) => a.path.compareTo(b.path),
     );
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
@@ -55,60 +54,54 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
     for (var f in driverMap.keys) {
-      if (f == folder) {
-        buf.writeln(
-          '<a class="tabnav-tab selected">${escape(f.shortName)}</a>',
-        );
-      } else {
-        var p = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
-        buf.writeln(
-          '<a href="$p" class="tabnav-tab">${escape(f.shortName)}</a>',
-        );
-      }
+      var selectedClass = f == folder ? 'selected' : '';
+      var href = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
+      buf.writeln(
+        '<a href="${escape(href)}" class="tabnav-tab $selectedClass" title="${escape(f.path)}">${escape(f.shortName)}</a>',
+      );
     }
     buf.writeln('</nav>');
     buf.writeln('</div>');
 
-    buf.writeln(writeOption('Context location', escape(contextPath)));
+    buf.writeln(formatOption('Context location', escape(contextPath)));
     buf.writeln(
-      writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)),
+      formatOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)),
     );
 
     h3('Analysis options');
 
     // Display analysis options entries inside this context root.
     var separator = folder.provider.pathContext.separator;
-    var optionsInContextRoot = driver.analysisOptionsMap.entries.where(
+    var foldersInContextRoot = driver.analysisOptionsMap.folders.where(
       (e) =>
-          contextPath == e.folder.path ||
-          contextPath.startsWith('${e.folder.path}$separator'),
+          contextPath == e.path ||
+          contextPath.startsWith('${e.path}$separator'),
     );
-    ul(optionsInContextRoot, (OptionsMapEntry entry) {
-      var folder = entry.folder;
+    ul(foldersInContextRoot, (folder) {
       buf.write(escape(folder.path));
-      var optionsPath = path.join(folder.path, 'analysis_options.yaml');
-      var contentsPath =
-          '/contents?file=${Uri.encodeQueryComponent(optionsPath)}';
-      buf.writeln(' <a href="$contentsPath">analysis_options.yaml</a>');
+      buf.write('$separator<wbr>');
+      var optionsPath = path.join(folder.path, file_paths.analysisOptionsYaml);
+      buf.writeln(
+        formatContentsLink(optionsPath, file_paths.analysisOptionsYaml),
+      );
     }, classes: 'scroll-table');
 
     h3('Workspace');
     var workspace = driver.analysisContext!.contextRoot.workspace;
     buf.writeln('<p>');
-    buf.writeln(writeOption('Workspace root', escape(workspace.root)));
+    buf.writeln(formatOption('Workspace root', escape(workspace.root)));
     var workspaceFolder = folder.provider.getFolder(workspace.root);
 
     void writePackage(WorkspacePackageImpl package) {
-      buf.writeln(writeOption('Package root', escape(package.root.path)));
+      buf.writeln(formatOption('Package root', escape(package.root.path)));
       if (package is PubPackage) {
-        buf.writeln(
-          writeOption(
-            'pubspec file',
-            escape(
-              workspaceFolder.getChildAssumingFile(file_paths.pubspecYaml).path,
-            ),
-          ),
-        );
+        buf.write('pubspec file: ');
+        buf.write(escape(workspaceFolder.path));
+        buf.write('$separator<wbr>');
+        var pubspecPath = workspaceFolder
+            .getChildAssumingFile(file_paths.pubspecYaml)
+            .path;
+        buf.writeln(formatContentsLink(pubspecPath, file_paths.pubspecYaml));
       }
     }
 
@@ -116,7 +109,7 @@ class ContextsPage extends DiagnosticPageWithNav {
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
     buf.writeln(
-      writeOption('Has package_config.json file', packageConfig.exists),
+      formatOption('Has package_config.json file', packageConfig.exists),
     );
 
     String lenCounter(int length) {
@@ -215,15 +208,35 @@ class ContextsPage extends DiagnosticPageWithNav {
         cycles.add(kind.libraryCycle);
       }
     }
-    var sortedCycles = cycles.toList()
-      ..sort((first, second) => second.size - first.size);
-    var cyclesToDisplay = math.min(sortedCycles.length, 10);
+    var sortedMultiLibraryCycles =
+        cycles.where((cycle) => cycle.size > 1).toList()
+          ..sort((first, second) => second.size - first.size);
+    var cyclesToDisplay = math.min(sortedMultiLibraryCycles.length, 10);
     var initialPathLength = contextRoot.root.path.length + 1;
-    buf.write('<p>There are ${sortedCycles.length} library cycles. ');
-    buf.write('The $cyclesToDisplay largest contain</p>');
+    buf.write(
+      'A library cycle is a '
+      '<a href="https://en.wikipedia.org/wiki/Cycle_(graph_theory)">cycle</a> '
+      'in the import/export graph. If library <em>a</em> imports library '
+      '<em>b</em> and library <em>b</em> imports library <em>a</em>, they are '
+      'in the same cycle. If library <em>a</em> imports library <em>b</em> and '
+      'exports library <em>c</em>, and library <em>b</em> imports library '
+      '<em>a</em>, then all three are in the same cycle. In some cases, '
+      'library cycles are statically analyzed as a unit; reducing the size of '
+      'the largest library cycles may result in faster incremental analysis.',
+    );
+    buf.write('<p>There are ${cycles.length} library cycles. ');
+    if (cyclesToDisplay < 10) {
+      buf.write('$cyclesToDisplay of these have more than one library.');
+      if (cyclesToDisplay > 0) {
+        buf.write(' They contain');
+      }
+      buf.write('</p>');
+    } else {
+      buf.write('The $cyclesToDisplay largest contain</p>');
+    }
     buf.write('<ul>');
     for (var i = 0; i < cyclesToDisplay; i++) {
-      var cycle = sortedCycles[i];
+      var cycle = sortedMultiLibraryCycles[i];
       var libraries = cycle.libraries;
       var cycleSize = cycle.size;
       var libraryCount = math.min(cycleSize, 8);
@@ -234,6 +247,9 @@ class ContextsPage extends DiagnosticPageWithNav {
         buf.write('<li>');
         buf.write(library.file.path.substring(initialPathLength));
         buf.write('</li>');
+      }
+      if (cycleSize > libraryCount) {
+        buf.write('<li>${cycleSize - libraryCount} more...</li>');
       }
       buf.write('</ul>');
       buf.write('</li>');

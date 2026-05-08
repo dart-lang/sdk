@@ -114,6 +114,7 @@ Future runClient(
       onBadCertificate: badCertificateCallback,
     );
     Expect.equals('pass', result); // Is rethrown below
+    socket.drain();
     await socket.close();
   } catch (error) {
     if (error is ExpectException) rethrow;

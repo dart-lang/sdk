@@ -34,7 +34,9 @@
 #include "vm/json_stream.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
+#include "vm/regexp/regexp-flags.h"
 #include "vm/report.h"
+#include "vm/roots.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/thread.h"
 #include "vm/token_position.h"
@@ -154,9 +156,6 @@ class BaseTextBuffer;
   DART_NOINLINE static object& ZoneHandle(Zone* zone, object##Ptr ptr) {       \
     return static_cast<object&>(ZoneHandleImpl(zone, ptr, kClassId));          \
   }                                                                            \
-  static object* ReadOnlyHandle() {                                            \
-    return static_cast<object*>(ReadOnlyHandleImpl(kClassId));                 \
-  }                                                                            \
   DART_NOINLINE static object& CheckedHandle(Zone* zone, ObjectPtr ptr) {      \
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
     initializeHandle(obj, ptr);                                                \
@@ -248,6 +247,9 @@ class BaseTextBuffer;
   DART_NOINLINE void operator=(object##Ptr value) {                            \
     initializeHandle(this, value);                                             \
   }                                                                            \
+  DART_NOINLINE void initRO(object##Ptr value) const {                         \
+    initializeHandle(const_cast<object*>(this), value);                        \
+  }                                                                            \
   DART_NOINLINE void operator^=(ObjectPtr value) {                             \
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
@@ -278,6 +280,9 @@ extern "C" void DLRT_ExitSafepoint();
   void operator=(object##Ptr value) {                                          \
     ptr_ = value;                                                              \
     CHECK_HANDLE();                                                            \
+  }                                                                            \
+  DART_NOINLINE void initRO(object##Ptr value) const {                         \
+    initializeHandle(const_cast<object*>(this), value);                        \
   }                                                                            \
   void operator^=(ObjectPtr value) {                                           \
     ptr_ = value;                                                              \
@@ -348,13 +353,26 @@ class Object {
   }
   ObjectPtr ptr() const { return ptr_; }
   void operator=(ObjectPtr value) { initializeHandle(this, value); }
+  void initRO(ObjectPtr value) const {
+    initializeHandle(const_cast<Object*>(this), value);
+  }
 
   bool IsCanonical() const { return ptr()->untag()->IsCanonical(); }
   void SetCanonical() const { ptr()->untag()->SetCanonical(); }
   void ClearCanonical() const { ptr()->untag()->ClearCanonical(); }
-  bool IsImmutable() const { return ptr()->untag()->IsImmutable(); }
-  void SetImmutable() const { ptr()->untag()->SetImmutable(); }
-  void ClearImmutable() const { ptr()->untag()->ClearImmutable(); }
+  bool IsShallowImmutable() const {
+    return ptr()->untag()->IsShallowImmutable();
+  }
+  void SetShallowImmutable() const { ptr()->untag()->SetShallowImmutable(); }
+  void ClearShallowImmutable() const {
+    ptr()->untag()->ClearShallowImmutable();
+  }
+  bool IsDeeplyImmutable() const { return ptr()->untag()->IsDeeplyImmutable(); }
+  void SetDeeplyImmutable() const { ptr()->untag()->SetDeeplyImmutable(); }
+  void ClearDeeplyImmutable() const { ptr()->untag()->ClearDeeplyImmutable(); }
+  bool IsImmutable() const {
+    return IsShallowImmutable() || IsDeeplyImmutable();
+  }
   intptr_t GetClassId() const { return ptr()->GetClassId(); }
   inline ClassPtr clazz() const;
   static intptr_t tags_offset() { return OFFSET_OF(UntaggedObject, tags_); }
@@ -407,7 +425,7 @@ class Object {
   CLASS_LIST_FOR_HANDLES(DEFINE_CLASS_TESTER);
 #undef DEFINE_CLASS_TESTER
 
-  bool IsNull() const { return ptr_ == null_; }
+  bool IsNull() const { return ptr_ == Roots::null_obj(); }
 
   // Matches Object.toString on instances (except String::ToCString, bug 20583).
   virtual const char* ToCString() const {
@@ -452,10 +470,10 @@ class Object {
 #endif
 
   static Object& Handle() {
-    return HandleImpl(Thread::Current()->zone(), null_, kObjectCid);
+    return HandleImpl(Thread::Current()->zone(), Roots::null_obj(), kObjectCid);
   }
   static Object& Handle(Zone* zone) {
-    return HandleImpl(zone, null_, kObjectCid);
+    return HandleImpl(zone, Roots::null_obj(), kObjectCid);
   }
   static Object& Handle(ObjectPtr ptr) {
     return HandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
@@ -464,10 +482,11 @@ class Object {
     return HandleImpl(zone, ptr, kObjectCid);
   }
   static Object& ZoneHandle() {
-    return ZoneHandleImpl(Thread::Current()->zone(), null_, kObjectCid);
+    return ZoneHandleImpl(Thread::Current()->zone(), Roots::null_obj(),
+                          kObjectCid);
   }
   static Object& ZoneHandle(Zone* zone) {
-    return ZoneHandleImpl(zone, null_, kObjectCid);
+    return ZoneHandleImpl(zone, Roots::null_obj(), kObjectCid);
   }
   static Object& ZoneHandle(ObjectPtr ptr) {
     return ZoneHandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
@@ -475,9 +494,8 @@ class Object {
   static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
     return ZoneHandleImpl(zone, ptr, kObjectCid);
   }
-  static Object* ReadOnlyHandle() { return ReadOnlyHandleImpl(kObjectCid); }
 
-  static ObjectPtr null() { return null_; }
+  static ObjectPtr null() { return Roots::null_obj(); }
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const ObjectPtr obj) {
@@ -563,74 +581,89 @@ class Object {
   V(Array, uninitialized_data)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
-  static const Type& name() {                                                  \
-    ASSERT(name##_ != nullptr);                                                \
-    return *name##_;                                                           \
-  }
+  static const Type& name() { return Roots::name(); }
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
   static void set_vm_isolate_snapshot_object_table(const Array& table);
 
-  static ClassPtr class_class() { return class_class_; }
-  static ClassPtr dynamic_class() { return dynamic_class_; }
-  static ClassPtr void_class() { return void_class_; }
-  static ClassPtr type_parameters_class() { return type_parameters_class_; }
-  static ClassPtr type_arguments_class() { return type_arguments_class_; }
-  static ClassPtr patch_class_class() { return patch_class_class_; }
-  static ClassPtr function_class() { return function_class_; }
-  static ClassPtr closure_data_class() { return closure_data_class_; }
+  static ClassPtr class_class() { return Roots::class_class(); }
+  static ClassPtr dynamic_class() { return Roots::dynamic_class(); }
+  static ClassPtr void_class() { return Roots::void_class(); }
+  static ClassPtr type_parameters_class() {
+    return Roots::type_parameters_class();
+  }
+  static ClassPtr type_arguments_class() {
+    return Roots::type_arguments_class();
+  }
+  static ClassPtr patch_class_class() { return Roots::patch_class_class(); }
+  static ClassPtr function_class() { return Roots::function_class(); }
+  static ClassPtr closure_data_class() { return Roots::closure_data_class(); }
   static ClassPtr ffi_trampoline_data_class() {
-    return ffi_trampoline_data_class_;
+    return Roots::ffi_trampoline_data_class();
   }
-  static ClassPtr field_class() { return field_class_; }
-  static ClassPtr script_class() { return script_class_; }
-  static ClassPtr library_class() { return library_class_; }
-  static ClassPtr namespace_class() { return namespace_class_; }
+  static ClassPtr field_class() { return Roots::field_class(); }
+  static ClassPtr script_class() { return Roots::script_class(); }
+  static ClassPtr library_class() { return Roots::library_class(); }
+  static ClassPtr namespace_class() { return Roots::namespace_class(); }
   static ClassPtr kernel_program_info_class() {
-    return kernel_program_info_class_;
+    return Roots::kernel_program_info_class();
   }
-  static ClassPtr code_class() { return code_class_; }
-  static ClassPtr instructions_class() { return instructions_class_; }
+  static ClassPtr code_class() { return Roots::code_class(); }
+  static ClassPtr instructions_class() { return Roots::instructions_class(); }
   static ClassPtr instructions_section_class() {
-    return instructions_section_class_;
+    return Roots::instructions_section_class();
   }
   static ClassPtr instructions_table_class() {
-    return instructions_table_class_;
+    return Roots::instructions_table_class();
   }
-  static ClassPtr object_pool_class() { return object_pool_class_; }
-  static ClassPtr pc_descriptors_class() { return pc_descriptors_class_; }
-  static ClassPtr code_source_map_class() { return code_source_map_class_; }
+  static ClassPtr object_pool_class() { return Roots::object_pool_class(); }
+  static ClassPtr pc_descriptors_class() {
+    return Roots::pc_descriptors_class();
+  }
+  static ClassPtr code_source_map_class() {
+    return Roots::code_source_map_class();
+  }
   static ClassPtr compressed_stackmaps_class() {
-    return compressed_stackmaps_class_;
+    return Roots::compressed_stackmaps_class();
   }
-  static ClassPtr var_descriptors_class() { return var_descriptors_class_; }
+  static ClassPtr var_descriptors_class() {
+    return Roots::var_descriptors_class();
+  }
   static ClassPtr exception_handlers_class() {
-    return exception_handlers_class_;
+    return Roots::exception_handlers_class();
   }
-  static ClassPtr context_class() { return context_class_; }
-  static ClassPtr context_scope_class() { return context_scope_class_; }
-  static ClassPtr bytecode_class() { return bytecode_class_; }
-  static ClassPtr sentinel_class() { return sentinel_class_; }
-  static ClassPtr api_error_class() { return api_error_class_; }
-  static ClassPtr language_error_class() { return language_error_class_; }
+  static ClassPtr context_class() { return Roots::context_class(); }
+  static ClassPtr context_scope_class() { return Roots::context_scope_class(); }
+  static ClassPtr bytecode_class() { return Roots::bytecode_class(); }
+  static ClassPtr sentinel_class() { return Roots::sentinel_class(); }
+  static ClassPtr api_error_class() { return Roots::api_error_class(); }
+  static ClassPtr language_error_class() {
+    return Roots::language_error_class();
+  }
   static ClassPtr unhandled_exception_class() {
-    return unhandled_exception_class_;
+    return Roots::unhandled_exception_class();
   }
-  static ClassPtr unwind_error_class() { return unwind_error_class_; }
-  static ClassPtr singletargetcache_class() { return singletargetcache_class_; }
-  static ClassPtr unlinkedcall_class() { return unlinkedcall_class_; }
+  static ClassPtr unwind_error_class() { return Roots::unwind_error_class(); }
+  static ClassPtr singletargetcache_class() {
+    return Roots::singletargetcache_class();
+  }
+  static ClassPtr unlinkedcall_class() { return Roots::unlinkedcall_class(); }
   static ClassPtr monomorphicsmiablecall_class() {
-    return monomorphicsmiablecall_class_;
+    return Roots::monomorphicsmiablecall_class();
   }
-  static ClassPtr icdata_class() { return icdata_class_; }
-  static ClassPtr megamorphic_cache_class() { return megamorphic_cache_class_; }
-  static ClassPtr subtypetestcache_class() { return subtypetestcache_class_; }
-  static ClassPtr loadingunit_class() { return loadingunit_class_; }
+  static ClassPtr icdata_class() { return Roots::icdata_class(); }
+  static ClassPtr megamorphic_cache_class() {
+    return Roots::megamorphic_cache_class();
+  }
+  static ClassPtr subtypetestcache_class() {
+    return Roots::subtypetestcache_class();
+  }
+  static ClassPtr loadingunit_class() { return Roots::loadingunit_class(); }
   static ClassPtr weak_serialization_reference_class() {
-    return weak_serialization_reference_class_;
+    return Roots::weak_serialization_reference_class();
   }
-  static ClassPtr weak_array_class() { return weak_array_class_; }
+  static ClassPtr weak_array_class() { return Roots::weak_array_class(); }
 
   // Initialize the VM isolate.
   static void InitNullAndBool(IsolateGroup* isolate_group);
@@ -722,13 +755,16 @@ class Object {
     kNo,
   };
 
-  static bool ShouldHaveImmutabilityBitSet(classid_t class_id);
+  static bool ShouldHaveShallowImmutabilityBitSet(classid_t class_id);
+  static bool ShouldHaveDeeplyImmutabilityBitSet(classid_t class_id);
+
+  void EnsureDeeplyImmutable(Zone* zone) const;
 
  protected:
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
-  Object() : ptr_(null_) {}
+  Object() : ptr_(Roots::null_obj()) {}
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
@@ -748,11 +784,6 @@ class Object {
         reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
     obj->setPtr(ptr, default_cid);
     return *obj;
-  }
-  DART_NOINLINE static Object* ReadOnlyHandleImpl(intptr_t cid) {
-    Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
-    obj->setPtr(Object::null(), cid);
-    return obj;
   }
 
   // Memcpy to account for the strict aliasing rule.
@@ -882,9 +913,8 @@ class Object {
 
   template <typename FieldType, std::memory_order order>
   FieldType LoadNonPointer(const FieldType* addr) const {
-    return reinterpret_cast<std::atomic<FieldType>*>(
-               const_cast<FieldType*>(addr))
-        ->load(order);
+    return std::atomic_ref<FieldType>(*const_cast<FieldType*>(addr))
+        .load(order);
   }
 
   // Needs two template arguments to allow assigning enums to fixed-size ints.
@@ -899,8 +929,8 @@ class Object {
   void StoreNonPointer(const FieldType* addr, ValueType value) const {
     // Can't use Contains, as it uses tags_, which is set through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
-    reinterpret_cast<std::atomic<FieldType>*>(const_cast<FieldType*>(addr))
-        ->store(value, order);
+    std::atomic_ref<FieldType>(*const_cast<FieldType*>(addr))
+        .store(value, order);
   }
 
   // Provides non-const access to non-pointer fields within the object. Such
@@ -977,6 +1007,35 @@ class Object {
     return -kWordSize;
   }
 
+  // Initialize the oject header for a freshly allocated object at [address]
+  // of size [instance_size] with cid [class_id]. If the hash is stored in
+  // the object header, it is initialized to 0.
+  //
+  // Whether the object is old or new is determined from the address,
+  // see ObjectAlignment in pointer_tagging.h for details.
+  DART_FORCE_INLINE static void InitializeHeader(uword address,
+                                                 intptr_t class_id,
+                                                 intptr_t instance_size) {
+    uword tags = 0;
+    ASSERT(class_id != kIllegalCid);
+    tags = UntaggedObject::ClassIdTag::update(class_id, tags);
+    tags = UntaggedObject::SizeTag::update(instance_size, tags);
+    const bool is_old =
+        (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
+    tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+    tags = UntaggedObject::NotMarkedBit::update(true, tags);
+    tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
+    tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
+    tags = UntaggedObject::ShallowImmutableBit::update(
+        Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
+    tags = UntaggedObject::DeeplyImmutableBit::update(
+        Object::ShouldHaveDeeplyImmutabilityBitSet(class_id), tags);
+#if defined(HASH_IN_OBJECT_HEADER)
+    tags = UntaggedObject::HashTag::update(0, tags);
+#endif
+    reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
+  }
+
   static void InitializeObject(uword address,
                                intptr_t id,
                                intptr_t size,
@@ -1036,58 +1095,6 @@ class Object {
 
   static cpp_vtable builtin_vtables_[kNumPredefinedCids];
 
-  // The static values below are singletons shared between the different
-  // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
-  static ObjectPtr null_;
-  static BoolPtr true_;
-  static BoolPtr false_;
-
-  static ClassPtr class_class_;
-  static ClassPtr dynamic_class_;
-  static ClassPtr void_class_;
-  static ClassPtr type_parameters_class_;
-  static ClassPtr type_arguments_class_;
-  static ClassPtr patch_class_class_;
-  static ClassPtr function_class_;
-  static ClassPtr closure_data_class_;
-  static ClassPtr ffi_trampoline_data_class_;
-  static ClassPtr field_class_;
-  static ClassPtr script_class_;
-  static ClassPtr library_class_;
-  static ClassPtr namespace_class_;
-  static ClassPtr kernel_program_info_class_;
-  static ClassPtr code_class_;
-  static ClassPtr instructions_class_;
-  static ClassPtr instructions_section_class_;
-  static ClassPtr instructions_table_class_;
-  static ClassPtr object_pool_class_;
-  static ClassPtr pc_descriptors_class_;
-  static ClassPtr code_source_map_class_;
-  static ClassPtr compressed_stackmaps_class_;
-  static ClassPtr var_descriptors_class_;
-  static ClassPtr exception_handlers_class_;
-  static ClassPtr context_class_;
-  static ClassPtr context_scope_class_;
-  static ClassPtr bytecode_class_;
-  static ClassPtr sentinel_class_;
-  static ClassPtr singletargetcache_class_;
-  static ClassPtr unlinkedcall_class_;
-  static ClassPtr monomorphicsmiablecall_class_;
-  static ClassPtr icdata_class_;
-  static ClassPtr megamorphic_cache_class_;
-  static ClassPtr subtypetestcache_class_;
-  static ClassPtr loadingunit_class_;
-  static ClassPtr api_error_class_;
-  static ClassPtr language_error_class_;
-  static ClassPtr unhandled_exception_class_;
-  static ClassPtr unwind_error_class_;
-  static ClassPtr weak_serialization_reference_class_;
-  static ClassPtr weak_array_class_;
-
-#define DECLARE_SHARED_READONLY_HANDLE(Type, name) static Type* name##_;
-  SHARED_READONLY_HANDLES_LIST(DECLARE_SHARED_READONLY_HANDLE)
-#undef DECLARE_SHARED_READONLY_HANDLE
-
   friend void ClassTable::Register(const Class& cls);
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
@@ -1098,6 +1105,7 @@ class Object {
   friend class OneByteString;
   friend class TwoByteString;
   friend class Thread;
+  friend class module_snapshot::ObjectPoolDeserializationCluster;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
@@ -1338,8 +1346,6 @@ class Class : public Object {
   // The mixin for this class if one exists. Otherwise, returns a raw pointer
   // to this class.
   ClassPtr Mixin() const;
-
-  bool IsInFullSnapshot() const;
 
   virtual StringPtr DictionaryName() const { return Name(); }
 
@@ -1655,12 +1661,6 @@ class Class : public Object {
 
   // Check if this class represents the 'Record' class.
   bool IsRecordClass() const { return id() == kRecordCid; }
-
-  static bool IsInFullSnapshot(ClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return UntaggedLibrary::InFullSnapshotBit::decode(
-        cls->untag()->library()->untag()->flags_);
-  }
 
   static intptr_t GetClassId(ClassPtr cls) {
     NoSafepointScope no_safepoint;
@@ -2063,7 +2063,7 @@ class Class : public Object {
                                   const Field& field) const;
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-  void SetUserVisibleNameInClassTable();
+  void SetUserVisibleNameInClassTable() const;
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
  private:
@@ -2327,10 +2327,6 @@ class PatchClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedPatchClass));
   }
-  static bool IsInFullSnapshot(PatchClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return Class::IsInFullSnapshot(cls->untag()->wrapped_class());
-  }
 
   static PatchClassPtr New(const Class& wrapped_class,
                            const KernelProgramInfo& info,
@@ -2584,8 +2580,6 @@ class ICData : public CallSiteData {
 #undef REBIND_ENUM_DEF
         kNumRebindRules,
   };
-  static const char* RebindRuleToCString(RebindRule r);
-  static bool ParseRebindRule(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
 
   void set_is_megamorphic(bool value) const {
@@ -2922,9 +2916,6 @@ class ICData : public CallSiteData {
                             intptr_t test_entry_length,
                             const Object& back_ref);
 
-  // A cache of VM heap allocated preinitialized empty ic data entry arrays.
-  static ArrayPtr cached_icdata_arrays_[kCachedICDataArrayCount];
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, CallSiteData);
   friend class CallSiteResetter;
   friend class CallTargets;
@@ -2933,6 +2924,7 @@ class ICData : public CallSiteData {
   friend class ICDataTestTask;
   friend class Interpreter;
   friend class VMSerializationRoots;
+  friend class module_snapshot::ICDataDeserializationCluster;
 };
 
 // Often used constants for number of free function type parameters.
@@ -3008,7 +3000,8 @@ enum class EntryPointPragma {
   kNever,
   kGetterOnly,
   kSetterOnly,
-  kCallOnly
+  kCallOnly,
+  kTypeOnly
 };
 
 struct EntryPointPragmaUtils : public AllStatic {
@@ -3027,10 +3020,16 @@ struct EntryPointPragmaUtils : public AllStatic {
            pragma == EntryPointPragma::kSetterOnly;
   }
 
+  static constexpr bool AllowsTypeAccess(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kTypeOnly;
+  }
+
   static constexpr bool AllowsAccess(EntryPointPragma pragma) {
     // The CFE should ensure that non-kAlways annotations are appropriate
     // for the given member.
-    return pragma != EntryPointPragma::kNever;
+    return pragma != EntryPointPragma::kNever &&
+           pragma != EntryPointPragma::kTypeOnly;
   }
 };
 
@@ -4359,8 +4358,6 @@ class Function : public Object {
   void set_implicit_closure_function(const Function& value) const;
   ClosurePtr implicit_static_closure() const;
   void set_implicit_static_closure(const Closure& closure) const;
-  ScriptPtr eval_script() const;
-  void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
   bool is_eval_function() const;
@@ -4571,6 +4568,13 @@ class Field : public Object {
     return untag()->kind_bits_.Read<NoSanitizeThreadBit>();
   }
 
+  void set_has_deeply_immutable_type(bool value) const {
+    untag()->kind_bits_.UpdateBool<HasDeeplyImmutableTypeBit>(value);
+  }
+  bool has_deeply_immutable_type() const {
+    return untag()->kind_bits_.Read<HasDeeplyImmutableTypeBit>();
+  }
+
 #if defined(DART_DYNAMIC_MODULES)
   bool is_declared_in_bytecode() const;
 #else
@@ -4680,8 +4684,6 @@ class Field : public Object {
   TokenPosition end_token_pos() const { return untag()->end_token_pos_; }
 
   int32_t SourceFingerprint() const;
-
-  StringPtr InitializingExpression() const;
 
   bool has_nontrivial_initializer() const {
     return untag()->kind_bits_.Read<HasNontrivialInitializerBit>();
@@ -4903,12 +4905,6 @@ class Field : public Object {
   void SetInitializerFunction(const Function& initializer) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
-  // For static fields only. Constructs a closure that gets/sets the
-  // field value.
-  InstancePtr GetterClosure() const;
-  InstancePtr SetterClosure() const;
-  InstancePtr AccessorClosure(bool make_setter) const;
-
   // Constructs getter and setter names for fields and vice versa.
   static StringPtr GetterName(const String& field_name);
   static StringPtr GetterSymbol(const String& field_name);
@@ -4984,6 +4980,10 @@ class Field : public Object {
                              HasInitializerBit::kNextBit>;
   using NoSanitizeThreadBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
+  using HasDeeplyImmutableTypeBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               NoSanitizeThreadBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -5080,6 +5080,26 @@ class Script : public Object {
   bool GetTokenLocation(const TokenPosition& token_pos,
                         intptr_t* line,
                         intptr_t* column = nullptr) const;
+
+  // For real or synthetic token positions when line starts are available,
+  // returns whether a GetTokenLocation call for that token would succeed.
+  // Returns true for sentinel token positions or if there is no line starts
+  // information.
+  bool IsValidRealOrSyntheticTokenPosition(TokenPosition token_pos) const {
+    return IsValidTokenPosition(token_pos.ToRealIfSynthetic());
+  }
+
+  // Returns whether a line and column could be computed for the given token
+  // position and, if so, sets *line and *column (if not nullptr).
+  //
+  // Unlike GetTokenLocation, which only returns lines and columns of real
+  // token positions, lines and columns are also returned for synthetic
+  // token positions.
+  bool GetRealOrSyntheticTokenLocation(const TokenPosition& token_pos,
+                                       intptr_t* line,
+                                       intptr_t* column = nullptr) const {
+    return GetTokenLocation(token_pos.ToRealIfSynthetic(), line, column);
+  }
 
   // Returns the length of the token at the given position. If the length cannot
   // be determined, returns a negative value.
@@ -5360,14 +5380,6 @@ class Library : public Object {
     StoreNonPointer<Dart_FfiNativeResolver, Dart_FfiNativeResolver,
                     std::memory_order_relaxed>(&untag()->ffi_native_resolver_,
                                                value);
-  }
-
-  bool is_in_fullsnapshot() const {
-    return UntaggedLibrary::InFullSnapshotBit::decode(untag()->flags_);
-  }
-  void set_is_in_fullsnapshot(bool value) const {
-    set_flags(
-        UntaggedLibrary::InFullSnapshotBit::update(value, untag()->flags_));
   }
 
   StringPtr PrivateName(const String& name) const;
@@ -7177,7 +7189,7 @@ class Code : public Object {
   void Disassemble(DisassemblyFormatter* formatter = nullptr) const;
 
 #if defined(INCLUDE_IL_PRINTER)
-  class Comments : public ZoneAllocated, public CodeComments {
+  class Comments : public ZoneObject, public CodeComments {
    public:
     static Comments& New(intptr_t count);
 
@@ -8669,6 +8681,8 @@ class Instance : public Object {
 
   static intptr_t NativeFieldsOffset() { return sizeof(UntaggedObject); }
 
+  static intptr_t first_field_offset() { return NextFieldOffset(); }
+
  protected:
 #ifndef PRODUCT
   virtual void PrintSharedInstanceJSON(JSONObject* jsobj,
@@ -8969,10 +8983,6 @@ class TypeArguments : public Instance {
                            const TypeArguments& other,
                            intptr_t other_length,
                            intptr_t total_length) const;
-
-  // Concatenate [this] and [other] vectors of type parameters.
-  TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
-                                             const TypeArguments& other) const;
 
   // Returns an InstantiationMode for this type argument vector, which
   // specifies whether the type argument vector requires instantiation and
@@ -10354,10 +10364,8 @@ class SmiTraits : AllStatic {
 class Mint : public Integer {
  public:
   static constexpr intptr_t kBits = 63;  // 64-th bit is sign.
-  static constexpr int64_t kMaxValue =
-      static_cast<int64_t>(DART_2PART_UINT64_C(0x7FFFFFFF, FFFFFFFF));
-  static constexpr int64_t kMinValue =
-      static_cast<int64_t>(DART_2PART_UINT64_C(0x80000000, 00000000));
+  static constexpr int64_t kMaxValue = 0x7FFFFFFFFFFFFFFF;
+  static constexpr int64_t kMinValue = 0x8000000000000000;
 
   static intptr_t value_offset() { return OFFSET_OF(UntaggedMint, value_); }
 
@@ -10446,6 +10454,12 @@ class String : public Instance {
  public:
   static constexpr intptr_t kOneByteChar = 1;
   static constexpr intptr_t kTwoByteChar = 2;
+
+  static const int32_t kMaxOneByteCharCode = 0xff;
+  static const uint32_t kMaxOneByteCharCodeU = 0xff;
+  static const int kMaxUtf16CodeUnit = 0xffff;
+  static const uint32_t kMaxUtf16CodeUnitU = kMaxUtf16CodeUnit;
+  static const uint32_t kMaxCodePoint = 0x10ffff;
 
 // All strings share the same maximum element count to keep things
 // simple.  We choose a value that will prevent integer overflow for
@@ -10827,7 +10841,8 @@ class OneByteString : public AllStatic {
   static constexpr intptr_t kBytesPerElement = 1;
   static constexpr intptr_t kMaxElements = String::kMaxElements;
   static constexpr intptr_t kMaxNewSpaceElements =
-      (kNewAllocatableSize - sizeof(UntaggedOneByteString)) / kBytesPerElement;
+      (Heap::kNewAllocatableSize - sizeof(UntaggedOneByteString)) /
+      kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -10910,6 +10925,11 @@ class OneByteString : public AllStatic {
     return static_cast<OneByteStringPtr>(Object::null());
   }
 
+  static uint8_t* DataStart(const String& str) {
+    ASSERT(str.IsOneByteString());
+    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
+  }
+
  private:
   static OneByteStringPtr raw(const String& str) {
     return static_cast<OneByteStringPtr>(str.ptr());
@@ -10923,11 +10943,6 @@ class OneByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsOneByteString());
     return &str.UnsafeMutableNonPointer(untag(str)->data())[index];
-  }
-
-  static uint8_t* DataStart(const String& str) {
-    ASSERT(str.IsOneByteString());
-    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
   ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(OneByteString, String);
@@ -10968,7 +10983,8 @@ class TwoByteString : public AllStatic {
   static constexpr intptr_t kBytesPerElement = 2;
   static constexpr intptr_t kMaxElements = String::kMaxElements;
   static constexpr intptr_t kMaxNewSpaceElements =
-      (kNewAllocatableSize - sizeof(UntaggedTwoByteString)) / kBytesPerElement;
+      (Heap::kNewAllocatableSize - sizeof(UntaggedTwoByteString)) /
+      kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -11031,6 +11047,13 @@ class TwoByteString : public AllStatic {
 
   static const ClassId kClassId = kTwoByteStringCid;
 
+  // Use this instead of CharAddr(0).  It will not assert that the index is <
+  // length.
+  static uint16_t* DataStart(const String& str) {
+    ASSERT(str.IsTwoByteString());
+    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
+  }
+
  private:
   static TwoByteStringPtr raw(const String& str) {
     return static_cast<TwoByteStringPtr>(str.ptr());
@@ -11044,13 +11067,6 @@ class TwoByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsTwoByteString());
     return &str.UnsafeMutableNonPointer(untag(str)->data())[index];
-  }
-
-  // Use this instead of CharAddr(0).  It will not assert that the index is <
-  // length.
-  static uint16_t* DataStart(const String& str) {
-    ASSERT(str.IsTwoByteString());
-    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
   ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(TwoByteString, String);
@@ -11102,7 +11118,7 @@ class Array : public Instance {
   // Returns `true` if we use card marking for arrays of length [array_length].
   static constexpr bool UseCardMarkingForAllocation(
       const intptr_t array_length) {
-    return Array::InstanceSize(array_length) > kNewAllocatableSize;
+    return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
   }
 
   // WB invariant restoration code only applies to arrives which have at most
@@ -11227,7 +11243,7 @@ class Array : public Instance {
   static constexpr intptr_t kBytesPerElement = ArrayTraits::kElementSize;
   static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
   static constexpr intptr_t kMaxNewSpaceElements =
-      (kNewAllocatableSize - sizeof(UntaggedArray)) / kBytesPerElement;
+      (Heap::kNewAllocatableSize - sizeof(UntaggedArray)) / kBytesPerElement;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(UntaggedArray, type_arguments_);
@@ -11993,7 +12009,7 @@ class TypedData : public TypedDataBase {
 
   static intptr_t MaxNewSpaceElements(intptr_t class_id) {
     ASSERT(IsTypedDataClassId(class_id));
-    return (kNewAllocatableSize - sizeof(UntaggedTypedData)) /
+    return (Heap::kNewAllocatableSize - sizeof(UntaggedTypedData)) /
            ElementSizeInBytes(class_id);
   }
 
@@ -13004,92 +13020,9 @@ class SuspendState : public Instance {
   friend class Interpreter;
 };
 
-class RegExpFlags {
- public:
-  // Flags are passed to a regex object as follows:
-  // 'i': ignore case, 'g': do global matches, 'm': pattern is multi line,
-  // 'u': pattern is full Unicode, not just BMP, 's': '.' in pattern matches
-  // all characters including line terminators.
-  enum Flags {
-    kNone = 0,
-    kGlobal = 1,
-    kIgnoreCase = 2,
-    kMultiLine = 4,
-    kUnicode = 8,
-    kDotAll = 16,
-  };
-
-  static constexpr int kDefaultFlags = 0;
-
-  RegExpFlags() : value_(kDefaultFlags) {}
-  explicit RegExpFlags(int value) : value_(value) {}
-
-  inline bool IsGlobal() const { return (value_ & kGlobal) != 0; }
-  inline bool IgnoreCase() const { return (value_ & kIgnoreCase) != 0; }
-  inline bool IsMultiLine() const { return (value_ & kMultiLine) != 0; }
-  inline bool IsUnicode() const { return (value_ & kUnicode) != 0; }
-  inline bool IsDotAll() const { return (value_ & kDotAll) != 0; }
-
-  inline bool NeedsUnicodeCaseEquivalents() {
-    // Both unicode and ignore_case flags are set. We need to use ICU to find
-    // the closure over case equivalents.
-    return IsUnicode() && IgnoreCase();
-  }
-
-  void SetGlobal() { value_ |= kGlobal; }
-  void SetIgnoreCase() { value_ |= kIgnoreCase; }
-  void SetMultiLine() { value_ |= kMultiLine; }
-  void SetUnicode() { value_ |= kUnicode; }
-  void SetDotAll() { value_ |= kDotAll; }
-
-  const char* ToCString() const;
-
-  int value() const { return value_; }
-
-  bool operator==(const RegExpFlags& other) const {
-    return value_ == other.value_;
-  }
-  bool operator!=(const RegExpFlags& other) const {
-    return value_ != other.value_;
-  }
-
- private:
-  int value_;
-};
-
 // Internal JavaScript regular expression object.
 class RegExp : public Instance {
  public:
-  // Meaning of RegExType:
-  // kUninitialized: the type of th regexp has not been initialized yet.
-  // kSimple: A simple pattern to match against, using string indexOf operation.
-  // kComplex: A complex pattern to match.
-  enum RegExType {
-    kUninitialized = 0,
-    kSimple = 1,
-    kComplex = 2,
-  };
-
-  using TypeBits = BitField<int8_t, RegExType, 0, 2>;
-
-  // Must be kept in sync with RegExFlags::Flags.
-  using GlobalBit = BitField<int8_t, bool, TypeBits::kNextBit>;
-  using IgnoreCaseBit = BitField<int8_t, bool, GlobalBit::kNextBit>;
-  using MultiLineBit = BitField<int8_t, bool, IgnoreCaseBit::kNextBit>;
-  using UnicodeBit = BitField<int8_t, bool, MultiLineBit::kNextBit>;
-  using DotAllBit = BitField<int8_t, bool, UnicodeBit::kNextBit>;
-
-  // The portion of the bitfield container that contains all the above
-  // bool bits, which is passed to the constructor for RegExFlags.
-  using FlagsBits = BitField<int8_t,
-                             int8_t,
-                             TypeBits::kNextBit,
-                             DotAllBit::kNextBit - TypeBits::kNextBit>;
-
-  bool is_initialized() const { return (type() != kUninitialized); }
-  bool is_simple() const { return (type() == kSimple); }
-  bool is_complex() const { return (type() == kComplex); }
-
   intptr_t num_registers(bool is_one_byte) const {
     return LoadNonPointer<intptr_t, std::memory_order_relaxed>(
         is_one_byte ? &untag()->num_one_byte_registers_
@@ -13097,22 +13030,24 @@ class RegExp : public Instance {
   }
 
   StringPtr pattern() const { return untag()->pattern(); }
+
+  template <std::memory_order order = std::memory_order_relaxed>
   intptr_t num_bracket_expressions() const {
-    return untag()->num_bracket_expressions_;
+    return untag()->num_bracket_expressions<order>();
   }
+
   ArrayPtr capture_name_map() const {
     return untag()->capture_name_map<std::memory_order_acquire>();
   }
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
-      return TypedData::RawCast(
-          is_one_byte ? untag()->one_byte_sticky<std::memory_order_acquire>()
-                      : untag()->two_byte_sticky<std::memory_order_acquire>());
+      return is_one_byte
+                 ? untag()->one_byte_sticky<std::memory_order_acquire>()
+                 : untag()->two_byte_sticky<std::memory_order_acquire>();
     } else {
-      return TypedData::RawCast(
-          is_one_byte ? untag()->one_byte<std::memory_order_acquire>()
-                      : untag()->two_byte<std::memory_order_acquire>());
+      return is_one_byte ? untag()->one_byte<std::memory_order_acquire>()
+                         : untag()->two_byte<std::memory_order_acquire>();
     }
   }
 
@@ -13159,32 +13094,15 @@ class RegExp : public Instance {
   }
 
   void set_pattern(const String& pattern) const;
-  void set_function(intptr_t cid, bool sticky, const Function& value) const;
   void set_bytecode(bool is_one_byte,
                     bool sticky,
                     const TypedData& bytecode) const;
 
-  void set_num_bracket_expressions(SmiPtr value) const;
-  void set_num_bracket_expressions(const Smi& value) const;
-  void set_num_bracket_expressions(intptr_t value) const;
+  template <std::memory_order order = std::memory_order_relaxed>
+  void set_num_bracket_expressions(intptr_t value) const {
+    return untag()->set_num_bracket_expressions<order>(value);
+  }
   void set_capture_name_map(const Array& array) const;
-  void set_is_global() const {
-    untag()->type_flags_.UpdateBool<GlobalBit>(true);
-  }
-  void set_is_ignore_case() const {
-    untag()->type_flags_.UpdateBool<IgnoreCaseBit>(true);
-  }
-  void set_is_multi_line() const {
-    untag()->type_flags_.UpdateBool<MultiLineBit>(true);
-  }
-  void set_is_unicode() const {
-    untag()->type_flags_.UpdateBool<UnicodeBit>(true);
-  }
-  void set_is_dot_all() const {
-    untag()->type_flags_.UpdateBool<DotAllBit>(true);
-  }
-  void set_is_simple() const { set_type(kSimple); }
-  void set_is_complex() const { set_type(kComplex); }
   void set_num_registers(bool is_one_byte, intptr_t value) const {
     StoreNonPointer<intptr_t, intptr_t, std::memory_order_relaxed>(
         is_one_byte ? &untag()->num_one_byte_registers_
@@ -13192,12 +13110,8 @@ class RegExp : public Instance {
         value);
   }
 
-  RegExpFlags flags() const {
-    return RegExpFlags(untag()->type_flags_.Read<FlagsBits>());
-  }
-  void set_flags(RegExpFlags flags) const {
-    untag()->type_flags_.Update<FlagsBits>(flags.value());
-  }
+  RegExpFlags flags() const { return RegExpFlags(untag()->flags_); }
+  void set_flags(RegExpFlags flags) const { untag()->flags_ = flags; }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
@@ -13206,14 +13120,9 @@ class RegExp : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedRegExp));
   }
 
-  static RegExpPtr New(Zone* zone, Heap::Space space = Heap::kNew);
+  static RegExpPtr New(const String& pattern, RegExpFlags flags);
 
  private:
-  void set_type(RegExType type) const {
-    untag()->type_flags_.Update<TypeBits>(type);
-  }
-  RegExType type() const { return untag()->type_flags_.Read<TypeBits>(); }
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RegExp, Instance);
   friend class Class;
 };

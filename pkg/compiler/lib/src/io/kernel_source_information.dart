@@ -8,12 +8,13 @@
 library;
 
 import 'package:kernel/ast.dart' as ir;
+
 import '../elements/entities.dart';
 import '../js_model/element_map.dart';
 import '../js_model/elements.dart';
 import '../universe/call_structure.dart';
-import 'source_information.dart';
 import 'position_information.dart';
+import 'source_information.dart';
 
 class OnlineKernelSourceInformationStrategy
     extends OnlinePositionSourceInformationStrategy {

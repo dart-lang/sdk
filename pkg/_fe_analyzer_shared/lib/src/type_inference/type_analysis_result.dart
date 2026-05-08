@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../flow_analysis/flow_analysis.dart';
 import '../types/shared_type.dart';
 import 'type_analyzer.dart';
 
@@ -19,6 +20,19 @@ class AssignedVariablePatternResult<Error> extends PatternResult {
     required this.duplicateAssignmentPatternVariableError,
     required this.patternTypeMismatchInIrrefutableContextError,
     required super.matchedValueType,
+  });
+}
+
+/// Result for analyzing an await expression in
+/// [TypeAnalyzer.analyzeSwitchExpression].
+final class AwaitExpressionResult extends ExpressionTypeAnalysisResult {
+  /// The static type of the operand.
+  final SharedTypeView operandType;
+
+  AwaitExpressionResult({
+    required super.type,
+    super.flowAnalysisInfo,
+    required this.operandType,
   });
 }
 
@@ -65,11 +79,15 @@ class DeclaredVariablePatternResult<Error> extends PatternResult {
 /// This class keeps track of the type of the expression. Derived classes expose
 /// other results of type analysis that are specific to certain expression
 /// types.
-class ExpressionTypeAnalysisResult {
+final class ExpressionTypeAnalysisResult {
   /// The static type of the expression.
   final SharedTypeView type;
 
-  ExpressionTypeAnalysisResult({required this.type});
+  /// The [ExpressionInfo] object associated with the expression by flow
+  /// analysis, if any.
+  final ExpressionInfo? flowAnalysisInfo;
+
+  ExpressionTypeAnalysisResult({required this.type, this.flowAnalysisInfo});
 }
 
 /// Result for analyzing an if-case statement or element in
@@ -93,7 +111,7 @@ class IfCaseStatementResult<Error> {
 }
 
 /// Container for the result of running type analysis on an integer literal.
-class IntTypeAnalysisResult extends ExpressionTypeAnalysisResult {
+final class IntTypeAnalysisResult extends ExpressionTypeAnalysisResult {
   /// Whether the integer literal was converted to a double.
   final bool convertedToDouble;
 
@@ -295,7 +313,8 @@ class ObjectPatternResult<Error> extends PatternResult {
 }
 
 /// Container for the result of running type analysis on a pattern assignment.
-class PatternAssignmentAnalysisResult extends ExpressionTypeAnalysisResult {
+final class PatternAssignmentAnalysisResult
+    extends ExpressionTypeAnalysisResult {
   /// The type schema of the pattern on the left hand size of the assignment.
   final SharedTypeSchemaView patternSchema;
 
@@ -398,9 +417,21 @@ class RelationalPatternResult<Error> extends PatternResult {
   });
 }
 
+/// Container for the result of running type analysis on a statement.
+///
+/// Currently there is no information tracked for all statement kinds; this
+/// class serves merely as:
+/// - A base class; derived classes expose results that are specific to certain
+///   statement types.
+/// - A placeholder for statement types that don't need to expose any results
+///   (use the const constructor to avoid unnecessary allocations).
+final class StatementTypeAnalysisResult {
+  const StatementTypeAnalysisResult();
+}
+
 /// Result for analyzing a switch expression in
 /// [TypeAnalyzer.analyzeSwitchExpression].
-class SwitchExpressionResult<Error> extends ExpressionTypeAnalysisResult {
+final class SwitchExpressionResult<Error> extends ExpressionTypeAnalysisResult {
   /// Errors for non-bool guards.
   ///
   /// The key is the case index of the erroneous guard.
@@ -498,4 +529,13 @@ class WildcardPatternResult<Error> extends PatternResult {
     required this.patternTypeMismatchInIrrefutableContextError,
     required super.matchedValueType,
   });
+}
+
+/// Result for analyzing a yield statement in
+/// [TypeAnalyzer.analyzeYieldStatement].
+final class YieldStatementResult extends StatementTypeAnalysisResult {
+  /// The static type of the operand.
+  final SharedTypeView operandType;
+
+  YieldStatementResult({required this.operandType});
 }

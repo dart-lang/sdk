@@ -119,6 +119,10 @@ void Function(String) printEnableColorsReason = (_) {};
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [enableColors].
 bool _computeEnableColors() {
+  if (const bool.fromEnvironment('dart.library.js_interop')) {
+    printEnableColorsReason("Not enabling colors when compiled for web.");
+    return false;
+  }
   if (!stdout.supportsAnsiEscapes) {
     printEnableColorsReason(
       "Not enabling colors, stdout does not support ANSI colors.",

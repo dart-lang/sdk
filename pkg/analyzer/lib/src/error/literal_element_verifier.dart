@@ -77,10 +77,10 @@ class LiteralElementVerifier {
         (forList: true, assignableWhenNullable: true) =>
           diag.listElementTypeNotAssignableNullability,
       };
-      _diagnosticReporter.atNode(
-        errorNode,
-        errorCode,
-        arguments: [type, elementType],
+      _diagnosticReporter.report(
+        errorCode
+            .withArguments(actualType: type, expectedType: elementType)
+            .at(errorNode),
       );
     }
   }
@@ -168,16 +168,16 @@ class LiteralElementVerifier {
             typeSystem.makeNullable(mapKeyType),
             strictCasts: _strictCasts,
           )) {
-        _diagnosticReporter.atNode(
-          entry.key,
-          diag.mapKeyTypeNotAssignableNullability,
-          arguments: [keyType, mapKeyType],
+        _diagnosticReporter.report(
+          diag.mapKeyTypeNotAssignableNullability
+              .withArguments(actualType: keyType, expectedType: mapKeyType)
+              .at(entry.key),
         );
       } else {
-        _diagnosticReporter.atNode(
-          entry.key,
-          diag.mapKeyTypeNotAssignable,
-          arguments: [keyType, mapKeyType],
+        _diagnosticReporter.report(
+          diag.mapKeyTypeNotAssignable
+              .withArguments(actualType: keyType, expectedType: mapKeyType)
+              .at(entry.key),
         );
       }
     }
@@ -199,16 +199,16 @@ class LiteralElementVerifier {
             typeSystem.makeNullable(mapValueType),
             strictCasts: _strictCasts,
           )) {
-        _diagnosticReporter.atNode(
-          entry.value,
-          diag.mapValueTypeNotAssignableNullability,
-          arguments: [valueType, mapValueType],
+        _diagnosticReporter.report(
+          diag.mapValueTypeNotAssignableNullability
+              .withArguments(actualType: valueType, expectedType: mapValueType)
+              .at(entry.value),
         );
       } else {
-        _diagnosticReporter.atNode(
-          entry.value,
-          diag.mapValueTypeNotAssignable,
-          arguments: [valueType, mapValueType],
+        _diagnosticReporter.report(
+          diag.mapValueTypeNotAssignable
+              .withArguments(actualType: valueType, expectedType: mapValueType)
+              .at(entry.value),
         );
       }
     }
@@ -264,10 +264,13 @@ class LiteralElementVerifier {
         expression,
       );
       if (implicitCallMethod == null) {
-        _diagnosticReporter.atNode(
-          expression,
-          errorCode,
-          arguments: [iterableElementType, elementType],
+        _diagnosticReporter.report(
+          errorCode
+              .withArguments(
+                actualType: iterableElementType,
+                expectedType: elementType,
+              )
+              .at(expression),
         );
       } else {
         var tearoffType = implicitCallMethod.type;
@@ -297,10 +300,13 @@ class LiteralElementVerifier {
           elementType,
           strictCasts: _strictCasts,
         )) {
-          _diagnosticReporter.atNode(
-            expression,
-            errorCode,
-            arguments: [iterableElementType, elementType],
+          _diagnosticReporter.report(
+            errorCode
+                .withArguments(
+                  actualType: iterableElementType,
+                  expectedType: elementType,
+                )
+                .at(expression),
           );
         }
       }
@@ -344,10 +350,10 @@ class LiteralElementVerifier {
       mapKeyType!,
       strictCasts: _strictCasts,
     )) {
-      _diagnosticReporter.atNode(
-        expression,
-        diag.mapKeyTypeNotAssignable,
-        arguments: [keyType, mapKeyType],
+      _diagnosticReporter.report(
+        diag.mapKeyTypeNotAssignable
+            .withArguments(actualType: keyType, expectedType: mapKeyType)
+            .at(expression),
       );
     }
 
@@ -358,10 +364,10 @@ class LiteralElementVerifier {
       mapValueType!,
       strictCasts: _strictCasts,
     )) {
-      _diagnosticReporter.atNode(
-        expression,
-        diag.mapValueTypeNotAssignable,
-        arguments: [valueType, mapValueType],
+      _diagnosticReporter.report(
+        diag.mapValueTypeNotAssignable
+            .withArguments(actualType: valueType, expectedType: mapValueType)
+            .at(expression),
       );
     }
   }

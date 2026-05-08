@@ -14,7 +14,7 @@ class TestValue {
   // FinalizeHash is used here to provide coverage for FinalizeHash(...)
   // function.
   uword Hash() const { return FinalizeHash(static_cast<uint32_t>(x_) & 1); }
-  bool Equals(const TestValue& other) { return x_ == other.x_; }
+  bool Equals(const TestValue& other) const { return x_ == other.x_; }
 
  private:
   intptr_t x_;

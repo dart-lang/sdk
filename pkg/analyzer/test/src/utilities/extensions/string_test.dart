@@ -109,6 +109,15 @@ class IterableOfStringExtensionTest {
 
 @reflectiveTest
 class StringExtensionTest {
+  void test_capitalize() {
+    expect(''.capitalize(), '');
+    expect('a'.capitalize(), 'A');
+    expect('abc'.capitalize(), 'Abc');
+    expect('ABC'.capitalize(), 'ABC');
+    expect('проба'.capitalize(), 'Проба');
+    expect('ПРОБА'.capitalize(), 'ПРОБА');
+  }
+
   void test_elideTo() {
     expect(''.elideTo(10), '');
     expect('0'.elideTo(10), '0');
@@ -119,6 +128,34 @@ class StringExtensionTest {
     expect('0123456789abcdef'.elideTo(10), '0123...def');
     expect('0123456789abcdef'.elideTo(11), '0123...cdef');
     expect('0123456789abcdef'.elideTo(12), '01234...cdef');
+  }
+
+  void test_escapedForSingleQuotes_controlCharacters() {
+    expect('\b'.escapedForSingleQuotes(), r'\b');
+    expect('\t'.escapedForSingleQuotes(), r'\t');
+    expect('\n'.escapedForSingleQuotes(), r'\n');
+    expect('\f'.escapedForSingleQuotes(), r'\f');
+    expect('\r'.escapedForSingleQuotes(), r'\r');
+    expect('\u0000'.escapedForSingleQuotes(), r'\u0000');
+    expect('\u0001'.escapedForSingleQuotes(), r'\u0001');
+    expect('\u001F'.escapedForSingleQuotes(), r'\u001f');
+    expect('\u007F'.escapedForSingleQuotes(), r'\u007f');
+  }
+
+  void test_escapedForSingleQuotes_empty() {
+    expect(''.escapedForSingleQuotes(), '');
+  }
+
+  void test_escapedForSingleQuotes_plainText() {
+    expect('a'.escapedForSingleQuotes(), 'a');
+    expect('abc'.escapedForSingleQuotes(), 'abc');
+    expect('проба'.escapedForSingleQuotes(), 'проба');
+  }
+
+  void test_escapedForSingleQuotes_syntax() {
+    expect(r'$'.escapedForSingleQuotes(), r'\$');
+    expect("'".escapedForSingleQuotes(), r"\'");
+    expect(r'\'.escapedForSingleQuotes(), r'\\');
   }
 
   void test_ifEqualThen_equal() {
@@ -209,6 +246,23 @@ class StringExtensionTest {
     expect('A'.codeUnitAt(0).isWhitespace, isFalse);
   }
 
+  void test_nullIfEmpty() {
+    expect(''.nullIfEmpty, isNull);
+    expect('a'.nullIfEmpty, 'a');
+  }
+
+  void test_pluralized() {
+    expect('cat'.pluralized(0), 'cats');
+    expect('cat'.pluralized(1), 'cat');
+    expect('cat'.pluralized(2), 'cats');
+  }
+
+  void test_removePrefixOrSelf() {
+    expect('abcdef'.removePrefixOrSelf('abc'), 'def');
+    expect('abcdef'.removePrefixOrSelf('xyz'), 'abcdef');
+    expect('abcdef'.removePrefixOrSelf(''), 'abcdef');
+  }
+
   void test_removeSuffix() {
     expect('01234'.removeSuffix(''), '01234');
     expect('01234'.removeSuffix('4'), '0123');
@@ -216,6 +270,15 @@ class StringExtensionTest {
     expect('01234'.removeSuffix('01234'), '');
     expect('01234'.removeSuffix('012345'), isNull);
     expect('01234'.removeSuffix('5'), isNull);
+  }
+
+  void test_removeSuffixOrSelf() {
+    expect('01234'.removeSuffixOrSelf(''), '01234');
+    expect('01234'.removeSuffixOrSelf('4'), '0123');
+    expect('01234'.removeSuffixOrSelf('34'), '012');
+    expect('01234'.removeSuffixOrSelf('01234'), '');
+    expect('01234'.removeSuffixOrSelf('012345'), '01234');
+    expect('01234'.removeSuffixOrSelf('5'), '01234');
   }
 
   void test_toScreamingSnake() {

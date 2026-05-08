@@ -42,9 +42,7 @@ final _sdkUri = resolveDartDevUri('.').resolve('../../');
 
 final _packageRelativePath = Uri.directory('pkg/vm_snapshot_analysis/');
 
-final _packageDir = Directory.fromUri(
-  _sdkUri.resolveUri(_packageRelativePath),
-);
+final _packageDir = Directory.fromUri(_sdkUri.resolveUri(_packageRelativePath));
 
 /// Standalone, with its own pubspec.
 final _package2RelativePath = Uri.directory('pkg/dartdev/test/data/dart_app/');
@@ -92,21 +90,26 @@ executables.
 
 If the same package has been previously installed, it will be overwritten.
 
-You can specify three different values for the <package> argument:
-1. A package name. This will install the package from pub.dev. (hosted)
-   The [version-constraint] argument can only be passed to 'hosted'.
-2. A git url. This will install the package from a git repository. (git)
-3. A path on your machine. This will install the package from that path. (path)
+You can specify a package to install from pub.dev, a git repository, or a
+local path using the `<package>[@<descriptor>]` syntax.
 
-Usage: dart install <package> [version-constraint]
--h, --help          Print this usage information.
-    --git-path      Path of git package in repository. Only applies when using a git url for <package>.
-    --git-ref       Git branch or commit to be retrieved. Only applies when using a git url for <package>.
-    --overwrite     Overwrite executables from other packages with the same name.
--u, --hosted-url    A custom pub server URL for the package. Only applies when using a package name for <package>.
+The `@<descriptor>` can be a version constraint (for hosted packages) or a
+pub descriptor (consistent with pubspec.yaml).
 
-Run "dart help" to see global options.
-'''
+Examples:
+  dart install <pkg>
+  dart install <pkg>@^3.0.0
+  dart install '<pkg>@{hosted: https://pub.dev, version: ^3.0.0}'
+  dart install '<pkg>@{git: {url: https://github.com/<owner>/<repo>, path: <path>}}'
+  dart install '<pkg>@{path: /path/to/<pkg>}'
+
+See https://dart.dev/to/package-descriptors for more details.
+
+Usage: dart install <package>[@<descriptor>]
+-h, --help         Print this usage information.
+    --overwrite    Overwrite executables from other packages with the same name.
+
+Run "dart help" to see global options.''',
     ),
     (
       'installed',
@@ -121,7 +124,7 @@ Usage: dart installed [arguments]
                   on `PATH` are non-active.
 
 Run "dart help" to see global options.
-'''
+''',
     ),
     (
       'uninstall',
@@ -135,7 +138,7 @@ Usage: dart uninstall <package>
 -h, --help    Print this usage information.
 
 Run "dart help" to see global options.
-'''
+''',
     ),
   ];
   for (final (command, helpMessage) in commandsHelpmessages) {
@@ -152,30 +155,18 @@ Run "dart help" to see global options.
   }
 
   final argumentss = [
-    (
-      null,
-      [_packageForTest],
-    ),
-    (
-      null,
-      [_packageForTest, _packageVersion],
-    ),
+    (null, [_packageForTest]),
+    (null, [_packageForTest, _packageVersion]),
+    (null, ['$_packageForTest@$_packageVersion']),
+    (null, ['$_packageForTest@{"version": "$_packageVersion"}']),
+    (null, ['$_packageForTest@{version: $_packageVersion}']),
     (
       null,
       [_packageForTest, _packageVersion, '--hosted-url', 'https://pub.dev/'],
     ),
-    (
-      null,
-      [_packageDir.path],
-    ),
-    (
-      _sdkUri,
-      [_packageRelativePath.path],
-    ),
-    (
-      _packageDir.uri,
-      ['.'],
-    ),
+    (null, [_packageDir.path]),
+    (_sdkUri, [_packageRelativePath.path]),
+    (_packageDir.uri, ['.']),
   ];
 
   for (final (workingDirectory, arguments) in argumentss) {
@@ -217,15 +208,9 @@ Run "dart help" to see global options.
         final installedLines = installedResult.stdout.split('\n');
         expect(installedLines.where((e) => e.isNotEmpty).length, equals(1));
         final installedLine = installedLines.first;
-        expect(
-          installedLine,
-          startsWith(_packageForTest),
-        );
+        expect(installedLine, startsWith(_packageForTest));
         if (arguments.contains(_packageVersion)) {
-          expect(
-            installedLine,
-            equals('$_packageForTest $_packageVersion'),
-          );
+          expect(installedLine, equals('$_packageForTest $_packageVersion'));
         }
         if (arguments.contains(_packageRelativePath.toString())) {
           expect(
@@ -247,11 +232,8 @@ Run "dart help" to see global options.
 
   final argumentssGit = [
     ['git'],
-    [
-      'git',
-      '--git-path',
-      '--git-ref',
-    ],
+    ['git', '--git-path', '--git-ref'],
+    ['git-descriptor'],
   ];
 
   for (final testArguments in argumentssGit) {
@@ -264,9 +246,11 @@ Run "dart help" to see global options.
         for (final file in [
           'pubspec.yaml',
           'bin/dart_app.dart',
+          'bin/other_app.dart',
         ]) {
-          await File.fromUri(_package2Dir.uri.resolve(file))
-              .copy(gitUri.resolve(file).toFilePath());
+          await File.fromUri(
+            _package2Dir.uri.resolve(file),
+          ).copy(gitUri.resolve(file).toFilePath());
         }
         for (final commands in [
           ['init'],
@@ -279,32 +263,32 @@ Run "dart help" to see global options.
             workingDirectory: gitUri.toFilePath(),
           );
           if (gitResult.exitCode != 0) {
-            throw ProcessException(
-              'git',
-              commands,
-              gitResult.stderr,
-            );
+            throw ProcessException('git', commands, gitResult.stderr);
           }
         }
-        final gitRef = ((await Process.run(
-          'git',
-          ['rev-parse', 'HEAD'],
-          workingDirectory: gitUri.toFilePath(),
-        ))
-                .stdout as String)
-            .trim();
+        final gitRef =
+            ((await Process.run('git', [
+                      'rev-parse',
+                      'HEAD',
+                    ], workingDirectory: gitUri.toFilePath())).stdout
+                    as String)
+                .trim();
         final gitPath = './';
-        final arguments = [
-          gitUri.toFilePath(),
-          if (testArguments.contains('--git-path')) ...[
-            '--git-path',
-            gitPath,
-          ],
-          if (testArguments.contains('--git-ref')) ...[
-            '--git-ref',
-            gitRef,
-          ],
-        ];
+        final List<String> arguments;
+        if (testArguments.contains('git-descriptor')) {
+          arguments = [
+            'dart_app@{git: {url: ${gitUri.toFilePath()}, ref: $gitRef}}',
+          ];
+        } else {
+          arguments = [
+            gitUri.toFilePath(),
+            if (testArguments.contains('--git-path')) ...[
+              '--git-path',
+              gitPath,
+            ],
+            if (testArguments.contains('--git-ref')) ...['--git-ref', gitRef],
+          ];
+        }
 
         final dartDataHome = tempUri.resolve('dart_home/');
         await Directory.fromUri(dartDataHome).create();
@@ -334,14 +318,8 @@ Run "dart help" to see global options.
         final installedLines = installedResult.stdout.split('\n');
         expect(installedLines.where((e) => e.isNotEmpty).length, equals(1));
         final installedLine = installedLines.first;
-        expect(
-          installedLine,
-          startsWith(_gitPackageForTest),
-        );
-        expect(
-          installedLine,
-          contains(' at "${gitRef.substring(0, 8)}"'),
-        );
+        expect(installedLine, startsWith(_gitPackageForTest));
+        expect(installedLine, contains(' at "${gitRef.substring(0, 8)}"'));
 
         await _runDartdev(
           fromDartdevSource,
@@ -356,9 +334,7 @@ Run "dart help" to see global options.
 
   skippableTest('dart install ~/.dart/install/bin/ not on PATH', () async {
     await inTempDir((tempUri) async {
-      final environment = {
-        _dartDirectoryEnvKey: tempUri.toFilePath(),
-      };
+      final environment = {_dartDirectoryEnvKey: tempUri.toFilePath()};
 
       await inTempDir((tempUri) async {
         final installResult = await _runDartdev(
@@ -393,77 +369,84 @@ Run "dart help" to see global options.
     });
   });
 
-  skippableTest('dart install dart_app (with build hooks and code assets)',
-      timeout: longTimeout, () async {
-    await inTempDir((tempUri) async {
-      final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
+  skippableTest(
+    'dart install dart_app (with build hooks and code assets)',
+    timeout: longTimeout,
+    () async {
+      await inTempDir((tempUri) async {
+        final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
 
-      final environment = {
-        _dartDirectoryEnvKey: tempUri.toFilePath(),
-        'PATH':
-            '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
-      };
+        final environment = {
+          _dartDirectoryEnvKey: tempUri.toFilePath(),
+          'PATH':
+              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+        };
 
-      await nativeAssetsTest('dart_app', (dartAppUri) async {
-        // Add a second executable.
-        final entryPoint1 =
-            File.fromUri(dartAppUri.resolve('bin/dart_app.dart'));
-        final entryPoint2 =
-            File.fromUri(dartAppUri.resolve('bin/dart_app_copy.dart'));
-        final entryPoint1Contents = await entryPoint1.readAsString();
-        final entryPoint2Contents = entryPoint1Contents.replaceAll('5', '42');
-        await entryPoint2.writeAsString(entryPoint2Contents);
-        final pubspecFile = File.fromUri(dartAppUri.resolve('pubspec.yaml'));
-        final pubspecOld =
-            pubspecFile.readAsStringSync().replaceAll('\r\n', '\n');
-        final pubspecNew = pubspecOld.replaceAll(
-          '''executables:
+        await nativeAssetsTest('dart_app', (dartAppUri) async {
+          // Add a second executable.
+          final entryPoint1 = File.fromUri(
+            dartAppUri.resolve('bin/dart_app.dart'),
+          );
+          final entryPoint2 = File.fromUri(
+            dartAppUri.resolve('bin/dart_app_copy.dart'),
+          );
+          final entryPoint1Contents = await entryPoint1.readAsString();
+          final entryPoint2Contents = entryPoint1Contents.replaceAll('5', '42');
+          await entryPoint2.writeAsString(entryPoint2Contents);
+          final pubspecFile = File.fromUri(dartAppUri.resolve('pubspec.yaml'));
+          final pubspecOld = pubspecFile.readAsStringSync().replaceAll(
+            '\r\n',
+            '\n',
+          );
+          final pubspecNew = pubspecOld.replaceAll(
+            '''executables:
   dart_app:'''
-              .replaceAll('\r\n', '\n'),
-          '''executables:
+                .replaceAll('\r\n', '\n'),
+            '''executables:
   dart_app:
   dart_app_copy:'''
-              .replaceAll('\r\n', '\n'),
-        );
-        expect(pubspecNew, isNot(equals(pubspecOld)));
-        pubspecFile.writeAsStringSync(pubspecNew);
-
-        final installResult = await _runDartdev(
-          fromDartdevSource,
-          'install',
-          [dartAppUri.toFilePath()],
-          null,
-          environment,
-        );
-
-        expect(installResult.stdout, contains('Running build hooks'));
-        expect(installResult.stdout, contains('Running link hooks'));
-
-        for (final (tool, someInt) in [
-          ('dart_app', 5),
-          ('dart_app_copy', 42)
-        ]) {
-          final toolResult = await runProcess(
-            // Note this has `runInShell: true` under it to ensure PATHEXT is used on
-            // Windows so that invoking an executable without extension works.
-            executable: Uri.file(tool),
-            // Run in some unrelated directory ensuring PATH is picked up.
-            workingDirectory: Directory.systemTemp.uri,
-            logger: logger,
-            environment: environment,
+                .replaceAll('\r\n', '\n'),
           );
-          expect(
-            toolResult.stdout,
-            stringContainsInOrder([
-              'add($someInt, 6) = ${someInt + 6}',
-              'subtract($someInt, 6) = ${someInt - 6}',
-            ]),
+          expect(pubspecNew, isNot(equals(pubspecOld)));
+          pubspecFile.writeAsStringSync(pubspecNew);
+
+          final installResult = await _runDartdev(
+            fromDartdevSource,
+            'install',
+            [dartAppUri.toFilePath()],
+            null,
+            environment,
           );
-          expect(toolResult.exitCode, 0);
-        }
+
+          expect(installResult.stdout, contains('Running build hooks'));
+          expect(installResult.stdout, contains('Running link hooks'));
+
+          for (final (tool, someInt) in [
+            ('dart_app', 5),
+            ('dart_app_copy', 42),
+          ]) {
+            final toolResult = await runProcess(
+              // Note this has `runInShell: true` under it to ensure PATHEXT is used on
+              // Windows so that invoking an executable without extension works.
+              executable: Uri.file(tool),
+              // Run in some unrelated directory ensuring PATH is picked up.
+              workingDirectory: Directory.systemTemp.uri,
+              logger: logger,
+              environment: environment,
+            );
+            expect(
+              toolResult.stdout,
+              stringContainsInOrder([
+                'add($someInt, 6) = ${someInt + 6}',
+                'subtract($someInt, 6) = ${someInt - 6}',
+              ]),
+            );
+            expect(toolResult.exitCode, 0);
+          }
+        });
       });
-    });
-  });
+    },
+  );
 
   skippableTest('dart install --overwrite', timeout: longTimeout, () async {
     await inTempDir((tempUri) async {
@@ -495,8 +478,10 @@ Run "dart help" to see global options.
 
         final pubspecFile = File.fromUri(dartAppUri.resolve('pubspec.yaml'));
         final pubspecContents = await pubspecFile.readAsString();
-        final pubspecContentsNew =
-            pubspecContents.replaceFirst('dart_app', 'a_different_name');
+        final pubspecContentsNew = pubspecContents.replaceFirst(
+          'dart_app',
+          'a_different_name',
+        );
         await pubspecFile.writeAsString(pubspecContentsNew);
 
         // Trying to install an executable with the same name from a different
@@ -535,24 +520,17 @@ Run "dart help" to see global options.
               .toList();
           if (all) {
             expect(installedLines, hasLength(2));
-            expect(
-              installedLines,
-              contains(startsWith('dart_app')),
-            );
+            expect(installedLines, contains(startsWith('dart_app')));
           } else {
             expect(installedLines, hasLength(1));
-            expect(
-              installedLines,
-              isNot(contains(startsWith('dart_app'))),
-            );
+            expect(installedLines, isNot(contains(startsWith('dart_app'))));
           }
         }
       });
     });
   });
 
-  skippableTest('dart install check exit codes', timeout: longTimeout,
-      () async {
+  skippableTest('dart install check exit codes', timeout: longTimeout, () async {
     await inTempDir((tempUri) async {
       final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
 
@@ -566,15 +544,17 @@ Run "dart help" to see global options.
       final dartAppUri = tempUri.resolve('$appName/');
       final pubspec = File.fromUri(dartAppUri.resolve('pubspec.yaml'));
       await pubspec.create(recursive: true);
-      await pubspec.writeAsString(jsonEncode(PubspecYamlFileSyntax(
-        name: appName,
-        environment: EnvironmentSyntax(
-          sdk: '^${Platform.version.split(' ').first}',
+      await pubspec.writeAsString(
+        jsonEncode(
+          PubspecYamlFileSyntax(
+            name: appName,
+            environment: EnvironmentSyntax(
+              sdk: '^${Platform.version.split(' ').first}',
+            ),
+            executables: {appName: appName},
+          ).json,
         ),
-        executables: {
-          appName: appName,
-        },
-      ).json));
+      );
       final mainFile = File.fromUri(dartAppUri.resolve('bin/$appName.dart'));
       await mainFile.create(recursive: true);
       mainFile.writeAsString('''
@@ -608,30 +588,35 @@ void main(List<String> args) {
     });
   });
 
-  skippableTest('dart install hooks user-defines and failures',
-      timeout: longTimeout, () async {
-    await inTempDir((tempUri) async {
-      final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
+  skippableTest(
+    'dart install hooks user-defines and failures',
+    timeout: longTimeout,
+    () async {
+      await inTempDir((tempUri) async {
+        final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
 
-      final environment = {
-        _dartDirectoryEnvKey: tempUri.toFilePath(),
-        'PATH':
-            '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
-      };
+        final environment = {
+          _dartDirectoryEnvKey: tempUri.toFilePath(),
+          'PATH':
+              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+        };
 
-      const packageName = 'test_app';
-      final dartAppUri = tempUri.resolve('$packageName/');
-      final pubspec = File.fromUri(dartAppUri.resolve('pubspec.yaml'));
-      await pubspec.create(recursive: true);
-      final mainFile =
-          File.fromUri(dartAppUri.resolve('bin/$packageName.dart'));
-      await mainFile.create(recursive: true);
-      mainFile.writeAsString('''
+        const packageName = 'test_app';
+        final dartAppUri = tempUri.resolve('$packageName/');
+        final pubspec = File.fromUri(dartAppUri.resolve('pubspec.yaml'));
+        await pubspec.create(recursive: true);
+        final mainFile = File.fromUri(
+          dartAppUri.resolve('bin/$packageName.dart'),
+        );
+        await mainFile.create(recursive: true);
+        mainFile.writeAsString('''
 void main(List<String> args) { }
 ''');
-      final buildHookFile = File.fromUri(dartAppUri.resolve('hook/build.dart'));
-      await buildHookFile.create(recursive: true);
-      buildHookFile.writeAsString('''
+        final buildHookFile = File.fromUri(
+          dartAppUri.resolve('hook/build.dart'),
+        );
+        await buildHookFile.create(recursive: true);
+        buildHookFile.writeAsString('''
 import 'package:hooks/hooks.dart';
 
 void main(List<String> args) async {
@@ -643,117 +628,121 @@ void main(List<String> args) async {
   });
 }
 ''');
-      for (final addUserDefine in [true, false]) {
-        await pubspec.writeAsString(jsonEncode(PubspecYamlFileSyntax(
-          name: packageName,
-          environment: EnvironmentSyntax(
-            sdk: '^${Platform.version.split(' ').first}',
-          ),
-          executables: {
-            packageName: packageName,
-          },
-          dependencies: {
-            'hooks': PathDependencySourceSyntax(
-              path$: sdkRootUri
-                  .resolve('third_party/pkg/native/pkgs/hooks/')
-                  .toFilePath(),
+        for (final addUserDefine in [true, false]) {
+          await pubspec.writeAsString(
+            jsonEncode(
+              PubspecYamlFileSyntax(
+                name: packageName,
+                environment: EnvironmentSyntax(
+                  sdk: '^${Platform.version.split(' ').first}',
+                ),
+                executables: {packageName: packageName},
+                dependencies: {
+                  'hooks': PathDependencySourceSyntax(
+                    path$: sdkRootUri
+                        .resolve('third_party/pkg/native/pkgs/hooks/')
+                        .toFilePath(),
+                  ),
+                },
+                hooks: HooksSyntax(
+                  userDefines: {
+                    packageName: {
+                      if (addUserDefine) 'my_user_define': 'a_value,',
+                    },
+                  },
+                ),
+              ).json,
             ),
-          },
-          hooks: HooksSyntax(
-            userDefines: {
-              packageName: {
-                if (addUserDefine) 'my_user_define': 'a_value,',
-              },
-            },
-          ),
-        ).json));
+          );
+          final installResult = await _runDartdev(
+            fromDartdevSource,
+            'install',
+            [dartAppUri.toFilePath()],
+            null,
+            environment,
+            expectedExitCode: addUserDefine ? 0 : errorExitCode,
+          );
+          if (addUserDefine) {
+            expect(installResult.exitCode, equals(0));
+            expect(installResult.stderr, isEmpty);
+          } else {
+            // Check that build hook failures are surfaced and that error messages
+            // are visible.
+            expect(installResult.exitCode, equals(errorExitCode));
+            expect(installResult.stderr, contains('Expected a user define'));
+          }
+        }
+      });
+    },
+  );
+
+  skippableTest(
+    'dart install uninstalls old versions',
+    timeout: longTimeout,
+    () async {
+      await inTempDir((tempUri) async {
+        final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
+
+        final environment = {
+          _dartDirectoryEnvKey: tempUri.toFilePath(),
+          'PATH':
+              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+        };
+
+        // Install two versions.
+        await _runDartdev(
+          fromDartdevSource,
+          'install',
+          ['.'],
+          _packageDir.uri,
+          environment,
+        );
         final installResult = await _runDartdev(
           fromDartdevSource,
           'install',
-          [dartAppUri.toFilePath()],
+          [_packageForTest, _packageVersion],
           null,
           environment,
-          expectedExitCode: addUserDefine ? 0 : errorExitCode,
         );
-        if (addUserDefine) {
-          expect(installResult.exitCode, equals(0));
-          expect(installResult.stderr, isEmpty);
-        } else {
-          // Check that build hook failures are surfaced and that error messages
-          // are visible.
-          expect(installResult.exitCode, equals(errorExitCode));
-          expect(installResult.stderr, contains('Expected a user define'));
+        expect(
+          installResult.stdout,
+          stringContainsInOrder(['Uninstalling ', _packageForTest]),
+        );
+
+        // `--all` should also report the non-active versions.
+        Future<List<String>> runInstalled() async {
+          final installedResult = await _runDartdev(
+            fromDartdevSource,
+            'installed',
+            ['--all'],
+            null,
+            environment,
+          );
+          final installedLines = installedResult.stdout
+              .split('\n')
+              .where((e) => e.isNotEmpty)
+              .toList();
+          return installedLines;
         }
-      }
-    });
-  });
 
-  skippableTest('dart install uninstalls old versions', timeout: longTimeout,
-      () async {
-    await inTempDir((tempUri) async {
-      final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
+        expect(await runInstalled(), hasLength(1));
 
-      final environment = {
-        _dartDirectoryEnvKey: tempUri.toFilePath(),
-        'PATH':
-            '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
-      };
-
-      // Install two versions.
-      await _runDartdev(
-        fromDartdevSource,
-        'install',
-        ['.'],
-        _packageDir.uri,
-        environment,
-      );
-      final installResult = await _runDartdev(
-        fromDartdevSource,
-        'install',
-        [_packageForTest, _packageVersion],
-        null,
-        environment,
-      );
-      expect(
-        installResult.stdout,
-        stringContainsInOrder(['Uninstalling ', _packageForTest]),
-      );
-
-      // `--all` should also report the non-active versions.
-      Future<List<String>> runInstalled() async {
-        final installedResult = await _runDartdev(
+        // `uninstall` uninstalls all versions.
+        await _runDartdev(
           fromDartdevSource,
-          'installed',
-          ['--all'],
+          'uninstall',
+          [_packageForTest],
           null,
           environment,
         );
-        final installedLines = installedResult.stdout
-            .split('\n')
-            .where((e) => e.isNotEmpty)
-            .toList();
-        return installedLines;
-      }
-
-      expect(await runInstalled(), hasLength(1));
-
-      // `uninstall` uninstalls all versions.
-      await _runDartdev(
-        fromDartdevSource,
-        'uninstall',
-        [_packageForTest],
-        null,
-        environment,
-      );
-      expect(await runInstalled(), hasLength(0));
-    });
-  });
+        expect(await runInstalled(), hasLength(0));
+      });
+    },
+  );
 
   skippableTest('dart uninstall', timeout: longTimeout, () async {
     await inTempDir((tempUri) async {
-      final environment = {
-        _dartDirectoryEnvKey: tempUri.toFilePath(),
-      };
+      final environment = {_dartDirectoryEnvKey: tempUri.toFilePath()};
 
       // `uninstall` should have a non-zero exit if nothing was uninstalled.
       await _runDartdev(
@@ -781,17 +770,20 @@ void main(List<String> args) async {
       final dartAppUri = tempUri.resolve('$packageName/');
       final pubspec = File.fromUri(dartAppUri.resolve('pubspec.yaml'));
       await pubspec.create(recursive: true);
-      await pubspec.writeAsString(jsonEncode(PubspecYamlFileSyntax(
-        name: packageName,
-        environment: EnvironmentSyntax(
-          sdk: '^${Platform.version.split(' ').first}',
+      await pubspec.writeAsString(
+        jsonEncode(
+          PubspecYamlFileSyntax(
+            name: packageName,
+            environment: EnvironmentSyntax(
+              sdk: '^${Platform.version.split(' ').first}',
+            ),
+            executables: {packageName: packageName},
+          ).json,
         ),
-        executables: {
-          packageName: packageName,
-        },
-      ).json));
-      final mainFile =
-          File.fromUri(dartAppUri.resolve('bin/$packageName.dart'));
+      );
+      final mainFile = File.fromUri(
+        dartAppUri.resolve('bin/$packageName.dart'),
+      );
       await mainFile.create(recursive: true);
       mainFile.writeAsString('''
 void main(List<String> args) async {
@@ -799,9 +791,14 @@ void main(List<String> args) async {
 }
 ''');
       Future<RunProcessResult> doInstall(int expectedExitCode) async {
-        return await _runDartdev(fromDartdevSource, 'install',
-            [dartAppUri.toFilePath()], null, environment,
-            expectedExitCode: expectedExitCode);
+        return await _runDartdev(
+          fromDartdevSource,
+          'install',
+          [dartAppUri.toFilePath()],
+          null,
+          environment,
+          expectedExitCode: expectedExitCode,
+        );
       }
 
       await doInstall(0);

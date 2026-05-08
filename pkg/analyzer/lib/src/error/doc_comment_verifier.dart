@@ -82,34 +82,34 @@ class DocCommentVerifier {
     if (positionalArgumentCount < requiredCount) {
       var gap = requiredCount - positionalArgumentCount;
       if (gap == 1) {
-        _diagnosticReporter.atOffset(
-          offset: tag.offset,
-          length: tag.end - tag.offset,
-          diagnosticCode: diag.docDirectiveMissingOneArgument,
-          arguments: [tag.type.name, required.last.name],
+        _diagnosticReporter.report(
+          diag.docDirectiveMissingOneArgument
+              .withArguments(
+                directive: tag.type.name,
+                argumentName: required.last.name,
+              )
+              .atOffset(offset: tag.offset, length: tag.end - tag.offset),
         );
       } else if (gap == 2) {
-        var missingArguments = [
-          required[required.length - 2].name,
-          required.last.name,
-        ];
-        _diagnosticReporter.atOffset(
-          offset: tag.offset,
-          length: tag.end - tag.offset,
-          diagnosticCode: diag.docDirectiveMissingTwoArguments,
-          arguments: [tag.type.name, ...missingArguments],
+        _diagnosticReporter.report(
+          diag.docDirectiveMissingTwoArguments
+              .withArguments(
+                directive: tag.type.name,
+                argument1: required[required.length - 2].name,
+                argument2: required.last.name,
+              )
+              .atOffset(offset: tag.offset, length: tag.end - tag.offset),
         );
       } else if (gap == 3) {
-        var missingArguments = [
-          required[required.length - 3].name,
-          required[required.length - 2].name,
-          required.last.name,
-        ];
-        _diagnosticReporter.atOffset(
-          offset: tag.offset,
-          length: tag.end - tag.offset,
-          diagnosticCode: diag.docDirectiveMissingThreeArguments,
-          arguments: [tag.type.name, ...missingArguments],
+        _diagnosticReporter.report(
+          diag.docDirectiveMissingThreeArguments
+              .withArguments(
+                directive: tag.type.name,
+                argument1: required[required.length - 3].name,
+                argument2: required[required.length - 2].name,
+                argument3: required.last.name,
+              )
+              .atOffset(offset: tag.offset, length: tag.end - tag.offset),
         );
       }
     }
@@ -123,21 +123,29 @@ class DocCommentVerifier {
     if (positionalArgumentCount > requiredCount) {
       var errorOffset = tag.positionalArguments[requiredCount].offset;
       var errorLength = tag.positionalArguments.last.end - errorOffset;
-      _diagnosticReporter.atOffset(
-        offset: errorOffset,
-        length: errorLength,
-        diagnosticCode: diag.docDirectiveHasExtraArguments,
-        arguments: [tag.type.name, positionalArgumentCount, requiredCount],
+      _diagnosticReporter.report(
+        diag.docDirectiveHasExtraArguments
+            .withArguments(
+              directive: tag.type.name,
+              actualCount: positionalArgumentCount,
+              expectedCount: requiredCount,
+            )
+            .atOffset(offset: errorOffset, length: errorLength),
       );
     }
 
     for (var namedArgument in tag.namedArguments) {
       if (!tag.type.namedParameters.containsNamed(namedArgument.name)) {
-        _diagnosticReporter.atOffset(
-          offset: namedArgument.offset,
-          length: namedArgument.end - namedArgument.offset,
-          diagnosticCode: diag.docDirectiveHasUnexpectedNamedArgument,
-          arguments: [tag.type.name, namedArgument.name],
+        _diagnosticReporter.report(
+          diag.docDirectiveHasUnexpectedNamedArgument
+              .withArguments(
+                directive: tag.type.name,
+                argumentName: namedArgument.name,
+              )
+              .atOffset(
+                offset: namedArgument.offset,
+                length: namedArgument.end - namedArgument.offset,
+              ),
         );
       }
     }
@@ -154,11 +162,16 @@ class DocCommentVerifier {
       var argument = tag.positionalArguments[i];
 
       void reportWrongFormat() {
-        _diagnosticReporter.atOffset(
-          offset: argument.offset,
-          length: argument.end - argument.offset,
-          diagnosticCode: diag.docDirectiveArgumentWrongFormat,
-          arguments: [parameter.name, parameter.expectedFormat.displayString],
+        _diagnosticReporter.report(
+          diag.docDirectiveArgumentWrongFormat
+              .withArguments(
+                argumentName: parameter.name,
+                expectedFormat: parameter.expectedFormat.displayString,
+              )
+              .atOffset(
+                offset: argument.offset,
+                length: argument.end - argument.offset,
+              ),
         );
       }
 

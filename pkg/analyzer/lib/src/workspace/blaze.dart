@@ -248,6 +248,11 @@ class BlazeWorkspace extends Workspace
   bool get isBlaze => true;
 
   @override
+  // TODO(srawlins): Implement this by looking in the BUILD file for 'deps'
+  //  lists (same TODO as in `BlazeWorkspacePackage.packagesAvailableTo`).
+  Packages get packages => Packages.empty;
+
+  @override
   BlazePackageUriResolver get packageUriResolver =>
       BlazePackageUriResolver(this);
 
@@ -575,7 +580,7 @@ class BlazeWorkspace extends Workspace
 
     var pattern = RegExp(r'(^|\s+)_version\s*=\s*"(\d+\.\d+)"');
     for (var match in pattern.allMatches(content)) {
-      return Version.parse('${match.group(2)}.0');
+      return Version.parse('${match[2]}.0');
     }
 
     return null;

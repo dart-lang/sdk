@@ -8,7 +8,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform, ProcessResult;
+import 'dart:io' show ProcessResult;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -23,6 +23,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -138,8 +139,8 @@ class PluginManager {
     this._notificationManager,
     this.instrumentationService,
     this.sessionLogger, {
-    ProcessRunner processRunner = const ProcessRunner(),
-  }) : _processRunner = processRunner;
+    this._processRunner = const ProcessRunner(),
+  });
 
   /// All of the legacy plugins that are currently known.
   List<PluginIsolate> get legacyPluginIsolates =>
@@ -280,6 +281,13 @@ class PluginManager {
       // the isolate hasn't had a chance to analyze anything yet; hence, it
       // it does not need to get watch events, yet.
       if (interestingGlobs == null) continue;
+
+      // Canonicalize the globs. If a glob does not start with '**/', then
+      // prepend '**/' to the glob.
+      interestingGlobs = [
+        for (var g in interestingGlobs)
+          if (g.startsWith('**/')) g else '**/$g',
+      ];
 
       if (!interestingGlobs.any((g) => Glob(separator, g).matches(filePath))) {
         continue;
@@ -580,10 +588,17 @@ class PluginManager {
       buffer.writeln(
         'Failed to compile "${pluginFile.path}" to an AOT snapshot.',
       );
+      var stderr = aotResult.stderr as String;
+      if (stderr.contains('does not support build hooks')) {
+        buffer.writeln(
+          'One of the plugins uses Dart build hooks (or depends on a package '
+          'which uses them); this is currently not supported.',
+        );
+      }
       buffer.writeln('  pluginFolder = ${pluginFolder.path}');
       buffer.writeln('  exitCode = ${aotResult.exitCode}');
       buffer.writeln('  stdout = ${aotResult.stdout}');
-      buffer.writeln('  stderr = ${aotResult.stderr}');
+      buffer.writeln('  stderr = $stderr');
       var exceptionReason = buffer.toString();
       instrumentationService.logError(exceptionReason);
       throw PluginException(exceptionReason);
@@ -926,7 +941,7 @@ class PluginManager {
     // We have server-side tooling that assumes the values are consistent.
     var values = <String>[];
 
-    var existing = Platform.environment[_pubEnvironmentKey];
+    var existing = platform.environment[_pubEnvironmentKey];
 
     // If there is an existing value for this var, make sure to include it.
     if ((existing != null) && existing.isNotEmpty) {

@@ -14,14 +14,14 @@ class C0 extends S
     with
         Object
 //      ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 {}
 
 class C1 = S with Object;
 //    ^
 // [cfe] Can't use 'Object' as a mixin because it has constructors.
 //                ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 main() {
   new C0();

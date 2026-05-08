@@ -99,7 +99,7 @@ class [!^A!] {}
     await testContents(contents);
   }
 
-  Future<void> test_atDeclaration_constructorNamed() async {
+  Future<void> test_atDeclaration_constructor_named() async {
     var contents = '''
 class A {
   A.[!^named!]() {}
@@ -109,7 +109,37 @@ class A {
     await testContents(contents);
   }
 
-  Future<void> test_atDeclaration_constructorNamed_typeName() async {
+  Future<void> test_atDeclaration_constructor_named_factoryKeyword() async {
+    var contents = '''
+class A {
+  ^factory [!named!]() => throw 0;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_constructor_named_name() async {
+    var contents = '''
+class A {
+  new [!na^med!]() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_constructor_named_newKeyword() async {
+    var contents = '''
+class A {
+  ^new [!named!]() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_constructor_named_typeName() async {
     var contents = '''
 class [!A!] {
   ^A.named() {}
@@ -123,6 +153,26 @@ class [!A!] {
     var contents = '''
 class A {
   [!^A!]() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_defaultConstructor_factoryKeyword() async {
+    var contents = '''
+class A {
+  [!^factory!]() => throw 0;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_defaultConstructor_newKeyword() async {
+    var contents = '''
+class A {
+  [!^new!]() {}
 }
 ''';
 
@@ -182,6 +232,22 @@ class A {
   Future<void> test_atDeclaration_mixin() async {
     var contents = '''
 mixin [!^M!] {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_primaryConstructor() async {
+    var contents = '''
+class [!^A!]();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_primaryConstructor_parameter() async {
+    var contents = '''
+class A(final int [!^b!]);
 ''';
 
     await testContents(contents);
@@ -376,6 +442,90 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_constructor_factory() async {
+    var contents = '''
+f() {
+  final a = A.ne^w();
+}
+
+class A {
+  [!factory!]() => throw 0;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_named() async {
+    var contents = '''
+f() {
+  final a = A.named^();
+}
+
+class A {
+  A.[!named!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_named_factory() async {
+    var contents = '''
+f() {
+  final a = A.nam^ed();
+}
+
+class A {
+  factory [!named!]() => throw 0;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_named_new() async {
+    var contents = '''
+f() {
+  final a = A.nam^ed();
+}
+
+class A {
+  new [!named!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_named_typeName() async {
+    var contents = '''
+f() {
+  final a = A^.named();
+}
+
+class [!A!] {
+  A.named();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_new() async {
+    var contents = '''
+f() {
+  final a = A.ne^w();
+}
+
+class A {
+  [!new!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_constructor_redirectingSuper_wildcards() async {
     var contents = '''
 class A {
@@ -397,34 +547,6 @@ class C extends A {
 class A {
   final int [!_!];
   A(this.^_);
-}
-''';
-
-    await testContents(contents);
-  }
-
-  Future<void> test_constructorNamed() async {
-    var contents = '''
-f() {
-  final a = A.named^();
-}
-
-class A {
-  A.[!named!]();
-}
-''';
-
-    await testContents(contents);
-  }
-
-  Future<void> test_constructorNamed_typeName() async {
-    var contents = '''
-f() {
-  final a = A^.named();
-}
-
-class [!A!] {
-  A.named();
 }
 ''';
 
@@ -1305,6 +1427,50 @@ void f(Object? x) {
       expect(loc.targetRange, equals(code.ranges[index].range));
       expect(loc.targetSelectionRange, equals(code.ranges[index].range));
     }
+  }
+
+  Future<void> test_primaryConstructor() async {
+    var contents = '''
+final a = A^();
+
+class [!A!]();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_primaryConstructor_body_declaringParameter() async {
+    var contents = '''
+class A(final int [!i!]) {
+  this {
+    ^i;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_primaryConstructor_body_parameter() async {
+    var contents = '''
+class A(int [!i!]) {
+  this {
+    ^i;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_primaryConstructor_parameterList_typeName() async {
+    var contents = '''
+class [!B!] {}
+
+class A(final ^B b);
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_sameLine() async {

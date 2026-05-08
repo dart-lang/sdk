@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-void checkType<T>(var thing) {
+void checkType<T>(thing) {
   assert(thing is T);
   var type = thing.runtimeType;
   if (type == T) return;

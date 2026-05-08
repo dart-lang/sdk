@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
@@ -85,6 +86,10 @@ class LibraryAnalyzer {
   final Map<FileState, FileAnalysis> _libraryFiles = {};
   late final LibraryVerificationContext _libraryVerificationContext;
 
+  /// One verifier per library so that state of elements can be shared across
+  /// fragments in all files of this library.
+  late final InheritanceOverrideVerifier _inheritanceOverrideVerifier;
+
   final TestingData? _testingData;
   final TypeSystemOperations _typeSystemOperations;
 
@@ -109,6 +114,10 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
+    );
+    _inheritanceOverrideVerifier = InheritanceOverrideVerifier(
+      _typeSystem,
+      _inheritance,
     );
   }
 
@@ -162,32 +171,26 @@ class LibraryAnalyzer {
           : null;
 
       // TODO(scheglov): We don't need to do this for the whole unit.
+      var elementWalker = ElementWalker.forCompilationUnit(
+        libraryFragment,
+        libraryFilePath: _library.file.path,
+        unitFilePath: file.path,
+      );
+      parsedUnit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
       parsedUnit.accept(
         ResolutionVisitor(
           libraryFragment: libraryFragment,
           diagnosticListener: diagnosticListener,
           nameScope: libraryFragment.scope,
+          docImportLibraries: const [],
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
-          elementWalker: ElementWalker.forCompilationUnit(
-            libraryFragment,
-            libraryFilePath: _library.file.path,
-            unitFilePath: file.path,
-          ),
           dataForTesting: inferenceDataForTesting,
         ),
       );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
         file.uri,
         inferenceDataForTesting!,
-      );
-
-      // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept(
-        ScopeResolverVisitor(
-          fileAnalysis.diagnosticReporter,
-          nameScope: libraryFragment.scope,
-        ),
       );
 
       var featureSet = _libraryElement.featureSet;
@@ -468,11 +471,7 @@ class LibraryAnalyzer {
     _computeConstantErrors(fileAnalysis);
 
     // Compute inheritance and override errors.
-    InheritanceOverrideVerifier(
-      _typeSystem,
-      _inheritance,
-      diagnosticReporter,
-    ).verifyUnit(unit);
+    _inheritanceOverrideVerifier.verifyUnit(unit, diagnosticReporter);
 
     // Use the ErrorVerifier to compute errors.
     ErrorVerifier errorVerifier = ErrorVerifier(
@@ -545,7 +544,7 @@ class LibraryAnalyzer {
     // Unused local elements.
     unit.accept(
       UnusedLocalElementsVerifier(
-        fileAnalysis.diagnosticListener,
+        fileAnalysis.diagnosticReporter,
         usedElements,
         _libraryElement,
       ),
@@ -718,10 +717,10 @@ class LibraryAnalyzer {
           errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.importedLibrarySource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.importOfNonLibrary,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.importOfNonLibrary
+              .withArguments(uri: selectedUriStr)
+              .at(directive.uri),
         );
       }
     } else if (state is LibraryImportWithUriStr) {
@@ -812,25 +811,12 @@ class LibraryAnalyzer {
     TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
         _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
 
-    unit.accept(
-      ResolutionVisitor(
-        libraryFragment: libraryFragment,
-        diagnosticListener: diagnosticListener,
-        nameScope: libraryFragment.scope,
-        strictInference: _analysisOptions.strictInference,
-        strictCasts: _analysisOptions.strictCasts,
-        elementWalker: ElementWalker.forCompilationUnit(
-          libraryFragment,
-          libraryFilePath: _library.file.path,
-          unitFilePath: fileAnalysis.file.path,
-        ),
-        dataForTesting: inferenceDataForTesting,
-      ),
+    var elementWalker = ElementWalker.forCompilationUnit(
+      libraryFragment,
+      libraryFilePath: _library.file.path,
+      unitFilePath: fileAnalysis.file.path,
     );
-    _testingData?.recordTypeConstraintGenerationDataForTesting(
-      fileAnalysis.file.uri,
-      inferenceDataForTesting!,
-    );
+    unit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
 
     var docImportLibraries = [
       for (var import in _library.docLibraryImports)
@@ -839,12 +825,21 @@ class LibraryAnalyzer {
             import.importedFile.uri,
           ),
     ];
+
     unit.accept(
-      ScopeResolverVisitor(
-        fileAnalysis.diagnosticReporter,
+      ResolutionVisitor(
+        libraryFragment: libraryFragment,
+        diagnosticListener: diagnosticListener,
         nameScope: libraryFragment.scope,
         docImportLibraries: docImportLibraries,
+        strictInference: _analysisOptions.strictInference,
+        strictCasts: _analysisOptions.strictCasts,
+        dataForTesting: inferenceDataForTesting,
       ),
+    );
+    _testingData?.recordTypeConstraintGenerationDataForTesting(
+      fileAnalysis.file.uri,
+      inferenceDataForTesting!,
     );
 
     // Nothing for RESOLVED_UNIT8?
@@ -929,10 +924,10 @@ class LibraryAnalyzer {
           errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.exportedLibrarySource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.exportOfNonLibrary,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.exportOfNonLibrary
+              .withArguments(uri: selectedUriStr)
+              .at(directive.uri),
         );
       }
     } else if (state is LibraryExportWithUriStr) {

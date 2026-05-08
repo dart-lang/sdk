@@ -90,6 +90,7 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <bit>
 #include <cassert>  // For assert() in constant expressions.
 
 #if defined(_WIN32)
@@ -246,6 +247,17 @@ struct simd128_value_t {
 #define DART_NOINLINE __declspec(noinline)
 #elif __GNUC__
 #define DART_NOINLINE __attribute__((noinline))
+#else
+#error Automatic compiler detection failed.
+#endif
+
+#if defined(__clang__)
+#define DART_ASSUME(expr) __builtin_assume(expr)
+#elif defined(__GNUC__)
+#define DART_ASSUME(expr)                                                      \
+  if (!(expr)) __builtin_unreachable()
+#elif defined(_MSC_VER)
+#define DART_ASSUME(expr) __assume(expr)
 #else
 #error Automatic compiler detection failed.
 #endif
@@ -447,15 +459,6 @@ struct simd128_value_t {
 #define Pp "016" PRIxPTR
 #endif
 
-// Suffixes for 64-bit integer literals.
-#ifdef _MSC_VER
-#define DART_INT64_C(x) x##I64
-#define DART_UINT64_C(x) x##UI64
-#else
-#define DART_INT64_C(x) x##LL
-#define DART_UINT64_C(x) x##ULL
-#endif
-
 // Replace calls to strtoll with _strtoi64 on Windows.
 #ifdef _MSC_VER
 #define strtoll _strtoi64
@@ -475,6 +478,8 @@ constexpr intptr_t kInt64SizeLog2 = 3;
 constexpr intptr_t kInt64Size = 1 << kInt64SizeLog2;
 static_assert(kInt64Size == sizeof(int64_t), "Mismatched int64 size constant");
 
+constexpr int kUInt32Size = sizeof(uint32_t);
+
 constexpr intptr_t kDoubleSize = sizeof(double);
 constexpr intptr_t kFloatSize = sizeof(float);
 constexpr intptr_t kQuadSize = 4 * kFloatSize;
@@ -488,12 +493,6 @@ constexpr intptr_t kBitsPerInt16 = kInt16Size * kBitsPerByte;
 constexpr intptr_t kBitsPerInt32 = kInt32Size * kBitsPerByte;
 constexpr intptr_t kBitsPerInt64 = kInt64Size * kBitsPerByte;
 
-// The following macro works on both 32 and 64-bit platforms.
-// Usage: instead of writing 0x1234567890123456ULL
-//      write DART_2PART_UINT64_C(0x12345678,90123456);
-#define DART_2PART_UINT64_C(a, b)                                              \
-  (((static_cast<uint64_t>(a) << kBitsPerInt32) + 0x##b##u))
-
 // Integer constants.
 constexpr int8_t kMinInt8 = 0x80;
 constexpr int8_t kMaxInt8 = 0x7F;
@@ -504,18 +503,17 @@ constexpr uint16_t kMaxUint16 = 0xFFFF;
 constexpr int32_t kMinInt32 = 0x80000000;
 constexpr int32_t kMaxInt32 = 0x7FFFFFFF;
 constexpr uint32_t kMaxUint32 = 0xFFFFFFFF;
-constexpr int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
-constexpr int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
-constexpr uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
+constexpr int64_t kMinInt64 = 0x8000000000000000;
+constexpr int64_t kMaxInt64 = 0x7FFFFFFFFFFFFFFF;
+constexpr uint64_t kMaxUint64 = 0xFFFFFFFFFFFFFFFF;
 
 constexpr int kMinInt = INT_MIN;
 constexpr int kMaxInt = INT_MAX;
 constexpr int kMaxUint = UINT_MAX;
 
 constexpr int64_t kMinInt64RepresentableAsDouble = kMinInt64;
-constexpr int64_t kMaxInt64RepresentableAsDouble =
-    DART_INT64_C(0x7FFFFFFFFFFFFC00);
-constexpr int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
+constexpr int64_t kMaxInt64RepresentableAsDouble = 0x7FFFFFFFFFFFFC00;
+constexpr int64_t kSignBitDouble = 0x8000000000000000;
 
 // Types for native machine words. Guaranteed to be able to hold pointers and
 // integers.
@@ -647,41 +645,7 @@ constexpr double MicrosecondsToMilliseconds(int64_t micros) {
 template <typename T>
 static inline void USE(T&&) {}
 
-// The type-based aliasing rule allows the compiler to assume that
-// pointers of different types (for some definition of different)
-// never alias each other. Thus the following code does not work:
-//
-// float f = foo();
-// int fbits = *(int*)(&f);
-//
-// The compiler 'knows' that the int pointer can't refer to f since
-// the types don't match, so the compiler may cache f in a register,
-// leaving random data in fbits.  Using C++ style casts makes no
-// difference, however a pointer to char data is assumed to alias any
-// other pointer. This is the 'memcpy exception'.
-//
-// The bit_cast function uses the memcpy exception to move the bits
-// from a variable of one type to a variable of another type. Of
-// course the end result is likely to be implementation dependent.
-// Most compilers (gcc-4.2 and MSVC 2005) will completely optimize
-// bit_cast away.
-//
-// There is an additional use for bit_cast. Recent gccs will warn when
-// they see casts that may result in breakage due to the type-based
-// aliasing rule. If you have checked that there is no breakage you
-// can use bit_cast to cast one pointer type to another. This confuses
-// gcc enough that it can no longer see that you have cast one pointer
-// type to another thus avoiding the warning.
-template <class D, class S>
-DART_FORCE_INLINE D bit_cast(const S& source) {
-  static_assert(sizeof(D) == sizeof(S),
-                "Source and destination must have the same size");
-
-  D destination;
-  // This use of memcpy is safe: source and destination cannot overlap.
-  memcpy(&destination, &source, sizeof(destination));
-  return destination;
-}
+using std::bit_cast;
 
 // Similar to bit_cast, but allows copying from types of unrelated
 // sizes. This method was introduced to enable the strict aliasing

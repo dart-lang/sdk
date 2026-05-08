@@ -12,9 +12,6 @@ import 'package:dtd_impl/dtd.dart';
 /// When [port] is non-null, the [DartToolingDaemon.startService] method will
 /// send information about the DTD connection back over [port] instead of
 /// printing it to stdout.
-void main(List<String> args, dynamic port) async {
-  await DartToolingDaemon.startService(
-    args,
-    sendPort: port as SendPort?,
-  );
+void main(List<String> args, Object? port) async {
+  await DartToolingDaemon.startService(args, sendPort: port as SendPort?);
 }

@@ -18,7 +18,7 @@ namespace dart {
 
 class CSEInstructionSet;
 
-class AllocationSinking : public ZoneAllocated {
+class AllocationSinking : public ZoneObject {
  public:
   explicit AllocationSinking(FlowGraph* flow_graph)
       : flow_graph_(flow_graph), candidates_(5), materializations_(5) {}

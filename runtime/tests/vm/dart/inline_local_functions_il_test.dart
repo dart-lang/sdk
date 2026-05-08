@@ -14,7 +14,7 @@ int run(int Function() fn) => fn();
 @pragma('vm:testing:match-inner-flow-graph', 'foo')
 void main() {
   const int N = 100;
-  int id(final int i) => i;
+  int id(int i) => i;
 
   @pragma('vm:testing:print-flow-graph')
   int foo() {

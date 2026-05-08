@@ -38,7 +38,7 @@ class JsonDecodingBenchmark {
   final bool useSendAndExit;
 }
 
-Uint8List createSampleJson(final size) {
+Uint8List createSampleJson(size) {
   final list = List.generate(size, (i) => i);
   final map = <dynamic, dynamic>{};
   for (int i = 0; i < size; i++) {

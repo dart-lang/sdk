@@ -1283,7 +1283,6 @@ class LibraryManifestPrinter extends ManifestPrinter {
       'isExternal': item.flags.isExternal,
       'isSimplyBounded': item.flags.isSimplyBounded,
       'isStatic': item.flags.isStatic,
-      'isSynthetic': item.flags.isSynthetic,
     };
   }
 
@@ -1295,7 +1294,6 @@ class LibraryManifestPrinter extends ManifestPrinter {
       'isFinal': item.flags.isFinal,
       'isLate': item.flags.isLate,
       'isStatic': item.flags.isStatic,
-      'isSynthetic': item.flags.isSynthetic,
       'shouldUseTypeForInitializerInference':
           item.flags.shouldUseTypeForInitializerInference,
     };
@@ -1500,7 +1498,6 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           ..._executableItemFlags(item),
           'isConst': item.flags.isConst,
-          'isDeclaring': item.flags.isDeclaring,
           'isFactory': item.flags.isFactory,
           'isOriginDeclaration': item.flags.isOriginDeclaration,
           'isOriginImplicitDefault': item.flags.isOriginImplicitDefault,
@@ -1760,9 +1757,18 @@ class LibraryManifestPrinter extends ManifestPrinter {
     String name,
     TopLevelInferenceError? error,
   ) {
-    if (error != null) {
-      var arguments = error.arguments.join(', ');
-      sink.writelnWithIndent('$name: ${error.kind.name}($arguments)');
+    switch (error) {
+      case null:
+        break;
+      case TopLevelInferenceErrorDependencyCycle(:var cycle):
+        sink.writelnWithIndent('$name: dependencyCycle(${cycle.join(', ')})');
+        throw UnimplementedError();
+      case TopLevelInferenceErrorNoCombinedSuperSignature(
+        :var candidateSignatures,
+      ):
+        sink.writelnWithIndent(
+          '$name: overrideNoCombinedSuperSignature($candidateSignatures)',
+        );
     }
   }
 

@@ -28,12 +28,13 @@ class RecordShape {
   /// positional fields and named fields.
   /// [names] should be sorted.
   RecordShape(this.positionals, Iterable<String> names)
-      : _names = SplayTreeMap.fromIterables(
-            names, Iterable.generate(names.length, (i) => i + positionals));
+    : _names = SplayTreeMap.fromIterables(
+        names,
+        Iterable.generate(names.length, (i) => i + positionals),
+      );
 
   RecordShape.fromType(RecordType recordType)
-      : this(recordType.positional.length,
-            recordType.named.map((ty) => ty.name));
+    : this(recordType.positional.length, recordType.named.map((ty) => ty.name));
 
   @override
   String toString() => 'Record(positionals: $positionals, names: $_names)';

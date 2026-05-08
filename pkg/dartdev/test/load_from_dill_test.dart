@@ -13,16 +13,21 @@ void main() {
 
   setUp(() => p = project(mainSrc: "void main() { print('Hello World'); }"));
 
-  test("Fallback to dartdev.dill from dartdev.dart.snapshot for 'Hello World'",
-      () async {
-    // The DartDev snapshot includes the --use_field_guards flag. If
-    // --no-use-field-guards is passed, the VM will fail to load the
-    // snapshot and should fall back to using the DartDev dill file.
-    ProcessResult result =
-        await p.run(['--no-use-field-guards', 'run', p.relativeFilePath]);
+  test(
+    "Fallback to dartdev.dill from dartdev.dart.snapshot for 'Hello World'",
+    () async {
+      // The DartDev snapshot includes the --use_field_guards flag. If
+      // --no-use-field-guards is passed, the VM will fail to load the
+      // snapshot and should fall back to using the DartDev dill file.
+      ProcessResult result = await p.run([
+        '--no-use-field-guards',
+        'run',
+        p.relativeFilePath,
+      ]);
 
-    expect(result.stdout, contains('Hello World'));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-  });
+      expect(result.stdout, contains('Hello World'));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+    },
+  );
 }

@@ -61,6 +61,6 @@ class AC3 = A with C3;
 //    ^
 // [cfe] Can't use 'C3' as a mixin because it has constructors.
 //                 ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 main() {}

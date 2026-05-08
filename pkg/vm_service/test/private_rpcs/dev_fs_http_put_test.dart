@@ -25,12 +25,11 @@ Future<String> readResponse(HttpClientResponse response) {
 }
 
 final tests = <VMTest>[
-  // Write a file with a ? in the filename.
   (VmService service) async {
     const fsId = 'test';
-    const filePath = '/foo/b?ar.dart';
+    const fileUri = 'foo/bar.dart';
     const fileContents = [0, 1, 2, 3, 4, 5, 6, 255];
-    final filePathBase64 = base64Encode(utf8.encode(filePath));
+    final fileUriBase64 = base64Encode(utf8.encode(fileUri));
     final fileContentsBase64 = base64Encode(fileContents);
 
     Future<Map<String, dynamic>> postToDevFS({
@@ -41,7 +40,7 @@ final tests = <VMTest>[
       final request = await client.putUrl(Uri.parse(serviceHttpAddress));
       request.headers.add('dev_fs_name', fsId);
       if (!omitDevFsPath) {
-        request.headers.add('dev_fs_path_b64', filePathBase64);
+        request.headers.add('dev_fs_uri_b64', fileUriBase64);
       }
       request.add(gzip.encode(content));
       final response = await request.close();
@@ -81,7 +80,12 @@ final tests = <VMTest>[
             }
           }
         }) {
-      expect(details.contains("expects the 'path' parameter"), true);
+      expect(
+        // TODO(bkonyi): remove the 'path' case once we move to the new VM
+        // service implementation.
+        details.contains(RegExp("expects the '(path|uri)' parameter")),
+        true,
+      );
     } else {
       invalidResponse(result);
     }
@@ -100,7 +104,7 @@ final tests = <VMTest>[
       '_readDevFSFile',
       args: {
         'fsName': fsId,
-        'path': filePath,
+        'uri': fileUri,
       },
     );
     if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
@@ -117,7 +121,9 @@ final tests = <VMTest>[
         'fsName': fsId,
       },
     );
-    if (result case {'type': 'FSFileList', 'files': [{'name': filePath}]}) {
+    if (result
+        case {'type': 'FSFileList', 'files': [{'name': final String uri}]}
+        when uri.endsWith(fileUri)) {
       // Expected
     } else {
       invalidResponse(result);

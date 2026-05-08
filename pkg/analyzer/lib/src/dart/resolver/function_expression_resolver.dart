@@ -29,9 +29,10 @@ class FunctionExpressionResolver {
     var body = node.body;
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
+      var element = node.declaredFragment!.element;
       _resolver.flowAnalysis.executableDeclaration_enter(
         node,
-        node.parameters,
+        element.formalParameters,
         isClosure: true,
       );
     }

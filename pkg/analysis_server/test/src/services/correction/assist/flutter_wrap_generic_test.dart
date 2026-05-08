@@ -123,6 +123,7 @@ class FakeFlutter {
   Widget f() {
     return Container(
       child: ^DefaultTextStyle(
+        style: TextStyle(),
         child: Row(
           children: [
             Container(
@@ -141,6 +142,7 @@ class FakeFlutter {
     return Container(
       child: widget(
         child: DefaultTextStyle(
+          style: TextStyle(),
           child: Row(
             children: [
               Container(
@@ -162,6 +164,7 @@ class FakeFlutter {\r
   Widget f() {\r
     return Container(\r
       child: ^DefaultTextStyle(\r
+        style: TextStyle(),\r
         child: Row(\r
           children: [\r
             Container(\r
@@ -180,6 +183,7 @@ class FakeFlutter {\r
     return Container(\r
       child: widget(\r
         child: DefaultTextStyle(\r
+          style: TextStyle(),\r
           child: Row(\r
             children: [\r
               Container(\r
@@ -199,7 +203,7 @@ class FakeFlutter {\r
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {
@@ -210,7 +214,7 @@ Widget f(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {
@@ -224,7 +228,7 @@ Widget f(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {
@@ -235,7 +239,7 @@ Widget f(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {
@@ -281,7 +285,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return ClipRect.^rect();
+    return ClipRect.^new();
   }
 }
 ''');
@@ -289,7 +293,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return widget(child: ClipRect.rect());
+    return widget(child: ClipRect.new());
   }
 }
 ''');

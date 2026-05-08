@@ -224,7 +224,7 @@
 #endif  // defined(TARGET_ARCH_{ARM, ARM64})
 
 #define ZONE_STR(FMT, ...)                                                     \
-  OS::SCreate(Thread::Current()->zone(), FMT, __VA_ARGS__)
+  OS::SCreate(Thread::Current()->zone(), FMT, ##__VA_ARGS__)
 
 inline Dart_Handle NewString(const char* str) {
   return Dart_NewStringFromCString(str);

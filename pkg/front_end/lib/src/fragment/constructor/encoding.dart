@@ -10,6 +10,7 @@ import '../../api_prototype/lowering_predicates.dart';
 import '../../base/modifiers.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
+import '../../builder/function_signature.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
@@ -34,15 +35,13 @@ import 'body_builder_context.dart';
 import 'declaration.dart';
 
 abstract class ConstructorEncoding {
-  FunctionNode get function;
+  FunctionSignature get signature;
 
   List<Initializer> get initializers;
 
   void prepareInitializers();
 
   void prependInitializer(Initializer initializer);
-
-  VariableDeclaration getFormalParameter(int index);
 
   VariableDeclaration? getTearOffParameter(int index);
 
@@ -88,7 +87,7 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody(Statement value);
+  void registerFunctionBody({required Statement? body, Scope? scope});
 
   void registerNoBodyConstructor();
 
@@ -108,6 +107,8 @@ abstract class ConstructorEncoding {
   );
 
   bool get isRedirecting;
+
+  void registerInferredReturnType(DartType type);
 }
 
 class RegularConstructorEncoding implements ConstructorEncoding {
@@ -121,6 +122,8 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
   Statement? bodyInternal;
 
+  List<Initializer>? _prependedInitializers;
+
   RegularConstructorEncoding({
     required bool isExternal,
     required bool isEnumConstructor,
@@ -128,19 +131,28 @@ class RegularConstructorEncoding implements ConstructorEncoding {
        _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody(Statement value) {
-    function.body = value..parent = function;
+  void registerFunctionBody({required Statement? body, Scope? scope}) {
+    if (body != null) {
+      _constructor.function.registerFunctionBody(body);
+    }
+    _constructor.function.scope = scope;
   }
 
   @override
   void registerNoBodyConstructor() {
     if (!_isExternal) {
-      registerFunctionBody(new EmptyStatement());
+      registerFunctionBody(body: new EmptyStatement());
     }
   }
 
   @override
-  FunctionNode get function => _constructor.function;
+  void registerInferredReturnType(DartType type) {
+    _constructor.function.returnType = type;
+  }
+
+  @override
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
 
   // Coverage-ignore(suite): Not run.
   Member get constructor => _constructor;
@@ -164,7 +176,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
         initializer is! AuxiliaryInitializer,
         "Unexpected auxiliary initializer $initializer.",
       );
-      if (initializer is RedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }
@@ -275,10 +287,10 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
-      function.asyncMarker = AsyncMarker.Sync;
+      _constructor.function.asyncMarker = AsyncMarker.Sync;
       buildTypeParametersAndFormals(
         libraryBuilder,
-        function,
+        _constructor.function,
         typeParameters,
         formals,
         classTypeParameters: null,
@@ -324,7 +336,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       for (FormalParameterBuilder formal in formals) {
         if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
-          formal.variable!.type = const UnknownType();
+          formal.variable.type = const UnknownType();
           needsInference = true;
         } else if (!formal.hasDeclaredInitializer &&
             formal.isSuperInitializingFormal) {
@@ -353,12 +365,17 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    _constructor.initializers = [];
+    if (_prependedInitializers != null) {
+      _constructor.initializers = [..._prependedInitializers!.reversed];
+    } else {
+      _constructor.initializers = [];
+    }
   }
 
   @override
   void prependInitializer(Initializer initializer) {
     initializer.parent = _constructor;
+    (_prependedInitializers ??= []).add(initializer);
     _constructor.initializers.insert(0, initializer);
   }
 
@@ -367,21 +384,6 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     _constructor.isExternal = true;
 
     loader.addNativeAnnotation(_constructor, nativeMethodName);
-  }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    if (_isEnumConstructor) {
-      // Skip synthetic parameters for index and name.
-      index += 2;
-    }
-    if (index < function.positionalParameters.length) {
-      return function.positionalParameters[index];
-    } else {
-      index -= function.positionalParameters.length;
-      assert(index < function.namedParameters.length);
-      return function.namedParameters[index];
-    }
   }
 
   @override
@@ -482,6 +484,8 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
   Statement? bodyInternal;
 
+  List<Initializer>? _prependedInitializers;
+
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisVariable] holds the synthetically added `this`
   /// parameter.
@@ -498,24 +502,33 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   List<Initializer> get initializers => _initializers;
 
   @override
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
+
+  @override
   void registerInitializers(List<Initializer> initializers) {
     this.initializers.addAll(initializers);
   }
 
   @override
-  void registerFunctionBody(Statement value) {
-    function.body = value..parent = function;
+  void registerFunctionBody({required Statement? body, Scope? scope}) {
+    if (body != null) {
+      _constructor.function.registerFunctionBody(body);
+    }
+    _constructor.function.scope = scope;
   }
 
   @override
   void registerNoBodyConstructor() {
     if (!_hasBuiltBody && !_isExternal) {
-      registerFunctionBody(new EmptyStatement());
+      registerFunctionBody(body: new EmptyStatement());
     }
   }
 
   @override
-  FunctionNode get function => _constructor.function;
+  void registerInferredReturnType(DartType type) {
+    _constructor.function.returnType = type;
+  }
 
   bool _hasBeenBuilt = false;
 
@@ -568,10 +581,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
-      function.asyncMarker = AsyncMarker.Sync;
+      _constructor.function.asyncMarker = AsyncMarker.Sync;
       buildTypeParametersAndFormals(
         libraryBuilder,
-        function,
+        _constructor.function,
         typeParameters,
         formals,
         classTypeParameters: null,
@@ -582,7 +595,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         int count = declarationBuilder.typeParameters!.length;
         _thisTypeParameters = new List<TypeParameter>.generate(
           count,
-          (int index) => function.typeParameters[index],
+          (int index) => _constructor.function.typeParameters[index],
           growable: false,
         );
       }
@@ -606,8 +619,8 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
             ..isLowered = true;
 
       List<DartType> typeParameterTypes = <DartType>[];
-      for (int i = 0; i < function.typeParameters.length; i++) {
-        TypeParameter typeParameter = function.typeParameters[i];
+      for (int i = 0; i < _constructor.function.typeParameters.length; i++) {
+        TypeParameter typeParameter = _constructor.function.typeParameters[i];
         typeParameterTypes.add(
           new TypeParameterType.withDefaultNullability(typeParameter),
         );
@@ -641,7 +654,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       for (FormalParameterBuilder formal in formals) {
         if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
-          formal.variable!.type = const UnknownType();
+          formal.variable.type = const UnknownType();
           needsInference = true;
         } else if (!formal.hasDeclaredInitializer &&
             formal.isSuperInitializingFormal) {
@@ -687,27 +700,18 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    _initializers = [];
-    // TODO(johnniwinther): Can these be moved here from the
-    //  [SourceConstructorBuilder]?
-    //redirectingInitializer = null;
-    //superInitializer = null;
+    if (_prependedInitializers != null) {
+      // Coverage-ignore-block(suite): Not run.
+      _initializers = [..._prependedInitializers!.reversed];
+    } else {
+      _initializers = [];
+    }
   }
 
   @override
   void prependInitializer(Initializer initializer) {
+    (_prependedInitializers ??= []).add(initializer);
     _initializers.insert(0, initializer);
-  }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    if (index < function.positionalParameters.length) {
-      return function.positionalParameters[index];
-    } else {
-      index -= function.positionalParameters.length;
-      assert(index < function.namedParameters.length);
-      return function.namedParameters[index];
-    }
   }
 
   @override
@@ -744,11 +748,13 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       for (Initializer initializer in _initializers) {
         initializer.accept(visitor);
       }
-      if (function.body != null && function.body is! EmptyStatement) {
-        statements.add(function.body!);
+      if (_constructor.function.body != null &&
+          _constructor.function.body is! EmptyStatement) {
+        statements.add(_constructor.function.body!);
       }
       statements.add(new ReturnStatement(new VariableGet(thisVariable)));
-      registerFunctionBody(new Block(statements));
+      // TODO(cstefantsova): Provide a scope here.
+      registerFunctionBody(body: new Block(statements));
     }
     _hasBuiltBody = true;
   }
@@ -966,7 +972,7 @@ class ExtensionTypeConstructorEncoding
         new List<DartType>.generate(
           declarationBuilder.typeParameters!.length,
           (int index) => new TypeParameterType.withDefaultNullability(
-            function.typeParameters[index],
+            _constructor.function.typeParameters[index],
           ),
         ),
       );
@@ -978,7 +984,7 @@ class ExtensionTypeConstructorEncoding
   @override
   bool get isRedirecting {
     for (Initializer initializer in initializers) {
-      if (initializer is ExtensionTypeRedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }
@@ -1072,7 +1078,7 @@ class ExtensionConstructorEncoding
         new List<DartType>.generate(
           declarationBuilder.typeParameters!.length,
           (int index) => new TypeParameterType.withDefaultNullability(
-            function.typeParameters[index],
+            _constructor.function.typeParameters[index],
           ),
         ),
       );
@@ -1082,7 +1088,6 @@ class ExtensionConstructorEncoding
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isRedirecting {
     // TODO(johnniwinther): Update this if redirecting extension constructors
     //  are supported.
@@ -1091,11 +1096,16 @@ class ExtensionConstructorEncoding
 }
 
 abstract class ConstructorEncodingStrategy {
-  factory ConstructorEncodingStrategy(DeclarationBuilder declarationBuilder) {
+  factory ConstructorEncodingStrategy(
+    DeclarationBuilder declarationBuilder, {
+    required bool isClosureContextLoweringEnabled,
+  }) {
     switch (declarationBuilder) {
       case ClassBuilder():
         if (declarationBuilder.isEnum) {
-          return const EnumConstructorEncodingStrategy();
+          return new EnumConstructorEncodingStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          );
         } else {
           return const RegularConstructorEncodingStrategy();
         }
@@ -1157,7 +1167,11 @@ class RegularConstructorEncodingStrategy
 }
 
 class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
-  const EnumConstructorEncodingStrategy();
+  final bool isClosureContextLoweringEnabled;
+
+  const EnumConstructorEncodingStrategy({
+    required this.isClosureContextLoweringEnabled,
+  });
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1176,22 +1190,26 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
   }) {
     return [
       new FormalParameterBuilder(
-        FormalParameterKind.requiredPositional,
-        Modifiers.empty,
-        loader.target.intType,
-        "#index",
-        fileOffset,
+        kind: FormalParameterKind.requiredPositional,
+        modifiers: Modifiers.empty,
+        type: loader.target.intType,
+        name: "#index",
+        fileOffset: fileOffset,
         fileUri: fileUri,
+        nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       ),
       new FormalParameterBuilder(
-        FormalParameterKind.requiredPositional,
-        Modifiers.empty,
-        loader.target.stringType,
-        "#name",
-        fileOffset,
+        kind: FormalParameterKind.requiredPositional,
+        modifiers: Modifiers.empty,
+        type: loader.target.stringType,
+        name: "#name",
+        fileOffset: fileOffset,
         fileUri: fileUri,
+        nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       ),
       ...?formals,
     ];

@@ -17,36 +17,42 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
 
   final Token? _finalKeyword;
 
+  final bool _canBeBulkApplied;
+
   factory ReplaceFinalWithVar({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return ReplaceFinalWithVar._(
         context: context,
         finalKeyword: null,
         removeFinal: false,
+        canBeBulkApplied: true,
       );
     }
 
-    var (finalKeyword, type) = switch (context.node) {
-      VariableDeclarationList node => (node.keyword, node.type),
-      PatternVariableDeclaration node => (node.keyword, null),
-      DeclaredIdentifier node => (node.keyword, node.type),
-      DeclaredVariablePattern node => (node.keyword, node.type),
-      _ => (null, null),
+    var (finalKeyword, removeFinal, canBeBulkApplied) = switch (context.node) {
+      VariableDeclarationList node => (node.keyword, node.type != null, true),
+      PatternVariableDeclaration node => (node.keyword, false, true),
+      DeclaredIdentifier node => (node.keyword, node.type != null, true),
+      DeclaredVariablePattern node => (node.keyword, node.type != null, true),
+      ForEachPartsWithPattern node => (node.keyword, false, true),
+      SimpleFormalParameter node => (node.keyword, node.type != null, false),
+      _ => (null, true, false),
     };
 
     return ReplaceFinalWithVar._(
       context: context,
       finalKeyword: finalKeyword,
-      removeFinal: type != null,
+      removeFinal: removeFinal,
+      canBeBulkApplied: canBeBulkApplied,
     );
   }
 
   ReplaceFinalWithVar._({
     required super.context,
-    required Token? finalKeyword,
-    required bool removeFinal,
-  }) : _finalKeyword = finalKeyword,
-       _removeFinal = removeFinal;
+    required this._finalKeyword,
+    required this._removeFinal,
+    required this._canBeBulkApplied,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -58,12 +64,15 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       : DartFixKind.replaceFinalWithVar;
 
   @override
-  FixKind get multiFixKind => _removeFinal
-      ? DartFixKind.removeUnnecessaryFinalMulti
-      : DartFixKind.replaceFinalWithVarMulti;
+  FixKind? get multiFixKind => _canBeBulkApplied
+      ? _removeFinal
+            ? DartFixKind.removeUnnecessaryFinalMulti
+            : DartFixKind.replaceFinalWithVarMulti
+      : null;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (applyingBulkFixes && !_canBeBulkApplied) return;
     if (_finalKeyword case var finalKeyword?) {
       assert(finalKeyword.keyword == Keyword.FINAL);
       if (_removeFinal) {

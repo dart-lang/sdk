@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type E(core::Object? it) {
+  abstract extension-type-member representation-field get it() → core::Object?;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static extension-type-member method E|constructor#(core::Object? it) → self::E% /* erasure=core::Object?, declared=! */
+  ;
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::Object? it) → self::E% /* erasure=core::Object?, declared=! */
+  return self::E|constructor#(it);
+static method foo<X extends self::E% /* erasure=core::Object?, declared=! */>((self::foo::X%) → dynamic x, (self::E% /* erasure=core::Object?, declared=! */) → dynamic e) → dynamic
+  ;

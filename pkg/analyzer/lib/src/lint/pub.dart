@@ -4,7 +4,6 @@
 
 import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:source_span/source_span.dart';
@@ -13,7 +12,7 @@ import 'package:yaml/yaml.dart';
 PubspecEntry? _findEntry(
   YamlMap map,
   String key,
-  ResourceProvider? resourceProvider,
+  ResourceProvider resourceProvider,
 ) {
   PubspecEntry? entry;
   map.nodes.forEach((k, v) {
@@ -27,7 +26,7 @@ PubspecEntry? _findEntry(
 PubspecDependencyList? _processDependencies(
   YamlScalar key,
   YamlNode value,
-  ResourceProvider? resourceProvider,
+  ResourceProvider resourceProvider,
 ) {
   if (value is! YamlMap) {
     return null;
@@ -45,7 +44,7 @@ PubspecDependencyList? _processDependencies(
 PubspecEnvironment? _processEnvironment(
   YamlScalar key,
   YamlNode value,
-  ResourceProvider? resourceProvider,
+  ResourceProvider resourceProvider,
 ) {
   if (value is! YamlMap) {
     return null;
@@ -61,7 +60,7 @@ PubspecEnvironment? _processEnvironment(
 PubspecGitRepo? _processGitRepo(
   YamlScalar key,
   YamlNode value,
-  ResourceProvider? resourceProvider,
+  ResourceProvider resourceProvider,
 ) {
   if (value is YamlScalar) {
     var token = PubspecNodeImpl(key, resourceProvider);
@@ -86,7 +85,7 @@ PubspecGitRepo? _processGitRepo(
 PubspecHost? _processHost(
   YamlScalar key,
   YamlNode value,
-  ResourceProvider? resourceProvider,
+  ResourceProvider resourceProvider,
 ) {
   if (value is YamlScalar) {
     // dependencies:
@@ -115,7 +114,7 @@ PubspecHost? _processHost(
 PubspecEntry? _processScalar(
   YamlScalar key,
   YamlNode value,
-  ResourceProvider? resourceProvider,
+  ResourceProvider resourceProvider,
 ) {
   if (value is! YamlScalar) {
     return null;
@@ -130,7 +129,7 @@ PubspecEntry? _processScalar(
 PubspecNodeList? _processScalarList(
   YamlScalar key,
   YamlNode value,
-  ResourceProvider? resourceProvider,
+  ResourceProvider resourceProvider,
 ) {
   if (value is! YamlList) {
     return null;
@@ -147,7 +146,7 @@ abstract class Pubspec {
   factory Pubspec.parse(
     String pubspec, {
     Uri? sourceUrl,
-    ResourceProvider? resourceProvider,
+    required ResourceProvider resourceProvider,
   }) {
     try {
       var yaml = loadYamlNode(pubspec, sourceUrl: sourceUrl);
@@ -159,7 +158,7 @@ abstract class Pubspec {
 
   factory Pubspec.parseYaml(
     YamlNode yaml, {
-    ResourceProvider? resourceProvider,
+    required ResourceProvider resourceProvider,
   }) {
     return _Pubspec.parse(yaml, resourceProvider: resourceProvider);
   }
@@ -206,10 +205,9 @@ class PubspecNodeImpl implements PubspecNode {
 
   final ResourceProvider _resourceProvider;
 
-  PubspecNodeImpl(YamlScalar node, ResourceProvider? resourceProvider)
+  PubspecNodeImpl(YamlScalar node, this._resourceProvider)
     : text = node.value?.toString(),
-      span = node.span,
-      _resourceProvider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+      span = node.span;
 
   /// The [Source] information of the pubspec file in which this node is located.
   Source get source {
@@ -269,7 +267,10 @@ class _Pubspec implements Pubspec {
   @override
   final PubspecDependencyList? dependencyOverrides;
 
-  factory _Pubspec.parse(YamlNode yaml, {ResourceProvider? resourceProvider}) {
+  factory _Pubspec.parse(
+    YamlNode yaml, {
+    required ResourceProvider resourceProvider,
+  }) {
     if (yaml is! YamlMap) {
       return _Pubspec._();
     }
@@ -290,11 +291,10 @@ class _Pubspec implements Pubspec {
     PubspecDependencyList? devDependencies;
     PubspecDependencyList? dependencyOverrides;
 
-    yaml.nodes.forEach((k, v) {
-      if (k is! YamlScalar) {
+    yaml.nodes.forEach((key, v) {
+      if (key is! YamlScalar) {
         return;
       }
-      YamlScalar key = k;
       switch (key.toString()) {
         case 'author':
           author = _processScalar(key, v, resourceProvider);
@@ -449,7 +449,7 @@ class _PubspecDependency extends PubspecDependency {
   factory _PubspecDependency(
     YamlScalar key,
     YamlNode value,
-    ResourceProvider? resourceProvider,
+    ResourceProvider resourceProvider,
   ) {
     var name = PubspecNodeImpl(key, resourceProvider);
     PubspecEntry? path;
@@ -461,11 +461,10 @@ class _PubspecDependency extends PubspecDependency {
       // Simple version constraint.
       version = PubspecEntry(null, PubspecNodeImpl(value, resourceProvider));
     } else if (value is YamlMap) {
-      value.nodes.forEach((k, v) {
-        if (k is! YamlScalar) {
+      value.nodes.forEach((key, v) {
+        if (key is! YamlScalar) {
           return;
         }
-        YamlScalar key = k;
         switch (key.toString()) {
           case 'path':
             path = _processScalar(key, v, resourceProvider);

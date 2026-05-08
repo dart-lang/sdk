@@ -24,59 +24,80 @@ void main() {
   harnessTest('`Foo<Obj>` where typedef Foo<T> = C<T>', (TestHarness harness) {
     var param = harness.makeTypeParameter('T');
     var foo = new Typedef(
-        'Foo',
-        new InterfaceType(harness.otherClass, Nullability.nonNullable,
-            [new TypeParameterType(param, Nullability.nonNullable)]),
-        typeParameters: [param],
-        fileUri: dummyUri);
-    harness.enclosingLibrary.addTypedef(foo);
-    var input =
-        new TypedefType(foo, Nullability.nonNullable, [harness.objectRawType]);
-    var expected = new InterfaceType(
-        harness.otherClass, Nullability.nonNullable, [harness.objectRawType]);
-    expect(input.unalias, equals(expected));
-  });
-  harnessTest('`Bar<Obj>` where typedef Bar<T> = Foo<T>, Foo<T> = C<T>',
-      (TestHarness harness) {
-    var fooParam = harness.makeTypeParameter('T');
-    var foo = new Typedef(
-        'Foo',
-        new InterfaceType(harness.otherClass, Nullability.nonNullable,
-            [new TypeParameterType(fooParam, Nullability.nonNullable)]),
-        typeParameters: [fooParam],
-        fileUri: dummyUri);
-    var barParam = harness.makeTypeParameter('T');
-    var bar = new Typedef(
-        'Bar',
-        new TypedefType(foo, Nullability.nonNullable,
-            [new TypeParameterType(barParam, Nullability.nonNullable)]),
-        typeParameters: [barParam],
-        fileUri: dummyUri);
-    harness.enclosingLibrary.addTypedef(foo);
-    harness.enclosingLibrary.addTypedef(bar);
-    var input =
-        new TypedefType(bar, Nullability.nonNullable, [harness.objectRawType]);
-    var expected = new InterfaceType(
-        harness.otherClass, Nullability.nonNullable, [harness.objectRawType]);
-    expect(input.unalias, equals(expected));
-  });
-  harnessTest('`Foo<Foo<C>>` where typedef Foo<T> = C<T>',
-      (TestHarness harness) {
-    var param = harness.makeTypeParameter('T');
-    var foo = new Typedef(
-        'Foo',
-        new InterfaceType(harness.otherClass, Nullability.nonNullable,
-            [new TypeParameterType(param, Nullability.nonNullable)]),
-        typeParameters: [param],
-        fileUri: dummyUri);
+      'Foo',
+      new InterfaceType(harness.otherClass, Nullability.nonNullable, [
+        new TypeParameterType(param, Nullability.nonNullable),
+      ]),
+      typeParameters: [param],
+      fileUri: dummyUri,
+    );
     harness.enclosingLibrary.addTypedef(foo);
     var input = new TypedefType(foo, Nullability.nonNullable, [
-      new TypedefType(foo, Nullability.nonNullable, [harness.objectRawType])
+      harness.objectRawType,
     ]);
-    var expected =
-        new InterfaceType(harness.otherClass, Nullability.nonNullable, [
-      new TypedefType(foo, Nullability.nonNullable, [harness.objectRawType])
+    var expected = new InterfaceType(
+      harness.otherClass,
+      Nullability.nonNullable,
+      [harness.objectRawType],
+    );
+    expect(input.unalias, equals(expected));
+  });
+  harnessTest('`Bar<Obj>` where typedef Bar<T> = Foo<T>, Foo<T> = C<T>', (
+    TestHarness harness,
+  ) {
+    var fooParam = harness.makeTypeParameter('T');
+    var foo = new Typedef(
+      'Foo',
+      new InterfaceType(harness.otherClass, Nullability.nonNullable, [
+        new TypeParameterType(fooParam, Nullability.nonNullable),
+      ]),
+      typeParameters: [fooParam],
+      fileUri: dummyUri,
+    );
+    var barParam = harness.makeTypeParameter('T');
+    var bar = new Typedef(
+      'Bar',
+      new TypedefType(foo, Nullability.nonNullable, [
+        new TypeParameterType(barParam, Nullability.nonNullable),
+      ]),
+      typeParameters: [barParam],
+      fileUri: dummyUri,
+    );
+    harness.enclosingLibrary.addTypedef(foo);
+    harness.enclosingLibrary.addTypedef(bar);
+    var input = new TypedefType(bar, Nullability.nonNullable, [
+      harness.objectRawType,
     ]);
+    var expected = new InterfaceType(
+      harness.otherClass,
+      Nullability.nonNullable,
+      [harness.objectRawType],
+    );
+    expect(input.unalias, equals(expected));
+  });
+  harnessTest('`Foo<Foo<C>>` where typedef Foo<T> = C<T>', (
+    TestHarness harness,
+  ) {
+    var param = harness.makeTypeParameter('T');
+    var foo = new Typedef(
+      'Foo',
+      new InterfaceType(harness.otherClass, Nullability.nonNullable, [
+        new TypeParameterType(param, Nullability.nonNullable),
+      ]),
+      typeParameters: [param],
+      fileUri: dummyUri,
+    );
+    harness.enclosingLibrary.addTypedef(foo);
+    var input = new TypedefType(foo, Nullability.nonNullable, [
+      new TypedefType(foo, Nullability.nonNullable, [harness.objectRawType]),
+    ]);
+    var expected = new InterfaceType(
+      harness.otherClass,
+      Nullability.nonNullable,
+      [
+        new TypedefType(foo, Nullability.nonNullable, [harness.objectRawType]),
+      ],
+    );
     expect(input.unalias, equals(expected));
   });
 }

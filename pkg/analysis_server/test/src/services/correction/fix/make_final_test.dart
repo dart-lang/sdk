@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -16,7 +15,6 @@ void main() {
     defineReflectiveTests(NonFinalFieldInEnumTest);
     defineReflectiveTests(PreferFinalFieldsBulkTest);
     defineReflectiveTests(PreferFinalFieldsTest);
-    defineReflectiveTests(PreferFinalFieldsWithNullSafetyTest);
     defineReflectiveTests(PreferFinalInForEachTest);
     defineReflectiveTests(PreferFinalLocalTest);
     defineReflectiveTests(PreferFinalLocalsBulkTest);
@@ -123,16 +121,6 @@ class C {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest
-    with WithNullSafetyLintMixin {
-  @override
-  FixKind get kind => DartFixKind.makeFinal;
-
-  @override
-  String get lintCode => LintNames.prefer_final_fields;
 
   Future<void> test_lateField_type() async {
     await resolveTestCode('''
@@ -684,12 +672,14 @@ void fn(final String? test) {
 
   Future<void> test_simple_second() async {
     await resolveTestCode('''
+// @dart = 3.10
 void fn(final String test, String other) {
   print(test);
   print(other);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 void fn(final String test, final String other) {
   print(test);
   print(other);
@@ -699,11 +689,13 @@ void fn(final String test, final String other) {
 
   Future<void> test_simple_var() async {
     await resolveTestCode('''
+// @dart = 3.10
 void fn(var test) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 void fn(final test) {
   print(test);
 }

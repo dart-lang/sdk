@@ -50,6 +50,12 @@
 #define COMPRESSED_ONLY(x)
 #endif
 
+#if defined(HASH_IN_OBJECT_HEADER)
+#define ONLY_IF_HASH_IN_OBJECT_HEADER(x) x
+#else
+#define ONLY_IF_HASH_IN_OBJECT_HEADER(x)
+#endif
+
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF,                \
                             PAYLOAD_SIZEOF, RANGE, CONSTANT, ENUM)             \
   ARRAY(Array, element_offset)                                                 \
@@ -78,6 +84,7 @@
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(Context, kMaxElements)                                              \
+  CONSTANT(Heap, kNewAllocatableSize)                                          \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \
@@ -86,6 +93,7 @@
   CONSTANT(Instructions, kNonBarePayloadAlignment)                             \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(Page, kBytesPerCardLog2)                                            \
+  CONSTANT(Page, kPageMask)                                                    \
   CONSTANT(Record, kMaxElements)                                               \
   CONSTANT(RecordShape, kFieldNamesIndexMask)                                  \
   CONSTANT(RecordShape, kFieldNamesIndexShift)                                 \
@@ -106,6 +114,23 @@
   CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  CONSTANT(UntaggedObject, kCardRememberedBit)                                 \
+  CONSTANT(UntaggedObject, kCanonicalBit)                                      \
+  CONSTANT(UntaggedObject, kNotMarkedBit)                                      \
+  CONSTANT(UntaggedObject, kNewOrEvacuationCandidateBit)                       \
+  CONSTANT(UntaggedObject, kAlwaysSetBit)                                      \
+  CONSTANT(UntaggedObject, kOldAndNotRememberedBit)                            \
+  CONSTANT(UntaggedObject, kIncrementalBarrierMask)                            \
+  CONSTANT(UntaggedObject, kGenerationalBarrierMask)                           \
+  CONSTANT(UntaggedObject, kBarrierOverlapShift)                               \
+  CONSTANT(UntaggedObject, kShallowImmutableBit)                               \
+  CONSTANT(UntaggedObject, kDeeplyImmutableBit)                                \
+  CONSTANT(UntaggedObject, kSizeTagPos)                                        \
+  CONSTANT(UntaggedObject, kSizeTagSize)                                       \
+  CONSTANT(UntaggedObject, kClassIdTagPos)                                     \
+  CONSTANT(UntaggedObject, kClassIdTagSize)                                    \
+  ONLY_IF_HASH_IN_OBJECT_HEADER(CONSTANT(UntaggedObject, kHashTagPos))         \
+  ONLY_IF_HASH_IN_OBJECT_HEADER(CONSTANT(UntaggedObject, kHashTagSize))        \
   FIELD(AbstractType, flags_offset)                                            \
   FIELD(AbstractType, hash_offset)                                             \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
@@ -167,6 +192,7 @@
   FIELD(ICData, entries_offset)                                                \
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
+  FIELD(Instance, first_field_offset)                                          \
   FIELD(Int32x4, value_offset)                                                 \
   FIELD(Isolate, finalizers_offset)                                            \
   NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
@@ -190,6 +216,7 @@
   FIELD(NativeArguments, argv_offset)                                          \
   FIELD(NativeArguments, retval_offset)                                        \
   FIELD(NativeArguments, thread_offset)                                        \
+  FIELD(Object, tags_offset)                                                   \
   FIELD(ObjectStore, double_type_offset)                                       \
   FIELD(ObjectStore, int_type_offset)                                          \
   FIELD(ObjectStore, record_field_names_offset)                                \
@@ -499,7 +526,8 @@
   PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)                          \
   ENUM(StubCode, StubCode::StubNames)                                          \
   ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
-  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)
+  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)                  \
+  ENUM(ClassId, kClassIdNames)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT, ENUM)                                \

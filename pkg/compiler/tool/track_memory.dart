@@ -12,11 +12,10 @@
 /// and run this script immediately after.
 library;
 
-import 'dart:math' show max;
-import 'dart:io';
 import 'dart:async';
-
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math' show max;
 
 /// Socket to connect to the VM service.
 late WebSocket socket;

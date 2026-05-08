@@ -14,8 +14,8 @@ import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show codeSuperclassHasNoMethod;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
 
 const String testSource = '''
@@ -60,7 +60,7 @@ void main() {
 DiagnosticMessageHandler _makeDiagnosticMessageHandler(Set<String> names) {
   return (CfeDiagnosticMessage message) {
     Expect.equals(CfeSeverity.error, message.severity);
-    Expect.identical(codeSuperclassHasNoMethod, getMessageCodeObject(message));
+    Expect.identical(diag.superclassHasNoMethod, getMessageCodeObject(message));
     Expect.isTrue(message.plainTextFormatted.length == 1);
     names.add(getMessageArguments(message)!['name']);
   };

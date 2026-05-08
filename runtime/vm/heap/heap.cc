@@ -88,7 +88,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   CollectForDebugging(thread);
   uword addr = new_space_.TryAllocate(thread, size);
-  if (LIKELY(addr != 0)) {
+  if (addr != 0) [[likely]] {
     return addr;
   }
 
@@ -113,7 +113,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
       CollectGarbage(thread, GCType::kScavenge, GCReason::kNewSpace);
 
       addr = new_space_.TryAllocate(thread, size);
-      if (LIKELY(addr != 0)) {
+      if (addr != 0) [[likely]] {
         return addr;
       }
     }
@@ -543,12 +543,10 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
       }
     }
 
-    thread->isolate_group()->ForEachIsolate(
-        [&](Isolate* isolate) {
-          // Discard regexp backtracking stacks to further reduce memory usage.
-          isolate->CacheRegexpBacktrackStack(nullptr);
-        },
-        /*at_safepoint=*/true);
+    thread->isolate_group()->ForEachMutatorAtASafepoint([&](Thread* mutator) {
+      // Discard regexp backtracking stacks to further reduce memory usage.
+      mutator->CacheRegexpBacktrackStack(nullptr);
+    });
 
     RecordBeforeGC(type, reason);
     NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId));
@@ -618,12 +616,17 @@ void Heap::CheckConcurrentMarking(Thread* thread,
   switch (phase) {
     case PageSpace::kMarking:
       if (mode_ != Dart_PerformanceMode_Latency) {
-        old_space_.IncrementalMarkWithSizeBudget(size);
+        // Back pressure: do slightly more marking work than allocation work.
+        old_space_.IncrementalMarkWithSizeBudget(size + (size >> 2));
       }
       return;
     case PageSpace::kSweepingLarge:
     case PageSpace::kSweepingRegular:
-      return;  // Busy.
+      if (mode_ != Dart_PerformanceMode_Latency) {
+        // Back pressure: do some sweeping work.
+        old_space_.IncrementalSweepWithSizeBudget(size);
+      }
+      return;
     case PageSpace::kAwaitingFinalization:
       CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
       return;

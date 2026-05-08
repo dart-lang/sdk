@@ -11,10 +11,10 @@ class ClassMixingCtorClass with GenerativeConstructorClass {}
 //    ^
 // [cfe] Can't use 'GenerativeConstructorClass' as a mixin because it has constructors.
 //                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 abstract class AbstractClassMixingCtorClass with GenerativeConstructorClass {}
 //             ^
 // [cfe] Can't use 'GenerativeConstructorClass' as a mixin because it has constructors.
 //                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR

@@ -560,6 +560,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   final GenericInterfacesInfo _genericInterfacesInfo;
   final SharedVariableBuilder _sharedVariableBuilder;
   final ProtobufHandler? _protobufHandler;
+  late final usedFieldCollector = UsedFieldsCollector(
+    _nativeCodeOracle.setMemberReferencedFromNativeCode,
+  );
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
@@ -691,8 +694,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
     if (member is Field && localFunction == null) {
       if (hasReceiver) {
-        final int numArgs =
-            fieldSummaryType == FieldSummaryType.kInitializer ? 1 : 2;
+        final int numArgs = fieldSummaryType == FieldSummaryType.kInitializer
+            ? 1
+            : 2;
         _summary = new Summary(
           summaryName,
           parameterCount: numArgs,
@@ -735,11 +739,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _summary.result = _typeCheck(valueParam, member.type, member);
       }
     } else {
-      final FunctionNode function =
-          localFunction != null ? localFunction.function : member.function!;
+      final FunctionNode function = localFunction != null
+          ? localFunction.function
+          : member.function!;
 
-      final numTypeParameters =
-          localFunction == null ? numTypeParams(member) : 0;
+      final numTypeParameters = localFunction == null
+          ? numTypeParams(member)
+          : 0;
       final firstParamIndex =
           ((hasReceiver || localFunction != null) ? 1 : 0) + numTypeParameters;
 
@@ -920,13 +926,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           final Class? concreteClass = target.concreteAsyncResultClass(
             _environment.coreTypes,
           );
-          _summary.result =
-              (concreteClass != null)
-                  ? _entryPointsListener
-                      .addAllocatedClass(concreteClass)
-                      .cls
-                      .concreteType
-                  : _typesBuilder.fromStaticType(function.returnType, false);
+          _summary.result = (concreteClass != null)
+              ? _entryPointsListener
+                    .addAllocatedClass(concreteClass)
+                    .cls
+                    .concreteType
+              : _typesBuilder.fromStaticType(function.returnType, false);
           break;
         case AsyncMarker.AsyncStar:
           _summary.result = _typesBuilder.fromStaticType(
@@ -938,13 +943,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           final Class? concreteClass = target.concreteSyncStarResultClass(
             _environment.coreTypes,
           );
-          _summary.result =
-              (concreteClass != null)
-                  ? _entryPointsListener
-                      .addAllocatedClass(concreteClass)
-                      .cls
-                      .concreteType
-                  : _typesBuilder.fromStaticType(function.returnType, false);
+          _summary.result = (concreteClass != null)
+              ? _entryPointsListener
+                    .addAllocatedClass(concreteClass)
+                    .cls
+                    .concreteType
+              : _typesBuilder.fromStaticType(function.returnType, false);
           break;
         default:
           _summary.result = _returnValue!;
@@ -952,9 +956,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
 
     if (localFunction == null) {
-      member.annotations.forEach(_visit);
-      member.enclosingClass?.annotations.forEach(_visit);
-      member.enclosingLibrary.annotations.forEach(_visit);
+      member.annotations.forEach(_visitAnnotation);
+      member.enclosingClass?.annotations.forEach(_visitAnnotation);
+      member.enclosingLibrary.annotations.forEach(_visitAnnotation);
     }
 
     _enclosingMember = null;
@@ -1043,6 +1047,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   TypeExpr _visit(Expression node) => node.accept(this)!;
+
+  void _visitAnnotation(Expression annotation) {
+    _visit(annotation);
+    if (annotation is ConstantExpression) {
+      annotation.constant.accept(usedFieldCollector);
+    }
+  }
 
   void _visitWithoutResult(TreeNode node) {
     node.accept(this);
@@ -1513,20 +1524,25 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   late final ConcreteType _boolTrue = _typesBuilder.constantTrue;
   late final ConcreteType _boolFalse = _typesBuilder.constantFalse;
 
-  late final Type _doubleType =
-      _typesBuilder.getTFClass(_environment.coreTypes.doubleClass).coneType;
+  late final Type _doubleType = _typesBuilder
+      .getTFClass(_environment.coreTypes.doubleClass)
+      .coneType;
 
-  late final Type _intType =
-      _typesBuilder.getTFClass(_environment.coreTypes.intClass).coneType;
+  late final Type _intType = _typesBuilder
+      .getTFClass(_environment.coreTypes.intClass)
+      .coneType;
 
-  late final Type _stringType =
-      _typesBuilder.getTFClass(_environment.coreTypes.stringClass).coneType;
+  late final Type _stringType = _typesBuilder
+      .getTFClass(_environment.coreTypes.stringClass)
+      .coneType;
 
-  late final Type _symbolType =
-      _typesBuilder.getTFClass(_environment.coreTypes.symbolClass).coneType;
+  late final Type _symbolType = _typesBuilder
+      .getTFClass(_environment.coreTypes.symbolClass)
+      .coneType;
 
-  late final Type _typeType =
-      _typesBuilder.getTFClass(_environment.coreTypes.typeClass).coneType;
+  late final Type _typeType = _typesBuilder
+      .getTFClass(_environment.coreTypes.typeClass)
+      .coneType;
 
   late final Type _nullType = nullableEmptyType;
 
@@ -1897,8 +1913,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitConstructorInvocation(ConstructorInvocation node) {
-    ConcreteType klass =
-        _typesBuilder.getTFClass(node.constructedType.classNode).concreteType;
+    ConcreteType klass = _typesBuilder
+        .getTFClass(node.constructedType.classNode)
+        .concreteType;
     TypeExpr receiver = _translator.instantiateConcreteType(
       klass,
       node.arguments.types,
@@ -2606,7 +2623,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitFunctionDeclaration(FunctionDeclaration node) {
-    node.variable.annotations.forEach(_visit);
+    node.variable.annotations.forEach(_visitAnnotation);
     _declareVariable(node.variable, _closureType(node));
     final closure = Closure(_enclosingMember!, node);
     final callMethod = _entryPointsListener.getClosureCallMethod(closure);
@@ -2792,14 +2809,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitVariableDeclaration(VariableDeclaration node) {
-    node.annotations.forEach(_visit);
+    node.annotations.forEach(_visitAnnotation);
     final initializer = node.initializer;
-    final TypeExpr initialValue =
-        initializer == null
-            ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
-                ? emptyType
-                : _nullType)
-            : _visit(initializer);
+    final TypeExpr initialValue = initializer == null
+        ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
+              ? emptyType
+              : _nullType)
+        : _visit(initializer);
     _declareVariable(node, initialValue);
     return null;
   }

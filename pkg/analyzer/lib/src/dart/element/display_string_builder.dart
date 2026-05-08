@@ -379,7 +379,7 @@ class ElementDisplayStringBuilder {
       if (type.alias case var alias?) {
         _write(alias.element.name ?? '<null>');
         _writeTypeArguments(alias.typeArguments);
-        _writeNullability(type.nullabilitySuffix);
+        _writeNullability(alias.nullabilitySuffix);
         return true;
       }
     }

@@ -10,6 +10,9 @@ const String enableIncrementalCompilerBenchmarking =
 const Set<String> _known = {enableIncrementalCompilerBenchmarking};
 
 Set<String> getExperimentEnvironment() {
+  if (const bool.fromEnvironment('dart.library.js_interop')) {
+    return const <String>{};
+  }
   Set<String> enabled = {};
   Map<String, String> environment = Platform.environment;
   for (String experiment in _known) {

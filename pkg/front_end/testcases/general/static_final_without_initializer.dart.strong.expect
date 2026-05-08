@@ -1,0 +1,150 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:5:7: Error: The final variable 'v1' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+// final v1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:6:11: Error: The final variable 'v2' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+// final int v2; // Error
+//           ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:6:11: Error: Field 'v2' should be initialized because its type 'int' doesn't allow null.
+// final int v2; // Error
+//           ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:10:20: Error: Field 'v4' should be initialized because its type 'int' doesn't allow null.
+//   static final int v4; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:15:20: Error: Field 'v6' should be initialized because its type 'int' doesn't allow null.
+//   static final int v6; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:20:20: Error: Field 'v8' should be initialized because its type 'int' doesn't allow null.
+//   static final int v8; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:25:20: Error: Field 'v10' should be initialized because its type 'int' doesn't allow null.
+//   static final int v10; // Error
+//                    ^^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:32:20: Error: Field 'v12' should be initialized because its type 'int' doesn't allow null.
+//   static final int v12; // Error
+//                    ^^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:9:16: Error: Final field 'v3' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final v3; // Error
+//                ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:10:20: Error: Final field 'v4' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final int v4; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:24:16: Error: Final field 'v9' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final v9; // Error
+//                ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:25:20: Error: Final field 'v10' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final int v10; // Error
+//                    ^^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:31:16: Error: Final field 'v11' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final v11; // Error
+//                ^^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:32:20: Error: Final field 'v12' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final int v12; // Error
+//                    ^^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:14:16: Error: Final field 'v5' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final v5; // Error
+//                ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:15:20: Error: Final field 'v6' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final int v6; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:19:16: Error: Final field 'v7' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final v7; // Error
+//                ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:20:20: Error: Final field 'v8' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   static final int v8; // Error
+//                    ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static final field dynamic v3 = null;
+  static final field core::int v4 = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  static final field dynamic v9 = null;
+  static final field core::int v10 = null;
+}
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = #C3;
+  static final field dynamic v11 = null;
+  static final field core::int v12 = null;
+  static const field core::List<self::Enum> values = #C4;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+}
+extension Extension on self::Class {
+  static field v5 = self::Extension|v5;
+  static field v6 = self::Extension|v6;
+}
+extension type ExtensionType(self::Class c) {
+  abstract extension-type-member representation-field get c() → self::Class;
+  static field v7 = self::ExtensionType|v7;
+  static field v8 = self::ExtensionType|v8;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static final field dynamic v1;
+static final field core::int v2;
+static final field dynamic Extension|v5 = null;
+static final field core::int Extension|v6 = null;
+static final field dynamic ExtensionType|v7 = null;
+static final field core::int ExtensionType|v8 = null;
+static extension-type-member method ExtensionType|constructor#(self::Class c) → self::ExtensionType% /* erasure=self::Class, declared=! */ {
+  lowered final self::ExtensionType% /* erasure=self::Class, declared=! */ #this = c;
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(self::Class c) → self::ExtensionType% /* erasure=self::Class, declared=! */
+  return self::ExtensionType|constructor#(c);
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::Enum {index:#C1, _name:#C2}
+  #C4 = <self::Enum>[#C3]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///static_final_without_initializer.dart:
+- Enum. (from org-dartlang-testcase:///static_final_without_initializer.dart:28:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

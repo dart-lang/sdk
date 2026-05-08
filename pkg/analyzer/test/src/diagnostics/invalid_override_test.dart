@@ -30,6 +30,318 @@ abstract class C implements B {
 ''');
   }
 
+  test_class_augment_method_covariant_multiFile_invalid() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+class A {
+  void foo(num a) {}
+}
+
+class B extends A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class B {
+  void foo(covariant String a) {}
+}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [error(diag.invalidOverride, 44, 3)]);
+  }
+
+  test_class_augment_method_covariant_multiFile_valid() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+class A {
+  void foo(num a) {}
+}
+
+class B extends A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class B {
+  void foo(covariant int a) {}
+}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+  }
+
+  test_class_augment_method_covariant_singleFile_invalid() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void foo(num a) {}
+}
+
+class B extends A {}
+
+augment class B {
+  void foo(covariant String a) {}
+}
+''',
+      [error(diag.invalidOverride, 81, 3)],
+    );
+  }
+
+  test_class_augment_method_covariant_singleFile_valid() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo(num a) {}
+}
+
+class B extends A {}
+
+augment class B {
+  void foo(covariant int a) {}
+}
+''');
+  }
+
+  test_class_augment_method_multiFile() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+class A {
+  int foo() => 0;
+}
+
+class B extends A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class B {
+  String foo() => '';
+}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(diag.invalidOverride, 46, 3, contextMessages: [message(a, 32, 3)]),
+    ]);
+  }
+
+  test_class_augment_method_singleFile() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {}
+
+augment class B {
+  String foo() => '';
+}
+''',
+      [
+        error(
+          diag.invalidOverride,
+          80,
+          3,
+          contextMessages: [message(testFile, 16, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_augment_setter_multiFile() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+class A {
+  void set foo(int value) {}
+}
+
+class B extends A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class B {
+  void set foo(String value) {}
+}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(
+        diag.invalidOverrideSetter,
+        48,
+        3,
+        contextMessages: [message(a, 37, 3)],
+      ),
+    ]);
+  }
+
+  test_class_augment_setter_singleFile() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void set foo(int value) {}
+}
+
+class B extends A {}
+
+augment class B {
+  void set foo(String value) {}
+}
+''',
+      [
+        error(
+          diag.invalidOverrideSetter,
+          93,
+          3,
+          contextMessages: [message(testFile, 21, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_augment_withClause_multiFile__declaration0_augment1_augment1() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+part 'c.dart';
+
+mixin M1 {}
+mixin M2 {}
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class A with M1 {}
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'a.dart';
+
+augment class A with M2 {}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+  }
+
+  test_class_augment_withClause_multiFile_declaration0_augment2() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+mixin M1 {}
+mixin M2 {}
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class A with M1, M2 {}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+  }
+
+  test_class_augment_withClause_multiFile_declaration1_augment1() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+mixin M1 {}
+mixin M2 {}
+
+class A with M1 {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class A with M2 {}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+  }
+
+  test_class_augment_withClause_singleFile_declaration0_augment1() async {
+    await assertNoErrorsInCode(r'''
+mixin M {}
+
+class A {}
+
+augment class A with M {}
+''');
+  }
+
+  test_class_augment_withClause_singleFile_declaration0_augment1_augment1() async {
+    await assertNoErrorsInCode(r'''
+mixin M1 {}
+mixin M2 {}
+
+class A {}
+
+augment class A with M1 {}
+
+augment class A with M2 {}
+''');
+  }
+
+  test_class_augment_withClause_singleFile_declaration0_augment2() async {
+    await assertNoErrorsInCode(r'''
+mixin M1 {}
+mixin M2 {}
+
+class A {}
+
+augment class A with M1, M2 {}
+''');
+  }
+
+  test_class_augment_withClause_singleFile_declaration1_augment1() async {
+    await assertNoErrorsInCode(r'''
+mixin M1 {}
+mixin M2 {}
+
+class A with M1 {}
+
+augment class A with M2 {}
+''');
+  }
+
+  test_class_augment_withClause_twoFiles_declaration0_augment1() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+mixin M {}
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+augment class A with M {}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+  }
+
   test_external_field_covariant_inheritance() async {
     await assertNoErrorsInCode('''
 abstract class A {

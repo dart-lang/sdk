@@ -8,6 +8,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:path/path.dart' as path;
 
 /// The page that displays information about _new_ (not legacy) analyzer
 /// plugins.
@@ -44,7 +46,14 @@ class PluginsPage extends DiagnosticPageWithNav {
         if (isolate.executionPath case var executionPath?)
           ['Execution path:', executionPath.wordBreakOnSlashes],
         if (isolate.packageConfigPath case var packageConfigPath?)
-          ['Package config path', packageConfigPath.wordBreakOnSlashes],
+          [
+            'Package config path:',
+            '${path.posix.dirname(packageConfigPath)}/'.wordBreakOnSlashes +
+                formatContentsLink(
+                  packageConfigPath,
+                  file_paths.packageConfigJson,
+                ),
+          ],
       ]);
 
       if (data.name == null) {
@@ -62,7 +71,7 @@ class PluginsPage extends DiagnosticPageWithNav {
         continue;
       }
 
-      p('Associated contexts:');
+      h3('Associated contexts:');
       var contexts = isolate.contextRoots;
       if (contexts.isEmpty) {
         blankslate('none');
@@ -81,6 +90,24 @@ class PluginsPage extends DiagnosticPageWithNav {
       } else {
         for (var plugin in details.plugins) {
           h3(plugin.name);
+
+          var prints = isolate.pluginPrints[plugin.name];
+          if (prints != null) {
+            h3('Debug print output:');
+            pre(() {
+              var discardedPrintCount =
+                  isolate.discardedPluginPrintCount[plugin.name];
+              if (discardedPrintCount != null && discardedPrintCount > 0) {
+                buf.write('(... $discardedPrintCount previous messages)');
+              }
+              for (var print in prints) {
+                var timestamp = DateTime.fromMillisecondsSinceEpoch(
+                  print.timestamp,
+                );
+                buf.write('$timestamp: ${print.message}\n');
+              }
+            });
+          }
 
           if (plugin.lintRules.isNotEmpty) {
             p('Lint rules:');
@@ -110,7 +137,14 @@ class PluginsPage extends DiagnosticPageWithNav {
         }
       }
 
-      p('Performance:');
+      h3('Performance:');
+      p('''
+The server communicates with the plugins by sending requests. Each line
+below provides aggregated information about one of the requests and begins with
+the name of the request. The 'count' is the number of times the request was
+sent. The percentiles are the 50th, 75th, 90th, 95th, and 100th percentiles of
+the number of milliseconds it took to receiver a response.
+''');
       var responseTimes = PluginManager.pluginResponseTimes[isolate] ?? {};
       var entries = responseTimes.entries.toList();
       entries.sort((first, second) => first.key.compareTo(second.key));

@@ -57,6 +57,13 @@ class Heap {
   // Pattern for unused new space and swept old space.
   static constexpr uint8_t kZapByte = 0xf3;
 
+  // Maximum size of object in the new space.
+  static constexpr intptr_t kNewAllocatableSize = 256 * KB;
+
+  static inline bool IsAllocatableInNewSpace(intptr_t size) {
+    return size <= kNewAllocatableSize;
+  }
+
   ~Heap();
 
   Scavenger* new_space() { return &new_space_; }

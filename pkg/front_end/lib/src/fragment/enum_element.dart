@@ -80,7 +80,7 @@ class EnumElementDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isExtensionTypeDeclaredInstanceField => false;
+  bool get isInvalidField => false;
 
   @override
   bool get isFinal => false;
@@ -117,7 +117,7 @@ class EnumElementDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -202,6 +202,13 @@ class EnumElementDeclaration
     required bool isSynthetic,
   }) {
     throw new UnsupportedError("${runtimeType}.buildInitializer");
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      "${runtimeType}.takePrimaryConstructorFieldInitializer",
+    );
   }
 
   @override
@@ -390,8 +397,8 @@ class EnumElementDeclaration
         assert(libraryBuilder.loader.hasSeenError);
         String text = libraryBuilder.loader.target.context
             .format(
-              codeConstructorNotFound
-                  .withArgumentsOld(fullConstructorNameForErrors)
+              diag.constructorNotFound
+                  .withArguments(name: fullConstructorNameForErrors)
                   .withLocation(fileUri, fileOffset, noLength),
               CfeSeverity.error,
             )
@@ -470,7 +477,9 @@ class EnumElementFragment implements Fragment {
 
   EnumElementDeclaration? _declaration;
 
-  final TypeBuilder type = new InferableTypeBuilder();
+  final TypeBuilder type = new InferableTypeBuilder(
+    InferenceDefaultType.Dynamic,
+  );
 
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(

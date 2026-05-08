@@ -5,35 +5,40 @@
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
 final widgetsTextLibrary = MockLibraryUnit('lib/src/widgets/text.dart', r'''
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import 'basic.dart';
 import 'framework.dart';
+import 'inherited_theme.dart';
 
 class DefaultTextStyle extends InheritedTheme {
   const DefaultTextStyle({
     super.key,
     required TextStyle style,
-    TextAlign? textAlign,
+    ui.TextAlign? textAlign,
     bool softWrap = true,
     TextOverflow overflow = TextOverflow.clip,
     int? maxLines,
     TextWidthBasis textWidthBasis = TextWidthBasis.parent,
-    TextHeightBehavior? textHeightBehavior,
+    ui.TextHeightBehavior? textHeightBehavior,
     required super.child,
   }) : assert(maxLines == null || maxLines > 0);
 }
 
 class Text extends StatelessWidget {
+  /// The text to display.
   final String? data;
 
   final TextStyle? style;
 
-  final TextAlign? textAlign;
+  final ui.TextAlign? textAlign;
 
-  final TextDirection? textDirection;
+  final ui.TextDirection? textDirection;
 
+  /// Whether the text should break at soft line breaks.
   final bool? softWrap;
 
   final TextOverflow? overflow;
@@ -55,10 +60,10 @@ class Text extends StatelessWidget {
     String this.data, {
     super.key,
     this.style,
-    StrutStyle? strutStyle,
+    ui.StrutStyle? strutStyle,
     this.textAlign,
     this.textDirection,
-    Locale? locale,
+    ui.Locale? locale,
     this.softWrap,
     this.overflow,
     @Deprecated(
@@ -72,8 +77,8 @@ class Text extends StatelessWidget {
     this.semanticsLabel,
     String? semanticsIdentifier,
     this.textWidthBasis,
-    TextHeightBehavior? textHeightBehavior,
-    Color? selectionColor,
+    ui.TextHeightBehavior? textHeightBehavior,
+    ui.Color? selectionColor,
   }) : textSpan = null,
        assert(
          textScaler == null || textScaleFactor == null,

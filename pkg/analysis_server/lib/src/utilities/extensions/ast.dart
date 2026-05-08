@@ -179,10 +179,7 @@ extension AstNodeExtension on AstNode {
   /// Returns `null` if `this` is `null` or doesn't have an element.
   Element? getElement({bool useMockForImport = false}) {
     AstNode? node = this;
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
+    if (node is DottedName) {
       node = node.parent;
     }
     if (node is StringLiteral && node.parent is UriBasedDirective) {
@@ -207,17 +204,6 @@ extension AstNodeExtension on AstNode {
 extension BinaryExpressionExtension on BinaryExpression {
   bool get isNotEqNull {
     return operator.type == TokenType.BANG_EQ && rightOperand is NullLiteral;
-  }
-}
-
-extension ClassDeclarationExtension on ClassDeclaration {
-  List<ClassMember> get members2 {
-    switch (body) {
-      case BlockClassBody body:
-        return body.members;
-      default:
-        return [];
-    }
   }
 }
 
@@ -340,17 +326,6 @@ extension ExpressionExtension on Expression {
     }
     var precedence = self.operator.type.precedence;
     return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
-  }
-}
-
-extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclaration {
-  List<ClassMember> get members2 {
-    switch (body) {
-      case BlockClassBody body:
-        return body.members;
-      default:
-        return [];
-    }
   }
 }
 

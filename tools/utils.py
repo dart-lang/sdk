@@ -692,7 +692,7 @@ class BaseCoreDumpArchiver(object):
         else:
             print(
                 "INFO: Uploading collected dumps and binaries into Cloud Storage\n"
-                "INFO: Use `gsutil.py cp from-url to-path` to download them.\n"
+                "INFO: Use `gcloud storage cp from-url to-path` to download them.\n"
                 "INFO: For more information see runtime/docs/infra/coredumps.md"
             )
             self._upload(files)

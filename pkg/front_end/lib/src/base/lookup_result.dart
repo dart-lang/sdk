@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
@@ -39,7 +40,7 @@ abstract class LookupResult {
       }
       length = noLength;
     }
-    Message message = codeDuplicatedDeclarationUse.withArgumentsOld(name);
+    Message message = diag.duplicatedDeclarationUse.withArguments(name: name);
     return message.withLocation(fileUri, fileOffset, length);
   }
 

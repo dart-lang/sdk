@@ -35,7 +35,11 @@ class MultiBinaryLoader {
   /// Check if the bytes match, i.e. if the bytes in [data] from [from] to [to]
   /// matches the bytes in the [candidate].
   bool _checkCandidate(
-      Uint8List data, int from, int to, _LoadedData candidate) {
+    Uint8List data,
+    int from,
+    int to,
+    _LoadedData candidate,
+  ) {
     int length = to - from;
     if (length != candidate.data.length) return false;
     for (int i = 0, j = from; i < length; i++, j++) {
@@ -52,8 +56,10 @@ class MultiBinaryLoader {
   /// platform together with a serialized component without the platform.
   /// [alternativeData] can optionally give an alternative version of some data
   /// range. This would possibly allow for skipping the creation of a checksum.
-  Component load(List<Uint8List> allData,
-      Uint8List? Function(Uint8List data, int from, int to)? alternativeData) {
+  Component load(
+    List<Uint8List> allData,
+    Uint8List? Function(Uint8List data, int from, int to)? alternativeData,
+  ) {
     List<_LoadedData> subComponents = [];
 
     for (Uint8List orgData in allData) {
@@ -99,10 +105,12 @@ class MultiBinaryLoader {
           // live in memory. We don't want that so we make a "physical" copy.
           Uint8List subData = new Uint8List(to - from);
           subData.setRange(0, subData.length, data, from);
-          BinaryBuilder bb = new BinaryBuilder(subData,
-              disableLazyReading: true,
-              useGrowableLists: false,
-              alwaysCreateNewNamedNodes: true);
+          BinaryBuilder bb = new BinaryBuilder(
+            subData,
+            disableLazyReading: true,
+            useGrowableLists: false,
+            alwaysCreateNewNamedNodes: true,
+          );
           Component component = new Component(nameRoot: _canonicalNameRoot);
           bb.readComponent(component);
 

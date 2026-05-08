@@ -2,11 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:8: Error: This requires the experimental 'primary-constructors' language feature to be enabled.
-// Try passing the '--enable-experiment=primary-constructors' command line option.
-// class A(String foo) {
-//        ^
-//
 // pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:8:45: Error: The constructor function type 'E Function()' isn't a subtype of 'A Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart'.
 //   factory A.redirectingFactoryToSubtype() = E.redirectingFactoryWithMismatchingParameters;
@@ -18,7 +13,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib.dart";
 
 class A extends core::Object {
-  constructor •(core::String foo) → self::A
+  constructor •(final core::String foo) → self::A
     ;
   static factory redirectingFactoryToSubtype() → self::A
     return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:8:45: Error: The constructor function type 'E Function()' isn't a subtype of 'A Function()'.

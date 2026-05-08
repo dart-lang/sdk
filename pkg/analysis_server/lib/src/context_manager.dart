@@ -179,7 +179,7 @@ class ContextManagerImpl implements ContextManager {
 
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.
-  final String? packagesFile;
+  final String? packageConfigFile;
 
   /// The storage for cached results.
   final ByteStore _byteStore;
@@ -273,7 +273,7 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
     this.resourceProvider,
     this.sdkManager,
-    this.packagesFile,
+    this.packageConfigFile,
     this._enabledExperiments,
     this._byteStore,
     this._fileContentCache,
@@ -402,14 +402,14 @@ class ContextManagerImpl implements ContextManager {
       var sdkVersionConstraint = (package is PubPackage)
           ? package.sdkVersionConstraint
           : null;
-      var errors = analyzeAnalysisOptions(
-        FileSource(file),
-        content,
-        driver.sourceFactory,
-        driver.currentSession.analysisContext.contextRoot.root.path,
-        sdkVersionConstraint,
-        resourceProvider,
-      );
+      var errors = AnalysisOptionsAnalyzer(
+        initialSource: FileSource(file),
+        sourceFactory: driver.sourceFactory,
+        contextRoot:
+            driver.currentSession.analysisContext.contextRoot.root.path,
+        sdkVersionConstraint: sdkVersionConstraint,
+        resourceProvider: resourceProvider,
+      ).walkIncludes(content: content);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(
         errors,
@@ -603,7 +603,7 @@ class ContextManagerImpl implements ContextManager {
           resourceProvider: resourceProvider,
           scheduler: _scheduler,
           sdkPath: sdkManager.defaultSdkDirectory,
-          packagesFile: packagesFile,
+          packageConfigFile: packageConfigFile,
           fileContentCache: _fileContentCache,
           unlinkedUnitStore: _unlinkedUnitStore,
           enabledExperiments: _enabledExperiments,
@@ -659,6 +659,19 @@ class ContextManagerImpl implements ContextManager {
           if (fixDataFolder.exists) {
             _analyzeFixDataFolder(driver, fixDataFolder, packageName);
           }
+        }
+
+        // Add package roots to the SessionLogger.
+        for (var i = 0; i < collection.contexts.length; i++) {
+          var analysisContext = collection.contexts[i];
+          var packages = analysisContext.contextRoot.workspace.packages;
+          _sessionLogger.addPackageRoots(
+            index: i,
+            packageRoots: {
+              for (var package in packages.packages)
+                package.name: package.rootFolder.toUri(),
+            },
+          );
         }
 
         // Finally, wait for the new contexts watchers to all become ready so we

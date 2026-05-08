@@ -1623,8 +1623,8 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
 
   ValueCompletionSuggestionBuilder(
     this._suggestion, {
-    String? textToMatchOverride,
-  }) : _textToMatchOverride = textToMatchOverride;
+    this._textToMatchOverride,
+  });
 
   @override
   String get completion => _suggestion.completion;

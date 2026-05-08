@@ -2,182 +2,358 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 import '../util/feature_sets.dart';
-import 'parser_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GenericMetadataEnabledParserTest);
     defineReflectiveTests(GenericMetadataDisabledParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class GenericMetadataDisabledParserTest extends FastaParserTestCase
+class GenericMetadataDisabledParserTest extends ParserDiagnosticsTest
     with GenericMetadataParserTest {
   @override
-  CompilationUnit _parseCompilationUnit(
-    String content, {
-    List<ExpectedDiagnostic>? diagnostics,
-    required ExpectedDiagnostic? disabledDiagnostics,
-  }) {
-    var combinedDiagnostics = disabledDiagnostics == null
-        ? diagnostics
-        : [disabledDiagnostics, ...?diagnostics];
-    return parseCompilationUnit(
-      content,
-      diagnostics: combinedDiagnostics,
-      featureSet: FeatureSets.language_2_12,
-    );
-  }
+  FeatureSet get testFeatureSet => FeatureSets.language_2_12;
 }
 
 @reflectiveTest
-class GenericMetadataEnabledParserTest extends FastaParserTestCase
-    with GenericMetadataParserTest {
-  @override
-  CompilationUnit _parseCompilationUnit(
-    String content, {
-    List<ExpectedError>? diagnostics,
-    required ExpectedError? disabledDiagnostics,
-  }) => parseCompilationUnit(content, diagnostics: diagnostics);
-}
+class GenericMetadataEnabledParserTest extends ParserDiagnosticsTest
+    with GenericMetadataParserTest {}
 
-mixin GenericMetadataParserTest on FastaParserTestCase {
+mixin GenericMetadataParserTest on ParserDiagnosticsTest {
   void test_className_prefixed_constructorName_absent() {
-    var compilationUnit = _parseCompilationUnit(
-      '@p.A<B>() class C {}',
-      disabledDiagnostics: expectedError(diag.experimentNotEnabled, 4, 1),
-    );
-    var classDeclaration =
-        compilationUnit.declarations.single as ClassDeclaration;
-    var annotation = classDeclaration.metadata.single;
-    var className = annotation.name as PrefixedIdentifier;
-    expect(className.prefix.name, 'p');
-    expect(className.identifier.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name.lexeme, 'B');
-    expect(annotation.constructorName, isNull);
+    var parseResult = parseStringWithErrors(r'''
+@p.A<B>()
+class C {}
+''');
+    if (testFeatureSet.isEnabled(Feature.generic_metadata)) {
+      parseResult.assertNoErrors();
+    } else {
+      parseResult.assertErrors([error(diag.experimentNotEnabled, 4, 1)]);
+    }
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: B
+        rightBracket: >
+      arguments: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_className_prefixed_constructorName_present() {
-    var compilationUnit = _parseCompilationUnit(
-      '@p.A<B>.ctor() class C {}',
-      disabledDiagnostics: expectedError(diag.experimentNotEnabled, 4, 1),
-    );
-    var classDeclaration =
-        compilationUnit.declarations.single as ClassDeclaration;
-    var annotation = classDeclaration.metadata.single;
-    var className = annotation.name as PrefixedIdentifier;
-    expect(className.prefix.name, 'p');
-    expect(className.identifier.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name.lexeme, 'B');
-    expect(annotation.constructorName!.name, 'ctor');
+    var parseResult = parseStringWithErrors(r'''
+@p.A<B>.ctor()
+class C {}
+''');
+    if (testFeatureSet.isEnabled(Feature.generic_metadata)) {
+      parseResult.assertNoErrors();
+    } else {
+      parseResult.assertErrors([error(diag.experimentNotEnabled, 4, 1)]);
+    }
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: B
+        rightBracket: >
+      period: .
+      constructorName: SimpleIdentifier
+        token: ctor
+      arguments: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_className_unprefixed_constructorName_absent() {
-    var compilationUnit = _parseCompilationUnit(
-      '@A<B>() class C {}',
-      disabledDiagnostics: expectedError(diag.experimentNotEnabled, 2, 1),
-    );
-    var classDeclaration =
-        compilationUnit.declarations.single as ClassDeclaration;
-    var annotation = classDeclaration.metadata.single;
-    var className = annotation.name as SimpleIdentifier;
-    expect(className.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name.lexeme, 'B');
-    expect(annotation.constructorName, isNull);
+    var parseResult = parseStringWithErrors(r'''
+@A<B>()
+class C {}
+''');
+    if (testFeatureSet.isEnabled(Feature.generic_metadata)) {
+      parseResult.assertNoErrors();
+    } else {
+      parseResult.assertErrors([error(diag.experimentNotEnabled, 2, 1)]);
+    }
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: B
+        rightBracket: >
+      arguments: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_className_unprefixed_constructorName_present() {
-    var compilationUnit = _parseCompilationUnit(
-      '@A<B>.ctor() class C {}',
-      disabledDiagnostics: expectedError(diag.experimentNotEnabled, 2, 1),
-    );
-    var classDeclaration =
-        compilationUnit.declarations.single as ClassDeclaration;
-    var annotation = classDeclaration.metadata.single;
-    var className = annotation.name as SimpleIdentifier;
-    expect(className.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name.lexeme, 'B');
-    expect(annotation.constructorName!.name, 'ctor');
+    var parseResult = parseStringWithErrors(r'''
+@A<B>.ctor()
+class C {}
+''');
+    if (testFeatureSet.isEnabled(Feature.generic_metadata)) {
+      parseResult.assertNoErrors();
+    } else {
+      parseResult.assertErrors([error(diag.experimentNotEnabled, 2, 1)]);
+    }
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: B
+        rightBracket: >
+      period: .
+      constructorName: SimpleIdentifier
+        token: ctor
+      arguments: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_reference_prefixed() {
-    var compilationUnit = _parseCompilationUnit(
-      '@p.x<A> class C {}',
-      diagnostics: [
-        expectedError(diag.annotationWithTypeArgumentsUninstantiated, 6, 1),
-      ],
-      disabledDiagnostics: expectedError(diag.experimentNotEnabled, 4, 1),
-    );
-    var classDeclaration =
-        compilationUnit.declarations.single as ClassDeclaration;
-    var annotation = classDeclaration.metadata.single;
-    var name = annotation.name as PrefixedIdentifier;
-    expect(name.prefix.name, 'p');
-    expect(name.identifier.name, 'x');
-    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name.lexeme, 'A');
-    expect(annotation.constructorName, isNull);
+    var parseResult = parseStringWithErrors(r'''
+@p.x<A> class C {}
+''');
+    if (testFeatureSet.isEnabled(Feature.generic_metadata)) {
+      parseResult.assertErrors([
+        error(diag.annotationWithTypeArgumentsUninstantiated, 6, 1),
+      ]);
+    } else {
+      parseResult.assertErrors([
+        error(diag.experimentNotEnabled, 4, 1),
+        error(diag.annotationWithTypeArgumentsUninstantiated, 6, 1),
+      ]);
+    }
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+        period: .
+        identifier: SimpleIdentifier
+          token: x
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: A
+        rightBracket: >
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_reference_unprefixed() {
-    var compilationUnit = _parseCompilationUnit(
-      '@x<A> class C {}',
-      diagnostics: [
-        expectedError(diag.annotationWithTypeArgumentsUninstantiated, 4, 1),
-      ],
-      disabledDiagnostics: expectedError(diag.experimentNotEnabled, 2, 1),
-    );
-    var classDeclaration =
-        compilationUnit.declarations.single as ClassDeclaration;
-    var annotation = classDeclaration.metadata.single;
-    var name = annotation.name as SimpleIdentifier;
-    expect(name.name, 'x');
-    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name.lexeme, 'A');
-    expect(annotation.constructorName, isNull);
+    var parseResult = parseStringWithErrors(r'''
+@x<A> class C {}
+''');
+    if (testFeatureSet.isEnabled(Feature.generic_metadata)) {
+      parseResult.assertErrors([
+        error(diag.annotationWithTypeArgumentsUninstantiated, 4, 1),
+      ]);
+    } else {
+      parseResult.assertErrors([
+        error(diag.experimentNotEnabled, 2, 1),
+        error(diag.annotationWithTypeArgumentsUninstantiated, 4, 1),
+      ]);
+    }
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: x
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: A
+        rightBracket: >
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   test_typeArguments_after_constructorName() {
-    _parseCompilationUnit(
-      '@p.A.ctor<B>() class C {}',
-      diagnostics: [
-        expectedError(diag.expectedExecutable, 9, 1),
-        expectedError(diag.missingConstFinalVarOrType, 10, 1),
-        expectedError(diag.expectedToken, 10, 1),
-        expectedError(diag.topLevelOperator, 11, 1),
-        expectedError(diag.missingFunctionBody, 15, 5),
-      ],
-      disabledDiagnostics: null,
-    );
+    var parseResult = parseStringWithErrors(r'''
+@p.A.ctor<B>() class C {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedExecutable, 9, 1),
+      error(diag.missingConstFinalVarOrType, 10, 1),
+      error(diag.expectedToken, 10, 1),
+      error(diag.topLevelOperator, 11, 1),
+      error(diag.missingFunctionBody, 15, 5),
+    ]);
+
+    var node = parseResult.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: B
+      semicolon: ; <synthetic>
+    FunctionDeclaration
+      name: #synthetic_function_11 <synthetic>
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   test_typeArguments_after_prefix() {
-    _parseCompilationUnit(
-      '@p<A>.B.ctor() class C {}',
-      diagnostics: [
-        expectedError(diag.annotationWithTypeArgumentsUninstantiated, 6, 1),
-        expectedError(diag.expectedExecutable, 7, 1),
-        expectedError(diag.missingFunctionBody, 15, 5),
-      ],
-      disabledDiagnostics: expectedError(diag.experimentNotEnabled, 2, 1),
-    );
-  }
+    var parseResult = parseStringWithErrors(r'''
+@p<A>.B.ctor() class C {}
+''');
+    if (testFeatureSet.isEnabled(Feature.generic_metadata)) {
+      parseResult.assertErrors([
+        error(diag.annotationWithTypeArgumentsUninstantiated, 6, 1),
+        error(diag.expectedExecutable, 7, 1),
+        error(diag.missingFunctionBody, 15, 5),
+      ]);
+    } else {
+      parseResult.assertErrors([
+        error(diag.experimentNotEnabled, 2, 1),
+        error(diag.annotationWithTypeArgumentsUninstantiated, 6, 1),
+        error(diag.expectedExecutable, 7, 1),
+        error(diag.missingFunctionBody, 15, 5),
+      ]);
+    }
 
-  CompilationUnit _parseCompilationUnit(
-    String content, {
-    List<ExpectedError>? diagnostics,
-    required ExpectedError? disabledDiagnostics,
-  });
+    var node = parseResult.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: ctor
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
+  }
 }

@@ -16,11 +16,11 @@ import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
-import '../universe/class_hierarchy.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
 import 'call_structure.dart';
+import 'class_hierarchy.dart';
 import 'member_usage.dart';
 import 'selector.dart' show Selector;
 import 'use.dart'
@@ -962,24 +962,17 @@ class CodegenWorldImpl implements CodegenWorld {
     required this.namedTypeVariables,
     required this.instantiatedTypes,
     required this.liveTypeArguments,
-    required Map<FunctionEntity, List<JParameterStub>> parameterStubs,
-    required Iterable<ConstantValue> compiledConstants,
-    required Map<String, Map<Selector, SelectorConstraints>> invokedNames,
-    required Map<String, Map<Selector, SelectorConstraints>> invokedGetters,
-    required Map<String, Map<Selector, SelectorConstraints>> invokedSetters,
-    required Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
-    required Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
+    required this._parameterStubs,
+    required this._compiledConstants,
+    required this._invokedNames,
+    required this._invokedGetters,
+    required this._invokedSetters,
+    required this._staticTypeArgumentDependencies,
+    required this._dynamicTypeArgumentDependencies,
     required this.oneShotInterceptorData,
-  }) : _parameterStubs = parameterStubs,
-       _reachableLazyMemberBodies = processedEntities
+  }) : _reachableLazyMemberBodies = processedEntities
            .where((e) => e is JGeneratorBody || e is JConstructorBody)
-           .toSet(),
-       _compiledConstants = compiledConstants,
-       _invokedNames = invokedNames,
-       _invokedGetters = invokedGetters,
-       _invokedSetters = invokedSetters,
-       _staticTypeArgumentDependencies = staticTypeArgumentDependencies,
-       _dynamicTypeArgumentDependencies = dynamicTypeArgumentDependencies;
+           .toSet();
 
   @override
   AnnotationsData get annotationsData => _closedWorld.annotationsData;

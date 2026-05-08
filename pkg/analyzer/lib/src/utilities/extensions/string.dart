@@ -118,13 +118,20 @@ extension IterableOfStringExtension on Iterable<String> {
   }
 }
 
-extension Pluralized on String {
-  String pluralized(int count) => count == 1 ? toString() : '${toString()}s';
-}
-
 extension StringExtension on String {
+  static final RegExp _escapeForSingleQuotesRegExp = RegExp(
+    r"[\x00-\x1F\x7F'$\\]",
+  );
+
   String? get nullIfEmpty {
     return isNotEmpty ? this : null;
+  }
+
+  String capitalize() {
+    if (isEmpty) {
+      return this;
+    }
+    return substring(0, 1).toUpperCase() + substring(1);
   }
 
   /// If [length] is above the [limit], replace the middle with `...`.
@@ -137,6 +144,23 @@ extension StringExtension on String {
     return this;
   }
 
+  /// A string that can be safely inserted into a single-quoted string literal.
+  String escapedForSingleQuotes() {
+    return replaceAllMapped(_escapeForSingleQuotesRegExp, (match) {
+      return switch (match[0]!) {
+        '\b' => r'\b',
+        '\t' => r'\t',
+        '\n' => r'\n',
+        '\f' => r'\f',
+        '\r' => r'\r',
+        r'$' => r'\$',
+        "'" => r"\'",
+        r'\' => r'\\',
+        String s => '\\u${s.codeUnitAt(0).toRadixString(16).padLeft(4, '0')}',
+      };
+    });
+  }
+
   /// If this is equal to [value], return [then], otherwise return `this`.
   String ifEqualThen(String value, String then) {
     return this == value ? then : this;
@@ -145,6 +169,8 @@ extension StringExtension on String {
   String ifNotEmptyOrElse(String orElse) {
     return isNotEmpty ? this : orElse;
   }
+
+  String pluralized(int count) => count == 1 ? this : '${this}s';
 
   String removePrefixOrSelf(String prefix) {
     if (startsWith(prefix)) {
@@ -159,6 +185,14 @@ extension StringExtension on String {
       return substring(0, length - suffix.length);
     } else {
       return null;
+    }
+  }
+
+  String removeSuffixOrSelf(String suffix) {
+    if (endsWith(suffix)) {
+      return substring(0, length - suffix.length);
+    } else {
+      return this;
     }
   }
 

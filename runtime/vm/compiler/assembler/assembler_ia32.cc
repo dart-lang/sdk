@@ -1991,11 +1991,7 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
     return;
   }
   if ((value > 0) || (value == kMinInt32)) {
-    if (value == 1) {
-      incl(reg);
-    } else {
-      addl(reg, imm);
-    }
+    addl(reg, imm);
   } else {
     SubImmediate(reg, Immediate(-value));
   }
@@ -2530,7 +2526,7 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
   // return (hash == 0) ? 1 : hash;
   Label done;
   j(NOT_ZERO, &done, kNearJump);
-  incl(dst);
+  addl(dst, Immediate(1));
   Bind(&done);
 }
 

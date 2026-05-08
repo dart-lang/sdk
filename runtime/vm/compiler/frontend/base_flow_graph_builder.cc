@@ -597,7 +597,8 @@ Fragment BaseFlowGraphBuilder::StoreField(
 
 Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
     const Field& field,
-    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */) {
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
+    bool requires_immutability_check /* = false */) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(Z, field);
   if (IG->use_field_guards()) {
@@ -631,6 +632,13 @@ Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
       instructions <<=
           new (Z) GuardFieldTypeInstr(Pop(), field_clone, GetNextDeoptId());
     }
+  }
+  if (requires_immutability_check) {
+    ASSERT(kind == StoreFieldInstr::Kind::kInitializing);
+    LocalVariable* store_expression = MakeTemporary();
+    instructions += LoadLocal(store_expression);
+    instructions <<= new (Z)
+        CheckFieldImmutabilityInstr(Pop(), field_clone, GetNextDeoptId());
   }
   instructions +=
       StoreNativeField(Slot::Get(field_clone, parsed_function_), kind);

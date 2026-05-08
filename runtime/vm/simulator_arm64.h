@@ -27,6 +27,7 @@ class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
 struct CallbackContext;
+struct CallbackMetadata;
 
 typedef struct {
   union {
@@ -102,8 +103,7 @@ class Simulator {
                bool fp_args = false);
   void DoRedirectedFfiCallback(Thread* thread,
                                CallbackContext* ctxt,
-                               uword entry_point,
-                               uword trampoline_type);
+                               CallbackMetadata* out);
 
   // Runtime and native call support.
   enum CallKind {

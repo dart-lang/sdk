@@ -62,14 +62,16 @@ class DisableNativeProfileScope : public ValueObject {
 class MaxProfileDepthScope : public ValueObject {
  public:
   explicit MaxProfileDepthScope(intptr_t new_max_depth)
-      : FLAG_max_profile_depth_(FLAG_max_profile_depth) {
-    Profiler::SetSampleDepth(new_max_depth);
+      : saved_config_(Profiler::CurrentConfig()) {
+    auto new_config = saved_config_;
+    new_config.max_depth = new_max_depth;
+    Profiler::SetConfig(new_config);
   }
 
-  ~MaxProfileDepthScope() { Profiler::SetSampleDepth(FLAG_max_profile_depth_); }
+  ~MaxProfileDepthScope() { Profiler::SetConfig(saved_config_); }
 
  private:
-  const intptr_t FLAG_max_profile_depth_;
+  const Profiler::Config saved_config_;
 };
 
 class ProfileSampleBufferTestHelper : public SampleVisitor {
@@ -287,13 +289,6 @@ class AllocationFilter : public SampleFilter {
   bool enable_vm_ticks_;
 };
 
-static void EnableProfiler() {
-  if (!FLAG_profiler) {
-    FLAG_profiler = true;
-    Profiler::Init();
-  }
-}
-
 class ProfileStackWalker {
  public:
   explicit ProfileStackWalker(Profile* profile, bool as_func = false)
@@ -469,7 +464,7 @@ class ProfileStackWalker {
 };
 
 ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -552,7 +547,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NullSampleBuffer) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
 
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -635,7 +630,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -708,7 +703,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
   }
 }
 ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -782,7 +777,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "double foo(double a, double b) => a + b;";
@@ -846,7 +841,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -927,7 +922,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -986,7 +981,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1049,7 +1044,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1123,7 +1118,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => a + b;";
@@ -1197,7 +1192,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
@@ -1277,7 +1272,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
@@ -1401,7 +1396,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundary) {
   // This test checks the profiler service takes this into account; see
   // ProfileBuilder::ProcessFrame.
 
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
@@ -1509,7 +1504,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundary) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
-  EnableProfiler();
+  Dart_StartProfiling();
   MaxProfileDepthScope mpds(32);
   DisableNativeProfileScope dnps;
 
@@ -1617,7 +1612,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1681,7 +1676,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1763,7 +1758,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1854,7 +1849,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1962,7 +1957,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -2061,7 +2056,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
-  EnableProfiler();
+  Dart_StartProfiling();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
 
@@ -2217,7 +2212,7 @@ static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
-  EnableProfiler();
+  Dart_StartProfiling();
   const char* kScript =
       "int doWork(i) => i * i;\n"
       "int main() {\n"
@@ -2446,9 +2441,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
 // Try to hit any races in related to setting TLS and Isolate::mutator_thread_.
 // https://github.com/flutter/flutter/issues/134548
 ISOLATE_UNIT_TEST_CASE(Profiler_EnterExitIsolate) {
-  EnableProfiler();
-  Profiler::UpdateFlagProfilePeriod(50);  // Microseconds.
-  Profiler::UpdateSamplePeriod();
+  Profiler::SetConfig({
+      .enabled = true,
+      .period_us = 50,
+  });
 
   const char* kScript = "main() => null;\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
@@ -2461,13 +2457,29 @@ ISOLATE_UNIT_TEST_CASE(Profiler_EnterExitIsolate) {
   }
 }
 
+// Poke a lot at OSThread::thread_interrupt_disabled_, which will be read by the
+// sampling thread.
+// https://github.com/dart-lang/sdk/issues/62332
+ISOLATE_UNIT_TEST_CASE(Profiler_ThreadEnableDisableProfiler) {
+  Profiler::SetConfig({
+      .enabled = true,
+      .period_us = 50,
+  });
+
+  for (intptr_t i = 0; i < 100000; i++) {
+    Dart_ThreadDisableProfiling();
+    Dart_ThreadEnableProfiling();
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(Profiler_UpdateRunningState) {
   Isolate* isolate = Isolate::Current();
   SampleFilter filter(isolate->main_port(), Thread::kMutatorTask, -1, -1);
 
-  EnableProfiler();
-  Profiler::UpdateFlagProfilePeriod(50);  // Microseconds.
-  Profiler::UpdateSamplePeriod();
+  Profiler::SetConfig({
+      .enabled = true,
+      .period_us = 50,
+  });
 
   const char* kScript = R"(
 void main() {
@@ -2489,8 +2501,7 @@ void main() {
 
   // Switch profiler off and clear the sample block buffer to discard all
   // collected samples.
-  FLAG_profiler = false;
-  Profiler::UpdateRunningState();
+  Dart_StopProfiling();
   delete Profiler::sample_block_buffer();
   Profiler::set_sample_block_buffer(new SampleBlockBuffer());
 
@@ -2504,8 +2515,7 @@ void main() {
   }
 
   // Enable profiler again.
-  FLAG_profiler = true;
-  Profiler::UpdateRunningState();
+  Dart_StartProfiling();
 
   // Test again that samples are collected.
   Invoke(root_library, "main");

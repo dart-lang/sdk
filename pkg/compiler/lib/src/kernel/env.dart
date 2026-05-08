@@ -4,10 +4,10 @@
 
 library;
 
+import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/library_index.dart' as ir;
-import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
 import '../constants/values.dart';

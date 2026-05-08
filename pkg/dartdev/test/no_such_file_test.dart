@@ -24,15 +24,17 @@ void main() {
     expect(argsResult.exitCode, 254);
   });
 
-  test('Providing --snapshot VM option with invalid script fails gracefully',
-      () async {
-    // Regression test for https://github.com/dart-lang/sdk/issues/43785
-    final result = await p.run(['--snapshot=abc', 'foo.dart']);
-    expect(result.stderr, isNotEmpty);
-    expect(result.stderr, contains("Error when reading 'foo.dart':"));
-    expect(result.stdout, isEmpty);
-    expect(result.exitCode, 254);
-  });
+  test(
+    'Providing --snapshot VM option with invalid script fails gracefully',
+    () async {
+      // Regression test for https://github.com/dart-lang/sdk/issues/43785
+      final result = await p.run(['--snapshot=abc', 'foo.dart']);
+      expect(result.stderr, isNotEmpty);
+      expect(result.stderr, contains("Error when reading 'foo.dart':"));
+      expect(result.stdout, isEmpty);
+      expect(result.exitCode, 254);
+    },
+  );
 
   test('Will not try to run file named the same as command', () async {
     p.file('pub', 'main() => print("All your base are belong to us")');

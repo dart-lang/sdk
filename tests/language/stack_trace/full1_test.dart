@@ -13,16 +13,19 @@
 import "package:expect/expect.dart";
 
 @pragma("vm:entry-point") // Prevents obfuscation
+@pragma("wasm:never-inline")
 void func1() {
   throw new Exception("Test full stacktrace");
 }
 
 @pragma("vm:entry-point") // Prevents obfuscation
+@pragma("wasm:never-inline")
 void func2() {
   func1();
 }
 
 @pragma("vm:entry-point") // Prevents obfuscation
+@pragma("wasm:never-inline")
 void func3() {
   try {
     func2();
@@ -39,23 +42,27 @@ void func3() {
 }
 
 @pragma("vm:entry-point") // Prevents obfuscation
+@pragma("wasm:never-inline")
 int func4() {
   func3();
   return 1;
 }
 
 @pragma("vm:entry-point") // Prevents obfuscation
+@pragma("wasm:never-inline")
 int func5() {
   func4();
   return 1;
 }
 
 @pragma("vm:entry-point") // Prevents obfuscation
+@pragma("wasm:never-inline")
 int func6() {
   func5();
   return 1;
 }
 
+@pragma("wasm:never-inline")
 main() {
   var i = func6();
   Expect.equals(1, i);

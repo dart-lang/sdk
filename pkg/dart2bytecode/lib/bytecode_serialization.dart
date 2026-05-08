@@ -54,13 +54,19 @@ class BufferedWriter {
 
   factory BufferedWriter.fromWriter(BufferedWriter writer) =>
       new BufferedWriter(
-          writer.stringWriter, writer.objectWriter, writer.linkWriter);
+        writer.stringWriter,
+        writer.objectWriter,
+        writer.linkWriter,
+      );
 
   Uint8List getContents() {
     final buffers = _buffers;
     if (buffers == null) {
       return new Uint8List.view(
-          _currentBuffer.buffer, _currentBuffer.offsetInBytes, _currentLength);
+        _currentBuffer.buffer,
+        _currentBuffer.offsetInBytes,
+        _currentLength,
+      );
     }
     final Uint8List result = new Uint8List(_buffersLength + _currentLength);
     int position = 0;
@@ -143,8 +149,11 @@ class BufferedWriter {
     } else {
       final int remainingBytes = _currentBuffer.length - _currentLength;
       if (remainingBytes >= minRemainderToKeep) {
-        final Uint8List remainder = new Uint8List.view(_currentBuffer.buffer,
-            _currentBuffer.offsetInBytes + _currentLength, remainingBytes);
+        final Uint8List remainder = new Uint8List.view(
+          _currentBuffer.buffer,
+          _currentBuffer.offsetInBytes + _currentLength,
+          remainingBytes,
+        );
         _flushCurrentBuffer();
         _flushBuffer(src, src.length);
         _currentBuffer = remainder;
@@ -162,8 +171,11 @@ class BufferedWriter {
     Uint8List? remainder;
     if (remainingBytes >= minRemainderToKeep &&
         remainingBytes > (other._currentBuffer.length - other._currentLength)) {
-      remainder = new Uint8List.view(_currentBuffer.buffer,
-          _currentBuffer.offsetInBytes + _currentLength, remainingBytes);
+      remainder = new Uint8List.view(
+        _currentBuffer.buffer,
+        _currentBuffer.offsetInBytes + _currentLength,
+        remainingBytes,
+      );
     }
     _flushCurrentBuffer();
     final otherBuffers = other._buffers;
@@ -276,7 +288,7 @@ class BufferedReader {
   int _pos;
 
   BufferedReader(this.linkReader, this.bytes, {this.baseOffset = 0})
-      : _pos = baseOffset {
+    : _pos = baseOffset {
     assert((0 <= _pos) && (_pos <= bytes.length));
   }
 
@@ -366,7 +378,7 @@ class BufferedReader {
   }
 
   ForwardReference<T>
-      readLinkOffsetAsForwardReference<T extends BytecodeDeclaration>() {
+  readLinkOffsetAsForwardReference<T extends BytecodeDeclaration>() {
     final offset = readPackedUInt30();
     return new ForwardReference<T>(offset, linkReader);
   }
@@ -458,10 +470,14 @@ class StringTable implements StringWriter, StringReader {
   StringTable.read(BufferedReader reader) {
     final int numOneByteStrings = reader.readUInt32();
     final int numTwoByteStrings = reader.readUInt32();
-    final List<int> oneByteEndOffsets =
-        List<int>.generate(numOneByteStrings, (_) => reader.readUInt32());
-    final List<int> twoByteEndOffsets =
-        List<int>.generate(numTwoByteStrings, (_) => reader.readUInt32());
+    final List<int> oneByteEndOffsets = List<int>.generate(
+      numOneByteStrings,
+      (_) => reader.readUInt32(),
+    );
+    final List<int> twoByteEndOffsets = List<int>.generate(
+      numTwoByteStrings,
+      (_) => reader.readUInt32(),
+    );
     int start = 0;
     if (numOneByteStrings > 0) {
       final charCodes = reader.readBytesAsUint8List(oneByteEndOffsets.last);
@@ -477,7 +493,8 @@ class StringTable implements StringWriter, StringReader {
     if (numTwoByteStrings > 0) {
       int start = 0;
       final charCodes = reader.readBytesAsUint16List(
-          (twoByteEndOffsets.last - twoByteBaseOffset) >> 1);
+        (twoByteEndOffsets.last - twoByteBaseOffset) >> 1,
+      );
       _twoByteStrings = List<String>.generate(numTwoByteStrings, (int i) {
         final end = (twoByteEndOffsets[i] - twoByteBaseOffset) >> 1;
         final str = new String.fromCharCodes(charCodes, start, end);
@@ -608,7 +625,8 @@ class NamedEntryStatistics {
 
   NamedEntryStatistics(this.name);
 
-  String toString() => "${name.padRight(40)}:    ${size.toString().padLeft(10)}"
+  String toString() =>
+      "${name.padRight(40)}:    ${size.toString().padLeft(10)}"
       "  (count: ${count.toString().padLeft(8)})";
 }
 
@@ -656,7 +674,8 @@ class BytecodeSizeStatistics {
     print("Bytecode size statistics:");
     print("  Bytecode component:  $componentSize");
     print(
-        "   - object table:     $objectTableSize   (count: $objectTableEntriesCount)");
+      "   - object table:     $objectTableSize   (count: $objectTableEntriesCount)",
+    );
     for (var entry in objectTableStats) {
       print("       - $entry");
     }

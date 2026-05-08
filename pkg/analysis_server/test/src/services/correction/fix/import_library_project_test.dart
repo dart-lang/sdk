@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -846,6 +845,54 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_pattern() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension IntExt on int {
+  int get foo => 0;
+}
+''');
+
+    await resolveTestCode('''
+void f(Object o) {
+  if (o case int(foo: int())) {}
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f(Object o) {
+  if (o case int(foo: int())) {}
+}
+''');
+  }
+
+  Future<void> test_pattern_simplified() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension IntExt on int {
+  int get foo => 0;
+}
+''');
+
+    await resolveTestCode('''
+void f(Object o) {
+  if (o case int(:var foo)) {
+    print(foo);
+  }
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f(Object o) {
+  if (o case int(:var foo)) {
+    print(foo);
+  }
+}
+''');
   }
 
   Future<void> test_relativeDirective() async {

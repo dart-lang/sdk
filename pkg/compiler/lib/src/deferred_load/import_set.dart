@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'output_unit.dart';
-
-import 'program_split_constraints/builder.dart' as psc show SetTransition;
-
 import '../elements/entities.dart';
 import '../util/maplet.dart';
+import 'output_unit.dart';
+import 'program_split_constraints/builder.dart' as psc show SetTransition;
 
 /// An [ImportSetTransition] is similar to a [SetTransition]
 /// except its source and transitions are represented as a single [ImportSet].
@@ -116,7 +114,9 @@ class ImportSetLattice {
 
   /// Builds a list of [ImportSetTransition]s which should be applied
   /// before finalizing [ImportSet]s.
-  void buildSetTransitions(List<psc.SetTransition> setTransitions) {
+  void buildSetTransitions(
+    List<psc.SetTransition<ImportEntity>> setTransitions,
+  ) {
     for (var setTransition in setTransitions) {
       importSetTransitions.add(
         ImportSetTransition(

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -109,7 +108,7 @@ class SelectionCoverageTest {
 
         // Build the node list map.
         var nodeLists = <ExecutableElement>[];
-        for (var member in declaration.members2) {
+        for (var member in declaration.body.members) {
           if (member is MethodDeclaration && member.isGetter) {
             var returnType = member.returnType;
             if (returnType != null &&
@@ -133,7 +132,7 @@ class SelectionCoverageTest {
     for (var declaration in result.unit.declarations) {
       if (declaration is ClassDeclaration &&
           declaration.namePart.typeName.lexeme == '_ChildrenFinder') {
-        for (var member in declaration.members2) {
+        for (var member in declaration.body.members) {
           if (member is MethodDeclaration &&
               member.name.lexeme.startsWith('visit')) {
             var visitedClass = member

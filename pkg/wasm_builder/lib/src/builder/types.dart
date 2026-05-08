@@ -225,7 +225,7 @@ class _RecGroupBuilder {
 
     final usedGroups = <List<ir.DefType>>[];
     for (final group in _allRecursiveGroups) {
-      if (group.any((type) => allUsedTypes.contains(type))) {
+      if (group.any(allUsedTypes.contains)) {
         usedGroups.add(group);
       }
     }
@@ -355,7 +355,7 @@ class _RecursionGroupKey {
   int get hashCode => Object.hash(groupLength, lengthOfFirstStruct);
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is! _RecursionGroupKey) return false;
     if (groupLength != other.groupLength) return false;
     if (lengthOfFirstStruct != other.lengthOfFirstStruct) return false;

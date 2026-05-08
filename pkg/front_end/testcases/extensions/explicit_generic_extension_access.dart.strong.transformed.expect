@@ -26,7 +26,7 @@ extension Extension2<T extends core::num> on self::Class<T> {
   method genericMethod = self::Extension2|genericMethod;
   method tearoff genericMethod = self::Extension2|get#genericMethod;
 }
-static field core::String? Extension1|latestType;
+static field core::String? Extension1|latestType = null;
 static extension-member method Extension1|get#field<T extends core::num>(lowered final self::Class<self::Extension1|get#field::T> #this) → self::Extension1|get#field::T {
   self::Extension1|latestType = "${self::Extension1|get#field::T}";
   return #this.{self::Class::field1}{self::Extension1|get#field::T};

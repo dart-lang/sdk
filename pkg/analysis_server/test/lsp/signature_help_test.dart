@@ -663,6 +663,22 @@ final a = A(^);
     );
   }
 
+  Future<void> test_params_final() async {
+    var content = '''
+foo(final String s) {
+  foo(^);
+}
+''';
+
+    var expectedLabel = 'foo(final String s)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: [ParameterInformation(label: 'final String s')],
+    );
+  }
+
   Future<void> test_params_multipleNamed() async {
     var content = '''
 /// Does foo.
@@ -776,6 +792,26 @@ foo(String s, [bool b = true]) {
     );
   }
 
+  Future<void> test_params_primaryConstructor() async {
+    var content = '''
+class A(final int x, var int y, int z);
+
+final a = A(^);
+''';
+    var expectedLabel = 'A(final int x, var int y, int z)';
+    var expectedParams = [
+      ParameterInformation(label: 'final int x'),
+      ParameterInformation(label: 'var int y'),
+      ParameterInformation(label: 'int z'),
+    ];
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: expectedParams,
+    );
+  }
+
   Future<void> test_params_recordType() async {
     var content = '''
 /// Does something.
@@ -796,7 +832,6 @@ void f((String, int) r) {
   }
 
   Future<void> test_params_requiredNamed() async {
-    // This test requires support for the "required" keyword.
     var content = '''
 /// Does foo.
 foo(String s, {bool? b = true, required bool a}) {
@@ -970,6 +1005,25 @@ class Foo {
         ParameterInformation(label: 'T1'),
         ParameterInformation(label: 'T2 extends String'),
       ],
+    );
+  }
+
+  Future<void> test_typeParams_primaryConstructor() async {
+    var content = '''
+class A<T1, T2>(int x);
+var a = A<^>();
+''';
+
+    var expectedLabel = 'class A<T1, T2>';
+    var expectedParams = [
+      ParameterInformation(label: 'T1'),
+      ParameterInformation(label: 'T2'),
+    ];
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: expectedParams,
     );
   }
 

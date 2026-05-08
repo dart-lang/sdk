@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 4.20
+# Dart VM Service Protocol 4.21
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -3101,6 +3101,7 @@ class @Instance extends @Object {
   //   Float64x2
   //   Int32x4
   //   StackTrace
+  //   Pointer (the native address, e.g. "0x7f00abcd1234")
   string valueAsString [optional];
 
   // The valueAsString for String references may be truncated. If so,
@@ -3676,6 +3677,10 @@ enum InstanceKind {
 
   // An instance of the Dart class FinalizerEntry.
   FinalizerEntry,
+
+  // An instance of the dart:ffi `Pointer<T>` class.
+  // Note: The type argument T is erased at runtime.
+  Pointer,
 }
 ```
 

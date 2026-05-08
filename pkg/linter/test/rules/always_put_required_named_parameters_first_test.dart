@@ -8,12 +8,10 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Add tests for field formal parameters.
     // TODO(srawlins): Add tests for super formal parameters.
     // TODO(srawlins): Add tests for local function parameters.
     // TODO(srawlins): Add tests for function literal parameters.
     // TODO(srawlins): Add tests for method parameters.
-    // TODO(srawlins): Add tests for parameters with default values.
     defineReflectiveTests(AlwaysPutRequiredNamedParametersFirstTest);
   });
 }
@@ -37,6 +35,19 @@ class C {
 }
 ''',
       [lint(48, 1)],
+    );
+  }
+
+  test_constructor_requiredAfterOptional_fieldFormal() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  C({this.a, required this.b});
+  int? a;
+  int b;
+}
+''',
+      [lint(37, 1)],
     );
   }
 
@@ -80,6 +91,30 @@ class C {
 ''');
   }
 
+  test_primaryConstructor_requiredAfterOptional() async {
+    await assertDiagnostics(
+      r'''
+class C({int? a, required int? b});
+''',
+      [lint(31, 1)],
+    );
+  }
+
+  test_primaryConstructor_requiredAfterOptional_declaring() async {
+    await assertDiagnostics(
+      r'''
+class C({final int? a, required var int? b});
+''',
+      [lint(41, 1)],
+    );
+  }
+
+  test_primaryConstructor_requiredAfterRequired() async {
+    await assertNoDiagnostics(r'''
+class C({required int? a, required int? b});
+''');
+  }
+
   test_topLevelFunction_requiredAfterOptional() async {
     await assertDiagnostics(
       r'''
@@ -89,6 +124,15 @@ void f({
 }) {}
 ''',
       [lint(35, 1)],
+    );
+  }
+
+  test_topLevelFunction_requiredAfterOptional_default() async {
+    await assertDiagnostics(
+      r'''
+void f({int a = 0, required int? b}) {}
+''',
+      [lint(33, 1)],
     );
   }
 

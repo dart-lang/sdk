@@ -84,6 +84,11 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    _fromList(node.constants) || _fromList(node.members);
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     _fromList(node.cascadeSections);
   }
@@ -91,9 +96,6 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _fromList(node.metadata);
-    if (node.body case BlockClassBody body) {
-      _fromList(body.members);
-    }
   }
 
   @override
@@ -123,16 +125,6 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitDottedName(DottedName node) {
-    _fromList(node.components);
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
-    _fromList(node.constants) || _fromList(node.members);
-  }
-
-  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _fromList(node.metadata);
   }
@@ -151,7 +143,12 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _fromList(node.metadata) || _fromList(node.body.members);
+    _fromList(node.metadata);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _fromList(node.metadata);
   }
 
   @override
@@ -240,11 +237,6 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    _fromList(node.components);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     _fromList(node.elements);
   }
@@ -266,7 +258,7 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _fromList(node.metadata) || _fromList(node.body.members);
+    _fromList(node.metadata);
   }
 
   @override

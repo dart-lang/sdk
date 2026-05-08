@@ -215,6 +215,23 @@ class Bar extends B {}
     );
   }
 
+  test_mixinOutside_rawClass() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+sealed class Foo {}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+class Bar with Foo {}
+''',
+      [
+        error(diag.classUsedAsMixin, 34, 3),
+        error(diag.sealedClassSubtypeOutsideOfLibrary, 34, 3),
+      ],
+    );
+  }
+
   test_on_inside() async {
     await assertNoErrorsInCode(r'''
 sealed class A {}

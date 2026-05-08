@@ -133,6 +133,7 @@ class RecordLiteralResolver {
   DartType _resolveField(ExpressionImpl field, TypeImpl contextType) {
     var staticType = _resolver
         .analyzeExpression(field, SharedTypeSchemaView(contextType))
+        .type
         .unwrapTypeView<TypeImpl>();
     field = _resolver.popRewrite()!;
 

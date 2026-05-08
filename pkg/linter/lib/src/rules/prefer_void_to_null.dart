@@ -68,6 +68,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var parent = node.parent;
 
+    // `Null;` or `t == Null`
+    if (parent is TypeLiteral) return;
+
     // Null Function()
     if (parent is GenericFunctionType) return;
 

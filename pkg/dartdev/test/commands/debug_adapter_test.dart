@@ -20,11 +20,15 @@ void debugAdapter() {
     var result = await p.run(['debug_adapter', '--help']);
 
     expect(
-        result.stdout,
-        contains(
-            'Start a debug adapter that conforms to the Debug Adapter Protocol.'));
-    expect(result.stdout,
-        contains('Whether to use the "dart test" debug adapter to run tests'));
+      result.stdout,
+      contains(
+        'Start a debug adapter that conforms to the Debug Adapter Protocol.',
+      ),
+    );
+    expect(
+      result.stdout,
+      contains('Whether to use the "dart test" debug adapter to run tests'),
+    );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -42,11 +46,12 @@ void debugAdapter() {
     await process.exitCode;
 
     expect(
-        errorOutput.toString(),
-        allOf(
-          contains('Input could not be parsed'),
-          contains('is intended for use by tooling'),
-          contains('foo\r\nbar'),
-        ));
+      errorOutput.toString(),
+      allOf(
+        contains('Input could not be parsed'),
+        contains('is intended for use by tooling'),
+        contains('foo\r\nbar'),
+      ),
+    );
   });
 }

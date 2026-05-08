@@ -459,6 +459,8 @@ class Assembler : public AssemblerBase {
 
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
+  void PushRegistersAligned(const RegisterSet& registers, intptr_t space);
+  void PopRegistersAligned(const RegisterSet& registers, intptr_t space);
 
   void PushRegistersInOrder(std::initializer_list<Register> regs);
 
@@ -1898,6 +1900,27 @@ class Assembler : public AssemblerBase {
     LoadCompressedFieldFromOffset(dest, dest, offset);
   }
 #endif
+  void LoadS(VRegister dest, const Address& address) {
+    if (address.type() == Address::AddressType::Offset) {
+      LoadSFromOffset(dest, address.base(), address.offset());
+    } else {
+      fldrs(dest, address);
+    }
+  }
+  void LoadD(VRegister dest, const Address& address) {
+    if (address.type() == Address::AddressType::Offset) {
+      LoadDFromOffset(dest, address.base(), address.offset());
+    } else {
+      fldrd(dest, address);
+    }
+  }
+  void LoadQ(VRegister dest, const Address& address) {
+    if (address.type() == Address::AddressType::Offset) {
+      LoadQFromOffset(dest, address.base(), address.offset());
+    } else {
+      fldrq(dest, address);
+    }
+  }
   void LoadSFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
@@ -1925,6 +1948,27 @@ class Assembler : public AssemblerBase {
                          int32_t offset,
                          OperandSize sz = kEightBytes);
 
+  void StoreS(VRegister src, const Address& address) {
+    if (address.type() == Address::AddressType::Offset) {
+      StoreSToOffset(src, address.base(), address.offset());
+    } else {
+      fstrs(src, address);
+    }
+  }
+  void StoreD(VRegister src, const Address& address) {
+    if (address.type() == Address::AddressType::Offset) {
+      StoreDToOffset(src, address.base(), address.offset());
+    } else {
+      fstrd(src, address);
+    }
+  }
+  void StoreQ(VRegister src, const Address& address) {
+    if (address.type() == Address::AddressType::Offset) {
+      StoreQToOffset(src, address.base(), address.offset());
+    } else {
+      fstrq(src, address);
+    }
+  }
   void StoreSToOffset(VRegister src, Register base, int32_t offset);
   void StoreDToOffset(VRegister src, Register base, int32_t offset);
   void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {

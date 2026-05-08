@@ -169,8 +169,6 @@ const isLabeledStatement = TypeMatcher<LabeledStatement>();
 
 const isLibraryDirective = TypeMatcher<LibraryDirective>();
 
-const isLibraryIdentifier = TypeMatcher<LibraryIdentifier>();
-
 const isListLiteral = TypeMatcher<ListLiteral>();
 
 const isLiteral = TypeMatcher<Literal>();

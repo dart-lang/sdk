@@ -49,7 +49,7 @@ class JsonUnsupportedObjectError extends Error {
 /// When the cycle is detected, a [JsonCyclicError] is thrown.
 class JsonCyclicError extends JsonUnsupportedObjectError {
   /// The first object that was detected as part of a cycle.
-  JsonCyclicError(Object? object) : super(object);
+  JsonCyclicError(super.object);
   String toString() => "Cyclic error in JSON stringify";
 }
 
@@ -114,7 +114,7 @@ const JsonCodec json = JsonCodec();
 /// ```
 String jsonEncode(
   Object? object, {
-  Object? toEncodable(Object? nonEncodable)?,
+  Object? Function(Object? nonEncodable)? toEncodable,
 }) => json.encode(object, toEncodable: toEncodable);
 
 /// Parses the string and returns the resulting Json object.
@@ -156,7 +156,7 @@ String jsonEncode(
 /// ```
 dynamic jsonDecode(
   String source, {
-  Object? reviver(Object? key, Object? value)?,
+  Object? Function(Object? key, Object? value)? reviver,
 }) => json.decode(source, reviver: reviver);
 
 /// A [JsonCodec] encodes JSON objects to strings and decodes strings to
@@ -173,30 +173,26 @@ final class JsonCodec extends Codec<Object?, String> {
 
   /// Creates a `JsonCodec` with the given reviver and encoding function.
   ///
-  /// The [reviver] function is called during decoding. It is invoked once for
+  /// The [_reviver] function is called during decoding. It is invoked once for
   /// each object or list property that has been parsed.
   /// The `key` argument is either the integer list index for a list property,
   /// the string map key for object properties, or `null` for the final result.
   ///
-  /// If [reviver] is omitted, it defaults to returning the value argument.
+  /// If [_reviver] is omitted, it defaults to returning the value argument.
   ///
-  /// The [toEncodable] function is used during encoding. It is invoked for
+  /// The [_toEncodable] function is used during encoding. It is invoked for
   /// values that are not directly encodable to a string (a value that is not a
   /// number, boolean, string, null, list or a map with string keys). The
   /// function must return an object that is directly encodable. The elements of
   /// a returned list and values of a returned map do not need to be directly
-  /// encodable, and if they aren't, `toEncodable` will be used on them as well.
+  /// encodable, and if they aren't, `_toEncodable` will be used on them as well.
   /// Please notice that it is possible to cause an infinite recursive regress
   /// in this way, by effectively creating an infinite data structure through
-  /// repeated call to `toEncodable`.
+  /// repeated call to `_toEncodable`.
   ///
-  /// If [toEncodable] is omitted, it defaults to a function that returns the
+  /// If [_toEncodable] is omitted, it defaults to a function that returns the
   /// result of calling `.toJson()` on the unencodable object.
-  const JsonCodec({
-    Object? reviver(Object? key, Object? value)?,
-    Object? toEncodable(dynamic object)?,
-  }) : _reviver = reviver,
-       _toEncodable = toEncodable;
+  const JsonCodec({this._reviver, this._toEncodable});
 
   /// Creates a `JsonCodec` with the given reviver.
   ///
@@ -204,7 +200,7 @@ final class JsonCodec extends Codec<Object?, String> {
   /// that has been parsed during decoding. The `key` argument is either the
   /// integer list index for a list property, the string map key for object
   /// properties, or `null` for the final result.
-  JsonCodec.withReviver(dynamic reviver(Object? key, Object? value))
+  JsonCodec.withReviver(dynamic Function(Object? key, Object? value) reviver)
     : this(reviver: reviver);
 
   /// Parses the string and returns the resulting Json object.
@@ -217,7 +213,7 @@ final class JsonCodec extends Codec<Object?, String> {
   /// The default [reviver] (when not provided) is the identity function.
   dynamic decode(
     String source, {
-    Object? reviver(Object? key, Object? value)?,
+    Object? Function(Object? key, Object? value)? reviver,
   }) {
     reviver ??= _reviver;
     if (reviver == null) return decoder.convert(source);
@@ -233,7 +229,10 @@ final class JsonCodec extends Codec<Object?, String> {
   ///
   /// If [toEncodable] is omitted, it defaults to a function that returns the
   /// result of calling `.toJson()` on the unencodable object.
-  String encode(Object? value, {Object? toEncodable(dynamic object)?}) {
+  String encode(
+    Object? value, {
+    Object? Function(dynamic object)? toEncodable,
+  }) {
     toEncodable ??= _toEncodable;
     if (toEncodable == null) return encoder.convert(value);
     return JsonEncoder(toEncodable).convert(value);
@@ -285,7 +284,7 @@ final class JsonEncoder extends Converter<Object?, String> {
   final String? indent;
 
   /// Function called on non-encodable objects to return a replacement
-  /// encodable object that will be encoded in the orignal's place.
+  /// encodable object that will be encoded in the original's place.
   final Object? Function(dynamic)? _toEncodable;
 
   /// Creates a JSON encoder.
@@ -298,7 +297,7 @@ final class JsonEncoder extends Converter<Object?, String> {
   ///
   /// If [toEncodable] is omitted, it defaults to calling `.toJson()` on
   /// the object.
-  const JsonEncoder([Object? toEncodable(dynamic object)?])
+  const JsonEncoder([Object? Function(dynamic object)? toEncodable])
     : indent = null,
       _toEncodable = toEncodable;
 
@@ -320,7 +319,7 @@ final class JsonEncoder extends Converter<Object?, String> {
   /// the object.
   const JsonEncoder.withIndent(
     this.indent, [
-    Object? toEncodable(dynamic object)?,
+    Object? Function(dynamic object)? toEncodable,
   ]) : _toEncodable = toEncodable;
 
   /// Converts [object] to a JSON [String].
@@ -431,7 +430,7 @@ final class JsonUtf8Encoder extends Converter<Object?, List<int>> {
   /// object.
   JsonUtf8Encoder([
     String? indent,
-    dynamic toEncodable(dynamic object)?,
+    dynamic Function(dynamic object)? toEncodable,
     int? bufferSize,
   ]) : _indent = _utf8Encode(indent),
        _toEncodable = toEncodable,
@@ -622,7 +621,7 @@ final class JsonDecoder extends Converter<String, Object?> {
   /// Constructs a new JsonDecoder.
   ///
   /// The [reviver] may be `null`.
-  const JsonDecoder([Object? reviver(Object? key, Object? value)?])
+  const JsonDecoder([Object? Function(Object? key, Object? value)? reviver])
     : _reviver = reviver;
 
   /// Converts the given JSON-string [input] to its corresponding object.
@@ -650,7 +649,10 @@ final class JsonDecoder extends Converter<String, Object?> {
 }
 
 // Internal optimized JSON parsing implementation.
-external dynamic _parseJson(String source, reviver(key, value)?);
+external dynamic _parseJson(
+  String source,
+  Object? Function(Object? key, Object? value)? reviver,
+);
 
 // Implementation of encoder/stringifier.
 
@@ -687,9 +689,9 @@ abstract class _JsonStringifier {
   final List _seen = [];
 
   /// Function called for each un-encodable object encountered.
-  final Function(dynamic) _toEncodable;
+  final dynamic Function(dynamic) _toEncodable;
 
-  _JsonStringifier(dynamic toEncodable(dynamic o)?)
+  _JsonStringifier(dynamic Function(dynamic o)? toEncodable)
     : _toEncodable = toEncodable ?? _defaultToEncodable;
 
   String? get _partialResult;
@@ -998,7 +1000,7 @@ class _JsonStringStringifier extends _JsonStringifier {
   /// characters (space, tab, carriage return or line feed).
   static String stringify(
     Object? object,
-    dynamic toEncodable(dynamic object)?,
+    dynamic Function(dynamic object)? toEncodable,
     String? indent,
   ) {
     var output = StringBuffer();
@@ -1008,11 +1010,11 @@ class _JsonStringStringifier extends _JsonStringifier {
 
   /// Convert object to a string, and write the result to the [output] sink.
   ///
-  /// The result is written piecemally to the sink.
+  /// The result is written piecemeally to the sink.
   static void printOn(
     Object? object,
     StringSink output,
-    dynamic toEncodable(dynamic o)?,
+    dynamic Function(dynamic o)? toEncodable,
     String? indent,
   ) {
     _JsonStringifier stringifier;
@@ -1047,11 +1049,7 @@ class _JsonStringStringifierPretty extends _JsonStringStringifier
     with _JsonPrettyPrintMixin {
   final String _indent;
 
-  _JsonStringStringifierPretty(
-    StringSink sink,
-    dynamic toEncodable(dynamic o)?,
-    this._indent,
-  ) : super(sink, toEncodable);
+  _JsonStringStringifierPretty(super.sink, super.toEncodable, this._indent);
 
   void writeIndentation(int count) {
     for (var i = 0; i < count; i++) writeString(_indent);
@@ -1068,12 +1066,8 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
   Uint8List buffer;
   int index = 0;
 
-  _JsonUtf8Stringifier(
-    dynamic toEncodable(dynamic o)?,
-    this.bufferSize,
-    this.addChunk,
-  ) : buffer = Uint8List(bufferSize),
-      super(toEncodable);
+  _JsonUtf8Stringifier(super.toEncodable, this.bufferSize, this.addChunk)
+    : buffer = Uint8List(bufferSize);
 
   /// Convert [object] to UTF-8 encoded JSON.
   ///
@@ -1087,9 +1081,9 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
   static void stringify(
     Object? object,
     List<int>? indent,
-    dynamic toEncodable(dynamic o)?,
+    dynamic Function(dynamic o)? toEncodable,
     int bufferSize,
-    void addChunk(Uint8List chunk, int start, int end),
+    void Function(Uint8List chunk, int start, int end) addChunk,
   ) {
     _JsonUtf8Stringifier stringifier;
     if (indent != null) {
@@ -1215,10 +1209,10 @@ class _JsonUtf8StringifierPretty extends _JsonUtf8Stringifier
     with _JsonPrettyPrintMixin {
   final List<int> indent;
   _JsonUtf8StringifierPretty(
-    dynamic toEncodable(dynamic o)?,
+    dynamic Function(dynamic o)? toEncodable,
     this.indent,
     int bufferSize,
-    void addChunk(Uint8List buffer, int start, int end),
+    void Function(Uint8List buffer, int start, int end) addChunk,
   ) : super(toEncodable, bufferSize, addChunk);
 
   void writeIndentation(int count) {

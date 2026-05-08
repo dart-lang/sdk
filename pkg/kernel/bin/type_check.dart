@@ -19,8 +19,11 @@ void usage() {
 }
 
 void main(List<String> args) {
-  CommandLineHelper.requireExactlyOneArgument(args, usage,
-      requireFileExists: true);
+  CommandLineHelper.requireExactlyOneArgument(
+    args,
+    usage,
+    requireFileExists: true,
+  );
   final binary = CommandLineHelper.tryLoadDill(args[0]);
   ErrorFormatter errorFormatter = new ErrorFormatter();
   new NaiveTypeChecker(errorFormatter, binary)..checkComponent(binary);

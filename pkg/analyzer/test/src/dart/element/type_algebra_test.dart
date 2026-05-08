@@ -23,6 +23,25 @@ main() {
   });
 }
 
+/// Returns a type where all occurrences of the given type parameters have been
+/// replaced with the corresponding types.
+///
+/// This will copy only the sub-terms of [type] that contain substituted
+/// variables; all other [DartType] objects will be reused.
+///
+/// In particular, if no type parameters were substituted, this is guaranteed
+/// to return the [type] instance (not a copy), so the caller may use
+/// [identical] to efficiently check if a distinct type was created.
+DartType substitute(
+  DartType type,
+  Map<TypeParameterElement, DartType> substitution,
+) {
+  if (substitution.isEmpty) {
+    return type;
+  }
+  return Substitution.fromMap(substitution).substituteType(type);
+}
+
 @reflectiveTest
 class SubstituteEmptyTest extends _Base {
   test_interface() async {
@@ -475,6 +494,73 @@ class SubstituteWithNullabilityTest extends _Base {
       nullabilitySuffix: NullabilitySuffix.question,
     );
     _assertSubstitution(type, {U: intNone}, 'A<int>?');
+  }
+
+  test_withNullability_updatesAlias_function() {
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: const [],
+      aliasedType: functionTypeNone(returnType: voidNone),
+    );
+    var type = alias.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+    expect(result.getDisplayString(preferTypeAlias: true), 'A');
+  }
+
+  test_withNullability_updatesAlias_interface() {
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: const [],
+      aliasedType: intNone,
+    );
+    var type = alias.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+    expect(result.getDisplayString(preferTypeAlias: true), 'A');
+  }
+
+  test_withNullability_updatesAlias_record() {
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: const [],
+      aliasedType: recordTypeNone(positionalTypes: [intNone]),
+    );
+    var type = alias.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+    expect(result.getDisplayString(preferTypeAlias: true), 'A');
+  }
+
+  test_withNullability_updatesAlias_typeParameter() {
+    var T = typeParameter('T');
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: [T],
+      aliasedType: typeParameterTypeNone(T),
+    );
+
+    var U = typeParameter('U');
+    var type = alias.instantiateImpl(
+      typeArguments: [typeParameterTypeNone(U)],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias, isNotNull);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
   }
 }
 

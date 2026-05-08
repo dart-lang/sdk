@@ -64,6 +64,8 @@ class SocketServer implements AbstractSocketServer {
   /// The performance logger.
   final PerformanceLogger? performanceLogger;
 
+  final Map<String, String>? environment;
+
   SocketServer(
     this.analysisServerOptions,
     this.sdkManager,
@@ -74,8 +76,9 @@ class SocketServer implements AbstractSocketServer {
     this.diagnosticServer,
     this.analyticsManager,
     this.detachableFileSystemManager,
-    this.performanceLogger,
-  );
+    this.performanceLogger, {
+    this.environment,
+  });
 
   /// Create an analysis server which will communicate with the client using the
   /// given serverChannel.
@@ -112,6 +115,7 @@ class SocketServer implements AbstractSocketServer {
       detachableFileSystemManager: detachableFileSystemManager,
       enableBlazeWatcher: true,
       performanceLogger: performanceLogger,
+      environment: environment,
     );
     detachableFileSystemManager?.setAnalysisServer(server);
   }

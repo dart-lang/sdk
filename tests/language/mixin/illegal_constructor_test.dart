@@ -23,32 +23,32 @@ class C1 = Object with M1;
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                     ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 class C2 = Object with M2;
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                     ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 class C3 = Object with M0, M1;
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                         ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 class C4 = Object with M1, M0;
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                     ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 class C5 = Object with M0, M2;
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                         ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 class C6 = Object with M2, M0;
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                     ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 class D0 extends Object with M0 {}
 
@@ -56,37 +56,37 @@ class D1 extends Object with M1 {}
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                           ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 class D2 extends Object with M2 {}
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                           ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 class D3 extends Object with M0, M1 {}
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                               ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 class D4 extends Object with M1, M0 {}
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                           ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 class D5 extends Object with M0, M2 {}
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                               ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 class D6 extends Object with M2, M0 {}
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                           ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 main() {
   new C0();

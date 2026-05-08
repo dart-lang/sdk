@@ -2,6 +2,8 @@ import 'main_lib1.dart';
 
 import 'main_lib2.dart';
 
+import 'main_lib4.dart';
+
 dynamic x;
 
 class D3 extends C3 {}
@@ -41,5 +43,7 @@ class C7Ext extends C7 {
 }
 
 void test() {}
+
+void testCanBeUsedAsType(Object? o) {}
 
 void main() {}

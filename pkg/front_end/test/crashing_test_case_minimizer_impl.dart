@@ -1663,24 +1663,29 @@ worlds:
           } else if (child.isMixinDeclaration()) {
             // Also try to remove all content of the mixin.
             MixinDeclarationEnd decl = child.asMixinDeclaration();
-            ClassOrMixinOrExtensionBodyEnd body = decl
+            ClassOrMixinOrExtensionBodyEnd? body = decl
                 .getClassOrMixinOrExtensionBody();
-            if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(
-                new _Replacement(body.beginToken.offset, body.endToken.offset),
-              );
-              what = "mixin body";
-              success = await _tryReplaceAndCompile(
-                helper,
-                uri,
-                initialComponent,
-                what,
-              );
-              if (helper.shouldQuit) return;
-            }
+            if (body != null) {
+              if (body.beginToken.offset + 2 < body.endToken.offset) {
+                helper.replacements.add(
+                  new _Replacement(
+                    body.beginToken.offset,
+                    body.endToken.offset,
+                  ),
+                );
+                what = "mixin body";
+                success = await _tryReplaceAndCompile(
+                  helper,
+                  uri,
+                  initialComponent,
+                  what,
+                );
+                if (helper.shouldQuit) return;
+              }
 
-            if (!success) {
-              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              if (!success) {
+                await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              }
             }
           } else if (child.isExtensionType()) {
             // Also try to remove all content of the extension type.

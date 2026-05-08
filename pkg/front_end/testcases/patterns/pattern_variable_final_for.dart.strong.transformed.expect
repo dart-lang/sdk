@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/pattern_variable_final_for.dart:8:6: Error: Final variable 'i' might already be assigned at this point.
+//     (i, _) = r;
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method method((core::int, core::int) r) → dynamic {
+  final core::int i;
+  {
+    synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic x = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      {
+        {
+          final synthesized(core::int, core::int) #0#0 = r;
+          if(!invalid-expression "pkg/front_end/testcases/patterns/pattern_variable_final_for.dart:8:6: Error: Final variable 'i' might already be assigned at this point.
+    (i, _) = r;
+     ^")
+            throw{for-error-handling} new core::StateError::•("Pattern matching error");
+        }
+      }
+    }
+  }
+}

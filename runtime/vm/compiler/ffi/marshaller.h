@@ -39,7 +39,7 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
 //
 // This class is set up in a query-able way so that it's underlying logic can
 // be extended to support more native ABI features and calling conventions.
-class BaseMarshaller : public ZoneAllocated {
+class BaseMarshaller : public ZoneObject {
  public:
   intptr_t num_args() const {
     return native_calling_convention_.argument_locations().length();

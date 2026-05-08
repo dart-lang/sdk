@@ -87,11 +87,6 @@ final tests = <IsolateTest>[
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  // TODO: this is a bug in the debugger and we shouldn't actually be stopping
-  // at LINE_A. This should be removed once <issue here> is fixed.
-  stoppedAtLine(LINE_A),
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (VmService service, IsolateRef isolateRef) async {
     // Get the timeline.
@@ -128,11 +123,6 @@ final tests = <IsolateTest>[
     // Confirm that nothing is being recorded.
     expect(flags.recordedStreams, isEmpty);
   },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  // TODO: this is a bug in the debugger and we shouldn't actually be stopping
-  // at LINE_A. This should be removed once <issue here> is fixed.
-  stoppedAtLine(LINE_A),
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),

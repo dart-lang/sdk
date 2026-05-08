@@ -199,7 +199,7 @@ class ByteStreamServerChannelTest {
     return inputSink
         .flush()
         .then((_) => errorStream.first.timeout(Duration(seconds: 1)))
-        .then((var receivedError) {
+        .then((receivedError) {
           expect(receivedError, same(error));
         });
   }

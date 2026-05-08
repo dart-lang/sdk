@@ -706,6 +706,8 @@ class Assembler : public AssemblerBase {
   void shldq(Register dst, Register src, const Immediate& imm);
 
   void btq(Register base, int bit);
+  void btrq(const Address& base, int bit);
+  void btsq(const Address& base, int bit);
 
   void enter(const Immediate& imm);
 
@@ -949,6 +951,8 @@ class Assembler : public AssemblerBase {
 
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
+  void PushRegistersAligned(const RegisterSet& registers, intptr_t space);
+  void PopRegistersAligned(const RegisterSet& registers, intptr_t space);
 
   void PushRegistersInOrder(std::initializer_list<Register> regs);
 

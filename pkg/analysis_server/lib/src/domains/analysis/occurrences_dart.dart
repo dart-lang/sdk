@@ -9,12 +9,11 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   var visitor = DartUnitOccurrencesComputerVisitor();
   unit.accept(visitor);
-  visitor.elementOccurrences.forEach((engineElement, nodes) {
+  visitor.occurrences.forEach((engineElement, nodes) {
     // For legacy protocol, we only support occurrences with the same
     // length, so we must filter the offset to only those that match the length
     // from the element.
@@ -34,41 +33,9 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   });
 }
 
-/// Returns both element-based and node-based occurrences for a file.
-///
-/// The legacy protocol does not support occurrences that are not based on
-/// elements and therefore use [addDartOccurrences]. This method is for LSP
-/// which does not use elements and instead only cares about the resulting
-/// ranges of code, allowing ranges for keywords like `return` and `break` to be
-/// included.
-List<Occurrences> getAllOccurrences(CompilationUnit unit) {
-  // TODO(dantup): Since LSP always starts with a target element or node,
-  //  we should consider passing it in here to avoid building the occurrences
-  // for the whole file and then extracting only the matches we want.
-  var visitor = DartUnitOccurrencesComputerVisitor();
-  unit.accept(visitor);
-
-  return [
-    // Element-based occurrences
-    for (var MapEntry(key: element, value: tokens)
-        in visitor.elementOccurrences.entries)
-      ElementOccurrences(element, tokens),
-    // Node-based occurrences
-    for (var MapEntry(key: node, value: tokens)
-        in visitor.nodeOccurrences.entries)
-      NodeOccurrences(node, tokens),
-  ];
-}
-
 class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   /// Occurrences tracked by their elements.
-  final Map<Element, List<Token>> elementOccurrences = {};
-
-  /// Occurrences tracked by nodes (such as loops and their exit keywords).
-  final Map<AstNode, List<Token>> nodeOccurrences = {};
-
-  // Stack to track the current function for return/yield keywords
-  final List<AstNode> _functionStack = [];
+  final Map<Element, List<Token>> occurrences = {};
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
@@ -78,13 +45,6 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitAssignedVariablePattern(node);
-  }
-
-  @override
-  void visitBreakStatement(BreakStatement node) {
-    _addNodeOccurrence(node.target, node.breakKeyword);
-
-    super.visitBreakStatement(node);
   }
 
   @override
@@ -142,13 +102,6 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitContinueStatement(ContinueStatement node) {
-    _addNodeOccurrence(node.target, node.continueKeyword);
-
-    super.visitContinueStatement(node);
-  }
-
-  @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _addOccurrence(node.declaredFragment!.element, node.name);
 
@@ -165,13 +118,6 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitDeclaredVariablePattern(node);
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    _addNodeOccurrence(node, node.doKeyword);
-
-    super.visitDoStatement(node);
   }
 
   @override
@@ -225,20 +171,6 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitFieldFormalParameter(node);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    _addNodeOccurrence(node, node.forKeyword);
-
-    super.visitForStatement(node);
-  }
-
-  @override
-  void visitFunctionBody(FunctionBody node) {
-    _functionStack.add(node);
-    super.visitFunctionBody(node);
-    _functionStack.removeLastOrNull();
   }
 
   @override
@@ -319,13 +251,6 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitReturnStatement(ReturnStatement node) {
-    _addNodeOccurrence(_functionStack.lastOrNull, node.returnKeyword);
-
-    super.visitReturnStatement(node);
-  }
-
-  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {
@@ -361,13 +286,6 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
-    _addNodeOccurrence(node, node.switchKeyword);
-
-    super.visitSwitchStatement(node);
-  }
-
-  @override
   void visitTypeParameter(TypeParameter node) {
     if (node case TypeParameter(:var declaredFragment?)) {
       _addOccurrence(declaredFragment.element, node.name);
@@ -382,32 +300,12 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     super.visitVariableDeclaration(node);
   }
 
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    _addNodeOccurrence(node, node.whileKeyword);
-
-    super.visitWhileStatement(node);
-  }
-
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    _addNodeOccurrence(_functionStack.lastOrNull, node.yieldKeyword);
-
-    super.visitYieldStatement(node);
-  }
-
-  void _addNodeOccurrence(AstNode? node, Token token) {
-    if (node == null) return;
-
-    (nodeOccurrences[node] ??= []).add(token);
-  }
-
   void _addOccurrence(Element element, Token token) {
     var canonicalElement = _canonicalizeElement(element);
     if (canonicalElement == null) {
       return;
     }
-    (elementOccurrences[canonicalElement] ??= []).add(token);
+    (occurrences[canonicalElement] ??= []).add(token);
   }
 
   Element? _canonicalizeElement(Element element) {
@@ -421,29 +319,4 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     }
     return canonicalElement?.baseElement;
   }
-}
-
-/// Occurrences grouped by an Element.
-class ElementOccurrences extends Occurrences {
-  final Element element;
-
-  @override
-  final List<Token> tokens;
-
-  ElementOccurrences(this.element, this.tokens);
-}
-
-/// Occurrences grouped by a node (for example exit keywords grouped by a loop).
-class NodeOccurrences extends Occurrences {
-  final AstNode node;
-
-  @override
-  final List<Token> tokens;
-
-  NodeOccurrences(this.node, this.tokens);
-}
-
-/// Base class for protocol-agnostic occurrences.
-sealed class Occurrences {
-  List<Token> get tokens;
 }

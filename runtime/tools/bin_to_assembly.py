@@ -109,16 +109,16 @@ def Main():
         if options.target_os not in ["mac", "ios", "watchos", "win", "win_gnu"]:
             output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))
 
+        is64bit = 0
+        if options.target_arch:
+            if options.target_arch in ["arm64", "x64", "riscv64"]:
+                is64bit = 1
+
         if options.size_symbol_name:
             if not options.target_arch:
                 sys.stderr.write("--target_arch not specified\n")
                 parser.print_help()
                 return -1
-
-            is64bit = 0
-            if options.target_arch:
-                if options.target_arch in ["arm64", "x64", "riscv64"]:
-                    is64bit = 1
 
             if options.target_os in ["win"]:
                 output_file.write("public %s\n" % options.size_symbol_name)
@@ -139,6 +139,67 @@ def Main():
                     output_file.write(".quad %d\n" % size)
                 else:
                     output_file.write(".long %d\n" % size)
+
+        # For text symbols, with -g the assembler will generate the
+        # DW_TAG_subprogram/label (gcc/clang) for us.
+        if not options.executable and options.target_arch != None and options.target_os not in [
+                "mac", "ios", "watchos", "win", "win_gnu"
+        ]:
+            output_file.write(".section .debug_abbrev,\"\"\n")
+
+            output_file.write(".uleb128 1    // define abbreviation code\n")
+            output_file.write(".uleb128 0x11 // DW_TAG_compile_unit\n")
+            output_file.write(".byte 1       // DW_CHILDREN_yes\n")
+            output_file.write(".uleb128 0x3  // DW_AT_name\n")
+            output_file.write(".uleb128 0x8  // DW_FORM_string\n")
+            output_file.write(".uleb128 0x1b // DW_AT_comp_dir\n")
+            output_file.write(".uleb128 0x8  // DW_FORM_string\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+
+            output_file.write(".uleb128 2    // define abbreviation code\n")
+            output_file.write(".uleb128 0x34 // DW_TAG_variable\n")
+            output_file.write(".byte 0       // DW_CHILDREN_no\n")
+            output_file.write(".uleb128 0x3  // DW_AT_name\n")
+            output_file.write(".uleb128 0x8  // DW_FORM_STRING\n")
+            output_file.write(".uleb128 0x3f // DW_AT_external\n")
+            output_file.write(".uleb128 0xc  // DW_FORM_flag\n")
+            output_file.write(".uleb128 0x2  // DW_AT_location\n")
+            output_file.write(".uleb128 0x18 // DW_FORM_exprloc\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+
+            output_file.write(".uleb128 0    // End abbreviations\n")
+
+            output_file.write(".section .debug_info,\"\"\n")
+            output_file.write(".4byte .Ldebug_info_end - .Ldebug_info_start\n")
+            output_file.write(".Ldebug_info_start:\n")
+            output_file.write(".2byte 5 // DWARF version 5\n")
+            output_file.write(".byte 1  // DW_UT_compile\n")
+            output_file.write(".byte %s // address size\n" %
+                              (8 if (is64bit == 1) else 4))
+            output_file.write(".4byte .debug_abbrev // debug_abbr_offset\n")
+
+            output_file.write(".uleb128 1     // use abbreviation code\n")
+            output_file.write(".string \"%s\" // DW_AT_name\n" % options.output)
+            output_file.write(".string \"\"   // DW_AT_comp_dir\n")
+
+            output_file.write(".uleb128 2     // use abbreviation code\n")
+            output_file.write(".string \"%s\" // DW_AT_name\n" %
+                              options.symbol_name)
+            output_file.write(".byte 1        // DW_AT_external\n")
+            if (is64bit == 1):
+                output_file.write(".uleb128 9   // DW_AT_location\n")
+                output_file.write(".uleb128 0x3 // DW_OP_addr \n")
+                output_file.write(".8byte %s\n" % options.symbol_name)
+            else:
+                output_file.write(".uleb128 5   // DW_AT_location\n")
+                output_file.write(".uleb128 0x3 // DW_OP_addr \n")
+                output_file.write(".4byte %s\n" % options.symbol_name)
+
+            output_file.write(".uleb128 0 // end children\n")
+            output_file.write(".uleb128 0 // end entries\n")
+            output_file.write(".Ldebug_info_end:\n")
 
         if options.target_os in ["win"]:
             output_file.write("end\n")

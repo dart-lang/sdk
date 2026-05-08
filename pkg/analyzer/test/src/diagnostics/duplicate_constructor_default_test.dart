@@ -65,6 +65,17 @@ augment class A {
     assertErrorsInResult([error(diag.duplicateConstructorDefault, 42, 1)]);
   }
 
+  test_class_primary_unnamed_typeName_new() async {
+    await assertErrorsInCode(
+      r'''
+class C() {
+  C.new() : this();
+}
+''',
+      [error(diag.duplicateConstructorDefault, 14, 5)],
+    );
+  }
+
   test_class_typeName_new_typeName_new() async {
     await assertErrorsInCode(
       r'''
@@ -159,6 +170,18 @@ enum E {
 }
 ''',
       [error(diag.duplicateConstructorDefault, 38, 3)],
+    );
+  }
+
+  test_enum_primary_unnamed_typeName_new() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  factory E.new() => v;
+}
+''',
+      [error(diag.duplicateConstructorDefault, 26, 5)],
     );
   }
 

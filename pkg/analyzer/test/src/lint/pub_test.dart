@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/pubspec.dart';
+import 'package:analyzer/file_system/physical_file_system.dart'
+    show PhysicalResourceProvider;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
@@ -59,7 +61,10 @@ repository: https://github.com/dart-lang/linter
 issue_tracker: https://github.com/dart-lang/linter/issues
 """;
 
-  Pubspec ps = Pubspec.parse(src);
+  Pubspec ps = Pubspec.parse(
+    src,
+    resourceProvider: PhysicalResourceProvider.INSTANCE,
+  );
 
   group('pubspec', () {
     group('basic', () {

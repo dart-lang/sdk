@@ -894,25 +894,6 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
   }
 }
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-void ClassFinalizer::ReportError(const Error& error) {
-  Report::LongJump(error);
-  UNREACHABLE();
-}
-
-void ClassFinalizer::ReportError(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const Script& null_script = Script::Handle();
-  Report::MessageV(Report::kError, null_script, TokenPosition::kNoSource,
-                   Report::AtLocation, format, args);
-  va_end(args);
-  UNREACHABLE();
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
   Thread* thread = Thread::Current();

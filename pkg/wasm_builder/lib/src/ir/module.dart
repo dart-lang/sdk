@@ -4,8 +4,8 @@
 
 import 'dart:typed_data';
 
-import '../serialize/serialize.dart';
 import '../serialize/printer.dart';
+import '../serialize/serialize.dart';
 import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
@@ -112,12 +112,9 @@ class Module implements Serializable {
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
     NameSection(
-            moduleName,
-            <BaseFunction>[...functions.imported, ...functions.defined],
-            types.recursionGroups,
-            <Global>[...globals.imported, ...globals.defined],
-            watchPoints)
+            moduleName, functions, types.recursionGroups, globals, watchPoints)
         .serialize(s);
+    RemovableIfUnusedSection(functions).serialize(s);
     SourceMapSection(sourceMapUrl).serialize(s);
   }
 
@@ -220,6 +217,9 @@ class Module implements Serializable {
         functions,
         types,
         globals);
+    RemovableIfUnusedSection.deserialize(
+        customSections[RemovableIfUnusedSection.customSectionName]?.single,
+        functions);
     final sourceMapUrl = SourceMapSection.deserialize(
         customSections[SourceMapSection.customSectionName]?.single);
 
@@ -287,6 +287,10 @@ class Module implements Serializable {
         if (type is! FunctionType) {
           mp.enqueueType(type);
         }
+      }
+
+      for (final memory in [...memories.imported, ...memories.defined]) {
+        mp.enqueueMemory(memory);
       }
 
       for (final table in [...tables.imported, ...tables.defined]) {

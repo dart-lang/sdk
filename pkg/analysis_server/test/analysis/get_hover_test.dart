@@ -133,6 +133,25 @@ var a = A() + A(); // 1
     expect(hover.parameter, isNull);
   }
 
+  Future<void> test_class_constructor_factory() async {
+    newFile(testFilePath, '''
+class C {
+  new ();
+  /// my doc
+  factory (int x) => C();
+}
+''');
+
+    var hover = await prepareHover('factory');
+    // range
+    expect(hover.offset, findOffset('factory'));
+    expect(hover.length, 'factory'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'C(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
   Future<void> test_class_constructor_named() async {
     newFile(testFilePath, '''
 class A {
@@ -190,6 +209,24 @@ class A {
     }
   }
 
+  Future<void> test_class_constructor_new() async {
+    newFile(testFilePath, '''
+class C {
+  /// my doc
+  new (int x);
+}
+''');
+
+    var hover = await prepareHover('new');
+    // range
+    expect(hover.offset, findOffset('new'));
+    expect(hover.length, 'new'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'C(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
   Future<void> test_class_constructor_noKeyword_const() async {
     newFile(testFilePath, '''
 class A {
@@ -238,6 +275,63 @@ void f() {
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_class_constructor_primary_declaration() async {
+    newFile(testFilePath, '''
+/// my class
+class A(var int x){
+  /// my doc
+  this;
+}
+''');
+
+    // Hover on the class name shows hover for class not constructor
+    var hover = await prepareHover('A');
+    expect(hover.offset, findOffset('A'));
+    expect(hover.length, 'A'.length);
+    // element
+    expect(hover.dartdoc, 'my class');
+    expect(hover.elementDescription, 'class A');
+    expect(hover.elementKind, 'class');
+  }
+
+  Future<void> test_class_constructor_primary_declaration_body() async {
+    newFile(testFilePath, '''
+class A(var int x){
+  /// my doc
+  this {
+    print(x);
+  }
+}
+''');
+
+    var hover = await prepareHover('this');
+    // range
+    expect(hover.offset, findOffset('A'));
+    expect(hover.length, 'A'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'A(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
+  Future<void> test_class_constructor_primary_named_declaration() async {
+    newFile(testFilePath, '''
+class A.named(var int x){
+  /// my doc
+  this;
+}
+''');
+
+    var hover = await prepareHover('named(var int x)');
+    // range
+    expect(hover.offset, findOffset('named'));
+    expect(hover.length, 'named'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'A.named(int x)');
+    expect(hover.elementKind, 'constructor');
   }
 
   Future<void> test_class_constructor_synthetic() async {
@@ -325,6 +419,85 @@ void f() {
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, 'doc aaa\ndoc bbb');
     expect(hover.elementDescription, 'A<double>.named()');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_class_constructorReference_new() async {
+    newFile(testFilePath, '''
+class C {
+  /// my doc
+  new (int x);
+}
+
+void f() {
+  C.new;
+}
+''');
+
+    var hover = await prepareHover('new;');
+    // range
+    expect(hover.offset, findOffset('new;'));
+    expect(hover.length, 'new'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'C(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
+  Future<void> test_class_constructorReference_primary() async {
+    newFile(testFilePath, '''
+class A(final int x, var int y){
+  /// doc aaa
+  this;
+}
+
+void f() {
+  A(3,2);
+}
+''');
+    var hover = await prepareHover('A(3,2)');
+    // element
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, 'doc aaa');
+    expect(hover.elementDescription, '(new) A(int x, int y)');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_class_constructorReference_primary_named() async {
+    newFile(testFilePath, '''
+class C.someName({required var int x, required this._y}){
+  int _y;
+
+  /// doc aaa
+  this;
+}
+
+void f() {
+  C.someName(x: 3, y: 4);
+}
+''');
+    var hover = await prepareHover('C.someName(x');
+    // element
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.containingClassDescription, 'C');
+    expect(hover.dartdoc, 'doc aaa');
+    expect(
+      hover.elementDescription,
+      '(new) C.someName({required int x, required int y})',
+    );
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -1046,6 +1219,40 @@ void f() {
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
+  Future<void> test_enum_constructor_primary_declaration() async {
+    newFile(testFilePath, '''
+/// my enum
+enum E(int x) {
+  v(1);
+}
+''');
+
+    var hover = await prepareHover('E');
+    expect(hover.offset, findOffset('E'));
+    expect(hover.length, 'E'.length);
+    // element
+    expect(hover.dartdoc, 'my enum');
+    expect(hover.elementDescription, 'enum E');
+    expect(hover.elementKind, 'enum');
+  }
+
+  Future<void> test_enum_constructor_primary_named_declaration() async {
+    newFile(testFilePath, '''
+/// my enum
+enum E.named(int x) {
+  v(1);
+}
+''');
+
+    var hover = await prepareHover('named');
+    expect(hover.offset, findOffset('named'));
+    expect(hover.length, 'named'.length);
+    // element
+    expect(hover.dartdoc, null);
+    expect(hover.elementDescription, 'E.named(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
   Future<void> test_enum_declaration() async {
     newFile(testFilePath, '''
 enum MyEnum {AAA, BBB, CCC}
@@ -1190,6 +1397,59 @@ extension E on A {}
     expect(hover.dartdoc, 'Comment');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_extensionType_constructor_primary_declaration() async {
+    newFile(testFilePath, '''
+/// my extension type
+extension type A(var int x){
+}
+''');
+
+    var hover = await prepareHover('A');
+    expect(hover.offset, findOffset('A'));
+    expect(hover.length, 'A'.length);
+    // element
+    expect(hover.dartdoc, 'my extension type');
+    expect(hover.elementDescription, 'extension type A(int x)');
+    expect(hover.elementKind, 'extension type');
+  }
+
+  Future<void> test_extensionType_constructor_primary_declaration_body() async {
+    newFile(testFilePath, '''
+extension type A(var int x){
+  /// my doc
+  this {
+    print(x);
+  }
+}
+''');
+
+    var hover = await prepareHover('this');
+    // range
+    expect(hover.offset, findOffset('A'));
+    expect(hover.length, 'A'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'A(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
+  Future<void>
+  test_extensionType_constructor_primary_named_declaration() async {
+    newFile(testFilePath, '''
+/// my extension type
+extension type A.named(int x) {
+}
+''');
+
+    var hover = await prepareHover('named');
+    expect(hover.offset, findOffset('named'));
+    expect(hover.length, 'named'.length);
+    // element
+    expect(hover.dartdoc, null);
+    expect(hover.elementDescription, 'A.named(int x)');
+    expect(hover.elementKind, 'constructor');
   }
 
   Future<void> test_function_multilineElementDescription() async {
@@ -1702,6 +1962,27 @@ class B extends A{
     expect(hover.elementKind, 'parameter');
   }
 
+  Future<void> test_parameter_ofPrimaryConstructor() async {
+    newFile(testFilePath, '''
+class A(var int a = 1);
+
+void f() {
+  new A(a: 42);
+}
+''');
+    var hover = await prepareHover('a = 1');
+    // element
+    expect(hover.elementDescription, '{int a = 1}');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int');
+
+    var hover2 = await prepareHover('a: 42');
+    // element
+    expect(hover2.elementDescription, '{int a = 1}');
+    expect(hover2.elementKind, 'parameter');
+    expect(hover2.staticType, 'int');
+  }
+
   Future<void> test_parameter_reference_deprecated_optional() async {
     newFile(testFilePath, '''
 void f({@Deprecated.optional() int p}) {}
@@ -1723,6 +2004,27 @@ class A {
   /// The field documentation.
   final int fff;
   A({this.fff});
+}
+void f() {
+  new A(fff: 42);
+}
+''');
+    var hover = await prepareHover('fff: 42');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, 'The field documentation.');
+    expect(hover.elementDescription, '{int fff}');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int');
+  }
+
+  Future<void> test_parameter_reference_privateNamed() async {
+    newFile(testFilePath, '''
+class A {
+  /// The field documentation.
+  final int _fff;
+  A({this._fff});
 }
 void f() {
   new A(fff: 42);

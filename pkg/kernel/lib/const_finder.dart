@@ -12,9 +12,9 @@ class _ConstVisitor extends RecursiveVisitor {
     this.className,
     this.annotationClassLibraryUri,
     this.annotationClassName,
-  )   : _visitedInstances = <String>{},
-        constantInstances = <Map<String, dynamic>>[],
-        nonConstantLocations = <Map<String, dynamic>>[];
+  ) : _visitedInstances = <String>{},
+      constantInstances = <Map<String, dynamic>>[],
+      nonConstantLocations = <Map<String, dynamic>>[];
 
   /// The library URI for the class to find.
   final String classLibraryUri;
@@ -73,9 +73,11 @@ class _ConstVisitor extends RecursiveVisitor {
     if (result != null) {
       return result;
     }
-    final bool exactMatch = node.name == className &&
+    final bool exactMatch =
+        node.name == className &&
         node.enclosingLibrary.importUri.toString() == classLibraryUri;
-    final bool match = exactMatch ||
+    final bool match =
+        exactMatch ||
         node.supers.any((Supertype supertype) => _matches(supertype.classNode));
     _classHierarchyCache[node] = match;
     return match;
@@ -88,7 +90,8 @@ class _ConstVisitor extends RecursiveVisitor {
   @override
   void visitProcedure(Procedure node) {
     // TODO(johnniwinther): Use lowering predicates.
-    final bool isTearOff = node.isStatic &&
+    final bool isTearOff =
+        node.isStatic &&
         node.kind == ProcedureKind.Method &&
         node.name.text == '_#new#tearOff';
     if (inTargetClass && isTearOff) {
@@ -191,11 +194,11 @@ class ConstFinder {
     String? annotationClassLibraryUri,
     String? annotationClassName,
   }) : _visitor = _ConstVisitor(
-          classLibraryUri,
-          className,
-          annotationClassLibraryUri,
-          annotationClassName,
-        );
+         classLibraryUri,
+         className,
+         annotationClassLibraryUri,
+         annotationClassName,
+       );
 
   final _ConstVisitor _visitor;
 
@@ -203,8 +206,9 @@ class ConstFinder {
   // TODO(johnniwinther): Use extension types to type the result.
   Map<String, dynamic> findInstances() {
     _visitor._visitedInstances.clear();
-    for (final Library library
-        in loadComponentFromBinary(kernelFilePath).libraries) {
+    for (final Library library in loadComponentFromBinary(
+      kernelFilePath,
+    ).libraries) {
       library.visitChildren(_visitor);
     }
     return <String, dynamic>{

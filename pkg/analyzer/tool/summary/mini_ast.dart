@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        codeExperimentNotEnabled,
-        codeInternalProblemUnsupported;
+    show LocatedMessage, Message;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as fe_diag;
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -267,7 +264,9 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ConditionalUris");
     if (count != 0) {
       internalProblem(
-        codeInternalProblemUnsupported.withArgumentsOld("Conditional URIs"),
+        fe_diag.internalProblemUnsupported.withArguments(
+          operation: "Conditional URIs",
+        ),
         -1,
         null,
       );
@@ -547,7 +546,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
+  void handleFunctionBodySkipped(Token beginToken, Token endToken, bool isExpressionBody) {
     if (isExpressionBody) pop();
     push(NullValues.FunctionBody);
   }
@@ -732,9 +731,9 @@ class MiniAstBuilder extends StackListener {
       assert(optional('?', questionMark));
       var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-        codeExperimentNotEnabled.withArgumentsOld(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
+        fe_diag.experimentNotEnabled.withArguments(
+          featureName: feature.enableString,
+          enabledVersion: _versionAsString(ExperimentStatus.currentVersion),
         ),
         questionMark,
         questionMark,
@@ -745,9 +744,9 @@ class MiniAstBuilder extends StackListener {
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-      codeExperimentNotEnabled.withArgumentsOld(
-        feature.enableString,
-        _versionAsString(ExperimentStatus.currentVersion),
+      fe_diag.experimentNotEnabled.withArguments(
+        featureName: feature.enableString,
+        enabledVersion: _versionAsString(ExperimentStatus.currentVersion),
       ),
       bang,
       bang,

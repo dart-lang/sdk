@@ -156,7 +156,7 @@ class JSSyntaxRegExp implements RegExp {
 
   String? stringMatch(String string) {
     var match = firstMatch(string);
-    if (match != null) return match.group(0);
+    if (match != null) return match[0];
     return null;
   }
 

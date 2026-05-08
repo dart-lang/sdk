@@ -704,29 +704,194 @@ class _HttpHeaders implements HttpHeaders {
   }
 }
 
-class _HeaderValue implements HeaderValue {
-  String _value;
-  final Map<String, String?> _parameters;
-  Map<String, String?>? _unmodifiableParameters;
+class _ParserState {
+  final String source;
+  int index = 0;
 
-  _HeaderValue([this._value = "", this._parameters = const {}]);
+  _ParserState(this.source);
+}
 
-  static _HeaderValue parse(
+class _ParameterParser {
+  final int parameterSeparator;
+  final int valueSeparator;
+  final bool preserveBackslash;
+  final bool toLowerCaseCharset;
+
+  _ParameterParser({
+    required int this.parameterSeparator,
+    this.valueSeparator = _CharCode.NONE,
+    this.preserveBackslash = false,
+    this.toLowerCaseCharset = false,
+  });
+
+  ({String value, Map<String, String?> parameters}) parse(String source) {
+    final s = _ParserState(source);
+    _skipWhitespace(s);
+    final parsedValue = parseValue(s);
+    _skipWhitespace(s);
+    var parsedParameters = <String, String?>{};
+    if ((s.index < s.source.length) &&
+        // TODO: Implement support for multi-valued parameters.
+        (s.source.codeUnitAt(s.index) != valueSeparator)) {
+      maybeExpect(s, parameterSeparator); // Separator is optional.
+      parsedParameters = parseParameters(s);
+    }
+
+    return (value: parsedValue, parameters: parsedParameters);
+  }
+
+  String parseValue(_ParserState s) {
+    int start = s.index;
+    while (s.index < s.source.length) {
+      var char = s.source.codeUnitAt(s.index);
+      if (char != _CharCode.SP &&
+          char != _CharCode.HT &&
+          char != valueSeparator &&
+          char != parameterSeparator) {
+        s.index++;
+      } else {
+        break;
+      }
+    }
+    return s.source.substring(start, s.index);
+  }
+
+  bool maybeExpect(_ParserState s, codeUnit) {
+    if (s.index < s.source.length && s.source.codeUnitAt(s.index) == codeUnit) {
+      s.index++;
+      return true;
+    }
+    return false;
+  }
+
+  void expect(_ParserState s, codeUnit) {
+    if (!maybeExpect(s, codeUnit)) {
+      throw HttpException("Failed to parse header value");
+    }
+  }
+
+  String parseParameterName(_ParserState s) {
+    int start = s.index;
+    while (s.index < s.source.length) {
+      var char = s.source.codeUnitAt(s.index);
+      if (char != _CharCode.SP &&
+          char != _CharCode.HT &&
+          char != _CharCode.EQUALS &&
+          char != parameterSeparator &&
+          char != valueSeparator) {
+        s.index++;
+      } else {
+        break;
+      }
+    }
+    return s.source.substring(start, s.index).toLowerCase();
+  }
+
+  String parseParameterValue(_ParserState s) {
+    if (maybeExpect(s, _CharCode.QUOTE)) {
+      // Parse quoted value.
+      StringBuffer sb = StringBuffer();
+      while (s.index < s.source.length) {
+        var char = s.source.codeUnitAt(s.index);
+        s.index++;
+        if (char != _CharCode.QUOTE) {
+          if (char != _CharCode.BACKSLASH) {
+            sb.writeCharCode(char);
+            continue;
+          }
+          // If `preserveBackslash` is true, retain backslashes
+          // except those escaping a backslash.
+          // Otherwise remove backslash.
+          // Then retain the next char verbatim.
+          if (s.index < s.source.length) {
+            char = s.source.codeUnitAt(s.index);
+            s.index++;
+            if (preserveBackslash && char != _CharCode.QUOTE) {
+              sb.writeCharCode(_CharCode.BACKSLASH);
+            }
+            sb.writeCharCode(char);
+          } else {
+            // No char after a `\`, and also no end quote.
+            break;
+          }
+        } else {
+          // Char is end quote.
+          return sb.toString();
+        }
+      }
+      throw HttpException("Failed to parse header value");
+    } else {
+      // Parse non-quoted value.
+      return parseValue(s);
+    }
+  }
+
+  void _skipWhitespace(_ParserState s) {
+    while (s.index < s.source.length) {
+      int charCode = s.source.codeUnitAt(s.index);
+      if (charCode == _CharCode.SP || charCode == _CharCode.HT) {
+        s.index++;
+        continue;
+      }
+      break;
+    }
+  }
+
+  Map<String, String?> parseParameters(_ParserState s) {
+    final params = <String, String?>{};
+    while (s.index < s.source.length) {
+      _skipWhitespace(s);
+      if (s.index >= s.source.length) {
+        break;
+      }
+      String name = parseParameterName(s);
+      _skipWhitespace(s);
+      if (maybeExpect(s, _CharCode.EQUALS)) {
+        _skipWhitespace(s);
+        String value = parseParameterValue(s);
+        if (name == 'charset' && toLowerCaseCharset) {
+          value = value.toLowerCase();
+        }
+        params[name] = value;
+      } else if (name.isNotEmpty) {
+        params[name] = null;
+      }
+      _skipWhitespace(s);
+      if (s.index >= s.source.length) {
+        break;
+      }
+      // TODO: Implement support for multi-valued parameters.
+      if (s.source.codeUnitAt(s.index) == valueSeparator) {
+        break;
+      }
+      expect(s, parameterSeparator);
+    }
+    return params;
+  }
+}
+
+@pragma('vm:deeply-immutable')
+final class _HeaderValue implements HeaderValue {
+  final String _value;
+  final Map<String, String?> parameters;
+
+  external _HeaderValue(String value, Map<String, String?> parameters);
+
+  factory _HeaderValue.parse(
     String value, {
     required int parameterSeparator,
     int valueSeparator = _CharCode.NONE,
     bool preserveBackslash = false,
   }) {
-    // Parse the string.
-    var result = _HeaderValue('', {});
-    result._parse(value, parameterSeparator, valueSeparator, preserveBackslash);
-    return result;
+    final result = _ParameterParser(
+      parameterSeparator: parameterSeparator,
+      valueSeparator: valueSeparator,
+      preserveBackslash: preserveBackslash,
+    ).parse(value);
+    return _HeaderValue(result.value, result.parameters);
   }
 
   String get value => _value;
-
-  Map<String, String?> get parameters =>
-      _unmodifiableParameters ??= UnmodifiableMapView(_parameters);
 
   static bool _isToken(String token) {
     if (token.isEmpty) {
@@ -748,7 +913,7 @@ class _HeaderValue implements HeaderValue {
   String toString() {
     StringBuffer sb = StringBuffer();
     sb.write(_value);
-    _parameters.forEach((String name, String? value) {
+    parameters.forEach((String name, String? value) {
       sb
         ..write("; ")
         ..write(name);
@@ -773,142 +938,12 @@ class _HeaderValue implements HeaderValue {
     });
     return sb.toString();
   }
-
-  void _parse(
-    String source,
-    int parameterSeparator,
-    int valueSeparator, // Use negative value for `none`.
-    bool preserveBackslash,
-  ) {
-    int index = 0;
-
-    bool done() => index == source.length;
-
-    String parseValue() {
-      int start = index;
-      while (index < source.length) {
-        var char = source.codeUnitAt(index);
-        if (char != _CharCode.SP &&
-            char != _CharCode.HT &&
-            char != valueSeparator &&
-            char != parameterSeparator) {
-          index++;
-        } else {
-          break;
-        }
-      }
-      return source.substring(start, index);
-    }
-
-    bool maybeExpect(int codeUnit) {
-      if (index < source.length && source.codeUnitAt(index) == codeUnit) {
-        index++;
-        return true;
-      }
-      return false;
-    }
-
-    void expect(int codeUnit) {
-      if (!maybeExpect(codeUnit)) {
-        throw HttpException("Failed to parse header value");
-      }
-    }
-
-    void parseParameters() {
-      String parseParameterName() {
-        int start = index;
-        while (index < source.length) {
-          var char = source.codeUnitAt(index);
-          if (char != _CharCode.SP &&
-              char != _CharCode.HT &&
-              char != _CharCode.EQUALS &&
-              char != parameterSeparator &&
-              char != valueSeparator) {
-            index++;
-          } else {
-            break;
-          }
-        }
-        return source.substring(start, index).toLowerCase();
-      }
-
-      String parseParameterValue() {
-        if (maybeExpect(_CharCode.QUOTE)) {
-          // Parse quoted value.
-          StringBuffer sb = StringBuffer();
-          while (index < source.length) {
-            var char = source.codeUnitAt(index);
-            index++;
-            if (char != _CharCode.QUOTE) {
-              if (char != _CharCode.BACKSLASH) {
-                sb.writeCharCode(char);
-                continue;
-              }
-              // If `preserveBackslash` is true, retain backslashes
-              // except those escaping a backslash.
-              // Otherwise remove backslash.
-              // Then retain the next char verbatim.
-              if (index < source.length) {
-                char = source.codeUnitAt(index);
-                index++;
-                if (preserveBackslash && char != _CharCode.QUOTE) {
-                  sb.writeCharCode(_CharCode.BACKSLASH);
-                }
-                sb.writeCharCode(char);
-              } else {
-                // No char after a `\`, and also no end quote.
-                break;
-              }
-            } else {
-              // Char is end quote.
-              return sb.toString();
-            }
-          }
-          throw HttpException("Failed to parse header value");
-        } else {
-          // Parse non-quoted value.
-          return parseValue();
-        }
-      }
-
-      while (index < source.length) {
-        index = _skipWhitespace(source, index);
-        if (index >= source.length) return;
-        String name = parseParameterName();
-        index = _skipWhitespace(source, index);
-        if (maybeExpect(_CharCode.EQUALS)) {
-          index = _skipWhitespace(source, index);
-          String value = parseParameterValue();
-          if (name == 'charset' && this is _ContentType) {
-            // Charset parameter of ContentTypes are always lower-case.
-            value = value.toLowerCase();
-          }
-          _parameters[name] = value;
-        } else if (name.isNotEmpty) {
-          _parameters[name] = null;
-        }
-        index = _skipWhitespace(source, index);
-        if (index >= source.length) return;
-        // TODO: Implement support for multi-valued parameters.
-        if (source.codeUnitAt(index) == valueSeparator) return;
-        expect(parameterSeparator);
-      }
-    }
-
-    index = _skipWhitespace(source, index);
-    _value = parseValue();
-    index = _skipWhitespace(source, index);
-    if (index >= source.length) return;
-    // TODO: Implement support for multi-valued parameters.
-    if (source.codeUnitAt(index) == valueSeparator) return;
-    maybeExpect(parameterSeparator); // Separator is optional.
-    parseParameters();
-  }
 }
 
-class _ContentType extends _HeaderValue implements ContentType {
-  String _primaryType = "";
-  String _subType = "";
+@pragma('vm:deeply-immutable')
+final class _ContentType extends _HeaderValue implements ContentType {
+  final String _primaryType;
+  final String _subType;
 
   _ContentType(
     this._primaryType,
@@ -917,11 +952,18 @@ class _ContentType extends _HeaderValue implements ContentType {
     Map<String, String?> parameters,
   ) : super("$_primaryType/$_subType", _createParams(parameters, charset));
 
+  _ContentType._(
+    this._primaryType,
+    this._subType,
+    String value,
+    Map<String, String?> parameters,
+  ) : super(value, parameters);
+
   static Map<String, String?> _createParams(
     Map<String, String?> parameters,
     String? charset,
   ) {
-    var result = <String, String?>{};
+    final result = <String, String?>{};
     parameters.forEach((String key, String? value) {
       String lowerCaseKey = key.toLowerCase();
       if (lowerCaseKey == "charset") {
@@ -936,20 +978,27 @@ class _ContentType extends _HeaderValue implements ContentType {
     return result;
   }
 
-  _ContentType._() : super('', {});
+  factory _ContentType.parse(String source) {
+    // Charset parameter of ContentTypes are always lower-case.
+    final result = _ParameterParser(
+      parameterSeparator: _CharCode.SEMI_COLON,
+      valueSeparator: _CharCode.NONE,
+      preserveBackslash: false,
+      toLowerCaseCharset: true,
+    ).parse(source);
 
-  static _ContentType parse(String source) {
-    var result = _ContentType._();
-    result._parse(source, _CharCode.SEMI_COLON, _CharCode.NONE, false);
-    String value = result.value;
-    int index = value.indexOf("/");
-    if (index < 0 || index == (value.length - 1)) {
-      result._primaryType = value.trim().toLowerCase();
+    var primaryType = "";
+    var subType = "";
+    final parsedValue = result.value;
+    int index = parsedValue.indexOf("/");
+    if (index < 0 || index == (parsedValue.length - 1)) {
+      primaryType = parsedValue.trim().toLowerCase();
     } else {
-      result._primaryType = value.substring(0, index).trim().toLowerCase();
-      result._subType = value.substring(index + 1).trim().toLowerCase();
+      primaryType = parsedValue.substring(0, index).trim().toLowerCase();
+      subType = parsedValue.substring(index + 1).trim().toLowerCase();
     }
-    return result;
+
+    return _ContentType._(primaryType, subType, parsedValue, result.parameters);
   }
 
   String get mimeType => '$primaryType/$subType';

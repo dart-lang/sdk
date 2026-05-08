@@ -7,6 +7,9 @@
 
 #include "vm/virtual_memory.h"
 
+#include <fuchsia/kernel/cpp/fidl.h>
+#include <lib/fdio/directory.h>
+#include <lib/zx/resource.h>
 #include <zircon/process.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
@@ -51,7 +54,7 @@ intptr_t VirtualMemory::CalculatePageSize() {
   return page_size;
 }
 
-void VirtualMemory::Init(zx_handle_t vmex_resource) {
+void VirtualMemory::Init() {
   if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
     OS::PrintErr(
         "warning: value specified for --old_gen_heap_size %d is larger than"
@@ -89,7 +92,18 @@ void VirtualMemory::Init(zx_handle_t vmex_resource) {
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
   page_size_ = CalculatePageSize();
-  vmex_resource_ = vmex_resource;
+
+  // If VmexResource is unavailable or does not return a valid handle then
+  // this will be observed as failures from vmo_replace_as_executable below.
+  zx::resource vmex_resource;
+  fuchsia::kernel::VmexResourceSyncPtr vmex_resource_svc;
+  zx_status_t status = fdio_service_connect(
+      "/svc/fuchsia.kernel.VmexResource",
+      vmex_resource_svc.NewRequest().TakeChannel().release());
+  ASSERT(status == ZX_OK);
+  status = vmex_resource_svc->Get(&vmex_resource);
+  ASSERT(status == ZX_OK);
+  vmex_resource_ = vmex_resource.release();
 }
 
 void VirtualMemory::Cleanup() {

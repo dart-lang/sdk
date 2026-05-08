@@ -287,6 +287,9 @@ void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) {}
 
 void ConstantPropagator::VisitGuardFieldType(GuardFieldTypeInstr* instr) {}
 
+void ConstantPropagator::VisitCheckFieldImmutability(
+    CheckFieldImmutabilityInstr* instr) {}
+
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {}
 
 void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
@@ -1483,11 +1486,6 @@ void ConstantPropagator::VisitSimdOp(SimdOpInstr* instr) {
 
 void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
   // TODO(srdjan): Handle min and max.
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitCaseInsensitiveCompare(
-    CaseInsensitiveCompareInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

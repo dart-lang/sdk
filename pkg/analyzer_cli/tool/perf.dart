@@ -19,7 +19,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -79,7 +78,7 @@ void collectSources(Source? start, Set<Source?> files) {
   var unit = parseDirectives(start!);
   for (var directive in unit.directives) {
     if (directive is UriBasedDirective) {
-      var next = sources.resolveUri(start, directive.uri.stringValue);
+      var next = sources.resolveUri(start, directive.uri.stringValue!);
       collectSources(next, files);
     }
   }
@@ -94,8 +93,7 @@ CompilationUnit parseDirectives(Source source) {
   );
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
-    source,
-    DiagnosticListener.nullListener,
+    DiagnosticReporter(DiagnosticListener.nullListener, source),
     featureSet: FeatureSet.latestLanguageVersion(),
     lineInfo: lineInfo,
     languageVersion: languageVersion,
@@ -135,8 +133,7 @@ CompilationUnit parseFull(Source source) {
   );
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
-    source,
-    DiagnosticListener.nullListener,
+    DiagnosticReporter(DiagnosticListener.nullListener, source),
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: languageVersion,
     lineInfo: lineInfo,
@@ -236,9 +233,8 @@ ScannerResult tokenize(Source source) {
   // first converting to String?
   var scanner =
       Scanner(
-          source,
-          CharSequenceReader(contents),
-          DiagnosticListener.nullListener,
+          contents,
+          DiagnosticReporter(DiagnosticListener.nullListener, source),
         )
         ..configureFeatures(
           featureSetForOverriding: featureSet,

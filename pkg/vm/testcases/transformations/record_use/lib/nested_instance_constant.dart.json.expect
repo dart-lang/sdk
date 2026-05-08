@@ -1,0 +1,45 @@
+{
+  "constants": [
+    {
+      "type": "string",
+      "value": "id"
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "id": 0
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "Recorded"
+        }
+      ],
+      "uri": "package:record_use_test/nested_instance_constant.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 1,
+            "loading_unit_index": 0,
+            "type": "constant"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -122,6 +122,32 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       buf.write(escape('$buffer'));
       buf.writeln('</code>');
     });
+
+    if (item is ProducerRequestPerformance) {
+      var itemTimings = item.producerTimings;
+      if (itemTimings.isNotEmpty) {
+        h3('Producer Timings');
+        buf.writeln('<table>');
+        buf.writeln('<tr><th>Time (ms)</th><th>Producer</th></tr>');
+        for (var timing in itemTimings) {
+          buf.writeln(
+            '<tr>'
+            '<td class="right">${timing.elapsedTime}</td>'
+            '<td>${escape(timing.className)}</td>'
+            '</tr>',
+          );
+        }
+        buf.writeln('</table>');
+      }
+
+      var snippet = item.snippet;
+      if (snippet.isNotEmpty) {
+        h3('Snippet');
+        pre(() {
+          buf.writeln(escape(snippet));
+        });
+      }
+    }
   }
 
   void _generateList(

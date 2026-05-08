@@ -34,12 +34,12 @@ bool IsSmi(int64_t v) {
 
 bool WillAllocateNewOrRememberedObject(intptr_t instance_size) {
   ASSERT(Utils::IsAligned(instance_size, ObjectAlignment::kObjectAlignment));
-  return dart::IsAllocatableInNewSpace(instance_size);
+  return dart::Heap::IsAllocatableInNewSpace(instance_size);
 }
 
 bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables) {
   if (!dart::Context::IsValidLength(num_context_variables)) return false;
-  return dart::IsAllocatableInNewSpace(
+  return dart::Heap::IsAllocatableInNewSpace(
       dart::Context::InstanceSize(num_context_variables));
 }
 
@@ -253,7 +253,7 @@ word TypedDataElementSizeInBytes(classid_t cid) {
 }
 
 word TypedDataMaxNewSpaceElements(classid_t cid) {
-  return (dart::kNewAllocatableSize - target::TypedData::HeaderSize()) /
+  return (target::Heap::kNewAllocatableSize - target::TypedData::HeaderSize()) /
          TypedDataElementSizeInBytes(cid);
 }
 
@@ -347,10 +347,6 @@ intptr_t RuntimeEntry::argument_count() const {
 
 namespace target {
 
-const word kPageSize = dart::kPageSize;
-const word kPageSizeInWords = dart::kPageSize / kWordSize;
-const word kPageMask = dart::kPageMask;
-
 static word TranslateOffsetInWordsToHost(word offset) {
   RELEASE_ASSERT((offset % kCompressedWordSize) == 0);
   return (offset / kCompressedWordSize) * dart::kCompressedWordSize;
@@ -368,57 +364,15 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
          dart::UntaggedObject::NewOrEvacuationCandidateBit::encode(true) |
          dart::UntaggedObject::AlwaysSetBit::encode(true) |
          dart::UntaggedObject::NotMarkedBit::encode(true) |
-         dart::UntaggedObject::ImmutableBit::encode(
-             dart::Object::ShouldHaveImmutabilityBitSet(cid));
+         dart::UntaggedObject::ShallowImmutableBit::encode(
+             dart::Object::ShouldHaveShallowImmutabilityBitSet(cid)) |
+         dart::UntaggedObject::DeeplyImmutableBit::encode(
+             dart::Object::ShouldHaveDeeplyImmutabilityBitSet(cid));
 }
-
-word Object::tags_offset() {
-  return 0;
-}
-
-const word UntaggedObject::kCardRememberedBit =
-    dart::UntaggedObject::CardRememberedBit::shift();
-
-const word UntaggedObject::kCanonicalBit =
-    dart::UntaggedObject::CanonicalBit::shift();
-
-const word UntaggedObject::kNewOrEvacuationCandidateBit =
-    dart::UntaggedObject::NewOrEvacuationCandidateBit::shift();
-
-const word UntaggedObject::kOldAndNotRememberedBit =
-    dart::UntaggedObject::OldAndNotRememberedBit::shift();
-
-const word UntaggedObject::kNotMarkedBit =
-    dart::UntaggedObject::NotMarkedBit::shift();
-
-const word UntaggedObject::kImmutableBit =
-    dart::UntaggedObject::ImmutableBit::shift();
-
-const word UntaggedObject::kSizeTagPos =
-    dart::UntaggedObject::SizeTagBits::shift();
-
-const word UntaggedObject::kSizeTagSize =
-    dart::UntaggedObject::SizeTagBits::bitsize();
-
-const word UntaggedObject::kClassIdTagPos =
-    dart::UntaggedObject::ClassIdTag::shift();
-
-const word UntaggedObject::kClassIdTagSize =
-    dart::UntaggedObject::kClassIdTagSize;
-
-#if defined(HASH_IN_OBJECT_HEADER)
-const word UntaggedObject::kHashTagPos = dart::UntaggedObject::HashTag::shift();
-
-const word UntaggedObject::kHashTagSize =
-    dart::UntaggedObject::HashTag::bitsize();
-#endif
 
 const word UntaggedObject::kSizeTagMaxSizeTag =
     dart::UntaggedObject::SizeTag::kMaxSizeTagInUnitsOfAlignment *
     ObjectAlignment::kObjectAlignment;
-
-const word UntaggedObject::kTagBitsSizeTagPos =
-    dart::UntaggedObject::SizeTagBits::shift();
 
 const word UntaggedAbstractType::kTypeStateFinalizedInstantiated =
     dart::UntaggedAbstractType::kFinalizedInstantiated;
@@ -434,15 +388,6 @@ const word UntaggedType::kTypeClassIdShift =
 
 const word UntaggedTypeParameter::kIsFunctionTypeParameterBit =
     dart::UntaggedTypeParameter::IsFunctionTypeParameter::shift();
-
-const word UntaggedObject::kBarrierOverlapShift =
-    dart::UntaggedObject::kBarrierOverlapShift;
-
-const word UntaggedObject::kGenerationalBarrierMask =
-    dart::UntaggedObject::kGenerationalBarrierMask;
-
-const word UntaggedObject::kIncrementalBarrierMask =
-    dart::UntaggedObject::kIncrementalBarrierMask;
 
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
@@ -554,10 +499,6 @@ intptr_t Class::TypeArgumentsFieldOffset(const dart::Class& klass) {
 
 bool Class::TraceAllocation(const dart::Class& klass) {
   return klass.TraceAllocation(dart::IsolateGroup::Current());
-}
-
-word Instance::first_field_offset() {
-  return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
 }
 
 word Instance::native_fields_array_offset() {
@@ -1050,7 +991,7 @@ const uint8_t Nullability::kNonNullable =
     static_cast<uint8_t>(dart::Nullability::kNonNullable);
 
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
-  return dart::IsAllocatableInNewSpace(instance_size);
+  return dart::Heap::IsAllocatableInNewSpace(instance_size);
 }
 
 word Field::OffsetOf(const dart::Field& field) {

@@ -60,7 +60,7 @@ Future<void> main() async {
     'ws://localhost:${await serverPort.future}',
   );
   ws.listen(
-    (var data) {
+    (data) {
       print('Got $data');
       // Sleep to prevent closed socket events coming through and being handled.
       // This way websocket stays open and writing into it should trigger SIGPIPE.

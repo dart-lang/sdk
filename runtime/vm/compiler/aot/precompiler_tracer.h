@@ -23,7 +23,7 @@ class Precompiler;
 // information about all compiled functions and dependencies between them.
 // See pkg/vm_snapshot_analysis/README.md for the definition of the
 // format.
-class PrecompilerTracer : public ZoneAllocated {
+class PrecompilerTracer : public ZoneObject {
  public:
   static PrecompilerTracer* StartTracingIfRequested(Precompiler* precompiler);
 

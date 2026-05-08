@@ -55,6 +55,9 @@ class TargetKind {
   /// Indicates that an annotation is valid on any directive in a library or
   /// part file, whether it's a `library`, `import`, `export`, `part`, or
   /// `part of` directive.
+  @Deprecated(
+      "Use a more specific TargetKind, like 'TargetKind.exportDirective',"
+      "'TargetKind.library', or 'TargetKind.partOfDirective'")
   static const directive = TargetKind._('directives', 'directive');
 
   /// Indicates that an annotation is valid on any enum declaration.
@@ -62,6 +65,10 @@ class TargetKind {
 
   /// Indicates that an annotation is valid on any enum value declaration.
   static const enumValue = TargetKind._('enum values', 'enumValue');
+
+  /// Indicates that an annotation is valid on any export directive.
+  static const exportDirective =
+      TargetKind._('export directives', 'exportDirective');
 
   /// Indicates that an annotation is valid on any extension declaration.
   static const extension = TargetKind._('extensions', 'extension');
@@ -113,6 +120,10 @@ class TargetKind {
   /// type, function-typed formal parameter, or method.
   static const parameter = TargetKind._('parameters', 'parameter');
 
+  /// Indicates that an annotation is valid on any "part of" directive.
+  static const partOfDirective =
+      TargetKind._('"part of" directives', 'partOfDirective');
+
   /// Indicates that an annotation is valid on any setter declaration, both
   /// instance or static setters, whether it's in a class, enum, mixin,
   /// extension, extension type, or at the top-level of a library.
@@ -146,6 +157,7 @@ class TargetKind {
     directive,
     enumType,
     enumValue,
+    exportDirective,
     extension,
     extensionType,
     field,
@@ -157,6 +169,7 @@ class TargetKind {
     optionalParameter,
     overridableMember,
     parameter,
+    partOfDirective,
     setter,
     topLevelVariable,
     type,

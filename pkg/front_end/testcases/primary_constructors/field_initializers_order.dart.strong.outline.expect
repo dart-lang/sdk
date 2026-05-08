@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  field core::int a;
+  field core::int b;
+  field core::int c;
+  synthetic constructor •() → self::C0
+    ;
+}
+class C1 extends core::Object {
+  field core::int a;
+  field core::int b;
+  field core::int c;
+  constructor •() → self::C1
+    ;
+}
+static field core::int value;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

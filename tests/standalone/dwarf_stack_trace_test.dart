@@ -284,7 +284,7 @@ Iterable<int> parseUsingAddressRegExp(RegExp re, Iterable<String> lines) sync* {
   for (final line in lines) {
     final match = re.firstMatch(line);
     if (match == null) continue;
-    final s = match.group(1);
+    final s = match[1];
     if (s == null) continue;
     yield int.parse(s, radix: 16);
   }

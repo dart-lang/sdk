@@ -55,6 +55,30 @@ abstract class MyWidget extends StatelessWidget {
     );
   }
 
+  test_constructor_factory_withoutKey() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget({super.key});
+  factory fact() => MyWidget();
+}
+''');
+  }
+
+  test_constructor_new_withoutKey() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+
+abstract class MyWidget extends StatelessWidget {
+  new ();
+}
+''',
+      [lint(92, 3)],
+    );
+  }
+
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_constructorInAugmentedClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -207,6 +231,25 @@ abstract class MyWidget extends StatelessWidget {
   MyWidget.superCall() : super(key: Key(''));
 }
 ''');
+  }
+
+  test_primaryConstructor_withKey() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class MyWidget({super.key}) extends StatelessWidget {}
+''');
+  }
+
+  test_primaryConstructor_withoutKey() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+
+abstract class MyWidget() extends StatelessWidget {}
+''',
+      [lint(55, 8)],
+    );
   }
 
   test_privateClass() async {

@@ -255,6 +255,7 @@ NamedType
     alias: <testLibrary>::@typeAlias::G
       typeArguments
         int
+      nullabilitySuffix: NullabilitySuffix.question
 ''');
   }
 

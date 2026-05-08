@@ -41,12 +41,14 @@ linter:
     - /*[0*/prefer_relative_imports/*0]*/
     - /*[1*/prefer_single_quotes/*1]*/
     - /*[2*/prefer_int_literals/*2]*/
+    - /*[3*/no_runtimeType_toString/*3]*/
 ''';
 
     var expectedLinks = [
       '${_lintBase}prefer_relative_imports',
       '${_lintBase}prefer_single_quotes',
       '${_lintBase}prefer_int_literals',
+      '${_lintBase}no_runtimetype_tostring',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);
@@ -77,6 +79,60 @@ linter:
 ''';
 
     await _test_pubspec_links(content, []);
+  }
+
+  Future<void> test_analysisOptions_plugins_and_lints() async {
+    var content = '''
+analyzer:
+  plugins:
+    - /*[0*/my_plugin/*0]*/
+
+linter:
+  rules:
+    - /*[1*/await_only_futures/*1]*/
+''';
+
+    var expectedLinks = [
+      '${_pubBase}my_plugin',
+      '${_lintBase}await_only_futures',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_plugins_list() async {
+    var content = '''
+analyzer:
+  plugins:
+    - /*[0*/dart_code_metrics/*0]*/
+    - /*[1*/custom_lint/*1]*/
+''';
+
+    var expectedLinks = [
+      '${_pubBase}dart_code_metrics',
+      '${_pubBase}custom_lint',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_plugins_map() async {
+    var content = '''
+analyzer:
+  plugins:
+    /*[0*/dart_code_metrics/*0]*/:
+      enabled: true
+    /*[1*/custom_lint/*1]*/:
+      options:
+        foo: bar
+''';
+
+    var expectedLinks = [
+      '${_pubBase}dart_code_metrics',
+      '${_pubBase}custom_lint',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
   }
 
   Future<void> test_analysisOptions_undefinedLint() async {

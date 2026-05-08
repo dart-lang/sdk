@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (methods.isNotEmpty && !methods.every((m) => m.isStatic)) return;
 
     if (methods.isNotEmpty || declaredElement.fields.any((f) => !f.isConst)) {
-      rule.reportAtNode(node);
+      rule.reportAtToken(node.namePart.typeName);
     }
   }
 }

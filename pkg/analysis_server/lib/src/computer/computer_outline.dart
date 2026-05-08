@@ -24,17 +24,17 @@ class DartUnitOutlineComputer {
     var unitContents = <Outline>[];
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        if (unitMember.body case BlockClassBody body) {
-          unitContents.add(
-            _newClassOutline(unitMember, _outlinesForMembers(body.members)),
-          );
-        }
+        unitContents.add(
+          _newClassOutline(unitMember, [
+            ...?_outlinesForPrimaryConstructor(unitMember.namePart),
+            ..._outlinesForMembers(unitMember.body.members),
+          ]),
+        );
       } else if (unitMember is MixinDeclaration) {
         unitContents.add(
-          _newMixinOutline(
-            unitMember,
-            _outlinesForMembers(unitMember.body.members),
-          ),
+          _newMixinOutline(unitMember, [
+            ..._outlinesForMembers(unitMember.body.members),
+          ]),
         );
       } else if (unitMember is EnumDeclaration) {
         unitContents.add(
@@ -46,20 +46,16 @@ class DartUnitOutlineComputer {
         );
       } else if (unitMember is ExtensionDeclaration) {
         unitContents.add(
-          _newExtensionOutline(
-            unitMember,
-            _outlinesForMembers(unitMember.body.members),
-          ),
+          _newExtensionOutline(unitMember, [
+            ..._outlinesForMembers(unitMember.body.members),
+          ]),
         );
       } else if (unitMember is ExtensionTypeDeclaration) {
-        if (unitMember.body case BlockClassBody body) {
-          unitContents.add(
-            _newExtensionTypeOutline(
-              unitMember,
-              _outlinesForMembers(body.members),
-            ),
-          );
-        }
+        unitContents.add(
+          _newExtensionTypeOutline(unitMember, [
+            ..._outlinesForMembers(unitMember.body.members),
+          ]),
+        );
       } else if (unitMember is TopLevelVariableDeclaration) {
         var fieldDeclaration = unitMember;
         var fields = fieldDeclaration.variables;
@@ -162,27 +158,52 @@ class DartUnitOutlineComputer {
     return _nodeOutline(node, element);
   }
 
+  Outline _newConstructorBodyOutline(PrimaryConstructorBody body) {
+    var constructor = body.declaration;
+
+    var name = 'this';
+    var offset = body.thisKeyword.offset;
+    var length = body.thisKeyword.length;
+    var constructorNameToken = constructor?.constructorName?.name;
+    var isPrivate = false;
+    if (constructorNameToken != null) {
+      isPrivate = Identifier.isPrivateName(constructorNameToken.lexeme);
+    }
+    var element = Element(
+      ElementKind.CONSTRUCTOR,
+      name,
+      Element.makeFlags(isPrivate: isPrivate),
+      location: _getLocationOffsetLength(offset, length),
+    );
+    var contents = _addFunctionBodyOutlines(body.body);
+    return _nodeOutline(body, element, contents);
+  }
+
   Outline _newConstructorOutline(ConstructorDeclaration constructor) {
     String name;
     int offset;
     int length;
     var typeName = constructor.typeName;
+    var keyword = constructor.newKeyword ?? constructor.factoryKeyword;
     if (typeName != null) {
       name = typeName.name;
       offset = typeName.offset;
       length = typeName.length;
     } else {
-      // TODO(scheglov): support primary constructors
-      name = '<unknown>';
-      offset = constructor.offset;
-      length = constructor.length;
+      name =
+          constructor.declaredFragment?.element.enclosingElement.name ??
+          '<unknown>';
+      offset = keyword?.offset ?? constructor.offset;
+      length = keyword?.length ?? constructor.length;
     }
     var constructorNameToken = constructor.name;
     var isPrivate = false;
     if (constructorNameToken != null) {
       var constructorName = constructorNameToken.lexeme;
       isPrivate = Identifier.isPrivateName(constructorName);
-      name += '.$constructorName';
+      if (constructorName != 'new') {
+        name += '.$constructorName';
+      }
       offset = constructorNameToken.offset;
       length = constructorNameToken.length;
     }
@@ -200,6 +221,38 @@ class DartUnitOutlineComputer {
     );
     var contents = _addFunctionBodyOutlines(constructor.body);
     return _nodeOutline(constructor, element, contents);
+  }
+
+  Outline _newDeclaredFieldOutline(FormalParameter parameter) {
+    if (parameter is DefaultFormalParameter) {
+      parameter = parameter.parameter;
+    }
+
+    String typeName;
+    if (parameter is SimpleFormalParameter) {
+      typeName = _safeToSource(parameter.type);
+    } else if (parameter is FunctionTypedFormalParameter) {
+      var returnType = _safeToSource(parameter.returnType);
+      var typeParameters = _safeToSource(parameter.typeParameters);
+      var formalParameters = _safeToSource(parameter.parameters);
+      typeName = '$returnType Function$typeParameters$formalParameters';
+    } else {
+      throw StateError('Unhandled parameter type: ${parameter.runtimeType}');
+    }
+    var nameToken = parameter.name!;
+    var name = nameToken.lexeme;
+    var element = Element(
+      ElementKind.FIELD,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(parameter.metadata),
+        isFinal: parameter.isFinal,
+      ),
+      location: _getLocationToken(nameToken),
+      returnType: typeName,
+    );
+    return _nodeOutline(parameter, element);
   }
 
   Outline _newEnumConstant(EnumConstantDeclaration node) {
@@ -420,6 +473,44 @@ class DartUnitOutlineComputer {
     return _nodeOutline(node, element, mixinContents);
   }
 
+  Outline _newPrimaryConstructorOutline(
+    PrimaryConstructorDeclaration constructor,
+  ) {
+    String name;
+    int offset;
+    int length;
+    var typeName = constructor.typeName;
+    name = typeName.lexeme;
+    offset = typeName.offset;
+    length = typeName.length;
+    var constructorName = constructor.constructorName;
+    var isPrivate = false;
+    if (constructorName != null) {
+      var constructorNameName = constructorName.name.lexeme;
+      isPrivate = Identifier.isPrivateName(constructorNameName);
+      name += '.$constructorNameName';
+      offset = constructorName.offset;
+      length = constructorName.length;
+    }
+    var metadata = <Annotation>[];
+    if (constructor.body case PrimaryConstructorBody body) {
+      metadata = body.metadata;
+    }
+    var parameters = constructor.formalParameters;
+    var parametersStr = _safeToSource(parameters);
+    var element = Element(
+      ElementKind.CONSTRUCTOR,
+      name,
+      Element.makeFlags(
+        isPrivate: isPrivate,
+        isDeprecated: _hasDeprecated(metadata),
+      ),
+      location: _getLocationOffsetLength(offset, length),
+      parameters: parametersStr,
+    );
+    return _nodeOutline(constructor, element, []);
+  }
+
   Outline _newUnitOutline(List<Outline> unitContents) {
     var unit = resolvedUnit.unit;
     var element = Element(
@@ -521,8 +612,32 @@ class DartUnitOutlineComputer {
         var methodDeclaration = classMember;
         memberOutlines.add(_newMethodOutline(methodDeclaration));
       }
+      if (classMember is PrimaryConstructorBody) {
+        var constructorBody = classMember;
+        memberOutlines.add(_newConstructorBodyOutline(constructorBody));
+      }
     }
     return memberOutlines;
+  }
+
+  List<Outline>? _outlinesForPrimaryConstructor(ClassNamePart namePart) {
+    if (namePart is! PrimaryConstructorDeclaration) {
+      return null;
+    }
+    var constructor = namePart.declaredFragment;
+    if (constructor == null) {
+      return null;
+    }
+    var outlines = <Outline>[];
+    outlines.add(_newPrimaryConstructorOutline(namePart));
+    for (var parameter in namePart.formalParameters.parameters) {
+      var parameterElement = parameter.declaredFragment!.element;
+      if (parameterElement is engine.FieldFormalParameterElement &&
+          parameterElement.isDeclaring) {
+        outlines.add(_newDeclaredFieldOutline(parameter));
+      }
+    }
+    return outlines;
   }
 
   static String? _getTypeParametersStr(TypeParameterList? parameters) {

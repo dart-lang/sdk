@@ -21,6 +21,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
+import '../util/helpers.dart';
 import 'offset_map.dart';
 import 'source_type_parameter_builder.dart';
 import 'type_parameter_factory.dart';
@@ -346,7 +347,7 @@ abstract class FragmentFactory {
     required String? nativeMethodName,
     required Token? beginInitializers,
     required bool hasNewKeyword,
-    required bool forAbstractClassOrMixin,
+    required bool forAbstractClassOrEnumOrMixin,
   });
 
   void addPrimaryConstructor({
@@ -358,6 +359,17 @@ abstract class FragmentFactory {
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
+    required bool forAbstractClassOrEnumOrMixin,
+  });
+
+  void addPrimaryConstructorBody({
+    required OffsetMap offsetMap,
+    required Token beginToken,
+    required List<MetadataBuilder>? metadata,
+    required int endOffset,
+    required Token? beginInitializers,
+    required bool hasBody,
+    required int bodyOffset,
   });
 
   void addPrimaryConstructorField({
@@ -366,6 +378,7 @@ abstract class FragmentFactory {
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   });
 
   void addFactoryMethod({
@@ -460,18 +473,17 @@ abstract class FragmentFactory {
     List<FieldInfo> fieldInfos,
   );
 
-  FormalParameterBuilder addFormalParameter(
-    List<MetadataBuilder>? metadata,
-    FormalParameterKind kind,
-    Modifiers modifiers,
-    TypeBuilder type,
-    String name,
-    String? publicName,
-    bool hasThis,
-    bool hasSuper,
-    int charOffset,
-    Token? initializerToken, {
-    bool lowerWildcard = false,
+  FormalParameterBuilder addFormalParameter({
+    required List<MetadataBuilder>? metadata,
+    required FormalParameterKind kind,
+    required Modifiers modifiers,
+    required TypeBuilder type,
+    required String name,
+    required String? publicName,
+    required bool hasThis,
+    required bool hasSuper,
+    required int nameOffset,
+    required Token? initializerToken,
   });
 
   ConstructorReferenceBuilder addConstructorReference(
@@ -507,7 +519,9 @@ abstract class FragmentFactory {
 
   TypeBuilder addVoidType(int charOffset);
 
-  InferableTypeBuilder addInferableType();
+  InferableTypeBuilder addInferableType(
+    InferenceDefaultType inferenceDefaultType,
+  );
 
   TypeParameterFragment addNominalParameter({
     required List<MetadataBuilder>? metadata,
@@ -543,6 +557,7 @@ class SynthesizedExtensionSignature {
     required TypeParameterFactory typeParameterFactory,
     required Uri fileUri,
     required int fileOffset,
+    required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
         .copyTypeParameters(
@@ -561,14 +576,16 @@ class SynthesizedExtensionSignature {
     }
 
     FormalParameterBuilder thisFormal = new FormalParameterBuilder(
-      FormalParameterKind.requiredPositional,
-      Modifiers.Final,
-      thisType,
-      syntheticThisName,
-      fileOffset,
+      kind: FormalParameterKind.requiredPositional,
+      modifiers: Modifiers.Final,
+      type: thisType,
+      name: syntheticThisName,
+      nameOffset: null,
+      fileOffset: fileOffset,
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     return new SynthesizedExtensionSignature._(
       clonedDeclarationTypeParameters,
@@ -594,6 +611,7 @@ class SynthesizedExtensionTypeSignature {
     required TypeParameterFactory typeParameterFactory,
     required Uri fileUri,
     required int fileOffset,
+    required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
         .copyTypeParameters(
@@ -629,14 +647,16 @@ class SynthesizedExtensionTypeSignature {
     }
 
     FormalParameterBuilder thisFormal = new FormalParameterBuilder(
-      FormalParameterKind.requiredPositional,
-      Modifiers.Final,
-      thisType,
-      syntheticThisName,
-      fileOffset,
+      kind: FormalParameterKind.requiredPositional,
+      modifiers: Modifiers.Final,
+      type: thisType,
+      name: syntheticThisName,
+      nameOffset: null,
+      fileOffset: fileOffset,
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
 
     return new SynthesizedExtensionTypeSignature._(

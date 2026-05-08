@@ -70,6 +70,10 @@ abstract final class Colors {
         400: Color(0xFFFF1744),
         700: Color(0xFFD50000),
       });
+
+  static const int _redPrimaryValue = 0xFFF44336;
+
+  static const int _redAccentValue = 0xFFFF5252;
 }
 ''',
 );

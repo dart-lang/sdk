@@ -41,10 +41,11 @@ class ParameterAssignments extends AnalysisRule {
     RuleContext context,
   ) {
     var visitor = _Visitor(this);
-    registry.addFunctionDeclaration(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
-    registry.addFunctionExpression(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addFunctionExpression(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -177,6 +178,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _checkParameters(node.parameters, node.body);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var body = node.body;
+    if (body != null) {
+      _checkParameters(node.formalParameters, body.body);
+    }
   }
 
   void _checkParameters(FormalParameterList? parameterList, FunctionBody body) {

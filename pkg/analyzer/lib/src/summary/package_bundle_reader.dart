@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
 import 'dart:math' show min;
 
 import 'package:analyzer/source/source.dart';
@@ -10,6 +9,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart'
     show BasicSource, UriResolver;
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 
 /// A [ConflictingSummaryException] indicates that two different summaries
 /// provided to a [SummaryDataStore] conflict.
@@ -59,9 +59,7 @@ include the same source.
       }
     }
     // The prefix should end with a file separator.
-    var last = first
-        .substring(0, common)
-        .lastIndexOf(io.Platform.pathSeparator);
+    var last = first.substring(0, common).lastIndexOf(platform.pathSeparator);
     return last < 0 ? 0 : last + 1;
   }
 }

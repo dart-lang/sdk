@@ -30,6 +30,33 @@ class Conflict {
   Conflict({required this.name});
 }
 
+/// The extension type inherits a method and a setter with the same name,
+/// and does not preclude them.
+class ExtensionTypeConflictingInheritedMethodAndSetterConflict
+    extends Conflict {
+  final InternalMethodElement method;
+  final InternalSetterElement setter;
+
+  ExtensionTypeConflictingInheritedMethodAndSetterConflict({
+    required super.name,
+    required this.method,
+    required this.setter,
+  });
+}
+
+/// The extension type has a static member that conflicts with an inherited
+/// instance member.
+class ExtensionTypeConflictingStaticAndInstanceConflict extends Conflict {
+  final InternalExecutableElement declared;
+  final InternalExecutableElement inherited;
+
+  ExtensionTypeConflictingStaticAndInstanceConflict({
+    required super.name,
+    required this.declared,
+    required this.inherited,
+  });
+}
+
 /// Failure because of a getter and a method from direct superinterfaces.
 class GetterMethodConflict extends Conflict {
   final InternalExecutableElement getter;
@@ -284,22 +311,25 @@ class InheritanceManager3 {
     required Interface interface,
   }) {
     var map = interface.map;
-    for (var entry in map.entries) {
-      var name = entry.key;
-      var candidate = entry.value;
 
-      candidate = SubstitutedExecutableElementImpl.from(
-        candidate,
-        substitution,
-      );
-
-      var candidates = namedCandidates[name];
-      if (candidates == null) {
-        candidates = <InternalExecutableElement>[];
-        namedCandidates[name] = candidates;
+    /// Optimization: Simple/common case of no substitution.
+    if (identical(substitution, Substitution.empty)) {
+      for (var entry in map.entries) {
+        var candidates = namedCandidates[entry.key] ??=
+            <InternalExecutableElement>[];
+        candidates.add(entry.value);
       }
-
-      candidates.add(candidate);
+    } else {
+      for (var entry in map.entries) {
+        var candidate = entry.value;
+        candidate = SubstitutedExecutableElementImpl.from(
+          candidate,
+          substitution,
+        );
+        var candidates = namedCandidates[entry.key] ??=
+            <InternalExecutableElement>[];
+        candidates.add(candidate);
+      }
     }
   }
 
@@ -381,6 +411,7 @@ class InheritanceManager3 {
   ///
   /// If such signature does not exist, return `null`, and if [conflicts] is
   /// not `null`, add a new [Conflict] to it.
+  @pragma("vm:prefer-inline")
   InternalExecutableElement? _combineSignatures({
     required InterfaceElementImpl targetClass,
     required List<InternalExecutableElement> candidates,
@@ -392,6 +423,27 @@ class InheritanceManager3 {
       return candidates[0];
     }
 
+    return _combineSignaturesImpl(
+      targetClass: targetClass,
+      candidates: candidates,
+      name: name,
+      conflicts: conflicts,
+    );
+  }
+
+  /// Combine [candidates] into a single signature in the [targetClass].
+  ///
+  /// If such signature does not exist, return `null`, and if [conflicts] is
+  /// not `null`, add a new [Conflict] to it.
+  ///
+  /// Split from [_combineSignatures] to allow the common case (only 1
+  /// candidate) to be inlined.
+  InternalExecutableElement? _combineSignaturesImpl({
+    required InterfaceElementImpl targetClass,
+    required List<InternalExecutableElement> candidates,
+    required Name name,
+    List<Conflict>? conflicts,
+  }) {
     var targetLibrary = targetClass.library;
     var typeSystem = targetLibrary.typeSystem;
 
@@ -518,13 +570,18 @@ class InheritanceManager3 {
         interface: superTypeInterface,
       );
 
-      for (var entry in superTypeInterface.implemented.entries) {
-        var executable = entry.value;
-        executable = SubstitutedExecutableElementImpl.from(
-          executable,
-          substitution,
-        );
-        implemented[entry.key] = executable;
+      /// Optimization: Simple/common case of no substitution.
+      if (identical(substitution, Substitution.empty)) {
+        implemented.addAll(superTypeInterface.implemented);
+      } else {
+        for (var entry in superTypeInterface.implemented.entries) {
+          var executable = entry.value;
+          executable = SubstitutedExecutableElementImpl.from(
+            executable,
+            substitution,
+          );
+          implemented[entry.key] = executable;
+        }
       }
 
       superImplemented.add(implemented);
@@ -534,7 +591,10 @@ class InheritanceManager3 {
     // optimal. We always have just one member for each name in super,
     // multiple candidates happen only when we merge super and multiple
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
-    var mixinsConflicts = <List<Conflict>>[];
+
+    // Made nullable for the common case that there are no mixins or no
+    // conflicts.
+    List<List<Conflict>>? mixinsConflicts;
     for (var mixin in element.mixins) {
       var mixinElement = mixin.element;
       var substitution = Substitution.fromInterfaceType(mixin);
@@ -598,7 +658,7 @@ class InheritanceManager3 {
         }
       }
 
-      mixinsConflicts.add(mixinConflicts);
+      (mixinsConflicts ??= <List<Conflict>>[]).add(mixinConflicts);
 
       implemented = Map.of(implemented);
       _addMixinMembers(
@@ -638,7 +698,7 @@ class InheritanceManager3 {
       namedCandidates,
     );
 
-    var noSuchMethodForwarders = <Name>{};
+    Set<Name>? noSuchMethodForwarders;
     if (element is ClassElementImpl && element.isAbstract) {
       if (superTypeInterface != null) {
         noSuchMethodForwarders = superTypeInterface.noSuchMethodForwarders;
@@ -652,7 +712,7 @@ class InheritanceManager3 {
           if (!implemented.containsKey(name) ||
               superForwarders != null && superForwarders.contains(name)) {
             implemented[name] = entry.value;
-            noSuchMethodForwarders.add(name);
+            (noSuchMethodForwarders ??= {}).add(name);
           }
         }
       }
@@ -660,25 +720,31 @@ class InheritanceManager3 {
 
     // TODO(scheglov): Instead of merging conflicts we could report them on
     // the corresponding mixins applied in the class.
-    for (var mixinConflicts in mixinsConflicts) {
-      if (mixinConflicts.isNotEmpty) {
-        conflicts.addAll(mixinConflicts);
+    if (mixinsConflicts != null) {
+      for (var mixinConflicts in mixinsConflicts) {
+        if (mixinConflicts.isNotEmpty) {
+          conflicts.addAll(mixinConflicts);
+        }
       }
     }
 
-    implemented = implemented.map<Name, InternalExecutableElement>((
-      key,
-      value,
-    ) {
-      var result = _inheritCovariance(element, namedCandidates, key, value);
-      return MapEntry(key, result);
-    });
+    for (var entry in implemented.entries) {
+      var result = _inheritCovariance(
+        element,
+        namedCandidates,
+        entry.key,
+        entry.value,
+      );
+      if (!identical(entry.value, result)) {
+        implemented[entry.key] = result;
+      }
+    }
 
     return Interface._(
       map: interface,
       declared: declared,
       implemented: implemented,
-      noSuchMethodForwarders: noSuchMethodForwarders,
+      noSuchMethodForwarders: noSuchMethodForwarders ?? const {},
       overridden: namedCandidates,
       redeclared: const {},
       superImplemented: superImplemented,
@@ -838,6 +904,87 @@ class InheritanceManager3 {
       }
 
       implemented[name] = combinedSignature;
+    }
+
+    // Check for conflicting static and instance members.
+    for (var member in [
+      ...element.methods,
+      ...element.getters,
+      ...element.setters,
+    ]) {
+      if (!member.isStatic) {
+        continue;
+      }
+
+      var getterName = Name.forElement(member)?.forGetter;
+      if (getterName == null) {
+        continue;
+      }
+
+      if (redeclared[getterName]?.firstOrNull case var inherited?) {
+        conflicts.add(
+          ExtensionTypeConflictingStaticAndInstanceConflict(
+            name: getterName,
+            declared: member,
+            inherited: inherited,
+          ),
+        );
+        continue;
+      }
+
+      var setterName = getterName.forSetter;
+      if (redeclared[setterName]?.firstOrNull case var inherited?) {
+        conflicts.add(
+          ExtensionTypeConflictingStaticAndInstanceConflict(
+            name: setterName,
+            declared: member,
+            inherited: inherited,
+          ),
+        );
+      }
+    }
+
+    // Inherited method and setter with the same name.
+    for (var redeclaredEntry in redeclared.entries) {
+      var methodName = redeclaredEntry.key;
+      if (methodName.isSetter) {
+        continue;
+      }
+
+      // We are looking for a conflict between an inherited method and an
+      // inherited setter. If either is precluded by a declaration in the
+      // extension type, there is no conflict.
+      var setterName = methodName.forSetter;
+      if (precludedNames.contains(methodName) ||
+          precludedMethods.contains(methodName) ||
+          precludedNames.contains(setterName) ||
+          precludedSetters.contains(setterName)) {
+        continue;
+      }
+
+      // Choose any method.
+      var methodCandidates = redeclaredEntry.value
+          .whereType<InternalMethodElement>();
+      var method = methodCandidates.firstOrNull;
+      if (method == null) {
+        continue;
+      }
+
+      // Choose any corresponding setter.
+      var setterCandidates = redeclared[setterName]
+          ?.whereType<InternalSetterElement>();
+      var setter = setterCandidates?.firstOrNull;
+      if (setter == null) {
+        continue;
+      }
+
+      conflicts.add(
+        ExtensionTypeConflictingInheritedMethodAndSetterConflict(
+          name: methodName,
+          method: method,
+          setter: setter,
+        ),
+      );
     }
 
     var uniqueRedeclared = <Name, List<InternalExecutableElement>>{};
@@ -1064,15 +1211,22 @@ class InheritanceManager3 {
     InterfaceElementImpl targetClass,
     List<InternalExecutableElement> validOverrides,
   ) {
-    var first = validOverrides[0];
+    var firstElement = validOverrides[0];
 
     if (validOverrides.length == 1) {
-      return first;
+      return firstElement;
     }
 
-    var firstType = first.type;
-    if (validOverrides.every((e) => e.type == firstType)) {
-      return first;
+    var firstType = firstElement.type;
+    var allFirstType = true;
+    for (var e in validOverrides) {
+      if (e.type != firstType) {
+        allFirstType = false;
+        break;
+      }
+    }
+    if (allFirstType) {
+      return firstElement;
     }
 
     var resultType = _topMergeSignatureTypes(
@@ -1086,8 +1240,7 @@ class InheritanceManager3 {
       }
     }
 
-    if (first is InternalMethodElement) {
-      var firstElement = first;
+    if (firstElement is InternalMethodElement) {
       var fragmentName = firstElement.firstFragment.name!;
 
       var elementReference = targetClass.reference!
@@ -1120,8 +1273,8 @@ class InheritanceManager3 {
 
       return resultElement;
     } else {
-      var firstElement = first as InternalPropertyAccessorElement;
-      var fragmentName = first.name!;
+      firstElement as InternalPropertyAccessorElement;
+      var fragmentName = firstElement.name!;
       var field = FieldFragmentImpl(name: fragmentName);
       field.isOriginGetterSetter = true;
       field.isSynthetic = true;
@@ -1168,7 +1321,7 @@ class InheritanceManager3 {
 
       field.enclosingFragment = targetClass.firstFragment;
 
-      var elementName = first.name!;
+      var elementName = firstElement.name!;
       var elementReference = targetClass.reference!
           .getChild('@field')
           .getChild(elementName);
@@ -1357,7 +1510,7 @@ class Name {
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
   Name get forGetter {
-    if (name.endsWith('=')) {
+    if (isSetter) {
       var getterName = name.substring(0, name.length - 1);
       return Name(libraryUri, getterName);
     } else {
@@ -1366,11 +1519,16 @@ class Name {
   }
 
   Name get forSetter {
-    if (name.endsWith('=')) {
+    if (isSetter) {
       return this;
     } else {
       return Name(libraryUri, '$name=');
     }
+  }
+
+  bool get isSetter {
+    return name.endsWith('=') &&
+        !const {'[]=', '==', '<=', '>='}.contains(name);
   }
 
   @override

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:path/path.dart' as path;
 
 /// A class for interacting with the `pub` command.
@@ -50,7 +51,7 @@ class PubCommand {
     // When calling the `pub` command, we must add an identifier to the
     // PUB_ENVIRONMENT environment variable (joined with colons).
     const pubEnvString = 'analysis_server.pub_api';
-    var existingPubEnv = Platform.environment[_pubEnvironmentKey];
+    var existingPubEnv = platform.environment[_pubEnvironmentKey];
     _pubEnvironmentValue = [
       if (existingPubEnv?.isNotEmpty ?? false) existingPubEnv,
       pubEnvString,

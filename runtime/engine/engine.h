@@ -54,6 +54,10 @@ class Engine {
   void HandleMessage(Dart_Isolate isolate);
 
   // Drains the microtasks queue, requires an active isolate.
+  //
+  // If a microtask throws, the error is returned to the caller,
+  // and the queue may still contain more entries.
+  // The caller should continue to drain the queue after handling the error.
   Dart_Handle DrainMicrotasksQueue();
 
   // Sets a callback to be called when Dart_HandleMessage returns an error.

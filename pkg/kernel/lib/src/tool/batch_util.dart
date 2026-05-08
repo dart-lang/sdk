@@ -7,10 +7,7 @@ library kernel.batch_util;
 import 'dart:convert';
 import 'dart:io';
 
-enum CompilerOutcome {
-  Ok,
-  Fail,
-}
+enum CompilerOutcome { Ok, Fail }
 
 typedef Future<CompilerOutcome> BatchCallback(List<String> arguments);
 
@@ -28,8 +25,10 @@ Future runBatch(BatchCallback callback) async {
   await for (String line in input) {
     if (line.isEmpty) {
       int time = watch.elapsedMilliseconds;
-      print('>>> BATCH END '
-          '(${totalTests - testsFailed})/$totalTests ${time}ms');
+      print(
+        '>>> BATCH END '
+        '(${totalTests - testsFailed})/$totalTests ${time}ms',
+      );
       break;
     }
     ++totalTests;

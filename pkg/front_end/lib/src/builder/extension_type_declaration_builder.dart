@@ -5,9 +5,6 @@
 part of 'declaration_builders.dart';
 
 abstract class ExtensionTypeDeclarationBuilder implements DeclarationBuilder {
-  /// The type of the underlying representation.
-  DartType get declaredRepresentationType;
-
   /// The type builder of the underlying representation.
   TypeBuilder? get declaredRepresentationTypeBuilder;
 

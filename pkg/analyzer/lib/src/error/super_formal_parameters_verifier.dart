@@ -8,12 +8,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
 VerifySuperFormalParametersResult verifySuperFormalParameters({
-  required ConstructorDeclaration constructor,
+  required FormalParameterList formalParameterList,
   DiagnosticReporter? diagnosticReporter,
   bool hasExplicitPositionalArguments = false,
 }) {
   var result = VerifySuperFormalParametersResult();
-  for (var parameter in constructor.parameters.parameters) {
+  for (var parameter in formalParameterList.parameters) {
     parameter = parameter.notDefault;
     if (parameter is SuperFormalParameterImpl) {
       var declaredFragment = parameter.declaredFragment!;

@@ -18,8 +18,10 @@ final class IrToText extends VoidInstructionVisitor {
     this.printDominators = false,
     this.printLoops = false,
     this.annotator,
+    Iterable<Block>? blockOrder,
   }) {
-    for (final block in graph.reversePostorder) {
+    blockOrder ??= graph.reversePostorder;
+    for (final block in blockOrder) {
       block.accept(this);
     }
   }
@@ -109,6 +111,9 @@ final class IrToText extends VoidInstructionVisitor {
       case StoreField():
         _buffer.write(instr.field);
         _buffer.write(', ');
+      case TypeLiteral():
+        _buffer.write(instr.uninstantiatedType.getDisplayString());
+        _buffer.write(', ');
       case _:
     }
     for (int i = 0, n = instr.inputCount; i < n; ++i) {
@@ -159,7 +164,7 @@ final class IrToText extends VoidInstructionVisitor {
     }
   }
 
-  String reference(Instruction instr) => switch (instr) {
+  static String reference(Instruction instr) => switch (instr) {
     Definition() => 'v${instr.id}',
     Block() => 'B${instr.id}',
     _ => 'instr${instr.id}',
@@ -176,10 +181,13 @@ final class IrToText extends VoidInstructionVisitor {
         DynamicCallKind.getter => 'get ',
         DynamicCallKind.setter => 'set ',
       }}${instr.selector}',
+    AllocateObject() => 'AllocateObject ${instr.type}',
     BinaryIntOp() => 'BinaryIntOp ${instr.op.token}',
     UnaryIntOp() => 'UnaryIntOp ${instr.op.token}',
     BinaryDoubleOp() => 'BinaryDoubleOp ${instr.op.token}',
     UnaryDoubleOp() => 'UnaryDoubleOp ${instr.op.token}',
+    UnaryBoolOp() => 'UnaryBoolOp ${instr.op.token}',
+    ParallelMove() => 'ParallelMove ${instr.stage.name}',
     _ => instr.runtimeType.toString(),
   };
 }

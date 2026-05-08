@@ -6,8 +6,9 @@ library;
 
 import '../../compiler_api.dart' as api show OutputSink;
 import 'code_output_listener.dart';
-export 'code_output_listener.dart';
 import 'source_information.dart';
+
+export 'code_output_listener.dart';
 
 /// Interface for a mapping of target offsets to source locations and for
 /// tracking inlining frame data.

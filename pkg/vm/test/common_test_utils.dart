@@ -37,30 +37,32 @@ Future<Component> compileTestCaseToKernelProgram(
 }) async {
   Directory? tempDirectory;
   try {
-    final platformFileName =
-        (target is WasmTarget) ? target.platformFile : 'vm_platform.dill';
+    final platformFileName = (target is WasmTarget)
+        ? target.platformFile
+        : 'vm_platform.dill';
     final platformKernel = computePlatformBinariesLocation().resolve(
       platformFileName,
     );
     environmentDefines ??= <String, String>{};
-    final options =
-        new CompilerOptions()
-          ..target = target
-          ..additionalDills = <Uri>[platformKernel]
-          ..environmentDefines = environmentDefines
-          ..packagesFileUri = packagesFileUri
-          ..explicitExperimentalFlags = parseExperimentalFlags(
-            parseExperimentalArguments(experimentalFlags),
-            onError: (String message) {
-              throw message;
-            },
-          )
-          ..onDiagnostic = (CfeDiagnosticMessage message) {
-            fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
-          };
+    final options = new CompilerOptions()
+      ..target = target
+      ..additionalDills = <Uri>[platformKernel]
+      ..environmentDefines = environmentDefines
+      ..packagesFileUri = packagesFileUri
+      ..explicitExperimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experimentalFlags),
+        onError: (String message) {
+          throw message;
+        },
+      )
+      ..onDiagnostic = (CfeDiagnosticMessage message) {
+        fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
+      };
     if (linkedDependencies != null) {
-      final Component component =
-          (await kernelForModule(linkedDependencies, options)).component!;
+      final Component component = (await kernelForModule(
+        linkedDependencies,
+        options,
+      )).component!;
       tempDirectory = await Directory.systemTemp.createTemp();
       Uri uri = tempDirectory.uri.resolve("generated.dill");
       File generated = new File.fromUri(uri);
@@ -73,8 +75,10 @@ Future<Component> compileTestCaseToKernelProgram(
       options..additionalDills = <Uri>[platformKernel, uri];
     }
 
-    final Component component =
-        (await kernelForProgram(sourceUri, options))!.component!;
+    final Component component = (await kernelForProgram(
+      sourceUri,
+      options,
+    ))!.component!;
 
     // Make sure the library name is the same and does not depend on the order
     // of test cases.

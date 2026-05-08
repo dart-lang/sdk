@@ -63,8 +63,8 @@ class FieldTable {
     ASSERT(IsValidIndex(index));
     if (concurrent_use) {
       ObjectPtr* table =
-          reinterpret_cast<const AcqRelAtomic<ObjectPtr*>*>(&table_)->load();
-      return reinterpret_cast<AcqRelAtomic<ObjectPtr>*>(&table[index])->load();
+          std::atomic_ref(table_).load(std::memory_order::acquire);
+      return std::atomic_ref(table[index]).load(std::memory_order_acquire);
     } else {
       // There is no concurrent access expected for this field, so we avoid
       // using atomics. This will allow us to detect via TSAN if there are
@@ -106,7 +106,8 @@ class FieldTable {
   // element, last element contains -1.
   intptr_t free_head_;
 
-  ObjectPtr* table_;
+  // Mutable for atomic_ref in At.
+  mutable ObjectPtr* table_;
   // When table_ grows and have to reallocated, keep the old one here
   // so it will get freed when its are no longer in use.
   MallocGrowableArray<ObjectPtr*>* old_tables_;

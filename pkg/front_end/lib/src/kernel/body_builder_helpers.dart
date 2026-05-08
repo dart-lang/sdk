@@ -67,11 +67,7 @@ class JumpTarget {
     users.add(statement);
   }
 
-  void resolveBreaks(
-    Forest forest,
-    LabeledStatement target,
-    Statement targetStatement,
-  ) {
+  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
     assert(isBreakTarget);
     for (Statement user in users) {
       BreakStatementImpl breakStatement = user as BreakStatementImpl;
@@ -81,10 +77,7 @@ class JumpTarget {
     users.clear();
   }
 
-  List<BreakStatementImpl>? resolveContinues(
-    Forest forest,
-    LabeledStatement target,
-  ) {
+  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
     assert(isContinueTarget);
     List<BreakStatementImpl> statements = <BreakStatementImpl>[];
     for (Statement user in users) {
@@ -96,7 +89,7 @@ class JumpTarget {
     return statements;
   }
 
-  void resolveGotos(Forest forest, SwitchCase target) {
+  void resolveGotos(SwitchCase target) {
     assert(isGotoTarget);
     for (Statement user in users) {
       ContinueSwitchStatement continueSwitchStatement =
@@ -174,26 +167,19 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(
-    Forest forest,
-    LabeledStatement target,
-    Statement targetStatement,
-  ) {
-    breakTarget.resolveBreaks(forest, target, targetStatement);
+  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+    breakTarget.resolveBreaks(target, targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<BreakStatementImpl>? resolveContinues(
-    Forest forest,
-    LabeledStatement target,
-  ) {
-    return continueTarget.resolveContinues(forest, target);
+  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
+    return continueTarget.resolveContinues(target);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveGotos(Forest forest, SwitchCase target) {
+  void resolveGotos(SwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
 }
@@ -238,10 +224,54 @@ class FunctionTypeParameters {
   }
 }
 
-class FormalParameters {
+abstract class Parameters {
+  List<ParameterVariableBuilder>? get parameters;
+  int get charOffset;
+  int get length;
+  Uri get uri;
+
+  LocalScope computeFormalParameterScope(
+    LocalScope parent,
+    ExpressionGeneratorHelper helper, {
+    bool wildcardVariablesEnabled = false,
+  }) {
+    if (parameters == null) return parent;
+    assert(parameters!.isNotEmpty);
+    Map<String, VariableBuilder> local = {};
+
+    for (ParameterVariableBuilder parameter in parameters!) {
+      // Avoid having wildcard parameters in scope.
+      if (wildcardVariablesEnabled && parameter.isWildcard) continue;
+      String parameterName = parameter.name!;
+      Builder? existing = local[parameterName];
+      if (existing != null) {
+        helper.reportDuplicatedDeclaration(
+          existing,
+          parameterName,
+          parameter.fileOffset,
+        );
+      } else {
+        local[parameterName] = parameter;
+      }
+    }
+    return parent.createNestedFixedScope(
+      kind: LocalScopeKind.formals,
+      local: local,
+    );
+  }
+}
+
+class FormalParameters extends Parameters {
+  @override
   final List<FormalParameterBuilder>? parameters;
+
+  @override
   final int charOffset;
+
+  @override
   final int length;
+
+  @override
   final Uri uri;
 
   FormalParameters(this.parameters, this.charOffset, this.length, this.uri) {
@@ -301,38 +331,34 @@ class FormalParameters {
       ..fileEndOffset = fileEndOffset;
   }
 
-  LocalScope computeFormalParameterScope(
-    LocalScope parent,
-    ExpressionGeneratorHelper helper, {
-    bool wildcardVariablesEnabled = false,
-  }) {
-    if (parameters == null) return parent;
-    assert(parameters!.isNotEmpty);
-    Map<String, VariableBuilder> local = {};
+  @override
+  String toString() {
+    return "FormalParameters($parameters, $charOffset, $uri)";
+  }
+}
 
-    for (FormalParameterBuilder parameter in parameters!) {
-      // Avoid having wildcard parameters in scope.
-      if (wildcardVariablesEnabled && parameter.isWildcard) continue;
-      Builder? existing = local[parameter.name];
-      if (existing != null) {
-        helper.reportDuplicatedDeclaration(
-          existing,
-          parameter.name,
-          parameter.fileOffset,
-        );
-      } else {
-        local[parameter.name] = parameter;
-      }
+class CatchParameters extends Parameters {
+  @override
+  final List<CatchParameterBuilder>? parameters;
+
+  @override
+  final int charOffset;
+
+  @override
+  final int length;
+
+  @override
+  final Uri uri;
+
+  CatchParameters(this.parameters, this.charOffset, this.length, this.uri) {
+    if (parameters?.isEmpty ?? false) {
+      throw "Empty parameters should be null";
     }
-    return parent.createNestedFixedScope(
-      kind: LocalScopeKind.formals,
-      local: local,
-    );
   }
 
   @override
   String toString() {
-    return "FormalParameters($parameters, $charOffset, $uri)";
+    return "CatchParameters($parameters, $charOffset, $uri)";
   }
 }
 
@@ -391,13 +417,13 @@ class Label {
 }
 
 class ForInElements {
-  ExpressionVariable? explicitVariableDeclaration;
-  ExpressionVariable? syntheticVariableDeclaration;
+  VariableDeclaration? explicitVariableDeclaration;
+  VariableDeclaration? syntheticVariableDeclaration;
   Expression? syntheticAssignment;
   Expression? expressionProblem;
   Statement? expressionEffects;
 
-  ExpressionVariable get variable =>
+  VariableDeclaration get variable =>
       (explicitVariableDeclaration ?? syntheticVariableDeclaration)!;
 }
 
@@ -490,14 +516,9 @@ class MultiTargetAnnotations {
 
 class BuildInitializersResult {
   final List<Initializer> initializers;
-  final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 
-  BuildInitializersResult(
-    this.initializers,
-    this.needsImplicitSuperInitializer,
-    this.annotations,
-  );
+  BuildInitializersResult(this.initializers, this.annotations);
 }
 
 class BuildParameterInitializerResult {
@@ -521,31 +542,36 @@ class BuildFieldsResult {
 }
 
 class BuildPrimaryConstructorResult {
-  final FormalParameters? formals;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorResult(
-    this.formals,
-    this.initializers,
-    this.annotations,
-  );
+  BuildPrimaryConstructorResult(this.initializers, this.annotations);
 }
 
 class BuildFunctionBodyResult {
-  final FormalParameters? formals;
-  final AsyncMarker asyncModifier;
+  final AsyncMarker asyncMarker;
   final Statement? body;
   final List<Initializer> initializers;
-  final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 
   BuildFunctionBodyResult({
-    required this.formals,
-    required this.asyncModifier,
+    required this.asyncMarker,
     required this.body,
     required this.initializers,
-    required this.needsImplicitSuperInitializer,
+    required this.annotations,
+  });
+}
+
+class BuildPrimaryConstructorBodyResult {
+  final AsyncMarker asyncMarker;
+  final Statement? body;
+  final List<Initializer> initializers;
+  final PendingAnnotations? annotations;
+
+  BuildPrimaryConstructorBodyResult({
+    required this.asyncMarker,
+    required this.body,
+    required this.initializers,
     required this.annotations,
   });
 }

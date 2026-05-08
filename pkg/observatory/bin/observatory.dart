@@ -92,7 +92,7 @@ ${result.stderr}
     final uriRegExp = RegExp('Serving `web` on (http://.*)');
     final sub = process.stdout.transform(utf8.decoder).listen((e) {
       if (uriRegExp.hasMatch(e)) {
-        uriCompleter.complete(uriRegExp.firstMatch(e)!.group(1));
+        uriCompleter.complete(uriRegExp.firstMatch(e)![1]);
       }
     });
 

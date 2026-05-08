@@ -16,12 +16,7 @@ class ToolingDaemonCommand extends DartdevCommand {
   static const String commandDescription = "Start Dart's tooling daemon.";
 
   ToolingDaemonCommand({bool verbose = false})
-      : super(
-          commandName,
-          commandDescription,
-          verbose,
-          hidden: !verbose,
-        ) {
+    : super(commandName, commandDescription, verbose, hidden: !verbose) {
     dtd.DartToolingDaemonOptions.populateArgOptions(
       argParser,
       verbose: verbose,
@@ -36,8 +31,10 @@ class ToolingDaemonCommand extends DartdevCommand {
     var snapshot = sdk.dtdAotSnapshot;
     final args = argResults!.arguments;
     if (!checkArtifactExists(sdk.dtdAotSnapshot, logError: false)) {
-      log.stderr('Error: launching dart tooling daemon failed : '
-                 'Unable to find snapshot for the tooling daemon');
+      log.stderr(
+        'Error: launching dart tooling daemon failed : '
+        'Unable to find snapshot for the tooling daemon',
+      );
       return 255;
     }
     try {
@@ -45,7 +42,7 @@ class ToolingDaemonCommand extends DartdevCommand {
         snapshot,
         args,
         packageConfigOverride: null,
-        useExecProcess : false,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {

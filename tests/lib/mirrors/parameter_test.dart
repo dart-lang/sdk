@@ -16,14 +16,14 @@ class B {
   B.bar(int z, x);
 
   // TODO(6490): Currently only supported by the VM.
-  B.baz(final int x, int y, final int z);
+  B.baz(int x, int y, int z);
   B.qux(int x, [int y = 3 + 1]);
   B.quux(int x, {String str = "foo"});
   B.corge({int x = 3 * 17, String str = "bar"});
 
   var _x;
   get x => _x;
-  set x(final value) {
+  set x(value) {
     _x = value;
   }
 
@@ -93,11 +93,11 @@ main() {
   MethodMirror bazConstructor = constructors[#B.baz] as MethodMirror;
   expect('Method(s(B.baz) in s(B), constructor)', bazConstructor);
   expect(
-    '[Parameter(s(x) in s(B.baz), final,'
+    '[Parameter(s(x) in s(B.baz),'
     ' type = Class(s(int) in s(dart.core), top-level)), '
     'Parameter(s(y) in s(B.baz),'
     ' type = Class(s(int) in s(dart.core), top-level)), '
-    'Parameter(s(z) in s(B.baz), final,'
+    'Parameter(s(z) in s(B.baz),'
     ' type = Class(s(int) in s(dart.core), top-level))]',
     bazConstructor.parameters,
   );
@@ -159,7 +159,7 @@ main() {
   MethodMirror xSetter = cm.declarations[const Symbol('x=')] as MethodMirror;
   expect('Method(s(x=) in s(B), setter)', xSetter);
   expect(
-    '[Parameter(s(value) in s(x=), final,'
+    '[Parameter(s(value) in s(x=),'
     ' type = Type(s(dynamic), top-level))]',
     xSetter.parameters,
   );

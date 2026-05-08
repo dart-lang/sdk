@@ -191,13 +191,13 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
             throw UnimplementedError('(${target.runtimeType}) $target');
           }
         }
-        _errorReporter.atEntity(
-          errorEntity,
-          diag.sdkVersionSince,
-          arguments: [
-            sinceSdkVersion.toString(),
-            _versionConstraint.toString(),
-          ],
+        _errorReporter.report(
+          diag.sdkVersionSince
+              .withArguments(
+                availableVersion: sinceSdkVersion.toString(),
+                versionConstraints: _versionConstraint.toString(),
+              )
+              .at(errorEntity),
         );
       }
     }

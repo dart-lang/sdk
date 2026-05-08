@@ -5,7 +5,8 @@
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'recovery_test_support.dart';
+import '../../dart/resolution/node_text_expectations.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,1017 +15,3320 @@ main() {
     defineReflectiveTests(MissingCodeTest);
     defineReflectiveTests(ParameterListTest);
     defineReflectiveTests(TypedefTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 /// Test how well the parser recovers when tokens are missing in a list literal.
 @reflectiveTest
-class ListLiteralTest extends AbstractRecoveryTest {
+class ListLiteralTest extends ParserDiagnosticsTest {
   void test_extraComma() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => [a, , b];
-''',
-      [diag.missingIdentifier],
-      '''
-f() => [a, _s_, b];
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: ListLiteral
+            leftBracket: [
+            elements
+              SimpleIdentifier
+                token: a
+              SimpleIdentifier
+                token: <empty> <synthetic>
+              SimpleIdentifier
+                token: b
+            rightBracket: ]
+          semicolon: ;
+''');
   }
 
   void test_missingComma() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => [a, b c];
-''',
-      [diag.expectedToken],
-      '''
-f() => [a, b, c];
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: ListLiteral
+            leftBracket: [
+            elements
+              SimpleIdentifier
+                token: a
+              SimpleIdentifier
+                token: b
+              SimpleIdentifier
+                token: c
+            rightBracket: ]
+          semicolon: ;
+''');
   }
 
   void test_missingComma_afterIf() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => [a, if (x) b c];
-''',
-      [diag.expectedElseOrComma],
-      '''
-f() => [a, if (x) b, c];
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedElseOrComma, 20, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: ListLiteral
+            leftBracket: [
+            elements
+              SimpleIdentifier
+                token: a
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression: SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement: SimpleIdentifier
+                  token: b
+              SimpleIdentifier
+                token: c
+            rightBracket: ]
+          semicolon: ;
+''');
   }
 
   void test_missingComma_afterIfElse() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => [a, if (x) b else y c];
-''',
-      [diag.expectedToken],
-      '''
-f() => [a, if (x) b else y, c];
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 27, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: ListLiteral
+            leftBracket: [
+            elements
+              SimpleIdentifier
+                token: a
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression: SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement: SimpleIdentifier
+                  token: b
+                elseKeyword: else
+                elseElement: SimpleIdentifier
+                  token: y
+              SimpleIdentifier
+                token: c
+            rightBracket: ]
+          semicolon: ;
+''');
   }
 }
 
 /// Test how well the parser recovers when tokens are missing in a map literal.
 @reflectiveTest
-class MapLiteralTest extends AbstractRecoveryTest {
+class MapLiteralTest extends ParserDiagnosticsTest {
   void test_missingComma() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => {a: b, c: d e: f};
-''',
-      [diag.expectedToken],
-      '''
-f() => {a: b, c: d, e: f};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 19, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SetOrMapLiteral
+            leftBracket: {
+            elements
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: a
+                separator: :
+                value: SimpleIdentifier
+                  token: b
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: c
+                separator: :
+                value: SimpleIdentifier
+                  token: d
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: e
+                separator: :
+                value: SimpleIdentifier
+                  token: f
+            rightBracket: }
+            isMap: false
+          semicolon: ;
+''');
   }
 
   void test_missingComma_afterIf() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => {a: b, if (x) c: d e: f};
-''',
-      [diag.expectedElseOrComma],
-      '''
-f() => {a: b, if (x) c: d, e: f};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedElseOrComma, 26, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SetOrMapLiteral
+            leftBracket: {
+            elements
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: a
+                separator: :
+                value: SimpleIdentifier
+                  token: b
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression: SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement: MapLiteralEntry
+                  key: SimpleIdentifier
+                    token: c
+                  separator: :
+                  value: SimpleIdentifier
+                    token: d
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: e
+                separator: :
+                value: SimpleIdentifier
+                  token: f
+            rightBracket: }
+            isMap: false
+          semicolon: ;
+''');
   }
 
   void test_missingComma_afterIfElse() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => {a: b, if (x) c: d else y: z e: f};
-''',
-      [diag.expectedToken],
-      '''
-f() => {a: b, if (x) c: d else y: z, e: f};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 36, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SetOrMapLiteral
+            leftBracket: {
+            elements
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: a
+                separator: :
+                value: SimpleIdentifier
+                  token: b
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression: SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement: MapLiteralEntry
+                  key: SimpleIdentifier
+                    token: c
+                  separator: :
+                  value: SimpleIdentifier
+                    token: d
+                elseKeyword: else
+                elseElement: MapLiteralEntry
+                  key: SimpleIdentifier
+                    token: y
+                  separator: :
+                  value: SimpleIdentifier
+                    token: z
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: e
+                separator: :
+                value: SimpleIdentifier
+                  token: f
+            rightBracket: }
+            isMap: false
+          semicolon: ;
+''');
   }
 
   void test_missingKey() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => {: b};
-''',
-      [diag.missingIdentifier],
-      '''
-f() => {_s_: b};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 8, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SetOrMapLiteral
+            leftBracket: {
+            elements
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: <empty> <synthetic>
+                separator: :
+                value: SimpleIdentifier
+                  token: b
+            rightBracket: }
+            isMap: false
+          semicolon: ;
+''');
   }
 
   void test_missingValue_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => {a: };
-''',
-      [diag.missingIdentifier],
-      '''
-f() => {a: _s_};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SetOrMapLiteral
+            leftBracket: {
+            elements
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: a
+                separator: :
+                value: SimpleIdentifier
+                  token: <empty> <synthetic>
+            rightBracket: }
+            isMap: false
+          semicolon: ;
+''');
   }
 
   void test_missingValue_notLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => {a: , b: c};
-''',
-      [diag.missingIdentifier],
-      '''
-f() => {a: _s_, b: c};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SetOrMapLiteral
+            leftBracket: {
+            elements
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: a
+                separator: :
+                value: SimpleIdentifier
+                  token: <empty> <synthetic>
+              MapLiteralEntry
+                key: SimpleIdentifier
+                  token: b
+                separator: :
+                value: SimpleIdentifier
+                  token: c
+            rightBracket: }
+            isMap: false
+          semicolon: ;
+''');
   }
 }
 
 /// Test how well the parser recovers when non-paired tokens are missing.
 @reflectiveTest
-class MissingCodeTest extends AbstractRecoveryTest {
+class MissingCodeTest extends ParserDiagnosticsTest {
   void test_ampersand() {
-    testBinaryExpression('&');
+    var parseResult = parseStringWithErrors(r'''
+f() => x &
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: &
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_ampersand_super() {
-    testUserDefinableOperatorWithSuper('&');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator &(x) => super &
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: &
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: &
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_asExpression_missingLeft() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 convert(x) => as T;
-''',
-      [diag.expectedTypeName],
-      '''
-convert(x) => _s_ as T;
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 14, 2),
+      error(diag.missingConstFinalVarOrType, 17, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: convert
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: x
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: SimpleIdentifier
+            token: as
+          semicolon: ; <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: T
+      semicolon: ;
+''');
   }
 
   void test_asExpression_missingRight() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 convert(x) => x as ;
-''',
-      [diag.expectedTypeName],
-      '''
-convert(x) => x as _s_;
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedTypeName, 19, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: convert
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: x
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: AsExpression
+            expression: SimpleIdentifier
+              token: x
+            asOperator: as
+            type: NamedType
+              name: <empty> <synthetic>
+          semicolon: ;
+''');
   }
 
   void test_assignmentExpression() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() {
   var x;
   x =
 }
-''',
-      [diag.missingIdentifier, diag.expectedToken],
-      '''
-f() {
-  var x;
-  x = _s_;
-}
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 21, 1),
+      error(diag.expectedToken, 19, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+              ExpressionStatement
+                expression: AssignmentExpression
+                  leftHandSide: SimpleIdentifier
+                    token: x
+                  operator: =
+                  rightHandSide: SimpleIdentifier
+                    token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            rightBracket: }
+''');
   }
 
   void test_bar() {
-    testBinaryExpression('|');
+    var parseResult = parseStringWithErrors(r'''
+f() => x |
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: |
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_bar_super() {
-    testUserDefinableOperatorWithSuper('|');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator |(x) => super |
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: |
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: |
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_cascade_missingRight() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(x) {
   x..
 }
-''',
-      [diag.missingIdentifier, diag.expectedToken],
-      '''
-f(x) {
-  x.. _s_;
-}
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 13, 1),
+      error(diag.expectedToken, 10, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: CascadeExpression
+                  target: SimpleIdentifier
+                    token: x
+                  cascadeSections
+                    PropertyAccess
+                      operator: ..
+                      propertyName: SimpleIdentifier
+                        token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            rightBracket: }
+''');
   }
 
   void test_classDeclaration_missingName() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class {}
-''',
-      [diag.missingIdentifier],
-      '''
-class _s_ {}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 6, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_combinatorsBeforePrefix() {
-    //Expected 1 errors of type ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, found 0
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' deferred;
-''',
-      [diag.missingPrefixInDeferredImport],
-      '''
-import 'bar.dart' deferred as _s_;
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingPrefixInDeferredImport, 18, 8),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      deferredKeyword: deferred
+      semicolon: ;
+''');
   }
 
   void test_comma_missing() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(int a int b) { }
-''',
-      [diag.expectedToken],
-      '''
-f(int a, int b) { }
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 8, 3)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_conditionalExpression_else() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => x ? y :
-''',
-      [diag.missingIdentifier, diag.expectedToken],
-      '''
-f() => x ? y : _s_;
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 15, 0),
+      error(diag.expectedToken, 13, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: ConditionalExpression
+            condition: SimpleIdentifier
+              token: x
+            question: ?
+            thenExpression: SimpleIdentifier
+              token: y
+            colon: :
+            elseExpression: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_conditionalExpression_then() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() => x ? : z
-''',
-      [diag.missingIdentifier, diag.expectedToken],
-      '''
-f() => x ? _s_ : z;
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 1),
+      error(diag.expectedToken, 13, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: ConditionalExpression
+            condition: SimpleIdentifier
+              token: x
+            question: ?
+            thenExpression: SimpleIdentifier
+              token: <empty> <synthetic>
+            colon: :
+            elseExpression: SimpleIdentifier
+              token: z
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_equalEqual() {
-    testBinaryExpression('==');
+    var parseResult = parseStringWithErrors(r'''
+f() => x ==
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 12, 0),
+      error(diag.expectedToken, 9, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: ==
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_equalEqual_super() {
-    testUserDefinableOperatorWithSuper('==');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator ==(x) => super ==
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 43, 1),
+      error(diag.expectedToken, 40, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: ==
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ==
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_expressionBody_missingGt() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(x) = x;
-''',
-      [diag.missingFunctionBody],
-      '''
-f(x) => x;
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 5, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: x
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: => <synthetic>
+          expression: SimpleIdentifier
+            token: x
+          semicolon: ;
+''');
   }
 
   void test_expressionBody_return() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(x) return x;
-''',
-      [diag.missingFunctionBody],
-      '''
-f(x) => x;
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 5, 6)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: x
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: => <synthetic>
+          expression: SimpleIdentifier
+            token: x
+          semicolon: ;
+''');
   }
 
   void test_greaterThan() {
-    testBinaryExpression('>');
+    var parseResult = parseStringWithErrors(r'''
+f() => x >
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: >
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_greaterThan_super() {
-    testUserDefinableOperatorWithSuper('>');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator >(x) => super >
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: >
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_greaterThanGreaterThan() {
-    testBinaryExpression('>>');
+    var parseResult = parseStringWithErrors(r'''
+f() => x >>
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 12, 0),
+      error(diag.expectedToken, 9, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: >>
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_greaterThanGreaterThan_super() {
-    testUserDefinableOperatorWithSuper('>>');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator >>(x) => super >>
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 43, 1),
+      error(diag.expectedToken, 40, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: >>
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >>
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_greaterThanOrEqual() {
-    testBinaryExpression('>=');
+    var parseResult = parseStringWithErrors(r'''
+f() => x >=
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 12, 0),
+      error(diag.expectedToken, 9, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: >=
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_greaterThanOrEqual_super() {
-    testUserDefinableOperatorWithSuper('>=');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator >=(x) => super >=
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 43, 1),
+      error(diag.expectedToken, 40, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: >=
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >=
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_hat() {
-    testBinaryExpression('^');
+    var parseResult = parseStringWithErrors(r'''
+f() => x ^
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: ^
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_hat_super() {
-    testUserDefinableOperatorWithSuper('^');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator ^(x) => super ^
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: ^
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ^
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_initializerList_missingComma_assert() {
-    // https://github.com/dart-lang/sdk/issues/33241
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class Test {
   Test()
     : assert(true)
       assert(true);
 }
-''',
-      [diag.expectedToken],
-      '''
-class Test {
-  Test()
-    : assert(true),
-      assert(true);
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 39, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Test
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_initializerList_missingComma_field() {
-    // https://github.com/dart-lang/sdk/issues/33241
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class Test {
   Test()
     : assert(true)
       x = 2;
 }
-''',
-      [diag.expectedToken],
-      '''
-class Test {
-  Test()
-    : assert(true),
-      x = 2;
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 39, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Test
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: IntegerLiteral
+                  literal: 2
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_initializerList_missingComma_thisField() {
-    // https://github.com/dart-lang/sdk/issues/33241
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class Test {
   Test()
     : assert(true)
       this.x = 2;
 }
-''',
-      [diag.expectedToken],
-      '''
-class Test {
-  Test()
-    : assert(true),
-      this.x = 2;
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 39, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Test
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              ConstructorFieldInitializer
+                thisKeyword: this
+                period: .
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: IntegerLiteral
+                  literal: 2
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_isExpression_missingLeft() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() {
   if (is String) {
   }
 }
-''',
-      [diag.missingIdentifier],
-      '''
-f() {
-  if (_s_ is String) {
-  }
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 12, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression: IsExpression
+                  expression: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  isOperator: is
+                  type: NamedType
+                    name: String
+                rightParenthesis: )
+                thenStatement: Block
+                  leftBracket: {
+                  rightBracket: }
+            rightBracket: }
+''');
   }
 
   void test_isExpression_missingRight() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(x) {
   if (x is ) {}
 }
-''',
-      [diag.expectedTypeName],
-      '''
-f(x) {
-  if (x is _s_) {}
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedTypeName, 18, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression: IsExpression
+                  expression: SimpleIdentifier
+                    token: x
+                  isOperator: is
+                  type: NamedType
+                    name: <empty> <synthetic>
+                rightParenthesis: )
+                thenStatement: Block
+                  leftBracket: {
+                  rightBracket: }
+            rightBracket: }
+''');
   }
 
   void test_lessThan() {
-    testBinaryExpression('<');
+    var parseResult = parseStringWithErrors(r'''
+f() => x <
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: <
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_lessThan_super() {
-    testUserDefinableOperatorWithSuper('<');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator <(x) => super <
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: <
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_lessThanLessThan() {
-    testBinaryExpression('<<');
+    var parseResult = parseStringWithErrors(r'''
+f() => x <<
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 12, 0),
+      error(diag.expectedToken, 9, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: <<
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_lessThanLessThan_super() {
-    testUserDefinableOperatorWithSuper('<<');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator <<(x) => super <<
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 43, 1),
+      error(diag.expectedToken, 40, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: <<
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <<
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_lessThanOrEqual() {
-    testBinaryExpression('<=');
+    var parseResult = parseStringWithErrors(r'''
+f() => x <=
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 12, 0),
+      error(diag.expectedToken, 9, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: <=
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_lessThanOrEqual_super() {
-    testUserDefinableOperatorWithSuper('<=');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator <=(x) => super <=
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 43, 1),
+      error(diag.expectedToken, 40, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: <=
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <=
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_minus() {
-    testBinaryExpression('-');
+    var parseResult = parseStringWithErrors(r'''
+f() => x -
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: -
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_minus_super() {
-    testUserDefinableOperatorWithSuper('-');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator -(x) => super -
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: -
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: -
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_missingGet() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class Bar {
   int foo => 0;
 }
-''',
-      [diag.missingGet],
-      '''
-class Bar {
-  int get foo => 0;
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.missingMethodParameters, 18, 3)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Bar
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            name: foo
+            parameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_parameterList_leftParen() {
-    // https://github.com/dart-lang/sdk/issues/22938
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 int f int x, int y) {}
-''',
-      [diag.expectedToken],
-      '''
-int f (int x, int y) {}
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 4, 1),
+      error(diag.expectedToken, 13, 3),
+      error(diag.missingConstFinalVarOrType, 17, 1),
+      error(diag.expectedToken, 17, 1),
+      error(diag.expectedExecutable, 18, 1),
+      error(diag.expectedExecutable, 20, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        type: NamedType
+          name: int
+        variables
+          VariableDeclaration
+            name: f
+      semicolon: ; <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        type: NamedType
+          name: int
+        variables
+          VariableDeclaration
+            name: x
+          VariableDeclaration
+            name: int
+      semicolon: ; <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: y
+      semicolon: ; <synthetic>
+''');
   }
 
-  @failingTest
   void test_parentheses_aroundThrow() {
-    // https://github.com/dart-lang/sdk/issues/24892
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(x) => x ?? throw 0;
-''',
-      [diag.expectedToken, diag.expectedToken],
-      '''
-f(x) => x ?? (throw 0);
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 13, 5),
+      error(diag.expectedToken, 13, 5),
+      error(diag.expectedExecutable, 19, 1),
+      error(diag.unexpectedToken, 20, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: x
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: ??
+            rightOperand: SimpleIdentifier
+              token: throw
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_percent() {
-    testBinaryExpression('%');
+    var parseResult = parseStringWithErrors(r'''
+f() => x %
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: %
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_percent_super() {
-    testUserDefinableOperatorWithSuper('%');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator %(x) => super %
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: %
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: %
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_plus() {
-    testBinaryExpression('+');
+    var parseResult = parseStringWithErrors(r'''
+f() => x +
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: +
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_plus_super() {
-    testUserDefinableOperatorWithSuper('+');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator +(x) => super +
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: +
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: +
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_prefixedIdentifier() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() {
   var v = 'String';
   v.
 }
-''',
-      [diag.missingIdentifier, diag.expectedToken],
-      '''
-f() {
-  var v = 'String';
-  v._s_;
-}
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 31, 1),
+      error(diag.expectedToken, 29, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: v
+                      equals: =
+                      initializer: SimpleStringLiteral
+                        literal: 'String'
+                semicolon: ;
+              ExpressionStatement
+                expression: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: v
+                  period: .
+                  identifier: SimpleIdentifier
+                    token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            rightBracket: }
+''');
   }
 
   void test_slash() {
-    testBinaryExpression('/');
+    var parseResult = parseStringWithErrors(r'''
+f() => x /
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: /
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_slash_super() {
-    testUserDefinableOperatorWithSuper('/');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator /(x) => super /
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: /
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: /
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_star() {
-    testBinaryExpression('*');
+    var parseResult = parseStringWithErrors(r'''
+f() => x *
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 11, 0),
+      error(diag.expectedToken, 9, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: *
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_star_super() {
-    testUserDefinableOperatorWithSuper('*');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator *(x) => super *
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 41, 1),
+      error(diag.expectedToken, 39, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: *
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: *
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 
   void test_stringInterpolation_unclosed() {
-    // https://github.com/dart-lang/sdk/issues/946
-    // TODO(brianwilkerson): Try to recover better. Ideally there would be a
-    // single error about an unterminated interpolation block.
-
-    // https://github.com/dart-lang/sdk/issues/36101
-    // TODO(danrubel): improve recovery so that the scanner/parser associates
-    // `${` with a synthetic `}` inside the " " rather than the `}` at the end.
-
-    testRecovery(
-      r'''
+    var parseResult = parseStringWithErrors(r'''
 f() {
   print("${42");
 }
-''',
-      [
-        diag.expectedToken,
-        diag.expectedToken,
-        diag.expectedToken,
-        diag.expectedToken,
-        diag.unterminatedStringLiteral,
-        diag.unterminatedStringLiteral,
-      ],
-      r'''
-f() {
-  print("${42}");
-}
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.unterminatedStringLiteral, 21, 1),
+      error(diag.unterminatedStringLiteral, 23, 1),
+      error(diag.expectedToken, 25, 1),
+      error(diag.expectedToken, 25, 1),
+      error(diag.expectedToken, 19, 3),
+      error(diag.expectedToken, 25, 0),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: print
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      StringInterpolation
+                        elements
+                          InterpolationString
+                            contents: "
+                          InterpolationExpression
+                            leftBracket: ${
+                            expression: IntegerLiteral
+                              literal: 42
+                            rightBracket: }
+                          InterpolationString
+                            contents: " <synthetic>
+                        stringValue: null
+                    rightParenthesis: ) <synthetic>
+                semicolon: ; <synthetic>
+            rightBracket: } <synthetic>
+''');
   }
 
   void test_tildeSlash() {
-    testBinaryExpression('~/');
+    var parseResult = parseStringWithErrors(r'''
+f() => x ~/
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 12, 0),
+      error(diag.expectedToken, 9, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: ~/
+            rightOperand: SimpleIdentifier
+              token: <empty> <synthetic>
+          semicolon: ; <synthetic>
+''');
   }
 
   void test_tildeSlash_super() {
-    testUserDefinableOperatorWithSuper('~/');
-  }
-
-  void testBinaryExpression(String operator) {
-    testRecovery(
-      '''
-f() => x $operator
-''',
-      [diag.missingIdentifier, diag.expectedToken],
-      '''
-f() => x $operator _s_;
-''',
-    );
-  }
-
-  void testUserDefinableOperatorWithSuper(String operator) {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
-  int operator $operator(x) => super $operator
+  int operator ~/(x) => super ~/
 }
-''',
-      [diag.missingIdentifier, diag.expectedToken],
-      '''
-class C {
-  int operator $operator(x) => super $operator _s_;
-}
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 43, 1),
+      error(diag.expectedToken, 40, 2),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: ~/
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ~/
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers when tokens are missing in a parameter
 /// list.
 @reflectiveTest
-class ParameterListTest extends AbstractRecoveryTest {
-  @failingTest
+class ParameterListTest extends ParserDiagnosticsTest {
   void test_extraComma_named_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f({a, }) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f({a, _s_}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: {
+          parameter: RegularFormalParameter
+            name: a
+          rightDelimiter: }
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_extraComma_named_noLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f({a, , b}) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f({a, _s_, b}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 6, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: {
+          parameter: RegularFormalParameter
+            name: a
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
+          rightDelimiter: }
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_extraComma_positional_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a, ]) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f([a, _s_]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+          rightDelimiter: ]
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_extraComma_positional_noLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a, , b]) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f([a, _s_, b]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 6, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
+          rightDelimiter: ]
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_extraComma_required_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(a, ) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f(a, _s_) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: a
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_extraComma_required_noLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(a, , b) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f(a, _s_, b) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 5, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: a
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_fieldFormalParameter_noPeriod_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   int f;
   C(this);
 }
-''',
-      [diag.expectedIdentifierButGotKeyword],
-      '''
-class C {
-  int f;
-  C(_k_);
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 23, 4),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: this
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_fieldFormalParameter_noPeriod_notLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   int f;
   C(this, p);
 }
-''',
-      [diag.expectedIdentifierButGotKeyword],
-      '''
-class C {
-  int f;
-  C(_k_, p);
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 23, 4),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: this
+              parameter: RegularFormalParameter
+                name: p
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_fieldFormalParameter_period_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   int f;
   C(this.);
 }
-''',
-      [diag.missingIdentifier],
-      '''
-class C {
-  int f;
-  C(this._s_);
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 28, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: FieldFormalParameter
+                thisKeyword: this
+                period: .
+                name: <empty> <synthetic>
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_fieldFormalParameter_period_notLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   int f;
   C(this., p);
 }
-''',
-      [diag.missingIdentifier],
-      '''
-class C {
-  int f;
-  C(this._s_, p);
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 28, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: FieldFormalParameter
+                thisKeyword: this
+                period: .
+                name: <empty> <synthetic>
+              parameter: RegularFormalParameter
+                name: p
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_incorrectlyTerminatedGroup_named_none() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f({a: 0) {}
-''',
-      [diag.expectedToken],
-      '''
-f({a: 0}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 7, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: {
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: } <synthetic>
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_incorrectlyTerminatedGroup_named_positional() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f({a: 0]) {}
-''',
-      [diag.expectedToken, diag.expectedToken],
-      '''
-f({a: 0}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 8, 1),
+      error(diag.expectedToken, 7, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: {
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: } <synthetic>
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_incorrectlyTerminatedGroup_none_named() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(a}) {}
-''',
-      [diag.expectedToken],
-      '''
-f(a) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 3, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: a
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_incorrectlyTerminatedGroup_none_positional() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(a]) {}
-''',
-      [diag.expectedToken],
-      '''
-f(a) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 3, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: a
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_incorrectlyTerminatedGroup_positional_named() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a = 0}) {}
-''',
-      [diag.expectedToken, diag.expectedToken],
-      '''
-f([a = 0]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 9, 1),
+      error(diag.expectedToken, 8, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: ] <synthetic>
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_incorrectlyTerminatedGroup_positional_none() {
     // Maybe put in paired_tokens_test.dart.
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a = 0) {}
-''',
-      [diag.expectedToken],
-      '''
-f([a = 0]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 8, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: ] <synthetic>
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_missingComma() {
     // https://github.com/dart-lang/sdk/issues/22074
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 g(a, b, c) {}
 h(v1, v2, v) {
   g(v1 == v2 || v1 == v 3, true);
 }
-''',
-      [diag.expectedToken],
-      '''
-g(a, b, c) {}
-h(v1, v2, v) {
-  g(v1 == v2 || v1 == v, 3, true);
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 53, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: g
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: a
+          parameter: RegularFormalParameter
+            name: b
+          parameter: RegularFormalParameter
+            name: c
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    FunctionDeclaration
+      name: h
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: v1
+          parameter: RegularFormalParameter
+            name: v2
+          parameter: RegularFormalParameter
+            name: v
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: g
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BinaryExpression
+                        leftOperand: BinaryExpression
+                          leftOperand: SimpleIdentifier
+                            token: v1
+                          operator: ==
+                          rightOperand: SimpleIdentifier
+                            token: v2
+                        operator: ||
+                        rightOperand: BinaryExpression
+                          leftOperand: SimpleIdentifier
+                            token: v1
+                          operator: ==
+                          rightOperand: SimpleIdentifier
+                            token: v
+                      IntegerLiteral
+                        literal: 3
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                semicolon: ;
+            rightBracket: }
+''');
   }
 
   void test_missingDefault_named_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f({a: }) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f({a: _s_}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 6, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: {
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
+          rightDelimiter: }
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_missingDefault_named_notLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f({a: , b}) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f({a: _s_, b}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 6, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: {
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
+          rightDelimiter: }
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_missingDefault_positional_last() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a = ]) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f([a = _s_]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 7, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
+          rightDelimiter: ]
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_missingDefault_positional_notLast() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a = , b]) {}
-''',
-      [diag.missingIdentifier],
-      '''
-f([a = _s_, b]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 7, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
+          rightDelimiter: ]
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_multipleGroups_mixed() {
     // TODO(brianwilkerson): Figure out the best way to recover from this.
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a = 0], {b: 1}) {}
-''',
-      [diag.expectedToken],
-      '''
-f([a = 0]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 9, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: ]
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_multipleGroups_mixedAndMultiple() {
     // TODO(brianwilkerson): Figure out the best way to recover from this.
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a = 0], {b: 1}, [c = 2]) {}
-''',
-      [diag.mixedParameterGroups],
-      '''
-f([a = 0, c = 2]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 9, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: ]
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_multipleGroups_named() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f({a: 0}, {b: 1}) {}
-''',
-      [diag.multipleNamedParameterGroups],
-      '''
-f({a: 0, b: 1}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 8, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: {
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: }
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_multipleGroups_positional() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f([a = 0], [b = 1]) {}
-''',
-      [diag.multiplePositionalParameterGroups],
-      '''
-f([a = 0, b = 1]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 9, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          leftDelimiter: [
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+          rightDelimiter: ]
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_namedOutsideGroup() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(a: 0) {}
-''',
-      [diag.namedParameterOutsideGroup],
-      '''
-f({a: 0}) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.namedParameterOutsideGroup, 3, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_positionalOutsideGroup() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(a = 0) {}
-''',
-      [diag.positionalParameterOutsideGroup],
-      '''
-f([a = 0]) {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.namedParameterOutsideGroup, 4, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers when tokens are missing in a typedef.
 @reflectiveTest
-class TypedefTest extends AbstractRecoveryTest {
-  @failingTest
+class TypedefTest extends ParserDiagnosticsTest {
   void test_missingFunction() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 typedef Predicate = bool <E>(E element);
-''',
-      [diag.missingIdentifier],
-      '''
-typedef Predicate = bool Function<E>(E element);
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 28, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: Predicate
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+        functionKeyword: Function <synthetic>
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: E
+            name: element
+          rightParenthesis: )
+      semicolon: ;
+''');
   }
 }

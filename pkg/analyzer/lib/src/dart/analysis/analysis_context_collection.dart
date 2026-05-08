@@ -45,7 +45,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     List<String>? excludedPaths,
     List<String>? librarySummaryPaths,
     String? optionsFile,
-    String? packagesFile,
+    String? packageConfigFile,
     bool withFineDependencies = false,
     PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
@@ -85,21 +85,17 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       }
       scheduler.start();
     }
-    // TODO(scheglov): https://github.com/dart-lang/linter/issues/3134
-    // ignore: prefer_initializing_formals
     this.scheduler = scheduler;
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
-    var contextLocator = ContextLocatorImpl(
-      resourceProvider: this.resourceProvider,
-    );
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: includedPaths,
-      excludedPaths: excludedPaths,
+      resourceProvider: this.resourceProvider,
+      excludedPaths: excludedPaths = const [],
       optionsFile: optionsFile,
-      packagesFile: packagesFile,
+      packageConfigFile: packageConfigFile,
     );
 
     byteStore ??= MemoryByteStore();
@@ -142,20 +138,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       );
       contexts.add(context);
     }
-  }
-
-  /// Return `true` if the read state of configuration files is consistent
-  /// with their current state on the file system. We use this as a work
-  /// around an issue with watching for file system changes.
-  bool get areWorkspacesConsistent {
-    for (var analysisContext in contexts) {
-      var contextRoot = analysisContext.contextRoot;
-      var workspace = contextRoot.workspace;
-      if (!workspace.isConsistentWithFileSystem) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @override

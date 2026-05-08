@@ -15,7 +15,31 @@ main() {
 
 @reflectiveTest
 class SuperInRedirectingConstructorTest extends PubPackageResolutionTest {
-  test_redirectionSuper() async {
+  test_class_primary_redirectBeforeSuper() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  A.named() : this();
+  this : this.named(), super();
+}
+''',
+      [error(diag.primaryConstructorCannotRedirect, 43, 4)],
+    );
+  }
+
+  test_class_primary_superBeforeRedirect() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  A.named() : this();
+  this : super(), this.named();
+}
+''',
+      [error(diag.primaryConstructorCannotRedirect, 52, 4)],
+    );
+  }
+
+  test_typeName_redirectionSuper() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -27,7 +51,7 @@ class A {
     );
   }
 
-  test_superRedirection() async {
+  test_typeName_superRedirection() async {
     await assertErrorsInCode(
       r'''
 class A {

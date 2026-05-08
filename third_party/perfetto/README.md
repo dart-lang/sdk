@@ -17,10 +17,27 @@ aware tree-shaker to reduce the size of the code).
 
 Thus for now we choose to use manually tree-shaken protos.
 
-# Updating Perfetto
+# Regenerating protos
 
-After updating Perfetto regenerated `*.pbzero.h` files by running:
+Perfetto's `protozero_plugin` (protoc plugin) is not distributed a binary
+(because it is not intended for use outside of Perfetto), so to
+regenerate `*.pbzero.{cc,h}` files we need to build it from source.
+This however requires a bunch of dependencies which Dart SDK build does
+not currently depend on (specifically Protobuf and Abseil). So instead `protozero_plugin` needs to be built out-of-tree.
+
+This can be done using the following commands:
 
 ```
-$ dart third_party/perfetto/compile_perfetto_protos.dart
+$ git clone https://github.com/google/perfetto
+$ cd perfetto
+$ git checkout $perfetto_rev_from_DEPS
+$ tools/install-build-deps
+$ gn args out/linux
+$ ninja -C out/linux protoc protozero_plugin
+```
+
+Then you can run
+
+```
+$ PATH=$PERFETTO_DIR/out/linux:$PATH dart third_party/perfetto/tools/compile_perfetto_protos.dart
 ```

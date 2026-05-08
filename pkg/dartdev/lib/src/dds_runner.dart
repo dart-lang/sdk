@@ -22,9 +22,8 @@ class DDSRunner {
     required bool debugDds,
     required bool enableServicePortFallback,
   }) async {
-    void printError(String details) => stderr.writeln(
-          'Could not start the VM service:\n$details',
-        );
+    void printError(String details) =>
+        stderr.writeln('Could not start the VM service:\n$details');
 
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
@@ -40,21 +39,17 @@ class DDSRunner {
       return false;
     }
 
-    final process = await Process.start(
-      execName,
-      [
-        if (debugDds) '--enable-vm-service=0',
-        snapshotName,
-        '--vm-service-uri=$vmServiceUri',
-        '--bind-address=$ddsHost',
-        '--bind-port=$ddsPort',
-        if (disableServiceAuthCodes) '--disable-service-auth-codes',
-        if (enableDevTools) '--serve-devtools',
-        if (debugDds) '--enable-logging',
-        if (enableServicePortFallback) '--enable-service-port-fallback',
-      ],
-      mode: ProcessStartMode.detachedWithStdio,
-    );
+    final process = await Process.start(execName, [
+      if (debugDds) '--enable-vm-service=0',
+      snapshotName,
+      '--vm-service-uri=$vmServiceUri',
+      '--bind-address=$ddsHost',
+      '--bind-port=$ddsPort',
+      if (disableServiceAuthCodes) '--disable-service-auth-codes',
+      if (enableDevTools) '--serve-devtools',
+      if (debugDds) '--enable-logging',
+      if (enableServicePortFallback) '--enable-service-port-fallback',
+    ], mode: ProcessStartMode.detachedWithStdio);
 
     // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
     // is changed to ensure consistency.
@@ -66,14 +61,14 @@ class DDSRunner {
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((event) {
-        if (event.startsWith(devToolsMessagePrefix)) {
-          final ddsDebuggingUri = event.split(' ').last;
-          print(
-            'A DevTools debugger for DDS is available at: $ddsDebuggingUri',
-          );
-          stdoutSub.cancel();
-        }
-      });
+            if (event.startsWith(devToolsMessagePrefix)) {
+              final ddsDebuggingUri = event.split(' ').last;
+              print(
+                'A DevTools debugger for DDS is available at: $ddsDebuggingUri',
+              );
+              stdoutSub.cancel();
+            }
+          });
     }
 
     // DDS will close stderr once it's finished launching.
@@ -81,11 +76,7 @@ class DDSRunner {
 
     try {
       final result = json.decode(launchResult) as Map<String, dynamic>;
-      if (result
-          case {
-            'state': 'started',
-            'ddsUri': final String ddsUriStr,
-          }) {
+      if (result case {'state': 'started', 'ddsUri': final String ddsUriStr}) {
         ddsUri = Uri.parse(ddsUriStr);
         if (result case {'devToolsUri': String devToolsUri}) {
           print('$devToolsMessagePrefix $devToolsUri');

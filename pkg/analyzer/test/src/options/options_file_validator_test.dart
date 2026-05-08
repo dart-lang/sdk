@@ -7,12 +7,14 @@ import 'dart:mirrors';
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
@@ -641,7 +643,12 @@ analyzer:
 
   List<Diagnostic> validate(String source, List<DiagnosticCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
-    var diagnostics = validator.validate(options);
+    var diagnosticListener = RecordingDiagnosticListener();
+    validator.validate(
+      options,
+      DiagnosticReporter(diagnosticListener, StringSource(source, null)),
+    );
+    var diagnostics = diagnosticListener.diagnostics;
     expect(
       diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),
@@ -673,14 +680,13 @@ class OptionsProviderTest with ResourceProviderMixin {
     List<ExpectedError> expectedErrors,
   ) {
     newFile(optionsFilePath, code);
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri2(toUri(optionsFilePath))!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(optionsFilePath))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
 
     assertErrorsInList(diagnostics, expectedErrors);
   }
@@ -713,6 +719,142 @@ class OptionsProviderTest with ResourceProviderMixin {
   void setUp() {
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     provider = AnalysisOptionsProvider(sourceFactory);
+  }
+
+  test_circularInclude_nontrivial_direct() {
+    // Test that the appropriate error is issued if `analysis_options.yaml`
+    // tries to include another options file which in turn includes
+    // `analysis_options.yaml`.
+    var other = newFile('/other_options.yaml', r'''
+include: analysis_options.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options.yaml
+''',
+      [
+        error(
+          diag.recursiveIncludeFile,
+          9,
+          18,
+          messageContains: [
+            "The URI 'analysis_options.yaml' included in "
+                "'${other.path}' includes '${other.path}', "
+                "creating a circular reference.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_circularInclude_nontrivial_nested() {
+    // Test that the appropriate error is issued if a file included by
+    // `analysis_options.yaml` tries to include itself indirectly.
+    // Note: comments ensure that the `include` directives in each file are at
+    // different file offsets, so that we can validate that the reported source
+    // ranges are correct.
+    var other1 = newFile('/other_options1.yaml', r'''
+include: other_options2.yaml
+''');
+    newFile('/other_options2.yaml', r'''
+# comment
+include: other_options1.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+# comment
+# comment
+include: other_options1.yaml
+''',
+      [
+        error(
+          diag.includedFileWarning,
+          29,
+          19,
+          messageContains: [
+            "Warning in the included options file "
+                "${other1.path}(9..27): The file includes itself "
+                "recursively.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_circularInclude_trivial_direct() {
+    // Test that the appropriate error is issued if `analysis_options.yaml`
+    // tries to include itself.
+    var convertedPath = convertPath(optionsFilePath);
+    assertErrorsInOptionsFile(
+      r'''
+include: analysis_options.yaml
+''',
+      [
+        error(
+          diag.recursiveIncludeFile,
+          9,
+          21,
+          messageContains: [
+            "The URI 'analysis_options.yaml' included in "
+                "'$convertedPath' includes '$convertedPath', "
+                "creating a circular reference.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_circularInclude_trivial_nested() {
+    // Test that the appropriate error is issued if a file included by
+    // `analysis_options.yaml` tries to include itself.
+    // Note: comments ensure that the `include` directives in each file are at
+    // different file offsets, so that we can validate that the reported source
+    // ranges are correct.
+    var other = newFile('/other_options.yaml', r'''
+include: other_options.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+# comment
+include: other_options.yaml
+''',
+      [
+        error(
+          diag.includedFileWarning,
+          19,
+          18,
+          messageContains: [
+            "Warning in the included options file ${other.path}(9..26): "
+                "The file includes itself recursively.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_invalidYaml_direct() {
+    assertErrorsInOptionsFile(
+      r'''
+formatter:
+  page_width: 80
+  page_width: 90
+''',
+      [error(diag.parseError, 30, 10)],
+    );
+  }
+
+  test_invalidYaml_nested() {
+    newFile('/other_options.yaml', r'''
+formatter:
+  page_width: 80
+  page_width: 90
+''');
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options.yaml
+''',
+      [error(diag.includedFileParseError, 9, 18)],
+    );
   }
 
   test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_listForm() {
@@ -864,6 +1006,27 @@ analyzer:
     );
   }
 
+  test_nonExistentInclude_direct() {
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options.yaml
+''',
+      [error(diag.includeFileNotFound, 9, 18)],
+    );
+  }
+
+  test_nonExistentInclude_nested() {
+    newFile('/other_options1.yaml', r'''
+include: other_options2.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options1.yaml
+''',
+      [error(diag.includeFileNotFound, 9, 19)],
+    );
+  }
+
   test_pluginsInInnerOptions() {
     var code = '''
 plugins:
@@ -875,14 +1038,13 @@ plugins:
 name: test
 version: 0.0.1
 ''');
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri2(toUri(filePath))!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(filePath))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
 
     assertErrorsInList(diagnostics, [
       error(diag.pluginsInInnerOptions, 11, 12),
@@ -903,28 +1065,52 @@ include: ../analysis_options.yaml
 name: test
 version: 0.0.1
 ''');
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri2(toUri(filePath))!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(filePath))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
+
+    assertErrorsInList(diagnostics, []);
+  }
+
+  test_pluginsInInnerOptions_included_notAtContextRoot() {
+    var inner1Path = '/inner1/analysis_options.yaml';
+    var inner2Path = '/inner2/analysis_options.yaml';
+    newFile(inner2Path, '''
+plugins:
+  one: ^1.0.0
+''');
+    var code = '''
+include: ../inner2/analysis_options.yaml
+''';
+    newFile(inner1Path, code);
+    newFile('/pubspec.yaml', '''
+name: test
+version: 0.0.1
+''');
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(inner1Path))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
 
     assertErrorsInList(diagnostics, []);
   }
 
   List<Diagnostic> validate(String code, List<DiagnosticCode> expected) {
     newFile(optionsFilePath, code);
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri('file://$optionsFilePath')!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri('file://$optionsFilePath')!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
     expect(
       diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),

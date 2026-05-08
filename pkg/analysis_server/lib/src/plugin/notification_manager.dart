@@ -80,6 +80,9 @@ abstract class AbstractNotificationManager {
   final StreamController<bool> _analysisStatusChangesController =
       StreamController.broadcast();
 
+  final StreamController<PluginPrint> _pluginPrintController =
+      StreamController.broadcast();
+
   /// Initialize a newly created notification manager.
   AbstractNotificationManager(this._pathContext)
     : folding = ResultCollector<List<FoldingRegion>>(serverId),
@@ -94,6 +97,9 @@ abstract class AbstractNotificationManager {
   /// not, as per each status notification.
   Stream<bool> get pluginAnalysisStatusChanges =>
       _analysisStatusChangesController.stream;
+
+  /// The Stream of messages printed from the plugin isolate.
+  Stream<PluginPrint> get pluginPrints => _pluginPrintController.stream;
 
   /// Handles a plugin error.
   ///
@@ -152,6 +158,8 @@ abstract class AbstractNotificationManager {
         sendPluginErrorNotification(notification);
       case plugin.PLUGIN_NOTIFICATION_STATUS:
         _setPluginStatus(notification);
+      case plugin.PLUGIN_NOTIFICATION_PRINT:
+        _recordPrint(notification);
     }
   }
 
@@ -369,6 +377,12 @@ abstract class AbstractNotificationManager {
     // TODO(brianwilkerson): Return false if error notifications are globally
     // disabled.
     return isIncluded() && !isExcluded();
+  }
+
+  /// Records a print notification from the analyzer plugin.
+  void _recordPrint(plugin.Notification notification) {
+    var params = plugin.PluginPrintParams.fromNotification(notification);
+    _pluginPrintController.add(params.pluginPrint);
   }
 
   /// Records a status notification from the analyzer plugin.

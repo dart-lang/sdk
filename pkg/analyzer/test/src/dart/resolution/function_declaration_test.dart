@@ -383,7 +383,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: double
           element: dart:core::@class::double
@@ -603,7 +603,7 @@ TypeParameter
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: _
           element: <null>
@@ -611,7 +611,7 @@ TypeParameter
         declaredFragment: <testLibraryFragment> null@null
           element: isPrivate
             type: InvalidType
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: _
           element: <null>

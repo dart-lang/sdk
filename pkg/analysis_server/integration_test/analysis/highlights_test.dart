@@ -116,14 +116,6 @@ int topLevelVariable = 0;
     expect(currentAnalysisErrors[pathname], hasLength(1));
 
     check(HighlightRegionType.ANNOTATION, ['@override']);
-    check(HighlightRegionType.BUILT_IN, [
-      'as',
-      'get',
-      'import',
-      'set',
-      'static',
-      'typedef',
-    ]);
     check(HighlightRegionType.CLASS, [
       'Class',
       'Class2',
@@ -150,7 +142,18 @@ int topLevelVariable = 0;
     check(HighlightRegionType.INSTANCE_GETTER_DECLARATION, ['getter']);
     check(HighlightRegionType.IDENTIFIER_DEFAULT, ['unresolvedIdentifier']);
     check(HighlightRegionType.IMPORT_PREFIX, ['async']);
-    check(HighlightRegionType.KEYWORD, ['class', 'extends', 'true', 'return']);
+    check(HighlightRegionType.KEYWORD, [
+      'as',
+      'class',
+      'extends',
+      'get',
+      'import',
+      'return',
+      'set',
+      'static',
+      'true',
+      'typedef',
+    ]);
     check(HighlightRegionType.LITERAL_BOOLEAN, ['true']);
     check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
     check(HighlightRegionType.LITERAL_INTEGER, ['2', '3', '4', '0', '42']);
@@ -189,8 +192,7 @@ class B {}
     await computeHighlights(pathname, text);
     expect(currentAnalysisErrors[pathname], hasLength(0));
 
-    check(HighlightRegionType.BUILT_IN, ['implements', 'mixin', 'on']);
-    check(HighlightRegionType.KEYWORD, ['class']);
+    check(HighlightRegionType.KEYWORD, ['class', 'implements', 'mixin', 'on']);
   }
 
   Future<void> test_highlights_tryCatch() async {
@@ -207,8 +209,7 @@ void f() {
 ''';
     await computeHighlights(pathname, text);
 
-    check(HighlightRegionType.BUILT_IN, ['on']);
-    check(HighlightRegionType.KEYWORD, ['void', 'try', 'catch']);
+    check(HighlightRegionType.KEYWORD, ['on', 'void', 'try', 'catch']);
     check(HighlightRegionType.CLASS, [
       'ArgumentError',
       'UnimplementedError',

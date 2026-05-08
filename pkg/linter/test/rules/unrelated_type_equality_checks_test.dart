@@ -21,6 +21,14 @@ class UnrelatedTypeEqualityChecksTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.unrelated_type_equality_checks;
 
+  @override
+  void setUp() {
+    newPackage('protobuf').addFile('lib/src/protobuf/protobuf_enum.dart', r'''
+class ProtobufEnum {}
+''');
+    super.setUp();
+  }
+
   test_assignment_ok() async {
     await assertNoDiagnostics(r'''
 void m(int? a1, num a2) {
@@ -222,6 +230,34 @@ class D extends C {}
 void f<A, B extends A>(A a, B b) {
   if (a == b) {}
 }
+''');
+  }
+
+  test_protobufEnum_differentEnums() async {
+    await assertDiagnostics(
+      r'''
+import 'package:protobuf/src/protobuf/protobuf_enum.dart';
+
+void f(E1 one, E2 two) {
+  print(one == two);
+}
+
+class E1 extends ProtobufEnum {}
+class E2 extends ProtobufEnum {}
+''',
+      [lint(97, 2)],
+    );
+  }
+
+  test_protobufEnum_sameEnum() async {
+    await assertNoDiagnostics(r'''
+import 'package:protobuf/src/protobuf/protobuf_enum.dart';
+
+void f(E one, E two) {
+  print(one == two);
+}
+
+class E extends ProtobufEnum {}
 ''');
   }
 

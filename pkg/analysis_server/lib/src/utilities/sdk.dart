@@ -10,6 +10,7 @@ library;
 
 import 'dart:io';
 
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:path/path.dart' as path;
 
 final Sdk sdk = Sdk._instance;
@@ -29,7 +30,7 @@ class Sdk {
 
   /// Path to the 'dart' executable in the Dart SDK.
   String get dart {
-    var basename = Platform.isWindows ? 'dart.exe' : 'dart';
+    var basename = platform.isWindows ? 'dart.exe' : 'dart';
     return path.absolute(
       _runFromBuildRoot ? sdkPath : path.absolute(sdkPath, 'bin'),
       basename,
@@ -73,7 +74,7 @@ class Sdk {
       return Sdk._(sdkPath, runFromBuildRoot);
     }
 
-    return trySdkPath(Platform.resolvedExecutable) ??
-        trySdkPath(Platform.executable)!;
+    return trySdkPath(platform.resolvedExecutable) ??
+        trySdkPath(platform.executable)!;
   }
 }

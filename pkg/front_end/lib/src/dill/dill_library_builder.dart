@@ -6,6 +6,7 @@ import 'dart:convert' show jsonDecode;
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import '../base/combinator.dart';
@@ -26,7 +27,7 @@ import '../builder/member_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart'
-    show LocatedMessage, Message, CfeSeverity, noLength, codeUnspecified;
+    show LocatedMessage, Message, CfeSeverity, noLength;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../source/name_scheme.dart';
@@ -297,10 +298,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     Map<String, Map<Name, Procedure>> tearOffs = {};
     List<Procedure> nonTearOffs = [];
     for (Procedure procedure in library.procedures) {
-      List<Object>? names = extractTypedefNameFromTearOff(procedure.name);
+      ({String typedefName, Name constructorName})? names =
+          extractTypedefNameFromTearOff(procedure.name);
       if (names != null) {
-        Map<Name, Procedure> map = tearOffs[names[0] as String] ??= {};
-        map[names[1] as Name] = procedure;
+        Map<Name, Procedure> map = tearOffs[names.typedefName] ??= {};
+        map[names.constructorName] = procedure;
       } else {
         nonTearOffs.add(procedure);
       }
@@ -468,7 +470,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
         declaration = loader.coreLibrary.exportNameSpace.lookup(name)!.getable!;
       } else {
-        Message message = codeUnspecified.withArgumentsOld(messageText);
+        Message message = diag.unspecified.withArguments(message: messageText);
         if (!suppressFinalizationErrors) {
           addProblem(message, -1, noLength, null);
         }
@@ -529,7 +531,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         LibraryBuilder? library = loader.lookupLibraryBuilder(libraryUri);
         if (library == null) {
           internalProblem(
-            codeUnspecified.withArgumentsOld("No builder for '$libraryUri'."),
+            diag.unspecified.withArguments(
+              message: "No builder for '$libraryUri'.",
+            ),
             -1,
             fileUri,
           );

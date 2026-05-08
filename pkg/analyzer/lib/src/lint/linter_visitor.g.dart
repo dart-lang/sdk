@@ -34,6 +34,27 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @experimental
+  @override
+  void visitAnonymousBlockBody(AnonymousBlockBody node) {
+    _runSubscriptions(node, _registry._forAnonymousBlockBody);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitAnonymousExpressionBody(AnonymousExpressionBody node) {
+    _runSubscriptions(node, _registry._forAnonymousExpressionBody);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    _runSubscriptions(node, _registry._forAnonymousMethodInvocation);
+    node.visitChildren(this);
+  }
+
   @override
   void visitArgumentList(ArgumentList node) {
     _runSubscriptions(node, _registry._forArgumentList);
@@ -91,6 +112,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitBlockClassBody(BlockClassBody node) {
     _runSubscriptions(node, _registry._forBlockClassBody);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    _runSubscriptions(node, _registry._forBlockEnumBody);
     node.visitChildren(this);
   }
 
@@ -289,6 +316,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {
+    _runSubscriptions(node, _registry._forEmptyEnumBody);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _runSubscriptions(node, _registry._forEmptyFunctionBody);
     node.visitChildren(this);
@@ -297,12 +330,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitEmptyStatement(EmptyStatement node) {
     _runSubscriptions(node, _registry._forEmptyStatement);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
-    _runSubscriptions(node, _registry._forEnumBody);
     node.visitChildren(this);
   }
 
@@ -595,12 +622,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    _runSubscriptions(node, _registry._forLibraryIdentifier);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     _runSubscriptions(node, _registry._forListLiteral);
     node.visitChildren(this);
@@ -877,20 +898,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitRelationalPattern(RelationalPattern node) {
     _runSubscriptions(node, _registry._forRelationalPattern);
-    node.visitChildren(this);
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    _runSubscriptions(node, _registry._forRepresentationConstructorName);
-    node.visitChildren(this);
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    _runSubscriptions(node, _registry._forRepresentationDeclaration);
     node.visitChildren(this);
   }
 
@@ -1181,6 +1188,14 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<Annotation>> _forAnnotation = [];
 
+  final List<_Subscription<AnonymousBlockBody>> _forAnonymousBlockBody = [];
+
+  final List<_Subscription<AnonymousExpressionBody>>
+  _forAnonymousExpressionBody = [];
+
+  final List<_Subscription<AnonymousMethodInvocation>>
+  _forAnonymousMethodInvocation = [];
+
   final List<_Subscription<ArgumentList>> _forArgumentList = [];
 
   final List<_Subscription<AsExpression>> _forAsExpression = [];
@@ -1199,6 +1214,8 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<BinaryExpression>> _forBinaryExpression = [];
 
   final List<_Subscription<BlockClassBody>> _forBlockClassBody = [];
+
+  final List<_Subscription<BlockEnumBody>> _forBlockEnumBody = [];
 
   final List<_Subscription<BlockFunctionBody>> _forBlockFunctionBody = [];
 
@@ -1274,11 +1291,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<EmptyClassBody>> _forEmptyClassBody = [];
 
+  final List<_Subscription<EmptyEnumBody>> _forEmptyEnumBody = [];
+
   final List<_Subscription<EmptyFunctionBody>> _forEmptyFunctionBody = [];
 
   final List<_Subscription<EmptyStatement>> _forEmptyStatement = [];
-
-  final List<_Subscription<EnumBody>> _forEnumBody = [];
 
   final List<_Subscription<EnumConstantArguments>> _forEnumConstantArguments =
       [];
@@ -1392,8 +1409,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<LibraryDirective>> _forLibraryDirective = [];
 
-  final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
-
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
 
   final List<_Subscription<ListPattern>> _forListPattern = [];
@@ -1495,14 +1510,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
 
-  // ignore: deprecated_member_use_from_same_package
-  final List<_Subscription<RepresentationConstructorName>>
-  _forRepresentationConstructorName = [];
-
-  // ignore: deprecated_member_use_from_same_package
-  final List<_Subscription<RepresentationDeclaration>>
-  _forRepresentationDeclaration = [];
-
   final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
 
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
@@ -1596,6 +1603,31 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addAnonymousBlockBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forAnonymousBlockBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addAnonymousExpressionBody(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forAnonymousExpressionBody.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addAnonymousMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forAnonymousMethodInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addArgumentList(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forArgumentList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -1648,6 +1680,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBlockClassBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forBlockEnumBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -1848,6 +1885,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forEmptyEnumBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -1855,11 +1897,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addEnumBody(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forEnumBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -2174,11 +2211,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
-  void addLibraryIdentifier(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forLibraryIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addListLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forListLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -2456,28 +2488,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRelationalPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void addRepresentationConstructorName(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  ) {
-    _forRepresentationConstructorName.add(
-      _Subscription(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void addRepresentationDeclaration(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  ) {
-    _forRepresentationDeclaration.add(
-      _Subscription(rule, visitor, _getTimer(rule)),
-    );
   }
 
   @override

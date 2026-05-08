@@ -260,6 +260,58 @@ suggestions
 ''');
   }
 
+  Future<void> test_invalid_type() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  _C._();
+  // ignore: unused_element
+  static _C method() => _C._();
+}
+
+void foo(_C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(.m^());
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void> test_invalid_type_typedef() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  _C._();
+  // ignore: unused_element
+  static _C method() => _C._();
+}
+
+typedef C = _C;
+
+void foo(C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(.m^());
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
   Future<void> test_method_class() async {
     allowedIdentifiers = {'method', 'notStatic'};
     await computeSuggestions('''
@@ -434,6 +486,29 @@ replacement
   left: 1
 suggestions
   anotherMethod
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_invocation_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  static C named() => C();
+}
+void f() {
+  C c = .^()
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  C
+    kind: constructorInvocation
+  C.named
     kind: methodInvocation
 ''');
   }

@@ -68,6 +68,21 @@ include:
 ''');
   }
 
+  Future<void> test_notRecursive_included() async {
+    newFile('/a.yaml', '''
+include: b.yaml
+''');
+    newFile('/b.yaml', '');
+    newFile('/c.yaml', '''
+include:
+  - a.yaml
+  - b.yaml
+''');
+    await assertNoErrorsInCode('''
+include: c.yaml
+''');
+  }
+
   Future<void> test_recursive() async {
     newFile('/a.yaml', '''
 include: b.yaml

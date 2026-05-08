@@ -14,6 +14,7 @@ wasm/*: SkipByDesign
 
 [ $compiler == ddc ]
 async_stacktrace_test: Skip # Issue 53555
+js_error_stack_trace_test: SkipByDesign # Stack trace discrepancy between dart2js/wasm and ddc
 native/*: Skip # dart2js tests for native keyword
 wasm_js_shared/weak_reference_polyfill_test: SkipByDesign # Test specific for the dart2js/dart2wasm runtime
 
@@ -51,6 +52,7 @@ internal/deferred/load_multiple_in_correct_order_test: SkipByDesign # Uses eval
 internal/deferred/load_with_priority_test: SkipByDesign # Uses eval
 internal/object_members_test: SkipByDesign # Uses eval for interop
 internal/rti/js_interop_subtype_test: SkipByDesign # Uses eval
+js_error_stack_trace_test: SkipByDesign # Uses eval for interop
 js_interop_generic_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js_interop_non_null_asserts_disabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js_interop_non_null_asserts_enabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code

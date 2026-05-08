@@ -89,6 +89,47 @@ class Child extends Parent {
 ''');
   }
 
+  test_field() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import 'package:meta/meta.dart';
+
+class A {
+  @visibleForOverriding
+  int g = 0;
+}
+''');
+
+    await assertErrorsInCode(
+      '''
+import 'a.dart';
+
+int m(A a) {
+  return a.g;
+}
+''',
+      [error(diag.invalidUseOfVisibleForOverridingMember, 42, 1)],
+    );
+  }
+
+  test_field_originPrimaryConstructor() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import 'package:meta/meta.dart';
+
+class A(@visibleForOverriding var int g);
+''');
+
+    await assertErrorsInCode(
+      '''
+import 'a.dart';
+
+int m(A a) {
+  return a.g;
+}
+''',
+      [error(diag.invalidUseOfVisibleForOverridingMember, 42, 1)],
+    );
+  }
+
   test_getter() async {
     newFile('$testPackageLibPath/a.dart', '''
 import 'package:meta/meta.dart';

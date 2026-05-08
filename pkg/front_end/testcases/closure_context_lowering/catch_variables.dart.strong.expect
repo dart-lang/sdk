@@ -1,0 +1,116 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/closure_context_lowering/catch_variables.dart:44:12: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// No types are needed, the first is given by 'on', the second is always 'StackTrace'.
+//   } catch ([e, s]) {} // Error.
+//            ^
+//
+// pkg/front_end/testcases/closure_context_lowering/catch_variables.dart:50:15: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// No types are needed, the first is given by 'on', the second is always 'StackTrace'.
+//   } catch (e, [s]) {} // Error.
+//               ^
+//
+// pkg/front_end/testcases/closure_context_lowering/catch_variables.dart:50:16: Error: This couldn't be parsed.
+//   } catch (e, [s]) {} // Error.
+//                ^
+//
+// pkg/front_end/testcases/closure_context_lowering/catch_variables.dart:56:12: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// No types are needed, the first is given by 'on', the second is always 'StackTrace'.
+//   } catch ({e, s}) {} // Error.
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method testNotCapturedImplicitTypes() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+    #ctx1: not-captured VariableContext([
+      catch-variable e;
+      catch-variable s;
+    ]),
+  ] */ {
+  }
+}
+static method testNotCapturedExplicitTypes() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::StateError catch(catch-variable e, catch-variable s)/* scope=[
+    #ctx2: not-captured VariableContext([
+      catch-variable e;
+      catch-variable s;
+    ]),
+  ] */ {
+  }
+}
+static method testNotCapturedWildcards() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::Object catch(catch-variable _#wc0#formal, catch-variable _#wc1#formal)/* scope=[
+    #ctx3: not-captured VariableContext([
+      catch-variable _#wc0#formal;
+      catch-variable _#wc1#formal;
+    ]),
+  ] */ {
+  }
+}
+static method testDirectCaptured() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+    #ctx4: direct-captured VariableContext([
+      catch-variable e;
+      catch-variable s;
+    ]),
+  ] */ {
+    return () /* #ctx4 */ → core::List<core::Object> => <core::Object>[e, s];
+  }
+}
+static method testAssertCaptured() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+    #ctx5: assert-captured VariableContext([
+      catch-variable e;
+      catch-variable s;
+    ]),
+  ] */ {
+    return () /* #ctx5 */ → Null {
+      assert(!(e == null) && !(s == null));
+    };
+  }
+}
+static method testErroneousOptional() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::Object catch(no-exception-var) {
+  }
+}
+static method testErroneousOneOptional() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+    #ctx6: not-captured VariableContext([
+      catch-variable e;
+      catch-variable s;
+    ]),
+  ] */ {
+  }
+}
+static method testErroneousNamed() → dynamic {
+  try {
+    throw new core::StateError::•("error");
+  }
+  on core::Object catch(no-exception-var) {
+  }
+}

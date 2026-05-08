@@ -15,10 +15,10 @@ class _EntityToIdMapper {
   final Map<TreeNode, int> _ids;
 
   _EntityToIdMapper(this.component)
-      : _ids =
-            (component.metadata[DynamicModuleGlobalIdRepository.repositoryTag]
-                    as DynamicModuleGlobalIdRepository)
-                .mapping;
+    : _ids =
+          (component.metadata[DynamicModuleGlobalIdRepository.repositoryTag]
+                  as DynamicModuleGlobalIdRepository)
+              .mapping;
 
   int idForClass(Class cls) {
     return _ids[cls]!;
@@ -38,10 +38,10 @@ class _EntityToIdMapper {
     if (reference.isTearOffReference) return 2;
     if (reference.isConstructorBodyReference) return 3;
     if (reference.isInitializerReference) return 4;
-    if (reference.isTypeCheckerReference) return 5;
-    if (reference.isCheckedEntryReference) return 6;
-    if (reference.isUncheckedEntryReference) return 7;
-    if (reference.isBodyReference) return 8;
+    if (reference.isCheckedEntryReference) return 5;
+    if (reference.isUncheckedEntryReference) return 6;
+    if (reference.isBodyReference) return 7;
+    if (reference.isStaticFieldInitializer) return 8;
     assert(reference == reference.asMember.reference);
     return 9;
   }
@@ -84,10 +84,10 @@ class _IdToEntityMapper {
     if (flag == 2) return (member as Procedure).tearOffReference;
     if (flag == 3) return (member as Constructor).constructorBodyReference;
     if (flag == 4) return (member as Constructor).initializerReference;
-    if (flag == 5) return member.typeCheckerReference;
-    if (flag == 6) return member.checkedEntryReference;
-    if (flag == 7) return member.uncheckedEntryReference;
-    if (flag == 8) return member.bodyReference;
+    if (flag == 5) return member.checkedEntryReference;
+    if (flag == 6) return member.uncheckedEntryReference;
+    if (flag == 7) return member.bodyReference;
+    if (flag == 8) return (member as Field).staticFieldInitializer;
     assert(flag == 9);
     return member.reference;
   }
@@ -156,8 +156,11 @@ class DataSerializer {
     writeInt(referenceFlag);
   }
 
-  void writeMap<K, V>(Map<K, V> map, void Function(K key) writeKey,
-      void Function(V value) writeValue) {
+  void writeMap<K, V>(
+    Map<K, V> map,
+    void Function(K key) writeKey,
+    void Function(V value) writeValue,
+  ) {
     writeInt(map.length);
     map.forEach((key, value) {
       writeKey(key);
@@ -184,8 +187,8 @@ class DataDeserializer {
   final List<String> _stringIndexer = [];
 
   DataDeserializer(Uint8List bytes, this.component)
-      : _source = _BinaryDataSource(bytes),
-        _mapper = _IdToEntityMapper(component);
+    : _source = _BinaryDataSource(bytes),
+      _mapper = _IdToEntityMapper(component);
 
   T? readNullable<T>(T Function() read) {
     return _source.readBool() ? read() : null;
@@ -217,9 +220,10 @@ class DataDeserializer {
   E readEnum<E extends Enum>(List<E> values) {
     int index = _source.readInt();
     assert(
-        0 <= index && index < values.length,
-        "Invalid data kind index. "
-        "Expected one of $values, found index $index.");
+      0 <= index && index < values.length,
+      "Invalid data kind index. "
+      "Expected one of $values, found index $index.",
+    );
     return values[index];
   }
 
@@ -339,7 +343,8 @@ class _BinaryDataSource {
   String readString() {
     int length = readInt();
     return utf8.decode(
-        Uint8List.sublistView(_bytes, _byteOffset, _byteOffset += length));
+      Uint8List.sublistView(_bytes, _byteOffset, _byteOffset += length),
+    );
   }
 
   bool readBool() {

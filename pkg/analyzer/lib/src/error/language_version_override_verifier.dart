@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -303,6 +304,14 @@ class LanguageVersionOverrideVerifier {
         Token? commentToken = token.precedingComments;
         for (; commentToken != null; commentToken = commentToken.next) {
           var lexeme = commentToken.lexeme;
+          // Optimization: The regex usage below is expensive. Checking if the
+          // string contains an `@` first saves most calls to it.
+          int offset = 0;
+          int end = lexeme.length - 5;
+          for (; offset < end; offset++) {
+            if (lexeme.codeUnitAt(offset) == $AT) break;
+          }
+          if (offset >= end) continue;
 
           var match = _overrideCommentLine.firstMatch(lexeme);
           if (match != null) {

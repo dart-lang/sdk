@@ -93,6 +93,7 @@ class Scrollbar implements ScrollListener {
     if (_verticalElement != null) {
       return;
     }
+    // ignore: dead_code
     _verticalElement = Element.html(
       '<div class="touch-scrollbar touch-scrollbar-vertical"></div>',
     );

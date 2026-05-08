@@ -25,14 +25,13 @@ class Imports {
   }
 
   Imports.deserialized(this.all, this.functions, this.tags, this.globals,
-      this.tables, this.memories) {
-    assert(all.length ==
-        (functions.length +
-            tags.length +
-            globals.length +
-            tables.length +
-            memories.length));
-  }
+      this.tables, this.memories)
+      : assert(all.length ==
+            (functions.length +
+                tags.length +
+                globals.length +
+                tables.length +
+                memories.length));
 }
 
 /// Any import (function, table, memory or global).

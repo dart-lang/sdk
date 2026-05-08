@@ -20,11 +20,11 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../constants/values.dart';
-import '../elements/types.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../serialization/serialization.dart';
 import '../js_model/closure.dart' show JContextField;
+import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;

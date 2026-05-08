@@ -65,7 +65,7 @@ static void FillSummary(LocationSummary* locs,
   }
 }
 
-class MockInstruction : public ZoneAllocated {
+class MockInstruction : public ZoneObject {
  public:
   virtual ~MockInstruction() {}
 

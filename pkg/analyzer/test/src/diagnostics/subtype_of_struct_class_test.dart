@@ -127,7 +127,7 @@ final class C with S {}
 ''',
       [
         error(diag.emptyStruct, 31, 1),
-        error(diag.mixinInheritsFromNotObject, 70, 1),
+        error(diag.classUsedAsMixin, 70, 1),
         error(
           diag.subtypeOfStructClassInWith,
           70,
@@ -150,7 +150,7 @@ import 'lib1.dart' as lib1;
 class C with lib1.S {}
 ''',
       [
-        error(diag.mixinInheritsFromNotObject, 42, 6),
+        error(diag.classUsedAsMixin, 42, 6),
         error(
           diag.subtypeOfStructClassInWith,
           42,
@@ -170,7 +170,7 @@ final class C with S {}
 ''',
       [
         error(diag.emptyStruct, 31, 1),
-        error(diag.mixinInheritsFromNotObject, 69, 1),
+        error(diag.classUsedAsMixin, 69, 1),
         error(diag.subtypeOfStructClassInWith, 69, 1),
       ],
     );

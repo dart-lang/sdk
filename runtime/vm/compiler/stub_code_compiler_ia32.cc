@@ -39,7 +39,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // the remembered set and/or deferred marking worklist. This test assumes a
   // Page's TLAB use is always ascending.
   Label done;
-  __ AndImmediate(ECX, EAX, target::kPageMask);
+  __ AndImmediate(ECX, EAX, target::Page::kPageMask);
   __ LoadFromOffset(ECX, ECX, target::Page::original_top_offset());
   __ CompareRegisters(EAX, ECX);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
@@ -245,6 +245,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // Save THR and EBX which are callee-saved.
   __ pushl(THR);
   __ pushl(EBX);
+  __ pushl(ECX);
 
   // THR & return address
   COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
@@ -255,20 +256,16 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // code size on this shared stub.
   {
     __ EnterFrame(0);
-    // entry_point, trampoline_type, &trampoline_type, &entry_point, trampoline
-    //                              ^------ GetFfiCallbackMetadata args ------^
     __ ReserveAlignedFrameSpace(5 * target::kWordSize);
+    // SP[4] CallbackMetadata.epilogue
+    // SP[3] CallbackMetadata.is_tail
+    // SP[2] CallbackMetadata.entry_point
+    // SP[1] out -> SP[2]
+    // SP[0] trampoline
 
-    // Trampoline arg.
     __ movl(Address(SPREG, 0 * target::kWordSize), EAX);
-
-    // Pointer to trampoline type stack slot.
     __ movl(EAX, SPREG);
-    __ addl(EAX, Immediate(3 * target::kWordSize));
-    __ movl(Address(SPREG, 2 * target::kWordSize), EAX);
-
-    // Pointer to entry point stack slot.
-    __ addl(EAX, Immediate(target::kWordSize));
+    __ addl(EAX, Immediate(2 * target::kWordSize));
     __ movl(Address(SPREG, 1 * target::kWordSize), EAX);
 
     __ movl(EAX,
@@ -276,132 +273,83 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ call(EAX);
     __ movl(THR, EAX);
 
-    // Save the trampoline type in EBX, and the entry point in ECX.
-    __ movl(EBX, Address(SPREG, 3 * target::kWordSize));
-    __ movl(ECX, Address(SPREG, 4 * target::kWordSize));
+    __ movl(EAX, Address(SPREG, 2 * target::kWordSize));  // entry_point
+    __ movl(ECX, Address(SPREG, 3 * target::kWordSize));  // is_tail
+    __ movl(EBX, Address(SPREG, 4 * target::kWordSize));  // epilogue
 
     __ LeaveFrame();
-
-    // Save the trampoline type to the stack, because we'll need it after the
-    // call to decide whether to ret() or ret(4).
-    __ pushl(EBX);
   }
 
-  COMPILE_ASSERT(!IsCalleeSavedRegister(ECX) && !IsArgumentRegister(ECX));
-  COMPILE_ASSERT(ECX != THR);
+  Label call, call_ret4, tail;
+  __ cmpl(ECX, Immediate(0));
+  __ j(EQUAL, &call);
+  __ cmpl(ECX, Immediate(1));
+  __ j(EQUAL, &tail);
+  __ cmpl(ECX, Immediate(2));
+  __ j(EQUAL, &call_ret4);
+  __ int3();
 
-  Label async_callback;
-  Label sync_isolate_group_bound_callback;
-  Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the async
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ cmpl(THR, Immediate(0));
-  __ j(EQUAL, &done, Assembler::kFarJump);
-
-  // Check the trampoline type to see how the callback should be invoked.
-  __ cmpl(EBX, Immediate(static_cast<uword>(
-                   FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ j(EQUAL, &async_callback, Assembler::kNearJump);
-
-  __ cmpl(EBX,
-          Immediate(static_cast<uword>(
-              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
-  __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
-
-  // Sync callback. The entry point contains the target function, so just call
-  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
-  // re-enter it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(ECX);
-
-  // Takes care to not clobber *any* registers (besides scratch).
-  __ EnterFullSafepoint(/*scratch=*/ECX);
-
-  // Pop the trampoline type into ECX.
-  __ popl(ECX);
-
-  // Restore callee-saved registers.
-  __ popl(EBX);
-  __ popl(THR);
-
-  __ cmpl(ECX, Immediate(static_cast<uword>(
-                   FfiCallbackMetadata::TrampolineType::kSync)));
-  __ j(NOT_EQUAL, &ret_4, Assembler::kNearJump);
-  __ ret();
-
-  __ Bind(&ret_4);
-  __ ret(Immediate(4));
-
-  __ Bind(&sync_isolate_group_bound_callback);
-
-  __ call(ECX);
-
-  // Exit isolate group bound isolate.
   {
+    __ Bind(&call);
+    __ call(EAX);  // entry_point
+
     __ pushl(CallingConventions::kReturnReg);
     __ pushl(CallingConventions::kSecondReturnReg);
-    __ subl(ESP, Immediate(kFpuRegisterSize));
-    __ movups(Address(ESP, 0), CallingConventions::kReturnFpuReg);
+    __ subl(ESP, Immediate(8));
+    __ movsd(Address(ESP, 0), CallingConventions::kReturnFpuReg);
+    // 4 + 4 + 8 = 16 (stack alignment)
 
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    __ pushl(THR);
+    __ call(EBX);  // DLRT_ExitSyncCallback, etc
+    __ popl(EAX);
 
-    __ movl(EAX, Immediate(reinterpret_cast<int64_t>(
-                     DLRT_ExitIsolateGroupBoundIsolate)));
-    __ CallCFunction(EAX);
-
-    __ LeaveFrame();
-
-    __ movups(Address(ESP, 0), CallingConventions::kReturnFpuReg);
-    __ addl(ESP, Immediate(kFpuRegisterSize));
+    __ movsd(CallingConventions::kReturnFpuReg, Address(ESP, 0));
+    __ addl(ESP, Immediate(8));
     __ popl(CallingConventions::kSecondReturnReg);
     __ popl(CallingConventions::kReturnReg);
-  }
 
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&async_callback);
-
-  // Async callback. The entrypoint marshals the arguments into a message and
-  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
-  // entered a temporary isolate, so exit it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(ECX);
-
-  // Exit the temporary isolate.
-  {
-    // Pop the trampoline type into ECX.
     __ popl(ECX);
-
-    // Restore callee-saved registers.
     __ popl(EBX);
     __ popl(THR);
+    __ ret();
+  }
+  {
+    __ Bind(&call_ret4);
+    __ call(EAX);  // entry_point
 
+    __ pushl(CallingConventions::kReturnReg);
+    __ pushl(CallingConventions::kSecondReturnReg);
+    __ subl(ESP, Immediate(8));
+    __ movsd(Address(ESP, 0), CallingConventions::kReturnFpuReg);
+    // 4 + 4 + 8 = 16 (stack alignment)
+
+    __ pushl(THR);
+    __ call(EBX);  // DLRT_ExitSyncCallback, etc
+    __ popl(EAX);
+
+    __ movsd(CallingConventions::kReturnFpuReg, Address(ESP, 0));
+    __ addl(ESP, Immediate(8));
+    __ popl(CallingConventions::kSecondReturnReg);
+    __ popl(CallingConventions::kReturnReg);
+
+    __ popl(ECX);
+    __ popl(EBX);
+    __ popl(THR);
+    __ ret(Immediate(4));
+  }
+  {
+    __ Bind(&tail);
+    __ call(EAX);  // entry_point
+    __ movl(EAX, EBX);
+    __ popl(ECX);
+    __ popl(EBX);
+    __ popl(THR);
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ movl(EAX,
-            Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
-    __ jmp(EAX);
+    __ jmp(EAX);  // DLRT_ExitTemporaryIsolate
     __ int3();
   }
-
-  __ Bind(&done);
-
-  // Pop the trampoline type into ECX.
-  __ popl(ECX);
-
-  // Restore callee-saved registers.
-  __ popl(EBX);
-  __ popl(THR);
-
-  // Stack delta is always 0 for async callbacks.
-  __ ret();
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
@@ -975,7 +923,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       __ movl(EDI, EBX);
       __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shll(EDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -1147,7 +1095,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ Bind(&push_arguments);
   __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
   __ pushl(ECX);
-  __ incl(EAX);
+  __ addl(EAX, Immediate(1));
   __ cmpl(EAX, EBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -1274,7 +1222,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
   __ Bind(&push_arguments);
   __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
   __ pushl(ECX);
-  __ incl(EAX);
+  __ addl(EAX, Immediate(1));
   __ cmpl(EAX, EBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -1373,7 +1321,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
     __ cmpl(EBX, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EBX, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+    __ shll(EBX, Immediate(target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -1598,7 +1546,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
       __ movl(Address(EAX, ECX, TIMES_4,
                       target::MarkingStackBlock::pointers_offset()),
               EBX);
-      __ incl(ECX);
+      __ addl(ECX, Immediate(1));
       __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
       __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
       __ j(NOT_EQUAL, &done);
@@ -1680,7 +1628,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     // Spilled: EAX, ECX
     // ECX: top_
     // EAX: StoreBufferBlock
-    __ incl(ECX);
+    __ addl(ECX, Immediate(1));
     __ movl(Address(EAX, target::StoreBufferBlock::top_offset()), ECX);
     __ cmpl(ECX, Immediate(target::StoreBufferBlock::kSize));
     __ j(NOT_EQUAL, &done);
@@ -1701,8 +1649,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   if (cards) {
     // Get card table.
     __ Bind(&remember_card);
-    __ movl(EAX, EDX);                           // Object.
-    __ andl(EAX, Immediate(target::kPageMask));  // Page.
+    __ movl(EAX, EDX);                                 // Object.
+    __ andl(EAX, Immediate(target::Page::kPageMask));  // Page.
 
     // Atomically dirty the card.
     __ pushl(EBX);
@@ -1940,7 +1888,8 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
   Register func_reg = EAX;
-  __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+  __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+          Immediate(1));
 }
 
 // Loads function into 'temp_reg'.
@@ -1951,7 +1900,8 @@ void StubCodeCompiler::GenerateUsageCounterIncrement(Register temp_reg) {
     __ Comment("Increment function counter");
     __ movl(func_reg,
             FieldAddress(IC_DATA_REG, target::ICData::owner_offset()));
-    __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+    __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+            Immediate(1));
   }
 }
 
@@ -2512,7 +2462,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
       Immediate(0));
   Label args_count_ok;
   __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ incl(ECX);
+  __ addl(ECX, Immediate(1));
   __ Bind(&args_count_ok);
 
   // Compute argv.
@@ -2941,14 +2891,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
   __ ret();
 }
 
-// Return the current stack pointer address, used to do stack alignment checks.
-// TOS + 0: return address
-// Result in EAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ leal(EAX, Address(ESP, target::kWordSize));
-  __ ret();
-}
-
 // Jump to a frame on the call stack.
 // TOS + 0: return address
 // TOS + 1: program_counter
@@ -3356,7 +3298,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       Label size_tag_overflow, done;
       __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shll(EDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
       __ Bind(&size_tag_overflow);

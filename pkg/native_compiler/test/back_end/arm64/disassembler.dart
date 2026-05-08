@@ -824,7 +824,11 @@ class ARM64Decoder {
   void printMemOperand(Instr instr) {
     final int rn = instr.rnField();
     if (instr.bit(24) == 1) {
-      final int scale = instr.szField();
+      int scale = instr.szField();
+      if (instr.bit(26) == 1 && instr.bit(23) == 1 && scale == 0) {
+        // 128-bit SIMD&FP memory op.
+        scale = 4;
+      }
       final int imm12 = instr.imm12Field();
       final int off = imm12 << scale;
       print("[");
@@ -1606,14 +1610,14 @@ class ARM64Decoder {
   void decodeAddSubShiftExt(Instr instr) {
     switch (instr.bit(30)) {
       case 0:
-        if (instr.rdField() == R31) {
+        if ((instr.rdField() == R31) && (instr.sField() == 1)) {
           format(instr, "cmn'sf 'rn, 'shift_op");
         } else {
           format(instr, "add'sf's 'rd, 'rn, 'shift_op");
         }
         break;
       case 1:
-        if (instr.rdField() == R31) {
+        if ((instr.rdField() == R31) && (instr.sField() == 1)) {
           format(instr, "cmp'sf 'rn, 'shift_op");
         } else {
           if (instr.rnField() == R31) {

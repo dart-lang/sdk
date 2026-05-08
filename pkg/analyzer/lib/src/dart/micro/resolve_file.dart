@@ -226,20 +226,26 @@ class FileResolver {
     // Forget all results, anything is potentially affected.
     cachedResults.clear();
 
-    // Remove the specified files and files that transitively depend on it.
+    // Remove bundles for the specified files and anything that transitively
+    // depends on them before file-state disposal clears library cycles.
     var removedFiles = <FileState>{};
     for (var path in paths) {
-      fsState!.changeFile(path, removedFiles);
+      fsState!.collectAffected(path, removedFiles);
+    }
+
+    // Remove libraries represented by removed files.
+    // If we need these libraries later, we will relink and reattach them.
+    libraryContext?.remove(removedFiles, removedCacheKeys);
+
+    // Remove the specified files and files that transitively depend on it.
+    for (var path in paths) {
+      fsState!.changeFile(path);
     }
 
     // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
       removedCacheKeys.add(removedFile.unlinkedKey);
     }
-
-    // Remove libraries represented by removed files.
-    // If we need these libraries later, we will relink and reattach them.
-    libraryContext?.remove(removedFiles, removedCacheKeys);
 
     releaseAndClearRemovedIds();
   }
@@ -491,11 +497,17 @@ class FileResolver {
   /// [FileState]'s. Adds the cache id's for the removed [FileState]'s to
   /// [removedCacheKeys].
   void removeFilesNotNecessaryForAnalysisOf(List<String> files) {
-    var removedFiles = fsState!.removeUnusedFiles(files);
+    var removedFiles = fsState!.removeFilesNotNecessaryForAnalysisOf(
+      files,
+      beforeRemoving: (removedFiles) {
+        libraryContext?.remove(removedFiles, removedCacheKeys);
+      },
+    );
+
     for (var removedFile in removedFiles) {
       removedCacheKeys.add(removedFile.unlinkedKey);
     }
-    libraryContext?.remove(removedFiles, removedCacheKeys);
+
     releaseAndClearRemovedIds();
   }
 

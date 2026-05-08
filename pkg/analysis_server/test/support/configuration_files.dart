@@ -12,17 +12,26 @@ import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
 mixin ConfigurationFilesMixin on MockPackagesMixin {
+  /// Adds the 'flutter_localizations' package to the package config file for
+  /// the package-under-test.
+  ///
+  /// This allows `package:flutter_localizations/flutter_localizations.dart`
+  /// imports to resolve.
+  bool get addFlutterLocalizationsPackageDep => false;
+
   /// Adds the 'flutter_test' package to the package config file for the
   /// package-under-test.
   ///
   /// This allows `package:flutter_test/flutter_test.dart` imports to resolve.
   bool get addFlutterTestPackageDep => false;
 
-  /// Adds the 'pedantic' package to the package config file for the
+  /// Adds the 'vector_math' package to the package config file for the
   /// package-under-test.
   ///
   /// This allows `package:vector_math/vector_math_64.dart` imports to resolve.
   bool get addVectorMathPackageDep => false;
+
+  String get dartSdkPath;
 
   /// The Dart language version of the test package being used for testing.
   String get testPackageLanguageVersion => _latestLanguageVersion;
@@ -68,16 +77,34 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     }
 
     if (flutter) {
-      var uiLibFolder = addUI();
-      config.add(name: 'ui', rootPath: uiLibFolder.parent.path);
+      var skyEnginePath = addSkyEngine(sdkPath: dartSdkPath).parent.path;
+      config.add(name: 'sky_engine', rootPath: skyEnginePath);
 
       var flutterLibFolder = addFlutter();
       config.add(name: 'flutter', rootPath: flutterLibFolder.parent.path);
     }
 
     if (addFlutterTestPackageDep) {
-      var libFolder = addFlutterTest();
-      config.add(name: 'flutter_test', rootPath: libFolder.parent.path);
+      var flutterTestRootPath = resourceProvider.convertPath(
+        '$packagesRootPath/flutter_test',
+      );
+
+      var flutterTestRoot = resourceProvider.getFolder(flutterTestRootPath);
+      var libFolder = flutterTestRoot.getChildAssumingFolder('lib')..create();
+      libFolder.getChildAssumingFile('flutter_test.dart').writeAsStringSync(r'''
+void test(Object description, dynamic Function() body) {}
+
+void group(Object description, void Function() body) {}
+
+void main() {
+  // Because this file is called 'flutter_test.dart' and is inside the 'test'
+  // folder, it will be considered a test suite. To avoid it failing the bots
+  // with "Invoked Dart programs must have a 'main' function defined", provide
+  // an empty main function.
+}
+
+''');
+      config.add(name: 'flutter_test', rootPath: flutterTestRootPath);
     }
 
     if (addVectorMathPackageDep) {

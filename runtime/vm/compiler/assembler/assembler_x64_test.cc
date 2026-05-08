@@ -5857,10 +5857,58 @@ ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
   EXPECT_EQ(1, reinterpret_cast<BitTestImmediate>(test->entry())());
   EXPECT_DISASSEMBLY(
       "movl tmp,0x20\n"
-      "bt tmp,5\n"
+      "btl tmp,5\n"
       "jc +7\n"
       "int3\n"
       "movl rax,1\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(BitTestReset, assembler) {
+  __ xorq(RAX, RAX);
+  __ lock();
+  __ btrq(Address(CallingConventions::kArg1Reg, 8), 1);
+  __ setcc(CARRY, AL);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(BitTestReset, test) {
+  typedef int (*BitTestReset)(int64_t*);
+  int64_t value[2];
+  value[1] = 2;
+  EXPECT_EQ(1, reinterpret_cast<BitTestReset>(test->entry())(&value[0]));
+  EXPECT_EQ(value[1], 0);
+  value[1] = 4;
+  EXPECT_EQ(0, reinterpret_cast<BitTestReset>(test->entry())(&value[0]));
+  EXPECT_EQ(value[1], 4);
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "xorq rax,rax\n"
+      "lock btrq [rdi+0x8],1\n"
+      "setc al\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(BitTestSet, assembler) {
+  __ xorq(RAX, RAX);
+  __ lock();
+  __ btsq(Address(CallingConventions::kArg1Reg, 8), 1);
+  __ setcc(CARRY, AL);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(BitTestSet, test) {
+  typedef int (*BitTestSet)(int64_t*);
+  int64_t value[2];
+  value[1] = 2;
+  EXPECT_EQ(1, reinterpret_cast<BitTestSet>(test->entry())(&value[0]));
+  EXPECT_EQ(value[1], 2);
+  value[1] = 4;
+  EXPECT_EQ(0, reinterpret_cast<BitTestSet>(test->entry())(&value[0]));
+  EXPECT_EQ(value[1], 6);
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "xorq rax,rax\n"
+      "lock btsq [rdi+0x8],1\n"
+      "setc al\n"
       "ret\n");
 }
 

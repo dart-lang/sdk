@@ -4,6 +4,7 @@
 
 import '../flow_analysis/flow_analysis.dart';
 import '../types/shared_type.dart';
+import 'body_inference_context.dart';
 import 'null_shorting.dart';
 import 'type_analysis_result.dart';
 import 'type_analyzer_operations.dart';
@@ -287,6 +288,10 @@ mixin TypeAnalyzer<
   /// two context types for the same node.
   final _dotShorthands = <(Node, SharedTypeSchemaView)>[];
 
+  /// Inference context information for the current function body, if the
+  /// current node is inside a function body.
+  SharedBodyInferenceContext? get bodyContext;
+
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, Pattern, Error>
   get errors;
 
@@ -380,6 +385,65 @@ mixin TypeAnalyzer<
     flow.promotedType(variable) ?? operations.variableType(variable),
   );
 
+  /// Analyzes an expression of the form `await operand`.
+  ///
+  /// Returns an [AwaitExpressionResult] containing the static type of the await
+  /// expression and its operand.
+  ///
+  /// Stack effect: pushes the operand expression.
+  AwaitExpressionResult analyzeAwaitExpression(
+    Expression operand,
+    SharedTypeSchemaView schema,
+  ) {
+    // Stack: ()
+
+    // (Note: comments pulled from
+    // https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md)
+
+    // Expression inference of an await expression await e_1, in context K,
+    // produces an elaborated expression m with static type T, where m and T are
+    // determined as follows:
+    SharedTypeSchemaView k = schema;
+
+    // Define K_1 as follows:
+    // - If K is FutureOr<S> or FutureOr<S>? for some type schema S, then let
+    //   K_1 be K.
+    // - Otherwise, if K is dynamic, then let K_1 be FutureOr<_>.
+    // - Otherwise, let K_1 be FutureOr<K>.
+    assert(
+      schema is! SharedDynamicTypeSchemaView,
+      'Caller should convert dynamic context to _',
+    );
+    SharedTypeSchemaView k1 = operations.matchTypeSchemaFutureOr(k) != null
+        ? k
+        : operations.futureOrTypeSchema(k);
+
+    // Let m_1 be the result of performing expression inference on e_1, in
+    // context K_1.
+    ExpressionTypeAnalysisResult m1 = analyzeExpression(
+      operand,
+      k1,
+      isVoidAllowed: false,
+    );
+    // Stack: (operand)
+
+    // Let T_1 be the static type of m_1.
+    SharedTypeView t1 = m1.type;
+
+    // If T_1 is incompatible with await (as defined in the extension types
+    // specification), then there is a compile-time error.
+    // (Currently this error is detected by the analyzer and front_end clients,
+    // not by shared code. TODO(paulberry): share this logic.)
+
+    // Let T_2 be flatten(T_1).
+    SharedTypeView t2 = operations.flatten(t1);
+
+    // Let m_2 be @AWAIT_WITH_TYPE_CHECK(m_1), with static type Future<T_2>.
+
+    // Let T be T_2, and let m be `await m_2`.
+    return new AwaitExpressionResult(type: t2, operandType: t1);
+  }
+
   /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and
   /// [requiredType] is the type to cast to.
   ///
@@ -450,12 +514,14 @@ mixin TypeAnalyzer<
             context: irrefutableContext,
           );
     }
-    SharedTypeView expressionType = analyzeExpression(
+    ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.typeToSchema(matchedValueType),
+      isVoidAllowed: true,
     );
+    SharedTypeView expressionType = expressionAnalysisResult.type;
     flow.constantPattern_end(
-      expression,
+      expressionAnalysisResult.flowAnalysisInfo,
       expressionType,
       patternsEnabled: typeAnalyzerOptions.patternsEnabled,
       matchedValueType: matchedValueType,
@@ -585,6 +651,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult analysisResult = dispatchExpression(
       node,
       context,
+      isVoidAllowed: true,
     );
     popDotShorthandContext();
     return analysisResult.type;
@@ -601,11 +668,15 @@ mixin TypeAnalyzer<
   /// If [continueNullShorting] is `true`, then null shorting that starts inside
   /// [node] will be allowed to continue into the containing expression.
   ///
+  /// If [isVoidAllowed] is `false` (the default), and the static type of the
+  /// expression is void, an error will be reported.
+  ///
   /// Stack effect: pushes (Expression).
-  SharedTypeView analyzeExpression(
+  ExpressionTypeAnalysisResult analyzeExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
+    bool isVoidAllowed = false,
   }) {
     int? nullShortingTargetDepth;
     if (!continueNullShorting) nullShortingTargetDepth = nullShortingDepth;
@@ -613,21 +684,24 @@ mixin TypeAnalyzer<
     if (schema is SharedDynamicTypeSchemaView) {
       schema = operations.unknownType;
     }
-    ExpressionTypeAnalysisResult result = dispatchExpression(node, schema);
+    ExpressionTypeAnalysisResult result = dispatchExpression(
+      node,
+      schema,
+      isVoidAllowed: isVoidAllowed,
+    );
     // Stack: (Expression)
     if (operations.isBottomType(result.type)) {
       flow.handleExit();
     }
-    SharedTypeView type = result.type;
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
-      type = finishNullShorting(
+      result = finishNullShorting(
         nullShortingTargetDepth,
-        type,
+        result,
         wholeExpression: node,
       );
     }
-    return type;
+    return result;
   }
 
   /// Analyzes a collection element of the form
@@ -662,11 +736,16 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    SharedTypeView initializerType = analyzeExpression(
+    ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
+      isVoidAllowed: true,
     );
-    flow.ifCaseStatement_afterExpression(expression, initializerType);
+    SharedTypeView expressionType = expressionAnalysisResult.type;
+    flow.ifCaseStatement_afterExpression(
+      expressionAnalysisResult.flowAnalysisInfo,
+      expressionType,
+    );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
@@ -688,20 +767,25 @@ mixin TypeAnalyzer<
     );
     Error? nonBooleanGuardError;
     SharedTypeView? guardType;
+    ExpressionInfo? guardInfo;
     if (guard != null) {
-      guardType = analyzeExpression(
+      ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
+        isVoidAllowed: true,
       );
+      guardType = guardAnalysisResult.type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
+      guardInfo = guardAnalysisResult.flowAnalysisInfo;
     } else {
       handleNoGuard(node, 0);
+      guardInfo = flow.booleanLiteral(true);
     }
     // Stack: (Expression, Pattern, Guard)
-    flow.ifCaseStatement_thenBegin(guard);
+    flow.ifCaseStatement_thenBegin(guardInfo);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
     return new IfCaseStatementResult(
-      matchedExpressionType: initializerType,
+      matchedExpressionType: expressionType,
       nonBooleanGuardError: nonBooleanGuardError,
       guardType: guardType,
     );
@@ -733,11 +817,16 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    SharedTypeView initializerType = analyzeExpression(
+    ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
+      isVoidAllowed: true,
     );
-    flow.ifCaseStatement_afterExpression(expression, initializerType);
+    SharedTypeView expressionType = expressionAnalysisResult.type;
+    flow.ifCaseStatement_afterExpression(
+      expressionAnalysisResult.flowAnalysisInfo,
+      expressionType,
+    );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
@@ -762,20 +851,25 @@ mixin TypeAnalyzer<
     // Stack: (Expression, Pattern)
     Error? nonBooleanGuardError;
     SharedTypeView? guardType;
+    ExpressionInfo? guardInfo;
     if (guard != null) {
-      guardType = analyzeExpression(
+      ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
+        isVoidAllowed: true,
       );
+      guardType = guardAnalysisResult.type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
+      guardInfo = guardAnalysisResult.flowAnalysisInfo;
     } else {
       handleNoGuard(node, 0);
+      guardInfo = flow.booleanLiteral(true);
     }
     // Stack: (Expression, Pattern, Guard)
-    flow.ifCaseStatement_thenBegin(guard);
+    flow.ifCaseStatement_thenBegin(guardInfo);
     _analyzeIfCommon(node, ifTrue, ifFalse);
     return new IfCaseStatementResult(
-      matchedExpressionType: initializerType,
+      matchedExpressionType: expressionType,
       nonBooleanGuardError: nonBooleanGuardError,
       guardType: guardType,
     );
@@ -801,10 +895,14 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifStatement_conditionBegin();
-    analyzeExpression(condition, operations.typeToSchema(operations.boolType));
+    ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
+      condition,
+      operations.typeToSchema(operations.boolType),
+      isVoidAllowed: true,
+    );
     handle_ifElement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(condition, node);
+    flow.ifStatement_thenBegin(conditionAnalysisResult.flowAnalysisInfo, node);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
   }
 
@@ -826,10 +924,14 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     flow.ifStatement_conditionBegin();
-    analyzeExpression(condition, operations.typeToSchema(operations.boolType));
+    ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
+      condition,
+      operations.typeToSchema(operations.boolType),
+      isVoidAllowed: true,
+    );
     handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(condition, node);
+    flow.ifStatement_thenBegin(conditionAnalysisResult.flowAnalysisInfo, node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 
@@ -1210,7 +1312,11 @@ mixin TypeAnalyzer<
       Node element = elements[i];
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        SharedTypeView keyType = analyzeExpression(entry.key, keySchema);
+        SharedTypeView keyType = analyzeExpression(
+          entry.key,
+          keySchema,
+          isVoidAllowed: true,
+        ).type;
         flow.pushSubpattern(valueType);
         dispatchPattern(context.withUnnecessaryWildcardKind(null), entry.value);
         handleMapPatternEntry(node, element, keyType);
@@ -1477,9 +1583,17 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
-    SharedTypeView rhsType = analyzeExpression(rhs, patternSchema);
+    ExpressionTypeAnalysisResult rhsAnalysisResult = analyzeExpression(
+      rhs,
+      patternSchema,
+      isVoidAllowed: true,
+    );
+    SharedTypeView rhsType = rhsAnalysisResult.type;
     // Stack: (Expression)
-    flow.patternAssignment_afterRhs(rhs, rhsType);
+    flow.patternAssignment_afterRhs(
+      rhsAnalysisResult.flowAnalysisInfo,
+      rhsType,
+    );
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
@@ -1534,7 +1648,8 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = analyzeExpression(
       expression,
       expressionTypeSchema,
-    );
+      isVoidAllowed: true,
+    ).type;
     // Stack: (Expression)
 
     Error? patternForInExpressionIsNotIterableError;
@@ -1603,13 +1718,15 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
-    SharedTypeView initializerType = analyzeExpression(
+    ExpressionTypeAnalysisResult initializerAnalysisResult = analyzeExpression(
       initializer,
       patternSchema,
+      isVoidAllowed: true,
     );
+    SharedTypeView initializerType = initializerAnalysisResult.type;
     // Stack: (Expression)
     flow.patternVariableDeclaration_afterInitializer(
-      initializer,
+      initializerAnalysisResult.flowAnalysisInfo,
       initializerType,
     );
     Map<String, List<Variable>> componentVariables = {};
@@ -1829,10 +1946,15 @@ mixin TypeAnalyzer<
     } else {
       operandSchema = operations.unknownType;
     }
-    SharedTypeView operandType = analyzeExpression(operand, operandSchema);
+    ExpressionTypeAnalysisResult operandAnalysisResult = analyzeExpression(
+      operand,
+      operandSchema,
+      isVoidAllowed: true,
+    );
+    SharedTypeView operandType = operandAnalysisResult.type;
     if (isEquality) {
       flow.equalityRelationalPattern_end(
-        operand,
+        operandAnalysisResult.flowAnalysisInfo,
         operandType,
         notEqual: operator?.kind == RelationalOperatorKind.notEquals,
         matchedValueType: matchedValueType,
@@ -1906,13 +2028,19 @@ mixin TypeAnalyzer<
     // follows:
     //
     // - The scrutinee (`e0`) is first analyzed with context type `_`.
-    SharedTypeView expressionType = analyzeExpression(
+    ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(
       scrutinee,
       operations.unknownType,
+      isVoidAllowed: true,
     );
+    SharedTypeView expressionType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
-    flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
+    flow.switchStatement_expressionEnd(
+      null,
+      scrutineeAnalysisResult.flowAnalysisInfo,
+      expressionType,
+    );
 
     // - If the switch expression has no cases, its static type is `Never`.
     Map<int, Error>? nonBooleanGuardErrors;
@@ -1944,7 +2072,7 @@ mixin TypeAnalyzer<
         flow.switchStatement_beginAlternative();
         handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
         Node? pattern = memberInfo.head.pattern;
-        Expression? guard;
+        ExpressionInfo? guardInfo;
         if (pattern != null) {
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
@@ -1964,31 +2092,40 @@ mixin TypeAnalyzer<
             location: JoinedPatternVariableLocation.singlePattern,
           );
           // Stack: (Expression, i * ExpressionCase, Pattern)
-          guard = memberInfo.head.guard;
-          bool hasGuard = guard != null;
-          if (hasGuard) {
-            SharedTypeView guardType = analyzeExpression(
-              guard,
-              operations.typeToSchema(operations.boolType),
-            );
+          Expression? guard = memberInfo.head.guard;
+          if (guard != null) {
+            ExpressionTypeAnalysisResult guardAnalysisResult =
+                analyzeExpression(
+                  guard,
+                  operations.typeToSchema(operations.boolType),
+                  isVoidAllowed: true,
+                );
+            SharedTypeView guardType = guardAnalysisResult.type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             (guardTypes ??= {})[i] = guardType;
             if (nonBooleanGuardError != null) {
               (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
             }
+            guardInfo = guardAnalysisResult.flowAnalysisInfo;
             // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
           } else {
             handleNoGuard(node, i);
+            guardInfo = flow.booleanLiteral(true);
             // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
           }
           handleCaseHead(node, caseIndex: i, subIndex: 0);
         } else {
           handleDefault(node, caseIndex: i, subIndex: 0);
+          guardInfo = flow.booleanLiteral(true);
         }
-        flow.switchStatement_endAlternative(guard, {});
+        flow.switchStatement_endAlternative(guardInfo, {});
         flow.switchStatement_endAlternatives(null, hasLabels: false);
         // Stack: (Expression, i * ExpressionCase, CaseHead)
-        SharedTypeView ti = analyzeExpression(memberInfo.expression, schema);
+        SharedTypeView ti = analyzeExpression(
+          memberInfo.expression,
+          schema,
+          isVoidAllowed: true,
+        ).type;
         if (allCasesSatisfyContext && !operations.isSubtypeOf(ti, s)) {
           allCasesSatisfyContext = false;
         }
@@ -2038,13 +2175,19 @@ mixin TypeAnalyzer<
     final int numCases,
   ) {
     // Stack: ()
-    SharedTypeView scrutineeType = analyzeExpression(
+    ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(
       scrutinee,
       operations.unknownType,
+      isVoidAllowed: true,
     );
+    SharedTypeView scrutineeType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
-    flow.switchStatement_expressionEnd(node, scrutinee, scrutineeType);
+    flow.switchStatement_expressionEnd(
+      node,
+      scrutineeAnalysisResult.flowAnalysisInfo,
+      scrutineeType,
+    );
     bool hasDefault = false;
     bool lastCaseTerminates = true;
     Map<int, Error>? switchCaseCompletesNormallyErrors;
@@ -2069,7 +2212,7 @@ mixin TypeAnalyzer<
           caseIndex: caseIndex,
           subIndex: headIndex,
         );
-        Expression? guard;
+        ExpressionInfo? guardInfo;
         if (pattern != null) {
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
@@ -2090,31 +2233,37 @@ mixin TypeAnalyzer<
           );
           // Stack: (Expression, numExecutionPaths * StatementCase,
           //         numHeads * CaseHead, Pattern),
-          guard = head.guard;
+          Expression? guard = head.guard;
           if (guard != null) {
-            SharedTypeView guardType = analyzeExpression(
-              guard,
-              operations.typeToSchema(operations.boolType),
-            );
+            ExpressionTypeAnalysisResult guardAnalysisResult =
+                analyzeExpression(
+                  guard,
+                  operations.typeToSchema(operations.boolType),
+                  isVoidAllowed: true,
+                );
+            SharedTypeView guardType = guardAnalysisResult.type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             ((guardTypes ??= {})[caseIndex] ??= {})[headIndex] = guardType;
             if (nonBooleanGuardError != null) {
               ((nonBooleanGuardErrors ??= {})[caseIndex] ??= {})[headIndex] =
                   nonBooleanGuardError;
             }
+            guardInfo = guardAnalysisResult.flowAnalysisInfo;
             // Stack: (Expression, numExecutionPaths * StatementCase,
             //         numHeads * CaseHead, Pattern, Expression),
           } else {
             handleNoGuard(node, caseIndex);
+            guardInfo = flow.booleanLiteral(true);
           }
           handleCaseHead(node, caseIndex: caseIndex, subIndex: headIndex);
         } else {
           hasDefault = true;
           handleDefault(node, caseIndex: caseIndex, subIndex: headIndex);
+          guardInfo = flow.booleanLiteral(true);
         }
         // Stack: (Expression, numExecutionPaths * StatementCase,
         //         numHeads * CaseHead),
-        flow.switchStatement_endAlternative(guard, head.variables);
+        flow.switchStatement_endAlternative(guardInfo, head.variables);
       }
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
@@ -2266,6 +2415,47 @@ mixin TypeAnalyzer<
         : operations.typeToSchema(declaredType);
   }
 
+  /// Analyzes a statement of the form `yield operand;` or `yield* operand;`.
+  ///
+  /// Returns an [YieldStatementResult] containing the static type of the
+  /// operand.
+  ///
+  /// Stack effect: pushes the operand expression.
+  YieldStatementResult analyzeYieldStatement(
+    Expression operand, {
+    required bool isYieldStar,
+  }) {
+    // Stack: ()
+
+    SharedBodyInferenceContext bodyContext = this.bodyContext!;
+    SharedTypeSchemaView operandContext;
+    if (bodyContext.sharedYieldContext
+        case SharedUnknownTypeSchemaView context) {
+      operandContext = context;
+    } else if (isYieldStar) {
+      if (bodyContext.isAsync) {
+        operandContext = operations.streamTypeSchema(
+          bodyContext.sharedYieldContext,
+        );
+      } else {
+        operandContext = operations.iterableTypeSchema(
+          bodyContext.sharedYieldContext,
+        );
+      }
+    } else {
+      operandContext = bodyContext.sharedYieldContext;
+    }
+
+    ExpressionTypeAnalysisResult operandResult = analyzeExpression(
+      operand,
+      operandContext,
+      isVoidAllowed: true,
+    );
+    // Stack: (operand)
+
+    return new YieldStatementResult(operandType: operandResult.type);
+  }
+
   /// Calls the appropriate `analyze` method according to the form of
   /// collection [element], and then adjusts the stack as needed to combine
   /// any sub-structures into a single collection element.
@@ -2282,11 +2472,15 @@ mixin TypeAnalyzer<
   /// For example, if [node] is a switch expression, calls
   /// [analyzeSwitchExpression].
   ///
+  /// If [isVoidAllowed] is `false` (the default), and the static type of the
+  /// expression is void, an error will be reported.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression node,
-    SharedTypeSchemaView schema,
-  );
+    SharedTypeSchemaView schema, {
+    bool isVoidAllowed = false,
+  });
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
   ///

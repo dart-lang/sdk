@@ -70,6 +70,36 @@ void f() {
 ''');
   }
 
+  test_extensionTypeWrapsError() async {
+    await assertNoDiagnostics(r'''
+extension type E(Error e) implements Object {}
+void f() {
+  throw E(Error());
+}
+''');
+  }
+
+  test_extensionTypeWrapsException() async {
+    await assertNoDiagnostics(r'''
+extension type E(Exception e) implements Object {}
+void f() {
+  throw E(Exception());
+}
+''');
+  }
+
+  test_extensionTypeWrapsString() async {
+    await assertDiagnostics(
+      r'''
+extension type E(String s) implements Object {}
+void f() {
+  throw E('hello');
+}
+''',
+      [lint(67, 10)],
+    );
+  }
+
   test_int() async {
     await assertDiagnostics(
       r'''

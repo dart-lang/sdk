@@ -16,6 +16,8 @@ class ExportsBuilder with Builder<ir.Exports> {
     _exports.add(exportable.export(name));
   }
 
+  bool get hasExports => _exports.isNotEmpty;
+
   @override
   ir.Exports forceBuild() => ir.Exports(_exports);
 }

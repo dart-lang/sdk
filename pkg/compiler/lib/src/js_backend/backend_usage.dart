@@ -278,22 +278,18 @@ class BackendUsageImpl implements BackendUsage {
   final bool isNoSuchMethodUsed;
 
   BackendUsageImpl({
-    required Set<FunctionEntity>? globalFunctionDependencies,
-    required Set<ClassEntity>? globalClassDependencies,
-    required Set<FunctionEntity> helperFunctionsUsed,
-    required Set<ClassEntity> helperClassesUsed,
+    required this._globalFunctionDependencies,
+    required this._globalClassDependencies,
+    required this._helperFunctionsUsed,
+    required this._helperClassesUsed,
     required this.needToInitializeIsolateAffinityTag,
     required this.needToInitializeDispatchProperty,
     required this.requiresPreamble,
     required this.requiresStartupMetrics,
-    required Set<RuntimeTypeUse> runtimeTypeUses,
+    required this._runtimeTypeUses,
     required this.isFunctionApplyUsed,
     required this.isNoSuchMethodUsed,
-  }) : _globalFunctionDependencies = globalFunctionDependencies,
-       _globalClassDependencies = globalClassDependencies,
-       _helperFunctionsUsed = helperFunctionsUsed,
-       _helperClassesUsed = helperClassesUsed,
-       _runtimeTypeUses = runtimeTypeUses;
+  });
 
   factory BackendUsageImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

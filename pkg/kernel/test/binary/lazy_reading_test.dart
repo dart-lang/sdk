@@ -21,16 +21,21 @@ void main() {
     lib.addClass(classB);
 
     final Constructor classBConstructor = new Constructor(
-        new FunctionNode(new EmptyStatement()),
-        name: new Name(""),
-        fileUri: uri);
+      new FunctionNode(new EmptyStatement()),
+      name: new Name(""),
+      fileUri: uri,
+    );
     classB.addConstructor(classBConstructor);
 
     final Constructor classAConstructor = new Constructor(
-        new FunctionNode(new ExpressionStatement(new ConstructorInvocation(
-            classBConstructor, new Arguments.empty()))),
-        name: new Name(""),
-        fileUri: uri);
+      new FunctionNode(
+        new ExpressionStatement(
+          new ConstructorInvocation(classBConstructor, new Arguments.empty()),
+        ),
+      ),
+      name: new Name(""),
+      fileUri: uri,
+    );
     classA.addConstructor(classAConstructor);
   }
   Component c = new Component(libraries: [lib]);
@@ -40,9 +45,11 @@ void main() {
   // Load and make sure we can get at class B from class A (i.e. that it's
   // loaded correctly!).
   Component loadedComponent = new Component();
-  new BinaryBuilder(loadMe,
-          disableLazyReading: false, disableLazyClassReading: false)
-      .readSingleFileComponent(loadedComponent);
+  new BinaryBuilder(
+    loadMe,
+    disableLazyReading: false,
+    disableLazyClassReading: false,
+  ).readSingleFileComponent(loadedComponent);
   {
     final Library loadedLib = loadedComponent.libraries.single;
     final Class loadedClassA = loadedLib.classes.first;
@@ -72,11 +79,12 @@ void main() {
   // Attempt to load again, overwriting the old stuff. This should logically
   // "relink" to the newly loaded version.
   Component loadedComponent2 = new Component(nameRoot: loadedComponent.root);
-  new BinaryBuilder(loadMe,
-          disableLazyReading: false,
-          disableLazyClassReading: false,
-          alwaysCreateNewNamedNodes: true)
-      .readSingleFileComponent(loadedComponent2);
+  new BinaryBuilder(
+    loadMe,
+    disableLazyReading: false,
+    disableLazyClassReading: false,
+    alwaysCreateNewNamedNodes: true,
+  ).readSingleFileComponent(loadedComponent2);
   {
     final Library loadedLib = loadedComponent2.libraries.single;
     final Class loadedClassA = loadedLib.classes.first;

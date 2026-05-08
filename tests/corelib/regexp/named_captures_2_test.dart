@@ -28,18 +28,16 @@
 
 import 'v8_regexp_utils.dart';
 
-// These test cases really belong in `named_captures_test` but they've been
-// broken out because they currently fail on all web backends.
 void main() {
-  assertThrows(() => RegExp(r"(?<$𐒤>a)"));
-  assertThrows(() => RegExp("(?<a\uD801\uDCA4>.)"));
-  assertThrows(() => RegExp(r"(?<a\uD801\uDCA4>.)"));
+  RegExp(r"(?<$𐒤>a)");
+  RegExp("(?<a\uD801\uDCA4>.)");
+  RegExp(r"(?<a\uD801\uDCA4>.)");
   assertThrows(() => RegExp("(?<a\uD801>.)"));
   assertThrows(() => RegExp(r"(?<a\uD801>.)"));
   assertThrows(() => RegExp("(?<a\uDCA4>.)"));
   assertThrows(() => RegExp(r"(?<a\uDCA4>.)"));
-  assertThrows(() => RegExp("(?<a\u{104A4}>.)"));
-  assertThrows(() => RegExp(r"(?<a\u{104A4}>.)"));
+  RegExp("(?<a\u{104A4}>.)");
+  RegExp(r"(?<a\u{104A4}>.)");
   assertThrows(() => RegExp("(?<a\u{10FFFF}>.)"));
   assertThrows(() => RegExp(r"(?<a\u{10FFFF}>.)"));
   assertThrows(() => RegExp(r"(?<a\\u{110000}>.)"));

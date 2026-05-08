@@ -24,6 +24,33 @@ class InvalidUseOfVisibleForTestingMemberTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_constructor_primary() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A.named() {
+  @visibleForTesting
+  this;
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'lib1.dart';
+void f() {
+  A.named();
+}
+''',
+      [
+        error(
+          diag.invalidUseOfVisibleForTestingMember,
+          33,
+          7,
+          messageContains: ['A.named'],
+        ),
+      ],
+    );
+  }
+
   test_export_hide() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';

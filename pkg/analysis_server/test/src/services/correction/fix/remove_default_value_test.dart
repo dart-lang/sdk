@@ -33,4 +33,50 @@ class A {
 }
 ''');
   }
+
+  Future<void> test_primaryConstructor_declaring() async {
+    await resolveTestCode('''
+class A({required final int i = 1});
+''');
+    await assertHasFix('''
+class A({required final int i});
+''');
+  }
+
+  Future<void> test_primaryConstructor_initializing() async {
+    await resolveTestCode('''
+class A({required this.i = 1}) {
+  int i;
+}
+''');
+    await assertHasFix('''
+class A({required this.i}) {
+  int i;
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_required() async {
+    await resolveTestCode('''
+class A({required int i = 1});
+''');
+    await assertHasFix('''
+class A({required int i});
+''');
+  }
+
+  Future<void> test_primaryConstructor_super() async {
+    await resolveTestCode('''
+class B {
+  B({required int i});
+}
+class A({required super.i = 1}) extends B;
+''');
+    await assertHasFix('''
+class B {
+  B({required int i});
+}
+class A({required super.i}) extends B;
+''');
+  }
 }

@@ -16,8 +16,9 @@ abstract mixin class StringConversionSink
     implements ChunkedConversionSink<String> {
   const StringConversionSink();
 
-  factory StringConversionSink.withCallback(void callback(String accumulated)) =
-      _StringCallbackSink;
+  factory StringConversionSink.withCallback(
+    void Function(String accumulated) callback,
+  ) = _StringCallbackSink;
   factory StringConversionSink.from(Sink<String> sink) = _StringAdapterSink;
 
   /// Creates a new instance wrapping the given [sink].
@@ -61,8 +62,10 @@ abstract mixin class StringConversionSink
 abstract interface class ClosableStringSink implements StringSink {
   /// Creates a new instance combining a [StringSink] [sink] and a callback
   /// [onClose] which is invoked when the returned instance is closed.
-  factory ClosableStringSink.fromStringSink(StringSink sink, void onClose()) =
-      _ClosableStringSink;
+  factory ClosableStringSink.fromStringSink(
+    StringSink sink,
+    void Function() onClose,
+  ) = _ClosableStringSink;
 
   /// Closes `this` and flushes any outstanding data.
   void close();

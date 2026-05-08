@@ -44,8 +44,13 @@ abstract class DartDevelopmentService {
   ///
   /// If [enablesServicePortFallback] is enabled, DDS will attempt to bind to any
   /// available port if the specified port is unavailable.
+  ///
+  /// [appName] is a short description of the application that is being served
+  /// by the vm service, and will be sent as the `name` when registering the vm
+  /// service with the Dart Tooling Daemon.
   static Future<DartDevelopmentService> startDartDevelopmentService(
     Uri remoteVmServiceUri, {
+    String? appName,
     Uri? serviceUri,
     bool enableAuthCodes = true,
     bool ipv6 = false,
@@ -98,6 +103,7 @@ abstract class DartDevelopmentService {
       logRequests,
       enableServicePortFallback,
       uriConverter,
+      appName,
     );
     await service.startService();
     return service;
@@ -114,6 +120,10 @@ abstract class DartDevelopmentService {
   ///
   /// Throws a [StateError] if DevTools is already being served by DDS.
   void setExternalDevToolsUri(Uri uri);
+
+  /// The name of the application that is being served by the vm service if
+  /// provided.
+  String? get appName;
 
   /// Set to `true` if this instance of [DartDevelopmentService] requires an
   /// authentication code to connect.

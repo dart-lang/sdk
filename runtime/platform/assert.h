@@ -250,13 +250,8 @@ void Expect::Null(const T p) {
 
 }  // namespace dart
 
-#if defined(_MSC_VER)
-#define FATAL(format, ...)                                                     \
-  dart::Assert(__FILE__, __LINE__).Fail(format, __VA_ARGS__);
-#else
 #define FATAL(format, ...)                                                     \
   dart::Assert(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
-#endif
 
 #define UNIMPLEMENTED() FATAL("unimplemented code")
 
@@ -402,13 +397,8 @@ void Expect::Null(const T p) {
 
 #define EXPECT_NULLPTR(ptr) dart::Expect(__FILE__, __LINE__).Null((ptr))
 
-#if defined(_MSC_VER)
 #define FAIL(format, ...)                                                      \
-  dart::Expect(__FILE__, __LINE__).Fail(format, __VA_ARGS__);
-#else
-#define FAIL(format, ...)                                                      \
-  dart::Expect(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
-#endif
+  dart::Expect(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__)
 
 #endif  // defined(TESTING)
 

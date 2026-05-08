@@ -81,7 +81,7 @@ class NormalizeHelper {
     }
 
     // * if S is Never then Future<Never>
-    if (identical(S, NeverTypeImpl.instance)) {
+    if (S is NeverTypeImpl && S.nullabilitySuffix == NullabilitySuffix.none) {
       return typeProvider.futureElement.instantiateImpl(
         typeArguments: [NeverTypeImpl.instance],
         nullabilitySuffix: NullabilitySuffix.none,
@@ -107,10 +107,10 @@ class NormalizeHelper {
     var T_nullability = T.nullabilitySuffix;
 
     // NORM(T) = T if T is primitive
-    if (identical(T, DynamicTypeImpl.instance) ||
-        identical(T, InvalidTypeImpl.instance) ||
-        identical(T, NeverTypeImpl.instance) ||
-        identical(T, VoidTypeImpl.instance) ||
+    if (T is DynamicTypeImpl ||
+        T is InvalidTypeImpl ||
+        (T is NeverTypeImpl && T.nullabilitySuffix == NullabilitySuffix.none) ||
+        T is VoidTypeImpl ||
         T_nullability == NullabilitySuffix.none &&
             T is InterfaceTypeImpl &&
             T.typeArguments.isEmpty) {
@@ -178,7 +178,7 @@ class NormalizeHelper {
     }
 
     // * if S is Never then Null
-    if (identical(S, NeverTypeImpl.instance)) {
+    if (S is NeverTypeImpl && S.nullabilitySuffix == NullabilitySuffix.none) {
       return typeSystem.nullNone;
     }
 
@@ -230,7 +230,7 @@ class NormalizeHelper {
     }
 
     // * if S is Never then Never
-    if (identical(S, NeverTypeImpl.instance)) {
+    if (S is NeverTypeImpl && S.nullabilitySuffix == NullabilitySuffix.none) {
       return NeverTypeImpl.instance;
     }
 
@@ -242,7 +242,7 @@ class NormalizeHelper {
   /// * let S be NORM(T)
   TypeImpl _typeParameterType_promoted(TypeParameterElementImpl X, TypeImpl S) {
     // * if S is Never then Never
-    if (identical(S, NeverTypeImpl.instance)) {
+    if (S is NeverTypeImpl && S.nullabilitySuffix == NullabilitySuffix.none) {
       return NeverTypeImpl.instance;
     }
 

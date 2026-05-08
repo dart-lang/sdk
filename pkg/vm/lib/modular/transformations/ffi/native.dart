@@ -4,21 +4,8 @@
 
 // This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show
-        codeFfiDefaultAssetDuplicate,
-        codeFfiNativeDuplicateAnnotations,
-        codeFfiNativeFieldMissingType,
-        codeFfiNativeFieldMustBeStatic,
-        codeFfiNativeFieldType,
-        codeFfiNativeFunctionMissingType,
-        codeFfiNativeMustBeExternal,
-        codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
-        codeCantHaveNamedParameters,
-        codeCantHaveOptionalParameters,
-        codeFfiNativeUnexpectedNumberOfParameters,
-        codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
-        codeFfiTypeInvalid;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -143,7 +130,7 @@ class FfiNativeTransformer extends FfiTransformer {
       if (assetAnnotation != null) {
         // Duplicate @DefaultAsset annotations are forbidden.
         diagnosticReporter.report(
-          codeFfiDefaultAssetDuplicate,
+          diag.ffiDefaultAssetDuplicate,
           annotation.fileOffset,
           1,
           annotation.location?.file,
@@ -164,7 +151,7 @@ class FfiNativeTransformer extends FfiTransformer {
       if (nativeAnnotation != null) {
         // Duplicate @Native annotations are forbidden.
         diagnosticReporter.report(
-          codeFfiNativeDuplicateAnnotations,
+          diag.ffiNativeDuplicateAnnotations,
           node.fileOffset,
           1,
           node.location?.file,
@@ -277,8 +264,8 @@ class FfiNativeTransformer extends FfiTransformer {
   ) {
     final wrappedType =
         (_requiresPointerConversion(dartParameterType, ffiParameterType)
-            ? nativeFieldWrapperClass1Type
-            : dartParameterType);
+        ? nativeFieldWrapperClass1Type
+        : dartParameterType);
     return VariableDeclaration(
       variableDeclarationTemporaryName,
       initializer: initializer,
@@ -458,7 +445,7 @@ class FfiNativeTransformer extends FfiTransformer {
     if (_requiresPointerConversion(dartParameterType, ffiParameterType) &&
         !_extendsNativeFieldWrapperClass1(dartParameterType)) {
       diagnosticReporter.report(
-        codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
+        diag.ffiNativeOnlyNativeFieldWrapperClassCanBePointer,
         annotationOffset,
         1,
         file,
@@ -478,7 +465,7 @@ class FfiNativeTransformer extends FfiTransformer {
   ) {
     if (ffiFunctionType.namedParameters.isNotEmpty) {
       diagnosticReporter.report(
-        codeCantHaveNamedParameters.withArgumentsOld('FfiNative'),
+        diag.cantHaveNamedParameters.withArguments(name: 'FfiNative'),
         annotationOffset,
         0,
         node.location?.file,
@@ -489,7 +476,7 @@ class FfiNativeTransformer extends FfiTransformer {
     if (ffiFunctionType.positionalParameters.length >
         ffiFunctionType.requiredParameterCount) {
       diagnosticReporter.report(
-        codeCantHaveOptionalParameters.withArgumentsOld('FfiNative'),
+        diag.cantHaveOptionalParameters.withArguments(name: 'FfiNative'),
         annotationOffset,
         0,
         node.location?.file,
@@ -499,14 +486,13 @@ class FfiNativeTransformer extends FfiTransformer {
 
     if (dartFunctionType.positionalParameters.length !=
         ffiFunctionType.positionalParameters.length) {
-      final template =
-          (node.isStatic
-              ? codeFfiNativeUnexpectedNumberOfParameters
-              : codeFfiNativeUnexpectedNumberOfParametersWithReceiver);
+      final template = (node.isStatic
+          ? diag.ffiNativeUnexpectedNumberOfParameters
+          : diag.ffiNativeUnexpectedNumberOfParametersWithReceiver);
       diagnosticReporter.report(
-        template.withArgumentsOld(
-          dartFunctionType.positionalParameters.length,
-          ffiFunctionType.positionalParameters.length,
+        template.withArguments(
+          expectedCount: dartFunctionType.positionalParameters.length,
+          actualCount: ffiFunctionType.positionalParameters.length,
         ),
         annotationOffset,
         1,
@@ -656,15 +642,14 @@ class FfiNativeTransformer extends FfiTransformer {
       Arguments(argumentList),
     )..fileOffset = node.fileOffset;
 
-    Expression result =
-        (wrappedDartFunctionType == dartFunctionType
-            ? nonWrappedInvocation
-            : _wrapArgumentsAndReturn(
-              invocation: nonWrappedInvocation,
-              dartFunctionType: dartFunctionType,
-              ffiFunctionType: ffiFunctionType,
-              checkReceiverForNullptr: checkReceiverForNullptr,
-            ));
+    Expression result = (wrappedDartFunctionType == dartFunctionType
+        ? nonWrappedInvocation
+        : _wrapArgumentsAndReturn(
+            invocation: nonWrappedInvocation,
+            dartFunctionType: dartFunctionType,
+            ffiFunctionType: ffiFunctionType,
+            checkReceiverForNullptr: checkReceiverForNullptr,
+          ));
     if (possibleCompoundReturn != null) {
       result = invokeCompoundConstructor(result, possibleCompoundReturn);
     }
@@ -835,7 +820,7 @@ class FfiNativeTransformer extends FfiTransformer {
         ffiType = inferred;
       } else {
         diagnosticReporter.report(
-          codeFfiNativeFieldMissingType,
+          diag.ffiNativeFieldMissingType,
           node.fileOffset,
           1,
           node.location?.file,
@@ -890,7 +875,7 @@ class FfiNativeTransformer extends FfiTransformer {
           type == NativeType.kHandle ||
           isArrayType(ffiType)) {
         diagnosticReporter.report(
-          codeFfiNativeFieldType,
+          diag.ffiNativeFieldType,
           node.fileOffset,
           1,
           node.location?.file,
@@ -927,7 +912,7 @@ class FfiNativeTransformer extends FfiTransformer {
         allowStructAndUnion: true,
       )) {
         diagnosticReporter.report(
-          codeFfiNativeFunctionMissingType,
+          diag.ffiNativeFunctionMissingType,
           node.fileOffset,
           1,
           node.location?.file,
@@ -950,7 +935,7 @@ class FfiNativeTransformer extends FfiTransformer {
     // only visit fields to verify that no native annotation is present.
     assert(!node.isExternal);
     diagnosticReporter.report(
-      codeFfiNativeMustBeExternal,
+      diag.ffiNativeMustBeExternal,
       node.fileOffset,
       1,
       node.location?.file,
@@ -970,7 +955,7 @@ class FfiNativeTransformer extends FfiTransformer {
 
     if (!node.isExternal) {
       diagnosticReporter.report(
-        codeFfiNativeMustBeExternal,
+        diag.ffiNativeMustBeExternal,
         node.fileOffset,
         1,
         node.location?.file,
@@ -1044,7 +1029,7 @@ class FfiNativeTransformer extends FfiTransformer {
         node.kind == ProcedureKind.Setter) {
       if (!node.isStatic) {
         diagnosticReporter.report(
-          codeFfiNativeFieldMustBeStatic,
+          diag.ffiNativeFieldMustBeStatic,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1054,10 +1039,9 @@ class FfiNativeTransformer extends FfiTransformer {
       DartType dartType;
       NativeTypeCfe nativeTypeCfe;
       try {
-        dartType =
-            node.kind == ProcedureKind.Getter
-                ? node.function.returnType
-                : node.function.positionalParameters[0].type;
+        dartType = node.kind == ProcedureKind.Getter
+            ? node.function.returnType
+            : node.function.positionalParameters[0].type;
         (nativeType, nativeTypeCfe) = _validateOrInferNativeFieldType(
           node,
           nativeType,
@@ -1119,7 +1103,7 @@ class FfiNativeTransformer extends FfiTransformer {
       // This function is not annotated with a native function type, which is
       // invalid.
       diagnosticReporter.report(
-        codeFfiTypeInvalid.withArgumentsOld(nativeType),
+        diag.ffiTypeInvalid.withArguments(type: nativeType),
         node.fileOffset,
         1,
         node.location?.file,

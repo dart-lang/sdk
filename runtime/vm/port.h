@@ -67,8 +67,6 @@ class PortMap : public AllStatic {
   static void PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream);
 
-  static void DebugDumpForMessageHandler(MessageHandler* handler);
-
   class Locker : public MutexLocker {
    public:
     Locker() : MutexLocker(PortMap::mutex_) {}

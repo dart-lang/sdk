@@ -19,12 +19,54 @@ class SdkVersionSinceTest extends SdkConstraintVerifierTest {
   @override
   List<MockSdkLibrary> additionalMockSdkLibraries = [];
 
+  test_class_constructor_formalParameter_declaring() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A({@Since('2.15') int? foo});
+''');
+
+    await verifyVersion(
+      '>=2.14.0',
+      '''
+import 'dart:foo';
+
+void f() {
+  A(foo: 0);
+}
+''',
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
+    );
+  }
+
+  test_class_constructor_formalParameter_default() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  void A({@Since('2.15') int foo = 1});
+}
+''');
+
+    await verifyVersion(
+      '>=2.14.0',
+      '''
+import 'dart:foo';
+
+void f() {
+  A(foo: 0);
+}
+''',
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
+    );
+  }
+
   test_class_constructor_formalParameter_optionalNamed() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
 
 class A {
-  void A({@Since('2.15') int? foo});
+  A({@Since('2.15') int? foo});
 }
 ''');
 
@@ -46,7 +88,7 @@ void f() {
 import 'dart:_internal';
 
 class A {
-  void A([@Since('2.15') int? foo]);
+  A([@Since('2.15') int? foo]);
 }
 ''');
 
@@ -109,6 +151,29 @@ void f() {
     );
   }
 
+  test_class_constructor_primary_instanceCreation() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A() {
+  @Since('2.15')
+  this;
+}
+''');
+
+    await verifyVersion(
+      '>=2.14.0',
+      '''
+import 'dart:foo';
+
+void f() {
+  A();
+}
+''',
+      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
+    );
+  }
+
   test_class_constructor_unnamed_instanceCreation() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
@@ -129,6 +194,26 @@ void f() {
 }
 ''',
       expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
+    );
+  }
+
+  test_class_field_originPrimaryConstructor() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A({@Since('2.15') final int foo = 0});
+''');
+
+    await verifyVersion(
+      '>=2.14.0',
+      '''
+import 'dart:foo';
+
+void f(A a) {
+  a.foo;
+}
+''',
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
     );
   }
 

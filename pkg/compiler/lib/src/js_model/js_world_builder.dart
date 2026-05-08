@@ -29,8 +29,8 @@ import '../universe/member_usage.dart';
 import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import 'closure.dart';
-import 'elements.dart';
 import 'element_map_impl.dart';
+import 'elements.dart';
 import 'js_to_frontend_map.dart';
 import 'js_world.dart';
 import 'records.dart';
@@ -248,7 +248,14 @@ class JClosedWorldBuilder {
     AnnotationsData annotationsData = AnnotationsDataImpl(
       _options,
       _reporter,
-      map.toBackendMemberMap(oldAnnotationsData.pragmaAnnotations, identity),
+      map.toBackendClassMap(
+        oldAnnotationsData.classPragmaAnnotations,
+        identity,
+      ),
+      map.toBackendMemberMap(
+        oldAnnotationsData.memberPragmaAnnotations,
+        identity,
+      ),
     );
 
     OutputUnitData outputUnitData = _convertOutputUnitData(

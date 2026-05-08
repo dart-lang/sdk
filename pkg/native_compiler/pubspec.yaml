@@ -4,13 +4,19 @@ description: Compiler targeting native platforms
 publish_to: none
 
 environment:
-  sdk: ^3.10.0
+  sdk: '^3.12.0-0'
 
 resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  args: any
   cfg: any
+  crypto: any
+  front_end: any
+  kernel: any
+  path: any
+  vm: any
 
 dev_dependencies:
   test: any

@@ -147,14 +147,6 @@ void ThreadInterrupter::RemoveSignalHandler() {
   SignalHandler::Remove();
 }
 
-void* ThreadInterrupter::PrepareCurrentThread() {
-  return SignalHandler::PrepareCurrentThread();
-}
-
-void ThreadInterrupter::CleanupCurrentThreadState(void* state) {
-  SignalHandler::CleanupCurrentThreadState(state);
-}
-
 #endif  // defined(DART_INCLUDE_PROFILER)
 
 }  // namespace dart

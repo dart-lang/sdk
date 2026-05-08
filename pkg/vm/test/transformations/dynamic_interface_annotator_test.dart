@@ -21,8 +21,9 @@ final Uri pkgVmDir = Platform.script.resolve('../..');
 runTestCase(Uri testCaseDir) async {
   final mainDart = testCaseDir.resolve('main.dart');
   final dynamicInterface = testCaseDir.resolve('dynamic_interface.yaml');
-  final dynamicInterfaceYaml =
-      File.fromUri(dynamicInterface).readAsStringSync();
+  final dynamicInterfaceYaml = File.fromUri(
+    dynamicInterface,
+  ).readAsStringSync();
   final expectedDetailedDynamicInterface = testCaseDir.resolve(
     'detailed_dynamic_interface.json',
   );

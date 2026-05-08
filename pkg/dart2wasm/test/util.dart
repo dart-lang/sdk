@@ -4,21 +4,23 @@
 
 import 'dart:io';
 
-final dartAotExecutable = Uri.parse(Platform.resolvedExecutable)
-    .resolve('dartaotruntime')
-    .toFilePath();
-final dart2wasmSnapshot = Uri.parse(Platform.resolvedExecutable)
-    .resolve('snapshots/dart2wasm_product.snapshot')
-    .toFilePath();
-final wasmOptExecutable = Uri.parse(Platform.resolvedExecutable)
-    .resolve('utils/wasm-opt')
-    .toFilePath();
-final platformDill = Uri.parse(Platform.resolvedExecutable)
-    .resolve('../lib/_internal/dart2wasm_platform.dill')
-    .toFilePath();
+final dartAotExecutable = Uri.parse(
+  Platform.resolvedExecutable,
+).resolve('dartaotruntime').toFilePath();
+final dart2wasmSnapshot = Uri.parse(
+  Platform.resolvedExecutable,
+).resolve('snapshots/dart2wasm_product.snapshot').toFilePath();
+final wasmOptExecutable = Uri.parse(
+  Platform.resolvedExecutable,
+).resolve('utils/wasm-opt').toFilePath();
+final platformDill = Uri.parse(
+  Platform.resolvedExecutable,
+).resolve('../lib/_internal/dart2wasm_platform.dill').toFilePath();
 
-Future<void> run(List<String> command,
-    {bool throwOutputOnFailure = false}) async {
+Future<void> run(
+  List<String> command, {
+  bool throwOutputOnFailure = false,
+}) async {
   print('Running: ${command.join(' ')}');
   final result = await Process.run(command.first, command.skip(1).toList());
   if (result.exitCode != 0) {

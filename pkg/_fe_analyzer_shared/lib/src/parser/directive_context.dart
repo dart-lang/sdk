@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
 import '../scanner/token.dart';
 import 'parser_impl.dart';
 
@@ -38,15 +39,15 @@ class DirectiveContext {
       case DirectiveState.ImportAndExport:
         state = DirectiveState.ImportAndExport;
       case DirectiveState.Part:
-        parser.reportRecoverableError(token, codeExportAfterPart);
+        parser.reportRecoverableError(token, diag.exportAfterPart);
       case DirectiveState.PartOf:
         if (isEnhancedPartsFeatureEnabled) {
           state = DirectiveState.ImportAndExport;
         } else {
-          parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
+          parser.reportRecoverableError(token, diag.nonPartOfDirectiveInPart);
         }
       case DirectiveState.Declarations:
-        parser.reportRecoverableError(token, codeDirectiveAfterDeclaration);
+        parser.reportRecoverableError(token, diag.directiveAfterDeclaration);
     }
   }
 
@@ -58,15 +59,15 @@ class DirectiveContext {
       case DirectiveState.ImportAndExport:
         state = DirectiveState.ImportAndExport;
       case DirectiveState.Part:
-        parser.reportRecoverableError(token, codeImportAfterPart);
+        parser.reportRecoverableError(token, diag.importAfterPart);
       case DirectiveState.PartOf:
         if (isEnhancedPartsFeatureEnabled) {
           state = DirectiveState.ImportAndExport;
         } else {
-          parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
+          parser.reportRecoverableError(token, diag.nonPartOfDirectiveInPart);
         }
       case DirectiveState.Declarations:
-        parser.reportRecoverableError(token, codeDirectiveAfterDeclaration);
+        parser.reportRecoverableError(token, diag.directiveAfterDeclaration);
     }
   }
 
@@ -77,11 +78,11 @@ class DirectiveContext {
     }
     // Recovery
     if (state == DirectiveState.Library) {
-      parser.reportRecoverableError(token, codeMultipleLibraryDirectives);
+      parser.reportRecoverableError(token, diag.multipleLibraryDirectives);
     } else if (state == DirectiveState.PartOf) {
-      parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
+      parser.reportRecoverableError(token, diag.nonPartOfDirectiveInPart);
     } else {
-      parser.reportRecoverableError(token, codeLibraryDirectiveNotFirst);
+      parser.reportRecoverableError(token, diag.libraryDirectiveNotFirst);
     }
   }
 
@@ -97,10 +98,10 @@ class DirectiveContext {
         if (isEnhancedPartsFeatureEnabled) {
           state = DirectiveState.ImportAndExport;
         } else {
-          parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
+          parser.reportRecoverableError(token, diag.nonPartOfDirectiveInPart);
         }
       case DirectiveState.Declarations:
-        parser.reportRecoverableError(token, codeDirectiveAfterDeclaration);
+        parser.reportRecoverableError(token, diag.directiveAfterDeclaration);
     }
   }
 
@@ -111,9 +112,9 @@ class DirectiveContext {
     }
     // Recovery
     if (state == DirectiveState.PartOf) {
-      parser.reportRecoverableError(token, codePartOfTwice);
+      parser.reportRecoverableError(token, diag.partOfTwice);
     } else {
-      parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
+      parser.reportRecoverableError(token, diag.nonPartOfDirectiveInPart);
     }
   }
 

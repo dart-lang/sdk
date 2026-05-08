@@ -17,17 +17,22 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   final ClassHierarchy hierarchy;
 
   HierarchyBasedTypeEnvironment(CoreTypes coreTypes, this.hierarchy)
-      : super.fromSubclass(coreTypes, hierarchy);
+    : super.fromSubclass(coreTypes, hierarchy);
 
   @override
-  TypeDeclarationType? getTypeAsInstanceOf(TypeDeclarationType type,
-      TypeDeclaration typeDeclaration, CoreTypes coreTypes) {
+  TypeDeclarationType? getTypeAsInstanceOf(
+    TypeDeclarationType type,
+    TypeDeclaration typeDeclaration,
+    CoreTypes coreTypes,
+  ) {
     return hierarchy.getTypeAsInstanceOf(type, typeDeclaration);
   }
 
   @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
+    TypeDeclarationType type,
+    TypeDeclaration typeDeclaration,
+  ) {
     if (type.typeDeclaration == typeDeclaration) return type.typeArguments;
     return hierarchy.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }

@@ -25,7 +25,6 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -35,7 +34,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -62,7 +60,6 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
@@ -70,6 +67,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
@@ -87,8 +85,6 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Function determining which source files should have inference logging
 /// enabled.
@@ -231,11 +227,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AssignmentExpressionResolver _assignmentExpressionResolver =
       AssignmentExpressionResolver(resolver: this);
+
   late final BinaryExpressionResolver _binaryExpressionResolver;
   late final ConstructorReferenceResolver _constructorReferenceResolver =
       ConstructorReferenceResolver(this);
   late final FunctionExpressionInvocationResolver
-  _functionExpressionInvocationResolver;
+  functionExpressionInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
   late final ForResolver _forResolver;
   late final PostfixExpressionResolver _postfixExpressionResolver;
@@ -243,7 +240,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final PrefixExpressionResolver _prefixExpressionResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
-
   late final NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
 
   late final InvocationInferenceHelper inferenceHelper;
@@ -271,9 +267,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final FunctionReferenceResolver _functionReferenceResolver;
 
   late final InstanceCreationExpressionResolver
-  _instanceCreationExpressionResolver = InstanceCreationExpressionResolver(
-    this,
-  );
+  instanceCreationExpressionResolver = InstanceCreationExpressionResolver(this);
 
   late final SimpleIdentifierResolver _simpleIdentifierResolver =
       SimpleIdentifierResolver(this);
@@ -379,8 +373,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           : null,
     );
     _binaryExpressionResolver = BinaryExpressionResolver(resolver: this);
-    _functionExpressionInvocationResolver =
-        FunctionExpressionInvocationResolver(resolver: this);
+    functionExpressionInvocationResolver = FunctionExpressionInvocationResolver(
+      resolver: this,
+    );
     _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(resolver: this);
     _postfixExpressionResolver = PostfixExpressionResolver(resolver: this);
@@ -401,8 +396,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _functionReferenceResolver = FunctionReferenceResolver(this);
   }
 
-  /// Inference context information for the current function body, if the
-  /// current node is inside a function body.
+  @override
   BodyInferenceContext? get bodyContext => _bodyContext;
 
   @override
@@ -452,10 +446,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SharedTypeView analyzeExpression(
+  ExpressionTypeAnalysisResult analyzeExpression(
     ExpressionImpl node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
+    bool isVoidAllowed = false,
   }) {
     inferenceLogWriter?.setExpressionVisitCodePath(
       node,
@@ -465,6 +460,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node,
       schema,
       continueNullShorting: continueNullShorting,
+      isVoidAllowed: isVoidAllowed,
     );
   }
 
@@ -625,10 +621,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           errorNode = pattern.type;
         }
         errorNode ??= pattern;
-        diagnosticReporter.atNode(
-          errorNode,
-          diag.patternNeverMatchesValueType,
-          arguments: [matchedValueType, requiredType],
+        diagnosticReporter.report(
+          diag.patternNeverMatchesValueType
+              .withArguments(
+                matchedValueType: matchedValueType,
+                requiredType: requiredType,
+              )
+              .at(errorNode),
         );
       }
     }
@@ -652,10 +651,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (element.isLate) {
         if (unassigned) {
-          diagnosticReporter.atNode(
-            node,
-            diag.definitelyUnassignedLateLocalVariable,
-            arguments: [node.name],
+          diagnosticReporter.report(
+            diag.definitelyUnassignedLateLocalVariable
+                .withArguments(name: node.name)
+                .at(node),
           );
         }
         return;
@@ -663,19 +662,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (!assigned) {
         if (element.isFinal) {
-          diagnosticReporter.atNode(
-            node,
-            diag.readPotentiallyUnassignedFinal,
-            arguments: [node.name],
+          diagnosticReporter.report(
+            diag.readPotentiallyUnassignedFinal
+                .withArguments(name: node.name)
+                .at(node),
           );
           return;
         }
 
         if (typeSystem.isPotentiallyNonNullable(element.type)) {
-          diagnosticReporter.atNode(
-            node,
-            diag.notAssignedPotentiallyNonNullableLocalVariable,
-            arguments: [node.name],
+          diagnosticReporter.report(
+            diag.notAssignedPotentiallyNonNullableLocalVariable
+                .withArguments(name: node.name)
+                .at(node),
           );
           return;
         }
@@ -746,8 +745,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     covariant ExpressionImpl expression,
-    SharedTypeSchemaView context,
-  ) {
+    SharedTypeSchemaView context, {
+    bool isVoidAllowed = false,
+  }) {
+    // Note: the analyzer doesn't use the `isVoidAllowed` boolean; it detects
+    // invalid use of void through more ad hoc mechanisms. See
+    // https://github.com/dart-lang/sdk/issues/62942.
+    // TODO(paulberry): address this.
+
     int? stackDepth;
     assert(() {
       stackDepth = rewriteStackDepth;
@@ -786,7 +791,25 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       staticType = operations.unknownType.unwrapTypeSchemaView();
     }
-    return ExpressionTypeAnalysisResult(type: SharedTypeView(staticType));
+    var flowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(expression);
+    assert(() {
+      // When the AST is rewritten, the analyzer's convention is to associate
+      // flow analysis expression info with the original expression, not the
+      // replacement. (Note, however, that it's ok to associate the same info
+      // with both expressions.)
+      var replacementFlowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(
+        replacementExpression,
+      );
+      assert(
+        replacementFlowAnalysisInfo == null ||
+            identical(flowAnalysisInfo, replacementFlowAnalysisInfo),
+      );
+      return true;
+    }());
+    return ExpressionTypeAnalysisResult(
+      type: SharedTypeView(staticType),
+      flowAnalysisInfo: flowAnalysisInfo,
+    );
   }
 
   @override
@@ -895,28 +918,46 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var reference in variable.references) {
         if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseAbsent) {
-          diagnosticReporter.atNode(
-            reference,
-            diag.patternVariableSharedCaseScopeNotAllCases,
-            arguments: [variable.name!],
+          diagnosticReporter.report(
+            diag.patternVariableSharedCaseScopeNotAllCases
+                .withArguments(name: variable.name!)
+                .at(reference),
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
-          diagnosticReporter.atNode(
-            reference,
-            diag.patternVariableSharedCaseScopeHasLabel,
-            arguments: [variable.name!],
+          diagnosticReporter.report(
+            diag.patternVariableSharedCaseScopeHasLabel
+                .withArguments(name: variable.name!)
+                .at(reference),
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
-          diagnosticReporter.atNode(
-            reference,
-            diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
-            arguments: [variable.name!],
+          diagnosticReporter.report(
+            diag.patternVariableSharedCaseScopeDifferentFinalityOrType
+                .withArguments(name: variable.name!)
+                .at(reference),
           );
         }
       }
     }
+  }
+
+  @override
+  shared.ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    shared.ExpressionTypeAnalysisResult innerResult, {
+    required ExpressionImpl wholeExpression,
+  }) {
+    var analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
   }
 
   @override
@@ -992,7 +1033,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: (Expression condition)
     var condition = popRewrite()!;
 
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -1020,7 +1063,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: (Expression condition)
     var condition = popRewrite()!;
 
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -1432,7 +1477,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         SharedTypeSchemaView(result.indexContextType),
       );
       popRewrite();
-      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
+      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.index),
+      );
       checkIndexExpressionIndex(
         node.index,
         readElement: hasRead
@@ -1510,10 +1557,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
 
       if (hasRead && result.readElementRequested2 == null) {
-        diagnosticReporter.atNode(
-          node,
-          diag.undefinedIdentifier,
-          arguments: [node.name],
+        diagnosticReporter.report(
+          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
         );
       }
 
@@ -1547,10 +1592,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           valueType: SharedTypeView(typeArgumentsList.arguments[1].typeOrThrow),
         );
       } else {
-        diagnosticReporter.atNode(
-          typeArgumentsList,
-          diag.expectedTwoMapPatternTypeArguments,
-          arguments: [length],
+        diagnosticReporter.report(
+          diag.expectedTwoMapPatternTypeArguments
+              .withArguments(count: length)
+              .at(typeArgumentsList),
         );
       }
     }
@@ -1598,10 +1643,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      diagnosticReporter.atToken(
-        nameToken,
-        diag.undefinedGetter,
-        arguments: [nameToken.lexeme, receiverType],
+      diagnosticReporter.report(
+        diag.undefinedGetter
+            .withArguments(
+              memberName: nameToken.lexeme,
+              type: receiverType.unwrapTypeView<TypeImpl>(),
+            )
+            .at(nameToken),
       );
     }
 
@@ -1654,10 +1702,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      diagnosticReporter.atToken(
-        node.operator,
-        diag.undefinedOperator,
-        arguments: [methodName, matchedType],
+      diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(
+              operator: methodName,
+              type: matchedType.unwrapTypeView<TypeImpl>(),
+            )
+            .at(node.operator),
       );
     }
 
@@ -1838,6 +1889,141 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  TypeImpl visitAnonymousBlockBody(
+    covariant AnonymousBlockBodyImpl node, {
+    TypeImpl? imposedType,
+  }) {
+    var oldBodyContext = _bodyContext;
+    try {
+      _bodyContext = BodyInferenceContext.forAnonymousBlockBody(
+        typeSystem: typeSystem,
+        node: node,
+        imposedType: imposedType,
+      );
+
+      flowAnalysis.flow?.anonymousBlockBody_begin();
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      var returnType = _finishFunctionBodyInference();
+      flowAnalysis.flow?.anonymousBlockBody_end();
+      return returnType;
+    } finally {
+      _bodyContext = oldBodyContext;
+    }
+  }
+
+  @override
+  TypeImpl visitAnonymousExpressionBody(
+    covariant AnonymousExpressionBodyImpl node, {
+    TypeImpl? imposedType,
+  }) {
+    checkUnreachableNode(node);
+    analyzeExpression(
+      node.expression,
+      SharedTypeSchemaView(imposedType ?? UnknownInferredType.instance),
+    );
+    popRewrite();
+    return node.expression.staticType ?? typeProvider.dynamicType;
+  }
+
+  @override
+  void visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(
+        target,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+        continueNullShorting: true,
+      );
+      popRewrite();
+    }
+
+    checkUnreachableNode(node.body);
+
+    var targetType =
+        node.realTarget.staticType ?? typeProvider.objectQuestionType;
+    var isNullAware = node.isNullAware;
+    var parameterType = isNullAware
+        ? typeSystem.promoteToNonNull(targetType)
+        : targetType;
+    var parameters = node.parameters;
+    if (isNullAware) {
+      _startNullAwareAccess(node.target);
+      nullSafetyDeadCodeVerifier.visitNode(parameters ?? node.body);
+    }
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        if (parameter is SimpleFormalParameterImpl && parameter.type == null) {
+          if (parameter == parameters.parameters.first) {
+            parameter.declaredFragment?.element.type = parameterType;
+          }
+        }
+      }
+      parameters.accept(this);
+      for (var parameter in parameters.parameters) {
+        var element = parameter.declaredFragment?.element;
+        if (element != null) {
+          flow.declare(
+            element,
+            SharedTypeView(element.type),
+            initialized: true,
+          );
+        }
+      }
+    }
+
+    TypeImpl returnedType;
+    if (parameters == null) {
+      var oldThisType = _thisType;
+      _thisType = parameterType;
+      try {
+        returnedType = node.body.resolve(this, contextType);
+      } finally {
+        _thisType = oldThisType;
+      }
+    } else {
+      returnedType = node.body.resolve(this, contextType);
+    }
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    node.recordStaticType(returnedType, resolver: this);
+
+    if (parameters != null) {
+      var parameter = parameters.parameters.firstOrNull;
+      if (parameter is SimpleFormalParameterImpl) {
+        var declaredParameterType = parameter.type;
+        if (declaredParameterType != null) {
+          var declaredType = declaredParameterType.typeOrThrow;
+          if (!typeSystem.isAssignableTo(parameterType, declaredType)) {
+            diagnosticReporter.atNode(
+              declaredParameterType,
+              diag.anonymousMethodWrongParameterType,
+              arguments: [parameterType, declaredType],
+            );
+          }
+        }
+      }
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitAsExpression(
     covariant AsExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -1871,10 +2057,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
           flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
-        diagnosticReporter.atNode(
-          simpleIdentifier,
-          diag.castFromNullableAlwaysFails,
-          arguments: [simpleIdentifier.name],
+        diagnosticReporter.report(
+          diag.castFromNullableAlwaysFails
+              .withArguments(name: simpleIdentifier.name)
+              .at(simpleIdentifier),
         );
       }
     }
@@ -1891,10 +2077,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      diagnosticCode: diag.nonBoolExpression,
-      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
+      locatableDiagnostic: diag.nonBoolExpression,
+      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.condition),
+      ),
     );
-    flowAnalysis.flow?.assert_afterCondition(node.condition);
+    flowAnalysis.flow?.assert_afterCondition(
+      flowAnalysis.flow?.getExpressionInfo(node.condition),
+    );
     if (node.message case var message?) {
       analyzeExpression(message, operations.unknownType);
       popRewrite();
@@ -1914,10 +2104,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      diagnosticCode: diag.nonBoolExpression,
-      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
+      locatableDiagnostic: diag.nonBoolExpression,
+      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.condition),
+      ),
     );
-    flowAnalysis.flow?.assert_afterCondition(node.condition);
+    flowAnalysis.flow?.assert_afterCondition(
+      flowAnalysis.flow?.getExpressionInfo(node.condition),
+    );
     if (node.message case var message?) {
       analyzeExpression(message, operations.unknownType);
       popRewrite();
@@ -1951,12 +2145,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    analyzeExpression(
+    var analysisResult = analyzeAwaitExpression(
       node.expression,
-      SharedTypeSchemaView(_createFutureOr(contextType)),
+      contextType.wrapSharedTypeSchemaView(),
     );
-    popRewrite();
-    typeAnalyzer.visitAwaitExpression(node);
+    node.expression = popRewrite()!;
+    node.recordStaticType(
+      analysisResult.type.unwrapTypeView<TypeImpl>(),
+      resolver: this,
+    );
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
@@ -1996,6 +2193,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.visitChildren(this);
+  }
+
+  @override
   TypeImpl visitBlockFunctionBody(
     covariant BlockFunctionBodyImpl node, {
     TypeImpl? imposedType,
@@ -2021,7 +2223,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    flowAnalysis.flow?.booleanLiteral(node, node.value);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.booleanLiteral(node.value),
+    );
     checkUnreachableNode(node);
     node.visitChildren(this);
     typeAnalyzer.visitBooleanLiteral(node);
@@ -2050,17 +2255,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
 
     flowAnalysis.flow!.cascadeExpression_afterTarget(
-      node.target,
+      flowAnalysis.flow!.getExpressionInfo(node.target),
       SharedTypeView(targetType),
       isNullAware: node.isNullAware,
     );
-
-    if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_rightBegin(
-        node.target,
-        SharedTypeView(targetType),
-      );
-    }
 
     for (var cascadeSection in node.cascadeSections) {
       analyzeExpression(cascadeSection, operations.unknownType);
@@ -2070,9 +2268,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     typeAnalyzer.visitCascadeExpression(node);
 
     if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_end(wholeExpression: node);
+      flowAnalysis.flow!.nullAwareAccess_end();
     }
-    flowAnalysis.flow!.cascadeExpression_end(node);
+    flowAnalysis.flow!.storeExpressionInfo(
+      node,
+      flowAnalysis.flow!.cascadeExpression_end(),
+    );
     _insertImplicitCallReference(node, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
     inferenceLogWriter?.exitExpression(node);
@@ -2178,14 +2379,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       SharedTypeSchemaView(typeProvider.boolType),
     );
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
     );
 
     if (flow != null) {
-      flow.conditional_thenBegin(condition, node);
+      flow.conditional_thenBegin(flow.getExpressionInfo(condition), node);
       checkUnreachableNode(node.thenExpression);
     }
     analyzeExpression(node.thenExpression, SharedTypeSchemaView(contextType));
@@ -2196,7 +2399,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (flow != null) {
       flow.conditional_elseBegin(
-        node.thenExpression,
+        flow.getExpressionInfo(node.thenExpression),
         SharedTypeView(node.thenExpression.typeOrThrow),
       );
       checkUnreachableNode(elseExpression);
@@ -2208,11 +2411,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     typeAnalyzer.visitConditionalExpression(node, contextType: contextType);
     if (flow != null) {
-      flow.conditional_end(
+      flow.storeExpressionInfo(
         node,
-        SharedTypeView(node.typeOrThrow),
-        elseExpression,
-        SharedTypeView(elseExpression.typeOrThrow),
+        flow.conditional_end(
+          SharedTypeView(node.typeOrThrow),
+          flow.getExpressionInfo(elseExpression),
+          SharedTypeView(elseExpression.typeOrThrow),
+        ),
       );
       nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
     }
@@ -2243,10 +2448,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.typeName?.accept(this);
       node.parameters.accept(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
+      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.parameters,
+        element.formalParameters,
         isClosure: false,
       );
 
@@ -2282,7 +2487,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var expression = node.expression;
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
     expression = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(expression),
+    );
     if (fieldElement != null && enclosingFunction != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
@@ -2366,13 +2573,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.flow?.doStatement_conditionBegin();
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
     );
 
-    flowAnalysis.flow?.doStatement_end(condition);
+    flowAnalysis.flow?.doStatement_end(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -2388,7 +2599,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }
 
-    _instanceCreationExpressionResolver.resolveDotShorthand(
+    instanceCreationExpressionResolver.resolveDotShorthand(
       node,
       contextType: contextType,
     );
@@ -2422,24 +2633,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     );
-    switch (rewrittenExpression) {
-      case null:
-        // In this case, we didn't rewrite anything. The [node] is a static
-        // method invocation.
-        break;
-      case FunctionExpressionInvocationImpl():
-        _resolveRewrittenFunctionExpressionInvocation(
-          rewrittenExpression,
-          whyNotPromotedArguments,
-          contextType: contextType,
-        );
-      case DotShorthandConstructorInvocationImpl():
-        _instanceCreationExpressionResolver.resolveDotShorthand(
-          rewrittenExpression,
-          contextType: contextType,
-        );
-    }
 
+    // TODO(paulberry): why don't we do this for
+    // DotShorthandConstructorInvocationImpl?
     if (rewrittenExpression is FunctionExpressionInvocationImpl ||
         rewrittenExpression == null) {
       var replacement = insertGenericFunctionInstantiation(
@@ -2492,6 +2688,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitDottedName(DottedName node) {}
+
+  @override
   void visitDoubleLiteral(
     DoubleLiteral node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -2507,6 +2706,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
+
+  @override
   TypeImpl visitEmptyFunctionBody(
     EmptyFunctionBody node, {
     TypeImpl? imposedType,
@@ -2519,11 +2721,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitEmptyStatement(EmptyStatement node) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
     node.visitChildren(this);
   }
 
@@ -2559,10 +2756,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorName.type.element is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
-            diagnosticReporter.atNode(
-              nameNode,
-              diag.undefinedEnumConstructorNamed,
-              arguments: [nameNode.name],
+            diagnosticReporter.report(
+              diag.undefinedEnumConstructorNamed
+                  .withArguments(name: nameNode.name)
+                  .at(nameNode),
             );
           } else {
             diagnosticReporter.report(
@@ -2671,7 +2868,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
       popRewrite();
 
-      flowAnalysis.flow?.handleExit();
+      flowAnalysis.flow?.handleReturn();
 
       bodyContext.addReturnExpression(node.expression);
       return _finishFunctionBodyInference();
@@ -2727,28 +2924,32 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var receiverContextType = ExtensionMemberResolver(
       this,
     ).computeOverrideReceiverContextType(node);
+    InvocationTargetExtensionOverride? target;
+    if (receiverContextType != null) {
+      target = InvocationTargetExtensionOverride(
+        element: node.element,
+        type: FunctionTypeImpl.v2(
+          typeParameters: const [],
+          formalParameters: [
+            FormalParameterElementImpl.synthetic(
+              null,
+              receiverContextType,
+              ParameterKind.REQUIRED,
+            ),
+          ],
+          returnType: DynamicTypeImpl.instance,
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      );
+    }
     InvocationInferrer<ExtensionOverrideImpl>(
       resolver: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(
-      rawType: receiverContextType == null
-          ? null
-          : FunctionTypeImpl.v2(
-              typeParameters: const [],
-              formalParameters: [
-                FormalParameterElementImpl.synthetic(
-                  null,
-                  receiverContextType,
-                  ParameterKind.REQUIRED,
-                ),
-              ],
-              returnType: DynamicTypeImpl.instance,
-              nullabilitySuffix: NullabilitySuffix.none,
-            ),
-    );
+      target: target,
+    ).resolveInvocation();
 
     extensionResolver.resolveOverride(node, whyNotPromotedArguments);
     inferenceLogWriter?.exitExtensionOverride(node);
@@ -2842,14 +3043,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (isLocal) {
         flowAnalysis.flow!.functionExpression_begin(node);
       } else {
-        flowAnalysis.bodyOrInitializer_enter(
-          node,
-          node.functionExpression.parameters,
-        );
+        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
       }
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.functionExpression.parameters,
+        element.formalParameters,
         isClosure: isLocal,
       );
 
@@ -2926,7 +3124,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    _functionExpressionInvocationResolver.resolve(
+    functionExpressionInvocationResolver.resolve(
       node,
       whyNotPromotedArguments,
       contextType: contextType,
@@ -3135,7 +3333,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       SharedTypeSchemaView(result.indexContextType),
     );
     popRewrite();
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(node.index),
+    );
     checkIndexExpressionIndex(
       node.index,
       readElement: result.readElement2 as InternalExecutableElement?,
@@ -3176,7 +3376,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    _instanceCreationExpressionResolver.resolve(node, contextType: contextType);
+    instanceCreationExpressionResolver.resolve(node, contextType: contextType);
     _insertImplicitCallReference(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3254,12 +3454,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitLibraryIdentifier(
-    LibraryIdentifier node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {}
-
-  @override
   void visitListLiteral(
     covariant ListLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3287,11 +3481,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var keyType = analyzeExpression(
       node.key,
       SharedTypeSchemaView(keyTypeContext ?? UnknownInferredType.instance),
-    );
+    ).type;
     popRewrite();
 
     flowAnalysis.flow?.nullAwareMapEntry_valueBegin(
-      node.key,
+      flowAnalysis.flow?.getExpressionInfo(node.key),
       keyType,
       isKeyNullAware: node.keyQuestion != null,
     );
@@ -3332,10 +3526,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
+      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.parameters,
+        element.formalParameters,
         isClosure: false,
       );
 
@@ -3385,19 +3579,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     node.typeArguments?.accept(this);
-    var functionRewrite = elementResolver.visitMethodInvocation(
+    elementResolver.visitMethodInvocation(
       node,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     );
 
-    if (functionRewrite != null) {
-      _resolveRewrittenFunctionExpressionInvocation(
-        functionRewrite,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-    }
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -3460,7 +3647,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Any "why not promoted" information that flow analysis had associated with
     // `node.expression` now needs to be forwarded to `node`, so that when
     // `visitArgumentList` iterates through the arguments, it will find it.
-    flowAnalysis.flow?.forwardExpression(node, node.expression);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.getExpressionInfo(node.expression),
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3526,7 +3716,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     node.visitChildren(this);
     typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
-    flowAnalysis.flow?.nullLiteral(node, SharedTypeView(node.typeOrThrow));
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.nullLiteral(SharedTypeView(node.typeOrThrow)),
+    );
     checkUnreachableNode(node);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3541,7 +3734,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
     popRewrite();
     typeAnalyzer.visitParenthesizedExpression(node);
-    flowAnalysis.flow?.parenthesizedExpression(node, node.expression);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.parenthesizedExpression(
+        flowAnalysis.flow?.getExpressionInfo(node.expression),
+      ),
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3587,6 +3785,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {
+    node.metadata.accept(this);
     var patternSchema = analyzePatternVariableDeclaration(
       node,
       node.pattern,
@@ -3645,7 +3844,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
     if (rewrittenPropertyAccess != null) {
-      _resolvePropertyAccessRhs(rewrittenPropertyAccess, contextType);
+      _resolvePropertyAccessRhs(
+        rewrittenPropertyAccess,
+        contextType,
+        originalNode: node,
+      );
       // We did record that `node` was replaced with `rewrittenPropertyAccess`.
       // But if `rewrittenPropertyAccess` was itself rewritten, replace the
       // rewrite result of `node`.
@@ -3689,7 +3892,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var primaryConstructorDeclaration = node.declaration;
     if (primaryConstructorDeclaration == null) {
       diagnosticReporter.report(
-        diag.primaryConstructorBodyWithoutDeclaration.at(node),
+        diag.primaryConstructorBodyWithoutDeclaration.at(node.thisKeyword),
       );
     }
 
@@ -3708,13 +3911,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.metadata.accept(this);
 
       if (primaryConstructorDeclaration != null) {
-        flowAnalysis.bodyOrInitializer_enter(
-          node,
-          primaryConstructorDeclaration.formalParameters,
-        );
+        flowAnalysis.bodyOrInitializer_enter(node, element!.formalParameters);
         flowAnalysis.executableDeclaration_enter(
           node,
-          primaryConstructorDeclaration.formalParameters,
+          element.formalParameters,
           isClosure: false,
         );
       }
@@ -3834,13 +4034,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     elementResolver.visitRedirectingConstructorInvocation(
       node as RedirectingConstructorInvocationImpl,
     );
+    var element = node.element;
     InvocationInferrer<RedirectingConstructorInvocationImpl>(
       resolver: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(rawType: node.element?.type);
+      target: element == null
+          ? null
+          : InvocationTargetConstructorElement(element, element.type),
+    ).resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
       node.argumentList,
       whyNotPromotedArguments,
@@ -3877,7 +4081,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     bodyContext?.addReturnExpression(expression);
-    flowAnalysis.flow?.handleExit();
+    flowAnalysis.flow?.handleReturn();
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -3982,13 +4186,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     elementResolver.visitSuperConstructorInvocation(
       node as SuperConstructorInvocationImpl,
     );
+    var element = node.element;
     InvocationInferrer<SuperConstructorInvocationImpl>(
       resolver: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(rawType: node.element?.type);
+      target: element == null
+          ? null
+          : InvocationTargetConstructorElement(element, element.type),
+    ).resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
       node.argumentList,
       whyNotPromotedArguments,
@@ -4197,7 +4405,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.flow?.initialize(
         node.declaredFragment?.element as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
-        initializer,
+        flowAnalysis.flow?.getExpressionInfo(initializer),
         isFinal: parent.isFinal,
         isLate: parent.isLate,
         isImplicitlyTyped: declaredType == null,
@@ -4235,14 +4443,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.flow?.whileStatement_conditionBegin(node);
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
 
     boolExpressionVerifier.checkForNonBoolCondition(
       node.condition,
       whyNotPromoted: whyNotPromoted,
     );
 
-    flowAnalysis.flow?.whileStatement_bodyBegin(node, condition);
+    flowAnalysis.flow?.whileStatement_bodyBegin(
+      node,
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     node.body.accept(this);
     flowAnalysis.flow?.whileStatement_end();
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
@@ -4295,10 +4508,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           return;
         }
 
-        diagnosticReporter.atToken(
-          errorNode.block.leftBracket,
-          diag.bodyMightCompleteNormallyCatchError,
-          arguments: [returnTypeBase],
+        diagnosticReporter.report(
+          diag.bodyMightCompleteNormallyCatchError
+              .withArguments(type: returnTypeBase)
+              .at(errorNode.block.leftBracket),
         );
       }
     }
@@ -4318,23 +4531,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (error == null) {
       return;
     }
-    if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
-      var argumentsText = error.arguments.join(', ');
-      diagnosticReporter.atToken(
-        node.name,
-        diag.topLevelCycle,
-        arguments: [node.name.lexeme, argumentsText],
+    if (error is TopLevelInferenceErrorDependencyCycle) {
+      diagnosticReporter.report(
+        diag.topLevelCycle
+            .withArguments(
+              name: node.name.lexeme,
+              cycle: error.cycle.join(', '),
+            )
+            .at(node.name),
       );
     }
-  }
-
-  /// Creates a union of `T | Future<T>`, unless `T` is already a
-  /// future-union, in which case it simply returns `T`.
-  TypeImpl _createFutureOr(TypeImpl type) {
-    if (type.isDartAsyncFutureOr) {
-      return type;
-    }
-    return typeProvider.futureOrType(type);
   }
 
   /// Helper function used to print information to the console in debug mode.
@@ -4449,8 +4655,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void _resolvePropertyAccessRhs(
     PropertyAccessImpl node,
-    TypeImpl contextType,
-  ) {
+    TypeImpl contextType, {
+    PrefixedIdentifierImpl? originalNode,
+  }) {
     if (node.isNullAware) {
       _startNullAwareAccess(node.target);
       nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
@@ -4460,6 +4667,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node: node,
       hasRead: true,
       hasWrite: false,
+      originalNode: originalNode,
     );
 
     _resolvePropertyAccessRhs_common(
@@ -4525,25 +4733,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
-  /// Continues resolution of a [FunctionExpressionInvocation] that was created
-  /// from a rewritten [MethodInvocation]. The target function is already
-  /// resolved.
-  ///
-  /// The specification says that `target.getter()` should be treated as an
-  /// ordinary method invocation. So, we need to perform the same null shorting
-  /// as for method invocations.
-  void _resolveRewrittenFunctionExpressionInvocation(
-    FunctionExpressionInvocationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-  }) {
-    _functionExpressionInvocationResolver.resolve(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
   void _setupThisType() {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
@@ -4586,6 +4775,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return false;
   }
 
+  /// Starts null aware access on a given [target] expression.
+  ///
+  /// Note: there is no corresponding "stop" method. Null shorting will be
+  /// automatically stopped by [TypeAnalyzer.analyzeExpression].
   void _startNullAwareAccess(ExpressionImpl? target) {
     var flow = flowAnalysis.flow;
     if (flow != null) {
@@ -4603,10 +4796,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           argumentList: ArgumentListImpl(arguments: [var expression]),
         ):
         case var expression:
-          startNullShorting(
-            null,
+          flow.storeExpressionInfo(
             expression,
-            SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            startNullShorting(
+              null,
+              flow.getExpressionInfo(expression),
+              SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            ),
           );
       }
     }
@@ -4622,7 +4818,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required ArgumentList argumentList,
     required List<FormalParameterElement> formalParameters,
     DiagnosticReporter? diagnosticReporter,
-    ConstructorDeclaration? enclosingConstructor,
+    FormalParameterList? enclosingConstructorFormalParameterList,
   }) {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
@@ -4671,9 +4867,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     Set<String>? usedNames;
-    if (enclosingConstructor != null) {
+    if (enclosingConstructorFormalParameterList != null) {
       var result = verifySuperFormalParameters(
-        constructor: enclosingConstructor,
+        formalParameterList: enclosingConstructorFormalParameterList,
         hasExplicitPositionalArguments: positionalArgumentCount != 0,
         diagnosticReporter: diagnosticReporter,
       );
@@ -4690,21 +4886,31 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          diagnosticReporter?.atNode(
-            nameNode,
-            diag.undefinedNamedParameter,
-            arguments: [name],
-          );
+          element =
+              namedParameters != null && name.startsWith('_') && name.length > 1
+              ? namedParameters[name.substring(1)]
+              : null;
+          if (element == null) {
+            diagnosticReporter?.report(
+              diag.undefinedNamedParameter
+                  .withArguments(name: name)
+                  .at(nameNode),
+            );
+          } else {
+            diagnosticReporter?.report(
+              diag.useOfPrivateParameterName
+                  .withArguments(name: name.substring(1))
+                  .at(nameNode),
+            );
+          }
         } else {
           resolvedParameters[i] = element;
           nameNode.element = element;
         }
         usedNames ??= <String>{};
         if (!usedNames.add(name)) {
-          diagnosticReporter?.atNode(
-            nameNode,
-            diag.duplicateNamedArgument,
-            arguments: [name],
+          diagnosticReporter?.report(
+            diag.duplicateNamedArgument.withArguments(name: name).at(nameNode),
           );
         }
       }
@@ -4727,19 +4933,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
-      DiagnosticCode diagnosticCode;
       int namedParameterCount = namedParameters?.length ?? 0;
       int namedArgumentCount = usedNames?.length ?? 0;
-      if (namedParameterCount > namedArgumentCount) {
-        diagnosticCode = diag.extraPositionalArgumentsCouldBeNamed;
-      } else {
-        diagnosticCode = diag.extraPositionalArguments;
-      }
       if (firstUnresolvedArgument != null) {
-        diagnosticReporter?.atNode(
-          firstUnresolvedArgument,
-          diagnosticCode,
-          arguments: [unnamedParameterCount, positionalArgumentCount],
+        diagnosticReporter?.report(
+          (namedParameterCount > namedArgumentCount
+                  ? diag.extraPositionalArgumentsCouldBeNamed
+                  : diag.extraPositionalArguments)
+              .withArguments(
+                expected: unnamedParameterCount,
+                found: positionalArgumentCount,
+              )
+              .at(firstUnresolvedArgument),
         );
       }
     }
@@ -4822,1027 +5027,31 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var isPlural = requiredParameterCount > 1;
-    var arguments = <Object>[];
-    if (isPlural) {
-      arguments.add(requiredParameterCount);
-      arguments.add(actualArgumentCount);
-    }
-    DiagnosticCode diagnosticCode;
+    LocatableDiagnostic locatableDiagnostic;
     if (name == null) {
-      diagnosticCode = isPlural
-          ? diag.notEnoughPositionalArgumentsPlural
+      locatableDiagnostic = isPlural
+          ? diag.notEnoughPositionalArgumentsPlural.withArguments(
+              requiredParameterCount: requiredParameterCount,
+              actualArgumentCount: actualArgumentCount,
+            )
           : diag.notEnoughPositionalArgumentsSingular;
     } else {
-      diagnosticCode = isPlural
-          ? diag.notEnoughPositionalArgumentsNamePlural
-          : diag.notEnoughPositionalArgumentsNameSingular;
-      arguments.add(name);
+      locatableDiagnostic = isPlural
+          ? diag.notEnoughPositionalArgumentsNamePlural.withArguments(
+              requiredParameterCount: requiredParameterCount,
+              actualArgumentCount: actualArgumentCount,
+              name: name,
+            )
+          : diag.notEnoughPositionalArgumentsNameSingular.withArguments(
+              name: name,
+            );
     }
-    diagnosticReporter.atToken(token, diagnosticCode, arguments: arguments);
+    diagnosticReporter.report(locatableDiagnostic.at(token));
   }
 }
 
-/// Instances of the class `ScopeResolverVisitor` are used to resolve
-/// [SimpleIdentifier]s to declarations using scoping rules.
-///
-// TODO(paulberry): migrate the responsibility for all scope resolution into
-// this visitor.
-class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
-  /// The diagnostic reporter that will be informed of any diagnostics that are
-  /// found during resolution.
-  final DiagnosticReporter diagnosticReporter;
-
-  /// The scope used to resolve identifiers.
-  Scope nameScope;
-
-  /// The scope of libraries imported by `@docImport`s.
-  final DocumentationCommentScope _docImportScope;
-
-  /// The scope used to resolve unlabeled `break` and `continue` statements.
-  ImplicitLabelScope _implicitLabelScope = ImplicitLabelScope.ROOT;
-
-  /// The scope used to resolve labels for `break` and `continue` statements, or
-  /// `null` if no labels have been defined in the current context.
-  LabelScope? _labelScope;
-
-  /// The container with information about local variables.
-  final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
-
-  /// If the current function is contained within a closure (a local function or
-  /// function expression inside another executable declaration), the element
-  /// representing the closure; otherwise `null`.
-  LocalFunctionElement? _enclosingClosure;
-
-  /// Initialize a newly created visitor to resolve the nodes in an AST node.
-  ///
-  /// [diagnosticReporter] is the error reporter that will be informed of any errors
-  /// that are found during resolution.
-  /// [nameScope] is the scope used to resolve identifiers in the node that will
-  /// first be visited.
-  ScopeResolverVisitor(
-    this.diagnosticReporter, {
-    required this.nameScope,
-    List<LibraryElement> docImportLibraries = const [],
-  }) : _docImportScope = DocumentationCommentScope(
-         nameScope,
-         docImportLibraries,
-       );
-
-  /// Return the implicit label scope in which the current node is being
-  /// resolved.
-  ImplicitLabelScope get implicitLabelScope => _implicitLabelScope;
-
-  @override
-  void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    var element = node.element;
-    if (element is PromotableElementImpl) {
-      _localVariableInfo.potentiallyMutatedInScope.add(element);
-    }
-  }
-
-  @override
-  void visitBlock(covariant BlockImpl node) {
-    _withDeclaredLocals(node, node.statements, () {
-      super.visitBlock(node);
-    });
-  }
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    ImplicitLabelScope implicitOuterScope = _implicitLabelScope;
-    try {
-      _implicitLabelScope = ImplicitLabelScope.ROOT;
-      super.visitBlockFunctionBody(node);
-    } finally {
-      _implicitLabelScope = implicitOuterScope;
-    }
-  }
-
-  @override
-  void visitBreakStatement(covariant BreakStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, false);
-  }
-
-  @override
-  void visitCatchClause(CatchClause node) {
-    var exception = node.exceptionParameter;
-    if (exception != null) {
-      Scope outerScope = nameScope;
-      try {
-        nameScope = LocalScope(nameScope);
-        _define(exception.declaredFragment!.element);
-        var stackTrace = node.stackTraceParameter;
-        if (stackTrace != null) {
-          _define(stackTrace.declaredFragment!.element);
-        }
-        super.visitCatchClause(node);
-      } finally {
-        nameScope = outerScope;
-      }
-    } else {
-      super.visitCatchClause(node);
-    }
-  }
-
-  @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      node.metadata.accept(this);
-
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.namePart.accept(this);
-      node.extendsClause?.accept(this);
-      node.withClause?.accept(this);
-      node.implementsClause?.accept(this);
-      node.nativeClause?.accept(this);
-
-      nameScope = InstanceScope(nameScope, element);
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    node.metadata.accept(this);
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      nameScope = InstanceScope(
-        TypeParameterScope(nameScope, element.typeParameters),
-        element,
-      );
-      _visitDocumentationComment(node.documentationComment);
-      node.typeParameters?.accept(this);
-      node.superclass.accept(this);
-      node.withClause.accept(this);
-      node.implementsClause?.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitCompilationUnit(covariant CompilationUnitImpl node) {
-    node.nameScope = nameScope;
-    super.visitCompilationUnit(node);
-  }
-
-  @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    node.body.localVariableInfo = _localVariableInfo;
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-
-      node.metadata.accept(this);
-      node.typeName?.accept(this);
-      node.parameters.accept(this);
-
-      try {
-        nameScope = ConstructorInitializerScope(nameScope, element);
-        node.initializers.accept(this);
-        _visitDocumentationComment(node.documentationComment);
-      } finally {
-        nameScope = outerScope;
-      }
-
-      node.redirectedConstructor?.accept(this);
-
-      nameScope = FormalParameterScope(nameScope, element.formalParameters);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitContinueStatement(covariant ContinueStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, true);
-  }
-
-  @override
-  void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _define(node.declaredFragment!.element);
-    super.visitDeclaredIdentifier(node);
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
-    try {
-      _implicitLabelScope = _implicitLabelScope.nest(node);
-      _visitStatementInScope(node.body);
-      node.condition.accept(this);
-    } finally {
-      _implicitLabelScope = outerImplicitScope;
-    }
-  }
-
-  @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
-  ) {
-    node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
-    node.arguments?.accept(this);
-  }
-
-  @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      node.metadata.accept(this);
-
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.namePart.accept(this);
-      node.withClause?.accept(this);
-      node.implementsClause?.accept(this);
-
-      nameScope = InstanceScope(nameScope, element);
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitExpressionFunctionBody(covariant ExpressionFunctionBodyImpl node) {
-    node.nameScope = nameScope;
-    super.visitExpressionFunctionBody(node);
-  }
-
-  @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      node.metadata.accept(this);
-
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
-      node.onClause?.accept(this);
-
-      nameScope = ExtensionScope(nameScope, element);
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
-  ) {
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      node.metadata.accept(this);
-
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.primaryConstructor.accept(this);
-      node.implementsClause?.accept(this);
-
-      nameScope = InstanceScope(nameScope, element);
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
-    node.fields.accept(this);
-  }
-
-  @override
-  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    // We visit the iterator before the loop variable because the loop variable
-    // cannot be in scope while visiting the iterator.
-    node.iterable.accept(this);
-    node.loopVariable.accept(this);
-  }
-
-  @override
-  void visitForEachPartsWithPattern(
-    covariant ForEachPartsWithPatternImpl node,
-  ) {
-    // We visit the iterator before the pattern because the pattern variables
-    // cannot be in scope while visiting the iterator.
-    node.iterable.accept(this);
-
-    for (var variable in node.variables) {
-      _define(variable.asElement2);
-    }
-
-    node.pattern.accept(this);
-  }
-
-  @override
-  void visitForElement(covariant ForElementImpl node) {
-    Scope outerNameScope = nameScope;
-    try {
-      nameScope = LocalScope(nameScope);
-      node.nameScope = nameScope;
-      node.forLoopParts.accept(this);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerNameScope;
-    }
-  }
-
-  @override
-  void visitFormalParameterList(FormalParameterList node) {
-    super.visitFormalParameterList(node);
-    // We finished resolving function signature, now include formal parameters
-    // scope.  Note: we must not do this if the parent is a
-    // FunctionTypedFormalParameter, because in that case we aren't finished
-    // resolving the full function signature, just a part of it.
-    var parent = node.parent;
-    if (parent is FunctionExpression) {
-      var element = parent.declaredFragment!.element;
-      nameScope = FormalParameterScope(nameScope, element.formalParameters);
-    } else if (parent is FunctionTypeAlias) {
-      var scope = nameScope = LocalScope(nameScope);
-      scope.addFormalParameters(parent.parameters);
-    } else if (parent is MethodDeclaration) {
-      var element = parent.declaredFragment!.element;
-      nameScope = FormalParameterScope(nameScope, element.formalParameters);
-    }
-  }
-
-  @override
-  void visitForStatement(covariant ForStatementImpl node) {
-    Scope outerNameScope = nameScope;
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
-    try {
-      nameScope = LocalScope(nameScope);
-      _implicitLabelScope = _implicitLabelScope.nest(node);
-      node.nameScope = nameScope;
-      node.forLoopParts.accept(this);
-      _visitStatementInScope(node.body);
-    } finally {
-      nameScope = outerNameScope;
-      _implicitLabelScope = outerImplicitScope;
-    }
-  }
-
-  @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    node.functionExpression.body.localVariableInfo = _localVariableInfo;
-    var outerClosure = _enclosingClosure;
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      _enclosingClosure = element.ifTypeOrNull<LocalFunctionElement>();
-      node.metadata.accept(this);
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.returnType?.accept(this);
-      node.functionExpression.accept(this);
-    } finally {
-      nameScope = outerScope;
-      _enclosingClosure = outerClosure;
-    }
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    var outerClosure = _enclosingClosure;
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      if (node.parent is! FunctionDeclaration) {
-        (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
-        _enclosingClosure = element as LocalFunctionElement;
-      }
-      var parent = node.parent;
-      if (parent is FunctionDeclarationImpl) {
-        // We have already created a function scope and don't need to do so again.
-        super.visitFunctionExpression(node);
-        _visitDocumentationComment(parent.documentationComment);
-        return;
-      }
-
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-
-      nameScope = FormalParameterScope(nameScope, element.formalParameters);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-      _enclosingClosure = outerClosure;
-    }
-  }
-
-  @override
-  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    node.metadata.accept(this);
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-      // Visiting the parameters added them to the scope as a side effect. So it
-      // is safe to visit the documentation comment now.
-      _visitDocumentationComment(node.documentationComment);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    node.metadata.accept(this);
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      _visitDocumentationComment(node.documentationComment);
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var type = node.type;
-    if (type == null) {
-      // The function type hasn't been resolved yet, so we can't create a scope
-      // for its parameters.
-      super.visitGenericFunctionType(node);
-      return;
-    }
-
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      super.visitGenericFunctionType(node);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    node.metadata.accept(this);
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
-      node.type.accept(this);
-
-      if (node.type case GenericFunctionType functionTypeNode) {
-        if (functionTypeNode.typeParameters case var typeParameterList?) {
-          nameScope = TypeParameterScope(
-            nameScope,
-            typeParameterList.typeParameters
-                .map((n) => n.declaredFragment!.element)
-                .toList(),
-          );
-        }
-        var scope = nameScope = LocalScope(nameScope);
-        scope.addFormalParameters(functionTypeNode.parameters);
-      }
-      _visitDocumentationComment(node.documentationComment);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitGuardedPattern(covariant GuardedPatternImpl node) {
-    var patternVariables = node.variables.values.toList();
-    for (var variable in patternVariables) {
-      _define(variable);
-    }
-
-    node.pattern.accept(this);
-
-    for (var variable in patternVariables) {
-      variable.isVisitingWhenClause = true;
-    }
-
-    node.whenClause?.accept(this);
-
-    for (var variable in patternVariables) {
-      variable.isVisitingWhenClause = false;
-    }
-  }
-
-  @override
-  void visitHideCombinator(HideCombinator node) {
-    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
-    scope?.importsTrackingActive(false);
-    try {
-      super.visitHideCombinator(node);
-    } finally {
-      scope?.importsTrackingActive(true);
-    }
-  }
-
-  @override
-  void visitIfElement(covariant IfElementImpl node) {
-    _visitIf(node);
-  }
-
-  @override
-  void visitIfStatement(covariant IfStatementImpl node) {
-    _visitIf(node);
-  }
-
-  @override
-  void visitLabeledStatement(LabeledStatement node) {
-    var outerScope = _addScopesFor(node.labels, node.unlabeled);
-    try {
-      super.visitLabeledStatement(node);
-    } finally {
-      _labelScope = outerScope;
-    }
-  }
-
-  @override
-  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
-    node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
-  }
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
-
-  @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    node.body.localVariableInfo = _localVariableInfo;
-    node.metadata.accept(this);
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      // Visiting the parameters added them to the scope as a side effect. So it
-      // is safe to visit the documentation comment now.
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    // Only visit the method name if there's no real target (so this is an
-    // unprefixed function invocation, outside a cascade).  This is the only
-    // circumstance in which the method name is meant to be looked up in the
-    // current scope.
-    node.target?.accept(this);
-    if (node.realTarget == null) {
-      node.methodName.accept(this);
-    }
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
-  }
-
-  @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      node.metadata.accept(this);
-
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
-      node.onClause?.accept(this);
-      node.implementsClause?.accept(this);
-
-      nameScope = InstanceScope(nameScope, element);
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitNamedType(NamedType node) {
-    // All TypeName(s) are already resolved, so we don't resolve it here.
-    // But there might be type arguments with Expression(s), such as
-    // annotations on formal parameters of GenericFunctionType(s).
-    node.typeArguments?.accept(this);
-  }
-
-  @override
-  void visitPatternVariableDeclaration(
-    covariant PatternVariableDeclarationImpl node,
-  ) {
-    for (var variable in node.elements) {
-      _define(variable);
-    }
-
-    super.visitPatternVariableDeclaration(node);
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // Do not visit the identifier after the `.`, since it is not meant to be
-    // looked up in the current scope.
-    node.prefix.accept(this);
-  }
-
-  @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    var outerScope = nameScope;
-    try {
-      var fragment = node.declaration?.declaredFragment;
-      var element = fragment?.element;
-
-      node.metadata.accept(this);
-
-      if (element != null) {
-        nameScope = ConstructorInitializerScope(outerScope, element);
-      }
-      node.initializers.accept(this);
-
-      if (element != null) {
-        nameScope = PrimaryParameterScope(outerScope, element);
-      }
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    // Do not visit the property name, since it is not meant to be looked up in
-    // the current scope.
-    node.target?.accept(this);
-  }
-
-  @override
-  void visitShowCombinator(ShowCombinator node) {
-    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
-    scope?.importsTrackingActive(false);
-    try {
-      super.visitShowCombinator(node);
-    } finally {
-      scope?.importsTrackingActive(true);
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    // Ignore if already resolved - declaration or type.
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    // Ignore if qualified.
-    var parent = node.parent;
-    if (parent is ConstructorName && parent.name == node) {
-      return;
-    }
-    if (parent is Label && parent.parent is NamedExpression) {
-      return;
-    }
-    var scopeLookupResult = nameScope.lookup(node.name);
-    node.scopeLookupResult = scopeLookupResult;
-    // Ignore if it cannot be a reference to a local variable.
-    if (parent is FieldFormalParameter) {
-      return;
-    } else if (parent is ConstructorDeclaration && parent.typeName == node) {
-      return;
-    } else if (parent is ConstructorFieldInitializer &&
-        parent.fieldName == node) {
-      return;
-    }
-    if (parent is Label) {
-      return;
-    }
-    // Prepare VariableElement.
-    var element = scopeLookupResult.getter;
-    if (element is! VariableElement) {
-      return;
-    }
-    // Must be local or parameter.
-    ElementKind kind = element.kind;
-    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
-      node.element = element;
-      if (node.inSetterContext()) {
-        if (element is PatternVariableElementImpl &&
-            element.isVisitingWhenClause) {
-          diagnosticReporter.report(
-            diag.patternVariableAssignmentInsideGuard.at(node),
-          );
-        }
-        _localVariableInfo.potentiallyMutatedInScope.add(element);
-      }
-    }
-    if (element is JoinPatternVariableElementImpl) {
-      element.references.add(node);
-    }
-  }
-
-  @override
-  void visitSwitchExpression(covariant SwitchExpressionImpl node) {
-    node.expression.accept(this);
-
-    for (var case_ in node.cases) {
-      _withNameScope(() {
-        case_.nameScope = nameScope;
-        var guardedPattern = case_.guardedPattern;
-        var variables = guardedPattern.variables;
-        for (var variable in variables.values) {
-          _define(variable);
-        }
-        case_.accept(this);
-      });
-    }
-  }
-
-  @override
-  void visitSwitchStatement(covariant SwitchStatementImpl node) {
-    var outerScope = _labelScope;
-    var outerImplicitScope = _implicitLabelScope;
-    try {
-      _implicitLabelScope = _implicitLabelScope.nest(node);
-      for (var member in node.members) {
-        for (var label in member.labels) {
-          var labelName = label.label;
-          var labelElement = labelName.element as LabelElement;
-          _labelScope = LabelScope(
-            _labelScope,
-            labelName.name,
-            member,
-            labelElement,
-          );
-        }
-      }
-      node.expression.accept(this);
-      for (var group in node.memberGroups) {
-        for (var member in group.members) {
-          if (member is SwitchCaseImpl) {
-            member.expression.accept(this);
-          } else if (member is SwitchPatternCaseImpl) {
-            _withNameScope(() {
-              member.guardedPattern.accept(this);
-            });
-          }
-        }
-        if (group.members.isEmpty) {
-          return;
-        }
-        var lastMember = group.members.last;
-        _withDeclaredLocals(lastMember, lastMember.statements, () {
-          for (var variable in group.variables.values) {
-            _define(variable);
-          }
-          lastMember.statements.accept(this);
-        });
-      }
-    } finally {
-      _labelScope = outerScope;
-      _implicitLabelScope = outerImplicitScope;
-    }
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(
-    covariant TopLevelVariableDeclarationImpl node,
-  ) {
-    node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
-    node.variables.accept(this);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    super.visitVariableDeclaration(node);
-
-    if (node.parent!.parent is ForParts) {
-      _define(node.declaredFragment!.element);
-    }
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    node.condition.accept(this);
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
-    try {
-      _implicitLabelScope = _implicitLabelScope.nest(node);
-      _visitStatementInScope(node.body);
-    } finally {
-      _implicitLabelScope = outerImplicitScope;
-    }
-  }
-
-  /// Adds scopes for each of the given [labels].
-  ///
-  /// Returns the scope that was in effect before the new scopes were added.
-  LabelScope? _addScopesFor(NodeList<Label> labels, AstNode node) {
-    var outerScope = _labelScope;
-    for (var label in labels) {
-      var labelNameNode = label.label;
-      var labelName = labelNameNode.name;
-      var labelElement = labelNameNode.element as LabelElement;
-      _labelScope = LabelScope(_labelScope, labelName, node, labelElement);
-    }
-    return outerScope;
-  }
-
-  void _define(Element element) {
-    (nameScope as LocalScope).add(element);
-  }
-
-  /// Return the target of a break or continue statement, and update the static
-  /// element of its label (if any). The [parentNode] is the AST node of the
-  /// break or continue statement. The [labelNode] is the label contained in
-  /// that statement (if any). The flag [isContinue] is `true` if the node being
-  /// visited is a continue statement.
-  AstNode? _lookupBreakOrContinueTarget(
-    AstNode parentNode,
-    SimpleIdentifierImpl? labelNode,
-    bool isContinue,
-  ) {
-    if (labelNode == null) {
-      return implicitLabelScope.getTarget(isContinue);
-    } else {
-      var labelScope = _labelScope;
-      if (labelScope == null) {
-        // There are no labels in scope, so by definition the label is
-        // undefined.
-        diagnosticReporter.atNode(
-          labelNode,
-          diag.labelUndefined,
-          arguments: [labelNode.name],
-        );
-        return null;
-      }
-      var definingScope = labelScope.lookup(labelNode.name);
-      if (definingScope == null) {
-        // No definition of the given label name could be found in any
-        // enclosing scope.
-        diagnosticReporter.atNode(
-          labelNode,
-          diag.labelUndefined,
-          arguments: [labelNode.name],
-        );
-        return null;
-      }
-      // The target has been found.
-      labelNode.element = definingScope.element;
-      if (_enclosingClosure case var enclosingClosure?) {
-        var labelFragment = definingScope.element.firstFragment;
-        var labelContainer = labelFragment.enclosingFragment;
-        if (!identical(labelContainer, enclosingClosure.firstFragment)) {
-          diagnosticReporter.atNode(
-            labelNode,
-            diag.labelInOuterScope,
-            arguments: [labelNode.name],
-          );
-        }
-      }
-      var node = definingScope.node;
-      if (isContinue &&
-          node is! DoStatement &&
-          node is! ForStatement &&
-          node is! SwitchMember &&
-          node is! WhileStatement) {
-        diagnosticReporter.report(diag.continueLabelInvalid.at(parentNode));
-      }
-      return node;
-    }
-  }
-
-  /// Visits a documentation comment with a [DocumentationCommentScope] that encloses the
-  /// current [nameScope].
-  void _visitDocumentationComment(CommentImpl? node) {
-    if (node == null) return;
-
-    Scope outerScope = nameScope;
-    Scope docImportInnerScope = _docImportScope.innerScope;
-    try {
-      _docImportScope.innerScope = nameScope;
-      nameScope = _docImportScope;
-
-      node.nameScope = nameScope;
-      node.accept(this);
-    } finally {
-      nameScope = outerScope;
-      _docImportScope.innerScope = docImportInnerScope;
-    }
-  }
-
-  void _visitIf(IfElementOrStatementImpl node) {
-    node.expression.accept(this);
-
-    var caseClause = node.caseClause;
-    if (caseClause != null) {
-      var guardedPattern = caseClause.guardedPattern;
-      _withNameScope(() {
-        caseClause.nameScope = nameScope;
-        var variables = guardedPattern.variables;
-        for (var variable in variables.values) {
-          _define(variable);
-        }
-        guardedPattern.accept(this);
-        node.ifTrue.accept(this);
-      });
-      node.ifFalse?.accept(this);
-    } else {
-      node.ifTrue.accept(this);
-      node.ifFalse?.accept(this);
-    }
-  }
-
-  /// Visits the given statement.
-  ///
-  /// This is used by [ResolverVisitor] to correctly visit the 'then' and 'else'
-  /// statements of an 'if' statement.
-  void _visitStatementInScope(Statement? node) {
-    if (node is BlockImpl) {
-      // Don't create a scope around a block because the block will create it's
-      // own scope.
-      visitBlock(node);
-    } else if (node != null) {
-      var outerNameScope = nameScope;
-      try {
-        nameScope = LocalScope(nameScope);
-        node.accept(this);
-      } finally {
-        nameScope = outerNameScope;
-      }
-    }
-  }
-
-  void _withDeclaredLocals(
-    AstNodeWithNameScopeMixin node,
-    List<Statement> statements,
-    void Function() f,
-  ) {
-    var outerScope = nameScope;
-    try {
-      var enclosedScope = LocalScope(nameScope);
-      for (var statement in BlockScope.elementsInStatements(statements)) {
-        if (!statement.isWildcardFunction) {
-          enclosedScope.add(statement);
-        }
-      }
-
-      nameScope = enclosedScope;
-      node.nameScope = nameScope;
-
-      f();
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  /// Run [f] with the new name scope.
-  void _withNameScope(void Function() f) {
-    var current = nameScope;
-    try {
-      nameScope = LocalScope(current);
-      f();
-    } finally {
-      nameScope = current;
-    }
-  }
-
-  /// Return the [Scope] to use while resolving inside the [node].
-  ///
-  /// Not every node has the scope set, for example we set the scopes for
-  /// blocks, but statements don't have separate scopes. The compilation unit
-  /// has the library scope.
+// TODO(scheglov): move this static method somewhere?
+abstract class ScopeResolverVisitor {
   static Scope? getNodeNameScope(AstNode node) =>
       node is AstNodeWithNameScopeMixin ? node.nameScope : null;
 }
@@ -6140,20 +5349,5 @@ class _WhyNotPromotedVisitor
       length: property.name!.length,
       url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
     );
-  }
-}
-
-extension on Element {
-  bool get isWildcardFunction =>
-      this is LocalFunctionElement &&
-      name == '_' &&
-      library.hasWildcardVariablesFeatureEnabled;
-}
-
-extension on LocalScope {
-  void addFormalParameters(FormalParameterList formalParameterList) {
-    for (var formalParameter in formalParameterList.parameters) {
-      add(formalParameter.declaredFragment!.element);
-    }
   }
 }

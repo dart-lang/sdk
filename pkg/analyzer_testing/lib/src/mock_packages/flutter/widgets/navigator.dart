@@ -7,6 +7,8 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final widgetsNavigatorLibrary = MockLibraryUnit(
   'lib/src/widgets/navigator.dart',
   r'''
+import 'framework.dart';
+
 class Navigator extends StatefulWidget {
   static NavigatorState of(
     BuildContext context, {

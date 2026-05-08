@@ -1,34 +1,34 @@
 Problems reported:
 
+parser/primary_constructors/declaring_parameter_error:1:3: Can't have modifier 'var' here.
+m(var a b) {}
+  ^^^
+
 parser/primary_constructors/declaring_parameter_error:1:3: Variables can't be declared using both 'var' and a type name.
 m(var a b) {}
   ^^^
+
+parser/primary_constructors/declaring_parameter_error:4:5: Can't have modifier 'var' here.
+  C(var a b) {}
+    ^^^
 
 parser/primary_constructors/declaring_parameter_error:4:5: Variables can't be declared using both 'var' and a type name.
   C(var a b) {}
     ^^^
 
-parser/primary_constructors/declaring_parameter_error:7:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:7:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant a) {}
         ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:8:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:8:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant a b) {}
         ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:9:9: Can't have modifier 'covariant' in a primary constructor.
-class C(covariant var a) {}
-        ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:10:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:10:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant final a) {}
         ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:11:9: Can't have modifier 'covariant' in a primary constructor.
-class C(covariant var a b) {}
-        ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:12:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:12:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant final a b) {}
         ^^^^^^^^^
 
@@ -48,27 +48,19 @@ parser/primary_constructors/declaring_parameter_error:16:9: Can't have modifier 
 class C(const void f<T>()) {}
         ^^^^^
 
-parser/primary_constructors/declaring_parameter_error:18:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:18:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant a) {}
        ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:19:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:19:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant a b) {}
        ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:20:8: Can't have modifier 'covariant' in a primary constructor.
-enum E(covariant var a) {}
-       ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:21:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:21:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant final a) {}
        ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:22:8: Can't have modifier 'covariant' in a primary constructor.
-enum E(covariant var a b) {}
-       ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:23:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:23:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant final a b) {}
        ^^^^^^^^^
 
@@ -88,31 +80,27 @@ parser/primary_constructors/declaring_parameter_error:27:8: Can't have modifier 
 enum E(const void f<T>()) {}
        ^^^^^
 
+parser/primary_constructors/declaring_parameter_error:30:6: Can't have modifier 'var' here.
+  ET(var a b) {}
+     ^^^
+
 parser/primary_constructors/declaring_parameter_error:30:6: Variables can't be declared using both 'var' and a type name.
   ET(var a b) {}
      ^^^
 
-parser/primary_constructors/declaring_parameter_error:33:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:33:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant a) {}
                   ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:34:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:34:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant a b) {}
                   ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:35:19: Can't have modifier 'covariant' in a primary constructor.
-extension type ET(covariant var a) {}
-                  ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:36:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:36:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant final a) {}
                   ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:37:19: Can't have modifier 'covariant' in a primary constructor.
-extension type ET(covariant var a b) {}
-                  ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:38:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:38:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant final a b) {}
                   ^^^^^^^^^
 
@@ -144,6 +132,7 @@ beginCompilationUnit(m)
         beginMetadataStar(var)
         endMetadataStar(0)
         beginFormalParameter(var, MemberKind.TopLevelMethod, null, null, var)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'var' here., Try removing 'var'., {lexeme: var}], var, var)
           handleRecoverableError(TypeAfterVar, var, var)
           handleIdentifier(a, typeReference)
           handleNoTypeArguments(b)
@@ -163,7 +152,7 @@ beginCompilationUnit(m)
     handleIdentifier(C, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, null, null, null, null, null, null, null, C)
-      handleNoPrimaryConstructor(C, null, false)
+      handleNoPrimaryConstructor(DeclarationKind.Class, C, null)
       handleNoType(C)
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -181,6 +170,7 @@ beginCompilationUnit(m)
               beginMetadataStar(var)
               endMetadataStar(0)
               beginFormalParameter(var, MemberKind.NonStaticMethod, null, null, var)
+                handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'var' here., Try removing 'var'., {lexeme: var}], var, var)
                 handleRecoverableError(TypeAfterVar, var, var)
                 handleIdentifier(a, typeReference)
                 handleNoTypeArguments(b)
@@ -208,14 +198,14 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleNoType(covariant)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -235,7 +225,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -244,7 +234,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -264,14 +254,13 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleNoType(var)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(var, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -291,14 +280,14 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleNoType(final)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(final, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -318,7 +307,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -327,7 +315,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(var, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -347,7 +335,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -356,7 +344,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(final, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -388,7 +376,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -428,7 +416,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -460,7 +448,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -500,7 +488,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Class, (, null, false)
       handleNoType())
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -520,14 +508,14 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleNoType(covariant)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -546,7 +534,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -555,7 +543,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -574,14 +562,13 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleNoType(var)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(var, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -600,14 +587,14 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleNoType(final)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(final, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -626,7 +613,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -635,7 +621,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(var, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -654,7 +640,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -663,7 +649,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(final, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -694,7 +680,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -733,7 +719,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -764,7 +750,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -803,7 +789,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, false)
+      endPrimaryConstructor(DeclarationKind.Enum, (, null, false)
       handleEnumNoWithClause()
       handleImplements(null, 0)
       handleEnumHeader(null, enum, {)
@@ -829,7 +815,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
         beginMetadataStar(ET)
@@ -843,6 +829,7 @@ beginCompilationUnit(m)
               beginMetadataStar(var)
               endMetadataStar(0)
               beginFormalParameter(var, MemberKind.ExtensionTypeNonStaticMethod, null, null, var)
+                handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'var' here., Try removing 'var'., {lexeme: var}], var, var)
                 handleRecoverableError(TypeAfterVar, var, var)
                 handleIdentifier(a, typeReference)
                 handleNoTypeArguments(b)
@@ -869,14 +856,14 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleNoType(covariant)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -891,7 +878,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -900,7 +887,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -915,14 +902,13 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleNoType(var)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(var, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -937,14 +923,14 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleNoType(final)
             handleIdentifier(a, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
           endFormalParameter(final, null, null, null, a, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -959,7 +945,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -968,7 +953,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(var, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -983,7 +968,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -992,7 +977,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(final, null, null, null, b, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -1019,7 +1004,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -1054,7 +1039,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -1081,7 +1066,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
@@ -1116,7 +1101,7 @@ beginCompilationUnit(m)
             handleFormalParameterWithoutValue())
           endFormalParameter(null, null, null, null, f, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false, true)
+      endPrimaryConstructor(DeclarationKind.ExtensionType, (, null, false)
       handleImplements(null, 0)
       beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })

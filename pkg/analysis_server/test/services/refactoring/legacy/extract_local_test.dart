@@ -1587,6 +1587,26 @@ class A {
 ''');
   }
 
+  Future<void> test_singleExpression_inPrimaryConstructorBody() async {
+    await indexTestUnit('''
+class A() {
+  this {
+    print(1 + 2);
+  }
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A() {
+  this {
+    var res = 1 + 2;
+    print(res);
+  }
+}
+''');
+  }
+
   Future<void> test_singleExpression_inSwitchCase() async {
     await indexTestUnit('''
 // @dart = 2.19

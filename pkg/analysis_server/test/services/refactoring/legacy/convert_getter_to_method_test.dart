@@ -173,50 +173,81 @@ void f() {
     );
   }
 
-  Future<void> test_pattern() async {
+  Future<void> test_patternField_explicitName() async {
     await indexTestUnit('''
-extension A on String {
-  int get test => 1;
+class A {
+  int get test => 0;
 }
-void f(String a) {
-  if (a case String(:var test)) {}
+void f(A a) {
+  if (a case A([!test!]: var other)) {
+    other;
+  }
 }
 ''');
     var element = findElement2.getter('test', of: 'A');
     _createRefactoringForElement(element);
+
+    var initialState = await refactoring.checkInitialConditions();
+    assertRefactoringStatusOK(initialState);
+
+    // check final conditions
+    var finalState = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+      finalState,
+      RefactoringProblemSeverity.WARNING,
+      expectedMessage: 'Will match the method tear-off instead of the result.',
+      rangeIndex: 0,
+    );
+
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
-extension A on String {
-  int test() => 1;
+    refactoringChange = await refactoring.createChange();
+    assertTestChangeResult('''
+class A {
+  int test() => 0;
 }
-void f(String a) {
-  if (a case String(:var test)) {}
+void f(A a) {
+  if (a case A(test: var other)) {
+    other;
+  }
 }
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/62139')
-  Future<void> test_pattern_localVariableReferenced() async {
+  Future<void> test_patternField_inferredName() async {
     await indexTestUnit('''
-extension A on String {
-  int get test => 1;
+class A {
+  int get test => 0;
 }
-void f(String a) {
-  if (a case String(:var test)) {
-    print(test);
+void f(A a) {
+  if (a case A([!!]:var test)) {
+    test;
   }
 }
 ''');
     var element = findElement2.getter('test', of: 'A');
     _createRefactoringForElement(element);
+
+    var initialState = await refactoring.checkInitialConditions();
+    assertRefactoringStatusOK(initialState);
+
+    // check final conditions
+    var finalState = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+      finalState,
+      RefactoringProblemSeverity.WARNING,
+      expectedMessage: 'Will match the method tear-off instead of the result.',
+      rangeIndex: 0,
+    );
+
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
-extension A on String {
-  int test() => 1;
+    refactoringChange = await refactoring.createChange();
+    assertTestChangeResult('''
+class A {
+  int test() => 0;
 }
-void f(String a) {
-  if (a case String(:var test)) {
-    print(test());
+void f(A a) {
+  if (a case A(:var test)) {
+    test;
   }
 }
 ''');

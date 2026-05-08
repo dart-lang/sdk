@@ -1,46 +1,21 @@
 (module $module0
-  (type $#Closure-0-1 <...>)
   (type $#Top <...>)
-  (type $H0 (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $fun (ref $#Closure-0-1)))))
-  (type $Object <...>)
-  (type $type0 <...>)
-  (type $type2 <...>)
-  (type $type4 <...>)
-  (type $type6 <...>)
-  (table $static0-0 (export "static0-0") 1 (ref null $type0))
-  (table $static1-0 (export "static1-0") 1 (ref null $type2))
-  (table $static2-0 (export "static2-0") 1 (ref null $type4))
-  (table $static3-0 (export "static3-0") 1 (ref null $type6))
-  (func $"modMainUseH0 <noInline>"
-    i64.const 0
-    call $checkLibraryIsLoadedFromLoadId
-    block $label0 (result (ref $H0))
-      i32.const 0
-      call_indirect $static2-0 (result (ref null $H0))
-      br_on_non_null $label0
-      i32.const 0
-      call_indirect $static3-0 (result (ref $H0))
-    end $label0
-    call $print
-    drop
-    i64.const 0
-    call $checkLibraryIsLoadedFromLoadId
-    block $label1 (result (ref $H0))
-      i32.const 0
-      call_indirect $static2-0 (result (ref null $H0))
-      br_on_non_null $label1
-      i32.const 0
-      call_indirect $static3-0 (result (ref $H0))
-    end $label1
-    drop
-    i64.const 1
-    i32.const 0
-    call_indirect $static1-0 (param i64) (result (ref null $#Top))
-    drop
-  )
-  (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) <...>)
+  (type $Array<Object?> <...>)
+  (type $Array<_Type> <...>)
+  (type $JSExternWrapper <...>)
+  (type $_FunctionType <...>)
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 11 funcref)
+  (elem $cross-module-funcs-0
+    (set 2 (ref.func $"_hashSeed implicit getter"))
+    (set 3 (ref.func $SystemHash.combine))
+    (set 4 (ref.func $_TypeUniverse.substituteFunctionTypeArgument))
+    (set 5 (ref.func $print))
+    (set 6 (ref.func $JSStringImpl._interpolate))
+    (set 7 (ref.func $checkLibraryIsLoadedFromLoadId)))
+  (func $_hashSeed implicit getter (result i64) <...>)
+  (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
+  (func $SystemHash.combine (param $var0 i64) (param $var1 i64) (result i64) <...>)
+  (func $_TypeUniverse.substituteFunctionTypeArgument (param $var0 (ref $_FunctionType)) (param $var1 (ref $Array<_Type>)) (result (ref $_FunctionType)) <...>)
+  (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) (result i32) <...>)
   (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
 )

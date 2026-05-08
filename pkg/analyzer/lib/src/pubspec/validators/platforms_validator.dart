@@ -33,13 +33,16 @@ void platformsValidator(PubspecValidationContext ctx) {
   // Each key under 'platforms' must be a supported platform.
   for (var platform in platforms.nodeMap.keys) {
     if (platform is! YamlScalar || !_knownPlatforms.contains(platform.value)) {
-      ctx.reportErrorForNode(platform, diag.unknownPlatform, [
-        switch (platform.value) {
-          (String s) => s,
-          (num n) => n,
-          _ => platform.toString(),
-        },
-      ]);
+      ctx.reportErrorForNode(
+        platform,
+        diag.unknownPlatform.withArguments(
+          platform: switch (platform.value) {
+            (String s) => s,
+            (num n) => n.toString(),
+            _ => platform.toString(),
+          },
+        ),
+      );
     }
   }
   // Values under the platforms keys are not allowed.

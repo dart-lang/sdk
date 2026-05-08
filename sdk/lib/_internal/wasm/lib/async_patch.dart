@@ -1,10 +1,6 @@
-import 'dart:_internal' show _AsyncCompleter, patch, exportWasmFunction;
-
-import 'dart:_js_helper' show JS;
+import 'dart:_internal' show _AsyncCompleter, patch;
 
 import 'dart:_wasm';
-
-part 'timer_patch.dart';
 
 // Modular kernel transformer will make calls to this method be re-directed to
 // call dart:core:Error._trySetStackTrace instead.

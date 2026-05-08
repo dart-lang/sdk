@@ -79,9 +79,7 @@ abstract class ServerBase {
   /// when acknowledgement is received.
   final _pendingCommands = <String, Completer<Map<String, Object?>?>>{};
 
-  ServerBase({ServerListener? listener, bool stdioPassthrough = false})
-      : _listener = listener,
-        _stdioPassthrough = stdioPassthrough;
+  ServerBase({this._listener, this._stdioPassthrough = false});
 
   ServerListener? get listener => _listener;
 

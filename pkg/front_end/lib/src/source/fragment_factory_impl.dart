@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
@@ -41,6 +42,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_builder.dart';
 import '../fragment/fragment.dart';
+import '../util/helpers.dart';
 import '../util/local_stack.dart';
 import 'fragment_factory.dart';
 import 'name_space_builder.dart';
@@ -757,11 +759,11 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
   }
 
-  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
+  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {bool isPart = false}) {
     if (uri == null) {
       // Coverage-ignore-block(suite): Not run.
       _problemReporting.addProblem(
-        codeExpectedUri,
+        diag.expectedUri,
         uriOffset,
         noLength,
         _compilationUnit.fileUri,
@@ -776,7 +778,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
       _problemReporting.addProblem(
-        codeCouldNotParseUri.withArgumentsOld(uri, e.message),
+        diag.couldNotParseUri.withArguments(uri: uri, details: e.message),
         uriOffset +
             1 +
             (e.offset ?? // Coverage-ignore(suite): Not run.
@@ -860,7 +862,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     if (_scriptTokenOffset != null) {
       // Coverage-ignore-block(suite): Not run.
       _problemReporting.addProblem(
-        codeScriptTagInPartFile,
+        diag.scriptTagInPartFile,
         _scriptTokenOffset!,
         noLength,
         _compilationUnit.fileUri,
@@ -897,7 +899,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
     if (_scriptTokenOffset != null) {
       _problemReporting.addProblem(
-        codeScriptTagInPartFile,
+        diag.scriptTagInPartFile,
         _scriptTokenOffset!,
         noLength,
         _compilationUnit.fileUri,
@@ -944,7 +946,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     const String nativeExtensionScheme = "dart-ext:";
     if (uri.startsWith(nativeExtensionScheme)) {
       _problemReporting.addProblem(
-        codeUnsupportedDartExt,
+        diag.unsupportedDartExt,
         charOffset,
         noLength,
         _compilationUnit.fileUri,
@@ -974,7 +976,6 @@ class FragmentFactoryImpl implements FragmentFactory {
               _augmentationRoot
             : null,
         accessor: _compilationUnit,
-        isAugmentation: isAugmentationImport,
         referencesFromIndex: isAugmentationImport
             ?
               // Coverage-ignore(suite): Not run.
@@ -1088,9 +1089,15 @@ class FragmentFactoryImpl implements FragmentFactory {
   }) {
     EnumFragment declarationFragment = endEnumDeclaration();
 
+    Modifiers modifiers = Modifiers.empty;
+    if (declarationFragment.declaresConstConstructor) {
+      modifiers |= Modifiers.DeclaresConstConstructor;
+    }
+
     declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
     declarationFragment.mixins = mixins;
+    declarationFragment.modifiers = modifiers;
     declarationFragment.interfaces = interfaces;
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
@@ -1399,10 +1406,15 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
+    required bool forAbstractClassOrEnumOrMixin,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
 
+    // The name space is, while initially empty, created to support the lowering
+    // of extension (type) constructors which clone the extension (type) type
+    // parameters into the nominal parameter name space of the primary
+    // constructor.
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -1410,7 +1422,15 @@ class FragmentFactoryImpl implements FragmentFactory {
       new TypeScope(
         TypeScopeKind.memberTypeParameters,
         new NominalParameterScope(
-          _typeScopes.current.lookupScope,
+          libraryFeatures.primaryConstructors.isEnabled
+              // Contrary to most other declarations, the type parameter scope
+              // of a primary constructor is _not_ the current type scope, which
+              // is the type parameter scope of the enclosing declaration, but
+              // instead the body scope of the enclosing declaration.
+              ? enclosingDeclaration.bodyScope
+              // Prior to the primary constructors feature, the enclosing scope
+              // was the current type scope.
+              : _typeScopes.current.lookupScope,
           nominalParameterNameSpace,
         ),
         _typeScopes.current,
@@ -1452,17 +1472,22 @@ class FragmentFactoryImpl implements FragmentFactory {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    if (enclosingDeclaration.kind == DeclarationFragmentKind.enumDeclaration) {
+      // Primary constructors in enums are always constant.
+      isConst = true;
+    }
+
     PrimaryConstructorFragment fragment = new PrimaryConstructorFragment(
       constructorName: constructorName,
       fileUri: _compilationUnit.fileUri,
       startOffset: startOffset,
       formalsOffset: formalsOffset,
       modifiers: isConst ? Modifiers.Const : Modifiers.empty,
-      returnType: addInferableType(),
+      returnType: addInferableType(InferenceDefaultType.Dynamic),
       typeParameterNameSpace: typeParameterNameSpace,
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
-      forAbstractClassOrMixin: false,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
       beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
@@ -1498,7 +1523,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required String? nativeMethodName,
     required Token? beginInitializers,
     required bool hasNewKeyword,
-    required bool forAbstractClassOrMixin,
+    required bool forAbstractClassOrEnumOrMixin,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1544,14 +1569,14 @@ class FragmentFactoryImpl implements FragmentFactory {
       endOffset: endOffset,
       modifiers: modifiers - Modifiers.Abstract,
       metadata: metadata,
-      returnType: addInferableType(),
+      returnType: addInferableType(InferenceDefaultType.Dynamic),
       typeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: _declarationFragments.current.bodyScope,
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
       nativeMethodName: nativeMethodName,
-      forAbstractClassOrMixin: forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
       beginInitializers:
@@ -1577,12 +1602,40 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
+  void addPrimaryConstructorBody({
+    required OffsetMap offsetMap,
+    required Token beginToken,
+    required List<MetadataBuilder>? metadata,
+    required int endOffset,
+    required Token? beginInitializers,
+    required bool hasBody,
+    required int bodyOffset,
+  }) {
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
+    PrimaryConstructorBodyFragment fragment =
+        new PrimaryConstructorBodyFragment(
+          fileUri: _compilationUnit.fileUri,
+          thisOffset: beginToken.charOffset,
+          metadata: metadata,
+          enclosingScope: _declarationFragments.current.bodyScope,
+          enclosingDeclaration: enclosingDeclaration,
+          enclosingCompilationUnit: _compilationUnit,
+          hasBody: hasBody,
+          bodyOffset: bodyOffset,
+        );
+    _addFragment(fragment);
+    offsetMap.registerPrimaryConstructorBody(beginToken, fragment);
+  }
+
+  @override
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   }) {
     _declarationFragments.current.registerPrimaryConstructorField(
       _addPrimaryConstructorField(
@@ -1591,6 +1644,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         type: type,
         name: name,
         nameOffset: nameOffset,
+        defaultValueToken: defaultValueToken,
       ),
     );
   }
@@ -1715,7 +1769,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       }
     } else {
       internalProblem(
-        codeInternalProblemOmittedTypeNameInConstructorReference,
+        diag.internalProblemOmittedTypeNameInConstructorReference,
         charOffset,
         _compilationUnit.fileUri,
       );
@@ -1776,13 +1830,13 @@ class FragmentFactoryImpl implements FragmentFactory {
         // Old style constructor.
       } else {
         _problemReporting.addProblem(
-          codeConstructorWithWrongName,
+          diag.constructorWithWrongName,
           fullNameOffset,
           prefix.length,
           _compilationUnit.fileUri,
           context: [
-            codeConstructorWithWrongNameContext
-                .withArgumentsOld(enclosingDeclaration.name)
+            diag.constructorWithWrongNameContext
+                .withArguments(name: enclosingDeclaration.name)
                 .withLocation2(enclosingDeclaration.uriOffset),
           ],
         );
@@ -1821,13 +1875,13 @@ class FragmentFactoryImpl implements FragmentFactory {
         fullName = '$className.$name';
       } else {
         _problemReporting.addProblem(
-          codeConstructorWithWrongName,
+          diag.constructorWithWrongName,
           fullNameOffset,
           fullNameLength,
           _compilationUnit.fileUri,
           context: [
-            codeConstructorWithWrongNameContext
-                .withArgumentsOld(enclosingDeclaration.name)
+            diag.constructorWithWrongNameContext
+                .withArguments(name: enclosingDeclaration.name)
                 .withLocation2(enclosingDeclaration.uriOffset),
           ],
         );
@@ -1899,7 +1953,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       isTopLevel: enclosingDeclaration == null,
       metadata: metadata,
       modifiers: modifiers,
-      returnType: returnType ?? addInferableType(),
+      returnType: returnType ?? addInferableType(InferenceDefaultType.Dynamic),
       declaredTypeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
@@ -2060,7 +2114,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       isTopLevel: enclosingDeclaration == null,
       metadata: metadata,
       modifiers: modifiers,
-      returnType: returnType ?? addInferableType(),
+      returnType: returnType ?? addInferableType(InferenceDefaultType.Dynamic),
       declaredTypeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
@@ -2089,13 +2143,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     List<FieldInfo> fieldInfos,
   ) {
     for (FieldInfo info in fieldInfos) {
-      bool isConst = modifiers.isConst;
-      bool isFinal = modifiers.isFinal;
-      bool potentiallyNeedInitializerInOutline = isConst || isFinal;
-      Token? startToken;
-      if (potentiallyNeedInitializerInOutline || type == null) {
-        startToken = info.initializerToken;
-      }
+      Token? startToken = info.initializerToken;
       if (startToken != null) {
         // Extract only the tokens for the initializer expression from the
         // token stream.
@@ -2103,22 +2151,17 @@ class FragmentFactoryImpl implements FragmentFactory {
         endToken.setNext(new Token.eof(endToken.next!.offset));
         new Token.eof(startToken.previous!.offset).setNext(startToken);
       }
-      bool hasInitializer = info.initializerToken != null;
       offsetMap.registerField(
         info.identifier,
         _addField(
           metadata: metadata,
           modifiers: modifiers,
           isTopLevel: isTopLevel,
-          type: type ?? addInferableType(),
+          type: type ?? addInferableType(InferenceDefaultType.Dynamic),
           name: info.identifier.name,
           nameOffset: info.identifier.nameOffset,
           endOffset: info.endOffset,
           initializerToken: startToken,
-          hasInitializer: hasInitializer,
-          constInitializerToken: potentiallyNeedInitializerInOutline
-              ? startToken
-              : null,
         ),
       );
     }
@@ -2133,12 +2176,10 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int nameOffset,
     required int endOffset,
     required Token? initializerToken,
-    required bool hasInitializer,
-    Token? constInitializerToken,
   }) {
     DeclarationFragmentImpl? enclosingDeclaration =
         _declarationFragments.currentOrNull;
-    if (hasInitializer) {
+    if (initializerToken != null) {
       modifiers |= Modifiers.HasInitializer;
     }
     FieldFragment fragment = new FieldFragment(
@@ -2147,7 +2188,6 @@ class FragmentFactoryImpl implements FragmentFactory {
       nameOffset: nameOffset,
       endOffset: endOffset,
       initializerToken: initializerToken,
-      constInitializerToken: constInitializerToken,
       metadata: metadata,
       type: type,
       isTopLevel: isTopLevel,
@@ -2166,6 +2206,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -2180,24 +2221,24 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingScope: enclosingDeclaration.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
           enclosingCompilationUnit: _compilationUnit,
+          defaultValueToken: defaultValueToken,
         );
     _addFragment(fragment);
     return fragment;
   }
 
   @override
-  FormalParameterBuilder addFormalParameter(
-    List<MetadataBuilder>? metadata,
-    FormalParameterKind kind,
-    Modifiers modifiers,
-    TypeBuilder type,
-    String name,
-    String? publicName,
-    bool hasThis,
-    bool hasSuper,
-    int charOffset,
-    Token? initializerToken, {
-    bool lowerWildcard = false,
+  FormalParameterBuilder addFormalParameter({
+    required List<MetadataBuilder>? metadata,
+    required FormalParameterKind kind,
+    required Modifiers modifiers,
+    required TypeBuilder type,
+    required String name,
+    required String? publicName,
+    required bool hasThis,
+    required bool hasSuper,
+    required int nameOffset,
+    required Token? initializerToken,
   }) {
     assert(
       !hasThis || !hasSuper,
@@ -2209,24 +2250,30 @@ class FragmentFactoryImpl implements FragmentFactory {
     if (hasSuper) {
       modifiers |= Modifiers.SuperInitializingFormal;
     }
-    String formalName = name;
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && formalName == '_';
-    if (isWildcard && lowerWildcard) {
-      formalName = createWildcardFormalParameterName(wildcardVariableIndex);
-      wildcardVariableIndex++;
+        libraryFeatures.wildcardVariables.isEnabled && name == '_';
+    int? wildcardIndex;
+    if (isWildcard) {
+      wildcardIndex = wildcardVariableIndex++;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-      kind,
-      modifiers,
-      type,
-      formalName,
-      charOffset,
+      kind: kind,
+      modifiers: modifiers,
+      type: type,
+      name: name,
+      nameOffset: nameOffset,
+      fileOffset: nameOffset,
       fileUri: _compilationUnit.fileUri,
-      initializerToken: initializerToken,
+      defaultValueToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
-      isWildcard: isWildcard,
+      wildcardIndex: wildcardIndex,
       publicName: publicName,
+      isClosureContextLoweringEnabled: _compilationUnit
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled,
     );
     return formal;
   }
@@ -2282,7 +2329,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         if (builder.metadata != null) {
           if (!libraryFeatures.genericMetadata.isEnabled) {
             _problemReporting.addProblem(
-              codeAnnotationOnFunctionTypeTypeParameter,
+              diag.annotationOnFunctionTypeTypeParameter,
               builder.fileOffset,
               builder.name.length,
               builder.fileUri,
@@ -2309,13 +2356,13 @@ class FragmentFactoryImpl implements FragmentFactory {
       if (existing != null) {
         // Coverage-ignore-block(suite): Not run.
         _problemReporting.addProblem(
-          codeTypeParameterDuplicatedName,
+          diag.typeParameterDuplicatedName,
           tv.fileOffset,
           tv.name.length,
           _compilationUnit.fileUri,
           context: [
-            codeTypeParameterDuplicatedNameCause
-                .withArgumentsOld(tv.name)
+            diag.typeParameterDuplicatedNameCause
+                .withArguments(typeVariableName: tv.name)
                 .withLocation(
                   _compilationUnit.fileUri,
                   existing.fileOffset,
@@ -2406,8 +2453,12 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
-  InferableTypeBuilder addInferableType() {
-    return _compilationUnit.loader.inferableTypes.addInferableType();
+  InferableTypeBuilder addInferableType(
+    InferenceDefaultType inferenceDefaultType,
+  ) {
+    return _compilationUnit.loader.inferableTypes.addInferableType(
+      inferenceDefaultType,
+    );
   }
 
   void _addFragment(Fragment fragment) {

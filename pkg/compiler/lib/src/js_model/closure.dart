@@ -13,12 +13,12 @@ import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
 import '../js_backend/annotations.dart';
-import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import 'class_type_variable_access.dart';
+import 'element_map.dart';
 import 'elements.dart';
 import 'env.dart';
 import 'js_world_builder.dart' show JClosedWorldBuilder;
@@ -1054,14 +1054,13 @@ class JContextField extends JField {
 
   final BoxLocal box;
 
-  JContextField(String name, this.box, {required bool isConst})
+  JContextField(String name, this.box, {required super.isConst})
     : super(
         box.container.library as JLibrary,
         box.container as JClass,
         Name(name, box.container.library.canonicalUri),
         isStatic: false,
         isAssignable: true,
-        isConst: isConst,
       );
 
   factory JContextField.readFromDataSource(DataSourceReader source) {

@@ -199,7 +199,7 @@ class _File {
 @patch
 class _Namespace {
   @patch
-  static void _setupNamespace(var namespace) {
+  static void _setupNamespace(namespace) {
     throw UnsupportedError("_Namespace");
   }
 

@@ -69,13 +69,12 @@ ExportDirective
       ifKeyword: if
       leftParenthesis: (
       name: DottedName
-        components
-          SimpleIdentifier
-            token: dart
-          SimpleIdentifier
-            token: library
-          SimpleIdentifier
-            token: html
+        tokens
+          dart
+          .
+          library
+          .
+          html
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'foo_html.dart'

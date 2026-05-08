@@ -91,12 +91,15 @@ class AssignmentExpressionResolver {
 
     var flow = _resolver.flowAnalysis.flow;
     if (flow != null && isIfNull) {
-      flow.ifNullExpression_rightBegin(left, SharedTypeView(node.readType!));
+      flow.ifNullExpression_rightBegin(
+        flow.getExpressionInfo(left),
+        SharedTypeView(node.readType!),
+      );
     }
 
     _resolver.analyzeExpression(right, SharedTypeSchemaView(rhsContext));
     right = _resolver.popRewrite()!;
-    var whyNotPromoted = flow?.whyNotPromoted(right);
+    var whyNotPromoted = flow?.whyNotPromoted(flow.getExpressionInfo(right));
 
     _resolveTypes(
       node,
@@ -106,11 +109,14 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement2 is PromotableElementImpl) {
-        flow.write(
+        flow.storeExpressionInfo(
           node,
-          writeElement2,
-          SharedTypeView(node.typeOrThrow),
-          hasRead ? null : right,
+          flow.write(
+            node,
+            writeElement2,
+            SharedTypeView(node.typeOrThrow),
+            hasRead ? null : flow.getExpressionInfo(right),
+          ),
         );
       }
       if (isIfNull) {
@@ -178,7 +184,7 @@ class AssignmentExpressionResolver {
   /// See [diag.useOfVoidResult].
   // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression) {
-    if (!identical(expression.staticType, VoidTypeImpl.instance)) {
+    if (expression.staticType is! VoidTypeImpl) {
       return false;
     }
 
@@ -265,10 +271,10 @@ class AssignmentExpressionResolver {
     );
     node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
-      _diagnosticReporter.atToken(
-        operator,
-        diag.undefinedOperator,
-        arguments: [methodName, leftType],
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: leftType)
+            .at(operator),
       );
     }
   }

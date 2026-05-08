@@ -1251,15 +1251,7 @@ class LibraryReader {
   }
 
   TopLevelInferenceError? _readTopLevelInferenceError() {
-    var kindIndex = _reader.readByte();
-    var kind = TopLevelInferenceErrorKind.values[kindIndex];
-    if (kind == TopLevelInferenceErrorKind.none) {
-      return null;
-    }
-    return TopLevelInferenceError(
-      kind: kind,
-      arguments: _reader.readStringReferenceList(),
-    );
+    return TopLevelInferenceError.readOptional(_reader);
   }
 
   void _readTopLevelVariableElements() {
@@ -1412,7 +1404,7 @@ class LibraryReader {
       }
     });
 
-    libraryFragment.isSynthetic = _reader.readBool();
+    libraryFragment.readModifiers(_reader);
 
     libraryFragment.libraryImports = _reader.readTypedList(() {
       return _readLibraryImport(containerUnit: libraryFragment);
@@ -1717,56 +1709,12 @@ class ResolutionReader {
     var aliasElement = readElement();
     if (aliasElement != null) {
       aliasElement as TypeAliasElementImpl;
-      var aliasArguments = _readTypeList();
-      if (type is DynamicTypeImpl) {
-        // TODO(scheglov): add support for `dynamic` aliasing
-        return type;
-      } else if (type is FunctionTypeImpl) {
-        return FunctionTypeImpl(
-          typeParameters: type.typeParameters,
-          parameters: type.parameters,
-          returnType: type.returnType,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-          ),
-        );
-      } else if (type is InterfaceTypeImpl) {
-        return InterfaceTypeImpl(
-          element: type.element,
-          typeArguments: type.typeArguments,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-          ),
-        );
-      } else if (type is RecordTypeImpl) {
-        return RecordTypeImpl(
-          positionalFields: type.positionalFields,
-          namedFields: type.namedFields,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-          ),
-        );
-      } else if (type is TypeParameterTypeImpl) {
-        return TypeParameterTypeImpl(
-          element: type.element,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-          ),
-        );
-      } else if (type is VoidTypeImpl) {
-        // TODO(scheglov): add support for `void` aliasing
-        return type;
-      } else {
-        throw UnimplementedError('${type.runtimeType}');
-      }
+      var alias = InstantiatedTypeAliasElementImpl(
+        element: aliasElement,
+        typeArguments: _readTypeList(),
+        nullabilitySuffix: _readNullability(),
+      );
+      return type.withAlias(alias);
     }
     return type;
   }

@@ -4,8 +4,6 @@
 
 // Common classes and enums for testing dot shorthands.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 enum Color { red, green, blue }
 
 class Integer {

@@ -7,13 +7,14 @@ library;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' show Location;
+
 import '../../compiler_api.dart'
     as api
     show CompilerOutput, OutputSink, OutputType;
 import '../util/output_util.dart';
 import '../util/util.dart';
-import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
+import 'location_provider.dart';
 import 'source_information.dart' show FrameEntry, SourceLocation;
 
 class SourceMapBuilder {

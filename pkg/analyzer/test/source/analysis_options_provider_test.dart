@@ -187,27 +187,6 @@ analyzer:
     }
   }
 
-  void test_getOptions_crawlUp_hasInParent() {
-    newFolder('/foo/bar/baz');
-    newFile('/foo/$analysisOptionsYaml', r'''
-analyzer:
-  ignore:
-    - foo
-''');
-    newFile('/foo/bar/$analysisOptionsYaml', r'''
-analyzer:
-  ignore:
-    - bar
-''');
-    YamlMap options = _getOptions('/foo/bar/baz');
-    expect(options, hasLength(1));
-    {
-      var analyzer = options.valueAt('analyzer') as YamlMap;
-      expect(analyzer, isNotNull);
-      expect(analyzer.valueAt('ignore'), unorderedEquals(['bar']));
-    }
-  }
-
   void test_getOptions_doesNotExist() {
     newFolder('/notFile');
     YamlMap options = _getOptions('/notFile');
@@ -301,7 +280,8 @@ analyzer:
 
   YamlMap _getOptions(String posixPath) {
     var folder = getFolder(posixPath);
+    var file = folder.getChildAssumingFile(file_paths.analysisOptionsYaml);
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
-    return AnalysisOptionsProvider(sourceFactory).getOptions(folder);
+    return AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(file);
   }
 }

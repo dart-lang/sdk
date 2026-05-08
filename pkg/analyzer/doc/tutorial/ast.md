@@ -89,20 +89,23 @@ it might look something like this:
 ```dart
 void printMembers(CompilationUnit unit) {
   for (CompilationUnitMember unitMember in unit.declarations) {
-    if (unitMember is ClassDeclaration) {
-      print(unitMember.name.lexeme);
-      for (ClassMember classMember in unitMember.members) {
-        if (classMember is MethodDeclaration) {
-          print('  ${classMember.name.lexeme}');
-        } else if (classMember is FieldDeclaration) {
-          for (VariableDeclaration field in classMember.fields.variables) {
-            print('  ${field.name.lexeme}');
-          }
-        } else if (classMember is ConstructorDeclaration) {
-          if (classMember.name == null) {
-            print('  ${unitMember.name.lexeme}');
-          } else {
-            print('  ${unitMember.name.lexeme}.${classMember.name!.lexeme}');
+    if (unitMember case ClassDeclaration classDeclaration) {
+      String className = classDeclaration.namePart.typeName.lexeme;
+      print(className);
+      if (classDeclaration.body case BlockClassBody body) {
+        for (ClassMember classMember in body.members) {
+          if (classMember is MethodDeclaration) {
+            print('  ${classMember.name.lexeme}');
+          } else if (classMember is FieldDeclaration) {
+            for (VariableDeclaration field in classMember.fields.variables) {
+              print('  ${field.name.lexeme}');
+            }
+          } else if (classMember is ConstructorDeclaration) {
+            if (classMember.name case var constructorNameToken?) {
+              print('  $className.${constructorNameToken.lexeme}');
+            } else {
+              print('  $className');
+            }
           }
         }
       }

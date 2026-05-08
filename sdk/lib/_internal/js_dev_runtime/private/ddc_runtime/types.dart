@@ -133,7 +133,11 @@ void checkTypeBound(
     JS<rti.Rti>('!', '#', bound),
   );
   if (!validSubtype) {
-    throwTypeError('type `$type` does not extend `$bound` of `$name`.');
+    throwTypeError(
+      'The type argument `${rti.rtiToString(type)}` '
+      'is not a subtype of the type variable bound `${rti.rtiToString(bound)}` '
+      'of type variable `$name`.',
+    );
   }
 }
 

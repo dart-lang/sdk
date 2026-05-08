@@ -1,0 +1,80 @@
+--- test1
+B0 = EntryBlock()
+  v1 = Parameter(a)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v2 = Parameter(b)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1)
+  v7 = UnboxInt(v1)   # RA: R0 <- (R0)
+  v8 = UnboxInt(v2)   # RA: R1 <- (R1)
+  v5 = BinaryIntOp +(v7, v8)   # RA: R0 <- (R0, R1)
+  v9 = BoxInt(v5)   # RA: R0 <- (R0) temps: [R1, R2, R3]
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v9)   # RA: (R0)
+
+--- test2
+B0 = EntryBlock() dominates:(B5)
+  Constant(0)
+  Constant(1)
+  v27 = Constant(UnboxedIntConstant(0))
+  v29 = Constant(UnboxedIntConstant(1))
+  v1 = Parameter(n)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  ParallelMove control(UnboxedIntConstant(0) -> R2, UnboxedIntConstant(0) -> R1)
+  Goto(B5)
+B5 = JoinBlock(B0, B10) idom:B0 dominates:(B11, B10) loop-header (depth:1 body:(B5, B10) back-edges:(B10))
+  v25 = Phi(v27, v19)   # RA: R2 <- (-, R2)
+  v24 = Phi(v27, v15)   # RA: R1 <- (-, R1)
+  v28 = UnboxInt(v1)   # RA: R3 <- (R0)
+  CompareAndBranch int <(v25, v28, true: B10, false: B11)   # RA: (R2, R3)
+B10 = TargetBlock() idom:B5 in-loop:B5
+  v15 = BinaryIntOp +(v24, v25)   # RA: R1 <- (R1, R2)
+  v19 = BinaryIntOp +(v25, v29)   # RA: R2 <- (R2, -)
+  Goto(B5)
+B11 = TargetBlock() idom:B5
+  v30 = BoxInt(v24)   # RA: R1 <- (R1) temps: [R0, R2, R3]
+  ParallelMove input(vloc:R1 -> R0)
+  Return(v30)   # RA: (R0)
+
+--- test3
+B0 = EntryBlock() dominates:(B7, B13, B6)
+  Constant(1)
+  v19 = Constant(5)
+  Constant(2)
+  v35 = Constant(UnboxedIntConstant(1))
+  v1 = Parameter(a1)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v2 = Parameter(a2)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R3)
+  v3 = Parameter(c1)   # RA: param[2] <- ()
+  ParallelMove output(param[2] -> vloc:R1)
+  v4 = Parameter(c2)   # RA: param[3] <- ()
+  ParallelMove output(param[3] -> vloc:R2)
+  Branch(v3, true: B6, false: B7)   # RA: (R1)
+B6 = TargetBlock() idom:B0
+  v34 = UnboxInt(v1)   # RA: R0 <- (R0)
+  v11 = BinaryIntOp +(v34, v35)   # RA: R0 <- (R0, -)
+  Goto(B13)
+B7 = TargetBlock() idom:B0 dominates:(B17, B21, B16)
+  Branch(v4, true: B16, false: B17)   # RA: (R2)
+B16 = TargetBlock() idom:B7
+  ParallelMove control(IntConstant(5) -> R3)
+  Goto(B21)
+B17 = TargetBlock() idom:B7
+  Goto(B21)
+B21 = JoinBlock(B17, B16) idom:B7
+  v32 = Phi(v2, v19)   # RA: R3 <- (R3, -)
+  v36 = UnboxInt(v32)   # RA: R0 <- (R3)
+  Goto(B13)
+B13 = JoinBlock(B21, B6) idom:B0
+  v31 = Phi(v36, v11)   # RA: R0 <- (R0, R0)
+  v33 = BinaryIntOp <<(v31, v35)   # RA: R0 <- (R0, -)
+  v37 = BoxInt(v33)   # RA: R0 <- (R0) temps: [R1, R2, R3]
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v37)   # RA: (R0)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v1)   # RA: (R0)
+

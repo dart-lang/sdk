@@ -154,31 +154,31 @@ testGetters() {
   }
 }
 
-validate16be(var list) {
+validate16be(list) {
   Expect.equals(0xf1, list[0]);
   Expect.equals(0xf2, list[1]);
 }
 
-validate16le(var list) {
+validate16le(list) {
   Expect.equals(0xf2, list[0]);
   Expect.equals(0xf1, list[1]);
 }
 
-validate32be(var list) {
+validate32be(list) {
   Expect.equals(0xf1, list[0]);
   Expect.equals(0xf2, list[1]);
   Expect.equals(0xf3, list[2]);
   Expect.equals(0xf4, list[3]);
 }
 
-validate32le(var list) {
+validate32le(list) {
   Expect.equals(0xf4, list[0]);
   Expect.equals(0xf3, list[1]);
   Expect.equals(0xf2, list[2]);
   Expect.equals(0xf1, list[3]);
 }
 
-validate64be(var list) {
+validate64be(list) {
   Expect.equals(0xf1, list[0]);
   Expect.equals(0xf2, list[1]);
   Expect.equals(0xf3, list[2]);
@@ -189,7 +189,7 @@ validate64be(var list) {
   Expect.equals(0xf8, list[7]);
 }
 
-validate64le(var list) {
+validate64le(list) {
   Expect.equals(0xf8, list[0]);
   Expect.equals(0xf7, list[1]);
   Expect.equals(0xf6, list[2]);

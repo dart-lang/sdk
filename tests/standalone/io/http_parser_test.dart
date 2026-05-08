@@ -612,6 +612,50 @@ Transfer-Encoding: chunked\r
       chunked: true,
     );
 
+    // Test "chunked" as part of a comma-separated Transfer-Encoding list
+    // (RFC 7230 section 3.3.1). Before the fix, the parser only did an
+    // exact match on the full header value, so "gzip, chunked" was not
+    // recognized as chunked encoding. Combined with a Content-Length
+    // header this caused a CL/TE request smuggling vector when the Dart
+    // HTTP server sat behind a compliant reverse proxy.
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 10\r
+Transfer-Encoding: gzip, chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: -1,
+      expectedBytesReceived: 10,
+      chunked: true,
+    );
+
+    // Same as above but with "identity" preceding "chunked".
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: identity, chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: -1,
+      expectedBytesReceived: 10,
+      chunked: true,
+    );
+
     // Content-Length and "Transfer-Encoding: chunked" are specified.
     request = """
 POST /test HTTP/1.1\r

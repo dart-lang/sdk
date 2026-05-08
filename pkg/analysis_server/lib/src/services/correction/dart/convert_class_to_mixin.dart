@@ -12,8 +12,6 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class ConvertClassToMixin extends ResolvedCorrectionProducer {
   ConvertClassToMixin({required super.context});
 
@@ -35,16 +33,15 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
         selectionEnd < classDeclaration.classKeyword.offset) {
       return;
     }
-    if (classDeclaration.members2.any(
-      (member) => member is ConstructorDeclaration,
-    )) {
-      return;
-    }
     if (classDeclaration.finalKeyword != null ||
         classDeclaration.interfaceKeyword != null ||
         classDeclaration.sealedKeyword != null) {
       return;
     }
+    if (classDeclaration.body.members.any((e) => e is ConstructorDeclaration)) {
+      return;
+    }
+    if (classDeclaration.namePart is PrimaryConstructorDeclaration) return;
     var finder = _SuperclassReferenceFinder();
     classDeclaration.accept(finder);
     var referencedClasses = finder.referencedClasses;
@@ -70,12 +67,16 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
       }
     }
     interfaces.addAll(classElement.interfaces);
+    var rangeEnd = switch (classDeclaration.body) {
+      BlockClassBody body => body.leftBracket,
+      EmptyClassBody body => body.semicolon,
+    };
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(
         range.startStart(
           classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
-          (classDeclaration.body as BlockClassBody).leftBracket,
+          rangeEnd,
         ),
         (builder) {
           builder.write('mixin ');
@@ -83,7 +84,9 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
           builder.writeTypeParameters(classElement.typeParameters);
           builder.writeTypes(superclassConstraints, prefix: ' on ');
           builder.writeTypes(interfaces, prefix: ' implements ');
-          builder.write(' ');
+          if (classDeclaration.body is BlockClassBody) {
+            builder.write(' ');
+          }
         },
       );
     });

@@ -26,7 +26,7 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
-  method test(final core::int nonConstParameter) → void {
+  method test(core::int nonConstParameter) → void {
     final core::int nonConstLocal = 2;
     const wildcard core::Set<dynamic> _#wc0#var = #C1;
     const wildcard core::Set<dynamic> _#wc1#var = #C1;

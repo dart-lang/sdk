@@ -21,11 +21,11 @@ import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType;
 
 typedef GeneratedTypeConstraint =
-    shared.GeneratedTypeConstraint<ExpressionVariable>;
+    shared.GeneratedTypeConstraint<VariableDeclaration>;
 
 typedef MergedTypeConstraint =
     shared.MergedTypeConstraint<
-      ExpressionVariable,
+      VariableDeclaration,
       TypeDeclarationType,
       TypeDeclaration,
       TreeNode
@@ -33,7 +33,7 @@ typedef MergedTypeConstraint =
 
 typedef UnknownTypeConstraintOrigin =
     shared.UnknownTypeConstraintOrigin<
-      ExpressionVariable,
+      VariableDeclaration,
       TypeDeclarationType,
       TypeDeclaration,
       TreeNode

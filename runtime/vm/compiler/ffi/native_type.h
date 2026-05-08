@@ -63,7 +63,7 @@ class NativeStructType;
 // * Compound types (https://en.cppreference.com/w/cpp/language/type):
 //   * Struct
 //   * Union
-class NativeType : public ZoneAllocated {
+class NativeType : public ZoneObject {
  public:
 #if !defined(FFI_UNIT_TESTS)
   static const NativeType* FromAbstractType(Zone* zone,
@@ -455,7 +455,7 @@ class NativeUnionType : public NativeCompoundType {
       : NativeCompoundType(members, size, alignment_field, alignment_stack) {}
 };
 
-class NativeFunctionType : public ZoneAllocated {
+class NativeFunctionType : public ZoneObject {
  public:
   NativeFunctionType(const NativeTypes& argument_types,
                      const NativeType& return_type,

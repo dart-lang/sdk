@@ -18,6 +18,67 @@ class SortUnnamedConstructorsFirstTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.sort_unnamed_constructors_first;
 
+  test_class_new_sorted() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C.new();
+  C.named();
+}
+''');
+  }
+
+  test_class_new_unsorted() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  C.named();
+  C.new();
+}
+''',
+      [lint(25, 5)],
+    );
+  }
+
+  test_class_newHead_named_unsorted() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  new named();
+  C.new();
+}
+''',
+      [lint(27, 5)],
+    );
+  }
+
+  test_class_newHead_unnamed_unsorted() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  C.named();
+  new();
+}
+''',
+      [lint(25, 3)],
+    );
+  }
+
+  test_class_primaryNamed_unnamedInBody() async {
+    await assertNoDiagnostics(r'''
+class C.named(int x) {
+  C() : this.named(0);
+}
+''');
+  }
+
+  test_class_primaryUnnamed_namedInBody() async {
+    await assertNoDiagnostics(r'''
+class C(int x) {
+  C.named() : this(0);
+}
+''');
+  }
+
   test_class_sorted() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -41,6 +102,15 @@ class C {
 ''',
       [lint(25, 1)],
     );
+  }
+
+  test_enum_primaryNamed_unnamedInBody() async {
+    await assertNoDiagnostics(r'''
+enum E.named(int x) {
+  v.named(0);
+  const E() : this.named(0);
+}
+''');
   }
 
   test_enum_sorted() async {
@@ -92,5 +162,13 @@ extension type E(Object o) {
         error(diag.duplicateConstructorDefault, 46, 1),
       ],
     );
+  }
+
+  test_extensionType_primaryNamed_unnamedInBody() async {
+    await assertNoDiagnostics(r'''
+extension type E.named(int x) {
+  E() : this.named(0);
+}
+''');
   }
 }

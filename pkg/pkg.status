@@ -65,6 +65,7 @@ kernel/test/dart_scope_calculator_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
+vm/test/transformations/record_use_test: Slow, Pass
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 vm_service/*: Slow, Pass
@@ -307,6 +308,7 @@ dds/test/log_history_size_gigantic_test: Skip # The Windows ARM64 bots are not p
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
 [ $arch != x64 && ($system == linux || $system == windows) ]
+dart_runtime_service/test/sse_client_test: Skip # Chrome not available
 dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
 dds/test/devtools_server/remote_control_test: Skip # Chrome not available
 dds/test/devtools_server/server_connection_api_test: Skip # Chrome not available

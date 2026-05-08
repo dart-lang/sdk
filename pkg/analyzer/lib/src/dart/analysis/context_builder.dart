@@ -9,7 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
+import 'package:analyzer/src/context/builder.dart' show locateEmbedderYamlFor;
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
@@ -29,7 +29,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart'
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
@@ -124,6 +123,7 @@ class ContextBuilderImpl {
 
     var optionsFile = contextRoot.optionsFile;
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
+    var analysisOptionsProvider = AnalysisOptionsProvider(sourceFactory);
 
     AnalysisOptionsMap analysisOptionsMap;
     // If there's an options file defined (as, e.g. passed into the
@@ -131,9 +131,8 @@ class ContextBuilderImpl {
     if (definedOptionsFile && optionsFile != null) {
       analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
         _getAnalysisOptions(
-          contextRoot,
           optionsFile,
-          sourceFactory,
+          analysisOptionsProvider,
           sdk,
           updateAnalysisOptions3,
           enabledExperiments,
@@ -144,7 +143,7 @@ class ContextBuilderImpl {
       // context root.
       analysisOptionsMap = _createOptionsMap(
         contextRoot,
-        sourceFactory,
+        analysisOptionsProvider,
         updateAnalysisOptions3,
         sdk,
       );
@@ -187,7 +186,7 @@ class ContextBuilderImpl {
   /// Create an [AnalysisOptionsMap] for the given [contextRoot].
   AnalysisOptionsMap _createOptionsMap(
     ContextRootImpl contextRoot,
-    SourceFactory sourceFactory,
+    AnalysisOptionsProvider analysisOptionsProvider,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required DartSdk sdk,
@@ -195,28 +194,24 @@ class ContextBuilderImpl {
     updateAnalysisOptions,
     DartSdk sdk,
   ) {
-    var provider = AnalysisOptionsProvider(sourceFactory);
-
-    void updateOptions(AnalysisOptionsImpl options) {
-      if (updateAnalysisOptions != null) {
-        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
-      }
-    }
-
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
       var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: provider.getOptionsFromFile(file),
+        optionsMap: analysisOptionsProvider.getOptionsFromFile(file),
         file: file,
         resourceProvider: resourceProvider,
       );
 
       for (var folder in folders) {
-        _optionsMap.add(folder, options);
+        _optionsMap[folder] = options;
       }
     }
 
-    _optionsMap.forEachOptionsObject(updateOptions);
+    for (var options in _optionsMap.options) {
+      if (updateAnalysisOptions != null) {
+        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
+      }
+    }
     return _optionsMap;
   }
 
@@ -235,7 +230,7 @@ class ContextBuilderImpl {
   /// Return the SDK that should be used to analyze code.
   DartSdk _createSdk({
     required Workspace workspace,
-    String? sdkPath,
+    required String sdkPath,
     String? sdkSummaryPath,
   }) {
     if (sdkSummaryPath != null) {
@@ -246,24 +241,23 @@ class ContextBuilderImpl {
 
     var folderSdk = FolderBasedDartSdk(
       resourceProvider,
-      resourceProvider.getFolder(sdkPath!),
+      resourceProvider.getFolder(sdkPath),
     );
 
     {
-      // TODO(scheglov): We already had partial SourceFactory in ContextLocatorImpl.
-      var partialSourceFactory = workspace.createSourceFactory(null, null);
+      var partialSourceFactory = workspace.partialSourceFactory;
       var embedderYamlSource = partialSourceFactory.forUri(
         'package:sky_engine/_embedder.yaml',
       );
       if (embedderYamlSource != null) {
         var embedderYamlPath = embedderYamlSource.fullName;
         var libFolder = resourceProvider.getFile(embedderYamlPath).parent;
-        var locator = EmbedderYamlLocator.forLibFolder(libFolder);
-        var embedderMap = locator.embedderYamls;
-        if (embedderMap.isNotEmpty) {
-          return EmbedderSdk(
+        var embedderYaml = locateEmbedderYamlFor(libFolder);
+        if (embedderYaml != null) {
+          return EmbedderSdk.new2(
             resourceProvider,
-            embedderMap,
+            libFolder,
+            embedderYaml,
             languageVersion: folderSdk.languageVersion,
           );
         }
@@ -273,14 +267,12 @@ class ContextBuilderImpl {
     return folderSdk;
   }
 
-  /// Return the analysis options that should be used to analyze code in the
-  /// [contextRoot].
+  /// Return the analysis options from [optionsFile].
   ///
   // TODO(scheglov): We have already loaded it once in [ContextLocatorImpl].
   AnalysisOptionsImpl _getAnalysisOptions(
-    ContextRootImpl contextRoot,
-    File? optionsFile,
-    SourceFactory sourceFactory,
+    File optionsFile,
+    AnalysisOptionsProvider analysisOptionsProvider,
     DartSdk sdk,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
@@ -289,21 +281,19 @@ class ContextBuilderImpl {
     updateAnalysisOptions,
     List<String> enabledExperiments,
   ) {
-    AnalysisOptionsImpl? options;
+    AnalysisOptionsImpl options;
 
-    if (optionsFile != null) {
-      try {
-        var provider = AnalysisOptionsProvider(sourceFactory);
-        options = AnalysisOptionsImpl.fromYaml(
-          optionsMap: provider.getOptionsFromFile(optionsFile),
-          file: optionsFile,
-          resourceProvider: resourceProvider,
-        );
-      } catch (e) {
-        // Ignore exception.
-      }
+    try {
+      options = AnalysisOptionsImpl.fromYaml(
+        optionsMap: analysisOptionsProvider.getOptionsFromFile(optionsFile),
+        file: optionsFile,
+        resourceProvider: resourceProvider,
+      );
+    } catch (e) {
+      // Ignore exception.
+      options = AnalysisOptionsImpl(file: optionsFile);
     }
-    options ??= AnalysisOptionsImpl(file: optionsFile);
+
     options.contextFeatures = FeatureSet.fromEnableFlags2(
       sdkLanguageVersion: sdk.languageVersion,
       flags: enabledExperiments,

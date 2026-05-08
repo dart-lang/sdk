@@ -66,29 +66,10 @@ $ ./tools/build.py --mode=release --arch=arm,arm64,riscv64 debian_package
 
 # Testing
 
-In addition to cross-compiling the Dart SDK, test items can also be cross-compiled. Even without the corresponding hardware, you can quickly verify if the source code modifications you made are correct. Below is a simple method for development on the RISCV64 platform for your reference.
-
-Cross-compile the test items on X64 Linux to RISCV64 and perform correctness check:
-1. Follow the steps above to cross-compile the RISCV64 sdk.
-2. Cross-compile the test items by running: `./tools/build.py --mode release --arch riscv64 most run_ffi_unit_tests`.
-3. Install the necessary QEMU dependencies: `sudo apt install qemu-user qemu-user-static qemu-system`.
-4. Run the test items, e.g., `tests/lib`:
+In addition to cross-compiling the Dart SDK, tests can be run even without the corresponding hardware by using QEMU.
 
 ```bash
-export QEMU_LD_PREFIX=/usr/riscv64-linux-gnu
-
-./tools/test.py \
-  --runtime vm \
-  --progress color \
-  --arch riscv64 \
-  --mode release \
-  --time \
-  --tasks 8 \
-  lib
-```
-
-If you have configured QEMU for RISCV64, you can merge steps 3 and 4 into a single command (omitting some print parameters):
-
-```bash
-./tools/test.py -r vm -m release -a riscv64 --use-qemu lib
+$ sudo apt install qemu-user libc6-armhf-cross libc6-arm64-cross libc6-riscv64-cross
+$ ./tools/build.py --mode release --arch arm,arm64,riscv64 runtime
+$ ./tools/test.py --mode release --arch arm,arm64,riscv64 --use-qemu lib
 ```

@@ -51,8 +51,25 @@ class SessionLogPage extends DiagnosticPageWithNav implements PostablePage {
     for (var entry in entries) {
       buffer.writeln(json.encode(entry));
     }
+
+    buf.writeln('''
+<script>
+async function copyToClipboard() {
+  var copyText = document.getElementById("sessionLogContent");
+  if (copyText) {
+    try {
+      await navigator.clipboard.writeText(copyText.innerText);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  }
+}
+</script>
+<p><button class="btn" onclick="copyToClipboard()">Copy to Clipboard</button></p>
+''');
+
     pre(() {
-      buf.write('<code>');
+      buf.write('<code id="sessionLogContent">');
       buf.write(escape('$buffer'));
       buf.writeln('</code>');
     });

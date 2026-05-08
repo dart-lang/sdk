@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
@@ -17,11 +18,13 @@ enum OperandSize {
   s8,
   s16,
   s32,
-  s64;
+  s64,
+  simd128;
 
   bool get is32 => (this == u32) || (this == s32);
   bool get is64 => (this == u64) || (this == s64);
   bool get is32or64 => is32 || is64;
+  bool get is128 => (this == simd128);
 
   bool get isSigned =>
       (this == s8) || (this == s16) || (this == s32) || (this == s64);
@@ -31,6 +34,7 @@ enum OperandSize {
     u16 || s16 => 16,
     u32 || s32 => 32,
     u64 || s64 => 64,
+    simd128 => 128,
   };
 
   int get sizeInBytes => switch (this) {
@@ -38,6 +42,7 @@ enum OperandSize {
     u16 || s16 => 2,
     u32 || s32 => 4,
     u64 || s64 => 8,
+    simd128 => 16,
   };
 
   int get log2sizeInBytes => switch (this) {
@@ -45,6 +50,7 @@ enum OperandSize {
     u16 || s16 => 1,
     u32 || s32 => 2,
     u64 || s64 => 3,
+    simd128 => 4,
   };
 }
 
@@ -132,6 +138,9 @@ abstract base class Assembler {
   Address fieldAddress(Register obj, int offset) =>
       address(obj, offset - heapObjectTag);
 
+  void enterDartFrame();
+  void leaveDartFrame();
+
   // Push and pop values using Dart stackPointerReg.
   void push(Register reg);
   void pop(Register reg);
@@ -149,7 +158,40 @@ abstract base class Assembler {
   /// Load arbitrary integer [value] into register.
   void loadImmediate(Register reg, int value);
 
+  /// [dst] = [src] + arbitrary integer [value].
+  void addImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
+  /// [dst] = [src] - arbitrary integer [value].
+  void subImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
+  /// compare [reg] with arbitrary integer [value].
+  void cmpImmediate(
+    Register reg,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
+  /// [dst] = bitwise and ([src], arbitrary integer [value]).
+  void andImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
   void callRuntime(RuntimeEntry entry, int argumentCount);
+  void callLeafRuntime(LeafRuntimeEntry entry);
+  void callStub(Code stub);
 
   void unimplemented(String message);
 }

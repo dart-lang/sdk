@@ -141,7 +141,7 @@ struct InliningInfo {
 };
 
 // Class to encapsulate the construction and manipulation of the flow graph.
-class FlowGraph : public ZoneAllocated {
+class FlowGraph : public ZoneObject {
  public:
   enum class CompilationMode {
     kUnoptimized,

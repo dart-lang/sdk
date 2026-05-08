@@ -168,13 +168,24 @@ class JSExport {
   const JSExport([this.name = '']);
 }
 
+@JS('Reflect.get')
+external JSAny? _getPropertyForJSAny(JSAny value, JSAny property);
+
 /// A non-nullish JavaScript value.
 ///
 /// A [JSAny] can be any JavaScript value except JavaScript `null` and
 /// `undefined`. JavaScript `null` and `undefined` are instead converted to Dart
 /// `null` by the compiler. Therefore, <code>[JSAny]?</code> is the top type of
 /// the type hierarchy as it includes nullish JavaScript values as well.
-extension type JSAny._(JSAnyRepType _jsAny) implements Object {}
+extension type JSAny._(JSAnyType _jsAny) implements Object, JSAnyType {
+  /// Like `JSObjectUnsafeExtension.getProperty`, but works for any JS type.
+  R _getProperty<R extends JSAny?>(JSAny property) =>
+      _getPropertyForJSAny(this, property) as R;
+
+  /// Like `JSObjectUnsafeExtension.callMethod`, but works for any JS type.
+  R _callMethod<R extends JSAny?>(JSAny method) =>
+      _getProperty<JSFunction>(method).callAsFunction(this) as R;
+}
 
 /// A JavaScript `Object`.
 ///
@@ -185,7 +196,8 @@ extension type JSAny._(JSAnyRepType _jsAny) implements Object {}
 /// When declaring interop extension types, [JSObject] is usually the type you
 /// will use as the representation type.
 @JS('Object')
-extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
+extension type JSObject._(JSObjectType _jsObject)
+    implements JSAny, JSObjectType {
   /// Creates a [JSObject] from an object provided by an earlier interop
   /// library.
   ///
@@ -194,7 +206,7 @@ extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
   /// This constructor is intended to allow users to avoid having to cast to and
   /// from [JSObject].
   JSObject.fromInteropObject(Object interopObject)
-    : _jsObject = interopObject as JSObjectRepType;
+    : _jsObject = interopObject as JSObjectType;
 
   /// Creates a new empty JavaScript object.
   ///
@@ -205,13 +217,13 @@ extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
 
 // TODO(srujzs): Move this member to `JSObject` once we can patch extension type
 // members.
-external JSObjectRepType _createObjectLiteral();
+external JSObjectType _createObjectLiteral();
 
 /// A JavaScript [`Function`](https://tc39.es/ecma262/#sec-function-objects)
 /// value.
 @JS('Function')
-extension type JSFunction._(JSFunctionRepType _jsFunction)
-    implements JSObject {}
+extension type JSFunction._(JSFunctionType _jsFunction)
+    implements JSObject, JSFunctionType {}
 
 /// A JavaScript callable function created from a Dart function.
 ///
@@ -220,9 +232,232 @@ extension type JSFunction._(JSFunctionRepType _jsFunction)
 /// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction._(
-  JSExportedDartFunctionRepType _jsExportedDartFunction
+  JSExportedDartFunctionType _jsExportedDartFunction
 )
-    implements JSFunction {}
+    implements JSFunction, JSExportedDartFunctionType {}
+
+/// The synchronous [JS iterable protocol].
+///
+/// [JS iterable protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
+///
+/// This interface is the minimal protocol necessary to interact with JS
+/// features like `for`/`of`. All JS standard library types that implement the
+/// JS iterable protocol implement [JSIterable] as well, whose [iterator] is a
+/// [JSIterator] with more utility methods than [JSIteratorProtocol].
+@Since('3.12')
+extension type JSIterableProtocol<T extends JSAny?>._(JSAnyType _)
+    implements JSAny {
+  /// See [`[Symbol.iterator]()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#symbol.iterator).
+  JSIteratorProtocol<T> get iterator => _callMethod(JSSymbol.iterator);
+}
+
+/// A [JSIterableProtocol] whose [iterator] is a [JSIterator].
+///
+/// On its own, the synchronous [JS iterable protocol][] provides a
+/// [JSIteratorProtocol] that can only do simple iteration. Many JS iterables
+/// provide a JS [Iterator][] ([JSIterator]) with more utility methods,
+/// including all iterables provided by the JS standard library.
+///
+/// [JS iterable protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
+/// [Iterator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator
+///
+/// All types that implement [JSIterableProtocol] in the JS core library are
+/// [JSIterable]s, but user-defined [JSIterableProtocol] implementations may not
+/// be.
+@Since('3.12')
+extension type JSIterable<T extends JSAny?>._(JSAnyType _)
+    implements JSIterableProtocol<T> {
+  /// See [`[Symbol.iterator]()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#symbol.iterator).
+  JSIterator<T> get iterator => _callMethod<JSIterator<T>>(JSSymbol.iterator);
+}
+
+/// The synchronous [JS iterator protocol].
+///
+/// [JS iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
+///
+/// This is the minimal interface that JS iterators are allowed to implement in
+/// order to work with core library APIs and language features like `for`/`of`.
+///
+/// Iterators are strongly encouraged to also extend the [JS `Iterator`
+/// class][], which adds various utility methods. If they do, they're referred
+/// to as "proper iterators" (see [JSIterator]). All iterators provided by the
+/// core library are proper iterators.
+///
+/// [JS `Iterator` class]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator#proper_iterators
+@Since('3.12')
+extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
+    implements JSAny {
+  @JS('return')
+  external JSFunction? get _nullableReturnValue;
+
+  @JS('throw')
+  external JSFunction? get _nullableThrowError;
+
+  /// See [`next()`].
+  ///
+  /// [`next()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#next
+  external JSIteratorResult<T> next([JSAny? yieldValue]);
+
+  @JS('return')
+  external JSIteratorResult<T> _returnValue([JSAny? value]);
+
+  /// See [`return()`].
+  ///
+  /// [`return()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#returnvalue
+  ///
+  /// This is a nullable getter because not all iterators support this method.
+  ///
+  /// If the `value` is null or omitted, the callback is called with no value.
+  /// It's not possible to call the callback with a `null` value.
+  JSIteratorResult<T> Function([T? value])? get returnValue =>
+      // Make sure to pass along whether an argument was passed or not, because
+      // that's observable from JavaScript.
+      _nullableReturnValue == null
+      ? null
+      : ([value]) => value == null ? _returnValue() : _returnValue(value);
+
+  @JS('throw')
+  external JSIteratorResult<T> _throwError([JSAny? error]);
+
+  /// See [`throw()`].
+  ///
+  /// [`throw()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#throwexception
+  ///
+  /// This is a nullable getter because not all iterators support this method.
+  ///
+  /// If the `error` is null or omitted, the callback is called with no value.
+  /// It's not possible to call the callback with a `null` error.
+  JSIteratorResult<T> Function([JSAny? error])? get throwError =>
+      // Make sure to pass along whether an argument was passed or not, because
+      // that's observable from JavaScript.
+      _nullableThrowError == null
+      ? null
+      : ([error]) => error == null ? _throwError() : _throwError(error);
+}
+
+/// A proper JS iterator.
+///
+/// In JS, a ["proper iterator"][] implements the [JS iterator protocol] and is an
+/// instance of the [JS `Iterator` class][].
+///
+/// ["proper iterator"]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator#proper_iterators
+/// [JS iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
+/// [JS `Iterator` class]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator#proper_iterators
+///
+/// This library provides no type for the JS `Iterator` type without the JS
+/// iterator protocol members. Such an object is not useful.
+@JS('Iterator')
+@Since('3.12')
+extension type JSIterator<T extends JSAny?>._(JSObject _)
+    implements JSIteratorProtocol<T>, JSIterable<T> {
+  /// Converts an object that just implements the [Iterator protocol] into a
+  /// proper iterator.
+  ///
+  /// [Iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
+  external static JSIterator<T> from<T extends JSAny?>(
+    JSIteratorProtocol<T> object,
+  );
+
+  /// Creates a proper iterator from an object that just implements the
+  /// [Iterable protocol].
+  ///
+  /// [Iterable protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
+  ///
+  /// This is equivalent to `JSIterator.from(object.iterator)`.
+  @JS('from')
+  external static JSIterator<T> fromIterable<T extends JSAny?>(
+    JSIterableProtocol<T> object,
+  );
+
+  /// Creates a proper [JSIterator] from the methods defined by the [Iterator
+  /// protocol].
+  ///
+  /// [Iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
+  ///
+  /// This is the best way to create a custom JS iterator from Dart code. To
+  /// convert an existing Dart iterable, use
+  /// [IterableToJSIterable.toJSIterable], and to convert an existing Dart
+  /// iterator use [IteratorToJSIterator.toJSIterator]
+  static JSIterator<T> fromFunctions<T extends JSAny?>(
+    JSIteratorResult<T> Function() next, {
+    JSIteratorResult<T> Function()? returnValue,
+  }) {
+    final iterator = _CustomIteratorProtocol<T>(next: next.toJS);
+    if (returnValue != null) iterator._returnValue = returnValue.toJS;
+    return from<T>(iterator);
+  }
+
+  /// See [`Iterator.drop()`].
+  ///
+  /// [`Iterator.drop()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator/drop
+  external JSIterator<T> drop(int limit);
+
+  /// See [`Iterator.take()`].
+  ///
+  /// [`Iterator.take()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator/take
+  external JSIterator<T> take(int limit);
+}
+
+/// A [JSIteratorProtocol] with a settable `return` property.
+///
+/// This is used by [JSIterator.fromFunctions] to construct a proper iterator.
+extension type _CustomIteratorProtocol<T extends JSAny?>._(JSObject _)
+    implements JSIteratorProtocol<T> {
+  @JS('return')
+  external set _returnValue(JSFunction? function);
+
+  external _CustomIteratorProtocol({required JSFunction next});
+}
+
+/// A synchronous [JS `IteratorResult`].
+///
+/// [JS `IteratorResult`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#done
+@Since('3.12')
+extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
+    implements JSObject {
+  /// Creates a result that indicates the end of iteration.
+  ///
+  /// The value is the "return value" of the iterator. For example, [generator
+  /// functions] use this to represent the return value of the generator
+  /// function.
+  ///
+  /// [generator functions]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
+  ///
+  /// If the `value` is null or omitted, the result has no value. It's not
+  /// possible to create a result with a `null` value.
+  factory JSIteratorResult.done([T? returnValue]) {
+    final result = JSIteratorResult<T>._(JSObject());
+    result._done = true;
+    if (returnValue != null) result._value = returnValue;
+    return result;
+  }
+
+  /// Creates a result that indicates the iterator is emitting a value and is
+  /// not yet finished.
+  factory JSIteratorResult.value(T value) {
+    final result = JSIteratorResult<T>._(JSObject());
+    result._value = value;
+    return result;
+  }
+
+  // Wrap this to hide the distinction between undefined and false from users.
+  @JS('done')
+  external bool? _done;
+
+  // Wrap this so that the setter is private.
+  @JS('value')
+  external T? _value;
+
+  /// See [`done`].
+  ///
+  /// [`done`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#done
+  bool get isDone => _done == true;
+
+  /// See [`value`].
+  ///
+  /// [`value`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#value
+  external T? get value;
+}
 
 /// A JavaScript [`Array`](https://tc39.es/ecma262/#sec-array-objects).
 ///
@@ -243,8 +478,8 @@ extension type JSExportedDartFunction._(
 /// <code>[List]<T></code>, casts may be introduced to ensure that it is indeed
 /// a <code>[List]<T></code>.
 @JS('Array')
-extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
-    implements JSObject {
+extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
+    implements JSObject, JSArrayType, JSIterable<T> {
   /// Creates an empty JavaScript `Array`.
   ///
   /// Equivalent to `new Array()` and more efficient than `[].jsify()`.
@@ -295,8 +530,8 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
 /// When converted to a <code>[Future]<T></code>, there is a cast to ensure that
 /// the [Future] actually resolves to a [T] to ensure soundness.
 @JS('Promise')
-extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
-    implements JSObject {
+extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
+    implements JSObject, JSPromiseType {
   external JSPromise(JSFunction executor);
 }
 
@@ -331,13 +566,13 @@ class NullRejectionException implements Exception {
 ///
 /// See [ObjectToJSBoxedDartObject.toJSBox] to wrap an arbitrary [Object].
 @JS('Object')
-extension type JSBoxedDartObject._(JSBoxedDartObjectRepType _jsBoxedDartObject)
-    implements JSObject {}
+extension type JSBoxedDartObject._(JSBoxedDartObjectType _jsBoxedDartObject)
+    implements JSObject, JSBoxedDartObjectType {}
 
 /// A JavaScript `ArrayBuffer`.
 @JS('ArrayBuffer')
-extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
-    implements JSObject {
+extension type JSArrayBuffer._(JSArrayBufferType _jsArrayBuffer)
+    implements JSObject, JSArrayBufferType {
   /// Creates a JavaScript `ArrayBuffer` of size [length] using an optional
   /// [options] JavaScript object that sets the `maxByteLength`.
   @Since('3.6')
@@ -346,7 +581,8 @@ extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
 
 /// A JavaScript `DataView`.
 @JS('DataView')
-extension type JSDataView._(JSDataViewRepType _jsDataView) implements JSObject {
+extension type JSDataView._(JSDataViewType _jsDataView)
+    implements JSObject, JSDataViewType {
   /// Creates a JavaScript `DataView` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [byteLength].
   @Since('3.6')
@@ -354,13 +590,13 @@ extension type JSDataView._(JSDataViewRepType _jsDataView) implements JSObject {
 }
 
 /// Abstract supertype of all JavaScript typed arrays.
-extension type JSTypedArray._(JSTypedArrayRepType _jsTypedArray)
-    implements JSObject {}
+extension type JSTypedArray._(JSTypedArrayType _jsTypedArray)
+    implements JSObject, JSTypedArrayType {}
 
 /// A JavaScript `Int8Array`.
 @JS('Int8Array')
-extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
-    implements JSTypedArray {
+extension type JSInt8Array._(JSInt8ArrayType _jsInt8Array)
+    implements JSTypedArray, JSInt8ArrayType {
   /// Creates a JavaScript `Int8Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -376,8 +612,8 @@ extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
 
 /// A JavaScript `Uint8Array`.
 @JS('Uint8Array')
-extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
-    implements JSTypedArray {
+extension type JSUint8Array._(JSUint8ArrayType _jsUint8Array)
+    implements JSTypedArray, JSUint8ArrayType {
   /// Creates a JavaScript `Uint8Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -394,9 +630,9 @@ extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
 /// A JavaScript `Uint8ClampedArray`.
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
-  JSUint8ClampedArrayRepType _jsUint8ClampedArray
+  JSUint8ClampedArrayType _jsUint8ClampedArray
 )
-    implements JSTypedArray {
+    implements JSTypedArray, JSUint8ClampedArrayType {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
   ///
@@ -416,8 +652,8 @@ extension type JSUint8ClampedArray._(
 
 /// A JavaScript `Int16Array`.
 @JS('Int16Array')
-extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
-    implements JSTypedArray {
+extension type JSInt16Array._(JSInt16ArrayType _jsInt16Array)
+    implements JSTypedArray, JSInt16ArrayType {
   /// Creates a JavaScript `Int16Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -433,8 +669,8 @@ extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
 
 /// A JavaScript `Uint16Array`.
 @JS('Uint16Array')
-extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
-    implements JSTypedArray {
+extension type JSUint16Array._(JSUint16ArrayType _jsUint16Array)
+    implements JSTypedArray, JSUint16ArrayType {
   /// Creates a JavaScript `Uint16Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -450,8 +686,8 @@ extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
 
 /// A JavaScript `Int32Array`.
 @JS('Int32Array')
-extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
-    implements JSTypedArray {
+extension type JSInt32Array._(JSInt32ArrayType _jsInt32Array)
+    implements JSTypedArray, JSInt32ArrayType {
   /// Creates a JavaScript `Int32Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -467,8 +703,8 @@ extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
 
 /// A JavaScript `Uint32Array`.
 @JS('Uint32Array')
-extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
-    implements JSTypedArray {
+extension type JSUint32Array._(JSUint32ArrayType _jsUint32Array)
+    implements JSTypedArray, JSUint32ArrayType {
   /// Creates a JavaScript `Uint32Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -484,8 +720,8 @@ extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
 
 /// A JavaScript `Float32Array`.
 @JS('Float32Array')
-extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
-    implements JSTypedArray {
+extension type JSFloat32Array._(JSFloat32ArrayType _jsFloat32Array)
+    implements JSTypedArray, JSFloat32ArrayType {
   /// Creates a JavaScript `Float32Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -501,8 +737,8 @@ extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
 
 /// A JavaScript `Float64Array`.
 @JS('Float64Array')
-extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
-    implements JSTypedArray {
+extension type JSFloat64Array._(JSFloat64ArrayType _jsFloat64Array)
+    implements JSTypedArray, JSFloat64ArrayType {
   /// Creates a JavaScript `Float64Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -521,20 +757,24 @@ extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
 // subtypes of [JSAny].
 
 /// A JavaScript number.
-extension type JSNumber._(JSNumberRepType _jsNumber) implements JSAny {}
+extension type JSNumber._(JSNumberType _jsNumber)
+    implements JSAny, JSNumberType {}
 
 /// A JavaScript boolean.
-extension type JSBoolean._(JSBooleanRepType _jsBoolean) implements JSAny {}
+extension type JSBoolean._(JSBooleanType _jsBoolean)
+    implements JSAny, JSBooleanType {}
 
 /// A JavaScript string.
-extension type JSString._(JSStringRepType _jsString) implements JSAny {}
+extension type JSString._(JSStringType _jsString)
+    implements JSAny, JSStringType, JSIterable<JSString> {}
 
 @JS('Symbol')
 external JSSymbol _constructSymbol([String? description]);
 
 /// A JavaScript `Symbol`.
 @JS('Symbol')
-extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
+extension type JSSymbol._(JSSymbolType _jsSymbol)
+    implements JSAny, JSSymbolType {
   // TODO(srujzs): See if this can be made `const` so it can be used in similar
   // situations to a Dart symbol literal.
   /// Creates a new, unique JavaScript `Symbol`.
@@ -653,7 +893,8 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
 }
 
 /// A JavaScript `BigInt`.
-extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
+extension type JSBigInt._(JSBigIntType _jsBigInt)
+    implements JSAny, JSBigIntType {}
 
 /// An opaque reference to a Dart object that can be passed to JavaScript.
 ///
@@ -682,7 +923,7 @@ extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
 /// See [ObjectToExternalDartReference.toExternalReference] to allow an
 /// arbitrary value of type [T] to be passed to JavaScript.
 extension type ExternalDartReference<T extends Object?>._(
-  ExternalDartReferenceRepType<T> _externalDartReference
+  ExternalDartReferenceType<T> _externalDartReference
 ) {}
 
 /// JS type equivalent for `undefined` for interop member return types.
@@ -690,7 +931,7 @@ extension type ExternalDartReference<T extends Object?>._(
 /// Prefer using `void` instead of this.
 // TODO(srujzs): Mark this as deprecated. There are no performance costs from
 // using `void`, and we'll likely provide a different way to box `undefined`.
-typedef JSVoid = JSVoidRepType;
+typedef JSVoid = JSVoidType;
 
 /// Helper members to determine if a value is JavaScript `undefined` or `null`.
 ///
@@ -768,51 +1009,6 @@ extension JSAnyUtilityExtension on JSAny? {
     return instanceof(constructor as JSFunction);
   }
 
-  /// Whether this <code>[JSAny]?</code> is an instance of the JavaScript type
-  /// that is declared by [T].
-  ///
-  /// Since the type-check this function emits is determined at compile-time,
-  /// [T] needs to be an interop extension type that can also be determined at
-  /// compile-time. In particular, `isA` can't be provided a generic type
-  /// variable as a type argument.
-  ///
-  /// This method uses a combination of `null`, `typeof`, and `instanceof`
-  /// checks in order to do this check. Use this instead of `is` checks.
-  ///
-  /// If [T] is a primitive JS type like [JSString], this uses a `typeof` check
-  /// that corresponds to that primitive type like `typeofEquals('string')`.
-  ///
-  /// If [T] is a non-primitive JS type like [JSArray] or an interop extension
-  /// type on one, this uses an `instanceof` check using the name or the
-  /// <code>@[JS]</code> rename of the given type like
-  /// `instanceOfString('Array')`. Note that if you rename the library using the
-  /// <code>@[JS]</code> annotation, this uses the rename in the `instanceof`
-  /// check like `instanceOfString('library1.JSClass')`.
-  ///
-  /// To determine the JavaScript constructor to use as the second operand in
-  /// the `instanceof` check, this function uses the JavaScript name associated
-  /// with the extension type, which is either the argument given to the
-  /// <code>@[JS]</code> annotation or the Dart declaration name. So, if you had
-  /// an interop extension type `JSClass` that wraps `JSArray` without a rename,
-  /// this does an `instanceOfString('JSClass')` check and not an
-  /// `instanceOfString('Array')` check.
-  ///
-  /// There are a few values for [T] that are exceptions to this rule:
-  /// - `JSTypedArray`: As `TypedArray` does not exist as a class in JavaScript,
-  ///   this does some prototype checking to make `isA<JSTypedArray>` do the
-  ///   right thing.
-  /// - `JSBoxedDartObject`: `isA<JSBoxedDartObject>` will check if the value is
-  ///   a result of a previous [ObjectToJSBoxedDartObject.toJSBox] call.
-  /// - `JSAny`: If you do an `isA<JSAny>` check, it will only check for `null`.
-  /// - User interop types whose representation types are JS primitive types:
-  ///   This will result in an error to avoid confusion on whether the user
-  ///   interop type is used in the type-check. Use the primitive JS type as the
-  ///   value for [T] instead.
-  /// - User interop types that have an object literal constructor: This will
-  ///   result in an error as you likely want to use [JSObject] instead.
-  @Since('3.4')
-  external bool isA<T extends JSAny?>();
-
   /// Converts a JavaScript JSON-like value to the Dart equivalent if possible.
   ///
   /// Effectively the inverse of [NullableObjectUtilExtension.jsify], [dartify]
@@ -879,6 +1075,65 @@ extension NullableObjectUtilExtension on Object? {
   // backends, we can update the documentation to say that the object is
   // externalized instead of the conversion being undefined.
   external JSAny? jsify();
+
+  /// Whether this <code>[Object]?</code> is an instance of the JavaScript type
+  /// that is declared by [T].
+  ///
+  /// The result of this function tells you if you can safely cast to [T].
+  /// Because of runtime type differences across platforms, do not expect that
+  /// that this function returns the same value for the same type on every
+  /// platform e.g. <code>0.isA<JSNumber>()</code>.
+  ///
+  /// Since the type-check this function emits is determined at compile-time,
+  /// [T] needs to be an interop extension type that can also be determined at
+  /// compile-time. In particular, `isA` can't be provided a generic type
+  /// variable as a type argument.
+  ///
+  /// This method uses a combination of `null`, `typeof`, and `instanceof`
+  /// checks and intrinsic functions in order to do this check. Use this instead
+  /// of `is` checks for platform-independent type checks.
+  ///
+  /// If [T] is a primitive JS type like [JSString], this uses a `typeof` check
+  /// that corresponds to that primitive type like `typeofEquals('string')`.
+  ///
+  /// If [T] is a non-primitive JS type like [JSArray] or an interop extension
+  /// type on one, this uses an `instanceof` check using the name or the
+  /// <code>@[JS]</code> rename of the given type like
+  /// `instanceOfString('Array')`. Note that if you rename the library using the
+  /// <code>@[JS]</code> annotation, this uses the rename in the `instanceof`
+  /// check like `instanceOfString('library1.JSClass')`.
+  ///
+  /// To determine the JavaScript constructor to use as the second operand in
+  /// the `instanceof` check, this function uses the JavaScript name associated
+  /// with the extension type, which is either the argument given to the
+  /// <code>@[JS]</code> annotation or the Dart declaration name. So, if you had
+  /// an interop extension type `JSClass` that wraps `JSArray` without a rename,
+  /// this does an `instanceOfString('JSClass')` check and not an
+  /// `instanceOfString('Array')` check.
+  ///
+  /// There are a few values for [T] that are exceptions to this rule:
+  /// - `JSTypedArray`: As `TypedArray` does not exist as a class in JavaScript,
+  ///   this does some prototype checking to make `isA<JSTypedArray>` do the
+  ///   right thing.
+  /// - `JSBoxedDartObject`: `isA<JSBoxedDartObject>` will check if the value is
+  ///   a result of a previous [ObjectToJSBoxedDartObject.toJSBox] call.
+  /// - `JSAny`: `isA<JSAny>` will call an intrinsic function to check that the
+  ///   value is a JS value.
+  /// - `JSObject`: `isA<JSObject>` will call an intrinsic function to check
+  ///   that the value is a JS object (`instanceof Object` is insufficient for
+  ///   some objects).
+  /// - `JSExportedDartFunction`: `isA<JSExportedDartFunction>` will check if
+  ///   the value is a result of a previous
+  ///   [FunctionToJSExportedDartFunction.toJS] or
+  ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call.
+  /// - User interop types whose representation types are JS primitive types:
+  ///   This will result in an error to avoid confusion on whether the user
+  ///   interop type is used in the type-check. Use the primitive JS type as the
+  ///   value for [T] instead.
+  /// - User interop types that have an object literal constructor: This will
+  ///   result in an error as you likely want to use [JSObject] instead.
+  @Since('3.4')
+  external bool isA<T extends JSAny?>();
 }
 
 /// Utility extensions for [JSFunction].
@@ -1586,6 +1841,87 @@ extension Float64ListToJSFloat64Array on Float64List {
   external JSFloat64Array get toJS;
 }
 
+/// Conversion from [Iterable] to [JSIterable].
+@Since('3.12')
+extension IterableToJSIterable<T extends JSAny?> on Iterable<T> {
+  /// A [JSIterable] wrapper that proxies to the Dart iterable API.
+  JSIterable<T> get toJSIterable {
+    final object = JSObject();
+    object.setProperty(
+      JSSymbol.iterator,
+      (() => this.iterator.toJSIterator).toJS,
+    );
+    return object as JSIterable<T>;
+  }
+}
+
+/// Conversion from [JSIterable] to [Iterable].
+@Since('3.12')
+extension JSIterableToIterable<T extends JSAny?> on JSIterable<T> {
+  /// A Dart [Iterable] that iterates over the values in this.
+  Iterable<T> get toDartIterable => _JSIterableToIterable<T>(this);
+}
+
+/// A wrapper around a [JSIterable] that implements the Dart iterable API.
+class _JSIterableToIterable<T extends JSAny?> extends Iterable<T> {
+  /// The wrapped JavaScript iterable.
+  final JSIterableProtocol<T> _js;
+
+  _JSIterableToIterable(this._js);
+
+  @override
+  Iterator<T> get iterator => _JSIteratorToIterator<T>(_js.iterator);
+}
+
+/// Conversion from [Iterator] to [JSIterator].
+@Since('3.12')
+extension IteratorToJSIterator<T extends JSAny?> on Iterator<T> {
+  /// A [JSIterator] wrapper that proxies to the Dart iterator API.
+  JSIterator<T> get toJSIterator => JSIterator.fromFunctions<T>(
+    () => this.moveNext()
+        ? JSIteratorResult<T>.value(this.current)
+        : JSIteratorResult<T>.done(),
+  );
+}
+
+/// Conversion from [JSIterator] to [Iterator].
+@Since('3.12')
+extension JSIteratorToIterator<T extends JSAny?> on JSIterator<T> {
+  /// A` Dart [Iterator] that iterates over the values in this.
+  Iterator<T> get toDartIterator => _JSIteratorToIterator<T>(this);
+}
+
+/// A wrapper around a [JSIterator] that implements the Dart iterator API.
+class _JSIteratorToIterator<T extends JSAny?> implements Iterator<T> {
+  /// The wrapped JavaScript iterator.
+  final JSIteratorProtocol<T> _js;
+
+  /// The most recent result emitted by [_js].
+  JSIteratorResult<T>? _lastResult;
+
+  @override
+  T get current {
+    if (_lastResult case final result?) {
+      if (result.isDone) {
+        throw StateError('No value');
+      } else {
+        return result.value as T;
+      }
+    } else {
+      throw StateError('No value');
+    }
+  }
+
+  _JSIteratorToIterator(this._js);
+
+  @override
+  bool moveNext() {
+    final result = _js.next();
+    _lastResult = result;
+    return !result.isDone;
+  }
+}
+
 /// Conversions from [JSArray] to [List].
 extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   /// Converts this [JSArray] to a [List] by either casting or wrapping it.
@@ -1833,3 +2169,19 @@ external JSObject createJSInteropWrapper<T extends Object>(
 /// Returns a [JSPromise] that resolves to a [JSObject] that's the module
 /// namespace object.
 external JSPromise<JSObject> importModule(JSAny moduleName);
+
+/// Returns true if the underlying JavaScript values of [a] and [b] are
+/// identical.
+///
+/// The semantics are equivalent to the `===` operator in JavaScript. For
+/// backends that do not directly use JS values, the underlying JS value backing
+/// the native object will be compared using JS `===`. This should mean that the
+/// result of this should be consistent across backends unlike [identical] which
+/// only compares the native references.
+///
+/// `jsIdentical(a,b)` does not necessarily imply
+/// `a.runtimeType == b.runtimeType` or `a.hashCode == b.hashCode` as the JS
+/// values being compared may be wrapped by different native types. So a and b
+/// themselves cannot be used interchangeably.
+@Since('3.12')
+external bool jsIdentical(Object? a, Object? b);

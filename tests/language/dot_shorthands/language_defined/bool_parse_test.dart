@@ -5,8 +5,6 @@
 // When the context type is a language-defined bool (`if`, `||`, `while`),
 // using a dot shorthand will match the `parse` member in the `bool` class.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import 'package:expect/expect.dart';
 
 void main() {

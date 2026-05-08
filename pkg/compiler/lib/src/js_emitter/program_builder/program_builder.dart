@@ -14,10 +14,10 @@ import '../../elements/entities.dart';
 import '../../elements/types.dart';
 import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
-import '../../js_backend/field_analysis.dart'
-    show FieldAnalysisData, JFieldAnalysis;
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/custom_elements_analysis.dart';
+import '../../js_backend/field_analysis.dart'
+    show FieldAnalysisData, JFieldAnalysis;
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer;
@@ -45,11 +45,11 @@ import '../../universe/world_builder.dart' show SelectorConstraints;
 import '../class_stub_generator.dart' show ClassStubGenerator;
 import '../instantiation_stub_generator.dart' show InstantiationStubGenerator;
 import '../interceptor_stub_generator.dart' show InterceptorStubGenerator;
+import '../js_emitter.dart' show CodeEmitterTask, Emitter;
 import '../main_call_stub_generator.dart' show MainCallStubGenerator;
+import '../model.dart';
 import '../runtime_type_generator.dart'
     show RuntimeTypeGenerator, TypeTestProperties;
-import '../js_emitter.dart' show CodeEmitterTask, Emitter;
-import '../model.dart';
 import '../sorter.dart';
 
 part 'collector.dart';

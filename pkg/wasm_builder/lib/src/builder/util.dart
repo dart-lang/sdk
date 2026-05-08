@@ -13,7 +13,7 @@ int _finalizeIndexables(int index, Iterable<ir.Indexable> indexables) {
 }
 
 List<T> _finalizeIndexablesAndBuild<T>(
-    int index, Iterable<IndexableBuilder> indexableBuilders) {
+    int index, Iterable<IndexableBuilder<T>> indexableBuilders) {
   final built = <T>[];
   for (final f in indexableBuilders) {
     f.finalizableIndex.finalize(index++);
@@ -24,7 +24,7 @@ List<T> _finalizeIndexablesAndBuild<T>(
 
 /// Finalizes imports before iterating through a list of builders and building.
 List<T> finalizeImportsAndBuilders<T>(
-    Iterable<ir.Indexable> imported, Iterable<IndexableBuilder> builders) {
+    Iterable<ir.Indexable> imported, Iterable<IndexableBuilder<T>> builders) {
   int index = _finalizeIndexables(0, imported);
   return _finalizeIndexablesAndBuild<T>(index, builders);
 }

@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •() → self::C1
+    ;
+}
+class C2 extends core::Object {
+  constructor •() → self::C2
+    ;
+}
+class C3 extends core::Object {
+  constructor •() → self::C3
+    ;
+}
+class C4 extends core::Object {
+  constructor •() → self::C4
+    ;
+}
+class C5 extends core::Object {
+  @self::a
+  constructor •() → self::C5
+    ;
+}
+class C6 extends core::Object {
+  @self::a
+  constructor •() → self::C6
+    ;
+}
+class C7 extends core::Object {
+  @self::a
+  constructor •() → self::C7
+    ;
+}
+class C8 extends core::Object {
+  @self::a
+  constructor •() → self::C8
+    ;
+}
+static const field core::int a = 1;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///primary_constructor_body.dart:28:4 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///primary_constructor_body.dart:33:4 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///primary_constructor_body.dart:38:4 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///primary_constructor_body.dart:45:4 -> IntConstant(1)
+Extra constant evaluation: evaluated: 4, effectively constant: 4

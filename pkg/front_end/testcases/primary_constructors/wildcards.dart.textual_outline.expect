@@ -1,0 +1,24 @@
+class C1(final int _);
+
+class C2(var int _);
+
+class C3(final int _, final int _);
+
+class C4(int _, int _);
+
+class C5(var int _) {
+  int x = _;
+  this : assert(_ > 0);
+}
+
+extension type ET1(int _);
+
+extension type ET2(final int _);
+
+extension type ET3(int _) {
+  this : assert(_ > 0);
+}
+
+main() {}
+
+expect(expected, actual) {}

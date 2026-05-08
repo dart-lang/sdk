@@ -4,9 +4,9 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/scope.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Methods useful for [Scope] for resolution, but not belonging to it. This
 /// mixin exists to allow code to be more easily shared between separate
@@ -56,10 +56,10 @@ mixin ScopeHelpers {
   }
 
   void _reportDeprecatedExportUse({required Token nameToken}) {
-    diagnosticReporter.atToken(
-      nameToken,
-      diag.deprecatedExportUse,
-      arguments: [nameToken.lexeme],
+    diagnosticReporter.report(
+      diag.deprecatedExportUse
+          .withArguments(name: nameToken.lexeme)
+          .at(nameToken),
     );
   }
 }

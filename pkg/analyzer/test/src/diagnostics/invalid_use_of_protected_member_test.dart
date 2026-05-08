@@ -173,19 +173,37 @@ class B extends A {
 import 'package:meta/meta.dart';
 class A {
   @protected
-  int a = 0;
+  int f = 0;
 }
 ''');
     var lib2 = newFile('$testPackageLibPath/lib2.dart', r'''
 import 'lib1.dart';
 abstract class B {
-  int b() => new A().a;
+  int m(A a) => a.f;
 }
 ''');
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(diag.invalidUseOfProtectedMember, 60, 1),
+      error(diag.invalidUseOfProtectedMember, 57, 1),
+    ]);
+  }
+
+  test_field_outsideClassAndLibrary_originPrimaryConstructor() async {
+    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A(@protected var int f);
+''');
+    var lib2 = newFile('$testPackageLibPath/lib2.dart', r'''
+import 'lib1.dart';
+abstract class B {
+  int m(A a) => a.f;
+}
+''');
+
+    await assertErrorsInFile2(lib1, []);
+    await assertErrorsInFile2(lib2, [
+      error(diag.invalidUseOfProtectedMember, 57, 1),
     ]);
   }
 

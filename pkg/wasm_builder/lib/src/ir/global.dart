@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../serialize/serialize.dart';
 import '../serialize/printer.dart';
+import '../serialize/serialize.dart';
 import 'ir.dart';
 
 /// An (imported or defined) global variable.

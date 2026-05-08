@@ -4,10 +4,13 @@
 
 import 'package:kernel/ast.dart';
 
-Set<Library> findAllReferencedLibraries(List<Library> from,
-    {bool collectViaReferencesToo = false}) {
-  _LibraryCollector collector =
-      new _LibraryCollector(collectViaReferencesToo: collectViaReferencesToo);
+Set<Library> findAllReferencedLibraries(
+  List<Library> from, {
+  bool collectViaReferencesToo = false,
+}) {
+  _LibraryCollector collector = new _LibraryCollector(
+    collectViaReferencesToo: collectViaReferencesToo,
+  );
   for (Library library in from) {
     collector.visitLibrary(library);
   }

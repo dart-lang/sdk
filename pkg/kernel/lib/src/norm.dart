@@ -19,8 +19,10 @@ Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
   _Norm normVisitor = new _Norm(coreTypes);
   List<DartType>? typeArguments = null;
   for (int i = 0; i < supertype.typeArguments.length; ++i) {
-    DartType? typeArgument =
-        supertype.typeArguments[i].accept1(normVisitor, Variance.covariant);
+    DartType? typeArgument = supertype.typeArguments[i].accept1(
+      normVisitor,
+      Variance.covariant,
+    );
     if (typeArgument != null) {
       typeArguments ??= supertype.typeArguments.toList();
       typeArguments[i] = typeArgument;
@@ -70,15 +72,19 @@ class _Norm extends ReplacementVisitor {
       // [typeArgument] is non-nullable, so the union of that and the
       // nullability of [node] is the nullability of [node].
       return new InterfaceType(
-          coreTypes.futureClass, node.nullability, <DartType>[typeArgument]);
+        coreTypes.futureClass,
+        node.nullability,
+        <DartType>[typeArgument],
+      );
     } else if (coreTypes.isNull(typeArgument)) {
       assert(!coreTypes.isTop(typeArgument));
       assert(!coreTypes.isObject(typeArgument));
       assert(!coreTypes.isBottom(typeArgument));
       return new InterfaceType(
-          coreTypes.futureClass,
-          uniteNullabilities(typeArgument.nullability, node.nullability),
-          <DartType>[typeArgument]);
+        coreTypes.futureClass,
+        uniteNullabilities(typeArgument.nullability, node.nullability),
+        <DartType>[typeArgument],
+      );
     }
     assert(!coreTypes.isTop(typeArgument));
     assert(!coreTypes.isObject(typeArgument));
@@ -103,7 +109,9 @@ class _Norm extends ReplacementVisitor {
 
   @override
   DartType? visitStructuralParameterType(
-      StructuralParameterType node, Variance variance) {
+    StructuralParameterType node,
+    Variance variance,
+  ) {
     DartType bound = node.parameter.bound;
     if (normalizesToNever(bound)) {
       DartType result = NeverType.fromNullability(node.nullability);

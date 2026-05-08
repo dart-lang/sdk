@@ -55,6 +55,7 @@ namespace dart {
   V(Capability_factory, 1)                                                     \
   V(Capability_equals, 2)                                                      \
   V(Capability_get_hashcode, 1)                                                \
+  V(createConstMapFromMapOfDeeplyImmutables, 1)                                \
   V(RawReceivePort_factory, 2)                                                 \
   V(RawReceivePort_get_id, 1)                                                  \
   V(RawReceivePort_closeInternal, 1)                                           \
@@ -270,7 +271,7 @@ namespace dart {
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
-  V(Internal_boundsCheckForPartialInstantiation, 2)                            \
+  V(Internal_instantiateClosure, 2)                                            \
   V(Internal_loadDynamicModule, 1)                                             \
   V(Internal_allocateOneByteString, 1)                                         \
   V(Internal_allocateTwoByteString, 1)                                         \
@@ -279,6 +280,7 @@ namespace dart {
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
   V(Internal_allocateObjectInstructionsStart, 0)                               \
   V(Internal_allocateObjectInstructionsEnd, 0)                                 \
+  V(Internal_ensureDeeplyImmutable, 1)                                         \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(ThreadLocal_allocateId, 0)                                                 \

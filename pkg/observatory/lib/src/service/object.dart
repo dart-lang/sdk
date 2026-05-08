@@ -2887,6 +2887,8 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.weakReference;
     case 'UserTag':
       return M.InstanceKind.userTag;
+    case 'Pointer':
+      return M.InstanceKind.pointer;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);

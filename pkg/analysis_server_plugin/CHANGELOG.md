@@ -1,4 +1,57 @@
-## 0.3.5-dev
+## 0.3.14-dev
+
+- Require version `12.1.0-dev` of the `analyzer` package.
+- Require version `0.14.8-dev` of the `analyzer_plugin` package.
+
+## 0.3.13
+
+- Require version `12.0.0` of the `analyzer` package.
+- Require version `0.14.7` of the `analyzer_plugin` package.
+
+## 0.3.12-dev
+
+- Require version `11.1.0-dev` of the `analyzer` package.
+- Require version `0.14.6-dev` of the `analyzer_plugin` package.
+
+## 0.3.11
+
+- Files which are excluded in analysis options are no longer analyzed by
+  analyzer plugins.
+- Require version `^11.0.0-0` of the `analyzer` package.
+- Require version `0.14.5-dev` of the `analyzer_plugin` package.
+
+## 0.3.10-dev
+
+- Require version `10.3.0-dev` of the `analyzer` package.
+- Require version `0.14.5-dev` of the `analyzer_plugin` package.
+
+## 0.3.10
+
+- Require version `10.2.0` of the `analyzer` package.
+- Require version `0.14.4` of the `analyzer_plugin` package.
+
+## 0.3.9
+
+- Require version `10.1.0` of the `analyzer` package.
+- Require version `0.14.3` of the `analyzer_plugin` package.
+
+## 0.3.8
+
+- Rules are more properly namespaced in the plugin in which they are registered,
+  which means in particular that `// ignore` comments work when there are two
+  plugins registering rules with the same name. Dart 3.12 is required for this
+  change to take effect.
+- Require version `10.0.2` of the `analyzer` package.
+
+## 0.3.7
+
+- Require version `10.0.1` of the `analyzer` package.
+
+## 0.3.6
+
+- Fix issue with displaying diagnostic context messages in IDEs.
+
+## 0.3.5
 
 - Require version `10.0.0` of the `analyzer` package.
 - Require version `0.14.0` of the `analyzer_plugin` package.

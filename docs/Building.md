@@ -86,12 +86,13 @@ fetch dart
 
 Dart SDK uses `gclient` to manage dependencies which are described in the `DEPS` file. If you switch branches or update `sdk` checkout you need to run `gclient sync` to bring dependencies in sync with the SDK version.
 
-Note: If you do not have emscripten, you can update your `.gclient` file to pull emscripten:
-```
-    "custom_vars": {
-      "download_emscripten": True,
-    },
-```
+> [!NOTE]
+> To run tests for `dart:ffi` support in dart2wasm one needs the emscripten sdk to build C code into a wasm module. If you need to run these tests locally and do not have emscripten, you can update your `.gclient` file to pull emscripten:
+> ```
+>     "custom_vars": {
+>       "download_emscripten": True,
+>     },
+> ```
 
 <a id="building"></a>
 

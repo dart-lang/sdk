@@ -11,7 +11,6 @@
 | `dart2js:disable-inlining` | [Disable inlining within a method](#disabling-inlining) |
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
 | `dart2js:load-priority` | [Affects deferred library loading](#load-priority) |
-| `dart2js:resource-identifier` | [Collects data references to resources](resource_identifiers.md) |
 | `dart2js:stack-starts-at-throw` | [Affects stack trace from `throw` expressions](#stack-statrs-at-throw) |
 | `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](#declaring-a-static-weak-reference-intrinsic-method) |
 
@@ -37,6 +36,7 @@ understands potential repercussions.
 | `dart2js:types:trust` | TBD |
 | `dart2js:allow-cse` | [Allow common subexpression elimination (CSE)](#allow-cse) |
 | `dart2js:allow-dce` | [Allow dead code elimination (DCE)](#allow-dce) |
+| `dart2js:record-use` | [Use `@RecordUse()` instead. Collects uses of definitions](record_uses.md) |
 
 ## Pragmas for internal use
 

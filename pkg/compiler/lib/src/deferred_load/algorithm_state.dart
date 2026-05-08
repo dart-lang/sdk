@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'entity_data.dart';
-import 'entity_data_info.dart';
-import 'import_set.dart';
-import 'work_queue.dart';
-
 import '../common.dart';
 import '../compiler.dart';
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_world.dart' show KClosedWorld;
+import 'entity_data.dart';
+import 'entity_data_info.dart';
+import 'import_set.dart';
+import 'work_queue.dart';
 
 /// Manages the state of the [EntityData] model. Every class, member, constant,
 /// etc, is wrapped in the deferred loading algorithm by an [EntityData] which

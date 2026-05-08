@@ -14,6 +14,34 @@ class C4() {
 this(int x) : assert(1 > 2);
 }
 
+class C5() {
+const this;
+}
+
+class C6() {
+covariant this;
+}
+
+class C7() {
+external this;
+}
+
+class C8() {
+final this;
+}
+
+class C9() {
+late this;
+}
+
+class C10() {
+static this;
+}
+
+class C11() {
+var this;
+}
+
 
 class[KeywordToken] C1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 this[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
@@ -29,5 +57,33 @@ this[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
 
 class[KeywordToken] C4[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 this[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C5[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+const[KeywordToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C6[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+covariant[KeywordToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C7[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+external[KeywordToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C8[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C9[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+late[KeywordToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C10[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+static[KeywordToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C11[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] this[KeywordToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

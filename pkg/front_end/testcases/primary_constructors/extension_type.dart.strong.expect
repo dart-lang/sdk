@@ -1,0 +1,171 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ET0(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  constructor • = self::ET0|constructor#;
+  constructor tearoff • = self::ET0|constructor#_#new#tearOff;
+}
+extension type ET1(core::bool it) {
+  abstract extension-type-member representation-field get it() → core::bool;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int? it) {
+  abstract extension-type-member representation-field get it() → core::int?;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::bool? it) {
+  abstract extension-type-member representation-field get it() → core::bool?;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+extension type ET5(core::bool it) {
+  abstract extension-type-member representation-field get it() → core::bool;
+  constructor • = self::ET5|constructor#;
+  constructor tearoff • = self::ET5|constructor#_#new#tearOff;
+}
+extension type ET6(core::String? it) {
+  abstract extension-type-member representation-field get it() → core::String?;
+  constructor • = self::ET6|constructor#;
+  constructor tearoff • = self::ET6|constructor#_#new#tearOff;
+}
+extension type ET7(core::List<core::int>? it) {
+  abstract extension-type-member representation-field get it() → core::List<core::int>?;
+  constructor • = self::ET7|constructor#;
+  constructor tearoff • = self::ET7|constructor#_#new#tearOff;
+}
+extension type ET8(core::String? it) {
+  abstract extension-type-member representation-field get it() → core::String?;
+  constructor • = self::ET8|constructor#;
+  constructor tearoff • = self::ET8|constructor#_#new#tearOff;
+}
+extension type ET9(core::List<core::int>? it) {
+  abstract extension-type-member representation-field get it() → core::List<core::int>?;
+  constructor • = self::ET9|constructor#;
+  constructor tearoff • = self::ET9|constructor#_#new#tearOff;
+}
+extension type ET10(core::String it) {
+  abstract extension-type-member representation-field get it() → core::String;
+  constructor • = self::ET10|constructor#;
+  constructor tearoff • = self::ET10|constructor#_#new#tearOff;
+}
+extension type ET11(core::List<core::int> it) {
+  abstract extension-type-member representation-field get it() → core::List<core::int>;
+  constructor • = self::ET11|constructor#;
+  constructor tearoff • = self::ET11|constructor#_#new#tearOff;
+}
+static extension-type-member method ET0|constructor#(core::int it) → self::ET0% /* erasure=core::int, declared=! */ {
+  lowered final self::ET0% /* erasure=core::int, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET0|constructor#_#new#tearOff(core::int it) → self::ET0% /* erasure=core::int, declared=! */
+  return self::ET0|constructor#(it);
+static extension-type-member method ET1|constructor#(final core::bool it) → self::ET1% /* erasure=core::bool, declared=! */ {
+  lowered final self::ET1% /* erasure=core::bool, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::bool it) → self::ET1% /* erasure=core::bool, declared=! */
+  return self::ET1|constructor#(it);
+static extension-type-member method ET2|constructor#([core::int? it = #C1]) → self::ET2% /* erasure=core::int?, declared=! */ {
+  lowered final self::ET2% /* erasure=core::int?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff([core::int? it = #C1]) → self::ET2% /* erasure=core::int?, declared=! */
+  return self::ET2|constructor#(it);
+static extension-type-member method ET3|constructor#([final core::bool? it = #C1]) → self::ET3% /* erasure=core::bool?, declared=! */ {
+  lowered final self::ET3% /* erasure=core::bool?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff([core::bool? it = #C1]) → self::ET3% /* erasure=core::bool?, declared=! */
+  return self::ET3|constructor#(it);
+static extension-type-member method ET4|constructor#([core::int it = #C2]) → self::ET4% /* erasure=core::int, declared=! */ {
+  lowered final self::ET4% /* erasure=core::int, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET4|constructor#_#new#tearOff([core::int it = #C2]) → self::ET4% /* erasure=core::int, declared=! */
+  return self::ET4|constructor#(it);
+static extension-type-member method ET5|constructor#([final core::bool it = #C3]) → self::ET5% /* erasure=core::bool, declared=! */ {
+  lowered final self::ET5% /* erasure=core::bool, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET5|constructor#_#new#tearOff([core::bool it = #C3]) → self::ET5% /* erasure=core::bool, declared=! */
+  return self::ET5|constructor#(it);
+static extension-type-member method ET6|constructor#({core::String? it = #C1}) → self::ET6% /* erasure=core::String?, declared=! */ {
+  lowered final self::ET6% /* erasure=core::String?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET6|constructor#_#new#tearOff({core::String? it = #C1}) → self::ET6% /* erasure=core::String?, declared=! */
+  return self::ET6|constructor#(it: it);
+static extension-type-member method ET7|constructor#({final core::List<core::int>? it = #C1}) → self::ET7% /* erasure=core::List<core::int>?, declared=! */ {
+  lowered final self::ET7% /* erasure=core::List<core::int>?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET7|constructor#_#new#tearOff({core::List<core::int>? it = #C1}) → self::ET7% /* erasure=core::List<core::int>?, declared=! */
+  return self::ET7|constructor#(it: it);
+static extension-type-member method ET8|constructor#({core::String? it = #C4}) → self::ET8% /* erasure=core::String?, declared=! */ {
+  lowered final self::ET8% /* erasure=core::String?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET8|constructor#_#new#tearOff({core::String? it = #C4}) → self::ET8% /* erasure=core::String?, declared=! */
+  return self::ET8|constructor#(it: it);
+static extension-type-member method ET9|constructor#({final core::List<core::int>? it = #C6}) → self::ET9% /* erasure=core::List<core::int>?, declared=! */ {
+  lowered final self::ET9% /* erasure=core::List<core::int>?, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET9|constructor#_#new#tearOff({core::List<core::int>? it = #C6}) → self::ET9% /* erasure=core::List<core::int>?, declared=! */
+  return self::ET9|constructor#(it: it);
+static extension-type-member method ET10|constructor#({required core::String it}) → self::ET10% /* erasure=core::String, declared=! */ {
+  lowered final self::ET10% /* erasure=core::String, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET10|constructor#_#new#tearOff({required core::String it}) → self::ET10% /* erasure=core::String, declared=! */
+  return self::ET10|constructor#(it: it);
+static extension-type-member method ET11|constructor#({required final core::List<core::int> it}) → self::ET11% /* erasure=core::List<core::int>, declared=! */ {
+  lowered final self::ET11% /* erasure=core::List<core::int>, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET11|constructor#_#new#tearOff({required core::List<core::int> it}) → self::ET11% /* erasure=core::List<core::int>, declared=! */
+  return self::ET11|constructor#(it: it);
+static method main() → dynamic {
+  self::ET0|constructor#(0);
+  self::ET1|constructor#(true);
+  self::ET2|constructor#();
+  self::ET2|constructor#(null);
+  self::ET2|constructor#(0);
+  self::ET3|constructor#();
+  self::ET3|constructor#(null);
+  self::ET3|constructor#(true);
+  self::ET4|constructor#();
+  self::ET4|constructor#(87);
+  self::ET5|constructor#();
+  self::ET5|constructor#(false);
+  self::ET6|constructor#();
+  self::ET6|constructor#(it: null);
+  self::ET6|constructor#(it: "foo");
+  self::ET7|constructor#();
+  self::ET7|constructor#(it: null);
+  self::ET7|constructor#(it: <core::int>[42]);
+  self::ET8|constructor#();
+  self::ET8|constructor#(it: "bar");
+  self::ET9|constructor#();
+  self::ET9|constructor#(it: <core::int>[42]);
+  self::ET10|constructor#(it: "foo");
+  self::ET11|constructor#(it: <core::int>[42]);
+}
+
+constants  {
+  #C1 = null
+  #C2 = 42
+  #C3 = true
+  #C4 = "foo"
+  #C5 = 0
+  #C6 = <core::int>[#C5]
+}

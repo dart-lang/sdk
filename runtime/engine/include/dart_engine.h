@@ -116,6 +116,10 @@ DART_EXPORT void DartEngine_SetHandleMessageErrorCallback(
  * isolate message, but when the engine calls into Dart, it might be
  * required to manually drain the microtasks queue.
  *
+ * If a microtask throws, the error is returned to the caller,
+ * and the queue may still contain more entries.
+ * The caller should continue to drain the queue after handling the error.
+ *
  * \return Dart_Handle invocation result.
  */
 DART_EXPORT Dart_Handle DartEngine_DrainMicrotasksQueue();

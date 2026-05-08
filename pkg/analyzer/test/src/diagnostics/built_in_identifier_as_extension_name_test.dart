@@ -32,4 +32,36 @@ extension Function on Object {}
       [error(diag.builtInIdentifierAsExtensionName, 10, 8)],
     );
   }
+
+  test_inout() async {
+    await assertErrorsInCode(
+      '''
+extension inout on Object {}
+''',
+      [error(diag.builtInIdentifierAsExtensionName, 10, 5)],
+    );
+  }
+
+  test_inout_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+extension inout on Object {}
+''');
+  }
+
+  test_out() async {
+    await assertErrorsInCode(
+      '''
+extension out on Object {}
+''',
+      [error(diag.builtInIdentifierAsExtensionName, 10, 3)],
+    );
+  }
+
+  test_out_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+extension out on Object {}
+''');
+  }
 }

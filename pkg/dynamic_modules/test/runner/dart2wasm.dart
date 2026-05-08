@@ -56,12 +56,13 @@ class Dart2wasmExecutor implements TargetExecutor {
   }
 
   Future _compile(
-    String testName,
+    DynamicModuleTest test,
+    String name,
     String source,
     Uri sourceDir,
     bool isMain,
   ) async {
-    var testDir = _tmp.uri.resolve(testName).toFilePath();
+    var testDir = _tmp.uri.resolve(test.name).toFilePath();
     var args = [
       '--compiler-asserts',
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
@@ -73,9 +74,10 @@ class Dart2wasmExecutor implements TargetExecutor {
       '--extra-compiler-option=--dynamic-module-type=${isMain ? "main" : "submodule"}',
       '--extra-compiler-option=--dynamic-module-main=main.dart.dill',
       '--extra-compiler-option=--dynamic-module-interface='
-          '$rootScheme:/data/$testName/dynamic_interface.yaml',
+          '$rootScheme:/data/${test.name}/dynamic_interface.yaml',
       '--extra-compiler-option=--minify',
-      '$rootScheme:/data/$testName/$source',
+      '--dynamic-module-library-prefix=${test.name.endsWith('_prefixed') ? name : 'import/prefix'}',
+      '$rootScheme:/data/${test.name}/$source',
       '$source.wasm',
     ];
     await runProcess(
@@ -83,7 +85,7 @@ class Dart2wasmExecutor implements TargetExecutor {
       args,
       testDir,
       _logger,
-      'compile $testName/$source',
+      'compile ${test.name}/$source',
     );
   }
 
@@ -91,14 +93,14 @@ class Dart2wasmExecutor implements TargetExecutor {
   Future compileApplication(DynamicModuleTest test) async {
     _ensureDirectory(test.name);
     _logger.info('Compile ${test.name} app');
-    await _compile(test.name, test.main, test.folder, true);
+    await _compile(test, test.name, test.main, test.folder, true);
   }
 
   @override
   Future compileDynamicModule(DynamicModuleTest test, String name) async {
     _logger.info('Compile module ${test.name}.$name');
     _ensureDirectory(test.name);
-    await _compile(test.name, test.dynamicModules[name]!, test.folder, false);
+    await _compile(test, name, test.dynamicModules[name]!, test.folder, false);
   }
 
   @override

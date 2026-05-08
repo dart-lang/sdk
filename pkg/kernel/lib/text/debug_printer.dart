@@ -28,8 +28,10 @@ class DebugPrinter extends VisitorDefault<void>
 
   @override
   void visitName(Name node) {
-    openAndCloseNode(node, '${node.runtimeType}',
-        {'name': node.text, 'library': node.library?.name});
+    openAndCloseNode(node, '${node.runtimeType}', {
+      'name': node.text,
+      'library': node.library?.name,
+    });
   }
 
   @override
@@ -39,8 +41,9 @@ class DebugPrinter extends VisitorDefault<void>
 
   @override
   void visitVariableGet(VariableGet node) {
-    openAndCloseNode(
-        node, '${node.runtimeType}', {'variable': '${node.variable}'});
+    openAndCloseNode(node, '${node.runtimeType}', {
+      'variable': '${node.variable}',
+    });
   }
 
   @override
@@ -60,7 +63,7 @@ class DebugPrinter extends VisitorDefault<void>
     openNode(node, '${node.runtimeType}', {
       'typeArgs': '${node.types}',
       'positionalArgs': '${node.positional}',
-      'namedArgs': '${node.named}'
+      'namedArgs': '${node.named}',
     });
     node.visitChildren(this);
     closeNode();
@@ -68,8 +71,10 @@ class DebugPrinter extends VisitorDefault<void>
 
   @override
   void visitAsExpression(AsExpression node) {
-    openNode(node, '${node.runtimeType}',
-        {'operand': '${node.operand}', 'DartType': '${node.type}'});
+    openNode(node, '${node.runtimeType}', {
+      'operand': '${node.operand}',
+      'DartType': '${node.type}',
+    });
     node.visitChildren(this);
     closeNode();
   }
@@ -86,7 +91,7 @@ class DebugPrinter extends VisitorDefault<void>
       'isFinal': '${node.isFinal}',
       'isConst': '${node.isConst}',
       'isInitializingFormal': '${node.isInitializingFormal}',
-      'isSuperInitializingFormal': '${node.isSuperInitializingFormal}'
+      'isSuperInitializingFormal': '${node.isSuperInitializingFormal}',
     });
     node.visitChildren(this);
     closeNode();
@@ -94,9 +99,7 @@ class DebugPrinter extends VisitorDefault<void>
 
   @override
   void visitInterfaceType(InterfaceType node) {
-    openNode(node, '${node.runtimeType}', {
-      'name': '${node.classNode.name}',
-    });
+    openNode(node, '${node.runtimeType}', {'name': '${node.classNode.name}'});
     node.visitChildren(this);
     closeNode();
   }

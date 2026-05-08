@@ -7,8 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../rule_test_support.dart';
 
 void main() {
-  // TODO(srawlins): Add tests with constructor parameters, enums, unnamed
-  // extensions.
+  // TODO(srawlins): Add tests with enums, unnamed extensions.
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeAnnotatePublicApisTest);
   });
@@ -165,6 +164,154 @@ augment var x;
     await assertNoDiagnosticsInFile(b.path);
   }
 
+  test_enumConstructor_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+enum E {
+  one(0);
+
+  const E(p);
+}
+''');
+  }
+
+  test_enumConstructor_primary_parameterHasType() async {
+    await assertNoDiagnostics(r'''
+enum E(int p) {
+  one(0)
+}
+''');
+  }
+
+  test_enumConstructor_primary_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+enum E(p) {
+  one(0)
+}
+''');
+  }
+
+  test_enumConstructor_primary_parameterMissingType_declaring() async {
+    await assertNoDiagnostics(r'''
+enum E(final p) {
+  one(0)
+}
+''');
+  }
+
+  test_instanceConstructor_namedParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int? p});
+}
+''');
+  }
+
+  test_instanceConstructor_namedParameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({p});
+}
+''',
+      [lint(15, 1)],
+    );
+  }
+
+  test_instanceConstructor_optionalPositionalParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A([int? p]);
+}
+''');
+  }
+
+  test_instanceConstructor_optionalPositionalParameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A([p]);
+}
+''',
+      [lint(15, 1)],
+    );
+  }
+
+  test_instanceConstructor_parameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(p);
+}
+''',
+      [lint(14, 1)],
+    );
+  }
+
+  test_instanceConstructor_positionalParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int p);
+}
+''');
+  }
+
+  test_instanceConstructor_primary_parameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A({int? p});
+''');
+  }
+
+  test_instanceConstructor_primary_parameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A({p});
+''',
+      [lint(9, 1)],
+    );
+  }
+
+  test_instanceConstructor_primary_private_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+// ignore: unused_element_parameter
+class A._({p});
+''');
+  }
+
+  test_instanceConstructor_privateClass_publicUnnamed_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+class _A {
+  _A(p);
+}
+''');
+  }
+
+  test_instanceConstructor_privateNamed_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A._(p);
+}
+''');
+  }
+
+  test_instanceConstructor_requiredNamedParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int p});
+}
+''');
+  }
+
+  test_instanceConstructor_requiredNamedParameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({required p});
+}
+''',
+      [lint(15, 10)],
+    );
+  }
+
   test_instanceField_onClass_hasInitializer() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -212,6 +359,21 @@ class A {
 }
 ''',
       [lint(18, 1)],
+    );
+  }
+
+  test_instanceField_onClass_originPrimaryConstructor_typed() async {
+    await assertNoDiagnostics(r'''
+class A(var int x);
+''');
+  }
+
+  test_instanceField_onClass_originPrimaryConstructor_untyped() async {
+    await assertDiagnostics(
+      r'''
+class A(var x);
+''',
+      [lint(8, 5)],
     );
   }
 
@@ -366,6 +528,17 @@ void f() {
 ''');
   }
 
+  test_newSyntax_parameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  new(p);
+}
+''',
+      [lint(16, 1)],
+    );
+  }
+
   test_staticConstField_hasInitializer() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -423,11 +596,12 @@ class A {
   test_staticMethod_onClass_parameterHasVar() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class A {
   static void m(var p) {}
 }
 ''',
-      [lint(26, 5)],
+      [lint(42, 5)],
     );
   }
 

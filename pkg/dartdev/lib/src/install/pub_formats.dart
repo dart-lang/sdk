@@ -56,7 +56,8 @@ Map<String, Object?> _convertYamlMapToJsonMap(YamlMap yamlMap) {
   yamlMap.forEach((key, value) {
     if (key is! String) {
       throw UnsupportedError(
-          'YAML map keys must be strings for JSON conversion.');
+        'YAML map keys must be strings for JSON conversion.',
+      );
     }
     jsonMap[key] = _convertYamlValue(value);
   });

@@ -581,7 +581,7 @@ extension Extension<T extends core::Object? = dynamic> on T% {
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:109:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"
-static field invalid-type Extension|field0;
+static field invalid-type Extension|field0 = null;
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:112:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"

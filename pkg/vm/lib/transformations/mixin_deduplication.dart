@@ -249,10 +249,9 @@ class _DeduplicateMixinsTransformer extends RemovingTransformer {
   }
 
   bool _canBeEliminated(Class c) {
-    bool isEntryPoint(Annotatable node) =>
-        pragmaParser
-            .parsedPragmas<ParsedEntryPointPragma>(node.annotations)
-            .isNotEmpty;
+    bool isEntryPoint(Annotatable node) => pragmaParser
+        .parsedPragmas<ParsedEntryPointPragma>(node.annotations)
+        .isNotEmpty;
     // Cannot eliminate mixin applications which is exported
     // through a dynamic interface (or one of its members is exported).
     if (isEntryPoint(c) || c.members.any(isEntryPoint)) {
@@ -337,16 +336,15 @@ class _DeduplicateRelocator {
       newLibraries.add(library);
       return library;
     }
-    return sharedDedupLibrary ??=
-        (() {
-          final library = new Library(
-            Uri.parse(_dedupLibraryName),
-            fileUri: placeholderFileUri,
-          )..parent = component;
-          component.libraries.add(library);
-          newLibraries.add(library);
-          return library;
-        })();
+    return sharedDedupLibrary ??= (() {
+      final library = new Library(
+        Uri.parse(_dedupLibraryName),
+        fileUri: placeholderFileUri,
+      )..parent = component;
+      component.libraries.add(library);
+      newLibraries.add(library);
+      return library;
+    })();
   }
 
   void relocateCanonicalClasses(

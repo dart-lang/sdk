@@ -29,13 +29,13 @@ library;
 //   void abstractAsyncStar() async*;
 //                                  ^
 //
-// pkg/front_end/testcases/general/abstract_async.dart:6:8: Error: Functions marked 'sync*' can't have return type 'void'.
+// pkg/front_end/testcases/general/abstract_async.dart:6:3: Error: Functions marked 'sync*' can't have return type 'void'.
 //   void abstractSyncStar() sync*;
-//        ^^^^^^^^^^^^^^^^
+//   ^
 //
-// pkg/front_end/testcases/general/abstract_async.dart:8:8: Error: Functions marked 'async*' can't have return type 'void'.
+// pkg/front_end/testcases/general/abstract_async.dart:8:3: Error: Functions marked 'async*' can't have return type 'void'.
 //   void abstractAsyncStar() async*;
-//        ^^^^^^^^^^^^^^^^^
+//   ^
 //
 import self as self;
 import "dart:core" as core;

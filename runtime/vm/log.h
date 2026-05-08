@@ -14,11 +14,7 @@ namespace dart {
 class IsolateGroup;
 class LogBlock;
 
-#if defined(_MSC_VER)
-#define THR_Print(format, ...) Log::Current()->Print(format, __VA_ARGS__)
-#else
 #define THR_Print(format, ...) Log::Current()->Print(format, ##__VA_ARGS__)
-#endif
 
 #define THR_VPrint(format, args) Log::Current()->VPrint(format, args)
 
@@ -39,9 +35,6 @@ class Log {
   // Flush and truncate the log. The log is flushed starting at cursor
   // and truncated to cursor afterwards.
   void Flush(const intptr_t cursor = 0);
-
-  // Clears the log.
-  void Clear();
 
   // Current cursor.
   intptr_t cursor() const;

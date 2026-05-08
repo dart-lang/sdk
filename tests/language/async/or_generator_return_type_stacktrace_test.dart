@@ -7,17 +7,14 @@ import "package:expect/expect.dart";
 int badReturnTypeAsync() async => 0;
 // [error column 1, length 3]
 // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_RETURN_TYPE
-//  ^
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
 int badReturnTypeAsyncStar() async* {}
 // [error column 1, length 3]
 // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
-//  ^
 // [cfe] Functions marked 'async*' must have a return type assignable to 'Stream'.
 int badReturnTypeSyncStar() sync* {}
 // [error column 1, length 3]
 // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
-//  ^
 // [cfe] Functions marked 'sync*' must have a return type assignable to 'Iterable'.
 
 void main() {}

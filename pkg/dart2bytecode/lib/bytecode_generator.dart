@@ -65,14 +65,23 @@ void generateBytecode(
   required CoreTypes coreTypes,
   required ClassHierarchy hierarchy,
   required Target target,
+  required Set<Library> extraLoadedLibraries,
 }) {
   Timeline.timeSync("generateBytecode", () {
     verifyBytecodeInstructionDeclarations();
     final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     final pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
 
-    final bytecodeGenerator = BytecodeGenerator(component, coreTypes, hierarchy,
-        typeEnvironment, options, pragmaParser);
+    final bytecodeGenerator = BytecodeGenerator(
+      component,
+      coreTypes,
+      hierarchy,
+      typeEnvironment,
+      options,
+      pragmaParser,
+      libraries: libraries,
+      extraLoadedLibraries: extraLoadedLibraries,
+    );
     for (Library library in libraries) {
       bytecodeGenerator.visitLibrary(library);
     }
@@ -81,13 +90,16 @@ void generateBytecode(
 
     final mainMethod = component.mainMethod;
     if (mainMethod != null && bytecodeComponent.dynModuleEntryPoint == null) {
-      bytecodeComponent.dynModuleEntryPoint =
-          bytecodeComponent.objectTable.getHandle(mainMethod);
+      bytecodeComponent.dynModuleEntryPoint = bytecodeComponent.objectTable
+          .getHandle(mainMethod);
     }
 
     final linkWriter = new LinkWriter();
-    final writer = new BufferedWriter(bytecodeComponent.stringTable,
-        bytecodeComponent.objectTable, linkWriter);
+    final writer = new BufferedWriter(
+      bytecodeComponent.stringTable,
+      bytecodeComponent.objectTable,
+      linkWriter,
+    );
     bytecodeComponent.write(writer);
     writer.writeContentsToSink(sink);
   });
@@ -105,7 +117,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   final PragmaAnnotationParser pragmaParser;
   final RecognizedMethods recognizedMethods;
   final Map<Uri, Source> astUriToSource;
-  final LibraryIndex ffiLibraryIndex;
+  final List<Library> libraries;
+  final Set<Library> extraLoadedLibraries;
+  late LibraryIndex ffiLibraryIndex;
+  late LibraryIndex developerLibraryIndex;
   late StringTable stringTable;
   late ObjectTable objectTable;
   late Component bytecodeComponent;
@@ -141,36 +156,56 @@ class BytecodeGenerator extends RecursiveVisitor {
   int maxSourcePosition = 0;
   Member? dynModuleEntryPoint;
 
+  bool isInDeeplyImmutableClass = false;
+
+  late final Set<Library> allLibraries = {
+    ...libraries,
+    ...extraLoadedLibraries,
+  };
+
+  LibraryIndex getLibraryIndexFor(String library) =>
+      coreTypes.index.containsLibrary(library)
+      ? coreTypes.index
+      : LibraryIndex.fromLibraries(allLibraries, [library]);
+
   BytecodeGenerator(
-      ast.Component component,
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      TypeEnvironment typeEnvironment,
-      BytecodeOptions options,
-      PragmaAnnotationParser pragmaParser)
-      : this._internal(
-            component,
-            coreTypes,
-            hierarchy,
-            typeEnvironment,
-            options,
-            pragmaParser,
-            StatefulStaticTypeContext.flat(typeEnvironment));
+    ast.Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    TypeEnvironment typeEnvironment,
+    BytecodeOptions options,
+    PragmaAnnotationParser pragmaParser, {
+    required List<Library> libraries,
+    Set<Library> extraLoadedLibraries = const {},
+  }) : this._internal(
+         component,
+         coreTypes,
+         hierarchy,
+         typeEnvironment,
+         options,
+         pragmaParser,
+         libraries: libraries,
+         extraLoadedLibraries: extraLoadedLibraries,
+         StatefulStaticTypeContext.flat(typeEnvironment),
+       );
 
   BytecodeGenerator._internal(
-      ast.Component component,
-      this.coreTypes,
-      this.hierarchy,
-      this.typeEnvironment,
-      this.options,
-      this.pragmaParser,
-      this.staticTypeContext)
-      : recognizedMethods = new RecognizedMethods(staticTypeContext),
-        astUriToSource = component.uriToSource,
-        ffiLibraryIndex = LibraryIndex(component, const ['dart:ffi']) {
+    ast.Component component,
+    this.coreTypes,
+    this.hierarchy,
+    this.typeEnvironment,
+    this.options,
+    this.pragmaParser,
+    this.staticTypeContext, {
+    required this.libraries,
+    required this.extraLoadedLibraries,
+  }) : recognizedMethods = new RecognizedMethods(staticTypeContext),
+       astUriToSource = component.uriToSource {
     bytecodeComponent = new Component(coreTypes);
     stringTable = bytecodeComponent.stringTable;
     objectTable = bytecodeComponent.objectTable;
+    ffiLibraryIndex = getLibraryIndexFor('dart:ffi');
+    developerLibraryIndex = getLibraryIndexFor('dart:developer');
   }
 
   @override
@@ -183,19 +218,23 @@ class BytecodeGenerator extends RecursiveVisitor {
     final members = endMembers(node);
 
     classDeclarations = <ClassDeclaration>[
-      getTopLevelClassDeclaration(node, members)
+      getTopLevelClassDeclaration(node, members),
     ];
 
     visitList(node.classes, this);
 
-    bytecodeComponent.libraries
-        .add(getLibraryDeclaration(node, classDeclarations));
+    bytecodeComponent.libraries.add(
+      getLibraryDeclaration(node, classDeclarations),
+    );
     classDeclarations = const [];
     staticTypeContext.leaveLibrary(node);
   }
 
   @override
   void visitClass(Class node) {
+    isInDeeplyImmutableClass = pragmaParser
+        .parsedPragmas<ParsedVmDeeplyImmutablePragma>(node.annotations)
+        .isNotEmpty;
     startMembers();
     visitList(node.constructors, this);
     visitList(node.procedures, this);
@@ -225,8 +264,9 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (astSource != null) {
         source = bytecodeComponent.uriToSource[uri];
         if (source == null) {
-          final importUri =
-              objectTable.getConstStringHandle(astSource.importUri.toString());
+          final importUri = objectTable.getConstStringHandle(
+            astSource.importUri.toString(),
+          );
           // Use asMember instead of asConstructor because some const
           // constructors from extension types are desugared to procedures.
           final coveredConstConstructors = astSource
@@ -251,9 +291,12 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   LibraryDeclaration getLibraryDeclaration(
-      Library library, List<ClassDeclaration> classes) {
-    final importUri =
-        objectTable.getConstStringHandle(library.importUri.toString());
+    Library library,
+    List<ClassDeclaration> classes,
+  ) {
+    final importUri = objectTable.getConstStringHandle(
+      library.importUri.toString(),
+    );
     int flags = 0;
     for (var dependency in library.dependencies) {
       final targetLibrary = dependency.targetLibrary;
@@ -296,8 +339,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (hasInstantiatorTypeArguments(cls)) {
       flags |= ClassDeclaration.hasTypeArgumentsFlag;
       numTypeArguments = flattenInstantiatorTypeArguments(
-              cls, getTypeParameterTypes(cls.typeParameters))
-          .length;
+        cls,
+        getTypeParameterTypes(cls.typeParameters),
+      ).length;
       assert(numTypeArguments > 0);
       if (cls.typeParameters.isNotEmpty) {
         flags |= ClassDeclaration.hasTypeParamsFlag;
@@ -323,34 +367,45 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= ClassDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= ClassDeclaration.hasPragmaFlag;
+        if (pragmaParser
+            .parsedPragmas<ParsedVmDeeplyImmutablePragma>(cls.annotations)
+            .isNotEmpty) {
+          flags |= ClassDeclaration.isDeeplyImmutableFlag;
+        }
       }
     }
 
     final nameHandle = objectTable.getNameHandle(
-        cls.name.startsWith('_') ? cls.enclosingLibrary : null, cls.name);
+      cls.name.startsWith('_') ? cls.enclosingLibrary : null,
+      cls.name,
+    );
     final script = getScript(cls.fileUri, !cls.isAnonymousMixin);
     final superType = objectTable.getHandle(cls.supertype?.asInterfaceType);
     final interfaces = objectTable.getNonNullHandles(
-        cls.implementedTypes.map((t) => t.asInterfaceType).toList());
+      cls.implementedTypes.map((t) => t.asInterfaceType).toList(),
+    );
 
     final classDeclaration = new ClassDeclaration(
-        nameHandle,
-        flags,
-        script,
-        position,
-        endPosition,
-        typeParameters,
-        numTypeArguments,
-        superType,
-        interfaces,
-        members,
-        annotations.object);
+      nameHandle,
+      flags,
+      script,
+      position,
+      endPosition,
+      typeParameters,
+      numTypeArguments,
+      superType,
+      interfaces,
+      members,
+      annotations.object,
+    );
     bytecodeComponent.classes.add(classDeclaration);
     return classDeclaration;
   }
 
   ClassDeclaration getTopLevelClassDeclaration(
-      Library library, Members members) {
+    Library library,
+    Members members,
+  ) {
     int flags = 0;
     int position = TreeNode.noOffset;
     if (options.emitSourcePositions &&
@@ -370,17 +425,18 @@ class BytecodeGenerator extends RecursiveVisitor {
     final script = getScript(library.fileUri, true);
 
     final classDeclaration = new ClassDeclaration(
-        nameHandle,
-        flags,
-        script,
-        position,
-        /* endPosition */ TreeNode.noOffset,
-        /* typeParameters */ null,
-        /* numTypeArguments */ 0,
-        /* superType */ null,
-        /* interfaces */ const <ObjectHandle>[],
-        members,
-        annotations.object);
+      nameHandle,
+      flags,
+      script,
+      position,
+      /* endPosition */ TreeNode.noOffset,
+      /* typeParameters */ null,
+      /* numTypeArguments */ 0,
+      /* superType */ null,
+      /* interfaces */ const <ObjectHandle>[],
+      members,
+      annotations.object,
+    );
     bytecodeComponent.classes.add(classDeclaration);
     return classDeclaration;
   }
@@ -402,8 +458,9 @@ class BytecodeGenerator extends RecursiveVisitor {
         return const Annotations(null, false);
       }
     }
-    final object = objectTable
-        .getHandle(new ListConstant(const DynamicType(), constants))!;
+    final object = objectTable.getHandle(
+      new ListConstant(const DynamicType(), constants),
+    )!;
     final decl = new AnnotationsDeclaration(object);
     bytecodeComponent.annotations.add(decl);
     return new Annotations(decl, hasPragma);
@@ -414,7 +471,9 @@ class BytecodeGenerator extends RecursiveVisitor {
   // will implicitly find the parameter annotations by reading N packed objects
   // after reading the function's annotations, one for each parameter.
   Annotations getFunctionAnnotations(
-      List<Expression> annotations, FunctionNode function) {
+    List<Expression> annotations,
+    FunctionNode function,
+  ) {
     final parameterNodeLists = <List<Expression>>[];
     for (VariableDeclaration variable in function.positionalParameters) {
       parameterNodeLists.add(variable.annotations);
@@ -434,16 +493,19 @@ class BytecodeGenerator extends RecursiveVisitor {
       return const Annotations(null, false);
     }
 
-    final functionObject = objectTable
-        .getHandle(new ListConstant(const DynamicType(), functionConstants))!;
+    final functionObject = objectTable.getHandle(
+      new ListConstant(const DynamicType(), functionConstants),
+    )!;
     final functionDecl = new AnnotationsDeclaration(functionObject);
     bytecodeComponent.annotations.add(functionDecl);
 
     for (final parameterNodes in parameterNodeLists) {
-      List<Constant> parameterConstants =
-          parameterNodes.map(_getConstant).toList();
+      List<Constant> parameterConstants = parameterNodes
+          .map(_getConstant)
+          .toList();
       final parameterObject = objectTable.getHandle(
-          new ListConstant(const DynamicType(), parameterConstants))!;
+        new ListConstant(const DynamicType(), parameterConstants),
+      )!;
       final parameterDecl = new AnnotationsDeclaration(parameterObject);
       bytecodeComponent.annotations.add(parameterDecl);
     }
@@ -467,18 +529,24 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= FieldDeclaration.hasInitializerFlag;
     }
     final name = objectTable.getNameHandle(
-        field.name.library, objectTable.mangleMemberName(field, false, false));
+      field.name.library,
+      objectTable.mangleMemberName(field, false, false),
+    );
     ObjectHandle? getterName;
     ObjectHandle? setterName;
     if (_needsGetter(field)) {
       flags |= FieldDeclaration.hasGetterFlag;
       getterName = objectTable.getNameHandle(
-          field.name.library, objectTable.mangleMemberName(field, true, false));
+        field.name.library,
+        objectTable.mangleMemberName(field, true, false),
+      );
     }
     if (_needsSetter(field)) {
       flags |= FieldDeclaration.hasSetterFlag;
       setterName = objectTable.getNameHandle(
-          field.name.library, objectTable.mangleMemberName(field, false, true));
+        field.name.library,
+        objectTable.mangleMemberName(field, false, true),
+      );
     }
     if (isReflectable(field)) {
       flags |= FieldDeclaration.isReflectableFlag;
@@ -535,17 +603,18 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= FieldDeclaration.hasCustomScriptFlag;
     }
     return new FieldDeclaration(
-        flags,
-        name,
-        objectTable.getHandle(field.type)!,
-        objectTable.getHandle(value),
-        script,
-        position,
-        endPosition,
-        getterName,
-        setterName,
-        initializer,
-        annotations.object);
+      flags,
+      name,
+      objectTable.getHandle(field.type)!,
+      objectTable.getHandle(value),
+      script,
+      position,
+      endPosition,
+      getterName,
+      setterName,
+      initializer,
+      annotations.object,
+    );
   }
 
   FunctionDeclaration getFunctionDeclaration(Member member, Code? code) {
@@ -641,12 +710,19 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
       endPosition = member.fileEndOffset;
     }
-    final Annotations annotations =
-        getFunctionAnnotations(member.annotations, function);
+    final Annotations annotations = getFunctionAnnotations(
+      member.annotations,
+      function,
+    );
     if (annotations.object != null) {
       flags |= FunctionDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= FunctionDeclaration.hasPragmaFlag;
+        if (pragmaParser
+            .parsedPragmas<ParsedVmInvisiblePragma>(member.annotations)
+            .isNotEmpty) {
+          flags |= FunctionDeclaration.isInvisibleFlag;
+        }
         if (pragmaParser
             .parsedPragmas<ParsedDynModuleEntryPointPragma>(member.annotations)
             .isNotEmpty) {
@@ -668,14 +744,17 @@ class BytecodeGenerator extends RecursiveVisitor {
     ObjectHandle? script;
     if (member.fileUri != (member.parent as FileUriNode).fileUri) {
       final isInAnonymousMixin = enclosingClass?.isAnonymousMixin ?? false;
-      final isSynthetic = member is Procedure &&
+      final isSynthetic =
+          member is Procedure &&
           (member.isNoSuchMethodForwarder || member.isSyntheticForwarder);
       script = getScript(member.fileUri, !isInAnonymousMixin && !isSynthetic);
       flags |= FunctionDeclaration.hasCustomScriptFlag;
     }
 
-    final name = objectTable.getNameHandle(member.name.library,
-        objectTable.mangleMemberName(member, false, false));
+    final name = objectTable.getNameHandle(
+      member.name.library,
+      objectTable.mangleMemberName(member, false, false),
+    );
 
     final parameters = <ParameterDeclaration>[];
     for (var param in function.positionalParameters) {
@@ -684,26 +763,29 @@ class BytecodeGenerator extends RecursiveVisitor {
     for (var param in function.namedParameters) {
       parameters.add(getParameterDeclaration(param));
     }
-    final parameterFlags =
-        ParameterFlags.getFunctionFlags(function, isCode: false);
+    final parameterFlags = ParameterFlags.getFunctionFlags(
+      function,
+      isCode: false,
+    );
     if (parameterFlags != null) {
       flags |= FunctionDeclaration.hasParameterFlagsFlag;
     }
 
     return new FunctionDeclaration(
-        flags,
-        name,
-        script,
-        position,
-        endPosition,
-        typeParameters,
-        function.requiredParameterCount,
-        parameters,
-        parameterFlags,
-        objectTable.getHandle(function.returnType)!,
-        nativeName,
-        code,
-        annotations.object);
+      flags,
+      name,
+      script,
+      position,
+      endPosition,
+      typeParameters,
+      function.requiredParameterCount,
+      parameters,
+      parameterFlags,
+      objectTable.getHandle(function.returnType)!,
+      nativeName,
+      code,
+      annotations.object,
+    );
   }
 
   bool isReflectable(Member member) {
@@ -733,9 +815,11 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   TypeParametersDeclaration getTypeParametersDeclaration(
-      List<TypeParameter> typeParams) {
+    List<TypeParameter> typeParams,
+  ) {
     return new TypeParametersDeclaration(
-        objectTable.getTypeParameterHandles(typeParams));
+      objectTable.getTypeParameterHandles(typeParams),
+    );
   }
 
   ParameterDeclaration getParameterDeclaration(VariableDeclaration variable) {
@@ -902,149 +986,282 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   LibraryIndex get libraryIndex => coreTypes.index;
 
-  late Procedure growableListLiteral =
-      libraryIndex.getProcedure('dart:core', '_GrowableList', '_literal');
+  late Procedure growableListLiteral = libraryIndex.getProcedure(
+    'dart:core',
+    '_GrowableList',
+    '_literal',
+  );
 
-  late Procedure mapFromLiteral =
-      libraryIndex.getProcedure('dart:core', 'Map', '_fromLiteral');
+  late Procedure mapFromLiteral = libraryIndex.getProcedure(
+    'dart:core',
+    'Map',
+    '_fromLiteral',
+  );
 
   late Procedure interpolateSingle = libraryIndex.getProcedure(
-      'dart:core', '_StringBase', '_interpolateSingle');
+    'dart:core',
+    '_StringBase',
+    '_interpolateSingle',
+  );
 
-  late Procedure interpolate =
-      libraryIndex.getProcedure('dart:core', '_StringBase', '_interpolate');
+  late Procedure interpolate = libraryIndex.getProcedure(
+    'dart:core',
+    '_StringBase',
+    '_interpolate',
+  );
 
   late Class closureClass = libraryIndex.getClass('dart:core', '_Closure');
 
-  late Procedure objectInstanceOf =
-      libraryIndex.getProcedure('dart:core', 'Object', '_instanceOf');
+  late Procedure objectInstanceOf = libraryIndex.getProcedure(
+    'dart:core',
+    'Object',
+    '_instanceOf',
+  );
 
-  late Procedure objectSimpleInstanceOf =
-      libraryIndex.getProcedure('dart:core', 'Object', '_simpleInstanceOf');
+  late Procedure objectSimpleInstanceOf = libraryIndex.getProcedure(
+    'dart:core',
+    'Object',
+    '_simpleInstanceOf',
+  );
 
   late Field closureInstantiatorTypeArguments = libraryIndex.getField(
-      'dart:core', '_Closure', '_instantiator_type_arguments');
+    'dart:core',
+    '_Closure',
+    '_instantiator_type_arguments',
+  );
 
   late Field closureFunctionTypeArguments = libraryIndex.getField(
-      'dart:core', '_Closure', '_function_type_arguments');
+    'dart:core',
+    '_Closure',
+    '_function_type_arguments',
+  );
 
-  late Field closureDelayedTypeArguments =
-      libraryIndex.getField('dart:core', '_Closure', '_delayed_type_arguments');
+  late Field closureDelayedTypeArguments = libraryIndex.getField(
+    'dart:core',
+    '_Closure',
+    '_delayed_type_arguments',
+  );
 
-  late Field closureFunction =
-      libraryIndex.getField('dart:core', '_Closure', '_function');
+  late Field closureFunction = libraryIndex.getField(
+    'dart:core',
+    '_Closure',
+    '_function',
+  );
 
-  late Field closureContext =
-      libraryIndex.getField('dart:core', '_Closure', '_context');
+  late Field closureContext = libraryIndex.getField(
+    'dart:core',
+    '_Closure',
+    '_context',
+  );
 
   late Procedure prependTypeArguments = libraryIndex.getTopLevelProcedure(
-      'dart:_internal', '_prependTypeArguments');
+    'dart:_internal',
+    '_prependTypeArguments',
+  );
 
-  late Procedure boundsCheckForPartialInstantiation =
-      libraryIndex.getTopLevelProcedure(
-          'dart:_internal', '_boundsCheckForPartialInstantiation');
+  late Procedure instantiateClosure = libraryIndex.getTopLevelProcedure(
+    'dart:_internal',
+    '_instantiateClosure',
+  );
 
   late Procedure throwLocalNotInitialized = libraryIndex.getProcedure(
-      'dart:_internal', 'LateError', '_throwLocalNotInitialized');
+    'dart:_internal',
+    'LateError',
+    '_throwLocalNotInitialized',
+  );
 
   late Procedure throwLocalAlreadyInitialized = libraryIndex.getProcedure(
-      'dart:_internal', 'LateError', '_throwLocalAlreadyInitialized');
+    'dart:_internal',
+    'LateError',
+    '_throwLocalAlreadyInitialized',
+  );
 
-  late Procedure throwLocalAssignedDuringInitialization =
-      libraryIndex.getProcedure('dart:_internal', 'LateError',
-          '_throwLocalAssignedDuringInitialization');
+  late Procedure throwLocalAssignedDuringInitialization = libraryIndex
+      .getProcedure(
+        'dart:_internal',
+        'LateError',
+        '_throwLocalAssignedDuringInitialization',
+      );
 
   late Procedure throwNewSourceAssertionError = libraryIndex.getProcedure(
-      'dart:core', '_AssertionError', '_throwNewSource');
+    'dart:core',
+    '_AssertionError',
+    '_throwNewSource',
+  );
 
-  late Procedure throwNewNoSuchMethodError =
-      libraryIndex.getProcedure('dart:core', 'NoSuchMethodError', '_throwNew');
+  late Procedure throwNewNoSuchMethodError = libraryIndex.getProcedure(
+    'dart:core',
+    'NoSuchMethodError',
+    '_throwNew',
+  );
 
   late Procedure allocateInvocationMirror = libraryIndex.getProcedure(
-      'dart:core', '_InvocationMirror', '_allocateInvocationMirror');
+    'dart:core',
+    '_InvocationMirror',
+    '_allocateInvocationMirror',
+  );
 
-  late Procedure loadLibrary =
-      libraryIndex.getTopLevelProcedure('dart:core', '_loadLibrary');
+  late Procedure loadLibrary = libraryIndex.getTopLevelProcedure(
+    'dart:core',
+    '_loadLibrary',
+  );
 
-  late Procedure checkLoaded =
-      libraryIndex.getTopLevelProcedure('dart:core', '_checkLoaded');
+  late Procedure checkLoaded = libraryIndex.getTopLevelProcedure(
+    'dart:core',
+    '_checkLoaded',
+  );
 
-  late Procedure unsafeCast =
-      libraryIndex.getTopLevelProcedure('dart:_internal', 'unsafeCast');
+  late Procedure unsafeCast = libraryIndex.getTopLevelProcedure(
+    'dart:_internal',
+    'unsafeCast',
+  );
 
-  late Procedure reachabilityFence =
-      libraryIndex.getTopLevelProcedure('dart:_internal', 'reachabilityFence');
+  late Procedure reachabilityFence = libraryIndex.getTopLevelProcedure(
+    'dart:_internal',
+    'reachabilityFence',
+  );
 
-  late Procedure nativeEffect =
-      libraryIndex.getTopLevelProcedure('dart:_internal', '_nativeEffect');
+  late Procedure nativeEffect = libraryIndex.getTopLevelProcedure(
+    'dart:_internal',
+    '_nativeEffect',
+  );
 
-  late Procedure iterableIterator =
-      libraryIndex.getProcedure('dart:core', 'Iterable', 'get:iterator');
+  late Procedure iterableIterator = libraryIndex.getProcedure(
+    'dart:core',
+    'Iterable',
+    'get:iterator',
+  );
 
-  late Procedure iteratorMoveNext =
-      libraryIndex.getProcedure('dart:core', 'Iterator', 'moveNext');
+  late Procedure iteratorMoveNext = libraryIndex.getProcedure(
+    'dart:core',
+    'Iterator',
+    'moveNext',
+  );
 
-  late Procedure iteratorCurrent =
-      libraryIndex.getProcedure('dart:core', 'Iterator', 'get:current');
+  late Procedure iteratorCurrent = libraryIndex.getProcedure(
+    'dart:core',
+    'Iterator',
+    'get:current',
+  );
 
   late Procedure setAsyncThreadStackTrace = libraryIndex.getTopLevelProcedure(
-      'dart:async', '_setAsyncThreadStackTrace');
+    'dart:async',
+    '_setAsyncThreadStackTrace',
+  );
 
   late Procedure clearAsyncThreadStackTrace = libraryIndex.getTopLevelProcedure(
-      'dart:async', '_clearAsyncThreadStackTrace');
+    'dart:async',
+    '_clearAsyncThreadStackTrace',
+  );
 
-  late Procedure initAsync =
-      libraryIndex.getProcedure('dart:async', '_SuspendState', '_initAsync');
+  late Procedure initAsync = libraryIndex.getProcedure(
+    'dart:async',
+    '_SuspendState',
+    '_initAsync',
+  );
 
   late Procedure suspendStateFunctionData = libraryIndex.getProcedure(
-      'dart:async',
-      '_SuspendState',
-      LibraryIndex.getterPrefix + '_functionData');
+    'dart:async',
+    '_SuspendState',
+    LibraryIndex.getterPrefix + '_functionData',
+  );
 
   late Procedure initAsyncStar = libraryIndex.getProcedure(
-      'dart:async', '_SuspendState', '_initAsyncStar');
+    'dart:async',
+    '_SuspendState',
+    '_initAsyncStar',
+  );
 
-  late Procedure initSyncStar =
-      libraryIndex.getProcedure('dart:async', '_SuspendState', '_initSyncStar');
+  late Procedure initSyncStar = libraryIndex.getProcedure(
+    'dart:async',
+    '_SuspendState',
+    '_initSyncStar',
+  );
 
-  late Procedure _await =
-      libraryIndex.getProcedure('dart:async', '_SuspendState', '_await');
+  late Procedure _await = libraryIndex.getProcedure(
+    'dart:async',
+    '_SuspendState',
+    '_await',
+  );
 
   late Procedure _awaitWithTypeCheck = libraryIndex.getProcedure(
-      'dart:async', '_SuspendState', '_awaitWithTypeCheck');
+    'dart:async',
+    '_SuspendState',
+    '_awaitWithTypeCheck',
+  );
 
   late Procedure yieldAsyncStar = libraryIndex.getProcedure(
-      'dart:async', '_SuspendState', '_yieldAsyncStar');
+    'dart:async',
+    '_SuspendState',
+    '_yieldAsyncStar',
+  );
 
   late Procedure suspendSyncStarAtStart = libraryIndex.getProcedure(
-      'dart:async', '_SuspendState', '_suspendSyncStarAtStart');
+    'dart:async',
+    '_SuspendState',
+    '_suspendSyncStarAtStart',
+  );
 
-  late Procedure returnAsync =
-      libraryIndex.getProcedure('dart:async', '_SuspendState', '_returnAsync');
+  late Procedure returnAsync = libraryIndex.getProcedure(
+    'dart:async',
+    '_SuspendState',
+    '_returnAsync',
+  );
 
   late Procedure returnAsyncStar = libraryIndex.getProcedure(
-      'dart:async', '_SuspendState', '_returnAsyncStar');
+    'dart:async',
+    '_SuspendState',
+    '_returnAsyncStar',
+  );
 
   late Procedure handleException = libraryIndex.getProcedure(
-      'dart:async', '_SuspendState', '_handleException');
+    'dart:async',
+    '_SuspendState',
+    '_handleException',
+  );
 
   late Procedure asyncStarStreamControllerAdd = libraryIndex.getProcedure(
-      'dart:async', '_AsyncStarStreamController', 'add');
+    'dart:async',
+    '_AsyncStarStreamController',
+    'add',
+  );
 
   late Procedure asyncStarStreamControllerAddStream = libraryIndex.getProcedure(
-      'dart:async', '_AsyncStarStreamController', 'addStream');
+    'dart:async',
+    '_AsyncStarStreamController',
+    'addStream',
+  );
 
-  late Field syncStarIteratorCurrent =
-      libraryIndex.getField('dart:async', '_SyncStarIterator', '_current');
+  late Field syncStarIteratorCurrent = libraryIndex.getField(
+    'dart:async',
+    '_SyncStarIterator',
+    '_current',
+  );
 
   late Field syncStarIteratorYieldStarIterable = libraryIndex.getField(
-      'dart:async', '_SyncStarIterator', '_yieldStarIterable');
+    'dart:async',
+    '_SyncStarIterator',
+    '_yieldStarIterable',
+  );
 
   late Library? dartFfiLibrary = ffiLibraryIndex.tryGetLibrary('dart:ffi');
 
   late Procedure? ffiCall = (dartFfiLibrary != null)
       ? ffiLibraryIndex.getTopLevelProcedure('dart:ffi', '_ffiCall')
       : null;
+
+  late Library? dartDeveloperLibrary = developerLibraryIndex.tryGetLibrary(
+    'dart:developer',
+  );
+
+  late Procedure? debugger = (dartDeveloperLibrary != null)
+      ? developerLibraryIndex.getTopLevelProcedure('dart:developer', 'debugger')
+      : null;
+
+  late Procedure ensureDeeplyImmutable = libraryIndex.getTopLevelProcedure(
+    'dart:_internal',
+    '_ensureDeeplyImmutable',
+  );
 
   // Selector for implicit dynamic calls 'foo(...)' where
   // variable 'foo' has type 'dynamic'.
@@ -1136,6 +1353,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     _generateNode(initializer);
 
     final int cpIndex = cp.addInstanceField(field);
+    if (isInDeeplyImmutableClass) {
+      // TODO(dartbug.com/61078): Use static type to avoid runtime check.
+      _genDirectCall(ensureDeeplyImmutable, objectTable.getArgDescHandle(1), 1);
+    }
+
     asm.emitStoreFieldTOS(cpIndex);
 
     initializedFields.add(field);
@@ -1157,8 +1379,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     initializedFields.add(field);
   }
 
-  void _genArguments(Expression? receiver, Arguments arguments,
-      {int? storeReceiverToLocal}) {
+  void _genArguments(
+    Expression? receiver,
+    Arguments arguments, {
+    int? storeReceiverToLocal,
+  }) {
     if (arguments.types.isNotEmpty) {
       _genTypeArguments(arguments.types);
     }
@@ -1264,11 +1489,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitReturnTOS();
   }
 
-  void _genDirectCall(Member target, ObjectHandle argDesc, int totalArgCount,
-      {bool isGet = false,
-      bool isSet = false,
-      bool isUnchecked = false,
-      TreeNode? node}) {
+  void _genDirectCall(
+    Member target,
+    ObjectHandle argDesc,
+    int totalArgCount, {
+    bool isGet = false,
+    bool isSet = false,
+    bool isUnchecked = false,
+    TreeNode? node,
+  }) {
     assert(!isGet || !isSet);
     final kind = isGet
         ? InvocationKind.getter
@@ -1285,13 +1514,19 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genDirectCallWithArgs(Member target, Arguments args,
-      {bool hasReceiver = false,
-      bool isFactory = false,
-      bool isUnchecked = false,
-      TreeNode? node}) {
-    final argDesc = objectTable.getArgDescHandleByArguments(args,
-        hasReceiver: hasReceiver, isFactory: isFactory);
+  void _genDirectCallWithArgs(
+    Member target,
+    Arguments args, {
+    bool hasReceiver = false,
+    bool isFactory = false,
+    bool isUnchecked = false,
+    TreeNode? node,
+  }) {
+    final argDesc = objectTable.getArgDescHandleByArguments(
+      args,
+      hasReceiver: hasReceiver,
+      isFactory: isFactory,
+    );
 
     int totalArgCount = args.positional.length + args.named.length;
     if (hasReceiver) {
@@ -1303,15 +1538,21 @@ class BytecodeGenerator extends RecursiveVisitor {
       totalArgCount++;
     }
 
-    _genDirectCall(target, argDesc, totalArgCount,
-        isUnchecked: isUnchecked, node: node);
+    _genDirectCall(
+      target,
+      argDesc,
+      totalArgCount,
+      isUnchecked: isUnchecked,
+      node: node,
+    );
   }
 
   void _genTypeArguments(List<DartType> typeArgs, {Class? instantiatingClass}) {
     int typeArgsCPIndex() {
       if (instantiatingClass != null) {
         return cp.addTypeArguments(
-            getInstantiatorTypeArguments(instantiatingClass, typeArgs));
+          getInstantiatorTypeArguments(instantiatingClass, typeArgs),
+        );
       }
       return cp.addTypeArguments(typeArgs);
     }
@@ -1323,7 +1564,8 @@ class BytecodeGenerator extends RecursiveVisitor {
         asm.emitPushConstant(typeArgsCPIndex());
       });
     } else {
-      final flattenedTypeArgs = (instantiatingClass != null &&
+      final flattenedTypeArgs =
+          (instantiatingClass != null &&
               (instantiatorTypeArguments != null ||
                   functionTypeParameters != null))
           ? flattenInstantiatorTypeArguments(instantiatingClass, typeArgs)
@@ -1367,8 +1609,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   void _genPushInstantiatorTypeArguments() {
     if (instantiatorTypeArguments != null) {
       if (locals.hasFactoryTypeArgsVar) {
-        assert(enclosingMember is Procedure &&
-            (enclosingMember as Procedure).isFactory);
+        assert(
+          enclosingMember is Procedure &&
+              (enclosingMember as Procedure).isFactory,
+        );
         _genLoadVar(locals.factoryTypeArgsVar);
       } else {
         _genPushReceiver();
@@ -1430,8 +1674,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextForVariable(VariableDeclaration variable,
-      {int? currentContextLevel}) {
+  void _genPushContextForVariable(
+    VariableDeclaration variable, {
+    int? currentContextLevel,
+  }) {
     currentContextLevel ??= locals.currentContextLevel;
     int depth = currentContextLevel - locals.getContextLevelOfVar(variable);
     assert(depth >= 0);
@@ -1454,7 +1700,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
-          locals.getVarContextId(v), locals.getVarIndexInContext(v));
+        locals.getVarContextId(v),
+        locals.getVarIndexInContext(v),
+      );
     } else {
       asm.emitPush(locals.getVarIndexInFrame(v));
     }
@@ -1470,8 +1718,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   // If variable is captured, context should be pushed before value.
   void _genStoreVar(VariableDeclaration variable) {
     if (locals.isCaptured(variable)) {
-      asm.emitStoreContextVar(locals.getVarContextId(variable),
-          locals.getVarIndexInContext(variable));
+      asm.emitStoreContextVar(
+        locals.getVarContextId(variable),
+        locals.getVarIndexInContext(variable),
+      );
     } else {
       asm.emitPopLocal(locals.getVarIndexInFrame(variable));
     }
@@ -1513,25 +1763,23 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _genConditionAndJumpIf(Expression condition, bool value, Label dest) {
+    final savedSourcePosition = asm.currentSourcePosition;
+    _recordSourcePosition(condition.fileOffset);
     final bool? constantValue = _constantConditionValue(condition);
     if (constantValue != null) {
       if (constantValue == value) {
-        _emitLocalSourcePosition(condition.fileOffset);
+        asm.emitSourcePosition();
         asm.emitJump(dest);
       }
-      return;
-    }
-    if (condition is EqualsNull) {
+    } else if (condition is EqualsNull) {
       _generateNode(condition.expression);
-      _emitLocalSourcePosition(condition.fileOffset);
+      asm.emitSourcePosition();
       if (value) {
         asm.emitJumpIfNull(dest);
       } else {
         asm.emitJumpIfNotNull(dest);
       }
-      return;
-    }
-    if (condition is Not) {
+    } else if (condition is Not) {
       _genConditionAndJumpIf(condition.operand, !value, dest);
     } else if (condition is LogicalExpression) {
       final isOR = (condition.operatorEnum == LogicalExpressionOperator.OR);
@@ -1553,13 +1801,14 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (negated) {
         value = !value;
       }
-      _emitLocalSourcePosition(condition.fileOffset);
+      asm.emitSourcePosition();
       if (value) {
         asm.emitJumpIfTrue(dest);
       } else {
         asm.emitJumpIfFalse(dest);
       }
     }
+    asm.currentSourcePosition = savedSourcePosition;
   }
 
   int _getDefaultParamConstIndex(VariableDeclaration param) {
@@ -1593,7 +1842,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitPushConstant(cp.addType(type));
       final argDesc = objectTable.getArgDescHandle(2);
       final cpIndex = cp.addInterfaceCall(
-          InvocationKind.method, objectSimpleInstanceOf, argDesc);
+        InvocationKind.method,
+        objectSimpleInstanceOf,
+        argDesc,
+      );
       asm.emitInterfaceCall(cpIndex, 2);
       return;
     }
@@ -1611,8 +1863,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       });
     }
     final argDesc = objectTable.getArgDescHandle(4);
-    final cpIndex =
-        cp.addInterfaceCall(InvocationKind.method, objectInstanceOf, argDesc);
+    final cpIndex = cp.addInterfaceCall(
+      InvocationKind.method,
+      objectInstanceOf,
+      argDesc,
+    );
     asm.emitInterfaceCall(cpIndex, 4);
   }
 
@@ -1636,11 +1891,15 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
       }
       if (hasInstantiatorTypeArguments(enclosingClass)) {
-        final typeParameters = getTypeParameterTypes(isFactory
-            ? node.function.typeParameters
-            : enclosingClass.typeParameters);
-        instantiatorTypeArguments =
-            flattenInstantiatorTypeArguments(enclosingClass, typeParameters);
+        final typeParameters = getTypeParameterTypes(
+          isFactory
+              ? node.function.typeParameters
+              : enclosingClass.typeParameters,
+        );
+        instantiatorTypeArguments = flattenInstantiatorTypeArguments(
+          enclosingClass,
+          typeParameters,
+        );
       }
     }
     if (enclosingFunction != null &&
@@ -1685,7 +1944,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     _recordSourcePosition(startPosition, SourcePositions.syntheticFlag);
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
-    _emitFirstDebugCheck(node, node.function);
     _genEqualsOperatorNullHandling(node);
     if (node is Procedure && node.isInstanceMember) {
       _checkArguments(node.function);
@@ -1770,8 +2028,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (function.dartAsyncMarker == AsyncMarker.Async ||
         function.dartAsyncMarker == AsyncMarker.AsyncStar) {
-      final asyncTryBlock =
-          this.asyncTryBlock = asm.exceptionsTable.enterTryBlock(asm.offset);
+      final asyncTryBlock = this.asyncTryBlock = asm.exceptionsTable
+          .enterTryBlock(asm.offset);
       asyncTryBlock.isSynthetic = true;
       asyncTryBlock.needsStackTrace = true;
       asyncTryBlock.types.add(cp.addType(const DynamicType()));
@@ -1829,7 +2087,9 @@ class BytecodeGenerator extends RecursiveVisitor {
           // Leave the scopes which were entered in _genPrologue and
           // _setupInitialContext.
           asm.localVariableTable.leaveAllScopes(
-              asm.offset, node.function?.fileEndOffset ?? node.fileEndOffset);
+            asm.offset,
+            node.function?.fileEndOffset ?? node.fileEndOffset,
+          );
         }
 
         List<int>? parameterFlags = null;
@@ -1837,11 +2097,15 @@ class BytecodeGenerator extends RecursiveVisitor {
         int? defaultFunctionTypeArgsCpIndex = null;
 
         if (node is Constructor) {
-          parameterFlags =
-              ParameterFlags.getFunctionFlags(node.function, isCode: true);
+          parameterFlags = ParameterFlags.getFunctionFlags(
+            node.function,
+            isCode: true,
+          );
         } else if (node is Procedure) {
-          parameterFlags =
-              ParameterFlags.getFunctionFlags(node.function, isCode: true);
+          parameterFlags = ParameterFlags.getFunctionFlags(
+            node.function,
+            isCode: true,
+          );
 
           if (node.isForwardingStub) {
             forwardingStubTargetCpIndex = cp.addObjectRef(node.stubTarget);
@@ -1853,16 +2117,17 @@ class BytecodeGenerator extends RecursiveVisitor {
           }
         }
         code = new Code(
-            cp,
-            asm.bytecode,
-            asm.exceptionsTable,
-            finalizeSourcePositions(),
-            finalizeLocalVariables(),
-            nullableFields,
-            closures ?? const <ClosureDeclaration>[],
-            parameterFlags,
-            forwardingStubTargetCpIndex,
-            defaultFunctionTypeArgsCpIndex);
+          cp,
+          asm.bytecode,
+          asm.exceptionsTable,
+          finalizeSourcePositions(),
+          finalizeLocalVariables(),
+          nullableFields,
+          closures ?? const <ClosureDeclaration>[],
+          parameterFlags,
+          forwardingStubTargetCpIndex,
+          defaultFunctionTypeArgsCpIndex,
+        );
         bytecodeComponent.codes.add(code);
       }
       if (node is Field) {
@@ -1916,7 +2181,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _genPrologue(TreeNode node, FunctionNode? function) {
     if (locals.makesCopyOfParameters) {
-      final int numOptionalPositional = function!.positionalParameters.length -
+      final int numOptionalPositional =
+          function!.positionalParameters.length -
           function.requiredParameterCount;
       final int numOptionalNamed = function.namedParameters.length;
       final int numFixed =
@@ -1924,10 +2190,16 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       if (locals.isSuspendableFunction) {
         asm.emitEntrySuspendable(
-            numFixed, numOptionalPositional, numOptionalNamed);
+          numFixed,
+          numOptionalPositional,
+          numOptionalNamed,
+        );
       } else {
         asm.emitEntryOptional(
-            numFixed, numOptionalPositional, numOptionalNamed);
+          numFixed,
+          numOptionalPositional,
+          numOptionalNamed,
+        );
       }
 
       if (numOptionalPositional != 0) {
@@ -1967,8 +2239,10 @@ class BytecodeGenerator extends RecursiveVisitor {
         _handleDelayedTypeArguments(done);
       }
 
-      asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
-          locals.functionTypeArgsVarIndexInFrame);
+      asm.emitCheckFunctionTypeArgs(
+        function.typeParameters.length,
+        locals.functionTypeArgsVarIndexInFrame,
+      );
 
       _handleDefaultTypeArguments(function, done);
 
@@ -1979,12 +2253,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     // need to know context level.
     if (options.emitLocalVarInfo && function != null) {
       asm.localVariableTable.enterScope(
-          asm.offset,
-          isClosure ? locals.contextLevelAtEntry : locals.currentContextLevel,
-          function.fileOffset);
+        asm.offset,
+        isClosure ? locals.contextLevelAtEntry : locals.currentContextLevel,
+        function.fileOffset,
+      );
       if (locals.hasContextVar) {
-        asm.localVariableTable
-            .recordContextVariable(asm.offset, locals.contextVarIndexInFrame);
+        asm.localVariableTable.recordContextVariable(
+          asm.offset,
+          locals.contextVarIndexInFrame,
+        );
       }
       if (locals.hasReceiver &&
           (!isClosure || locals.isCaptured(locals.receiverVar))) {
@@ -2005,12 +2282,12 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
 
-    // The CheckStack below is the instruction which should be used for function
-    // entry breakpoints.
-    _recordInitialSourcePositionForFunction(node, function);
     // CheckStack must see a properly initialized context when stress-testing
     // stack trace collection.
     asm.emitCheckStack(0);
+    // After checking the stack, the next instruction is safe for setting
+    // the entry breakpoint for a function.
+    _emitSourcePositionForFunctionEntryBreakpoint(node, function);
 
     if (locals.hasFunctionTypeArgsVar && isClosure) {
       if (function!.typeParameters.isNotEmpty) {
@@ -2021,7 +2298,10 @@ class BytecodeGenerator extends RecursiveVisitor {
         _genPushInt(numParentTypeArgs);
         _genPushInt(numParentTypeArgs + function.typeParameters.length);
         _genDirectCall(
-            prependTypeArguments, objectTable.getArgDescHandle(4), 4);
+          prependTypeArguments,
+          objectTable.getArgDescHandle(4),
+          4,
+        );
         asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       } else {
         asm.emitPush(locals.closureVarIndexInFrame);
@@ -2050,7 +2330,9 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _handleDefaultTypeArguments(
-      FunctionNode function, Label doneCheckingTypeArguments) {
+    FunctionNode function,
+    Label doneCheckingTypeArguments,
+  ) {
     List<DartType>? defaultTypes = getDefaultFunctionTypeArguments(function);
     if (defaultTypes == null) {
       return;
@@ -2061,8 +2343,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     // Load parent function type arguments if they are used to
     // instantiate default types.
     if (isClosure &&
-        defaultTypes
-            .any((t) => containsTypeParameter(t, functionTypeParametersSet!))) {
+        defaultTypes.any(
+          (t) => containsTypeParameter(t, functionTypeParametersSet!),
+        )) {
       asm.emitPush(locals.closureVarIndexInFrame);
       asm.emitLoadFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
       asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
@@ -2077,8 +2360,11 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (options.emitLocalVarInfo && locals.currentContextSize > 0) {
       // Open a new scope after allocating context.
-      asm.localVariableTable.enterScope(asm.offset, locals.currentContextLevel,
-          function?.fileOffset ?? enclosingMember!.fileOffset);
+      asm.localVariableTable.enterScope(
+        asm.offset,
+        locals.currentContextLevel,
+        function?.fileOffset ?? enclosingMember!.fileOffset,
+      );
     }
 
     if (locals.hasCapturedParameters) {
@@ -2100,34 +2386,25 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  int _initialSourcePositionForFunction(TreeNode node, FunctionNode? function) {
-    // The debugger expects the initial source position to correspond to the
-    // declaration position of the last parameter, if any, or of the function.
+  void _emitSourcePositionForFunctionEntryBreakpoint(
+    TreeNode node,
+    FunctionNode? function,
+  ) {
+    // The debugger expects the source position for function entry to correspond
+    // to the declaration position of the last parameter, if any, otherwise
+    // the file offset of the function.
+    final int startOffset;
     if (function?.namedParameters.isNotEmpty ?? false) {
-      return function!.namedParameters.last.fileOffset;
+      startOffset = function!.namedParameters.last.fileOffset;
     } else if (function?.positionalParameters.isNotEmpty ?? false) {
-      return function!.positionalParameters.last.fileOffset;
+      startOffset = function!.positionalParameters.last.fileOffset;
     } else if (function != null) {
-      return function.fileOffset;
+      startOffset = function.fileOffset;
     } else {
-      return node.fileOffset;
+      startOffset = node.fileOffset;
     }
-  }
-
-  void _recordInitialSourcePositionForFunction(
-      TreeNode node, FunctionNode? function) {
-    final position = _initialSourcePositionForFunction(node, function);
-    _recordSourcePosition(position, 0);
-  }
-
-  void _emitFirstDebugCheck(TreeNode node, FunctionNode? function) {
-    if (options.emitDebuggerStops) {
-      // DebugCheck instruction should be emitted after parameter variables
-      // are declared and copied into context.
-      // The DebugCheck must be encountered each time an async op is reentered.
-      _recordInitialSourcePositionForFunction(node, function);
-      asm.emitDebugCheck();
-    }
+    _recordSourcePosition(startOffset, 0);
+    asm.emitSourcePosition();
   }
 
   void _copyParamIfCaptured(VariableDeclaration variable) {
@@ -2144,18 +2421,21 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _declareLocalVariable(
-      VariableDeclaration variable, int initializedPosition) {
+    VariableDeclaration variable,
+    int initializedPosition,
+  ) {
     bool isCaptured = locals.isCaptured(variable);
     asm.localVariableTable.declareVariable(
-        asm.offset,
-        isCaptured,
-        isCaptured
-            ? locals.getVarIndexInContext(variable)
-            : locals.getVarIndexInFrame(variable),
-        cp.addName(variable.name!),
-        cp.addType(variable.type),
-        variable.fileOffset,
-        initializedPosition);
+      asm.offset,
+      isCaptured,
+      isCaptured
+          ? locals.getVarIndexInContext(variable)
+          : locals.getVarIndexInFrame(variable),
+      cp.addName(variable.cosmeticName!),
+      cp.addType(variable.type),
+      variable.fileOffset,
+      initializedPosition,
+    );
   }
 
   // TODO(dartbug.com/40813): Remove the closure case when we move the
@@ -2178,30 +2458,39 @@ class BytecodeGenerator extends RecursiveVisitor {
   // parameters. Substitute them with host type parameters to be able
   // to use them (e.g. instantiate) in the context of host.
   Substitution? _getForwardingSubstitution(
-      FunctionNode host, Member? forwardingTarget) {
+    FunctionNode host,
+    Member? forwardingTarget,
+  ) {
     if (forwardingTarget == null) {
       return null;
     }
     final Class targetClass = forwardingTarget.enclosingClass!;
-    final Supertype? instantiatedTargetClass =
-        hierarchy.getClassAsInstanceOf(enclosingClass!, targetClass);
+    final Supertype? instantiatedTargetClass = hierarchy.getClassAsInstanceOf(
+      enclosingClass!,
+      targetClass,
+    );
     if (instantiatedTargetClass == null) {
       throw 'Class $targetClass is not found among implemented interfaces of'
           ' $enclosingClass (for forwarding stub $enclosingMember)';
     }
     assert(instantiatedTargetClass.classNode == targetClass);
-    assert(instantiatedTargetClass.typeArguments.length ==
-        targetClass.typeParameters.length);
+    assert(
+      instantiatedTargetClass.typeArguments.length ==
+          targetClass.typeParameters.length,
+    );
     final Map<TypeParameter, DartType> map =
         new Map<TypeParameter, DartType>.fromIterables(
-            targetClass.typeParameters, instantiatedTargetClass.typeArguments);
+          targetClass.typeParameters,
+          instantiatedTargetClass.typeArguments,
+        );
     if (forwardingTarget.function != null) {
       final targetTypeParameters = forwardingTarget.function!.typeParameters;
       assert(host.typeParameters.length == targetTypeParameters.length);
       for (int i = 0; i < targetTypeParameters.length; ++i) {
         map[targetTypeParameters[i]] = new TypeParameterType(
-            host.typeParameters[i],
-            host.typeParameters[i].computeNullabilityFromBound());
+          host.typeParameters[i],
+          host.typeParameters[i].computeNullabilityFromBound(),
+        );
       }
     }
     return Substitution.fromMap(map);
@@ -2209,15 +2498,19 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   /// If member being compiled is a forwarding stub, then returns type
   /// parameter bounds to check for the forwarding stub target.
-  Map<TypeParameter, DartType>? _getForwardingBounds(FunctionNode function,
-      Member? forwardingTarget, Substitution? forwardingSubstitution) {
+  Map<TypeParameter, DartType>? _getForwardingBounds(
+    FunctionNode function,
+    Member? forwardingTarget,
+    Substitution? forwardingSubstitution,
+  ) {
     if (function.typeParameters.isEmpty || forwardingTarget == null) {
       return null;
     }
     final forwardingBounds = <TypeParameter, DartType>{};
     for (int i = 0; i < function.typeParameters.length; ++i) {
-      DartType bound = forwardingSubstitution!
-          .substituteType(forwardingTarget.function!.typeParameters[i].bound);
+      DartType bound = forwardingSubstitution!.substituteType(
+        forwardingTarget.function!.typeParameters[i].bound,
+      );
       forwardingBounds[function.typeParameters[i]] = bound;
     }
     return forwardingBounds;
@@ -2226,9 +2519,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   /// If member being compiled is a forwarding stub, then returns parameter
   /// types to check for the forwarding stub target.
   Map<VariableDeclaration, DartType>? _getForwardingParameterTypes(
-      FunctionNode function,
-      Member? forwardingTarget,
-      Substitution? forwardingSubstitution) {
+    FunctionNode function,
+    Member? forwardingTarget,
+    Substitution? forwardingSubstitution,
+  ) {
     if (forwardingTarget == null) {
       return null;
     }
@@ -2239,12 +2533,14 @@ class BytecodeGenerator extends RecursiveVisitor {
       } else {
         // Forwarding stub for a covariant field setter.
         assert((enclosingMember as Procedure).isSetter);
-        assert(function.typeParameters.isEmpty &&
-            function.positionalParameters.length == 1 &&
-            function.namedParameters.isEmpty);
+        assert(
+          function.typeParameters.isEmpty &&
+              function.positionalParameters.length == 1 &&
+              function.namedParameters.isEmpty,
+        );
         return <VariableDeclaration, DartType>{
-          function.positionalParameters.single:
-              forwardingSubstitution!.substituteType(forwardingTarget.type)
+          function.positionalParameters.single: forwardingSubstitution!
+              .substituteType(forwardingTarget.type),
         };
       }
     }
@@ -2252,15 +2548,18 @@ class BytecodeGenerator extends RecursiveVisitor {
     final forwardingParams = <VariableDeclaration, DartType>{};
     for (int i = 0; i < function.positionalParameters.length; ++i) {
       DartType type = forwardingSubstitution!.substituteType(
-          forwardingTarget.function!.positionalParameters[i].type);
+        forwardingTarget.function!.positionalParameters[i].type,
+      );
       forwardingParams[function.positionalParameters[i]] = type;
     }
     for (var hostParam in function.namedParameters) {
       VariableDeclaration targetParam = forwardingTarget
-          .function!.namedParameters
+          .function!
+          .namedParameters
           .firstWhere((p) => p.name == hostParam.name);
-      forwardingParams[hostParam] =
-          forwardingSubstitution!.substituteType(targetParam.type);
+      forwardingParams[hostParam] = forwardingSubstitution!.substituteType(
+        targetParam.type,
+      );
     }
     return forwardingParams;
   }
@@ -2270,15 +2569,26 @@ class BytecodeGenerator extends RecursiveVisitor {
     // types (and bounds of type parameters) from stub's target.
     // These more accurate type checks is the sole purpose of a forwarding stub.
     final forwardingTarget = _getForwardingStubSuperTarget();
-    final forwardingSubstitution =
-        _getForwardingSubstitution(function, forwardingTarget);
+    final forwardingSubstitution = _getForwardingSubstitution(
+      function,
+      forwardingTarget,
+    );
     final forwardingBounds = _getForwardingBounds(
-        function, forwardingTarget, forwardingSubstitution);
+      function,
+      forwardingTarget,
+      forwardingSubstitution,
+    );
     final forwardingParamTypes = _getForwardingParameterTypes(
-        function, forwardingTarget, forwardingSubstitution);
+      function,
+      forwardingTarget,
+      forwardingSubstitution,
+    );
 
     if (_hasSkippableTypeChecks(
-        function, forwardingBounds, forwardingParamTypes)) {
+      function,
+      forwardingBounds,
+      forwardingParamTypes,
+    )) {
       final Label skipChecks = new Label();
       asm.emitJumpIfUnchecked(skipChecks);
 
@@ -2324,8 +2634,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   /// Returns true if bound of [typeParam] should be checked.
-  bool _typeParameterNeedsBoundCheck(TypeParameter typeParam,
-      Map<TypeParameter, DartType>? forwardingTypeParameterBounds) {
+  bool _typeParameterNeedsBoundCheck(
+    TypeParameter typeParam,
+    Map<TypeParameter, DartType>? forwardingTypeParameterBounds,
+  ) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !typeParam.isCovariantByClass) {
       return false;
@@ -2340,8 +2652,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   /// Returns true if type of [param] should be checked.
-  bool _parameterNeedsTypeCheck(VariableDeclaration param,
-      Map<VariableDeclaration, DartType>? forwardingParameterTypes) {
+  bool _parameterNeedsTypeCheck(
+    VariableDeclaration param,
+    Map<VariableDeclaration, DartType>? forwardingParameterTypes,
+  ) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !param.isCovariantByDeclaration &&
         !param.isCovariantByClass) {
@@ -2359,9 +2673,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   /// Returns true if there are parameter type/bound checks which can
   /// be skipped on unchecked call.
   bool _hasSkippableTypeChecks(
-      FunctionNode function,
-      Map<TypeParameter, DartType>? forwardingBounds,
-      Map<VariableDeclaration, DartType>? forwardingParamTypes) {
+    FunctionNode function,
+    Map<TypeParameter, DartType>? forwardingBounds,
+    Map<VariableDeclaration, DartType>? forwardingParamTypes,
+  ) {
     for (var typeParam in function.typeParameters) {
       if (_typeParameterNeedsBoundCheck(typeParam, forwardingBounds)) {
         return true;
@@ -2382,13 +2697,17 @@ class BytecodeGenerator extends RecursiveVisitor {
     return false;
   }
 
-  void _genTypeParameterBoundCheck(TypeParameter typeParam,
-      Map<TypeParameter, DartType>? forwardingTypeParameterBounds) {
+  void _genTypeParameterBoundCheck(
+    TypeParameter typeParam,
+    Map<TypeParameter, DartType>? forwardingTypeParameterBounds,
+  ) {
     final DartType bound = (forwardingTypeParameterBounds != null)
         ? forwardingTypeParameterBounds[typeParam]!
         : typeParam.bound;
     final DartType type = new TypeParameterType(
-        typeParam, typeParam.computeNullabilityFromBound());
+      typeParam,
+      typeParam.computeNullabilityFromBound(),
+    );
     _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
     asm.emitPushConstant(cp.addType(type));
     asm.emitPushConstant(cp.addType(bound));
@@ -2397,17 +2716,20 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   bool _isTopType(DartType type) => switch (type) {
-        DynamicType() => true,
-        VoidType() => true,
-        InterfaceType() => type.classNode == coreTypes.objectClass &&
-            type.nullability == Nullability.nullable,
-        FutureOrType() => _isTopType(type.typeArgument),
-        ExtensionType() => _isTopType(type.extensionTypeErasure),
-        _ => false,
-      };
+    DynamicType() => true,
+    VoidType() => true,
+    InterfaceType() =>
+      type.classNode == coreTypes.objectClass &&
+          type.nullability == Nullability.nullable,
+    FutureOrType() => _isTopType(type.typeArgument),
+    ExtensionType() => _isTopType(type.extensionTypeErasure),
+    _ => false,
+  };
 
-  void _genArgumentTypeCheck(VariableDeclaration variable,
-      Map<VariableDeclaration, DartType>? forwardingParameterTypes) {
+  void _genArgumentTypeCheck(
+    VariableDeclaration variable,
+    Map<VariableDeclaration, DartType>? forwardingParameterTypes,
+  ) {
     final DartType type = (forwardingParameterTypes != null)
         ? forwardingParameterTypes[variable]!
         : variable.type;
@@ -2421,9 +2743,12 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPushConstant(cp.addType(type));
     _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(
-        name != null ? cp.addName(name) : cp.addString(message!));
+      name != null ? cp.addName(name) : cp.addString(message!),
+    );
     bool isIntOk = typeEnvironment.isSubtypeOf(
-        typeEnvironment.coreTypes.intNonNullableRawType, type);
+      typeEnvironment.coreTypes.intNonNullableRawType,
+      type,
+    );
     int subtypeTestCacheCpIndex = cp.addSubtypeTestCache();
     asm.emitAssertAssignable(isIntOk ? 1 : 0, subtypeTestCacheCpIndex);
   }
@@ -2439,7 +2764,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   int _genClosureBytecode(
-      LocalFunction node, String name, FunctionNode function) {
+    LocalFunction node,
+    String name,
+    FunctionNode function,
+  ) {
     _pushAssemblerState();
 
     locals.enterScope(node);
@@ -2455,8 +2783,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     asyncTryBlock = null;
 
     if (function.typeParameters.isNotEmpty) {
-      final functionTypeParameters =
-          this.functionTypeParameters ??= <TypeParameter>[];
+      final functionTypeParameters = this.functionTypeParameters ??=
+          <TypeParameter>[];
       functionTypeParameters.addAll(function.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
       objectTable.numEnclosingFunctionTypeParameters =
@@ -2465,8 +2793,13 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final closures = this.closures ??= <ClosureDeclaration>[];
     final int closureIndex = closures.length;
-    final closure = getClosureDeclaration(node, function, name, closureIndex,
-        savedIsClosure ? parentFunction! : enclosingMember!);
+    final closure = getClosureDeclaration(
+      node,
+      function,
+      name,
+      closureIndex,
+      savedIsClosure ? parentFunction! : enclosingMember!,
+    );
     closures.add(closure);
 
     final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
@@ -2474,7 +2807,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     _recordSourcePosition(function.fileOffset, SourcePositions.syntheticFlag);
     _genPrologue(node, function);
     _setupInitialContext(function);
-    _emitFirstDebugCheck(node, function);
     _checkArguments(function);
     _initSuspendableFunction(function);
 
@@ -2508,22 +2840,32 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = savedLoopDepth;
     asyncTryBlock = savedAsyncTryBlock;
 
-    bool capturesOnlyFinalNotLateVars =
-        locals.capturesOnlyFinalNotLateVars;
+    bool capturesOnlyFinalNotLateVars = locals.capturesOnlyFinalNotLateVars;
 
     locals.leaveScope();
 
-    closure.code = new ClosureCode(asm.bytecode, asm.exceptionsTable,
-        finalizeSourcePositions(), finalizeLocalVariables(),
-        capturesOnlyFinalNotLateVars);
+    assert(node.id != LocalFunctionId.invalid);
+    closure.code = new ClosureCode(
+      asm.bytecode,
+      asm.exceptionsTable,
+      finalizeSourcePositions(),
+      finalizeLocalVariables(),
+      capturesOnlyFinalNotLateVars,
+      node.id.toInt(),
+    );
 
     _popAssemblerState();
 
     return closureFunctionIndex;
   }
 
-  ClosureDeclaration getClosureDeclaration(LocalFunction node,
-      FunctionNode function, String name, int closureIndex, TreeNode parent) {
+  ClosureDeclaration getClosureDeclaration(
+    LocalFunction node,
+    FunctionNode function,
+    String name,
+    int closureIndex,
+    TreeNode parent,
+  ) {
     objectTable.declareClosure(function, enclosingMember!, closureIndex);
 
     int flags = 0;
@@ -2556,12 +2898,20 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final List<NameAndType> parameters = <NameAndType>[];
     for (var v in function.positionalParameters) {
-      parameters.add(new NameAndType(objectTable.getPublicNameHandle(v.name!),
-          objectTable.getHandle(v.type)!));
+      parameters.add(
+        new NameAndType(
+          objectTable.getPublicNameHandle(v.name!),
+          objectTable.getHandle(v.type)!,
+        ),
+      );
     }
     for (var v in function.namedParameters) {
-      parameters.add(new NameAndType(objectTable.getPublicNameHandle(v.name!),
-          objectTable.getHandle(v.type)!));
+      parameters.add(
+        new NameAndType(
+          objectTable.getPublicNameHandle(v.name!),
+          objectTable.getHandle(v.type)!,
+        ),
+      );
     }
     if (function.requiredParameterCount != parameters.length) {
       if (function.namedParameters.isNotEmpty) {
@@ -2577,60 +2927,79 @@ class BytecodeGenerator extends RecursiveVisitor {
       typeParameters = getTypeParametersDeclaration(function.typeParameters);
     }
 
-    final parameterFlags =
-        ParameterFlags.getFunctionFlags(function, isCode: false);
+    final parameterFlags = ParameterFlags.getFunctionFlags(
+      function,
+      isCode: false,
+    );
     if (parameterFlags != null) {
       flags |= ClosureDeclaration.hasParameterFlagsFlag;
     }
 
+    final List<Expression> astAnnotations = node is ast.FunctionDeclaration
+        ? node.variable.annotations
+        : const <Expression>[];
     final Annotations annotations = getFunctionAnnotations(
-        node is ast.FunctionDeclaration
-            ? node.variable.annotations
-            : const <Expression>[],
-        function);
+      astAnnotations,
+      function,
+    );
     if (annotations.object != null) {
       flags |= ClosureDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= ClosureDeclaration.hasPragmaFlag;
+        if (pragmaParser
+            .parsedPragmas<ParsedVmInvisiblePragma>(astAnnotations)
+            .isNotEmpty) {
+          flags |= ClosureDeclaration.isInvisibleFlag;
+        }
       }
     }
 
     return new ClosureDeclaration(
-        flags,
-        objectTable.getHandle(parent)!,
-        objectTable.getPublicNameHandle(name),
-        position,
-        endPosition,
-        typeParameters,
-        function.requiredParameterCount,
-        function.namedParameters.length,
-        parameters,
-        parameterFlags,
-        objectTable.getHandle(function.returnType)!,
-        annotations.object);
+      flags,
+      objectTable.getHandle(parent)!,
+      objectTable.getPublicNameHandle(name),
+      position,
+      endPosition,
+      typeParameters,
+      function.requiredParameterCount,
+      function.namedParameters.length,
+      parameters,
+      parameterFlags,
+      objectTable.getHandle(function.returnType)!,
+      annotations.object,
+    );
   }
 
   void _genAllocateClosureInstance(
-      TreeNode node, int closureFunctionIndex, FunctionNode function) {
+    TreeNode node,
+    int closureFunctionIndex,
+    FunctionNode function,
+  ) {
     asm.emitPushConstant(closureFunctionIndex);
     asm.emitPush(locals.contextVarIndexInFrame);
     _genPushInstantiatorTypeArguments();
     asm.emitAllocateClosure();
 
-    final int temp = locals.tempIndexInFrame(node);
-    asm.emitStoreLocal(temp);
+    final bool storeFunctionTAV = locals.hasFunctionTypeArgsVar;
+    final bool setEmptyDelayedTAV = function.typeParameters.isNotEmpty;
 
-    if (locals.hasFunctionTypeArgsVar) {
-      asm.emitPush(temp);
-      _genPushFunctionTypeArguments();
-      asm.emitStoreFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
-    }
+    if (storeFunctionTAV || setEmptyDelayedTAV) {
+      final int temp = locals.tempIndexInFrame(node);
+      asm.emitStoreLocal(temp);
 
-    // Delayed type arguments are only used by generic closures.
-    if (function.typeParameters.isNotEmpty) {
-      asm.emitPush(temp);
-      asm.emitPushConstant(cp.addEmptyTypeArguments());
-      asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
+      if (storeFunctionTAV) {
+        asm.emitPush(temp);
+        _genPushFunctionTypeArguments();
+        asm.emitStoreFieldTOS(
+          cp.addInstanceField(closureFunctionTypeArguments),
+        );
+      }
+
+      if (setEmptyDelayedTAV) {
+        asm.emitPush(temp);
+        asm.emitPushConstant(cp.addEmptyTypeArguments());
+        asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
+      }
     }
   }
 
@@ -2658,8 +3027,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     locals.enterScope(node);
     _allocateContextIfNeeded();
     if (options.emitLocalVarInfo) {
-      asm.localVariableTable
-          .enterScope(asm.offset, locals.currentContextLevel, node.fileOffset);
+      asm.localVariableTable.enterScope(
+        asm.offset,
+        locals.currentContextLevel,
+        node.fileOffset,
+      );
       _startRecordingMaxPosition(node.fileOffset);
     }
   }
@@ -2681,8 +3053,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   int _endRecordingMaxPosition() {
     int localMax = maxSourcePosition;
-    maxSourcePosition =
-        math.max(localMax, savedMaxSourcePositions!.removeLast());
+    maxSourcePosition = math.max(
+      localMax,
+      savedMaxSourcePositions!.removeLast(),
+    );
     return localMax;
   }
 
@@ -2729,7 +3103,9 @@ class BytecodeGenerator extends RecursiveVisitor {
   /// [continuation] is invoked to generate control transfer code following
   /// the last finally block.
   void _addFinallyBlocks(
-      List<TryFinally> tryFinallyBlocks, GenerateContinuation continuation) {
+    List<TryFinally> tryFinallyBlocks,
+    GenerateContinuation continuation,
+  ) {
     // Add finally blocks to all try-finally from outer to inner.
     // The outermost finally block should generate continuation, each inner
     // finally block should proceed to a corresponding outer block.
@@ -2748,37 +3124,16 @@ class BytecodeGenerator extends RecursiveVisitor {
     continuation();
   }
 
-  // Emits a source position entry and/or debugger stop as appropriate.
-  void _emitSourcePosition() {
-    if (options.emitSourcePositions) {
-      asm.emitSourcePosition();
-    }
-    if (options.emitDebuggerStops &&
-        (asm.currentSourcePositionFlags & SourcePositions.syntheticFlag) == 0) {
-      asm.emitDebugCheck();
-    }
-  }
-
-  // Records the given file offset as the current source position and
-  // emits a source position entry and/or debugger stop as appropriate,
-  // restoring the current source position afterwards.
-  void _emitLocalSourcePosition(int fileOffset) {
-    if (fileOffset != TreeNode.noOffset) {
-      final savedSourcePosition = asm.currentSourcePosition;
-      _recordSourcePosition(fileOffset);
-      _emitSourcePosition();
-      asm.currentSourcePosition = savedSourcePosition;
-    }
-  }
-
   /// Generates non-local transfer from inner node [from] into the outer
   /// node, executing finally blocks on the way out. [to] can be null,
   /// in such case all enclosing finally blocks are executed.
   /// [continuation] is invoked to generate control transfer code following
   /// the last finally block.
   void _generateNonLocalControlTransfer(
-      TreeNode from, TreeNode to, GenerateContinuation continuation) {
-    _emitLocalSourcePosition(from.fileOffset);
+    TreeNode from,
+    TreeNode to,
+    GenerateContinuation continuation,
+  ) {
     List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
     _addFinallyBlocks(tryFinallyBlocks, continuation);
   }
@@ -2793,8 +3148,12 @@ class BytecodeGenerator extends RecursiveVisitor {
           expr is StaticSet ||
           expr is SuperPropertySet);
 
-  void _createArgumentsArray(int temp, List<DartType> typeArgs,
-      List<Expression> args, bool storeLastArgumentToTemp) {
+  void _createArgumentsArray(
+    int temp,
+    List<DartType> typeArgs,
+    List<Expression> args,
+    bool storeLastArgumentToTemp,
+  ) {
     final int totalCount = (typeArgs.isNotEmpty ? 1 : 0) + args.length;
 
     _genTypeArguments([const DynamicType()]);
@@ -2824,9 +3183,14 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genNoSuchMethodForSuperCall(String name, int temp, int argDescCpIndex,
-      List<DartType> typeArgs, List<Expression> args,
-      {bool storeLastArgumentToTemp = false}) {
+  void _genNoSuchMethodForSuperCall(
+    String name,
+    int temp,
+    int argDescCpIndex,
+    List<DartType> typeArgs,
+    List<Expression> args, {
+    bool storeLastArgumentToTemp = false,
+  }) {
     // Receiver for noSuchMethod() call.
     _genPushReceiver();
 
@@ -2843,10 +3207,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPushTrue();
 
     _genDirectCall(
-        allocateInvocationMirror, objectTable.getArgDescHandle(4), 4);
+      allocateInvocationMirror,
+      objectTable.getArgDescHandle(4),
+      4,
+    );
 
     final Member target = hierarchy.getDispatchTarget(
-        enclosingClass!.superclass!, noSuchMethodName)!;
+      enclosingClass!.superclass!,
+      noSuchMethodName,
+    )!;
     _genDirectCall(target, objectTable.getArgDescHandle(2), 2);
   }
 
@@ -2863,12 +3232,16 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPushNull(); // arguments.
     asm.emitPushNull(); // argumentNames.
     _genDirectCall(
-        throwNewNoSuchMethodError, objectTable.getArgDescHandle(7), 7);
+      throwNewNoSuchMethodError,
+      objectTable.getArgDescHandle(7),
+      7,
+    );
   }
 
   @override
   void defaultTreeNode(Node node) => throw new UnsupportedOperationError(
-      'Unsupported node ${node.runtimeType}');
+    'Unsupported node ${node.runtimeType}',
+  );
 
   @override
   void visitAsExpression(AsExpression node) {
@@ -2879,8 +3252,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       return;
     }
 
-    _genAssertAssignable(type,
-        message: node.isTypeError ? '' : symbolForTypeCast);
+    _genAssertAssignable(
+      type,
+      message: node.isTypeError ? '' : symbolForTypeCast,
+    );
   }
 
   @override
@@ -2930,8 +3305,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     final classIndex = cp.addClass(constructedClass);
 
     if (hasInstantiatorTypeArguments(constructedClass)) {
-      _genTypeArguments(node.arguments.types,
-          instantiatingClass: constructedClass);
+      _genTypeArguments(
+        node.arguments.types,
+        instantiatingClass: constructedClass,
+      );
       asm.emitPushConstant(cp.addClass(constructedClass));
       asm.emitAllocateT();
     } else {
@@ -2943,9 +3320,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     // Remove type arguments as they are only passed to instance allocation,
     // and not passed to a constructor.
-    final args =
-        new Arguments(node.arguments.positional, named: node.arguments.named)
-          ..parent = node;
+    final args = new Arguments(
+      node.arguments.positional,
+      named: node.arguments.named,
+    )..parent = node;
     _genArguments(null, args);
     _genDirectCallWithArgs(node.target, args, hasReceiver: true, node: node);
     asm.emitDrop1();
@@ -2958,40 +3336,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitInstantiation(Instantiation node) {
-    final int oldClosure = locals.tempIndexInFrame(node, tempIndex: 0);
-    final int newClosure = locals.tempIndexInFrame(node, tempIndex: 1);
-    final int typeArguments = locals.tempIndexInFrame(node, tempIndex: 2);
-
     _generateNode(node.expression);
-    asm.emitStoreLocal(oldClosure);
-
     _genTypeArguments(node.typeArguments);
-    asm.emitStoreLocal(typeArguments);
-
-    _genDirectCall(
-        boundsCheckForPartialInstantiation, objectTable.getArgDescHandle(2), 2);
-    asm.emitDrop1();
-
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureFunction));
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureContext));
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureInstantiatorTypeArguments));
-    asm.emitAllocateClosure();
-    asm.emitStoreLocal(newClosure);
-
-    asm.emitPush(typeArguments);
-    asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
-
-    asm.emitPush(newClosure);
-    asm.emitPush(oldClosure);
-    final closureFunctionTypeArgumentsCpIndex =
-        cp.addInstanceField(closureFunctionTypeArguments);
-    asm.emitLoadFieldTOS(closureFunctionTypeArgumentsCpIndex);
-    asm.emitStoreFieldTOS(closureFunctionTypeArgumentsCpIndex);
-
-    asm.emitPush(newClosure);
+    _genDirectCall(instantiateClosure, objectTable.getArgDescHandle(2), 2);
   }
 
   @override
@@ -3019,7 +3366,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (node.expressions.isEmpty) {
       asm.emitPushConstant(
-          cp.addObjectRef(new ListConstant(const DynamicType(), const [])));
+        cp.addObjectRef(new ListConstant(const DynamicType(), const [])),
+      );
     } else {
       _genDupTOS(locals.tempIndexInFrame(node));
       _genPushInt(node.expressions.length);
@@ -3077,7 +3425,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (node.entries.isEmpty) {
       asm.emitPushConstant(
-          cp.addObjectRef(new ListConstant(const DynamicType(), const [])));
+        cp.addObjectRef(new ListConstant(const DynamicType(), const [])),
+      );
     } else {
       _genTypeArguments([const DynamicType()]);
       _genPushInt(node.entries.length * 2);
@@ -3108,7 +3457,9 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _genMethodInvocationUsingSpecializedBytecode(
-      Opcode opcode, InstanceInvocationExpression node) {
+    Opcode opcode,
+    InstanceInvocationExpression node,
+  ) {
     switch (opcode) {
       case Opcode.kEqualsNull:
         if (node.receiver is NullLiteral) {
@@ -3159,19 +3510,23 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   bool _isUncheckedCall(
-          Node node, Member? interfaceTarget, Expression receiver) =>
-      isUncheckedCall(interfaceTarget, receiver, staticTypeContext);
+    Node node,
+    Member? interfaceTarget,
+    Expression receiver,
+  ) => isUncheckedCall(interfaceTarget, receiver, staticTypeContext);
 
   void _genInstanceCall(
-      TreeNode node,
-      InvocationKind invocationKind,
-      Member? interfaceTarget,
-      Name targetName,
-      Expression receiver,
-      int totalArgCount,
-      ObjectHandle argDesc) {
+    TreeNode node,
+    InvocationKind invocationKind,
+    Member? interfaceTarget,
+    Name targetName,
+    Expression receiver,
+    int totalArgCount,
+    ObjectHandle argDesc,
+  ) {
     final isDynamic = interfaceTarget == null;
-    final isUnchecked = invocationKind != InvocationKind.getter &&
+    final isUnchecked =
+        invocationKind != InvocationKind.getter &&
         _isUncheckedCall(node, interfaceTarget, receiver);
 
     bool generated = false;
@@ -3179,7 +3534,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       final staticReceiverType = getStaticType(receiver, staticTypeContext);
       if (isInstantiatedInterfaceCall(interfaceTarget, staticReceiverType)) {
         final callCpIndex = cp.addInstantiatedInterfaceCall(
-            invocationKind, interfaceTarget, argDesc, staticReceiverType);
+          invocationKind,
+          interfaceTarget,
+          argDesc,
+          staticReceiverType,
+        );
         asm.emitInstantiatedInterfaceCall(callCpIndex, totalArgCount);
         generated = true;
       }
@@ -3187,7 +3546,11 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (!generated) {
       final callCpIndex = cp.addInstanceCall(
-          invocationKind, interfaceTarget, targetName, argDesc);
+        invocationKind,
+        interfaceTarget,
+        targetName,
+        argDesc,
+      );
       if (isDynamic) {
         assert(!isUnchecked);
         asm.emitDynamicCall(callCpIndex, totalArgCount);
@@ -3215,8 +3578,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     _generateNode(node.left);
     _generateNode(node.right);
     final argDesc = objectTable.getArgDescHandle(2);
-    _genInstanceCall(node, InvocationKind.method, coreTypes.objectEquals,
-        Name('=='), node.left, 2, argDesc);
+    _genInstanceCall(
+      node,
+      InvocationKind.method,
+      coreTypes.objectEquals,
+      Name('=='),
+      node.left,
+      2,
+      argDesc,
+    );
   }
 
   @override
@@ -3225,15 +3595,19 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitSpecializedBytecode(Opcode.kEqualsNull);
   }
 
-  void _genMethodInvocation(InstanceInvocationExpression node,
-      Procedure? interfaceTarget, Name targetName) {
+  void _genMethodInvocation(
+    InstanceInvocationExpression node,
+    Procedure? interfaceTarget,
+    Name targetName,
+  ) {
     final Opcode? opcode = recognizedMethods.specializedBytecodeFor(node);
     if (opcode != null) {
       _genMethodInvocationUsingSpecializedBytecode(opcode, node);
       return;
     }
     final args = node.arguments;
-    final totalArgCount = args.positional.length +
+    final totalArgCount =
+        args.positional.length +
         args.named.length +
         1 /* receiver */ +
         (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
@@ -3243,17 +3617,27 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _genArguments(node.receiver, args);
 
-    final argDesc =
-        objectTable.getArgDescHandleByArguments(args, hasReceiver: true);
+    final argDesc = objectTable.getArgDescHandleByArguments(
+      args,
+      hasReceiver: true,
+    );
 
-    _genInstanceCall(node, InvocationKind.method, interfaceTarget, targetName,
-        node.receiver, totalArgCount, argDesc);
+    _genInstanceCall(
+      node,
+      InvocationKind.method,
+      interfaceTarget,
+      targetName,
+      node.receiver,
+      totalArgCount,
+      argDesc,
+    );
   }
 
   @override
   void visitFunctionInvocation(FunctionInvocation node) {
     final args = node.arguments;
-    final totalArgCount = args.positional.length +
+    final totalArgCount =
+        args.positional.length +
         args.named.length +
         1 /* receiver */ +
         (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
@@ -3273,16 +3657,26 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     _genArguments(node.receiver, args);
-    final argDesc =
-        objectTable.getArgDescHandleByArguments(args, hasReceiver: true);
-    _genInstanceCall(node, InvocationKind.method, null, Name.callName,
-        node.receiver, totalArgCount, argDesc);
+    final argDesc = objectTable.getArgDescHandleByArguments(
+      args,
+      hasReceiver: true,
+    );
+    _genInstanceCall(
+      node,
+      InvocationKind.method,
+      null,
+      Name.callName,
+      node.receiver,
+      totalArgCount,
+      argDesc,
+    );
   }
 
   @override
   void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     final args = node.arguments;
-    final totalArgCount = args.positional.length +
+    final totalArgCount =
+        args.positional.length +
         args.named.length +
         1 /* receiver */ +
         (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
@@ -3318,13 +3712,24 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genPropertyGet(node, node.name, node.interfaceTarget, node.receiver);
   }
 
-  void _genPropertyGet(Expression node, Name name, Member? interfaceTarget,
-      Expression receiver) {
+  void _genPropertyGet(
+    Expression node,
+    Name name,
+    Member? interfaceTarget,
+    Expression receiver,
+  ) {
     _generateNode(receiver);
     final argDesc = objectTable.getArgDescHandle(1);
 
-    _genInstanceCall(node, InvocationKind.getter, interfaceTarget, name,
-        receiver, 1, argDesc);
+    _genInstanceCall(
+      node,
+      InvocationKind.getter,
+      interfaceTarget,
+      name,
+      receiver,
+      1,
+      argDesc,
+    );
   }
 
   @override
@@ -3335,11 +3740,21 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitInstanceSet(InstanceSet node) {
     _genPropertySet(
-        node, node.name, node.interfaceTarget, node.receiver, node.value);
+      node,
+      node.name,
+      node.interfaceTarget,
+      node.receiver,
+      node.value,
+    );
   }
 
-  void _genPropertySet(Expression node, Name name, Member? interfaceTarget,
-      Expression receiver, Expression value) {
+  void _genPropertySet(
+    Expression node,
+    Name name,
+    Member? interfaceTarget,
+    Expression receiver,
+    Expression value,
+  ) {
     final int temp = locals.tempIndexInFrame(node);
     final bool hasResult = !isExpressionWithoutResult(node);
 
@@ -3354,8 +3769,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     const int numArguments = 2;
     final argDesc = objectTable.getArgDescHandle(numArguments);
 
-    _genInstanceCall(node, InvocationKind.setter, interfaceTarget, name,
-        receiver, numArguments, argDesc);
+    _genInstanceCall(
+      node,
+      InvocationKind.setter,
+      interfaceTarget,
+      name,
+      receiver,
+      numArguments,
+      argDesc,
+    );
 
     asm.emitDrop1();
 
@@ -3367,42 +3789,63 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     final args = node.arguments;
-    final Member? target =
-        hierarchy.getDispatchTarget(enclosingClass!.superclass!, node.name);
+    final Member? target = hierarchy.getDispatchTarget(
+      enclosingClass!.superclass!,
+      node.name,
+    );
     if (target == null) {
       final int temp = locals.tempIndexInFrame(node);
       _genNoSuchMethodForSuperCall(
-          node.name.text,
-          temp,
-          cp.addArgDescByArguments(args, hasReceiver: true),
-          args.types,
-          <Expression>[new ThisExpression()]
-            ..addAll(args.positional)
-            ..addAll(args.named.map((x) => x.value)));
+        node.name.text,
+        temp,
+        cp.addArgDescByArguments(args, hasReceiver: true),
+        args.types,
+        <Expression>[new ThisExpression()]
+          ..addAll(args.positional)
+          ..addAll(args.named.map((x) => x.value)),
+      );
       return;
     }
     if (!(target is Procedure && !target.isGetter)) {
       throw new UnsupportedOperationError(
-          'Unsupported SuperMethodInvocation with target ${target.runtimeType} $target');
+        'Unsupported SuperMethodInvocation with target ${target.runtimeType} $target',
+      );
     }
     _genArguments(new ThisExpression(), args);
-    _genDirectCallWithArgs(target, args,
-        hasReceiver: true, isUnchecked: true, node: node);
+    _genDirectCallWithArgs(
+      target,
+      args,
+      hasReceiver: true,
+      isUnchecked: true,
+      node: node,
+    );
   }
 
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
-    final Member? target =
-        hierarchy.getDispatchTarget(enclosingClass!.superclass!, node.name);
+    final Member? target = hierarchy.getDispatchTarget(
+      enclosingClass!.superclass!,
+      node.name,
+    );
     if (target == null) {
       final int temp = locals.tempIndexInFrame(node);
-      _genNoSuchMethodForSuperCall(node.name.text, temp, cp.addArgDesc(1), [],
-          <Expression>[new ThisExpression()]);
+      _genNoSuchMethodForSuperCall(
+        node.name.text,
+        temp,
+        cp.addArgDesc(1),
+        [],
+        <Expression>[new ThisExpression()],
+      );
       return;
     }
     _genPushReceiver();
-    _genDirectCall(target, objectTable.getArgDescHandle(1), 1,
-        isGet: true, node: node);
+    _genDirectCall(
+      target,
+      objectTable.getArgDescHandle(1),
+      1,
+      isGet: true,
+      node: node,
+    );
   }
 
   @override
@@ -3411,12 +3854,19 @@ class BytecodeGenerator extends RecursiveVisitor {
     final bool hasResult = !isExpressionWithoutResult(node);
 
     final Member? target = hierarchy.getDispatchTarget(
-        enclosingClass!.superclass!, node.name,
-        setter: true);
+      enclosingClass!.superclass!,
+      node.name,
+      setter: true,
+    );
     if (target == null) {
-      _genNoSuchMethodForSuperCall(node.name.text, temp, cp.addArgDesc(2), [],
-          <Expression>[new ThisExpression(), node.value],
-          storeLastArgumentToTemp: hasResult);
+      _genNoSuchMethodForSuperCall(
+        node.name.text,
+        temp,
+        cp.addArgDesc(2),
+        [],
+        <Expression>[new ThisExpression(), node.value],
+        storeLastArgumentToTemp: hasResult,
+      );
     } else {
       _genPushReceiver();
       _generateNode(node.value);
@@ -3426,8 +3876,14 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
 
       assert(target is Field || (target is Procedure && target.isSetter));
-      _genDirectCall(target, objectTable.getArgDescHandle(2), 2,
-          isSet: true, isUnchecked: true, node: node);
+      _genDirectCall(
+        target,
+        objectTable.getArgDescHandle(2),
+        2,
+        isSet: true,
+        isUnchecked: true,
+        node: node,
+      );
     }
 
     asm.emitDrop1();
@@ -3462,7 +3918,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitRethrow(Rethrow node) {
     TryCatch tryCatch;
-    for (var parent = node.parent;; parent = parent.parent) {
+    for (var parent = node.parent; ; parent = parent.parent) {
       if (parent is Catch) {
         tryCatch = parent.parent as TryCatch;
         break;
@@ -3518,13 +3974,23 @@ class BytecodeGenerator extends RecursiveVisitor {
       } else if (!_needsGetter(target)) {
         asm.emitLoadStatic(cp.addStaticField(target));
       } else {
-        _genDirectCall(target, objectTable.getArgDescHandle(0), 0,
-            isGet: true, node: node);
+        _genDirectCall(
+          target,
+          objectTable.getArgDescHandle(0),
+          0,
+          isGet: true,
+          node: node,
+        );
       }
     } else if (target is Procedure) {
       if (target.isGetter) {
-        _genDirectCall(target, objectTable.getArgDescHandle(0), 0,
-            isGet: true, node: node);
+        _genDirectCall(
+          target,
+          objectTable.getArgDescHandle(0),
+          0,
+          isGet: true,
+          node: node,
+        );
       } else {
         throw 'Unexpected target for StaticGet: ${target.runtimeType} $target';
       }
@@ -3566,13 +4032,24 @@ class BytecodeGenerator extends RecursiveVisitor {
         // constructor. TODO(alexmarkov): Clean this up.
         asm.emitPushNull();
       }
-      args =
-          new Arguments(node.arguments.positional, named: node.arguments.named)
-            ..parent = node;
+      args = new Arguments(
+        node.arguments.positional,
+        named: node.arguments.named,
+      )..parent = node;
     }
     _genArguments(null, args);
-    _genDirectCallWithArgs(target, args,
-        isFactory: target.isFactory, node: node);
+    _genDirectCallWithArgs(
+      target,
+      args,
+      isFactory: target.isFactory,
+      node: node,
+    );
+    if (target == debugger) {
+      // The debugger needs a pause for the current source position right after
+      // stepping out from the debugger function.
+      assert(asm.currentSourcePosition != TreeNode.noOffset);
+      asm.emitSourcePosition();
+    }
   }
 
   @override
@@ -3588,11 +4065,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     final target = node.target;
     if (target is Field && !_needsSetter(target)) {
       int cpIndex = cp.addStaticField(target);
-      _emitSourcePosition();
       asm.emitStoreStaticTOS(cpIndex);
     } else {
-      _genDirectCall(target, objectTable.getArgDescHandle(1), 1,
-          isSet: true, node: node);
+      _genDirectCall(
+        target,
+        objectTable.getArgDescHandle(1),
+        1,
+        isSet: true,
+        node: node,
+      );
       asm.emitDrop1();
     }
   }
@@ -3641,7 +4122,6 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitThrow(Throw node) {
     _generateNode(node.expression);
 
-    _emitSourcePosition();
     asm.emitThrow(0);
   }
 
@@ -3678,10 +4158,14 @@ class BytecodeGenerator extends RecursiveVisitor {
         // initializer in a closure (see late_var_init_transformer.dart). The
         // closure call needs one temporary, so withTemp lets us use this
         // VariableGet's temporary when visiting the initializer.
-        assert(init is LocalFunctionInvocation &&
-            init.arguments.positional.isEmpty);
+        assert(
+          init is LocalFunctionInvocation && init.arguments.positional.isEmpty,
+        );
         locals.withTemp(
-            init, locals.tempIndexInFrame(node), () => _generateNode(init));
+          init,
+          locals.tempIndexInFrame(node),
+          () => _generateNode(init),
+        );
         if (v.isFinal) {
           // Check that variable was not assigned during initialization.
           _genLoadVar(v);
@@ -3692,18 +4176,24 @@ class BytecodeGenerator extends RecursiveVisitor {
           asm.emitJump(store);
 
           asm.bind(error);
-          asm.emitPushConstant(cp.addName(v.name!));
-          _genDirectCall(throwLocalAssignedDuringInitialization,
-              objectTable.getArgDescHandle(1), 1);
+          asm.emitPushConstant(cp.addName(v.cosmeticName!));
+          _genDirectCall(
+            throwLocalAssignedDuringInitialization,
+            objectTable.getArgDescHandle(1),
+            1,
+          );
           asm.emitDrop1();
 
           asm.bind(store);
         }
         _genStoreVar(v);
       } else {
-        asm.emitPushConstant(cp.addName(v.name!));
+        asm.emitPushConstant(cp.addName(v.cosmeticName!));
         _genDirectCall(
-            throwLocalNotInitialized, objectTable.getArgDescHandle(1), 1);
+          throwLocalNotInitialized,
+          objectTable.getArgDescHandle(1),
+          1,
+        );
         asm.emitDrop1();
       }
 
@@ -3717,62 +4207,56 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitVariableSet(VariableSet node) {
     final v = node.variable;
-    final bool hasResult = !isExpressionWithoutResult(node);
-    final bool isLateFinal = v.isLate && v.isFinal;
 
-    if (!isLateFinal) {
-      _genPushContextIfCaptured(v);
-    }
-
+    _genPushContextIfCaptured(v);
     _generateNode(node.value);
 
+    // Wrap the set in an already initialized check for late final variables.
+    final bool isLateFinal = v.isLate && v.isFinal;
+    final Label error = new Label();
+    if (isLateFinal) {
+      _genLoadVar(v);
+      asm.emitJumpIfInitialized(error);
+    }
+
+    // _genStoreVar pops the stored value off the stack. If the result isn't
+    // used, this is fine. If it is used but the variable isn't captured, then
+    // the generator uses StoreLocal instead of calling _genStoreVar. Otherwise,
+    // a temporary must be used to save and restore the value (as there is no
+    // keep-on-stack equivalent of StoreContextVar).
+    final bool hasResult = !isExpressionWithoutResult(node);
+    final bool isCaptured = locals.isCaptured(v);
+    final bool storeResultInTemp = hasResult && isCaptured;
+
+    if (storeResultInTemp) {
+      asm.emitStoreLocal(locals.tempIndexInFrame(node));
+    }
     if (!v.isSynthesized) {
-      _emitSourcePosition();
+      asm.emitSourcePosition();
+    }
+    if (hasResult && !isCaptured) {
+      asm.emitStoreLocal(locals.getVarIndexInFrame(v));
+    } else {
+      _genStoreVar(v);
+    }
+    if (storeResultInTemp) {
+      asm.emitPush(locals.tempIndexInFrame(node));
     }
 
     if (isLateFinal) {
-      final int temp = locals.tempIndexInFrame(node);
-      asm.emitPopLocal(temp);
-
-      final Label error = new Label();
       final Label done = new Label();
-      _genLoadVar(v);
-      asm.emitJumpIfInitialized(error);
-
-      _genPushContextIfCaptured(v);
-      asm.emitPush(temp);
-      _genStoreVar(v);
       asm.emitJump(done);
 
       asm.bind(error);
-      asm.emitPushConstant(cp.addName(v.name!));
+      asm.emitPushConstant(cp.addName(v.cosmeticName!));
       _genDirectCall(
-          throwLocalAlreadyInitialized, objectTable.getArgDescHandle(1), 1);
+        throwLocalAlreadyInitialized,
+        objectTable.getArgDescHandle(1),
+        1,
+      );
       asm.emitDrop1();
 
       asm.bind(done);
-
-      if (hasResult) {
-        asm.emitPush(temp);
-      }
-    } else if (locals.isCaptured(v)) {
-      final int temp = locals.tempIndexInFrame(node);
-      if (hasResult) {
-        asm.emitStoreLocal(temp);
-      }
-
-      _genStoreVar(v);
-
-      if (hasResult) {
-        asm.emitPush(temp);
-      }
-    } else {
-      final int localIndex = locals.getVarIndexInFrame(v);
-      if (hasResult) {
-        asm.emitStoreLocal(localIndex);
-      } else {
-        asm.emitPopLocal(localIndex);
-      }
     }
   }
 
@@ -3780,8 +4264,13 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitLoadLibrary(LoadLibrary node) {
     final dependency = node.import;
     assert(dependency.isDeferred);
-    asm.emitPushConstant(cp.addDeferredLibraryPrefix(dependency.name!,
-        dependency.enclosingLibrary, dependency.targetLibrary));
+    asm.emitPushConstant(
+      cp.addDeferredLibraryPrefix(
+        dependency.name!,
+        dependency.enclosingLibrary,
+        dependency.targetLibrary,
+      ),
+    );
     _genDirectCall(loadLibrary, objectTable.getArgDescHandle(1), 1);
   }
 
@@ -3789,8 +4278,13 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     final dependency = node.import;
     assert(dependency.isDeferred);
-    asm.emitPushConstant(cp.addDeferredLibraryPrefix(dependency.name!,
-        dependency.enclosingLibrary, dependency.targetLibrary));
+    asm.emitPushConstant(
+      cp.addDeferredLibraryPrefix(
+        dependency.name!,
+        dependency.enclosingLibrary,
+        dependency.targetLibrary,
+      ),
+    );
     _genDirectCall(checkLoaded, objectTable.getArgDescHandle(1), 1);
   }
 
@@ -3807,8 +4301,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final fileUri = node.location!.file;
     final source = node.enclosingComponent!.uriToSource[fileUri]!;
-    final conditionSource = source.text
-        .substring(node.conditionStartOffset, node.conditionEndOffset);
+    final conditionSource = source.text.substring(
+      node.conditionStartOffset,
+      node.conditionEndOffset,
+    );
     final location = source.getLocation(fileUri, node.conditionStartOffset);
     asm.emitPushConstant(cp.addString(conditionSource));
     asm.emitPushConstant(cp.addString(fileUri.toString()));
@@ -3822,7 +4318,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     _genDirectCall(
-        throwNewSourceAssertionError, objectTable.getArgDescHandle(5), 5);
+      throwNewSourceAssertionError,
+      objectTable.getArgDescHandle(5),
+      5,
+    );
     asm.emitDrop1();
 
     asm.bind(done);
@@ -3861,24 +4360,28 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    final targetLabel = labeledStatements?[node.target] ??
+    final targetLabel =
+        labeledStatements?[node.target] ??
         (throw 'Target label ${node.target} was not registered for break $node');
     final targetContextLevel = contextLevels![node.target]!;
 
     _generateNonLocalControlTransfer(node, node.target, () {
       _genUnwindContext(targetContextLevel);
+      asm.emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
 
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    final targetLabel = switchCases?[node.target] ??
+    final targetLabel =
+        switchCases?[node.target] ??
         (throw 'Target label ${node.target} was not registered for continue-switch $node');
     final targetContextLevel = contextLevels![node.target.parent]!;
 
     _generateNonLocalControlTransfer(node, node.target.parent!, () {
       _genUnwindContext(targetContextLevel);
+      asm.emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
@@ -3927,7 +4430,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitForStatement(ForStatement node) {
     _enterScope(node);
     try {
-      _generateNodeList(node.variables);
+      _generateNodeList(node.variableInitializations);
 
       if (asm.isUnreachable) {
         // Bail out before binding a label which allows backward jumps,
@@ -3951,7 +4454,9 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (locals.currentContextSize > 0) {
         asm.emitPush(locals.contextVarIndexInFrame);
         asm.emitCloneContext(
-            locals.currentContextId, locals.currentContextSize);
+          locals.currentContextId,
+          locals.currentContextSize,
+        );
         asm.emitPopLocal(locals.contextVarIndexInFrame);
       }
 
@@ -3971,9 +4476,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    _emitSourcePosition();
     _genPushContextIfCaptured(node.variable);
     _genClosure(node, node.variable.name!, node.function);
+    asm.emitSourcePosition();
     _genStoreVar(node.variable);
   }
 
@@ -3999,8 +4504,8 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitLabeledStatement(LabeledStatement node) {
     final label = new Label();
-    final labeledStatements =
-        this.labeledStatements ??= <LabeledStatement, Label>{};
+    final labeledStatements = this.labeledStatements ??=
+        <LabeledStatement, Label>{};
     labeledStatements[node] = label;
     final contextLevels = this.contextLevels ??= <TreeNode, int>{};
     contextLevels[node] = locals.currentContextLevel;
@@ -4014,16 +4519,14 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitReturnStatement(ReturnStatement node) {
     final expr = node.expression ?? new NullLiteral();
 
-    final List<TryFinally> tryFinallyBlocks =
-        _getEnclosingTryFinallyBlocks(node, null);
+    final List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(
+      node,
+      null,
+    );
     if (tryFinallyBlocks.isEmpty) {
       _generateNode(expr);
       _genReturnTOS();
     } else {
-      if (options.emitDebuggerStops) {
-        // Stop on the return statement before executing finally blocks.
-        asm.emitDebugCheck();
-      }
       if (expr is BasicLiteral) {
         _addFinallyBlocks(tryFinallyBlocks, () {
           _generateNode(expr);
@@ -4061,7 +4564,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final Label done = new Label();
     final List<Label> caseLabels = new List<Label>.generate(
-        node.cases.length, (_) => new Label(allowsBackwardJumps: true));
+      node.cases.length,
+      (_) => new Label(allowsBackwardJumps: true),
+    );
     final equalsArgDesc = objectTable.getArgDescHandle(2);
 
     final switchCases = this.switchCases ??= <SwitchCase, Label>{};
@@ -4081,9 +4586,13 @@ class BytecodeGenerator extends RecursiveVisitor {
           _genPushConstExpr(switchCase.expressions[i]);
           asm.emitPush(temp);
           asm.emitInterfaceCall(
-              cp.addInterfaceCall(
-                  InvocationKind.method, coreTypes.objectEquals, equalsArgDesc),
-              2);
+            cp.addInterfaceCall(
+              InvocationKind.method,
+              coreTypes.objectEquals,
+              equalsArgDesc,
+            ),
+            2,
+          );
           asm.emitJumpIfTrue(caseLabel);
         }
         asm.currentSourcePosition = savedSourcePosition;
@@ -4150,8 +4659,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       // 2. Restore context from captured :saved_try_context_var${depth}.
       assert(locals.isCaptured(capturedSavedContextVar));
-      _genLoadVar(capturedSavedContextVar,
-          currentContextLevel: locals.contextLevelAtEntry);
+      _genLoadVar(
+        capturedSavedContextVar,
+        currentContextLevel: locals.contextLevelAtEntry,
+      );
     } else {
       asm.emitPush(_savedContextVar(node));
     }
@@ -4313,8 +4824,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final TryBlock tryBlock = _startTryBlock(node);
     tryBlock.isSynthetic = true;
-    final finallyBlocks =
-        this.finallyBlocks ??= <TryFinally, List<FinallyBlock>>{};
+    final finallyBlocks = this.finallyBlocks ??=
+        <TryFinally, List<FinallyBlock>>{};
     finallyBlocks[node] = <FinallyBlock>[];
 
     _generateNode(node.body);
@@ -4346,7 +4857,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     finallyBlocks.remove(node);
   }
 
-  bool _skipVariableInitialization(VariableDeclaration v, bool isCaptured) {
+  bool _skipVariableInitialization(
+    VariableInitializationBase v,
+    bool isCaptured,
+  ) {
     // We can skip variable initialization if the variable is supposed to be
     // initialized to null and it's captured. This is because all the slots in
     // the capture context are implicitly initialized to null.
@@ -4365,8 +4879,17 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    _handleVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitializationBase node) {
+    _handleVariableInitialization(node);
+  }
+
+  void _handleVariableInitialization(VariableInitializationBase node) {
     if (!node.isConst) {
-      final bool isCaptured = locals.isCaptured(node);
+      final bool isCaptured = locals.isCaptured(node.variable);
       final initializer = node.initializer;
       final bool emitStore = !_skipVariableInitialization(node, isCaptured);
       int maxInitializerPosition = node.fileOffset;
@@ -4374,14 +4897,15 @@ class BytecodeGenerator extends RecursiveVisitor {
         asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
       }
       if (emitStore) {
-        // Record the source position at the start of the bytecode generated
-        // for storing the variable.
+        // Record the source position of the declaration at the start of
+        // the generated bytecode since debugger tests expect to pause
+        // at the declaration prior to running the initializer (if any).
         if (initializer != null) {
           _recordSourcePosition(node.fileEqualsOffset);
         }
-        _emitSourcePosition();
+        asm.emitSourcePosition();
         if (isCaptured) {
-          _genPushContextForVariable(node);
+          _genPushContextForVariable(node.variable);
         }
         if (node.isLate && !_isTrivialInitializer(initializer)) {
           asm.emitPushUninitializedSentinel();
@@ -4395,11 +4919,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
 
       if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
-        _declareLocalVariable(node, maxInitializerPosition + 1);
+        _declareLocalVariable(node.variable, maxInitializerPosition + 1);
       }
 
       if (emitStore) {
-        _genStoreVar(node);
+        _genStoreVar(node.variable);
       }
     }
   }
@@ -4531,13 +5055,17 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final runtimeCheckType = node.runtimeCheckType;
     if (runtimeCheckType != null) {
-      assert((runtimeCheckType as InterfaceType).classNode ==
-          coreTypes.futureClass);
+      assert(
+        (runtimeCheckType as InterfaceType).classNode == coreTypes.futureClass,
+      );
       _genTypeArguments((runtimeCheckType as InterfaceType).typeArguments);
       asm.emitPush(locals.suspendStateVarIndexInFrame);
       asm.emitPush(temp);
       _genDirectCall(
-          _awaitWithTypeCheck, objectTable.getArgDescHandle(2, 1), 3);
+        _awaitWithTypeCheck,
+        objectTable.getArgDescHandle(2, 1),
+        3,
+      );
     } else {
       asm.emitPush(locals.suspendStateVarIndexInFrame);
       asm.emitPush(temp);
@@ -4553,7 +5081,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitYieldStatement(YieldStatement node) {
     asm.emitPush(locals.suspendStateVarIndexInFrame);
     _genDirectCall(
-        suspendStateFunctionData, objectTable.getArgDescHandle(1), 1);
+      suspendStateFunctionData,
+      objectTable.getArgDescHandle(1),
+      1,
+    );
 
     _generateNode(node.expression);
 
@@ -4574,8 +5105,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitReturnTOS();
 
       asm.bind(normalReturn);
-      final List<TryFinally> tryFinallyBlocks =
-          _getEnclosingTryFinallyBlocks(node, null);
+      final List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(
+        node,
+        null,
+      );
       _addFinallyBlocks(tryFinallyBlocks, () {
         asm.emitPush(locals.suspendStateVarIndexInFrame);
         asm.emitPushNull();

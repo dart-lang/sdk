@@ -30,9 +30,13 @@ class Scope extends LocalVariableEntry {
   int? endPosition;
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
 
-  Scope(int startPC, this.endPC, this.contextLevel, this.position,
-      this.endPosition)
-      : super(startPC);
+  Scope(
+    int startPC,
+    this.endPC,
+    this.contextLevel,
+    this.position,
+    this.endPosition,
+  ) : super(startPC);
 
   @override
   LocalVariableEntryKind get kind => LocalVariableEntryKind.scope;
@@ -50,11 +54,11 @@ class Scope extends LocalVariableEntry {
   }
 
   Scope.readContents(BufferedReader reader, int startPC)
-      : endPC = startPC + reader.readPackedUInt30(),
-        contextLevel = reader.readSLEB128(),
-        position = reader.readPackedUInt30() - 1,
-        endPosition = reader.readPackedUInt30() - 1,
-        super(startPC);
+    : endPC = startPC + reader.readPackedUInt30(),
+      contextLevel = reader.readSLEB128(),
+      position = reader.readPackedUInt30() - 1,
+      endPosition = reader.readPackedUInt30() - 1,
+      super(startPC);
 
   @override
   String toString() =>
@@ -69,9 +73,15 @@ class VariableDeclaration extends LocalVariableEntry {
   int position;
   int initializedPosition;
 
-  VariableDeclaration(int startPC, this.isCaptured, this.index, this.name,
-      this.type, this.position, this.initializedPosition)
-      : super(startPC);
+  VariableDeclaration(
+    int startPC,
+    this.isCaptured,
+    this.index,
+    this.name,
+    this.type,
+    this.position,
+    this.initializedPosition,
+  ) : super(startPC);
 
   @override
   LocalVariableEntryKind get kind => LocalVariableEntryKind.variableDeclaration;
@@ -89,14 +99,16 @@ class VariableDeclaration extends LocalVariableEntry {
   }
 
   VariableDeclaration.readContents(
-      BufferedReader reader, int startPC, int flags)
-      : isCaptured = (flags & LocalVariableEntry.IsCapturedFlag) != 0,
-        index = reader.readSLEB128(),
-        name = reader.readPackedUInt30(),
-        type = reader.readPackedUInt30(),
-        position = reader.readPackedUInt30() - 1,
-        initializedPosition = reader.readPackedUInt30() - 1,
-        super(startPC);
+    BufferedReader reader,
+    int startPC,
+    int flags,
+  ) : isCaptured = (flags & LocalVariableEntry.IsCapturedFlag) != 0,
+      index = reader.readSLEB128(),
+      name = reader.readPackedUInt30(),
+      type = reader.readPackedUInt30(),
+      position = reader.readPackedUInt30() - 1,
+      initializedPosition = reader.readPackedUInt30() - 1,
+      super(startPC);
 
   @override
   String toString() =>
@@ -117,8 +129,8 @@ class ContextVariable extends LocalVariableEntry {
   }
 
   ContextVariable.readContents(BufferedReader reader, int startPC)
-      : index = reader.readSLEB128(),
-        super(startPC);
+    : index = reader.readSLEB128(),
+      super(startPC);
 
   @override
   String toString() => 'context variable $index';
@@ -138,10 +150,24 @@ class LocalVariableTable extends BytecodeDeclaration {
     scopes.add(scope);
   }
 
-  void declareVariable(int pc, bool isCaptured, int index, int nameCpIndex,
-      int typeCpIndex, int position, int initializedPosition) {
-    final variable = new VariableDeclaration(pc, isCaptured, index, nameCpIndex,
-        typeCpIndex, position, initializedPosition);
+  void declareVariable(
+    int pc,
+    bool isCaptured,
+    int index,
+    int nameCpIndex,
+    int typeCpIndex,
+    int position,
+    int initializedPosition,
+  ) {
+    final variable = new VariableDeclaration(
+      pc,
+      isCaptured,
+      index,
+      nameCpIndex,
+      typeCpIndex,
+      position,
+      initializedPosition,
+    );
     activeScopes.last.variables.add(variable);
   }
 
@@ -214,7 +240,8 @@ class LocalVariableTable extends BytecodeDeclaration {
           break;
         case LocalVariableEntryKind.variableDeclaration:
           scope.variables.add(
-              new VariableDeclaration.readContents(reader, startPC, flags));
+            new VariableDeclaration.readContents(reader, startPC, flags),
+          );
           break;
         case LocalVariableEntryKind.contextVariable:
           contextVariable = new ContextVariable.readContents(reader, startPC);

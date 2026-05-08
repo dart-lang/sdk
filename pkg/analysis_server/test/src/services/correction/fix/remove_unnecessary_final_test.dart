@@ -71,12 +71,14 @@ class RemoveUnnecessaryFinalTest extends FixProcessorTest {
 
   Future<void> test_positional() async {
     await resolveTestCode('''
+// @dart = 3.10
 class C {
   C([final this.value = 0]);
   int value;
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 class C {
   C([this.value = 0]);
   int value;
@@ -86,6 +88,7 @@ class C {
 
   Future<void> test_super() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A(this.value);
   int value;
@@ -95,6 +98,7 @@ class B extends A {
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 class A {
   A(this.value);
   int value;
@@ -107,12 +111,14 @@ class B extends A {
 
   Future<void> test_this() async {
     await resolveTestCode('''
+// @dart = 3.10
 class C {
   C(final this.value);
   int value;
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 class C {
   C(this.value);
   int value;

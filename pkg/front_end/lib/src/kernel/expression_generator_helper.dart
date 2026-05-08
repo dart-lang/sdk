@@ -24,7 +24,6 @@ import '../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'constness.dart' show Constness;
 import 'expression_generator.dart';
-import 'forest.dart' show Forest;
 import 'internal_ast.dart';
 
 /// Alias for Expression | Generator
@@ -51,8 +50,6 @@ abstract class ExpressionGeneratorHelper {
   /// This is used when creating [NamedTypeBuilder]s within
   /// [ExpressionGenerator]s.
   InstanceTypeParameterAccessState get instanceTypeParameterAccessState;
-
-  Forest get forest;
 
   ProblemReporting get problemReporting;
 
@@ -85,7 +82,7 @@ abstract class ExpressionGeneratorHelper {
 
   LibraryFeatures get libraryFeatures;
 
-  bool isDeclaredInEnclosingCase(ExpressionVariable variable);
+  bool isDeclaredInEnclosingCase(VariableDeclaration variable);
 
   Generator processLookupResult({
     required LookupResult? lookupResult,
@@ -106,12 +103,9 @@ abstract class ExpressionGeneratorHelper {
     bool isTypeArgumentsInForest = false,
   });
 
-  Initializer buildInvalidInitializer(InvalidExpression expression);
-
   List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
-    int assignmentOffset,
     Expression expression, {
     FormalParameterBuilder? formal,
   });
@@ -231,17 +225,17 @@ abstract class ExpressionGeneratorHelper {
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(ExpressionVariable variable, int charOffset);
+  Expression createVariableGet(VariableDeclaration variable, int charOffset);
 
   /// Registers that [variable] is read from.
   ///
   /// This is needed for type promotion.
-  void registerVariableRead(ExpressionVariable variable);
+  void registerVariableRead(VariableDeclaration variable);
 
   /// Registers that [variable] is assigned to.
   ///
   /// This is needed for type promotion.
-  void registerVariableAssignment(ExpressionVariable variable);
+  void registerVariableAssignment(VariableDeclaration variable);
 
   TypeEnvironment get typeEnvironment;
 
@@ -274,6 +268,9 @@ abstract class ExpressionGeneratorHelper {
     required int invocationOffset,
     required bool inImplicitCreationContext,
   });
+
+  /// Registers a read of the internal variable representing `this`.
+  void readInternalThisVariable();
 }
 
 /// Checks that a generic [typedef] for a generic type declaration.

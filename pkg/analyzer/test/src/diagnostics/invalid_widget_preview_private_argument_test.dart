@@ -80,6 +80,33 @@ Widget extraPrivateName() => Text('Foo');
     );
   }
 
+  test_invalidPrivatePreviewArguments_inArgumentExpression() async {
+    const String kPrivateTextScaleFactor = '_textScaleFactor';
+
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+
+const double $kPrivateTextScaleFactor = 2.0;
+
+@Preview(textScaleFactor: $kPrivateTextScaleFactor + 1)
+Widget numericExpressionWithPrivateDouble() => Text('Foo');
+''',
+      [
+        error(
+          diag.invalidWidgetPreviewPrivateArgument,
+          134,
+          37,
+          correctionContains: correctionMessageBuilder(
+            kPrivateTextScaleFactor,
+            kPrivateTextScaleFactor.substring(1),
+          ),
+        ),
+      ],
+    );
+  }
+
   test_invalidPrivatePreviewArguments_interpolatedInStringArgument() async {
     const String kPrivateName = '_privateName';
 
@@ -108,9 +135,7 @@ Widget privateNameStringInterp() => Text('Foo');
   }
 
   test_invalidPrivatePreviewArguments_size() async {
-    // TODO(srawlins): Update to the new Size argument.
-    const String kPrivateWidth = '_privateWidth';
-    const String kPrivateHeight = '_privateHeight';
+    const String kPrivateSize = '_privateSize';
     const String kPrivateTextScaleFactor = '_textScaleFactor';
 
     await assertErrorsInCode(
@@ -118,37 +143,28 @@ Widget privateNameStringInterp() => Text('Foo');
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
-const double $kPrivateWidth = 42.0;
-const double $kPrivateHeight = 24.0;
+const Size $kPrivateSize =  Size(42.0, 24.0);
 const double $kPrivateTextScaleFactor = 2.0;
 
-@Preview(width: $kPrivateWidth,
-        height: $kPrivateHeight,
-        textScaleFactor: $kPrivateTextScaleFactor)
+@Preview(
+  size: $kPrivateSize,
+  textScaleFactor: $kPrivateTextScaleFactor,
+)
 Widget privateDoubles() => Text('Foo');
 ''',
       [
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          205,
-          20,
+          182,
+          18,
           correctionContains: correctionMessageBuilder(
-            kPrivateWidth,
-            kPrivateWidth.substring(1),
+            kPrivateSize,
+            kPrivateSize.substring(1),
           ),
         ),
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          235,
-          22,
-          correctionContains: correctionMessageBuilder(
-            kPrivateHeight,
-            kPrivateHeight.substring(1),
-          ),
-        ),
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          267,
+          204,
           33,
           correctionContains: correctionMessageBuilder(
             kPrivateTextScaleFactor,
@@ -181,33 +197,6 @@ Widget privateThemeData() => Text('Foo');
           correctionContains: correctionMessageBuilder(
             kPrivateTheme,
             kPrivateTheme.substring(1),
-          ),
-        ),
-      ],
-    );
-  }
-
-  test_invalidPrivatePreviewArguments_widthInArgument() async {
-    const String kPrivateWidth = '_privateWidth';
-
-    await assertErrorsInCode(
-      '''
-import 'package:flutter/widget_previews.dart';
-import 'package:flutter/widgets.dart';
-
-const double $kPrivateWidth = 42.0;
-
-@Preview(width: $kPrivateWidth + 10)
-Widget numericExpressionWithPrivateDouble() => Text('Foo');
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          132,
-          25,
-          correctionContains: correctionMessageBuilder(
-            kPrivateWidth,
-            kPrivateWidth.substring(1),
           ),
         ),
       ],

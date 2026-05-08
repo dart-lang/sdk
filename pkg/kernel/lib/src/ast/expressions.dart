@@ -35,30 +35,41 @@ sealed class Expression extends TreeNode {
   /// If this is not the case, either an exception is thrown or the raw type of
   /// [superclass] is returned.
   InterfaceType getStaticTypeAsInstanceOf(
-      Class superclass, StaticTypeContext context) {
+    Class superclass,
+    StaticTypeContext context,
+  ) {
     // This method assumes the program is correctly typed, so if the superclass
     // is not generic, we can just return its raw type without computing the
     // type of this expression.  It also ensures that all types are considered
     // subtypes of Object (not just interface types), and function types are
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
-      return context.typeEnvironment.coreTypes
-          .rawType(superclass, context.nonNullable);
+      return context.typeEnvironment.coreTypes.rawType(
+        superclass,
+        context.nonNullable,
+      );
     }
     DartType type = getStaticType(context).nonTypeParameterBound;
     if (type is NullType) {
-      return context.typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, context.nullable);
+      return context.typeEnvironment.coreTypes.bottomInterfaceType(
+        superclass,
+        context.nullable,
+      );
     } else if (type is NeverType) {
-      return context.typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, type.nullability);
+      return context.typeEnvironment.coreTypes.bottomInterfaceType(
+        superclass,
+        type.nullability,
+      );
     }
     if (type is TypeDeclarationType) {
       List<DartType>? upcastTypeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(type, superclass);
       if (upcastTypeArguments != null) {
         return new InterfaceType(
-            superclass, type.nullability, upcastTypeArguments);
+          superclass,
+          type.nullability,
+          upcastTypeArguments,
+        );
       }
     }
 
@@ -87,8 +98,10 @@ sealed class Expression extends TreeNode {
     //
     // To resolve this case we compute the type of `t.length` to be the type
     // as if accessed on an unknown subtype `String`.
-    return context.typeEnvironment.coreTypes
-        .rawType(superclass, context.nonNullable);
+    return context.typeEnvironment.coreTypes.rawType(
+      superclass,
+      context.nonNullable,
+    );
   }
 
   @override
@@ -188,16 +201,13 @@ class InvalidExpression extends Expression {
 }
 
 class VariableGet extends Expression {
-  /// The target variable as [VariableDeclaration].
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
-
   /// The target variable.
-  ExpressionVariable expressionVariable;
+  VariableDeclaration variable;
 
   /// Null if not promoted.
   DartType? promotedType;
 
-  VariableGet(this.expressionVariable, [this.promotedType]);
+  VariableGet(this.variable, [this.promotedType]);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -205,7 +215,7 @@ class VariableGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return promotedType ?? expressionVariable.type;
+    return promotedType ?? variable.type;
   }
 
   @override
@@ -246,7 +256,7 @@ class VariableGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(expressionVariable));
+    printer.write(printer.getVariableName(variable));
     if (promotedType != null) {
       printer.write('{');
       printer.writeType(promotedType!);
@@ -259,15 +269,12 @@ class VariableGet extends Expression {
 ///
 /// Evaluates to the value of [value].
 class VariableSet extends Expression {
-  /// The target variable as [VariableDeclaration].
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
-
   /// The target variable.
-  ExpressionVariable expressionVariable;
+  VariableDeclaration variable;
 
   Expression value;
 
-  VariableSet(this.expressionVariable, this.value) {
+  VariableSet(this.variable, this.value) {
     value.parent = this;
   }
 
@@ -310,7 +317,7 @@ class VariableSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(expressionVariable));
+    printer.write(printer.getVariableName(variable));
     printer.write(' = ');
     printer.writeExpression(value);
   }
@@ -322,7 +329,7 @@ class RecordIndexGet extends Expression {
   final int index;
 
   RecordIndexGet(this.receiver, this.receiverType, this.index)
-      : assert(0 <= index && index < receiverType.positional.length) {
+    : assert(0 <= index && index < receiverType.positional.length) {
     receiver.parent = this;
   }
 
@@ -380,10 +387,12 @@ class RecordNameGet extends Expression {
   final String name;
 
   RecordNameGet(this.receiver, this.receiverType, this.name)
-      : assert(receiverType.named
+    : assert(
+        receiverType.named
                 .singleWhere((element) => element.name == name)
                 .name ==
-            name) {
+            name,
+      ) {
     receiver.parent = this;
   }
 
@@ -528,8 +537,10 @@ class DynamicGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeName(name);
   }
@@ -561,15 +572,29 @@ class InstanceGet extends Expression {
 
   Reference interfaceTargetReference;
 
-  InstanceGet(InstanceAccessKind kind, Expression receiver, Name name,
-      {required Member interfaceTarget, required DartType resultType})
-      : this.byReference(kind, receiver, name,
-            interfaceTargetReference:
-                getNonNullableMemberReferenceGetter(interfaceTarget),
-            resultType: resultType);
+  InstanceGet(
+    InstanceAccessKind kind,
+    Expression receiver,
+    Name name, {
+    required Member interfaceTarget,
+    required DartType resultType,
+  }) : this.byReference(
+         kind,
+         receiver,
+         name,
+         interfaceTargetReference: getNonNullableMemberReferenceGetter(
+           interfaceTarget,
+         ),
+         resultType: resultType,
+       );
 
-  InstanceGet.byReference(this.kind, this.receiver, this.name,
-      {required this.interfaceTargetReference, required this.resultType}) {
+  InstanceGet.byReference(
+    this.kind,
+    this.receiver,
+    this.name, {
+    required this.interfaceTargetReference,
+    required this.resultType,
+  }) {
     receiver.parent = this;
   }
 
@@ -618,8 +643,10 @@ class InstanceGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeInterfaceMemberName(interfaceTargetReference, name);
   }
@@ -669,8 +696,10 @@ class FunctionTearOff extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeName(Name.callName);
   }
@@ -701,15 +730,29 @@ class InstanceTearOff extends Expression {
 
   Reference interfaceTargetReference;
 
-  InstanceTearOff(InstanceAccessKind kind, Expression receiver, Name name,
-      {required Procedure interfaceTarget, required DartType resultType})
-      : this.byReference(kind, receiver, name,
-            interfaceTargetReference:
-                getNonNullableMemberReferenceGetter(interfaceTarget),
-            resultType: resultType);
+  InstanceTearOff(
+    InstanceAccessKind kind,
+    Expression receiver,
+    Name name, {
+    required Procedure interfaceTarget,
+    required DartType resultType,
+  }) : this.byReference(
+         kind,
+         receiver,
+         name,
+         interfaceTargetReference: getNonNullableMemberReferenceGetter(
+           interfaceTarget,
+         ),
+         resultType: resultType,
+       );
 
-  InstanceTearOff.byReference(this.kind, this.receiver, this.name,
-      {required this.interfaceTargetReference, required this.resultType}) {
+  InstanceTearOff.byReference(
+    this.kind,
+    this.receiver,
+    this.name, {
+    required this.interfaceTargetReference,
+    required this.resultType,
+  }) {
     receiver.parent = this;
   }
 
@@ -758,8 +801,10 @@ class InstanceTearOff extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeInterfaceMemberName(interfaceTargetReference, name);
   }
@@ -817,8 +862,10 @@ class DynamicSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeName(name);
     printer.write(' = ');
@@ -839,14 +886,28 @@ class InstanceSet extends Expression {
   Reference interfaceTargetReference;
 
   InstanceSet(
-      InstanceAccessKind kind, Expression receiver, Name name, Expression value,
-      {required Member interfaceTarget})
-      : this.byReference(kind, receiver, name, value,
-            interfaceTargetReference:
-                getNonNullableMemberReferenceSetter(interfaceTarget));
+    InstanceAccessKind kind,
+    Expression receiver,
+    Name name,
+    Expression value, {
+    required Member interfaceTarget,
+  }) : this.byReference(
+         kind,
+         receiver,
+         name,
+         value,
+         interfaceTargetReference: getNonNullableMemberReferenceSetter(
+           interfaceTarget,
+         ),
+       );
 
-  InstanceSet.byReference(this.kind, this.receiver, this.name, this.value,
-      {required this.interfaceTargetReference}) {
+  InstanceSet.byReference(
+    this.kind,
+    this.receiver,
+    this.name,
+    this.value, {
+    required this.interfaceTargetReference,
+  }) {
     receiver.parent = this;
     value.parent = this;
   }
@@ -899,8 +960,10 @@ class InstanceSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeInterfaceMemberName(interfaceTargetReference, name);
     printer.write(' = ');
@@ -935,16 +998,29 @@ class InstanceSet extends Expression {
 ///
 /// This may invoke a getter, read a field, or tear off a method.
 class AbstractSuperPropertyGet extends Expression {
+  Expression receiver;
+
   Name name;
 
   Reference interfaceTargetReference;
 
-  AbstractSuperPropertyGet(Name name, Member interfaceTarget)
-      : this.byReference(
-            name, getNonNullableMemberReferenceGetter(interfaceTarget));
+  AbstractSuperPropertyGet(
+    Expression receiver,
+    Name name,
+    Member interfaceTarget,
+  ) : this.byReference(
+        receiver,
+        name,
+        getNonNullableMemberReferenceGetter(interfaceTarget),
+      );
 
   AbstractSuperPropertyGet.byReference(
-      this.name, this.interfaceTargetReference);
+    this.receiver,
+    this.name,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
+  }
 
   Member get interfaceTarget => interfaceTargetReference.asMember;
 
@@ -961,8 +1037,9 @@ class AbstractSuperPropertyGet extends Expression {
     List<DartType>? receiverArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, declaringClass);
     return Substitution.fromPairs(
-            declaringClass.typeParameters, receiverArguments!)
-        .substituteType(interfaceTarget.getterType);
+      declaringClass.typeParameters,
+      receiverArguments!,
+    ).substituteType(interfaceTarget.getterType);
   }
 
   @override
@@ -974,15 +1051,22 @@ class AbstractSuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
   String toString() {
@@ -1000,15 +1084,26 @@ class AbstractSuperPropertyGet extends Expression {
 ///
 /// This may invoke a getter, read a field, or tear off a method.
 class SuperPropertyGet extends Expression {
+  Expression receiver;
+
   Name name;
 
   Reference interfaceTargetReference;
 
-  SuperPropertyGet(Name name, Member interfaceTarget)
-      : this.byReference(
-            name, getNonNullableMemberReferenceGetter(interfaceTarget));
+  SuperPropertyGet(Expression receiver, Name name, Member interfaceTarget)
+    : this.byReference(
+        receiver,
+        name,
+        getNonNullableMemberReferenceGetter(interfaceTarget),
+      );
 
-  SuperPropertyGet.byReference(this.name, this.interfaceTargetReference);
+  SuperPropertyGet.byReference(
+    this.receiver,
+    this.name,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
+  }
 
   Member get interfaceTarget => interfaceTargetReference.asMember;
 
@@ -1025,8 +1120,9 @@ class SuperPropertyGet extends Expression {
     List<DartType>? receiverArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, declaringClass);
     return Substitution.fromPairs(
-            declaringClass.typeParameters, receiverArguments!)
-        .substituteType(interfaceTarget.getterType);
+      declaringClass.typeParameters,
+      receiverArguments!,
+    ).substituteType(interfaceTarget.getterType);
   }
 
   @override
@@ -1038,15 +1134,22 @@ class SuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
   String toString() {
@@ -1087,17 +1190,31 @@ class SuperPropertyGet extends Expression {
 ///
 /// This may invoke a setter or assign a field.
 class AbstractSuperPropertySet extends Expression {
+  Expression receiver;
   Name name;
   Expression value;
 
   Reference interfaceTargetReference;
 
-  AbstractSuperPropertySet(Name name, Expression value, Member interfaceTarget)
-      : this.byReference(
-            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
+  AbstractSuperPropertySet(
+    Expression receiver,
+    Name name,
+    Expression value,
+    Member interfaceTarget,
+  ) : this.byReference(
+        receiver,
+        name,
+        value,
+        getNonNullableMemberReferenceSetter(interfaceTarget),
+      );
 
   AbstractSuperPropertySet.byReference(
-      this.name, this.value, this.interfaceTargetReference) {
+    this.receiver,
+    this.name,
+    this.value,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
     value.parent = this;
   }
 
@@ -1120,6 +1237,7 @@ class AbstractSuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
@@ -1127,12 +1245,16 @@ class AbstractSuperPropertySet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
@@ -1157,17 +1279,31 @@ class AbstractSuperPropertySet extends Expression {
 ///
 /// Evaluates to the value of [value].
 class SuperPropertySet extends Expression {
+  Expression receiver;
   Name name;
   Expression value;
 
   Reference interfaceTargetReference;
 
-  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
-      : this.byReference(
-            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
+  SuperPropertySet(
+    Expression receiver,
+    Name name,
+    Expression value,
+    Member interfaceTarget,
+  ) : this.byReference(
+        receiver,
+        name,
+        value,
+        getNonNullableMemberReferenceSetter(interfaceTarget),
+      );
 
   SuperPropertySet.byReference(
-      this.name, this.value, this.interfaceTargetReference) {
+    this.receiver,
+    this.name,
+    this.value,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
     value.parent = this;
   }
 
@@ -1190,6 +1326,7 @@ class SuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
@@ -1197,12 +1334,16 @@ class SuperPropertySet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
@@ -1227,8 +1368,8 @@ class StaticGet extends Expression {
   Reference targetReference;
 
   StaticGet(Member target)
-      : assert(target is Field || (target is Procedure && target.isGetter)),
-        this.targetReference = getNonNullableMemberReferenceGetter(target);
+    : assert(target is Field || (target is Procedure && target.isGetter)),
+      this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticGet.byReference(this.targetReference);
 
@@ -1276,10 +1417,12 @@ class StaticTearOff extends Expression {
   Reference targetReference;
 
   StaticTearOff(Procedure target)
-      : assert(target.isStatic, "Unexpected static tear off target: $target"),
-        assert(target.kind == ProcedureKind.Method,
-            "Unexpected static tear off target: $target"),
-        this.targetReference = getNonNullableMemberReferenceGetter(target);
+    : assert(target.isStatic, "Unexpected static tear off target: $target"),
+      assert(
+        target.kind == ProcedureKind.Method,
+        "Unexpected static tear off target: $target",
+      ),
+      this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticTearOff.byReference(this.targetReference);
 
@@ -1331,7 +1474,7 @@ class StaticSet extends Expression {
   Expression value;
 
   StaticSet(Member target, Expression value)
-      : this.byReference(getNonNullableMemberReferenceSetter(target), value);
+    : this.byReference(getNonNullableMemberReferenceSetter(target), value);
 
   StaticSet.byReference(this.targetReference, this.value) {
     value.parent = this;
@@ -1392,31 +1535,33 @@ class Arguments extends TreeNode {
   final List<Expression> positional;
   List<NamedExpression> named;
 
-  Arguments(this.positional,
-      {List<DartType>? types, List<NamedExpression>? named})
-      : this.types = types ?? <DartType>[],
-        this.named = named ?? <NamedExpression>[] {
+  Arguments(
+    this.positional, {
+    List<DartType>? types,
+    List<NamedExpression>? named,
+  }) : this.types = types ?? <DartType>[],
+       this.named = named ?? <NamedExpression>[] {
     setParents(this.positional, this);
     setParents(this.named, this);
   }
 
   Arguments.empty()
-      : types = <DartType>[],
-        positional = <Expression>[],
-        named = <NamedExpression>[];
+    : types = <DartType>[],
+      positional = <Expression>[],
+      named = <NamedExpression>[];
 
   factory Arguments.forwarded(FunctionNode function, Library library) {
     return new Arguments(
-        function.positionalParameters
-            .map<Expression>((p) => new VariableGet(p))
-            .toList(),
-        named: function.namedParameters
-            .map((p) => new NamedExpression(p.name!, new VariableGet(p)))
-            .toList(),
-        types: function.typeParameters
-            .map<DartType>(
-                (p) => new TypeParameterType.withDefaultNullability(p))
-            .toList());
+      function.positionalParameters
+          .map<Expression>((p) => new VariableGet(p))
+          .toList(),
+      named: function.namedParameters
+          .map((p) => new NamedExpression(p.name!, new VariableGet(p)))
+          .toList(),
+      types: function.typeParameters
+          .map<DartType>((p) => new TypeParameterType.withDefaultNullability(p))
+          .toList(),
+    );
   }
 
   @override
@@ -1635,8 +1780,10 @@ class DynamicInvocation extends InstanceInvocationExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     if (!isImplicitCall) {
       printer.write('.');
       printer.writeName(name);
@@ -1737,18 +1884,32 @@ class InstanceInvocation extends InstanceInvocationExpression {
 
   Reference interfaceTargetReference;
 
-  InstanceInvocation(InstanceAccessKind kind, Expression receiver, Name name,
-      Arguments arguments,
-      {required Procedure interfaceTarget, required FunctionType functionType})
-      : this.byReference(kind, receiver, name, arguments,
-            interfaceTargetReference:
-                getNonNullableMemberReferenceGetter(interfaceTarget),
-            functionType: functionType);
+  InstanceInvocation(
+    InstanceAccessKind kind,
+    Expression receiver,
+    Name name,
+    Arguments arguments, {
+    required Procedure interfaceTarget,
+    required FunctionType functionType,
+  }) : this.byReference(
+         kind,
+         receiver,
+         name,
+         arguments,
+         interfaceTargetReference: getNonNullableMemberReferenceGetter(
+           interfaceTarget,
+         ),
+         functionType: functionType,
+       );
 
   InstanceInvocation.byReference(
-      this.kind, this.receiver, this.name, this.arguments,
-      {required this.interfaceTargetReference, required this.functionType})
-      : assert(functionType.typeParameters.isEmpty) {
+    this.kind,
+    this.receiver,
+    this.name,
+    this.arguments, {
+    required this.interfaceTargetReference,
+    required this.functionType,
+  }) : assert(functionType.typeParameters.isEmpty) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -1840,8 +2001,10 @@ class InstanceInvocation extends InstanceInvocationExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeInterfaceMemberName(interfaceTargetReference, name);
     printer.writeArguments(arguments);
@@ -1892,18 +2055,32 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
 
   Reference interfaceTargetReference;
 
-  InstanceGetterInvocation(InstanceAccessKind kind, Expression receiver,
-      Name name, Arguments arguments,
-      {required Member interfaceTarget, required FunctionType? functionType})
-      : this.byReference(kind, receiver, name, arguments,
-            interfaceTargetReference:
-                getNonNullableMemberReferenceGetter(interfaceTarget),
-            functionType: functionType);
+  InstanceGetterInvocation(
+    InstanceAccessKind kind,
+    Expression receiver,
+    Name name,
+    Arguments arguments, {
+    required Member interfaceTarget,
+    required FunctionType? functionType,
+  }) : this.byReference(
+         kind,
+         receiver,
+         name,
+         arguments,
+         interfaceTargetReference: getNonNullableMemberReferenceGetter(
+           interfaceTarget,
+         ),
+         functionType: functionType,
+       );
 
   InstanceGetterInvocation.byReference(
-      this.kind, this.receiver, this.name, this.arguments,
-      {required this.interfaceTargetReference, required this.functionType})
-      : assert(functionType == null || functionType.typeParameters.isEmpty) {
+    this.kind,
+    this.receiver,
+    this.name,
+    this.arguments, {
+    required this.interfaceTargetReference,
+    required this.functionType,
+  }) : assert(functionType == null || functionType.typeParameters.isEmpty) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -2000,8 +2177,10 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.write('.');
     printer.writeInterfaceMemberName(interfaceTargetReference, name);
     printer.writeArguments(arguments);
@@ -2081,8 +2260,12 @@ class FunctionInvocation extends InstanceInvocationExpression {
   ///
   FunctionType? functionType;
 
-  FunctionInvocation(this.kind, this.receiver, this.arguments,
-      {required this.functionType}) {
+  FunctionInvocation(
+    this.kind,
+    this.receiver,
+    this.arguments, {
+    required this.functionType,
+  }) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -2141,8 +2324,10 @@ class FunctionInvocation extends InstanceInvocationExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeExpression(
+      receiver,
+      minimumPrecedence: astToText.Precedence.PRIMARY,
+    );
     printer.writeArguments(arguments);
   }
 }
@@ -2169,8 +2354,11 @@ class LocalFunctionInvocation extends InvocationExpression {
   ///
   FunctionType functionType;
 
-  LocalFunctionInvocation(this.variable, this.arguments,
-      {required this.functionType}) {
+  LocalFunctionInvocation(
+    this.variable,
+    this.arguments, {
+    required this.functionType,
+  }) {
     arguments.parent = this;
   }
 
@@ -2301,15 +2489,26 @@ class EqualsCall extends Expression {
 
   Reference interfaceTargetReference;
 
-  EqualsCall(Expression left, Expression right,
-      {required FunctionType functionType, required Procedure interfaceTarget})
-      : this.byReference(left, right,
-            functionType: functionType,
-            interfaceTargetReference:
-                getNonNullableMemberReferenceGetter(interfaceTarget));
+  EqualsCall(
+    Expression left,
+    Expression right, {
+    required FunctionType functionType,
+    required Procedure interfaceTarget,
+  }) : this.byReference(
+         left,
+         right,
+         functionType: functionType,
+         interfaceTargetReference: getNonNullableMemberReferenceGetter(
+           interfaceTarget,
+         ),
+       );
 
-  EqualsCall.byReference(this.left, this.right,
-      {required this.functionType, required this.interfaceTargetReference}) {
+  EqualsCall.byReference(
+    this.left,
+    this.right, {
+    required this.functionType,
+    required this.interfaceTargetReference,
+  }) {
     left.parent = this;
     right.parent = this;
   }
@@ -2399,6 +2598,8 @@ class EqualsCall extends Expression {
 ///    class Class extends Super with Mixin {}
 ///
 class AbstractSuperMethodInvocation extends InvocationExpression {
+  Expression receiver;
+
   @override
   Name name;
 
@@ -2408,15 +2609,25 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
   Reference interfaceTargetReference;
 
   AbstractSuperMethodInvocation(
-      Name name, Arguments arguments, Procedure interfaceTarget)
-      : this.byReference(
-            name,
-            arguments,
-            // An invocation doesn't refer to the setter.
-            getNonNullableMemberReferenceGetter(interfaceTarget));
+    Expression receiver,
+    Name name,
+    Arguments arguments,
+    Procedure interfaceTarget,
+  ) : this.byReference(
+        receiver,
+        name,
+        arguments,
+        // An invocation doesn't refer to the setter.
+        getNonNullableMemberReferenceGetter(interfaceTarget),
+      );
 
   AbstractSuperMethodInvocation.byReference(
-      this.name, this.arguments, this.interfaceTargetReference) {
+    this.receiver,
+    this.name,
+    this.arguments,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
     arguments.parent = this;
   }
 
@@ -2433,11 +2644,13 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
     List<DartType>? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
-            superclass.typeParameters, receiverTypeArguments!)
-        .substituteType(interfaceTarget.function.returnType);
+      superclass.typeParameters,
+      receiverTypeArguments!,
+    ).substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
-            interfaceTarget.function.typeParameters, arguments.types)
-        .substituteType(returnType);
+      interfaceTarget.function.typeParameters,
+      arguments.types,
+    ).substituteType(returnType);
   }
 
   @override
@@ -2450,6 +2663,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
@@ -2457,12 +2671,16 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }
@@ -2484,6 +2702,8 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 ///
 /// The provided arguments might not match the parameters of the target.
 class SuperMethodInvocation extends InvocationExpression {
+  Expression receiver;
+
   @override
   Name name;
 
@@ -2493,15 +2713,25 @@ class SuperMethodInvocation extends InvocationExpression {
   Reference interfaceTargetReference;
 
   SuperMethodInvocation(
-      Name name, Arguments arguments, Procedure interfaceTarget)
-      : this.byReference(
-            name,
-            arguments,
-            // An invocation doesn't refer to the setter.
-            getNonNullableMemberReferenceGetter(interfaceTarget));
+    Expression receiver,
+    Name name,
+    Arguments arguments,
+    Procedure interfaceTarget,
+  ) : this.byReference(
+        receiver,
+        name,
+        arguments,
+        // An invocation doesn't refer to the setter.
+        getNonNullableMemberReferenceGetter(interfaceTarget),
+      );
 
   SuperMethodInvocation.byReference(
-      this.name, this.arguments, this.interfaceTargetReference) {
+    this.receiver,
+    this.name,
+    this.arguments,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
     arguments.parent = this;
   }
 
@@ -2518,11 +2748,13 @@ class SuperMethodInvocation extends InvocationExpression {
     List<DartType>? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
-            superclass.typeParameters, receiverTypeArguments!)
-        .substituteType(interfaceTarget.function.returnType);
+      superclass.typeParameters,
+      receiverTypeArguments!,
+    ).substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
-            interfaceTarget.function.typeParameters, arguments.types)
-        .substituteType(returnType);
+      interfaceTarget.function.typeParameters,
+      arguments.types,
+    ).substituteType(returnType);
   }
 
   @override
@@ -2534,6 +2766,7 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
@@ -2541,12 +2774,16 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }
@@ -2580,16 +2817,22 @@ class StaticInvocation extends InvocationExpression {
   @override
   Name get name => target.name;
 
-  StaticInvocation(Procedure target, Arguments arguments,
-      {bool isConst = false})
-      : this.byReference(
-            // An invocation doesn't refer to the setter.
-            getNonNullableMemberReferenceGetter(target),
-            arguments,
-            isConst: isConst);
+  StaticInvocation(
+    Procedure target,
+    Arguments arguments, {
+    bool isConst = false,
+  }) : this.byReference(
+         // An invocation doesn't refer to the setter.
+         getNonNullableMemberReferenceGetter(target),
+         arguments,
+         isConst: isConst,
+       );
 
-  StaticInvocation.byReference(this.targetReference, this.arguments,
-      {this.isConst = false}) {
+  StaticInvocation.byReference(
+    this.targetReference,
+    this.arguments, {
+    this.isConst = false,
+  }) {
     arguments.parent = this;
   }
 
@@ -2603,8 +2846,9 @@ class StaticInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     return Substitution.fromPairs(
-            target.function.typeParameters, arguments.types)
-        .substituteType(target.function.returnType);
+      target.function.typeParameters,
+      arguments.types,
+    ).substituteType(target.function.returnType);
   }
 
   @override
@@ -2662,16 +2906,22 @@ class ConstructorInvocation extends InvocationExpression {
   @override
   Name get name => target.name;
 
-  ConstructorInvocation(Constructor target, Arguments arguments,
-      {bool isConst = false})
-      : this.byReference(
-            // A constructor doesn't refer to the setter.
-            getNonNullableMemberReferenceGetter(target),
-            arguments,
-            isConst: isConst);
+  ConstructorInvocation(
+    Constructor target,
+    Arguments arguments, {
+    bool isConst = false,
+  }) : this.byReference(
+         // A constructor doesn't refer to the setter.
+         getNonNullableMemberReferenceGetter(target),
+         arguments,
+         isConst: isConst,
+       );
 
-  ConstructorInvocation.byReference(this.targetReference, this.arguments,
-      {this.isConst = false}) {
+  ConstructorInvocation.byReference(
+    this.targetReference,
+    this.arguments, {
+    this.isConst = false,
+  }) {
     arguments.parent = this;
   }
 
@@ -2685,10 +2935,15 @@ class ConstructorInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     return arguments.types.isEmpty
-        ? context.typeEnvironment.coreTypes
-            .rawType(target.enclosingClass, context.nonNullable)
+        ? context.typeEnvironment.coreTypes.rawType(
+            target.enclosingClass,
+            context.nonNullable,
+          )
         : new InterfaceType(
-            target.enclosingClass, context.nonNullable, arguments.types);
+            target.enclosingClass,
+            context.nonNullable,
+            arguments.types,
+          );
   }
 
   @override
@@ -2723,10 +2978,16 @@ class ConstructorInvocation extends InvocationExpression {
     // TODO(cstefantsova): Get raw type from a CoreTypes object if arguments is
     // empty.
     return arguments.types.isEmpty
-        ? new InterfaceType(enclosingClass, target.enclosingLibrary.nonNullable,
-            const <DartType>[])
-        : new InterfaceType(enclosingClass, target.enclosingLibrary.nonNullable,
-            arguments.types);
+        ? new InterfaceType(
+            enclosingClass,
+            target.enclosingLibrary.nonNullable,
+            const <DartType>[],
+          )
+        : new InterfaceType(
+            enclosingClass,
+            target.enclosingLibrary.nonNullable,
+            arguments.types,
+          );
   }
 
   @override
@@ -2765,14 +3026,20 @@ class RedirectingFactoryInvocation extends Expression {
   InvocationExpression expression;
 
   factory RedirectingFactoryInvocation(
-      Procedure redirectingFactoryTarget, InvocationExpression expression) {
+    Procedure redirectingFactoryTarget,
+    InvocationExpression expression,
+  ) {
     assert(redirectingFactoryTarget.isRedirectingFactory);
     return new RedirectingFactoryInvocation.byReference(
-        redirectingFactoryTarget.reference, expression);
+      redirectingFactoryTarget.reference,
+      expression,
+    );
   }
 
   RedirectingFactoryInvocation.byReference(
-      this.redirectingFactoryTargetReference, this.expression) {
+    this.redirectingFactoryTargetReference,
+    this.expression,
+  ) {
     expression.parent = this;
   }
 
@@ -2844,8 +3111,10 @@ class Instantiation extends Expression {
     if (type is FunctionType) {
       return FunctionTypeInstantiator.instantiate(type, typeArguments);
     }
-    assert(type is InvalidType || type is NeverType,
-        "Unexpected operand type $type for $expression");
+    assert(
+      type is InvalidType || type is NeverType,
+      "Unexpected operand type $type for $expression",
+    );
     return type;
   }
 
@@ -2940,8 +3209,10 @@ class Not extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('!');
-    printer.writeExpression(operand,
-        minimumPrecedence: astToText.Precedence.PREFIX);
+    printer.writeExpression(
+      operand,
+      minimumPrecedence: astToText.Precedence.PREFIX,
+    );
   }
 }
 
@@ -3028,7 +3299,11 @@ class ConditionalExpression extends Expression {
   DartType staticType;
 
   ConditionalExpression(
-      this.condition, this.then, this.otherwise, this.staticType) {
+    this.condition,
+    this.then,
+    this.otherwise,
+    this.staticType,
+  ) {
     condition.parent = this;
     then.parent = this;
     otherwise.parent = this;
@@ -3085,8 +3360,10 @@ class ConditionalExpression extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(condition,
-        minimumPrecedence: astToText.Precedence.LOGICAL_OR);
+    printer.writeExpression(
+      condition,
+      minimumPrecedence: astToText.Precedence.LOGICAL_OR,
+    );
     printer.write(' ?');
     printer.write('{');
     printer.writeType(staticType);
@@ -3315,9 +3592,11 @@ class MapConcatenation extends Expression {
   DartType valueType;
   final List<Expression> maps;
 
-  MapConcatenation(this.maps,
-      {this.keyType = const DynamicType(),
-      this.valueType = const DynamicType()}) {
+  MapConcatenation(
+    this.maps, {
+    this.keyType = const DynamicType(),
+    this.valueType = const DynamicType(),
+  }) {
     setParents(maps, this);
   }
 
@@ -3327,8 +3606,11 @@ class MapConcatenation extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return context.typeEnvironment
-        .mapType(keyType, valueType, context.nonNullable);
+    return context.typeEnvironment.mapType(
+      keyType,
+      valueType,
+      context.nonNullable,
+    );
   }
 
   @override
@@ -3390,8 +3672,13 @@ class InstanceCreation extends Expression {
   final List<AssertStatement> asserts;
   final List<Expression> unusedArguments;
 
-  InstanceCreation(this.classReference, this.typeArguments, this.fieldValues,
-      this.asserts, this.unusedArguments) {
+  InstanceCreation(
+    this.classReference,
+    this.typeArguments,
+    this.fieldValues,
+    this.asserts,
+    this.unusedArguments,
+  ) {
     setParents(fieldValues.values.toList(), this);
     setParents(asserts, this);
     setParents(unusedArguments, this);
@@ -3406,8 +3693,10 @@ class InstanceCreation extends Expression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     return typeArguments.isEmpty
-        ? context.typeEnvironment.coreTypes
-            .rawType(classNode, context.nonNullable)
+        ? context.typeEnvironment.coreTypes.rawType(
+            classNode,
+            context.nonNullable,
+          )
         : new InterfaceType(classNode, context.nonNullable, typeArguments);
   }
 
@@ -3552,8 +3841,12 @@ class FileUriExpression extends Expression implements FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "File uri expression");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "File uri expression",
+    );
   }
 
   @override
@@ -3623,8 +3916,10 @@ class IsExpression extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(operand,
-        minimumPrecedence: astToText.Precedence.BITWISE_OR);
+    printer.writeExpression(
+      operand,
+      minimumPrecedence: astToText.Precedence.BITWISE_OR,
+    );
     printer.write(' is ');
     printer.writeType(type);
   }
@@ -3677,8 +3972,9 @@ class AsExpression extends Expression {
   bool get isCovarianceCheck => flags & FlagCovarianceCheck != 0;
 
   void set isCovarianceCheck(bool value) {
-    flags =
-        value ? (flags | FlagCovarianceCheck) : (flags & ~FlagCovarianceCheck);
+    flags = value
+        ? (flags | FlagCovarianceCheck)
+        : (flags & ~FlagCovarianceCheck);
   }
 
   /// If `true`, this is an implicit down cast from an expression of type
@@ -3744,8 +4040,10 @@ class AsExpression extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(operand,
-        minimumPrecedence: astToText.Precedence.BITWISE_OR);
+    printer.writeExpression(
+      operand,
+      minimumPrecedence: astToText.Precedence.BITWISE_OR,
+    );
     printer.write(' as');
     if (printer.includeAuxiliaryProperties) {
       List<String> flags = <String>[];
@@ -3817,8 +4115,10 @@ class NullCheck extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(operand,
-        minimumPrecedence: astToText.Precedence.POSTFIX);
+    printer.writeExpression(
+      operand,
+      minimumPrecedence: astToText.Precedence.POSTFIX,
+    );
     printer.write('!');
   }
 }
@@ -4231,8 +4531,11 @@ class ListLiteral extends Expression {
   DartType typeArgument; // Not null, defaults to DynamicType.
   final List<Expression> expressions;
 
-  ListLiteral(this.expressions,
-      {this.typeArgument = const DynamicType(), this.isConst = false}) {
+  ListLiteral(
+    this.expressions, {
+    this.typeArgument = const DynamicType(),
+    this.isConst = false,
+  }) {
     setParents(expressions, this);
   }
 
@@ -4293,8 +4596,11 @@ class SetLiteral extends Expression {
   DartType typeArgument; // Not null, defaults to DynamicType.
   final List<Expression> expressions;
 
-  SetLiteral(this.expressions,
-      {this.typeArgument = const DynamicType(), this.isConst = false}) {
+  SetLiteral(
+    this.expressions, {
+    this.typeArgument = const DynamicType(),
+    this.isConst = false,
+  }) {
     setParents(expressions, this);
   }
 
@@ -4356,10 +4662,12 @@ class MapLiteral extends Expression {
   DartType valueType; // Not null, defaults to DynamicType.
   final List<MapLiteralEntry> entries;
 
-  MapLiteral(this.entries,
-      {this.keyType = const DynamicType(),
-      this.valueType = const DynamicType(),
-      this.isConst = false}) {
+  MapLiteral(
+    this.entries, {
+    this.keyType = const DynamicType(),
+    this.valueType = const DynamicType(),
+    this.isConst = false,
+  }) {
     setParents(entries, this);
   }
 
@@ -4369,8 +4677,11 @@ class MapLiteral extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return context.typeEnvironment
-        .mapType(keyType, valueType, context.nonNullable);
+    return context.typeEnvironment.mapType(
+      keyType,
+      valueType,
+      context.nonNullable,
+    );
   }
 
   @override
@@ -4490,25 +4801,32 @@ class RecordLiteral extends Expression {
   final List<NamedExpression> named;
   RecordType recordType;
 
-  RecordLiteral(this.positional, this.named, this.recordType,
-      {this.isConst = false})
-      : assert(positional.length == recordType.positional.length &&
-            named.length == recordType.named.length &&
-            recordType.named
-                .map((f) => f.name)
-                .toSet()
-                .containsAll(named.map((f) => f.name))),
-        assert(() {
-          // Assert that the named fields are sorted.
-          for (int i = 1; i < named.length; i++) {
-            if (named[i].name.compareTo(named[i - 1].name) < 0) {
-              return false;
-            }
-          }
-          return true;
-        }(),
-            "Named fields of a RecordLiterals aren't sorted lexicographically: "
-            "${named.map((f) => f.name).join(", ")}") {
+  RecordLiteral(
+    this.positional,
+    this.named,
+    this.recordType, {
+    this.isConst = false,
+  }) : assert(
+         positional.length == recordType.positional.length &&
+             named.length == recordType.named.length &&
+             recordType.named
+                 .map((f) => f.name)
+                 .toSet()
+                 .containsAll(named.map((f) => f.name)),
+       ),
+       assert(
+         () {
+           // Assert that the named fields are sorted.
+           for (int i = 1; i < named.length; i++) {
+             if (named[i].name.compareTo(named[i - 1].name) < 0) {
+               return false;
+             }
+           }
+           return true;
+         }(),
+         "Named fields of a RecordLiterals aren't sorted lexicographically: "
+         "${named.map((f) => f.name).join(", ")}",
+       ) {
     setParents(positional, this);
     setParents(named, this);
   }
@@ -4670,6 +4988,36 @@ class AwaitExpression extends Expression {
 abstract class LocalFunction implements GenericFunction {
   @override
   FunctionNode get function;
+
+  /// Unique identifier of this function within a [Member].
+  /// Has a value [LocalFunctionId.invalid] until set.
+  abstract LocalFunctionId id;
+}
+
+/// Unique identifier of the local function within a [Member].
+extension type const LocalFunctionId(int _value) {
+  static const LocalFunctionId invalid = LocalFunctionId(0);
+  static const LocalFunctionId first = LocalFunctionId(1);
+  LocalFunctionId operator +(int delta) => LocalFunctionId(_value + delta);
+  bool operator >(LocalFunctionId other) => this._value > other._value;
+  int toInt() => _value; // Only for serialization.
+}
+
+/// Counter of local functions within a [Member].
+class LocalFunctionIdGenerator {
+  LocalFunctionId _counter;
+
+  LocalFunctionIdGenerator() : _counter = LocalFunctionId.first;
+  LocalFunctionIdGenerator.after(LocalFunctionId lastUsedId)
+    : _counter = lastUsedId + 1;
+
+  /// Generate a new id for a local function within a [Member].
+  LocalFunctionId allocateId() => _counter++;
+
+  bool get isUsed => _counter != LocalFunctionId.first;
+
+  bool isValidId(LocalFunctionId id) =>
+      id._value > 0 && id._value < _counter._value;
 }
 
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
@@ -4678,6 +5026,9 @@ abstract class LocalFunction implements GenericFunction {
 class FunctionExpression extends Expression implements LocalFunction {
   @override
   FunctionNode function;
+
+  @override
+  LocalFunctionId id = LocalFunctionId.invalid;
 
   FunctionExpression(this.function) {
     function.parent = this;
@@ -4780,14 +5131,20 @@ class FileUriConstantExpression extends ConstantExpression
   @override
   Uri fileUri;
 
-  FileUriConstantExpression(Constant constant,
-      {DartType type = const DynamicType(), required this.fileUri})
-      : super(constant, type);
+  FileUriConstantExpression(
+    Constant constant, {
+    DartType type = const DynamicType(),
+    required this.fileUri,
+  }) : super(constant, type);
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "File uri constant expression");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "File uri constant expression",
+    );
   }
 }
 
@@ -4938,8 +5295,10 @@ class LoadLibrary extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return context.typeEnvironment
-        .futureType(const DynamicType(), context.nonNullable);
+    return context.typeEnvironment.futureType(
+      const DynamicType(),
+      context.nonNullable,
+    );
   }
 
   @override
@@ -5020,10 +5379,11 @@ class ConstructorTearOff extends Expression {
   Reference targetReference;
 
   ConstructorTearOff(Member target)
-      : assert(
-            target is Constructor || (target is Procedure && target.isFactory),
-            "Unexpected constructor tear off target: $target"),
-        this.targetReference = getNonNullableMemberReferenceGetter(target);
+    : assert(
+        target is Constructor || (target is Procedure && target.isFactory),
+        "Unexpected constructor tear off target: $target",
+      ),
+      this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOff.byReference(this.targetReference);
 
@@ -5032,8 +5392,10 @@ class ConstructorTearOff extends Expression {
   FunctionNode get function => target.function!;
 
   void set target(Member member) {
-    assert(member is Constructor ||
-        (member is Procedure && member.kind == ProcedureKind.Factory));
+    assert(
+      member is Constructor ||
+          (member is Procedure && member.kind == ProcedureKind.Factory),
+    );
     targetReference = getNonNullableMemberReferenceGetter(member);
   }
 
@@ -5077,8 +5439,8 @@ class RedirectingFactoryTearOff extends Expression {
   Reference targetReference;
 
   RedirectingFactoryTearOff(Procedure target)
-      : assert(target.isRedirectingFactory),
-        this.targetReference = getNonNullableMemberReferenceGetter(target);
+    : assert(target.isRedirectingFactory),
+      this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   RedirectingFactoryTearOff.byReference(this.targetReference);
 
@@ -5130,7 +5492,10 @@ class TypedefTearOff extends Expression {
   final List<DartType> typeArguments;
 
   TypedefTearOff(
-      this.structuralParameters, this.expression, this.typeArguments) {
+    this.structuralParameters,
+    this.expression,
+    this.typeArguments,
+  ) {
     expression.parent = this;
   }
 
@@ -5139,14 +5504,19 @@ class TypedefTearOff extends Expression {
     FreshStructuralParameters freshTypeParameters =
         getFreshStructuralParameters(structuralParameters);
     FunctionType type = expression.getStaticType(context) as FunctionType;
-    type = freshTypeParameters.substitute(
-            FunctionTypeInstantiator.instantiate(type, typeArguments))
-        as FunctionType;
+    type =
+        freshTypeParameters.substitute(
+              FunctionTypeInstantiator.instantiate(type, typeArguments),
+            )
+            as FunctionType;
     return new FunctionType(
-        type.positionalParameters, type.returnType, type.declaredNullability,
-        namedParameters: type.namedParameters,
-        typeParameters: freshTypeParameters.freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount);
+      type.positionalParameters,
+      type.returnType,
+      type.declaredNullability,
+      namedParameters: type.namedParameters,
+      typeParameters: freshTypeParameters.freshTypeParameters,
+      requiredParameterCount: type.requiredParameterCount,
+    );
   }
 
   @override
@@ -5189,114 +5559,5 @@ class TypedefTearOff extends Expression {
     printer.writeExpression(expression);
     printer.writeTypeArguments(typeArguments);
     printer.write(")");
-  }
-}
-
-/// [VariableRead] nodes are the replacement for the VariableGet nodes.
-///
-/// Despite of the  name, [VariableRead] can't read [TypeVariable]s,
-/// which are also [Variable]s.
-class VariableRead extends Expression {
-  final ExpressionVariable variable;
-
-  VariableRead({required this.variable});
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
-  }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) {
-    // TODO(cstefantsova): Implement getStaticTypeInternal.
-    throw UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
-  String toString() {
-    return "VariableRead(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
-  }
-}
-
-/// [VariableWrite] nodes are the replacement for the VariableSet nodes.
-///
-/// Despite of the  name, [VariableWrite] can't write into
-/// [TypeVariable]s, which are also [Variable]s.
-class VariableWrite extends Expression {
-  final ExpressionVariable variable;
-  final Expression value;
-
-  VariableWrite({required this.variable, required this.value});
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
-  }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) {
-    // TODO(cstefantsova): Implement getStaticTypeInternal.
-    throw UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
-  String toString() {
-    return "VariableWrite(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
-    printer.write(' = ');
-    printer.writeExpression(value);
   }
 }

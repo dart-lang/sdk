@@ -98,7 +98,7 @@ void NativeEntry::MaybePropagateError(NativeArguments* arguments) {
   // the kThreadInNative state.
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   ObjectPtr retval = arguments->ReturnValue();
-  if (UNLIKELY(IsErrorClassId(retval->GetClassId()))) {
+  if (IsErrorClassId(retval->GetClassId())) [[unlikely]] {
     thread->UnwindScopes(thread->top_exit_frame_info());
 
     TransitionGeneratedToVM transition(thread);
@@ -216,8 +216,8 @@ void NativeEntry::AutoScopeNativeCallWrapper(Dart_NativeArguments args,
   Thread* thread = arguments->thread();
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   {
-    Isolate* isolate = thread->isolate();
-    ApiState* state = isolate->group()->api_state();
+    IsolateGroup* isolate_group = thread->isolate_group();
+    ApiState* state = isolate_group->api_state();
     ASSERT(state != nullptr);
     TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
     thread->EnterApiScope();

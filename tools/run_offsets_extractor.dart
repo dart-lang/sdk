@@ -53,6 +53,9 @@ Future<String> runOffsetsExtractor() async {
 String toCValue(Object? value) {
   final intValue = int.parse(value as String);
   if (intValue == -1) return '-1';
+  if (intValue < 0) {
+    return '-0x${(-intValue).toRadixString(16)}';
+  }
   return '0x${intValue.toRadixString(16)}';
 }
 

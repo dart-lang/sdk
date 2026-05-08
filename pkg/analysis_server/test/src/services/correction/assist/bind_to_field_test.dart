@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,9 +19,41 @@ void main() {
 @reflectiveTest
 class BindToFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.bindAllToFields;
+  AssistKind get kind => DartAssistKind.bindToField;
 
-  Future<void> test_class_constructor_same_named_field() async {
+  Future<void> test_class_primaryConstructor_requiredPositional() async {
+    await resolveTestCode('''
+class C(int ^i);
+''');
+    await assertHasAssist('''
+class C(var int i);
+''');
+  }
+
+  Future<void> test_class_primaryConstructor_sameNamedField() async {
+    await resolveTestCode('''
+class C(int ^i) {
+  int? i;
+}
+''');
+    await assertHasAssist('''
+class C(this.i) {
+  int? i;
+}
+''');
+  }
+
+  Future<void>
+  test_class_secondaryConstructor_optionalPositional_inDefault() async {
+    await resolveTestCode('''
+class C {
+  C([int i = ^0]);
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_class_secondaryConstructor_sameNamedField() async {
     await resolveTestCode('''
 class A {
   int? i;
@@ -37,7 +70,8 @@ class A {
 ''');
   }
 
-  Future<void> test_class_constructor_same_named_field_wrong_type() async {
+  Future<void>
+  test_class_secondaryConstructor_sameNamedField_wrongType() async {
     await resolveTestCode('''
 class A {
   String? i;
@@ -48,7 +82,7 @@ class A {
     await assertNoAssist();
   }
 
-  Future<void> test_class_constructor_same_named_method() async {
+  Future<void> test_class_secondaryConstructor_sameNamedMethod() async {
     await resolveTestCode('''
 class A {
   void i(){}
@@ -59,7 +93,7 @@ class A {
     await assertNoAssist();
   }
 
-  Future<void> test_enum_constructor() async {
+  Future<void> test_enum_secondaryConstructor() async {
     await resolveTestCode('''
 enum A {
   e(3);
@@ -78,7 +112,7 @@ enum A {
 ''');
   }
 
-  Future<void> test_enum_constructor_same_name() async {
+  Future<void> test_enum_secondaryConstructor_sameNamedField() async {
     await resolveTestCode('''
 enum A {
   i(3);
@@ -89,7 +123,7 @@ enum A {
     await assertNoAssist();
   }
 
-  Future<void> test_factory_constructor_does_not_apply() async {
+  Future<void> test_factoryConstructor_doesNotApply() async {
     await resolveTestCode('''
 class A {
   A();
@@ -97,21 +131,6 @@ class A {
 }
 ''');
     await assertNoAssist();
-  }
-
-  Future<void> test_final_constructor_parameter() async {
-    await resolveTestCode('''
-class A {
-  A(final ^i);
-}
-''');
-    await assertHasAssist('''
-class A {
-  final i;
-
-  A(this.i);
-}
-''');
   }
 
   Future<void> test_imported_type() async {
@@ -178,7 +197,27 @@ class A {
 ''');
   }
 
-  Future<void> test_private_parameter() async {
+  Future<void> test_private_named_parameter() async {
+    // This code is erroneous, but we still want to allow the assist since it
+    // will fix the error.
+    await resolveTestCode(
+      '''
+class A {
+  A({int? ^_i});
+}
+''',
+      ignore: [diag.privateNamedNonFieldParameter],
+    );
+    await assertHasAssist('''
+class A {
+  int? _i;
+
+  A({this._i});
+}
+''');
+  }
+
+  Future<void> test_private_positional_parameter() async {
     await resolveTestCode('''
 class A {
   A(int ^_i);
@@ -229,6 +268,23 @@ class A {
   var i;
 
   A({required this.i});
+}
+''');
+  }
+
+  Future<void> test_secondaryConstructor_finalParameter() async {
+    await resolveTestCode('''
+// @dart = 3.10
+class A {
+  A(final ^i);
+}
+''');
+    await assertHasAssist('''
+// @dart = 3.10
+class A {
+  final i;
+
+  A(this.i);
 }
 ''');
   }
@@ -394,11 +450,13 @@ void foo(int k) => null;
 
   Future<void> test_var_constructor_parameter() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A(var ^i);
 }
 ''');
     await assertHasAssist('''
+// @dart = 3.10
 class A {
   var i;
 
@@ -456,6 +514,36 @@ class A {
   int k = 0;
 
   int i;
+}
+''');
+  }
+
+  Future<void> test_with_two_parameters() async {
+    await resolveTestCode('''
+class Foo {
+  Foo({required int foo, required int^ foobar});
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int foobar;
+
+  Foo({required int foo, required this.foobar});
+}
+''');
+  }
+
+  Future<void> test_with_two_parameters_2() async {
+    await resolveTestCode('''
+class Foo {
+  Foo({required int ^foo, required int foobar});
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int foo;
+
+  Foo({required this.foo, required int foobar});
 }
 ''');
   }

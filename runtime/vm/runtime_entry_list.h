@@ -89,7 +89,8 @@ namespace dart {
   V(InvokeNoSuchMethod)                                                        \
   V(ResumeInterpreter)                                                         \
   V(InitializeSharedField)                                                     \
-  V(FatalError)
+  V(FatalError)                                                                \
+  V(EnsureDeeplyImmutable)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.
@@ -118,10 +119,6 @@ namespace dart {
   V(double, LibcAtan2, double, double)                                         \
   V(double, LibcExp, double)                                                   \
   V(double, LibcLog, double)                                                   \
-  V(uword /*BoolPtr*/, CaseInsensitiveCompareUCS2, uword /*StringPtr*/,        \
-    uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
-  V(uword /*BoolPtr*/, CaseInsensitiveCompareUTF16, uword /*StringPtr*/,       \
-    uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
   V(void, EnterSafepoint)                                                      \
   V(void, ExitSafepoint)                                                       \
   V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \

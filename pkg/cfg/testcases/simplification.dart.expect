@@ -192,6 +192,43 @@ B0 = EntryBlock()
   DirectCall print(v1)
   Return(v16)
 
+--- stringInterpolation
+B0 = EntryBlock()
+  v2 = Constant("")
+  Constant("string")
+  Constant(42)
+  Constant(3.14)
+  Constant(true)
+  v12 = Constant(null)
+  Constant("Hey, ")
+  Constant("! i=")
+  Constant(", d=")
+  Constant(", b=")
+  Constant(", n=")
+  Constant("enclosing start... ")
+  Constant("some nested ")
+  Constant(", x=")
+  v35 = Constant(" ...end")
+  v40 = Constant("Hey, string! i=42, d=3.14, b=true, n=null")
+  Constant("some nested string, x=")
+  v44 = Constant("enclosing start... some nested string, x=")
+  v1 = Parameter(x)
+  DirectCall print(v2)
+  DirectCall print(v40)
+  v43 = StringInterpolation(v44, v1, v35)
+  DirectCall print(v43)
+  Return(v12)
+
+--- closureCall
+B0 = EntryBlock()
+  v4 = Constant(42)
+  v6 = Constant(null)
+  v1 = AllocateClosure()
+  DirectCall closure FunctionExpression(Null (int arg) {
+  print(arg);
+}) at closureCall(v1, v4)
+  Return(v6)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

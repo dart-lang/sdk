@@ -39,7 +39,7 @@ class V8SnapshotProfileWriter;
 class ImageWriter;
 class Heap;
 
-class LoadingUnitSerializationData : public ZoneAllocated {
+class LoadingUnitSerializationData : public ZoneObject {
  public:
   LoadingUnitSerializationData(intptr_t id,
                                LoadingUnitSerializationData* parent)

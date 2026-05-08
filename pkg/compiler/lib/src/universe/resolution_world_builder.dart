@@ -8,10 +8,11 @@ import '../common/names.dart' show Identifiers, Names;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/annotations.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart'
     show BackendUsage, BackendUsageBuilder;
+import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
@@ -709,6 +710,20 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
     bool processClass(ClassEntity superclass) {
       ClassUsage usage = _getClassUsage(superclass);
       if (!usage.isInstantiated) {
+        final classNode = _elementMap.getClassNode(superclass);
+        final pragmaAnnotationData = computePragmaAnnotationDataFromIr(
+          classNode,
+        );
+        final annotations = processPragmaAnnotations(
+          _options,
+          _elementMap.reporter,
+          classNode,
+          pragmaAnnotationData,
+        );
+        _annotationsDataBuilder.registerPragmaAnnotationsForClass(
+          superclass,
+          annotations,
+        );
         classUsed(usage.cls, usage.instantiate());
         return true;
       }

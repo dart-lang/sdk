@@ -21,225 +21,11 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
-
-List<Diagnostic> analyzeAnalysisOptions(
-  Source source,
-  String content,
-  SourceFactory sourceFactory,
-  String contextRoot,
-  VersionConstraint? sdkVersionConstraint,
-  ResourceProvider resourceProvider,
-) {
-  List<Diagnostic> diagnostics = [];
-  Source initialSource = source;
-  SourceSpan? initialIncludeSpan;
-  AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
-    sourceFactory,
-  );
-  String? firstPluginName;
-  Map<Source, SourceSpan> includeChain = {};
-
-  // TODO(srawlins): This code is getting quite complex, with multiple local
-  // functions, and should be refactored to a class maintaining state, with less
-  // variable shadowing.
-  void addDirectErrorOrIncludedError(
-    List<Diagnostic> validationDiagnostics,
-    Source source, {
-    required bool isSourcePrimary,
-  }) {
-    if (!isSourcePrimary) {
-      // [source] is an included file, and we should only report diagnostics in
-      // [initialSource], noting that the included file has warnings.
-      for (Diagnostic diagnostic in validationDiagnostics) {
-        var args = [
-          source.fullName,
-          diagnostic.offset.toString(),
-          (diagnostic.offset + diagnostic.length - 1).toString(),
-          diagnostic.message,
-        ];
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includedFileWarning,
-            arguments: args,
-          ),
-        );
-      }
-    } else {
-      // [source] is the options file for [contextRoot]. Report all diagnostics
-      // directly.
-      diagnostics.addAll(validationDiagnostics);
-    }
-  }
-
-  // Validates the specified options and any included option files.
-  void validate(Source source, YamlMap options, {required String contextRoot}) {
-    var isSourcePrimary = initialIncludeSpan == null;
-    var validationErrors = OptionsFileValidator(
-      source,
-      sdkVersionConstraint: sdkVersionConstraint,
-      contextRoot: contextRoot,
-      isPrimarySource: isSourcePrimary,
-      optionsProvider: optionsProvider,
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-    ).validate(options);
-    addDirectErrorOrIncludedError(
-      validationErrors,
-      source,
-      isSourcePrimary: isSourcePrimary,
-    );
-
-    var includeNode = options.valueAt(AnalysisOptionsFile.include);
-    if (includeNode == null) {
-      // Validate the 'plugins' option in [options], understanding that no other
-      // options are included.
-      addDirectErrorOrIncludedError(
-        _validateLegacyPluginsOption(source, options: options),
-        source,
-        isSourcePrimary: isSourcePrimary,
-      );
-      return;
-    }
-
-    void validateInclude(YamlNode includeNode) {
-      var includeSpan = includeNode.span;
-      initialIncludeSpan ??= includeSpan;
-      var includeUri = includeSpan.text;
-      var (first, last) = (
-        includeUri.codeUnits.firstOrNull,
-        includeUri.codeUnits.lastOrNull,
-      );
-      if ((first == 0x0022 || first == 0x0027) && first == last) {
-        // The URI begins and ends with either a double quote or single quote
-        // i.e. the value of the "include" field is quoted.
-        includeUri = includeUri.substring(1, includeUri.length - 1);
-      }
-
-      var includedSource = sourceFactory.resolveUri(source, includeUri);
-      if (includedSource == initialSource) {
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.recursiveIncludeFile,
-            arguments: [includeUri, source.fullName],
-          ),
-        );
-        return;
-      }
-      if (includedSource == null || !includedSource.exists()) {
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includeFileNotFound,
-            arguments: [includeUri, source.fullName, contextRoot],
-          ),
-        );
-        return;
-      }
-      var spanInChain = includeChain[includedSource];
-      if (spanInChain != null) {
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includedFileWarning,
-            arguments: [
-              includedSource,
-              spanInChain.start.offset,
-              spanInChain.length,
-              'The file includes itself recursively.',
-            ],
-          ),
-        );
-        return;
-      }
-      includeChain[includedSource] = includeSpan;
-
-      try {
-        var includedOptions = optionsProvider.getOptionsFromString(
-          includedSource.stringContents,
-        );
-        validate(includedSource, includedOptions, contextRoot: contextRoot);
-        firstPluginName ??= _firstPluginName(includedOptions);
-        // Validate the 'plugins' option in [options], taking into account any
-        // plugins enabled by [includedOptions].
-        addDirectErrorOrIncludedError(
-          _validateLegacyPluginsOption(
-            source,
-            options: options,
-            firstEnabledPluginName: firstPluginName,
-          ),
-          source,
-          isSourcePrimary: isSourcePrimary,
-        );
-      } on OptionsFormatException catch (e) {
-        var args = [
-          includedSource.fullName,
-          e.span!.start.offset.toString(),
-          e.span!.end.offset.toString(),
-          e.message,
-        ];
-        // Report diagnostics for included option files on the `include` directive
-        // located in the initial options file.
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includedFileParseError,
-            arguments: args,
-          ),
-        );
-      }
-    }
-
-    var includes = switch (includeNode) {
-      YamlScalar node => [node],
-      YamlList(:var nodes) => nodes.whereType<YamlScalar>().toList(),
-      _ => const <YamlScalar>[],
-    };
-
-    for (var includeValue in includes) {
-      if (isSourcePrimary) {
-        initialIncludeSpan = null;
-        includeChain.clear();
-      }
-      validateInclude(includeValue);
-    }
-  }
-
-  try {
-    YamlMap options = optionsProvider.getOptionsFromString(
-      content,
-      sourceUrl: source.uri,
-    );
-    validate(source, options, contextRoot: contextRoot);
-  } on OptionsFormatException catch (e) {
-    SourceSpan span = e.span!;
-    diagnostics.add(
-      Diagnostic.tmp(
-        source: source,
-        offset: span.start.offset,
-        length: span.length,
-        diagnosticCode: diag.parseError,
-        arguments: [e.message],
-      ),
-    );
-  }
-  return diagnostics;
-}
 
 /// Returns the name of the first legacy plugin, if one is specified in
 /// [options], otherwise `null`.
@@ -262,17 +48,243 @@ String? _firstPluginName(YamlMap options) {
 
 /// Validates the legacy 'plugins' options in [options], given
 /// [firstEnabledPluginName].
-List<Diagnostic> _validateLegacyPluginsOption(
-  Source source, {
+void _validateLegacyPluginsOption(
+  DiagnosticReporter diagnosticReporter, {
   required YamlMap options,
   String? firstEnabledPluginName,
 }) {
-  RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
-  DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
   _LegacyPluginsOptionValidator(
     firstEnabledPluginName,
-  ).validate(reporter, options);
-  return recorder.diagnostics;
+  ).validate(diagnosticReporter, options);
+}
+
+class AnalysisOptionsAnalyzer {
+  RecordingDiagnosticListener initialDiagnosticListener =
+      RecordingDiagnosticListener();
+  DiagnosticReporter initialDiagnosticReporter;
+  DiagnosticListener diagnosticListener;
+  DiagnosticReporter diagnosticReporter;
+  final SourceFactory sourceFactory;
+  final String contextRoot;
+  final VersionConstraint? sdkVersionConstraint;
+  final ResourceProvider resourceProvider;
+  SourceSpan? initialIncludeSpan;
+  final AnalysisOptionsProvider optionsProvider;
+  String? firstPluginName;
+
+  /// Map whose keys are source files containing an `include` directive that is
+  /// currently being visited, and whose values are the corresponding
+  /// [SourceSpan]s of those `include` directives.
+  final Map<Source, SourceSpan> includeChain = {};
+
+  factory AnalysisOptionsAnalyzer({
+    required Source initialSource,
+    required SourceFactory sourceFactory,
+    required String contextRoot,
+    required VersionConstraint? sdkVersionConstraint,
+    required ResourceProvider resourceProvider,
+  }) {
+    var initialDiagnosticListener = RecordingDiagnosticListener();
+    var initialDiagnosticReporter = DiagnosticReporter(
+      initialDiagnosticListener,
+      initialSource,
+    );
+    return AnalysisOptionsAnalyzer._(
+      initialDiagnosticListener: initialDiagnosticListener,
+      initialDiagnosticReporter: initialDiagnosticReporter,
+      diagnosticListener: initialDiagnosticListener,
+      diagnosticReporter: initialDiagnosticReporter,
+      sourceFactory: sourceFactory,
+      contextRoot: contextRoot,
+      sdkVersionConstraint: sdkVersionConstraint,
+      resourceProvider: resourceProvider,
+      optionsProvider: AnalysisOptionsProvider(sourceFactory),
+    );
+  }
+
+  AnalysisOptionsAnalyzer._({
+    required this.initialDiagnosticListener,
+    required this.initialDiagnosticReporter,
+    required this.diagnosticListener,
+    required this.diagnosticReporter,
+    required this.sourceFactory,
+    required this.contextRoot,
+    required this.sdkVersionConstraint,
+    required this.resourceProvider,
+    required this.optionsProvider,
+  });
+
+  Source get initialSource => initialDiagnosticReporter.source;
+
+  /// Whether the source file currently being visited is the initial source
+  /// file.
+  bool get isPrimarySource => source == initialSource;
+
+  Source get source => diagnosticReporter.source;
+
+  List<Diagnostic> walkIncludes({required String content}) {
+    try {
+      YamlMap options = optionsProvider.getOptionsFromString(
+        content,
+        sourceUrl: initialSource.uri,
+      );
+      _validate(options);
+    } on OptionsFormatException catch (e) {
+      SourceSpan span = e.span!;
+      diagnosticReporter.report(
+        diag.parseError
+            .withArguments(errorMessage: e.message)
+            .atSourceSpan(span),
+      );
+    }
+    // Make sure `initialIncludeSpan`, `source`, `includeChain`,
+    // `diagnosticListener`, and `diagnosticReporter` have been restored to
+    // their original states.
+    assert(initialIncludeSpan == null);
+    assert(identical(source, initialSource));
+    assert(includeChain.isEmpty);
+    assert(identical(diagnosticListener, initialDiagnosticListener));
+    assert(identical(diagnosticReporter, initialDiagnosticReporter));
+    return initialDiagnosticListener.diagnostics;
+  }
+
+  // Validates the specified options and any included option files.
+  void _validate(YamlMap options) {
+    OptionsFileValidator(
+      source,
+      sdkVersionConstraint: sdkVersionConstraint,
+      contextRoot: contextRoot,
+      isPrimarySource: isPrimarySource,
+      optionsProvider: optionsProvider,
+      sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
+    ).validate(options, diagnosticReporter);
+
+    var includeNode = options.valueAt(AnalysisOptionsFile.include);
+    if (includeNode == null) {
+      // Validate the 'plugins' option in [options], understanding that no other
+      // options are included.
+      _validateLegacyPluginsOption(diagnosticReporter, options: options);
+      return;
+    }
+
+    var includes = switch (includeNode) {
+      YamlScalar node => [node],
+      YamlList(:var nodes) => nodes.whereType<YamlScalar>().toList(),
+      _ => const <YamlScalar>[],
+    };
+
+    for (var includeValue in includes) {
+      var previousInitialIncludeSpan = initialIncludeSpan;
+      try {
+        var includeSpan = includeValue.span;
+        initialIncludeSpan ??= includeSpan;
+        _validateInclude(options, includeSpan);
+      } finally {
+        initialIncludeSpan = previousInitialIncludeSpan;
+      }
+    }
+  }
+
+  void _validateInclude(YamlMap options, SourceSpan includeSpan) {
+    assert(initialIncludeSpan != null);
+    var includeUri = includeSpan.text;
+    var (first, last) = (
+      includeUri.codeUnits.firstOrNull,
+      includeUri.codeUnits.lastOrNull,
+    );
+    if ((first == 0x0022 || first == 0x0027) && first == last) {
+      // The URI begins and ends with either a double quote or single quote
+      // i.e. the value of the "include" field is quoted.
+      includeUri = includeUri.substring(1, includeUri.length - 1);
+    }
+
+    var includedSource = sourceFactory.resolveUri(source, includeUri);
+    if (includedSource == initialSource) {
+      initialDiagnosticReporter.report(
+        diag.recursiveIncludeFile
+            .withArguments(
+              includedUri: includeUri,
+              includingFilePath: source.fullName,
+            )
+            .atSourceSpan(initialIncludeSpan!),
+      );
+      return;
+    }
+    if (includedSource == null || !includedSource.exists()) {
+      initialDiagnosticReporter.report(
+        diag.includeFileNotFound
+            .withArguments(
+              includedUri: includeUri,
+              includingFilePath: source.fullName,
+              contextRootPath: contextRoot,
+            )
+            .atSourceSpan(initialIncludeSpan!),
+      );
+      return;
+    }
+
+    try {
+      var includedOptions = optionsProvider.getOptionsFromString(
+        includedSource.stringContents,
+      );
+      var previousDiagnosticListener = diagnosticListener;
+      var previousDiagnosticReporter = diagnosticReporter;
+      try {
+        assert(includeChain[source] == null);
+        includeChain[source] = includeSpan;
+        var spanInChain = includeChain[includedSource];
+        if (spanInChain != null) {
+          initialDiagnosticReporter.report(
+            diag.includedFileWarning
+                .withArguments(
+                  includingFilePath: includedSource.fullName,
+                  startOffset: spanInChain.start.offset,
+                  endOffset: spanInChain.end.offset - 1,
+                  warningMessage: 'The file includes itself recursively.',
+                )
+                .atSourceSpan(initialIncludeSpan!),
+          );
+          return;
+        }
+        diagnosticListener = _IncludedDiagnosticListener(
+          source: includedSource,
+          initialDiagnosticReporter: initialDiagnosticReporter,
+          initialIncludeSpan: initialIncludeSpan!,
+        );
+        diagnosticReporter = DiagnosticReporter(
+          diagnosticListener,
+          includedSource,
+        );
+        _validate(includedOptions);
+      } finally {
+        diagnosticListener = previousDiagnosticListener;
+        diagnosticReporter = previousDiagnosticReporter;
+        includeChain.remove(source);
+      }
+      firstPluginName ??= _firstPluginName(includedOptions);
+      // Validate the 'plugins' option in [options], taking into account any
+      // plugins enabled by [includedOptions].
+      _validateLegacyPluginsOption(
+        diagnosticReporter,
+        options: options,
+        firstEnabledPluginName: firstPluginName,
+      );
+    } on OptionsFormatException catch (e) {
+      // Report diagnostics for included option files on the `include` directive
+      // located in the initial options file.
+      initialDiagnosticReporter.report(
+        diag.includedFileParseError
+            .withArguments(
+              includingFilePath: includedSource.fullName,
+              startOffset: e.span!.start.offset,
+              endOffset: e.span!.end.offset,
+              errorMessage: e.message,
+            )
+            .atSourceSpan(initialIncludeSpan!),
+      );
+    }
+  }
 }
 
 /// Validates `analyzer` options.
@@ -292,13 +304,10 @@ class AnalyzerOptionsValidator extends _CompositeValidator {
 /// Validates options defined in an analysis options file.
 @visibleForTesting
 class OptionsFileValidator {
-  /// The source being validated.
-  final Source _source;
-
   final List<OptionsValidator> _validators;
 
   OptionsFileValidator(
-    this._source, {
+    Source source, {
     VersionConstraint? sdkVersionConstraint,
     required String contextRoot,
     required bool isPrimarySource,
@@ -319,19 +328,16 @@ class OptionsFileValidator {
          ),
          _PluginsOptionsValidator(
            contextRoot: contextRoot,
-           filePath: _source.fullName,
+           filePath: source.fullName,
            isPrimarySource: isPrimarySource,
            resourceProvider: resourceProvider,
          ),
        ];
 
-  List<Diagnostic> validate(YamlMap options) {
-    RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
-    DiagnosticReporter reporter = DiagnosticReporter(recorder, _source);
+  void validate(YamlMap options, DiagnosticReporter reporter) {
     for (var validator in _validators) {
       validator.validate(reporter, options);
     }
-    return recorder.diagnostics;
   }
 }
 
@@ -460,7 +466,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
         diag.unsupportedValue
             .withArguments(
               optionName: AnalysisOptionsFile.format,
-              invalidValue: format.valueOrThrow,
+              invalidValue: format.valueOrThrow.toString(),
               legalValues: AnalysisOptionsFile.trueOrFalseProposal,
             )
             .atSourceSpan(format.span),
@@ -532,53 +538,51 @@ class _EnableExperimentsValidator extends OptionsValidator {
 
 /// Builds error reports with value proposals.
 class _ErrorBuilder {
-  static DiagnosticCode get noProposalCode =>
-      diag.unsupportedOptionWithoutValues;
-
-  static DiagnosticCode get pluralProposalCode =>
-      diag.unsupportedOptionWithLegalValues;
-
-  static DiagnosticCode get singularProposalCode =>
-      diag.unsupportedOptionWithLegalValue;
-
-  final String proposal;
-
-  final DiagnosticCode code;
+  /// Report an unsupported `node` value, defined in the given `scopeName`.
+  void Function(DiagnosticReporter reporter, String scopeName, YamlNode node)
+  reportError;
 
   /// Create a builder for the given [supportedOptions].
   factory _ErrorBuilder(Set<String> supportedOptions) {
-    var proposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
     if (supportedOptions.isEmpty) {
-      return _ErrorBuilder._(proposal: proposal, code: noProposalCode);
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithoutValues
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+              )
+              .atSourceSpan(node.span),
+        ),
+      );
     } else if (supportedOptions.length == 1) {
-      return _ErrorBuilder._(proposal: proposal, code: singularProposalCode);
-    } else {
-      return _ErrorBuilder._(proposal: proposal, code: pluralProposalCode);
-    }
-  }
-
-  _ErrorBuilder._({required this.proposal, required this.code});
-
-  /// Report an unsupported [node] value, defined in the given [scopeName].
-  void reportError(
-    DiagnosticReporter reporter,
-    String scopeName,
-    YamlNode node,
-  ) {
-    if (proposal.isNotEmpty) {
-      reporter.atSourceSpan(
-        node.span,
-        code,
-        arguments: [scopeName, node.valueOrThrow, proposal],
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithLegalValue
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+                legalValue: supportedOptions.single,
+              )
+              .atSourceSpan(node.span),
+        ),
       );
     } else {
-      reporter.atSourceSpan(
-        node.span,
-        code,
-        arguments: [scopeName, node.valueOrThrow],
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithLegalValues
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+                legalValues: supportedOptions.quotedAndCommaSeparatedWithAnd,
+              )
+              .atSourceSpan(node.span),
+        ),
       );
     }
   }
+
+  _ErrorBuilder._({required this.reportError});
 }
 
 /// Validates `analyzer` error filter options.
@@ -738,6 +742,46 @@ class _FormatterOptionsValidator extends OptionsValidator {
   }
 }
 
+/// Implementation of [DiagnosticListener] that converts each reported
+/// [Diagnostic] into a [diag.includedFileWarning] located at the site of an
+/// `include` directive.
+///
+/// This is used by [AnalysisOptionsAnalyzer] to report diagnostics that occur
+/// in included options files.
+class _IncludedDiagnosticListener implements DiagnosticListener {
+  /// The [Source] file in which diagnostics are being reported.
+  final Source source;
+
+  /// The [DiagnosticReporter] for the initial soure file (the one containing
+  /// the first `include` in the chain of `include`s that's currently being
+  /// processed).
+  final DiagnosticReporter initialDiagnosticReporter;
+
+  /// The [SourceSpan] of the first `include` in the chain of `include`s that's
+  /// currently being processed.
+  final SourceSpan initialIncludeSpan;
+
+  _IncludedDiagnosticListener({
+    required this.source,
+    required this.initialDiagnosticReporter,
+    required this.initialIncludeSpan,
+  });
+
+  @override
+  void onDiagnostic(Diagnostic diagnostic) {
+    initialDiagnosticReporter.report(
+      diag.includedFileWarning
+          .withArguments(
+            includingFilePath: source.fullName,
+            startOffset: diagnostic.offset,
+            endOffset: diagnostic.offset + diagnostic.length - 1,
+            warningMessage: diagnostic.message,
+          )
+          .atSourceSpan(initialIncludeSpan),
+    );
+  }
+}
+
 /// Validates `analyzer` language configuration options.
 class _LanguageOptionValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
@@ -771,7 +815,7 @@ class _LanguageOptionValidator extends OptionsValidator {
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow,
+                      invalidValue: v.valueOrThrow.toString(),
                       legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
@@ -941,7 +985,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
                   diag.unsupportedValue
                       .withArguments(
                         optionName: key!,
-                        invalidValue: v.valueOrThrow,
+                        invalidValue: v.valueOrThrow.toString(),
                         legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                       )
                       .atSourceSpan(v.span),
@@ -1096,7 +1140,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
             diag.unsupportedValue
                 .withArguments(
                   optionName: AnalysisOptionsFile.strongMode,
-                  invalidValue: v.valueOrThrow,
+                  invalidValue: v.valueOrThrow.toString(),
                   legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                 )
                 .atSourceSpan(v.span),
@@ -1110,7 +1154,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow,
+                      invalidValue: v.valueOrThrow.toString(),
                       legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
@@ -1134,14 +1178,10 @@ class _TopLevelOptionValidator extends OptionsValidator {
   final String sectionName;
   final Set<String> supportedOptions;
   final String _valueProposal;
-  final DiagnosticCode _warningCode;
 
   _TopLevelOptionValidator(this.sectionName, this.supportedOptions)
     : assert(supportedOptions.isNotEmpty),
-      _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
-      _warningCode = supportedOptions.length == 1
-          ? diag.unsupportedOptionWithLegalValue
-          : diag.unsupportedOptionWithLegalValues;
+      _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -1160,11 +1200,19 @@ class _TopLevelOptionValidator extends OptionsValidator {
     node.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         if (!supportedOptions.contains(k.value)) {
-          reporter.atSourceSpan(
-            k.span,
-            _warningCode,
-            arguments: [sectionName, k.valueOrThrow, _valueProposal],
-          );
+          var optionKey = k.valueOrThrow.toString();
+          var locatableDiagnostic = supportedOptions.length == 1
+              ? diag.unsupportedOptionWithLegalValue.withArguments(
+                  sectionName: sectionName,
+                  optionKey: optionKey,
+                  legalValue: _valueProposal,
+                )
+              : diag.unsupportedOptionWithLegalValues.withArguments(
+                  sectionName: sectionName,
+                  optionKey: optionKey,
+                  legalValues: _valueProposal,
+                );
+          reporter.report(locatableDiagnostic.atSourceSpan(k.span));
         }
       }
       // TODO(pq): consider an error if the node is not a Scalar.

@@ -132,6 +132,26 @@ class Utf16 : AllStatic {
     return (ch & 0xFFFFFC00) == 0xDC00;
   }
 
+  static uint32_t CombineSurrogatePair(uint32_t lead, uint32_t trail) {
+    return 0x10000 + ((lead & 0x3ff) << 10) + (trail & 0x3ff);
+  }
+  static const uint32_t kMaxNonSurrogateCharCode = 0xffff;
+  // Encoding a single UTF-16 code unit will produce 1, 2 or 3 bytes
+  // of UTF-8 data.  The special case where the unit is a surrogate
+  // trail produces 1 byte net, because the encoding of the pair is
+  // 4 bytes and the 3 bytes that were used to encode the lead surrogate
+  // can be reclaimed.
+  static const int kMaxExtraUtf8BytesForOneUtf16CodeUnit = 3;
+  // One UTF-16 surrogate is encoded (illegally) as 3 UTF-8 bytes.
+  // The illegality stems from the surrogate not being part of a pair.
+  static const int kUtf8BytesToCodeASurrogate = 3;
+  static inline uint16_t LeadSurrogate(uint32_t char_code) {
+    return 0xd800 + (((char_code - 0x10000) >> 10) & 0x3ff);
+  }
+  static inline uint16_t TrailSurrogate(uint32_t char_code) {
+    return 0xdc00 + (char_code & 0x3ff);
+  }
+
   // Returns the character at i and advances i to the next character
   // boundary.
   static int32_t Next(const uint16_t* characters, intptr_t* i, intptr_t len) {
@@ -249,6 +269,13 @@ class Latin1 {
     return c;
   }
 };
+
+// LineTerminator:       'JS_Line_Terminator' in point.properties
+// ES#sec-line-terminators lists exactly 4 code points:
+// LF (U+000A), CR (U+000D), LS(U+2028), PS(U+2029)
+inline bool IsLineTerminator(uint32_t c) {
+  return c == 0x000A || c == 0x000D || c == 0x2028 || c == 0x2029;
+}
 
 }  // namespace dart
 

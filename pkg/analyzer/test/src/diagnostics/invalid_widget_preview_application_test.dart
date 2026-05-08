@@ -32,11 +32,6 @@ import 'package:flutter/widget_previews.dart';
 abstract class B extends StatelessWidget {
   @Preview()
   B();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''',
       [error(diag.invalidWidgetPreviewApplication, 133, 7)],
@@ -169,8 +164,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class Foo extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Text('Foo');
 }
 
 extension E on Foo {
@@ -178,7 +171,7 @@ extension E on Foo {
   Widget invalidExtensionPreview() => Text('Invalid');
 }
 ''',
-      [error(diag.invalidWidgetPreviewApplication, 215, 7)],
+      [error(diag.invalidWidgetPreviewApplication, 150, 7)],
     );
   }
 
@@ -235,11 +228,6 @@ import 'package:flutter/widget_previews.dart';
 class _B extends StatelessWidget {
   @Preview()
   _B();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''',
       [error(diag.invalidWidgetPreviewApplication, 160, 7)],
@@ -257,11 +245,6 @@ import 'package:flutter/widget_previews.dart';
 class _B extends StatelessWidget {
   @Preview()
   factory _B.foo() => throw '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''',
       [error(diag.invalidWidgetPreviewApplication, 160, 7)],
@@ -279,11 +262,6 @@ import 'package:flutter/widget_previews.dart';
 class _B extends StatelessWidget {
   @Preview()
   static Widget bar() => Text('Bar');
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''',
       [error(diag.invalidWidgetPreviewApplication, 160, 7)],
@@ -301,11 +279,6 @@ class B extends StatelessWidget {
   @Preview()
   static Widget _foo() {
     return Text('Foo');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
 ''',
@@ -329,11 +302,6 @@ class B extends StatelessWidget {
   factory B._foo() => B();
 
   B();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''',
       [error(diag.invalidWidgetPreviewApplication, 159, 7)],
@@ -351,16 +319,26 @@ import 'package:flutter/widget_previews.dart';
 class B extends StatelessWidget {
   @Preview()
   B._();
-
-  B();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''',
       [error(diag.invalidWidgetPreviewApplication, 159, 7)],
+    );
+  }
+
+  // @Preview cannot be applied to private primary constructors.
+  test_invalidPrivateConstructor_primary() async {
+    await assertErrorsInCode(
+      '''
+// ignore_for_file: unused_element
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class B._() extends StatelessWidget {
+  @Preview()
+  this;
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 163, 7)],
     );
   }
 
@@ -401,11 +379,6 @@ abstract class B extends StatelessWidget {
 class C extends B {
   C() : super._();
   factory C.named() => C();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''');
   }
@@ -438,11 +411,6 @@ class B extends StatelessWidget {
   factory B.bar() => B._();
 
   B._({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
 ''');
   }
@@ -460,11 +428,20 @@ class B extends StatelessWidget {
 
   @Preview()
   B.foo([String? _]);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
+}
+''');
   }
+
+  // Ensure that @Preview can be applied to public primary constructors of
+  // Widget subtypes, including those with optional parameters.
+  test_validClassPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class B({super.key}) extends StatelessWidget {
+  @Preview()
+  this;
 }
 ''');
   }
@@ -487,11 +464,6 @@ class B extends StatelessWidget {
     return (BuildContext context) {
       return Text('Bar');
     };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
 ''');

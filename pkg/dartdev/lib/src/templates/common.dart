@@ -7,7 +7,7 @@ import '../sdk.dart';
 String get sdkConstraint => 'sdk: ^${sdk.version}';
 
 const String gitignore = '''
-# https://dart.dev/guides/libraries/private-files
+# https://dart.dev/tools/private-files
 # Created by `dart pub`
 .dart_tool/
 ''';
@@ -42,7 +42,7 @@ include: package:lints/recommended.yaml
 # https://dart.dev/go/core-lints
 
 # For additional information about configuring this file, see
-# https://dart.dev/guides/language/analysis-options
+# https://dart.dev/tools/analysis
 ''';
 
 const String changelog = '''

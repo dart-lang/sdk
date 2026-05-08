@@ -7,6 +7,7 @@ library;
 
 import 'dart:core' hide Type;
 
+import 'package:front_end/src/api_prototype/record_use.dart' as record_use;
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 
@@ -52,6 +53,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   final EntryPointsListener entryPoints;
   final NativeCodeOracle nativeCodeOracle;
   final PragmaAnnotationParser matcher;
+  late final usedFieldCollector = UsedFieldsCollector(
+    nativeCodeOracle.setMemberReferencedFromNativeCode,
+  );
 
   PragmaEntryPointsVisitor(
     this.entryPoints,
@@ -80,6 +84,13 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     return types ?? const [];
   }
 
+  void markFieldsOfAnnotationAsUsed(List<Expression> annotations) {
+    for (final expression in annotations) {
+      if (expression is! ConstantExpression) continue;
+      expression.constant.accept(usedFieldCollector);
+    }
+  }
+
   static const _referenceToDocumentation =
       "See https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
       "aot/entry_point_pragma.md.";
@@ -100,6 +111,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitClass(Class klass) {
+    if (record_use.isBeingRecorded(klass)) {
+      nativeCodeOracle.addClassWithPersistentShape(klass);
+    }
     for (final type in entryPointTypesFromPragmas(klass.annotations)) {
       if (type == PragmaEntryPointType.Default) {
         if (!klass.isAbstract) {
@@ -112,6 +126,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         nativeCodeOracle.addClassWithDynamicallyExtendableSubtype(klass);
       } else if (type == PragmaEntryPointType.ImplicitlyExtendable) {
         nativeCodeOracle.addClassWithDynamicallyExtendableSubtype(klass);
+      } else if (type == PragmaEntryPointType.CanBeUsedAsType) {
+        nativeCodeOracle.addClassReferencedFromNativeCode(klass);
       } else {
         throw "Error: The argument to an entry-point pragma annotation "
             "on a class must evaluate to null, true, or false.\n"
@@ -123,6 +139,13 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitProcedure(Procedure proc) {
+    if (record_use.isBeingRecorded(proc)) {
+      nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
+      final enclosingClass = proc.enclosingClass;
+      if (enclosingClass != null) {
+        nativeCodeOracle.addClassWithPersistentShape(enclosingClass);
+      }
+    }
     final types = entryPointTypesFromPragmas(proc.annotations);
     if (types.isEmpty) return;
 
@@ -185,6 +208,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         case PragmaEntryPointType.CanBeOverridden:
           nativeCodeOracle.addDynamicallyOverriddenMember(proc);
           break;
+        case PragmaEntryPointType.CanBeUsedAsType:
+          throw "Error: only class or extension type can be used-as-type";
       }
     }
 
@@ -193,6 +218,10 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitConstructor(Constructor ctor) {
+    if (record_use.isBeingRecorded(ctor)) {
+      nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
+      nativeCodeOracle.addClassWithPersistentShape(ctor.enclosingClass);
+    }
     for (final type in entryPointTypesFromPragmas(ctor.annotations)) {
       if (type != PragmaEntryPointType.Default &&
           type != PragmaEntryPointType.CallOnly) {
@@ -213,6 +242,21 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitField(Field field) {
+    if (record_use.isBeingRecorded(field)) {
+      nativeCodeOracle.setMemberReferencedFromNativeCode(field);
+      final enclosingClass = field.enclosingClass;
+      if (enclosingClass != null) {
+        nativeCodeOracle.addClassWithPersistentShape(enclosingClass);
+      }
+    }
+    if (field.isInstanceMember &&
+        field.enclosingClass!.hasConstConstructor &&
+        record_use.isBeingRecorded(field.enclosingClass!)) {
+      // If a class has a `@RecordUse` annotation then a user-defined linker
+      // script may want to inspect instance constants of the class, so we have
+      // to preserve all fields.
+      nativeCodeOracle.setMemberReferencedFromNativeCode(field);
+    }
     final types = entryPointTypesFromPragmas(field.annotations);
     if (types.isEmpty) return;
 
@@ -252,6 +296,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         case PragmaEntryPointType.CanBeOverridden:
           nativeCodeOracle.addDynamicallyOverriddenMember(field);
           break;
+        case PragmaEntryPointType.CanBeUsedAsType:
+          throw "Error: only class or extension type can be used-as-type";
       }
     }
 
@@ -265,6 +311,7 @@ class NativeCodeOracle {
   final Set<Member> _membersReferencedFromNativeCode = Set<Member>();
   final Set<Member> _dynamicallyOverriddenMembers = Set<Member>();
   final Set<Class> _classesReferencedFromNativeCode = Set<Class>();
+  final Set<Class> _classesWithPersistentShape = Set<Class>();
   final Set<Class> _classesWithDynamicallyExtendableSubtypes = Set<Class>();
   final Set<Library> _librariesReferencedFromNativeCode = Set<Library>();
   final PragmaAnnotationParser _matcher;
@@ -284,6 +331,13 @@ class NativeCodeOracle {
 
   bool isClassReferencedFromNativeCode(Class klass) =>
       _classesReferencedFromNativeCode.contains(klass);
+
+  void addClassWithPersistentShape(Class klass) {
+    _classesWithPersistentShape.add(klass);
+  }
+
+  bool isClassWithPersistentShape(Class klass) =>
+      _classesWithPersistentShape.contains(klass);
 
   void setMemberReferencedFromNativeCode(Member member) {
     _membersReferencedFromNativeCode.add(member);
@@ -398,4 +452,29 @@ class NativeCodeOracle {
       return typesBuilder.fromStaticType(member.function!.returnType, true);
     }
   }
+}
+
+class UsedFieldsCollector extends RecursiveVisitor
+    with ConstantVisitorDefaultMixin, ConstantReferenceVisitorDefaultMixin {
+  final void Function(Field) onUsedField;
+  final visited = <Constant>{};
+  final visitedClasses = <Class>{};
+
+  UsedFieldsCollector(this.onUsedField);
+
+  @override
+  void defaultConstant(Constant constant) {
+    if (visited.add(constant)) {
+      constant.visitChildren(this);
+      if (constant is InstanceConstant &&
+          visitedClasses.add(constant.classNode)) {
+        for (final fieldReference in constant.fieldValues.keys) {
+          onUsedField(fieldReference.asField);
+        }
+      }
+    }
+  }
+
+  @override
+  void defaultConstantReference(Constant constant) => defaultConstant(constant);
 }

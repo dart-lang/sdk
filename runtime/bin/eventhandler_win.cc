@@ -152,6 +152,11 @@ std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateConnectBuffer(
   return AllocateBuffer(handle, 0, kConnect);
 }
 
+// CONTAINING_RECORD definition from winnt.h triggers ubsan
+// "member access within null pointer of type" error.
+#define CONTAINING_RECORD(address, type, field)                                \
+  reinterpret_cast<type*>((PCHAR)(address) - (ULONG_PTR)offsetof(type, field))
+
 OverlappedBuffer* OverlappedBuffer::GetFromOverlapped(OVERLAPPED* overlapped) {
   OverlappedBuffer* buffer =
       CONTAINING_RECORD(overlapped, OverlappedBuffer, overlapped_);

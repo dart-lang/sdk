@@ -30,11 +30,11 @@ file (`/some/file.txt` above).
 See the steps outlined at the [Dart Code
 documentation](https://dartcode.org/docs/logging/#analyzer-instrumentation).
 
-## Open the analyzer diagnostics pages
+## Open the analyzer insights (diagnostics) pages
 
-DAS serves a variety of "diagnostics pages" as a website on `localhost`. Since
-the IDE launches DAS, the method of opening this website is different for each
-IDE.
+DAS serves a variety of "insights pages" (previously known as the "diagnostics
+pages") as a website on `localhost`. Since the IDE launches DAS, the method of
+opening this website is different for each IDE.
 
 ### IntelliJ IDEA and Android Studio
 
@@ -43,21 +43,23 @@ IDE.
    src="gear-icon.png#gh-dark-mode-only" style="width:16px" /> **Analyzer
    Settings** button on the left with the gear icon. Note, this is different
    from the "Show Options Menu" button at the top, which also has a gear icon.
-2. Click the **View analyzer diagnostics** link. The analyzer diagnostics
-   website should open in an external browser.
+2. Click the **View analyzer diagnostics** link. The analyzer insights website
+   should open in an external browser.
 
 ### VS Code
 
 1. Open the command palette (Ctrl+Shift+P) and type "Dart: Open Analyzer
-   Diagnostics". The analyzer diagnostics website should open in an external
-   browser.
+   Diagnostics / Insights". The analyzer insights website should open in an
+   external browser.
 
-## Using the analyzer diagnostics pages
+## Using the analyzer insights pages
 
 ### Status
 
-The first of the analyzer diagnostics pages is the **Status** page. This page
+The first of the analyzer insights pages is the **Status** page. This page
 shows general information about the DAS process, including version information.
+
+### Analysis performance log
 
 ### Code Completion
 
@@ -79,6 +81,11 @@ This page shows all system environment variables as seen from DAS.
 
 TODO
 
+### Legacy plugins
+
+This page displays information about each _legacy_ analyzer plugin which is
+configured for the current workspace.
+
 ### LSP Capabilities
 
 This page is available when DAS is launched as an LSP server, and shows the
@@ -90,9 +97,11 @@ This page shows current memory and CPU usage of DAS.
 
 ### Plugins
 
-TODO
+This page displays information about each "new" analyzer plugin (which uses the
+plugin system introduced in Dart 3.10) which is configured for the current
+workspace.
 
-### Subscriptions
+### Session communications log
 
 TODO
 

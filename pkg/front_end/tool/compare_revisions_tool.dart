@@ -101,12 +101,12 @@ void _help() {
   print(r"  --examine=e7deece1fb2,529e016a0a7,fd02fec0fc4 \");
 }
 
-void _compileRevision(String gitCommit, {Stopwatch? stopwatch}) {
+void _compileRevision(String gitCommit) {
   if (new File("$snapshotsPath/platform.dill.$gitCommit").existsSync() &&
       new File("$snapshotsPath/compile.aot.$gitCommit").existsSync()) {
     return;
   }
-  stopwatch ??= new Stopwatch()..start();
+  Stopwatch stopwatch = new Stopwatch()..start();
 
   // Clean up the git checkout.
   ProcessResult processResult = Process.runSync("git", [
@@ -324,16 +324,12 @@ benchmarker.GCInfo _runVerboseGc(
   return benchmarker.parseVerboseGcOutput(processResult);
 }
 
-List<Map<String, num>> _filterToInstructions(
-  List<Map<String, num>> input, {
-  List<num>? extractedNumbers,
-}) {
+List<Map<String, num>> _filterToInstructions(List<Map<String, num>> input) {
   List<Map<String, num>> result = [];
   for (Map<String, num> map in input) {
     num? instructionsValue = map["instructions:u"];
     if (instructionsValue != null) {
       result.add({"instructions:u": instructionsValue});
-      extractedNumbers?.add(instructionsValue);
     }
   }
   return result;

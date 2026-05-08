@@ -64,84 +64,168 @@ void run() {
   areEqual("dynamic", "void", equateTopTypes: true);
   areEqual("Object?", "void", equateTopTypes: true);
   areEqual("FutureOr<dynamic>", "void", equateTopTypes: true);
-  areEqual("FutureOr<FutureOr<FutureOr<Object>?>>?", "dynamic",
-      equateTopTypes: true);
+  areEqual(
+    "FutureOr<FutureOr<FutureOr<Object>?>>?",
+    "dynamic",
+    equateTopTypes: true,
+  );
   areEqual("FutureOr<Object?>", "FutureOr<Object?>?", equateTopTypes: true);
-  areEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<Object?>?>?",
-      equateTopTypes: true);
-  areEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<dynamic>?>?",
-      equateTopTypes: true);
+  areEqual(
+    "FutureOr<FutureOr<Object?>>",
+    "FutureOr<FutureOr<Object?>?>?",
+    equateTopTypes: true,
+  );
+  areEqual(
+    "FutureOr<FutureOr<Object?>>",
+    "FutureOr<FutureOr<dynamic>?>?",
+    equateTopTypes: true,
+  );
 
-  areEqual("FutureOr<Object?>", "FutureOr<Object?>?",
-      ignoreAllNullabilities: true);
-  areEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<Object?>?>?",
-      ignoreAllNullabilities: true);
-  notEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<dynamic>?>?",
-      ignoreAllNullabilities: true);
+  areEqual(
+    "FutureOr<Object?>",
+    "FutureOr<Object?>?",
+    ignoreAllNullabilities: true,
+  );
+  areEqual(
+    "FutureOr<FutureOr<Object?>>",
+    "FutureOr<FutureOr<Object?>?>?",
+    ignoreAllNullabilities: true,
+  );
+  notEqual(
+    "FutureOr<FutureOr<Object?>>",
+    "FutureOr<FutureOr<dynamic>?>?",
+    ignoreAllNullabilities: true,
+  );
 
-  areEqual("FutureOr<Object?>", "FutureOr<Object?>?",
-      ignoreTopLevelNullability: true);
-  notEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<Object?>?>?",
-      ignoreTopLevelNullability: true);
-  notEqual("FutureOr<FutureOr<Object?>>", "FutureOr<FutureOr<dynamic>?>?",
-      ignoreTopLevelNullability: true);
+  areEqual(
+    "FutureOr<Object?>",
+    "FutureOr<Object?>?",
+    ignoreTopLevelNullability: true,
+  );
+  notEqual(
+    "FutureOr<FutureOr<Object?>>",
+    "FutureOr<FutureOr<Object?>?>?",
+    ignoreTopLevelNullability: true,
+  );
+  notEqual(
+    "FutureOr<FutureOr<Object?>>",
+    "FutureOr<FutureOr<dynamic>?>?",
+    ignoreTopLevelNullability: true,
+  );
 
   // Generic function types.
   notEqual("<T extends dynamic>() ->? int", "<T extends Object?>() -> int?");
-  notEqual("<T extends dynamic>() ->? int", "<T extends Object?>() -> int?",
-      equateTopTypes: true);
-  notEqual("<T extends dynamic>() ->? int", "<T extends Object?>() -> int?",
-      ignoreAllNullabilities: true);
-  notEqual("<T extends dynamic>() ->? int", "<T extends Object?>() -> int?",
-      ignoreTopLevelNullability: true);
-  notEqual("<T extends dynamic>() ->? int", "<T extends Object?>() -> int?",
-      equateTopTypes: true, ignoreTopLevelNullability: true);
-  areEqual("<T extends dynamic>() ->? int", "<T extends Object?>() -> int?",
-      equateTopTypes: true, ignoreAllNullabilities: true);
+  notEqual(
+    "<T extends dynamic>() ->? int",
+    "<T extends Object?>() -> int?",
+    equateTopTypes: true,
+  );
+  notEqual(
+    "<T extends dynamic>() ->? int",
+    "<T extends Object?>() -> int?",
+    ignoreAllNullabilities: true,
+  );
+  notEqual(
+    "<T extends dynamic>() ->? int",
+    "<T extends Object?>() -> int?",
+    ignoreTopLevelNullability: true,
+  );
+  notEqual(
+    "<T extends dynamic>() ->? int",
+    "<T extends Object?>() -> int?",
+    equateTopTypes: true,
+    ignoreTopLevelNullability: true,
+  );
+  areEqual(
+    "<T extends dynamic>() ->? int",
+    "<T extends Object?>() -> int?",
+    equateTopTypes: true,
+    ignoreAllNullabilities: true,
+  );
 
   notEqual("<T extends dynamic>() -> T?", "<S extends Object?>() -> S?");
-  areEqual("<T extends dynamic>() -> T?", "<S extends Object?>() -> S?",
-      equateTopTypes: true);
+  areEqual(
+    "<T extends dynamic>() -> T?",
+    "<S extends Object?>() -> S?",
+    equateTopTypes: true,
+  );
 
   notEqual("<T extends dynamic>() -> T", "<S extends FutureOr<void>>() -> S?");
-  notEqual("<T extends dynamic>() -> T", "<S extends FutureOr<void>>() -> S?",
-      equateTopTypes: true);
-  notEqual("<T extends dynamic>() -> T", "<S extends FutureOr<void>>() -> S?",
-      ignoreAllNullabilities: true);
-  areEqual("<T extends dynamic>() -> T", "<S extends FutureOr<void>>() -> S?",
-      equateTopTypes: true, ignoreAllNullabilities: true);
+  notEqual(
+    "<T extends dynamic>() -> T",
+    "<S extends FutureOr<void>>() -> S?",
+    equateTopTypes: true,
+  );
+  notEqual(
+    "<T extends dynamic>() -> T",
+    "<S extends FutureOr<void>>() -> S?",
+    ignoreAllNullabilities: true,
+  );
+  areEqual(
+    "<T extends dynamic>() -> T",
+    "<S extends FutureOr<void>>() -> S?",
+    equateTopTypes: true,
+    ignoreAllNullabilities: true,
+  );
 
   areEqual("<T>(<S>() -> void) -> void", "<X>(<Y>() -> void) -> void");
 
-  notEqual("<T>(<S extends void>() -> void) -> void",
-      "<X>(<Y extends Object?>() -> void) -> void");
-  notEqual("<T>(<S extends void>() -> void) -> void",
-      "<X>(<Y extends Object?>() -> void) -> void",
-      ignoreAllNullabilities: true);
+  notEqual(
+    "<T>(<S extends void>() -> void) -> void",
+    "<X>(<Y extends Object?>() -> void) -> void",
+  );
+  notEqual(
+    "<T>(<S extends void>() -> void) -> void",
+    "<X>(<Y extends Object?>() -> void) -> void",
+    ignoreAllNullabilities: true,
+  );
 
   // Free type variables.
   areEqual("T", "T", typeParameters: "T");
   notEqual("T?", "T", typeParameters: "T");
 
-  notEqual("T", "S",
-      typeParameters: "T, S",
-      equateTopTypes: true,
-      ignoreAllNullabilities: true);
+  notEqual(
+    "T",
+    "S",
+    typeParameters: "T, S",
+    equateTopTypes: true,
+    ignoreAllNullabilities: true,
+  );
 
   notEqual("T & int?", "T & int", typeParameters: "T");
-  notEqual("T & int?", "T & int",
-      typeParameters: "T", ignoreTopLevelNullability: true);
-  areEqual("T & int?", "T & int",
-      typeParameters: "T", ignoreAllNullabilities: true);
+  notEqual(
+    "T & int?",
+    "T & int",
+    typeParameters: "T",
+    ignoreTopLevelNullability: true,
+  );
+  areEqual(
+    "T & int?",
+    "T & int",
+    typeParameters: "T",
+    ignoreAllNullabilities: true,
+  );
 
   // Check that normalization is out of the scope of the equivalence, even with
   // the most permissive flags.
-  notEqual("Never?", "Null",
-      equateTopTypes: true, ignoreAllNullabilities: true);
-  notEqual("FutureOr<Never>", "Future<Never>",
-      equateTopTypes: true, ignoreAllNullabilities: true);
-  notEqual("FutureOr<Object>", "Object",
-      equateTopTypes: true, ignoreAllNullabilities: true);
+  notEqual(
+    "Never?",
+    "Null",
+    equateTopTypes: true,
+    ignoreAllNullabilities: true,
+  );
+  notEqual(
+    "FutureOr<Never>",
+    "Future<Never>",
+    equateTopTypes: true,
+    ignoreAllNullabilities: true,
+  );
+  notEqual(
+    "FutureOr<Object>",
+    "Object",
+    equateTopTypes: true,
+    ignoreAllNullabilities: true,
+  );
 
   // Typedef types.
   areEqual("Typedef<int>", "Typedef<int>");
@@ -150,13 +234,23 @@ void run() {
   notEqual("Typedef<num?>?", "Typedef<num>", ignoreTopLevelNullability: true);
   areEqual("Typedef<num?>?", "Typedef<num>", ignoreAllNullabilities: true);
   notEqual("Typedef<Object?>?", "Typedef<dynamic>");
-  notEqual("Typedef<Object?>?", "Typedef<dynamic>",
-      ignoreTopLevelNullability: true);
-  notEqual("Typedef<Object?>?", "Typedef<dynamic>",
-      ignoreAllNullabilities: true);
+  notEqual(
+    "Typedef<Object?>?",
+    "Typedef<dynamic>",
+    ignoreTopLevelNullability: true,
+  );
+  notEqual(
+    "Typedef<Object?>?",
+    "Typedef<dynamic>",
+    ignoreAllNullabilities: true,
+  );
   notEqual("Typedef<Object?>?", "Typedef<dynamic>", equateTopTypes: true);
-  areEqual("Typedef<Object?>?", "Typedef<dynamic>",
-      equateTopTypes: true, ignoreTopLevelNullability: true);
+  areEqual(
+    "Typedef<Object?>?",
+    "Typedef<dynamic>",
+    equateTopTypes: true,
+    ignoreTopLevelNullability: true,
+  );
 
   // Record types.
   areEqual("(int, bool)", "(int, bool)");
@@ -175,11 +269,14 @@ void run() {
   notEqual("(int, {bool b})", "(int, {bool t})");
 }
 
-void areEqual(String type1, String type2,
-    {String typeParameters = '',
-    bool equateTopTypes = false,
-    bool ignoreAllNullabilities = false,
-    bool ignoreTopLevelNullability = false}) {
+void areEqual(
+  String type1,
+  String type2, {
+  String typeParameters = '',
+  bool equateTopTypes = false,
+  bool ignoreAllNullabilities = false,
+  bool ignoreTopLevelNullability = false,
+}) {
   Env env = new Env("typedef Typedef<T> () -> T;\n")
     ..extendWithTypeParameters(typeParameters);
   DartType t1 = env.parseType(type1);
@@ -191,34 +288,45 @@ void areEqual(String type1, String type2,
     if (ignoreTopLevelNullability) "ignoreTopLevelNullability",
   ];
 
-  print("areEqual(${type1}, ${type2}"
-      "${flagNamesForDebug.map((f) => ", $f").join()})");
+  print(
+    "areEqual(${type1}, ${type2}"
+    "${flagNamesForDebug.map((f) => ", $f").join()})",
+  );
   Expect.isTrue(
-      new DartTypeEquivalence(env.coreTypes,
-              equateTopTypes: equateTopTypes,
-              ignoreAllNullabilities: ignoreAllNullabilities,
-              ignoreTopLevelNullability: ignoreTopLevelNullability)
-          .areEqual(t1, t2),
-      "Expected '${type1}' and '${type2}' to be equal "
-      "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.");
+    new DartTypeEquivalence(
+      env.coreTypes,
+      equateTopTypes: equateTopTypes,
+      ignoreAllNullabilities: ignoreAllNullabilities,
+      ignoreTopLevelNullability: ignoreTopLevelNullability,
+    ).areEqual(t1, t2),
+    "Expected '${type1}' and '${type2}' to be equal "
+    "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.",
+  );
 
-  print("areEqual(${type2}, ${type1}"
-      "${flagNamesForDebug.map((f) => ", $f").join()})");
+  print(
+    "areEqual(${type2}, ${type1}"
+    "${flagNamesForDebug.map((f) => ", $f").join()})",
+  );
   Expect.isTrue(
-      new DartTypeEquivalence(env.coreTypes,
-              equateTopTypes: equateTopTypes,
-              ignoreAllNullabilities: ignoreAllNullabilities,
-              ignoreTopLevelNullability: ignoreTopLevelNullability)
-          .areEqual(t2, t1),
-      "Expected '${type2}' and '${type1}' to be equal "
-      "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.");
+    new DartTypeEquivalence(
+      env.coreTypes,
+      equateTopTypes: equateTopTypes,
+      ignoreAllNullabilities: ignoreAllNullabilities,
+      ignoreTopLevelNullability: ignoreTopLevelNullability,
+    ).areEqual(t2, t1),
+    "Expected '${type2}' and '${type1}' to be equal "
+    "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.",
+  );
 }
 
-void notEqual(String type1, String type2,
-    {String typeParameters = '',
-    bool equateTopTypes = false,
-    bool ignoreAllNullabilities = false,
-    bool ignoreTopLevelNullability = false}) {
+void notEqual(
+  String type1,
+  String type2, {
+  String typeParameters = '',
+  bool equateTopTypes = false,
+  bool ignoreAllNullabilities = false,
+  bool ignoreTopLevelNullability = false,
+}) {
   Env env = new Env("typedef Typedef<T> () -> T;\n")
     ..extendWithTypeParameters(typeParameters);
   DartType t1 = env.parseType(type1);
@@ -230,27 +338,35 @@ void notEqual(String type1, String type2,
     if (ignoreTopLevelNullability) "ignoreTopLevelNullability",
   ];
 
-  print("notEqual(${type1}, ${type2}"
-      "${flagNamesForDebug.map((f) => ", $f").join()})");
+  print(
+    "notEqual(${type1}, ${type2}"
+    "${flagNamesForDebug.map((f) => ", $f").join()})",
+  );
   Expect.isFalse(
-      new DartTypeEquivalence(env.coreTypes,
-              equateTopTypes: equateTopTypes,
-              ignoreAllNullabilities: ignoreAllNullabilities,
-              ignoreTopLevelNullability: ignoreTopLevelNullability)
-          .areEqual(t1, t2),
-      "Expected '${type1}' and '${type2}' to be not equal "
-      "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.");
+    new DartTypeEquivalence(
+      env.coreTypes,
+      equateTopTypes: equateTopTypes,
+      ignoreAllNullabilities: ignoreAllNullabilities,
+      ignoreTopLevelNullability: ignoreTopLevelNullability,
+    ).areEqual(t1, t2),
+    "Expected '${type1}' and '${type2}' to be not equal "
+    "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.",
+  );
 
-  print("notEqual(${type2}, ${type1}"
-      "${flagNamesForDebug.map((f) => ", $f").join()})");
+  print(
+    "notEqual(${type2}, ${type1}"
+    "${flagNamesForDebug.map((f) => ", $f").join()})",
+  );
   Expect.isFalse(
-      new DartTypeEquivalence(env.coreTypes,
-              equateTopTypes: equateTopTypes,
-              ignoreAllNullabilities: ignoreAllNullabilities,
-              ignoreTopLevelNullability: ignoreTopLevelNullability)
-          .areEqual(t2, t1),
-      "Expected '${type2}' and '${type1}' to be not equal "
-      "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.");
+    new DartTypeEquivalence(
+      env.coreTypes,
+      equateTopTypes: equateTopTypes,
+      ignoreAllNullabilities: ignoreAllNullabilities,
+      ignoreTopLevelNullability: ignoreTopLevelNullability,
+    ).areEqual(t2, t1),
+    "Expected '${type2}' and '${type1}' to be not equal "
+    "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.",
+  );
 }
 
 void main() => run();

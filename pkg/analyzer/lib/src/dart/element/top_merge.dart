@@ -39,37 +39,38 @@ class TopMergeHelper {
     }
 
     // NNBD_TOP_MERGE(dynamic, dynamic) = dynamic
-    var T_isDynamic = identical(T, DynamicTypeImpl.instance);
-    var S_isDynamic = identical(S, DynamicTypeImpl.instance);
+    var T_isDynamic = T is DynamicTypeImpl;
+    var S_isDynamic = S is DynamicTypeImpl;
     if (T_isDynamic && S_isDynamic) {
       return DynamicTypeImpl.instance;
     }
 
-    if (identical(T, InvalidTypeImpl.instance) ||
-        identical(S, InvalidTypeImpl.instance)) {
+    if (T is InvalidTypeImpl || S is InvalidTypeImpl) {
       return InvalidTypeImpl.instance;
     }
 
-    if (identical(T, NeverTypeImpl.instance) &&
-        identical(S, NeverTypeImpl.instance)) {
+    if (T is NeverTypeImpl &&
+        T.nullabilitySuffix == NullabilitySuffix.none &&
+        S is NeverTypeImpl &&
+        S.nullabilitySuffix == NullabilitySuffix.none) {
       return NeverTypeImpl.instance;
     }
 
     // NNBD_TOP_MERGE(void, void) = void
-    var T_isVoid = identical(T, VoidTypeImpl.instance);
-    var S_isVoid = identical(S, VoidTypeImpl.instance);
+    var T_isVoid = T is VoidTypeImpl;
+    var S_isVoid = S is VoidTypeImpl;
     if (T_isVoid && S_isVoid) {
       return VoidTypeImpl.instance;
     }
 
-    // NNBD_TOP_MERGE(Object?, void) = void
-    // NNBD_TOP_MERGE(void, Object?) = void
+    // NNBD_TOP_MERGE(Object?, void) = Object?
+    // NNBD_TOP_MERGE(void, Object?) = Object?
     if (T_isObjectQuestion && S_isVoid || T_isVoid && S_isObjectQuestion) {
       return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(dynamic, void) = void
-    // NNBD_TOP_MERGE(void, dynamic) = void
+    // NNBD_TOP_MERGE(dynamic, void) = Object?
+    // NNBD_TOP_MERGE(void, dynamic) = Object?
     if (T_isDynamic && S_isVoid || T_isVoid && S_isDynamic) {
       return typeSystem.objectQuestion;
     }
@@ -255,7 +256,7 @@ class TopMergeHelper {
     }
 
     if (T.isOptionalPositional && S.isOptionalPositional) {
-      return ParameterKind.REQUIRED;
+      return ParameterKind.POSITIONAL;
     }
 
     if (T.isRequiredNamed && S.isRequiredNamed) {
@@ -266,18 +267,13 @@ class TopMergeHelper {
       return ParameterKind.NAMED;
     }
 
-    // Legacy named vs. Required named.
-    if (T.isRequiredNamed && S.isNamed || T.isNamed || S.isRequiredNamed) {
-      return ParameterKind.NAMED_REQUIRED;
-    }
-
     return null;
   }
 
   RecordTypeImpl _recordTypes(RecordTypeImpl T1, RecordTypeImpl T2) {
     var positional1 = T1.positionalFields;
     var positional2 = T2.positionalFields;
-    if (positional1.length != positional1.length) {
+    if (positional1.length != positional2.length) {
       throw _TopMergeStateError(T1, T2, 'Different number of position fields');
     }
 

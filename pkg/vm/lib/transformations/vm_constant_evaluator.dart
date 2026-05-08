@@ -90,8 +90,9 @@ class VMConstantEvaluator extends ConstantEvaluator {
 
     // Use the empty environment if unevaluated constants are not supported,
     // as passing null for environmentDefines in this case is an error.
-    environmentDefines ??=
-        target.constantsBackend.supportsUnevaluatedConstants ? null : {};
+    environmentDefines ??= target.constantsBackend.supportsUnevaluatedConstants
+        ? null
+        : {};
     return VMConstantEvaluator(
       target.dartLibrarySupport,
       target.constantsBackend,
@@ -109,10 +110,9 @@ class VMConstantEvaluator extends ConstantEvaluator {
 
   bool get _hasTargetOS => _targetOS != null;
 
-  bool _isPlatformConst(Member member) =>
-      _pragmaParser
-          .parsedPragmas<ParsedPlatformConstPragma>(member.annotations)
-          .isNotEmpty;
+  bool _isPlatformConst(Member member) => _pragmaParser
+      .parsedPragmas<ParsedPlatformConstPragma>(member.annotations)
+      .isNotEmpty;
 
   bool shouldEvaluateMember(Member node) =>
       _hasTargetOS && _isPlatformConst(node);

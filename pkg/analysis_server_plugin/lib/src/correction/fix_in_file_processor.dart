@@ -179,7 +179,7 @@ final class FixInFileProcessor {
       return registeredFixGenerators.lintProducers[diagnosticCode] ?? [];
     } else {
       // TODO(pq): consider support for multi-generators.
-      return registeredFixGenerators.nonLintProducers[diagnosticCode] ?? [];
+      return registeredFixGenerators.warningProducers[diagnosticCode] ?? [];
     }
   }
 }

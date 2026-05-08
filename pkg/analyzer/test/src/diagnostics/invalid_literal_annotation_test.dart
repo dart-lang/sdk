@@ -31,6 +31,16 @@ class A {
 ''');
   }
 
+  test_constPrimaryConstructor() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class const A() {
+  @literal
+  this;
+}
+''');
+  }
+
   test_extensionType_constConstructor() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -51,6 +61,19 @@ class A {
 }
 ''',
       [error(diag.invalidLiteralAnnotation, 46, 7)],
+    );
+  }
+
+  test_nonConstPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+class A() {
+  @literal
+  this;
+}
+''',
+      [error(diag.invalidLiteralAnnotation, 48, 7)],
     );
   }
 }

@@ -344,17 +344,19 @@ class _StdConsumer implements StreamConsumer<List<int>> {
   }
 }
 
-/// Pattern matching a "\n" character not following a "\r".
+/// Pattern matching a `"\n"` character not following a `"\r"`.
 ///
-/// Used to replace such with "\r\n" in the [_StdSink] write methods.
+/// Used to replace such with `"\r\n"` in the [_StdSink] write methods.
 final _newLineDetector = RegExp(r'(?<!\r)\n');
 
-/// Pattern matching "\n" characters not following a "\r", or at the start of
-/// input.
+/// Pattern matching `"\n"` characters following a non-`"\r"` character.
 ///
-/// Used to replace those with "\r\n" in the [_StdSink] write methods,
-/// when the previously written string ended in a \r character.
-final _newLineDetectorAfterCR = RegExp(r'(?<!\r|^)\n');
+/// Does not match a `"\n"` at the start of input, otherwise equivalent
+/// to [_newLineDetector].
+///
+/// Used to replace `"\n"` with `"\r\n"` in the [_StdSink] write methods
+/// when the previously written string ended in a `"\r"` character.
+final _newLineDetectorAfterCR = RegExp(r'(?<=[^\r])\n');
 
 class _StdSink implements IOSink {
   final IOSink _sink;
@@ -376,7 +378,7 @@ class _StdSink implements IOSink {
   /// If `lineTerminator` is `"\n"` then the written strings are not modified.
   //
   /// Setting `lineTerminator` to [Platform.lineTerminator] will result in
-  /// "write" methods outputting the line endings for the platform:
+  /// "write" methods emitting the line endings for the platform:
   ///
   /// ```dart
   /// stdout.lineTerminator = Platform.lineTerminator;
@@ -389,8 +391,10 @@ class _StdSink implements IOSink {
   /// The value of `lineTerminator` does not effect the output of the [print]
   /// function.
   ///
-  /// Throws [ArgumentError] if set to a value other than `"\n"` or `"\r\n"`.
+  /// The [lineTerminator] *must* be either `"\n"` or `"\r\n"`.
+  @Since("3.4")
   String get lineTerminator => _windowsLineTerminator ? "\r\n" : "\n";
+  @Since("3.4")
   set lineTerminator(String lineTerminator) {
     if (lineTerminator == "\r\n") {
       assert(!_lastWrittenCharIsCR || _windowsLineTerminator);
@@ -414,13 +418,11 @@ class _StdSink implements IOSink {
 
   String _convertToWindowsLineTerminators(String string) {
     assert(!string.isEmpty);
-    String result;
-    if (_lastWrittenCharIsCR) {
-      result = string.replaceAll(_newLineDetectorAfterCR, "\r\n");
-    } else {
-      result = string.replaceAll(_newLineDetector, "\r\n");
-    }
-    _lastWrittenCharIsCR = string.endsWith('\r');
+    var pattern = _lastWrittenCharIsCR
+        ? _newLineDetectorAfterCR
+        : _newLineDetector;
+    var result = string.replaceAll(pattern, "\r\n");
+    _lastWrittenCharIsCR = result.endsWith('\r');
     return result;
   }
 

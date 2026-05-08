@@ -17,7 +17,7 @@ class InstalledCommand extends DartdevCommand {
   CommandCategory get commandCategory => CommandCategory.global;
 
   InstalledCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose) {
+    : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag(
       'all',
       abbr: 'a',
@@ -52,8 +52,10 @@ on `PATH` are non-active.''',
       final lockFile = appBundleDir.pubspecLock;
       final pubspecLock = PubspecLockFile.loadSync(lockFile);
       final lockInfo = pubspecLock.packages!.entries
-          .where((entry) =>
-              entry.value.dependency == DependencyTypeSyntax.directMain)
+          .where(
+            (entry) =>
+                entry.value.dependency == DependencyTypeSyntax.directMain,
+          )
           .single
           .value;
       final binaries = appBundleDir.executablesSync;
@@ -72,17 +74,19 @@ on `PATH` are non-active.''',
         }
       }
       final lastModified = lockFile.lastModifiedSync();
-      result.add(InstalledPackage(
-        name: packageName,
-        appBundle: appBundleDir.directory,
-        installed: switch ((foundBinary, missingBinary)) {
-          (_, false) => Installed.fully,
-          (true, true) => Installed.partial,
-          (false, true) => Installed.not,
-        },
-        lockInfo: lockInfo,
-        lastModified: lastModified,
-      ));
+      result.add(
+        InstalledPackage(
+          name: packageName,
+          appBundle: appBundleDir.directory,
+          installed: switch ((foundBinary, missingBinary)) {
+            (_, false) => Installed.fully,
+            (true, true) => Installed.partial,
+            (false, true) => Installed.not,
+          },
+          lockInfo: lockInfo,
+          lastModified: lastModified,
+        ),
+      );
     }
     return result;
   }
@@ -108,16 +112,18 @@ class InstalledPackage {
     var result = '$name ${lockInfo.version}';
     switch (lockInfo.source) {
       case PackageSourceSyntax.git:
-        final description =
-            GitPackageDescriptionSyntax.fromJson(lockInfo.description.json);
+        final description = GitPackageDescriptionSyntax.fromJson(
+          lockInfo.description.json,
+        );
         final url = description.url;
         final resolvedRef = description.resolvedRef.substring(0, 8);
         result += ' from Git repository "$url" at "$resolvedRef"';
       case PackageSourceSyntax.hosted:
         break;
       case PackageSourceSyntax.path$:
-        final description =
-            PathPackageDescriptionSyntax.fromJson(lockInfo.description.json);
+        final description = PathPackageDescriptionSyntax.fromJson(
+          lockInfo.description.json,
+        );
         final path = description.path$;
         result += ' from "$path" at $lastModified';
       default:
@@ -135,8 +141,4 @@ class InstalledPackage {
   }
 }
 
-enum Installed {
-  fully,
-  partial,
-  not;
-}
+enum Installed { fully, partial, not }

@@ -74,7 +74,7 @@ void main([args, port]) {
     m[4] = "four";
     ReceivePort replyPort = new ReceivePort();
     remote.send([m, replyPort.sendPort]);
-    replyPort.listen((var received) {
+    replyPort.listen((received) {
       if (received == 'done') {
         replyPort.close();
         asyncEnd();

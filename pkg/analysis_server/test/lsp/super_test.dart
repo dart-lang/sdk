@@ -31,7 +31,6 @@ class B^ extends A {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentation_constructor() async {
     await verifyGoToSuper(
       TestCode.parse('''
@@ -468,6 +467,193 @@ class B extends A {}
 class C extends B {
   @override
   vo^id foo() {}
+}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body_toPrimary_named() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A.[!named!]();
+
+class B() extends A {
+  this : super.named() {
+    ^
+  }
+}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body_toPrimary_withbody() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class [!A!]() {
+  this {}
+}
+
+class B() extends A {
+  this {
+    ^
+  }
+}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body_toPrimary_withoutBody() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class [!A!]();
+
+class B() extends A {
+  this {
+    ^
+  }
+}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body_toSecondary() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  [!A!]();
+}
+
+class B() extends A {
+  this {
+    ^
+  }
+}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body_toSecondary_named() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  A.[!named!]();
+}
+
+class B() extends A {
+  this : super.named() {
+    ^
+  }
+}
+'''),
+    );
+  }
+
+  Future<void>
+  test_primaryConstructor_declaration_inConstructorName_toConstructor() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  [!A!]();
+}
+
+class B.nam^ed() extends A {}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration_inParam_name() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  [!A!]();
+}
+
+class B.named(int f^oo) extends A {}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration_inParam_type() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  [!A!]();
+}
+
+class B.named(in^t foo) extends A {}
+'''),
+    );
+  }
+
+  Future<void>
+  test_primaryConstructor_declaration_inParams_toConstructor() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  [!A!]();
+}
+
+class B.named(^) extends A {}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration_inTypeName_toType() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class [!A!] {
+  A();
+}
+
+class B^.named() extends A {}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration_toPrimary_named() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A.[!named!]();
+
+class B(^) extends A {
+  this : super.named();
+}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration_toPrimary_withBody() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class [!A!]() {
+  this {}
+}
+
+class B^() extends A;
+'''),
+    );
+  }
+
+  Future<void>
+  test_primaryConstructor_declaration_toPrimary_withoutBody() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class [!A!]();
+
+class B^() extends A;
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration_toSecondary_named() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  A.[!named!]();
+}
+
+class B(^) extends A {
+  this : super.named();
 }
 '''),
     );

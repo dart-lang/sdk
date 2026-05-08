@@ -4,7 +4,7 @@
 
 import "native_testing.dart";
 
-foreign1(var a, var b) {
+foreign1(a, b) {
   return JS("num", r"# + #", a, b);
 }
 

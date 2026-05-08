@@ -73,6 +73,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   var
@@ -131,6 +133,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
@@ -191,6 +195,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   var
@@ -249,6 +255,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
@@ -324,6 +332,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   var
@@ -345,6 +355,8 @@ suggestions
           Keyword.FINAL,
           Keyword.GET,
           if (!context.isExtension && !context.isExtensionType) Keyword.LATE,
+          if (context.isClass || context.isEnum || context.isExtensionType)
+            Keyword.NEW,
           Keyword.OPERATOR,
           Keyword.SET,
           Keyword.STATIC,

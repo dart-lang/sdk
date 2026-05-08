@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/reference_from_index.dart';
 
 import '../base/extension_scope.dart';
@@ -63,8 +64,15 @@ class DeclarationNameSpaceBuilder {
         );
 
     Map<String, List<Fragment>> fragmentsByName = {};
+    int primaryConstructBodyCount = 0;
+    List<PrimaryConstructorBodyFragment>? primaryConstructorBodies;
     for (Fragment fragment in _fragments) {
-      (fragmentsByName[fragment.name] ??= []).add(fragment);
+      if (fragment is PrimaryConstructorBodyFragment) {
+        (primaryConstructorBodies ??= []).add(fragment);
+        primaryConstructBodyCount++;
+      } else {
+        (fragmentsByName[fragment.name] ??= []).add(fragment);
+      }
     }
 
     BuilderFactory builderFactory = new BuilderFactory(
@@ -87,6 +95,7 @@ class DeclarationNameSpaceBuilder {
         name,
         fragments: entry.value,
         syntheticDeclaration: syntheticDeclarations?.remove(name),
+        primaryConstructorBodies: primaryConstructorBodies,
       );
     }
     if (syntheticDeclarations != null) {
@@ -96,6 +105,7 @@ class DeclarationNameSpaceBuilder {
         builderFactory.computeBuildersByName(
           name,
           syntheticDeclaration: entry.value,
+          primaryConstructorBodies: primaryConstructorBodies,
         );
       }
     }
@@ -107,6 +117,28 @@ class DeclarationNameSpaceBuilder {
         member,
         member.fileUri!,
       );
+    }
+
+    if (primaryConstructorBodies != null &&
+        primaryConstructorBodies.isNotEmpty) {
+      bool hasPrimaryConstructor =
+          primaryConstructBodyCount > primaryConstructorBodies.length;
+      int index = hasPrimaryConstructor ? 1 : 0;
+      for (PrimaryConstructorBodyFragment fragment
+          in primaryConstructorBodies) {
+        if (index == 0) {
+          problemReporting.addProblem2(
+            diag.primaryConstructorBodyWithoutDeclaration,
+            fragment.uriOffset,
+          );
+        } else {
+          problemReporting.addProblem2(
+            diag.multiplePrimaryConstructorBodyDeclarations,
+            fragment.uriOffset,
+          );
+        }
+        index++;
+      }
     }
 
     memberBuilders.forEach(checkConflicts);
@@ -131,12 +163,12 @@ class DeclarationNameSpaceBuilder {
       );
       if (tv != null) {
         _problemReporting.addProblem(
-          codeConflictsWithTypeParameter.withArgumentsOld(name),
+          diag.conflictsWithTypeParameter.withArguments(typeVariableName: name),
           memberBuilder.fileOffset,
           name.length,
           fileUri,
           context: [
-            codeConflictsWithTypeParameterCause.withLocation(
+            diag.conflictsWithTypeParameterCause.withLocation(
               tv.fileUri!,
               tv.fileOffset,
               name.length,
@@ -241,13 +273,13 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // better specialize the message.
       if (declarationBuilder.isEnum && name == 'values') {
         problemReporting.addProblem(
-          codeEnumWithNameValues,
+          diag.enumWithNameValues,
           declarationBuilder.fileOffset,
           name.length,
           declarationBuilder.fileUri,
         );
       } else {
-        problemReporting.addProblem2(codeMemberWithSameNameAsClass, uriOffset);
+        problemReporting.addProblem2(diag.memberWithSameNameAsClass, uriOffset);
       }
     }
     if (isConstructor) {
@@ -262,9 +294,9 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // TODO(johnniwinther): Test adding a no-name constructor in the
       //  patch, either as an injected or duplicated constructor.
       problemReporting.addProblem2(
-        codePatchInjectionFailed.withArgumentsOld(
-          name,
-          enclosingLibraryBuilder.importUri,
+        diag.patchInjectionFailed.withArguments(
+          name: name,
+          uri: enclosingLibraryBuilder.importUri,
         ),
         uriOffset,
       );
@@ -389,9 +421,9 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
         !name.startsWith('_') &&
         !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
       problemReporting.addProblem2(
-        codePatchInjectionFailed.withArgumentsOld(
-          name,
-          enclosingLibraryBuilder.importUri,
+        diag.patchInjectionFailed.withArguments(
+          name: name,
+          uri: enclosingLibraryBuilder.importUri,
         ),
         uriOffset,
       );

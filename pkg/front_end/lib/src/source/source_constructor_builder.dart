@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -10,20 +11,23 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
-import '../base/messages.dart'
-    show codeCantInferTypeDueToCircularity, ProblemReporting;
+import '../base/messages.dart' show ProblemReporting;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_signature.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../util/helpers.dart';
 import '../util/reference_map.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
@@ -46,22 +50,7 @@ class InferableConstructor implements InferableMember {
 
   @override
   void reportCyclicDependency() {
-    // There is a cyclic dependency where inferring the types of the
-    // initializing formals of a constructor required us to infer the
-    // corresponding field type which required us to know the type of the
-    // constructor.
-    String name = _builder.declarationBuilder.name;
-    if (_builder.name.isNotEmpty) {
-      // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-      // instead. However, `inferrer.helper` may be null.
-      name += ".${_builder.name}";
-    }
-    _builder.libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
-      _builder.fileOffset,
-      name.length,
-      _builder.fileUri,
-    );
+    _builder._reportCyclicDependency();
   }
 }
 
@@ -102,7 +91,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners = [];
 
-  Set<SourcePropertyBuilder>? _initializedFields;
+  Map<SourcePropertyBuilder, FieldInitialization>? _initializedFields;
 
   late final Substitution _fieldTypeSubstitution = _introductory
       .computeFieldTypeSubstitution(declarationBuilder);
@@ -119,6 +108,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   final ConstructorReferences _constructorReferences;
   final NameScheme _nameScheme;
 
+  final bool isPrimaryConstructor;
+
   SourceConstructorBuilder({
     required this.name,
     required this.libraryBuilder,
@@ -134,13 +125,50 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
        _nameScheme = nameScheme,
        _introductory = introductory,
        _augmentations = augmentations,
-       _memberName = nameScheme.getDeclaredName(name) {
+       _memberName = nameScheme.getDeclaredName(name),
+       isPrimaryConstructor = introductory.isPrimaryConstructor {
     if (augmentations.isEmpty) {
       _augmentedDeclarations = augmentations;
       _lastDeclaration = introductory;
     } else {
       _augmentedDeclarations = [_introductory, ..._augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
+    }
+  }
+
+  /// If this constructor is a primary constructor, returns the parameters
+  /// available in the initializer scope. Otherwise return `null`.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    if (isPrimaryConstructor) {
+      return _lastDeclaration.primaryConstructorInitializerScopeParameters;
+    }
+    return null;
+  }
+
+  void buildPrimaryConstructorFieldInitializers() {
+    List<SourcePropertyBuilder> nonLateClassInstanceFieldsWithInitializers = [];
+
+    Iterator<SourcePropertyBuilder> fieldIterator = declarationBuilder
+        .filteredMembersIterator(includeDuplicates: false);
+    while (fieldIterator.moveNext()) {
+      SourcePropertyBuilder fieldBuilder = fieldIterator.current;
+      if (fieldBuilder.hasConcreteField &&
+          declarationBuilder is SourceClassBuilder &&
+          fieldBuilder.isDeclarationInstanceMember &&
+          !fieldBuilder.isLate &&
+          fieldBuilder.hasInitializer) {
+        nonLateClassInstanceFieldsWithInitializers.add(fieldBuilder);
+      }
+    }
+    // We prepend the initializers in reversed order to preserve normal
+    // field initializer evaluation order.
+    for (SourcePropertyBuilder field
+        in nonLateClassInstanceFieldsWithInitializers.reversed) {
+      FieldInitialization? fieldInitialization = _initializedFields?[field];
+      if (fieldInitialization == null) {
+        prependInitializer(field.takePrimaryConstructorFieldInitializer());
+      }
     }
   }
 
@@ -159,7 +187,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  FunctionNode get function => _lastDeclaration.function;
+  FunctionSignature get signature => _lastDeclaration.signature;
 
   @override
   MemberBuilder get getable => this;
@@ -266,7 +294,13 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Reference? get writeTargetReference => null;
 
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
+    if (isErroneous) {
+      markAsErroneous();
+    }
     _lastDeclaration.registerInitializers(initializers);
   }
 
@@ -439,10 +473,14 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   /// Registers field as being initialized by this constructor.
   ///
-  /// The field can be initialized either via an initializing formal or via an
-  /// entry in the constructor initializer list.
-  void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
-    (_initializedFields ??= {}).add(fieldBuilder);
+  /// The [fieldInitialization] contains information about whether the field
+  /// was initialized via an initializing formal or via an entry in the
+  /// constructor initializer list.
+  void registerInitializedField(
+    SourcePropertyBuilder fieldBuilder,
+    FieldInitialization fieldInitialization,
+  ) {
+    (_initializedFields ??= {})[fieldBuilder] = fieldInitialization;
   }
 
   /// Substitute [fieldType] from the context of the enclosing class or
@@ -460,8 +498,9 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// Returns the set of fields previously registered via
   /// [registerInitializedField] and passes on the ownership of the collection
   /// to the caller.
-  Set<SourcePropertyBuilder>? takeInitializedFields() {
-    Set<SourcePropertyBuilder>? result = _initializedFields;
+  Map<SourcePropertyBuilder, FieldInitialization>? takeInitializedFields() {
+    Map<SourcePropertyBuilder, FieldInitialization>? result =
+        _initializedFields;
     _initializedFields = null;
     return result;
   }
@@ -477,6 +516,24 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       // Coverage-ignore-block(suite): Not run.
       augmentation.markAsErroneous();
     }
+  }
+
+  void _reportCyclicDependency() {
+    // There is a cyclic dependency where inferring the types of the
+    // initializing formals of a constructor required us to infer the
+    // corresponding field type which required us to know the type of the
+    // constructor.
+    String constructorName = declarationBuilder.name;
+    if (name.isNotEmpty) {
+      constructorName += ".${name}";
+    }
+    libraryBuilder.addProblem(
+      diag.cantInferTypeDueToCircularity.withArguments(name: name),
+      fileOffset,
+      constructorName.length,
+      fileUri,
+    );
+    markAsErroneous();
   }
 }
 

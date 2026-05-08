@@ -22,8 +22,9 @@ native-assets:
   linux_x64:
     'package:foo/foo.dart': ['absolute', '/path/to/libfoo.so']
 ''';
-    final validatedYaml =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString)!;
+    final validatedYaml = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString)!;
     final component = Component(
       libraries: [NativeAssetsSynthesizer.synthesizeLibrary(validatedYaml)],
     );
@@ -54,8 +55,8 @@ constants  {
   test('no file', () async {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final uri = Directory.systemTemp.uri.resolve('file_does_not_exist.yaml');
     Object? result =

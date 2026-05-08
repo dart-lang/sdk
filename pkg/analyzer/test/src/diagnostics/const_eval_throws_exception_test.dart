@@ -583,47 +583,6 @@ class T {
 ''');
   }
 
-  test_finalAlreadySet_initializer() async {
-    // If a final variable has an initializer at the site of its declaration,
-    // and at the site of the constructor, then invoking that constructor would
-    // produce a runtime error; hence invoking that constructor via the "const"
-    // keyword results in a compile-time error.
-    await assertErrorsInCode(
-      '''
-class C {
-  final x = 1;
-  const C() : x = 2;
-}
-var x = const C();
-''',
-      [
-        error(diag.fieldInitializedInInitializerAndDeclaration, 39, 1),
-        error(diag.constEvalThrowsException, 56, 9),
-      ],
-    );
-  }
-
-  test_finalAlreadySet_initializing_formal() async {
-    // If a final variable has an initializer at the site of its declaration,
-    // and it is initialized using an initializing formal at the site of the
-    // constructor, then invoking that constructor would produce a runtime
-    // error; hence invoking that constructor via the "const" keyword results
-    // in a compile-time error.
-    await assertErrorsInCode(
-      '''
-class C {
-  final x = 1;
-  const C(this.x);
-}
-var x = const C(2);
-''',
-      [
-        error(diag.finalInitializedInDeclarationAndConstructor, 40, 1),
-        error(diag.constEvalThrowsException, 54, 10),
-      ],
-    );
-  }
-
   test_fromEnvironment_assertInitializer() async {
     await assertNoErrorsInCode('''
 class A {

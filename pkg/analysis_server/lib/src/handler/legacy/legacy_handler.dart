@@ -13,7 +13,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
-import 'package:dart_style/dart_style.dart';
+import 'package:analyzer_plugin/src/utilities/formatter.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A request handler for the completion domain.
@@ -111,11 +111,11 @@ abstract class LegacyHandler {
 }
 
 extension SomeResolvedLibraryResultExtension on SomeResolvedLibraryResult? {
-  Version get effectiveLanguageVersion {
+  Version get effectiveFormatterVersion {
     var self = this;
     if (self is ResolvedLibraryResult) {
       return self.element.languageVersion.effective;
     }
-    return DartFormatter.latestLanguageVersion;
+    return defaultFormatterVersion;
   }
 }

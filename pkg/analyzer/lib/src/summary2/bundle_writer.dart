@@ -821,9 +821,7 @@ class BundleWriter {
 
   void _writeUnitElement(LibraryFragmentImpl libraryFragment) {
     _writeResolutionOffset();
-
-    // ignore: deprecated_member_use_from_same_package
-    _sink.writeBool(libraryFragment.isSynthetic);
+    libraryFragment.writeModifiers(_sink);
 
     _sink.writeList(libraryFragment.libraryImports, _writeLibraryImport);
     _sink.writeList(libraryFragment.libraryExports, _writeLibraryExport);
@@ -1089,6 +1087,7 @@ class ResolutionSink extends BinaryWriter {
     writeElement(alias?.element);
     if (alias != null) {
       _writeTypeList(alias.typeArguments);
+      _writeNullabilitySuffix(alias.nullabilitySuffix);
     }
   }
 
@@ -1258,11 +1257,8 @@ extension _BinaryWriterExtension on BinaryWriter {
   }
 
   void _writeTopLevelInferenceError(TopLevelInferenceError? error) {
-    if (error != null) {
-      writeByte(error.kind.index);
-      writeStringList(error.arguments);
-    } else {
-      writeByte(TopLevelInferenceErrorKind.none.index);
-    }
+    writeOptionalObject(error, (error) {
+      error.write(this);
+    });
   }
 }

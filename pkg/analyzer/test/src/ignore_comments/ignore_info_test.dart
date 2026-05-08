@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,6 +16,55 @@ main() {
 
 @reflectiveTest
 class IgnoreInfoTest extends PubPackageResolutionTest {
+  test_allows_several_slashes_and_spaces() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '///////    ignore: type =lint',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 19,
+      length: 10,
+    );
+  }
+
+  test_ignore_for_file() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore_for_file: type =lint',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 20,
+      length: 10,
+    );
+  }
+
+  test_ignore_for_file_several_spaces() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore_for_file:    type =lint',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 23,
+      length: 10,
+    );
+  }
+
+  test_ignore_in_file_needs_exactly_two_slashes() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '/// ignore_on_file: type =lint',
+    );
+    if (ignoredElements.length == 1) {
+      print((ignoredElements[0] as dynamic).st);
+    }
+    expect(ignoredElements, hasLength(0));
+  }
+
   test_name_multiple() async {
     var ignoredElements = await _parseIgnoredElements('// ignore: foo, bar');
     expect(ignoredElements, hasLength(2));
@@ -237,7 +285,11 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
 $comment
 int x = 1;
 ''');
-    var commentToken = result.unit.beginToken.precedingComments as CommentToken;
-    return commentToken.ignoredElements.toList();
+    // This corresponds roughly to what happens in `IgnoreInfo.forDart`.
+    List<IgnoredElement> ignoreResult = [];
+    for (var comment in result.unit.ignoreComments) {
+      ignoreResult.addAll(comment.ignoredElements);
+    }
+    return ignoreResult;
   }
 }

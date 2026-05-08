@@ -65,12 +65,53 @@ class D extends core::Object {
     ;
   method build() → void {}
 }
+@#C5
+abstract class F extends core::Object {
+  constructor •() → self::F
+    : super core::Object::•()
+    ;
+  constructor _() → self::F
+    : super core::Object::•()
+    ;
+  static factory factory1() → self::F /* redirection-target: self::G::• */
+    return new self::G::•();
+  abstract method imethod1() → void;
+  static method smethod1() → void {}
+}
+@#C5
+class G extends self::F {
+  constructor •() → self::G
+    : super self::F::•()
+    ;
+  method imethod1() → void {}
+  static method smethod2() → void {}
+}
+@#C5
+extension type H(self::F v) {
+  abstract extension-type-member representation-field get v() → self::F;
+  method imethod2 = self::H|imethod2;
+  method tearoff imethod2 = self::H|get#imethod2;
+  constructor • = self::H|constructor#;
+  constructor tearoff • = self::H|constructor#_#new#tearOff;
+}
 static field core::Object? sfield9;
 static field core::Object? _sfield10;
 static method smethod10() → void {}
 static method _smethod11() → void {}
+static extension-type-member method H|constructor#(self::F v) → self::H% /* erasure=self::F, declared=! */ {
+  lowered final self::H% /* erasure=self::F, declared=! */ #this = v;
+  return #this;
+}
+static extension-type-member synthetic method H|constructor#_#new#tearOff(self::F v) → self::H% /* erasure=self::F, declared=! */
+  return self::H|constructor#(v);
+static extension-type-member method H|imethod2(lowered final self::H% /* erasure=self::F, declared=! */ #this) → void
+  return (#this as{Unchecked} self::F).{self::F::imethod1}(){() → void};
+static extension-type-member method H|get#imethod2(lowered final self::H% /* erasure=self::F, declared=! */ #this) → () → void
+  return () → void => self::H|imethod2(#this);
 constants  {
   #C1 = "dyn-module:callable"
   #C2 = null
   #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dyn-module:can-be-used-as-type"
+  #C5 = core::pragma {name:#C4, options:#C2}
 }

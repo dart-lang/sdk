@@ -978,6 +978,80 @@ class Foo {
     await expectNoTarget(code);
   }
 
+  Future<void> test_primaryConstructor_body() async {
+    var code = parseCode('''
+class [!Foo(String a)!] {
+  th^is {}
+}
+''');
+
+    var target = await findTarget(code);
+    expect(
+      target,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('Foo(', code, 'Foo'),
+        codeRange: code.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration() async {
+    var code = parseCode('''
+class [!Fo^o(String a)!] {
+  this {}
+}
+''');
+
+    var target = await findTarget(code);
+    expect(
+      target,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('Foo(', code, 'Foo'),
+        codeRange: code.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_primaryConstructor_named_declaration_className() async {
+    var code = parseCode('''
+class Fo^o.named(String a) {
+  this {}
+}
+''');
+
+    await expectNoTarget(code);
+  }
+
+  Future<void>
+  test_primaryConstructor_named_declaration_constructorName() async {
+    var code = parseCode('''
+class [!Foo.nam^ed(String a)!] {
+  this {}
+}
+''');
+
+    var target = await findTarget(code);
+    expect(
+      target,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo.named',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('named', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
+  }
+
   Future<void> test_setter() async {
     var code = parseCode('''
 class Foo {
@@ -2010,6 +2084,58 @@ import 'test.dart';
     );
   }
 
+  Future<void> test_primaryConstructor() async {
+    var code = parseCode('''
+class Fo^o();
+''');
+
+    var otherCode = parseCode('''
+import 'test.dart';
+
+final foo1 = [!Foo!]();
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(calls, [
+      _isResult(
+        CallHierarchyKind.file,
+        'other.dart',
+        otherFile,
+        containerName: null,
+        nameRange: startOfFile,
+        codeRange: entireRange(otherCode),
+        ranges: [otherCode.range.sourceRange],
+      ),
+    ]);
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    var code = parseCode('''
+class Foo.nam^ed();
+''');
+
+    var otherCode = parseCode('''
+import 'test.dart';
+
+final foo1 = Foo.[!named!]();
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(calls, [
+      _isResult(
+        CallHierarchyKind.file,
+        'other.dart',
+        otherFile,
+        containerName: null,
+        nameRange: startOfFile,
+        codeRange: entireRange(otherCode),
+        ranges: [otherCode.range.sourceRange],
+      ),
+    ]);
+  }
+
   Future<void> test_setter() async {
     var code = parseCode('''
 set fo^o(String value) {}
@@ -2918,6 +3044,144 @@ void ^f(io.File f) {
 
     var calls = await findOutgoingCalls(code);
     expect(calls, isEmpty);
+  }
+
+  Future<void> test_primaryConstructor_body() async {
+    var code = parseCode('''
+import 'other.dart';
+
+class Fo^o() {
+  this {
+    A();
+    B();
+  }
+}
+''');
+
+    var otherCode = parseCode('''
+class A {
+  /*[0*/A();/*0]*/
+}
+
+class /*[1*/B()/*1]*/; {}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('A();', otherCode, 'A'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [rangeAtSearch('A();', code, 'A')],
+        ),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'B',
+          otherFile,
+          containerName: 'B',
+          nameRange: rangeAtSearch('B();', otherCode, 'B'),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [rangeAtSearch('B();', code, 'B')],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration() async {
+    var code = parseCode('''
+import 'other.dart';
+
+class Fo^o() {
+  this {
+    A();
+    B();
+  }
+}
+''');
+
+    var otherCode = parseCode('''
+class A {
+  /*[0*/A();/*0]*/
+}
+
+class /*[1*/B()/*1]*/; {}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('A();', otherCode, 'A'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [rangeAtSearch('A();', code, 'A')],
+        ),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'B',
+          otherFile,
+          containerName: 'B',
+          nameRange: rangeAtSearch('B();', otherCode, 'B'),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [rangeAtSearch('B();', code, 'B')],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    var code = parseCode('''
+import 'other.dart';
+
+class Foo.nam^ed() {
+  this {
+    A./*[0*/named/*0]*/();
+    B./*[1*/named/*1]*/();
+  }
+}
+''');
+
+    var otherCode = parseCode('''
+class /*[0*/A./*[1*/named/*1]*/()/*0]*/;
+class /*[2*/B./*[3*/named/*3]*/()/*2]*/;
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A.named',
+          otherFile,
+          containerName: 'A',
+          nameRange: otherCode.ranges[1].sourceRange,
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [code.ranges[0].sourceRange],
+        ),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'B.named',
+          otherFile,
+          containerName: 'B',
+          nameRange: otherCode.ranges[3].sourceRange,
+          codeRange: otherCode.ranges[2].sourceRange,
+          ranges: [code.ranges[1].sourceRange],
+        ),
+      ]),
+    );
   }
 
   Future<void> test_setter() async {

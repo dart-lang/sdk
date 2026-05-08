@@ -35,6 +35,7 @@ Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # Non-
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
 Language/Types/Interface_Types/subtype_t27: Skip # https://github.com/dart-lang/sdk/issues/42641
+Language/Variables/final_or_static_initialization_t04: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t03: SkipByDesign # Non-JS-interop external members are not supported
@@ -52,13 +53,39 @@ LanguageFeatures/Abstract-external-fields/static_analysis_external_A05_t02: Skip
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A05_t03: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/syntax_A01_t03: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/syntax_A02_t03: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_constructors_A09_t07: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_functions_A01_t14: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_functions_A08_t03: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t09: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t10: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t11: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t15: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t09: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t10: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t11: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t15: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A01_t18: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A03_t05: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A03_t06: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A03_t07: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A03_t08: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A04_t05: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A04_t06: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A04_t07: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A05_t05: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A05_t06: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/complete_declarations_A05_t07: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/metadata_A01_t01.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t02.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t03.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t04.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t05.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t06.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t07.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t08.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t09.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t10.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t11.dart: SkipByDesign # dart:mirrors is not supported
 LanguageFeatures/Enhanced-Enum/grammar_A07_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-methods/syntax_member_declarations_t04: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t01: SkipByDesign # Non-JS-interop external members are not supported
@@ -66,6 +93,11 @@ LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t02: SkipBy
 LanguageFeatures/Extension-types/superinterfaces_of_extension_type_A05_t07: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/syntax_A08_t02: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # dart:ffi is not supported
+LanguageFeatures/Primary-constructors/grammar_A02_t08: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t02: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t04: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t06: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t08: SkipByDesign # External constructors are not supported
 LanguageFeatures/Wildcards/other_declarations_A01_t09: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Wildcards/other_declarations_A02_t07: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Wildcards/other_declarations_A06_t03: SkipByDesign # Non-JS-interop external members are not supported
@@ -176,8 +208,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t04: Slow, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t05: Slow, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t06: Slow, Pass
-LibTest/core/List/List_class_A01_t05: Slow, Pass
-LibTest/core/List/List_class_A01_t06: Slow, Pass
 
 [ $compiler == dart2js && $runtime == ff ]
 LibTest/html/Element/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF

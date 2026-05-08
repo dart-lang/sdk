@@ -41,7 +41,8 @@ final tests = <VMTest>[
     expect(vm.currentMemory, greaterThan(0));
     expect(vm.currentRSS, greaterThan(0));
     expect(vm.maxRSS, greaterThan(0));
-    expect(vm.maxRSS, greaterThanOrEqualTo(vm.currentRSS));
+    // Not guaranteed by the underlying system calls.
+    // expect(vm.maxRSS, greaterThanOrEqualTo(vm.currentRSS));
   },
 ];
 

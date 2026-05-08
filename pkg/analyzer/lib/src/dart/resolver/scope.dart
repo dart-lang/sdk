@@ -40,67 +40,23 @@ class BlockScope {
   }
 }
 
-/// The scope statements that can be the target of unlabeled `break` and
-/// `continue` statements.
-class ImplicitLabelScope {
-  /// The implicit label scope associated with the top level of a function.
-  static const ImplicitLabelScope ROOT = ImplicitLabelScope._(null, null);
-
-  /// The implicit label scope enclosing this implicit label scope.
-  final ImplicitLabelScope? outerScope;
-
-  /// The statement that acts as a target for break and/or continue statements
-  /// at this scoping level.
-  final Statement? statement;
-
-  /// Initialize a newly created scope, enclosed within the [outerScope],
-  /// representing the given [statement].
-  const ImplicitLabelScope._(this.outerScope, this.statement);
-
-  /// Return the statement which should be the target of an unlabeled `break` or
-  /// `continue` statement, or `null` if there is no appropriate target.
-  Statement? getTarget(bool isContinue) {
-    if (outerScope == null) {
-      // This scope represents the top-level of a function body, so it doesn't
-      // match either break or continue.
-      return null;
-    }
-    if (isContinue && statement is SwitchStatement) {
-      return outerScope!.getTarget(isContinue);
-    }
-    return statement;
-  }
-
-  /// Initialize a newly created scope to represent a switch statement or loop
-  /// nested within the current scope.  [statement] is the statement associated
-  /// with the newly created scope.
-  ImplicitLabelScope nest(Statement statement) =>
-      ImplicitLabelScope._(this, statement);
-}
-
 /// A scope in which a single label is defined.
 class LabelScope {
-  /// The label scope enclosing this label scope.
+  /// The scope enclosing this scope.
   final LabelScope? _outerScope;
 
-  /// The label defined in this scope.
-  final String _label;
-
-  /// The element to which the label resolves.
+  /// The element representing the declared label.
   final LabelElement element;
 
-  /// The AST node to which the label resolves.
+  /// The AST node that is the target of a jump.
   final AstNode node;
 
-  /// Initialize a newly created scope, enclosed within the [_outerScope],
-  /// representing the label [_label]. The [node] is the AST node the label
-  /// resolves to. The [element] is the element the label resolves to.
-  LabelScope(this._outerScope, this._label, this.node, this.element);
+  LabelScope(this._outerScope, this.element, this.node);
 
-  /// Return the LabelScope which defines [targetLabel], or `null` if it is not
-  /// defined in this scope.
+  /// Returns the scope that declares [targetLabel], searching this scope and
+  /// enclosing scopes, or `null` if not found.
   LabelScope? lookup(String targetLabel) {
-    if (_label == targetLabel) {
+    if (element.name == targetLabel) {
       return this;
     }
     return _outerScope?.lookup(targetLabel);
@@ -357,4 +313,33 @@ class RecordingExportNamespace implements Namespace {
   Element? getPrefixed2(String prefix, String name) {
     return base.getPrefixed2(prefix, name);
   }
+}
+
+/// The context of targets for unlabeled `break` and `continue` statements.
+class UnlabeledBreakContinueContext {
+  /// The start of the context in a function body.
+  static const root = UnlabeledBreakContinueContext._(null, null);
+
+  /// The previous context, or `null` for a function body.
+  final UnlabeledBreakContinueContext? previous;
+
+  /// The target statement, or `null` for a function body.
+  final Statement? statement;
+
+  const UnlabeledBreakContinueContext._(this.previous, this.statement);
+
+  /// The target of an unlabeled `break`, or `null` if there is none.
+  Statement? get breakTarget => statement;
+
+  /// The target of an unlabeled `continue`, or `null` if there is none.
+  Statement? get continueTarget {
+    if (statement is SwitchStatement) {
+      return previous?.continueTarget;
+    }
+    return statement;
+  }
+
+  /// Return a context representing [statement] nested within this context.
+  UnlabeledBreakContinueContext nest(Statement statement) =>
+      UnlabeledBreakContinueContext._(this, statement);
 }

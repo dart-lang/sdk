@@ -77,7 +77,7 @@ suggestions
   Future<void> test_afterIdentifier_beforeAwait_partial() async {
     await computeSuggestions('''
 void f(A a) async {
-  a.m0^ 
+  a.m0^
   await 0;
 }
 
@@ -172,6 +172,66 @@ class A { foo() {int x; x.^}}
 ''');
     assertResponse(r'''
 suggestions
+''');
+  }
+
+  Future<void> test_betweenCascadeDots() async {
+    await computeSuggestions('''
+class A {
+  A m01() => this;
+  A get f01 => this;
+}
+
+void foo(A a) {
+  a.f01.^.f01;
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+  m01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_betweenCascadeDots_static() async {
+    await computeSuggestions('''
+class A {
+  static A m01() => A();
+  static A get f01 => A();
+}
+
+void foo() {
+  A.^.f01;
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+  m01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_betweenNullableCascadeDots() async {
+    await computeSuggestions('''
+class A {
+  A m01() => this;
+  A? get f01 => this;
+}
+
+void foo(A a) {
+  a.f01?.^.f01;
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+  m01
+    kind: methodInvocation
 ''');
   }
 

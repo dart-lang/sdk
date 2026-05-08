@@ -3147,6 +3147,27 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   addi(SP, SP, size);
 }
 
+void Assembler::PushRegistersAligned(const RegisterSet& register_set,
+                                     intptr_t space) {
+  PushRegisters(register_set);
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    subi(SP, SP, aligned_space);
+  }
+}
+void Assembler::PopRegistersAligned(const RegisterSet& register_set,
+                                    intptr_t space) {
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    addi(SP, SP, aligned_space);
+  }
+  PopRegisters(register_set);
+}
+
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
   intptr_t offset = regs.size() * target::kWordSize;
   subi(SP, SP, offset);
@@ -5644,11 +5665,11 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
   if (!IsSafeSmi(constant)) return false;
   const int64_t index = target::SmiValue(constant);
   const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
-  if (IsITypeImm(offset)) {
-    ASSERT(IsSTypeImm(offset));
-    return true;
-  }
-  return false;
+#if XLEN >= 64
+  return Utils::IsInt(32, offset);
+#else
+  return Utils::IsInt(32, offset) && Utils::IsInt(32, offset + 4);
+#endif
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

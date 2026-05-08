@@ -10,6 +10,7 @@
 ///
 /// https://github.com/flutter/flutter/issues/57125
 
+import 'dart:async';
 import 'dart:io';
 
 Future<void> main() async {
@@ -17,11 +18,22 @@ Future<void> main() async {
   process.stdout.drain();
   process.stderr.drain();
   bool finished = false;
+  final childExited = Completer<bool>();
   // Ensure any other exception is unhandled and fails the test.
-  process.stdin.done.catchError((e) {
-    finished = true;
-  }, test: (e) => e is SocketException);
+  process.stdin.done.then(
+    (_) => childExited.complete(true),
+    onError: (e) {
+      if (e is! SocketException) {
+        throw e;
+      }
+      finished = true;
+    },
+  );
   while (!finished) {
+    // Writing to stdin of already-exited child might not raise an error.
+    if (childExited.isCompleted) {
+      break;
+    }
     process.stdin.write("a");
     await Future.delayed(new Duration(microseconds: 1));
   }

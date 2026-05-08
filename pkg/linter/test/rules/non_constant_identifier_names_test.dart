@@ -509,6 +509,25 @@ class C {
 ''');
   }
 
+  test_constructor_newSyntax_lower() async {
+    await assertNoDiagnostics(r'''
+class C {
+  new named();
+}
+''');
+  }
+
+  test_constructor_newSyntax_upper() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  new Named();
+}
+''',
+      [lint(16, 5)],
+    );
+  }
+
   test_constructor_private_lower() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -691,7 +710,6 @@ C<int>;
         // No lint
         error(diag.missingFunctionParameters, 15, 1),
         error(diag.duplicateDefinition, 15, 1),
-        error(diag.missingFunctionBody, 21, 1),
       ],
     );
   }
@@ -791,11 +809,11 @@ class C {
     );
   }
 
-  test_parameter_var() async {
+  test_parameter_requiredPositional() async {
     await assertDiagnostics(
       r'''
  class C {
-  m(var Foo) {}
+  m(int Foo) {}
 }
 ''',
       [lint(19, 3)],

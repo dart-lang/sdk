@@ -85,7 +85,7 @@ In this case you can use `gsutil.py` from `depot_tools` (or `gsutil` from Cloud
 SDK) to download these artifacts:
 
 ```console
-$ gsutil.py cp gs://dart-temp-crash-archive/<src-path> <dst-path>
+$ gcloud storage cp gs://dart-temp-crash-archive/<src-path> <dst-path>
 ```
 
 ## Analyzing Dumps
@@ -219,4 +219,3 @@ See `WindowsCoreDumpEnabler` and `WindowsCoreDumpArchiver` in `tools/utils.py`.
 `pkg/test_runner/lib/src/test_suite.dart`.**
 
 **Note: Crashpad is optimized for end-user crash reporting use case and does not write full crash dumps.**
-

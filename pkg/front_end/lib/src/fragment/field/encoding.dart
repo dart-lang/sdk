@@ -57,6 +57,19 @@ sealed class FieldEncoding {
   /// This is only used for instance fields.
   Initializer buildImplicitInitializer();
 
+  /// Creates an [Initializer] for initializing this field with its declared
+  /// initializer value and removes the initializer expression from the field
+  /// itself.
+  ///
+  /// This is used to support access of primary constructor parameters in the
+  /// field initializers. For instance
+  ///
+  ///     class C(var int a, final int b, int c) {
+  ///       int d = a + b + c;
+  ///     }
+  ///
+  Initializer takePrimaryConstructorFieldInitializer();
+
   /// Registers that the (implicit) setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
   void setCovariantByClass();
@@ -253,6 +266,13 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
   void registerSuperCall() {
     _field!.transformerFlags |= TransformerFlag.superCalls;
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    Expression value = _field!.initializer!;
+    _field!.initializer = null;
+    return new FieldInitializer(_field!, value)..fileOffset = value.fileOffset;
+  }
 }
 
 class RegularFieldEncoding with RegularFieldEncodingMixin {
@@ -290,58 +310,6 @@ class RegularFieldEncoding with RegularFieldEncodingMixin {
       isInstanceMember:
           !_fragment.builder.isStatic && !_fragment.builder.isTopLevel,
     );
-    // bool isImmutable = _fragment.modifiers.isLate
-    //     ? (_fragment.modifiers.isFinal && _fragment.modifiers.hasInitializer)
-    //     : (_fragment.modifiers.isFinal || _fragment.modifiers.isConst);
-    // _field = isImmutable
-    //     ? new Field.immutable(
-    //         dummyName,
-    //         type: _type,
-    //         isFinal: _fragment.modifiers.isFinal,
-    //         isConst: _fragment.modifiers.isConst,
-    //         isLate: _fragment.modifiers.isLate,
-    //         fileUri: _fragment.fileUri,
-    //         fieldReference: references.fieldReference,
-    //         getterReference: references.getterReference,
-    //         isEnumElement: isEnumElement,
-    //       )
-    //     : new Field.mutable(
-    //         dummyName,
-    //         type: _type,
-    //         isFinal: _fragment.modifiers.isFinal,
-    //         isLate: _fragment.modifiers.isLate,
-    //         fileUri: _fragment.fileUri,
-    //         fieldReference: references.fieldReference,
-    //         getterReference: references.getterReference,
-    //         setterReference: references.setterReference,
-    //       );
-    // nameScheme
-    //     .getFieldMemberName(
-    //       FieldNameType.Field,
-    //       _fragment.name,
-    //       isSynthesized: false,
-    //     )
-    //     .attachMember(_field!);
-    // _field!
-    //   ..fileOffset = _fragment.nameOffset
-    //   ..fileEndOffset = _fragment.endOffset;
-    // _field!..isCovariantByDeclaration = _fragment.modifiers.isCovariant;
-    // if (_fragment.builder.isExtensionMember) {
-    //   _field!
-    //     ..isStatic = true
-    //     ..isExtensionMember = true;
-    // } else if (_fragment.builder.isExtensionTypeMember) {
-    //   _field!
-    //     ..isStatic = _fragment.builder.isStatic
-    //     ..isExtensionTypeMember = true;
-    // } else {
-    //   bool isInstanceMember =
-    //       !_fragment.builder.isStatic && !_fragment.builder.isTopLevel;
-    //   _field!
-    //     ..isStatic = !isInstanceMember
-    //     ..isExtensionMember = false;
-    // }
-    // _field!.isLate = _fragment.modifiers.isLate;
   }
 
   @override
@@ -430,7 +398,6 @@ class PrimaryConstructorFieldEncoding with RegularFieldEncodingMixin {
   ];
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters => _fragment.hasSetter
       ? [
           new _FieldClassMember(
@@ -511,21 +478,21 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..fileOffset = _fragment.nameOffset
         ..parent = _lateIsSetField;
     }
-    _lateGetter!.function.body = _createGetterBody(
-      coreTypes,
-      _fragment.name,
-      initializer,
-    )..parent = _lateGetter!.function;
+    _lateGetter!.function.registerFunctionBody(
+      _createGetterBody(coreTypes, _fragment.name, initializer),
+    );
     // The initializer is copied from [_field] to [_lateGetter] so we copy the
     // transformer flags to reflect whether the getter contains super calls.
     _lateGetter!.transformerFlags = _field!.transformerFlags;
 
     if (_lateSetter != null) {
-      _lateSetter!.function.body = _createSetterBody(
-        coreTypes,
-        _fragment.name,
-        _lateSetter!.function.positionalParameters.first,
-      )..parent = _lateSetter!.function;
+      _lateSetter!.function.registerFunctionBody(
+        _createSetterBody(
+          coreTypes,
+          _fragment.name,
+          _lateSetter!.function.positionalParameters.first,
+        ),
+      );
     }
   }
 
@@ -552,6 +519,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isSynthetic = isSynthetic,
     );
     return initializers;
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
+    );
   }
 
   /// Creates an [Expression] that reads [_field].
@@ -1244,13 +1218,15 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
               dummyName,
               ProcedureKind.Method,
               new FunctionNode(
-                null,
-                positionalParameters: [
-                  new VariableDeclaration(syntheticThisName)
-                    ..fileOffset = _fragment.nameOffset
-                    ..isLowered = true,
-                ],
-              ),
+                  null,
+                  positionalParameters: [
+                    new VariableDeclaration(syntheticThisName)
+                      ..fileOffset = _fragment.nameOffset
+                      ..isLowered = true,
+                  ],
+                )
+                ..fileOffset = _fragment.nameOffset
+                ..fileEndOffset = _fragment.endOffset,
               fileUri: _fragment.fileUri,
               reference: references.getterReference,
             )
@@ -1294,7 +1270,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           new Procedure(
               dummyName,
               ProcedureKind.Getter,
-              new FunctionNode(null),
+              new FunctionNode(null)
+                ..fileOffset = _fragment.nameOffset
+                ..fileEndOffset = _fragment.endOffset,
               fileUri: _fragment.fileUri,
               reference: references.getterReference,
             )
@@ -1477,6 +1455,13 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       "Unexpected call to ${runtimeType}.registerSuperCall().",
     );
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
+    );
+  }
 }
 
 /// The encoding of an extension type declaration representation field.
@@ -1499,9 +1484,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
   @override
   void set type(DartType value) {
     assert(
-      _type == null ||
-          // Coverage-ignore(suite): Not run.
-          _type is InferredType,
+      _type == null || _type is InferredType,
       "Type has already been computed for field ${_fragment.name}.",
     );
     _type = value;
@@ -1640,6 +1623,13 @@ class RepresentationFieldEncoding implements FieldEncoding {
   void registerSuperCall() {
     throw new UnsupportedError(
       "Unexpected call to ${runtimeType}.registerSuperCall().",
+    );
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
     );
   }
 }
@@ -1937,6 +1927,13 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   void registerSuperCall() {
     throw new UnsupportedError(
       "Unexpected call to ${runtimeType}.registerSuperCall().",
+    );
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
     );
   }
 }

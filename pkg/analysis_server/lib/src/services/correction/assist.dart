@@ -121,8 +121,13 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Convert to use a URI',
   );
+  static const convertToDeclaringParameter = AssistKind(
+    'dart.assist.convert.toDeclaringParameter',
+    DartAssistKindPriority.default_,
+    'Convert to a declaring parameter',
+  );
   static const convertToDotShorthand = AssistKind(
-    'dart.assist.convert.ToDotShorthand',
+    'dart.assist.convert.toDotShorthand',
     DartAssistKindPriority.default_,
     'Convert to dot shorthand',
   );
@@ -171,11 +176,6 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Convert to multiline string',
   );
-  static const convertToNormalParameter = AssistKind(
-    'dart.assist.convert.toConstructorNormalParameter',
-    DartAssistKindPriority.default_,
-    'Convert to normal parameter',
-  );
   static const convertToNullAware = AssistKind(
     'dart.assist.convert.toNullAware',
     DartAssistKindPriority.default_,
@@ -186,10 +186,20 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     "Convert to 'package:' import",
   );
+  static const convertToPrimaryConstructor = AssistKind(
+    'dart.assist.convert.toPrimaryConstructor',
+    DartAssistKindPriority.default_,
+    'Convert to a primary constructor',
+  );
   static const convertToRelativeImport = AssistKind(
     'dart.assist.convert.packageToRelativeImport',
     DartAssistKindPriority.default_,
     'Convert to a relative import',
+  );
+  static const convertToSecondaryConstructor = AssistKind(
+    'dart.assist.convert.toSecondaryConstructor',
+    DartAssistKindPriority.default_,
+    'Convert to a secondary constructor',
   );
   static const convertToSetLiteral = AssistKind(
     'dart.assist.convert.toSetLiteral',

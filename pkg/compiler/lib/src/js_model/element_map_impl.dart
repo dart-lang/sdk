@@ -18,18 +18,17 @@ import '../common/names.dart';
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show LateOutputUnitDataBuilder;
 import '../elements/entities.dart';
-import '../elements/entity_utils.dart' as utils;
 import '../elements/entity_map.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
-import '../ir/visitors.dart';
 import '../ir/util.dart';
+import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
-import '../js_model/class_type_variable_access.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
@@ -41,10 +40,10 @@ import '../universe/call_structure.dart';
 import '../universe/member_usage.dart';
 import '../universe/record_shape.dart';
 import '../universe/selector.dart';
-
+import 'class_type_variable_access.dart';
 import 'closure.dart';
-import 'elements.dart';
 import 'element_map.dart';
+import 'elements.dart';
 import 'env.dart';
 import 'locals.dart';
 import 'records.dart'
@@ -367,6 +366,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     );
     source.end(nestedClosuresTag);
 
+    _symbolLibraries.addAll(source.readConstantMap(() => source.readUri()));
+
     source.end(tag);
   }
 
@@ -459,6 +460,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       sink.writeMembers(value);
     });
     sink.end(nestedClosuresTag);
+
+    sink.writeConstantMap(_symbolLibraries, (Uri uri) => sink.writeUri(uri));
 
     sink.end(tag);
   }
@@ -1032,6 +1035,18 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     return data.getVariances();
+  }
+
+  final Map<ConstantValue, Uri> _symbolLibraries = {};
+
+  @override
+  void registerSymbolLibrary(ConstantValue value, Uri libraryUri) {
+    _symbolLibraries[value] = libraryUri;
+  }
+
+  @override
+  Uri? getSymbolLibraryUri(ConstantValue value) {
+    return _symbolLibraries[value];
   }
 
   DartType _getTypeVariableDefaultType(JTypeVariable typeVariable) {

@@ -13,6 +13,7 @@ import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/registry.dart';
+import 'package:analysis_server_plugin/src/utilities/diagnostic_messages.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -86,17 +87,45 @@ class PluginServer {
   /// The next modification stamp for a changed file in the [_resourceProvider].
   int _overlayModificationStamp = 0;
 
-  /// The list of registered features for each plugin, for reporting purposes.
-  final _registries = <PluginRegistryImpl>[];
+  /// The map of registered features for each plugin, for namespacing purposes.
+  static final registries = <String, PluginRegistryImpl>{};
 
   PluginServer({
     required ResourceProvider resourceProvider,
     required List<Plugin> plugins,
   }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
        _plugins = plugins {
+    int i = 0;
     for (var plugin in plugins) {
       var registry = PluginRegistryImpl(plugin.name);
-      _registries.add(registry);
+      // For this unnamed (old) constructor, we were not tracking them by name
+      // so we do this (use '$i') simply to store the registries uniquely.
+      //
+      // `registries` was previously only used for the `PLUGIN_REQUEST_DETAILS`
+      // request handling.
+      //
+      // Now, we plan on deprecating this constructor and move to `new2`, since
+      // that allows us to track plugins by name and fix issues with ignores and
+      // avoiding diagnostic collisions.
+      //
+      // When initializing with this constructor we can't use `registries` to
+      // find them by name, so we use the main `Registry.ruleRegistry` to find
+      // the rules instead.
+      registries['$i'] = registry;
+      plugin.register(registry);
+      i++;
+    }
+    PluginRegistryImpl.registerIgnoreProducerGenerators();
+  }
+
+  PluginServer.new2({
+    required ResourceProvider resourceProvider,
+    required Map<String, Plugin> plugins,
+  }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
+       _plugins = plugins.values.toList() {
+    for (var MapEntry(key: name, value: plugin) in plugins.entries) {
+      var registry = PluginRegistryImpl(plugin.name);
+      registries[name.toLowerCase()] = registry;
       plugin.register(registry);
     }
     PluginRegistryImpl.registerIgnoreProducerGenerators();
@@ -222,6 +251,8 @@ class PluginServer {
 
       List<Fix> fixes;
       try {
+        // TODO(srawlins): Somehow wrap each ProducerGenerator invocation in a
+        // zone, to support `print` capturing per-plugin.
         fixes = await computeFixes(context);
       } on InconsistentAnalysisException {
         // TODO(srawlins): Is it important to at least log this? Or does it
@@ -250,7 +281,7 @@ class PluginServer {
     // the SDK path is configured...
     _sdkPath = parameters.sdkPath;
     return protocol.PluginVersionCheckResult(true, 'Plugin Server', '0.0.1', [
-      '**.dart',
+      '*.dart',
     ]);
   }
 
@@ -415,7 +446,7 @@ class PluginServer {
 
     // TODO(srawlins): Enable timing similar to what the linter package's
     // `benchmark.dart` script does.
-    var nodeRegistry = RuleVisitorRegistryImpl(enableTiming: false);
+    var ruleVisitorRegistry = RuleVisitorRegistryImpl(enableTiming: false);
     var package = analysisContext.contextRoot.workspace.findPackageFor(
       libraryPath,
     );
@@ -435,46 +466,22 @@ class PluginServer {
     var severityMapping = <DiagnosticCode, protocol.AnalysisErrorSeverity?>{};
 
     for (var configuration in analysisOptions.pluginConfigurations) {
-      if (!configuration.isEnabled) continue;
-      // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
-      var rules = Registry.ruleRegistry.enabled({
-        for (var entry in configuration.diagnosticConfigs.entries)
-          entry.key.toLowerCase(): entry.value,
-      });
-
-      for (var code in rules.expand((r) => r.diagnosticCodes)) {
-        pluginCodeMapping.putIfAbsent(code, () => configuration.name);
-        severityMapping.putIfAbsent(
-          code,
-          () => _configuredSeverity(configuration, code),
-        );
-      }
-
-      for (var rule in rules) {
-        // TODO(srawlins): Enable timing similar to what the linter package's
-        // `benchmark.dart` script does.
-        rule.registerNodeProcessors(nodeRegistry, context);
-      }
-
-      // Now to perform the actual analysis.
-      for (var currentUnit in allUnits) {
-        for (var rule in rules) {
-          rule.reporter = currentUnit.diagnosticReporter;
-        }
-
-        context.currentUnit = currentUnit;
-        currentUnit.unit.accept(
-          AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true),
-        );
-      }
-
-      // Now that all lint rules have visited the code in each of the compilation
-      // units, we can accept each lint rule's `afterLibrary` hook.
-      AnalysisRuleVisitor(nodeRegistry).afterLibrary();
+      runZonedGuarded(
+        () => _computeDiagnosticsFromPlugin(
+          configuration,
+          analysisContext: analysisContext,
+          allUnits: allUnits,
+          ruleVisitorRegistry: ruleVisitorRegistry,
+          context: context,
+          pluginCodeMapping: pluginCodeMapping,
+          severityMapping: severityMapping,
+        ),
+        _zoneOnErrorHandler,
+        zoneSpecification: ZoneSpecification(
+          print: (_, _, _, line) => _print(configuration.name, line),
+        ),
+      );
     }
-
-    // TODO(srawlins): Support `AnalysisRuleVisitor.afterLibrary`. See how it is
-    // used in `library_analyzer.dart`.
 
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
@@ -509,6 +516,18 @@ class PluginServer {
             diagnostic.message,
             diagnostic.diagnosticCode.lowerCaseName,
             correction: diagnostic.correctionMessage,
+            contextMessages: diagnostic.contextMessages
+                .map(
+                  (message) => newDiagnosticMessage(
+                    message,
+                    analysisContext.currentSession,
+                    lineInfo: message.filePath == unitResult.path
+                        ? unitResult.lineInfo
+                        : null,
+                  ),
+                )
+                .nonNulls
+                .toList(),
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           ),
@@ -534,6 +553,68 @@ class PluginServer {
       analysisErrorsByPath[analysisError.location.file]!.add(analysisError);
     }
     return analysisErrorsByPath;
+  }
+
+  /// Computes diagnostics for the plugin configured with [configuration].
+  ///
+  /// [pluginCodeMapping] and [severityMapping] are output parameters; this
+  /// function adds mappings, which can be used at the call-site outside of the
+  /// [Zone].
+  void _computeDiagnosticsFromPlugin(
+    PluginConfiguration configuration, {
+    required AnalysisContext analysisContext,
+    required List<RuleContextUnit> allUnits,
+    required RuleVisitorRegistryImpl ruleVisitorRegistry,
+    required RuleContextWithResolvedResults context,
+    required Map<DiagnosticCode, String> pluginCodeMapping,
+    required Map<DiagnosticCode, protocol.AnalysisErrorSeverity?>
+    severityMapping,
+  }) {
+    if (!configuration.isEnabled) return;
+    var registry = registries[configuration.name] ?? Registry.ruleRegistry;
+    var rules = registry.enabled({
+      for (var entry in configuration.diagnosticConfigs.entries)
+        entry.key.toLowerCase(): entry.value,
+    });
+
+    for (var code in rules.expand((r) => r.diagnosticCodes)) {
+      pluginCodeMapping.putIfAbsent(code, () => configuration.name);
+      severityMapping.putIfAbsent(
+        code,
+        () => _configuredSeverity(configuration, code),
+      );
+    }
+
+    for (var rule in rules) {
+      // TODO(srawlins): Enable timing similar to what the linter package's
+      // `benchmark.dart` script does.
+      rule.registerNodeProcessors(ruleVisitorRegistry, context);
+    }
+
+    // Now to perform the actual analysis.
+    for (var currentUnit in allUnits) {
+      if (!analysisContext.contextRoot.isAnalyzed(currentUnit.file.path)) {
+        // If the file isn't analyzed, then we shouldn't be running any rules
+        // on it. This can happen when the library has parts that aren't
+        // analyzed (e.g. because they are excluded via analysis options).
+        continue;
+      }
+      for (var rule in rules) {
+        rule.reporter = currentUnit.diagnosticReporter;
+      }
+
+      context.currentUnit = currentUnit;
+      currentUnit.unit.accept(
+        AnalysisRuleVisitor(
+          ruleVisitorRegistry,
+          shouldPropagateExceptions: true,
+        ),
+      );
+    }
+
+    // Now that all lint rules have visited the code in each of the compilation
+    // units, we can accept each lint rule's `afterLibrary` hook.
+    AnalysisRuleVisitor(ruleVisitorRegistry).afterLibrary();
   }
 
   /// Converts the severity of [code] into a [protocol.AnalysisErrorSeverity].
@@ -618,7 +699,7 @@ class PluginServer {
 
       case protocol.PLUGIN_REQUEST_DETAILS:
         var details = <protocol.PluginDetails>[];
-        for (var pluginRegistry in _registries) {
+        for (var pluginRegistry in registries.values) {
           var assists = [
             for (var assistKind in pluginRegistry.assistKinds)
               protocol.AssistDescription(assistKind.id, assistKind.message),
@@ -631,8 +712,8 @@ class PluginServer {
           details.add(
             protocol.PluginDetails(
               pluginRegistry.pluginName,
-              pluginRegistry.lintRules,
-              pluginRegistry.warningRules,
+              pluginRegistry.lintRules.keys.toList(),
+              pluginRegistry.warningRules.keys.toList(),
               assists,
               fixes,
             ),
@@ -866,19 +947,40 @@ class PluginServer {
   }
 
   Future<void> _handleRequestZoned(Request request) async {
-    await runZonedGuarded(() => _handleRequest(request), (error, stackTrace) {
-      _channel.sendNotification(
-        protocol.PluginErrorParams(
-          false /* isFatal */,
-          error.toString(),
-          stackTrace.toString(),
-        ).toNotification(),
-      );
-    });
+    await runZonedGuarded(
+      () => _handleRequest(request),
+      _zoneOnErrorHandler,
+      zoneSpecification: ZoneSpecification(
+        print: (_, _, _, line) => _print('<shared plugin code>', line),
+      ),
+    );
   }
 
   bool _isPriorityAnalysisContext(AnalysisContext analysisContext) =>
       _priorityPaths.any(analysisContext.contextRoot.isAnalyzed);
+
+  void _print(String pluginName, String message) {
+    _channel.sendNotification(
+      protocol.PluginPrintParams(
+        protocol.PluginPrint(
+          pluginName,
+          message,
+          DateTime.now().millisecondsSinceEpoch,
+        ),
+      ).toNotification(),
+    );
+  }
+
+  /// The `onError` handler for use in [runZonedGuarded].
+  void _zoneOnErrorHandler(Object error, StackTrace stackTrace) {
+    _channel.sendNotification(
+      protocol.PluginErrorParams(
+        false /* isFatal */,
+        error.toString(),
+        stackTrace.toString(),
+      ).toNotification(),
+    );
+  }
 
   static protocol.Location _locationFor(
     CompilationUnit unit,

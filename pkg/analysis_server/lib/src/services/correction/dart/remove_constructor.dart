@@ -65,18 +65,23 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
   _Container? _findContainer() {
     switch (node.parent) {
       case ExtensionDeclaration extension:
-        return _Container(
-          leftBracket: extension.body.leftBracket,
-          members: extension.body.members,
-        );
+        if (extension.body case BlockClassBody body) {
+          return _Container(
+            leftBracket: body.leftBracket,
+            members: body.members,
+          );
+        }
       case MixinDeclaration mixin:
-        return _Container(
-          leftBracket: mixin.body.leftBracket,
-          members: mixin.body.members,
-        );
+        if (mixin.body case BlockClassBody body) {
+          return _Container(
+            leftBracket: body.leftBracket,
+            members: body.members,
+          );
+        }
       default:
-        return null;
+        break;
     }
+    return null;
   }
 }
 

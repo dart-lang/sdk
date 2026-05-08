@@ -11,8 +11,8 @@ import '../universe/call_structure.dart';
 import '../universe/record_shape.dart';
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
-import 'runtime_types_new.dart' show partialShapeTagOf;
 import 'namer.dart' show Namer;
+import 'runtime_types_new.dart' show partialShapeTagOf;
 
 /// Support for Records.
 ///

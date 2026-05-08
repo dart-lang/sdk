@@ -1394,7 +1394,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kInt64, element->type);
-        EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
+        EXPECT_EQ(0x7FFFFFFFFFFFFFFF, element->value.as_int64);
       }
     }
     {
@@ -1593,7 +1593,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kInt64, element->type);
-        EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
+        EXPECT_EQ(0x7FFFFFFFFFFFFFFF, element->value.as_int64);
       }
     }
     {

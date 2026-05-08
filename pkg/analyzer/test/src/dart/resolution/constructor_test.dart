@@ -52,10 +52,10 @@ ConstructorName
 class A {
   var v;
   var _;
-  A(var _) : v = _;
+  A(_) : v = _;
 }
 ''',
-      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 41, 1)],
     );
 
     var node = findNode.constructorFieldInitializer('v = _');
@@ -93,7 +93,7 @@ ConstructorDeclaration
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: a
         element: <testLibrary>::@class::a
@@ -168,15 +168,10 @@ ConstructorDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: FieldFormalParameter
-        thisKeyword: this
-        period: .
-        name: _x
-        declaredFragment: <testLibraryFragment> x@31
-          element: hasImplicitType isFinal isPublic
-            type: int?
-            field: <testLibrary>::@class::C::@field::_x
+    parameter: FieldFormalParameter
+      thisKeyword: this
+      period: .
+      name: _x
       declaredFragment: <testLibraryFragment> x@31
         element: hasImplicitType isFinal isPublic
           type: int?
@@ -213,17 +208,13 @@ ConstructorDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-          question: ?
-          element: dart:core::@class::int
-          type: int?
-        name: _x
-        declaredFragment: <testLibraryFragment> _x@20
-          element: isPrivate
-            type: int?
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+        question: ?
+        element: dart:core::@class::int
+        type: int?
+      name: _x
       declaredFragment: <testLibraryFragment> _x@20
         element: isPrivate
           type: int?

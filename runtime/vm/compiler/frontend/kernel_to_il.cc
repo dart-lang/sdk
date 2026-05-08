@@ -2414,11 +2414,14 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
   }
   const intptr_t num_type_params = type_parameters.Length();
   if (num_type_params == 0) return;
+  // Check type parameter bounds against forwarding stub target, if any.
+  TypeParameters& target_type_parameters =
+      TypeParameters::Handle(Z, type_parameters.ptr());
   if (forwarding_target != nullptr) {
-    type_parameters = forwarding_target->type_parameters();
-    ASSERT(type_parameters.Length() == num_type_params);
+    target_type_parameters = forwarding_target->type_parameters();
+    ASSERT(target_type_parameters.Length() == num_type_params);
   }
-  if (type_parameters.AllDynamicBounds()) {
+  if (target_type_parameters.AllDynamicBounds()) {
     return;  // All bounds are dynamic.
   }
   TypeParameter& type_param = TypeParameter::Handle(Z);
@@ -2426,7 +2429,7 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
   AbstractType& bound = AbstractType::Handle(Z);
   Fragment check_bounds;
   for (intptr_t i = 0; i < num_type_params; ++i) {
-    bound = type_parameters.BoundAt(i);
+    bound = target_type_parameters.BoundAt(i);
     if (bound.IsTopTypeForSubtyping()) {
       continue;
     }
@@ -2436,6 +2439,7 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
         break;
       case TypeChecksToBuild::kCheckCovariantTypeParameterBounds:
         if (!type_parameters.IsGenericCovariantImplAt(i)) {
+          ASSERT(!target_type_parameters.IsGenericCovariantImplAt(i));
           continue;
         }
         break;

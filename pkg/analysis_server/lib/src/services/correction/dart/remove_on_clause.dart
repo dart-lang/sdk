@@ -29,11 +29,13 @@ class RemoveOnClause extends ResolvedCorrectionProducer {
     if (extensionDeclaration == null) return;
 
     await builder.addDartFileEdit(file, (builder) {
+      var body = extensionDeclaration.body;
+      var endToken = switch (body) {
+        BlockClassBody() => body.leftBracket,
+        EmptyClassBody() => body.semicolon,
+      };
       builder.addDeletion(
-        range.startStart(
-          extensionDeclaration.onClause!,
-          extensionDeclaration.body.leftBracket,
-        ),
+        range.startStart(extensionDeclaration.onClause!, endToken),
       );
     });
   }

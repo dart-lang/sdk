@@ -28,8 +28,6 @@ VM_UNIT_TEST_CASE(SNPrint) {
 
 VM_UNIT_TEST_CASE(OsFuncs) {
   EXPECT(Utils::IsPowerOfTwo(OS::ActivationFrameAlignment()));
-  int procs = OS::NumberOfAvailableProcessors();
-  EXPECT_LE(1, procs);
 }
 
 }  // namespace dart

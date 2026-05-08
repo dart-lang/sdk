@@ -10,19 +10,19 @@
 experimentNotEnabled:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "This requires the '#string' language feature to be enabled."
-  correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
+    String featureName: The name of of the language feature.
+    String enabledVersion: The language version in which the language feature was enabled.
+  problemMessage: "This requires the '#featureName' language feature to be enabled."
+  correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #enabledVersion or higher, and running 'pub get'."
   analyzerCode: experimentNotEnabled
   hasPublishedDocs: false
 
 experimentNotEnabledOffByDefault:
   type: syntacticError
   parameters:
-    String string: undocumented
-  problemMessage: "This requires the experimental '#string' language feature to be enabled."
-  correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
+    String featureName: The name of the language feature.
+  problemMessage: "This requires the experimental '#featureName' language feature to be enabled."
+  correctionMessage: "Try passing the '--enable-experiment=#featureName' command line option."
   analyzerCode: experimentNotEnabledOffByDefault
   hasPublishedDocs: false
   script: |
@@ -256,8 +256,8 @@ expectedStatement:
 expectedInstead:
   type: syntacticError
   parameters:
-    String string: undocumented
-  problemMessage: "Expected '#string' instead of this."
+    String expected: What was expected.
+  problemMessage: "Expected '#expected' instead of this."
   # This is an alternative to ExpectedButGot when the last consumed token
   # should be replaced with a different token.
   #
@@ -352,10 +352,10 @@ implementsBeforeWith:
 multipleClauses:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Each '#string' definition can have at most one '#string2' clause."
-  correctionMessage: "Try combining all of the '#string2' clauses into a single clause."
+    String definitionKind: The kind of definition that has multiple clauses.
+    String clauseKind: The kind of clause of which there are multiple.
+  problemMessage: "Each '#definitionKind' definition can have at most one '#clauseKind' clause."
+  correctionMessage: "Try combining all of the '#clauseKind' clauses into a single clause."
   analyzerCode: multipleClauses
   hasPublishedDocs: false
   script:
@@ -365,10 +365,10 @@ multipleClauses:
 outOfOrderClauses:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' clause must come before the '#string2' clause."
-  correctionMessage: "Try moving the '#string' clause before the '#string2' clause."
+    String expectedEarlierClause: The kind of clause that must come earlier.
+    String expectedLaterClause: The kind of clause that must come later.
+  problemMessage: "The '#expectedEarlierClause' clause must come before the '#expectedLaterClause' clause."
+  correctionMessage: "Try moving the '#expectedEarlierClause' clause before the '#expectedLaterClause' clause."
   analyzerCode: outOfOrderClauses
   hasPublishedDocs: false
   script: "class B {} class D {} enum A implements B with D { v; }"
@@ -381,6 +381,25 @@ multipleOnClauses:
   analyzerCode: multipleOnClauses
   hasPublishedDocs: false
   script: "mixin A on B on C, D {}"
+  exampleAllowOtherCodes: true
+
+typedefAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Type aliases can't be augmented."
+  analyzerCode: typedefAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment typedef T = void Function();"
+
+mixinApplicationClassAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin application class can't be augmented."
+  analyzerCode: mixinApplicationClassAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment class A = B with M;"
   exampleAllowOtherCodes: true
 
 mixinWithClause:
@@ -501,7 +520,7 @@ expectedSwitchStatementBody:
 expectedIdentifierButGotKeyword:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "'#lexeme' can't be used as an identifier because it's a keyword."
   correctionMessage: "Try renaming this to be an identifier that isn't a keyword."
   analyzerCode: expectedIdentifierButGotKeyword
@@ -529,6 +548,17 @@ varAsTypeName:
   script:
     - "class A { Map<String, var> m; }"
   exampleAllowOtherCodes: true
+
+anonymousMethodWrongParameterList:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An anonymous method with a parameter list must have exactly one required, positional parameter."
+  correctionMessage: "Try removing the parameter list, or changing it to have exactly one required positional parameter."
+  analyzerCode: anonymousMethodWrongParameterList
+  hasPublishedDocs: false
+  experiments: anonymous-methods
+  statement:
+    - "1.(a, b){};"
 
 missingExpressionInThrow:
   type: syntacticError
@@ -750,9 +780,9 @@ constAndFinal:
 conflictingModifiers:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Members can't be declared to be both '#string' and '#string2'."
+    String modifier: The problematic modifier.
+    String earlierModifier: The earlier modifier that conflicts.
+  problemMessage: "Members can't be declared to be both '#modifier' and '#earlierModifier'."
   correctionMessage: "Try removing one of the keywords."
   analyzerCode: conflictingModifiers
   hasPublishedDocs: false
@@ -777,9 +807,9 @@ constFactory:
 modifierOutOfOrder:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The modifier '#string' should be before the modifier '#string2'."
+    String modifier: The problematic modifier.
+    String expectedLaterModifier: The modifier that should come later.
+  problemMessage: "The modifier '#modifier' should be before the modifier '#expectedLaterModifier'."
   correctionMessage: "Try re-ordering the modifiers."
   analyzerCode: modifierOutOfOrder
   hasPublishedDocs: false
@@ -830,7 +860,7 @@ covariantAndStatic:
 duplicatedModifier:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: THe token that was found.
   problemMessage: "The modifier '#lexeme' was already specified."
   correctionMessage: "Try removing all but one occurrence of the modifier."
   analyzerCode: duplicatedModifier
@@ -884,7 +914,7 @@ externalLateField:
 extraneousModifier:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' here."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: extraneousModifier
@@ -906,7 +936,7 @@ extraneousModifier:
 extraneousModifierInExtension:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' in an extension."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: invalidUseOfCovariantInExtension
@@ -946,7 +976,7 @@ extraneousModifierInExtension:
 extraneousModifierInExtensionType:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' in an extension type."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: extraneousModifierInExtensionType
@@ -957,13 +987,39 @@ extraneousModifierInExtensionType:
 extraneousModifierInPrimaryConstructor:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: extraneousModifierInPrimaryConstructor
   hasPublishedDocs: false
+  script: |
+    // @dart=3.10
+    extension type ET(covariant String i) { }
+
+primaryConstructorBodyWithModifier:
+  type: syntacticError
+  parameters:
+    String modifier: The modifier found.
+  problemMessage: "A primary constructor body can't have the modifier '#modifier'."
+  correctionMessage: "Try removing the modifier."
+  analyzerCode: primaryConstructorBodyWithModifier
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  exampleAllowOtherCodes: true
   script:
-    - "extension type ET(covariant String i) { }"
+    - "class A() { this async {} }"
+
+invalidCovariantModifierInPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The 'covariant' modifier can only be used on non-final declaring parameters."
+  correctionMessage: "Try removing 'covariant'."
+  analyzerCode: invalidCovariantModifierInPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script:
+    - "class C(covariant String i);"
+    - "class C(covariant final String i);"
 
 finalAndCovariant:
   type: syntacticError
@@ -1074,8 +1130,8 @@ continueWithoutLabelInCase:
 duplicateLabelInSwitchStatement:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The label '#name' was already used in this switch statement."
+    Name labelName: The name of the label that was already used.
+  problemMessage: "The label '#labelName' was already used in this switch statement."
   correctionMessage: "Try choosing a different name for this label."
   analyzerCode: duplicateLabelInSwitchStatement
   hasPublishedDocs: false
@@ -1217,9 +1273,9 @@ unexpectedTokens:
 literalWithClassAndNew:
   type: syntacticError
   parameters:
-    String string: undocumented
-    Token lexeme: undocumented
-  problemMessage: "A #string literal can't be prefixed by 'new #lexeme'."
+    String kind: The literal kind
+    Token lexeme: The lexeme between `new` and the literal.
+  problemMessage: "A #kind literal can't be prefixed by 'new #lexeme'."
   correctionMessage: "Try removing 'new' and '#lexeme'"
   analyzerCode: literalWithClassAndNew
   hasPublishedDocs: false
@@ -1234,9 +1290,9 @@ literalWithClassAndNew:
 literalWithClass:
   type: syntacticError
   parameters:
-    String string: undocumented
-    Token lexeme: undocumented
-  problemMessage: "A #string literal can't be prefixed by '#lexeme'."
+    String kind: The literal kind.
+    Token lexeme: The lexeme between `new` and the literal.
+  problemMessage: "A #kind literal can't be prefixed by '#lexeme'."
   correctionMessage: "Try removing '#lexeme'"
   analyzerCode: literalWithClass
   hasPublishedDocs: false
@@ -1843,8 +1899,8 @@ topLevelOperator:
 typeArgumentsOnTypeVariable:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't use type arguments with type variable '#name'."
+    Name typeVariableName: The name of the type variable.
+  problemMessage: "Can't use type arguments with type variable '#typeVariableName'."
   correctionMessage: "Try removing the type arguments."
   analyzerCode: typeArgumentsOnTypeVariable
   hasPublishedDocs: false
@@ -1894,7 +1950,7 @@ missingOperatorKeyword:
 invalidOperator:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "The string '#lexeme' isn't a user-definable operator."
   analyzerCode: invalidOperator
   hasPublishedDocs: false
@@ -2003,10 +2059,10 @@ colonInPlaceOfIn:
 binaryOperatorWrittenOut:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Binary operator '#string' is written as '#string2' instead of the written out word."
-  correctionMessage: "Try replacing '#string' with '#string2'."
+    String actualOperator: The binary operator that was seen.
+    String expectedOperator: The binary operator that was expected.
+  problemMessage: "Binary operator '#actualOperator' is written as '#expectedOperator' instead of the written out word."
+  correctionMessage: "Try replacing '#actualOperator' with '#expectedOperator'."
   analyzerCode: binaryOperatorWrittenOut
   hasPublishedDocs: false
   script: |
@@ -2153,8 +2209,8 @@ invalidConstantPatternNegation:
 invalidConstantPatternUnary:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The unary operator #name is not supported as a constant pattern."
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The unary operator #operatorName is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: invalidConstantPatternUnary
   hasPublishedDocs: false
@@ -2214,8 +2270,8 @@ invalidConstantPatternConstPrefix:
 invalidConstantPatternBinary:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The binary operator #name is not supported as a constant pattern."
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The binary operator #operatorName is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: invalidConstantPatternBinary
   hasPublishedDocs: false
@@ -2227,8 +2283,8 @@ invalidConstantPatternBinary:
 patternAssignmentDeclaresVariable:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "Variable '#name' can't be declared in a pattern assignment."
+    Name variableName: The name of the variable that was erroneously declared.
+  problemMessage: "Variable '#variableName' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
   analyzerCode: patternAssignmentDeclaresVariable
   hasPublishedDocs: false
@@ -2283,8 +2339,8 @@ variablePatternKeywordInDeclarationContext:
 illegalPatternVariableName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
+    Token variableName: The name that can't be used as a pattern variable name.
+  problemMessage: The variable declared by a variable pattern can't be named '#variableName'.
   correctionMessage: Choose a different name.
   analyzerCode: illegalPatternVariableName
   hasPublishedDocs: false
@@ -2301,8 +2357,8 @@ illegalPatternVariableName:
 illegalPatternAssignmentVariableName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
+    Token variableName: The name that can't be used as the name of a variable assigned by a pattern assignment.
+  problemMessage: A variable assigned by a pattern assignment can't be named '#variableName'.
   correctionMessage: Choose a different name.
   analyzerCode: illegalPatternAssignmentVariableName
   hasPublishedDocs: false
@@ -2318,9 +2374,9 @@ illegalPatternAssignmentVariableName:
 illegalPatternIdentifierName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: A pattern can't refer to an identifier named '#lexeme'.
-  correctionMessage: Match the identifier using '== #lexeme'.
+    Token identifier: The identifier that can't be referred to.
+  problemMessage: A pattern can't refer to an identifier named '#identifier'.
+  correctionMessage: Match the identifier using '== #identifier'.
   analyzerCode: illegalPatternIdentifierName
   hasPublishedDocs: false
   comment: |-
@@ -2476,4 +2532,261 @@ factoryConstructorNewName:
   script: |
     class C {
       factory new() => throw '';
+    }
+
+newConstructorDotName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't use '.' before the constructor name."
+  correctionMessage: "Try replacing the '.' with a space."
+  analyzerCode: newConstructorDotName
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      new.name();
+    }
+
+nonRedirectingGenerativeConstructorWithPrimary:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Classes with primary constructors can't have non-redirecting generative constructors."
+  correctionMessage: "Try making the constructor redirect to the primary constructor, or remove the primary constructor."
+  analyzerCode: nonRedirectingGenerativeConstructorWithPrimary
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class that declares a primary
+    constructor also has a non-redirecting generative constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` declares
+    both a primary constructor and a non-redirecting generative constructor:
+
+    ```dart
+    class C(final String f) {
+      [!C.c!](Object p) : f = p.toString();
+    }
+    ```
+
+    #### Common fixes
+
+    If the generative constructor can redirect to the primary constructor, then
+    add the redirection:
+
+    ```dart
+    class C(final String f) {
+      C.c(Object p) : this(p.toString());
+    }
+    ```
+
+    If the generative constructor can be a factory constructor that uses the
+    primary constructor to create the instance, then make it a factory
+    constructor:
+
+    ```dart
+    class C(final String f) {
+      factory C.c(Object p) => C(p.toString());
+    }
+    ```
+
+    Otherwise, remove the generative constructor or convert the primary
+    constructor into a generative secondary constructor.
+  script: |
+    class C() {
+      C.named();
+    }
+
+primaryConstructorBodyWithoutDeclaration:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "A primary constructor body requires a primary constructor declaration."
+  correctionMessage: "Try adding the primary constructor declaration."
+  analyzerCode: primaryConstructorBodyWithoutDeclaration
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class contains a primary
+    constructor body but doesn't declare a primary constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` contains
+    a primary constructor body but doesn't declare a primary constructor:
+
+    ```dart
+    class C {
+      [!this!] : assert(x > 0);
+    }
+    ```
+
+    #### Common fixes
+
+    If the constructor is intended to be a primary constructor, then add
+    parameter declarations to the class header:
+
+    ```dart
+    class C(int x) {
+      this : assert(x > 0);
+    }
+    ```
+
+    If the constructor is intended to be a secondary constructor, then replace
+    the `this` with either the class name or `new` and declare the parameters in
+    the constructor declaration:
+
+    ```dart
+    class C {
+      C(int x) : assert(x > 0);
+    }
+    ```
+
+    If the constructor isn't needed, then remove the body:
+
+    ```dart
+    class C {}
+    ```
+  script: |
+    class C {
+      this;
+    }
+
+multiplePrimaryConstructorBodyDeclarations:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Only one primary constructor body declaration is allowed."
+  correctionMessage: "Try removing all but one of the primary constructor body declarations."
+  analyzerCode: multiplePrimaryConstructorBodyDeclarations
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class that declares a primary
+    constructor also has more than one primary constructor body.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` has more
+    than one primary constructor body:
+
+    ```dart
+    class C(final int x) {
+      this : assert(x >= 0);
+
+      [!this!] : assert(x <= 0);
+    }
+    ```
+
+    #### Common fixes
+
+    Remove all but one of the primary constructor bodies, possibly by merging
+    them:
+
+    ```dart
+    class C(final int x) {
+      this : assert(x >= 0), assert(x <= 0);
+    }
+    ```
+  script: |
+    class C() {
+      this;
+      this : assert(true);
+    }
+
+assignmentToPrimaryConstructorParameter:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "A primary constructor parameter can't be assigned to in an initializer."
+  correctionMessage: "Try removing the assignment."
+  hasPublishedDocs: false
+  analyzerCode: assignmentToPrimaryConstructorParameter
+  experiments: primary-constructors
+  script: |
+    class C(int x) {
+      int y = x++;
+    }
+
+fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Fields can't be initialized in both the primary constructor and at their declaration."
+  correctionMessage: Try removing one of the initializations.
+  hasPublishedDocs: false
+  analyzerCode: fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor
+  experiments: primary-constructors
+  script: |
+    class C() {
+      int x = 0;
+      this : x = 1;
+    }
+
+fieldInitializedInDeclarationAndParameterOfPrimaryConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Fields can't be initialized in both the primary constructor parameter list and at their declaration."
+  correctionMessage: Try removing one of the initializations.
+  hasPublishedDocs: false
+  analyzerCode: fieldInitializedInDeclarationAndParameterOfPrimaryConstructor
+  experiments: primary-constructors
+  script: |
+    class C(this.x) {
+      int x = 0;
+    }
+
+redirectGenerativeToNonGenerativeConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Generative constructors can't redirect to a factory constructor."
+  correctionMessage: Try redirecting to a different constructor.
+  hasPublishedDocs: true
+  analyzerCode: redirectGenerativeToNonGenerativeConstructor
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a generative constructor
+    redirects to a factory constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the generative
+    constructor `C.a` redirects to the factory constructor `C.b`:
+
+    ```dart
+    class C {
+      C.a() : [!this.b()!];
+      factory C.b() => C.a();
+    }
+    ```
+
+    #### Common fixes
+
+    If the generative constructor doesn't need to redirect to another
+    constructor, then remove the redirect.
+
+    ```dart
+    class C {
+      C.a();
+      factory C.b() => C.a();
+    }
+    ```
+
+    If the generative constructor must redirect to another constructor, then
+    make the other constructor be a generative (non-factory) constructor:
+
+    ```dart
+    class C {
+      C.a() : this.b();
+      C.b();
+    }
+    ```
+  script: |
+    class C {
+      factory C() => throw '';
+      C.named() : this();
     }

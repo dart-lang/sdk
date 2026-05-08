@@ -9,8 +9,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/analyzer_messages.dart';
-import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/lint_messages.dart';
 import 'package:analyzer_utilities/located_error.dart';
 import 'package:collection/collection.dart';
@@ -401,10 +401,10 @@ enum DiagnosticParameterType {
 
   const DiagnosticParameterType({
     required this.messagesYamlName,
-    String? analyzerName,
+    this._analyzerName,
     this.cfeName,
     this.cfeConversion,
-  }) : _analyzerName = analyzerName;
+  });
 
   /// Decodes a type name from `messages.yaml` into a [DiagnosticParameterType].
   factory DiagnosticParameterType.fromMessagesYamlName(String name) =>
@@ -441,6 +441,9 @@ class DiagnosticTables {
   final Map<String, MessageWithAnalyzerCode> diagnosticsByAnalyzerUniqueName =
       {};
 
+  /// Map from [DiagnosticCodeName.pascalCaseName] to front end diagnostic.
+  final Map<String, CfeStyleMessage> frontEndDiagnosticsByPascalCaseName = {};
+
   DiagnosticTables._(List<Message> messages) {
     var frontEndCodeDuplicateChecker = _DuplicateChecker<DiagnosticCodeName>(
       kind: 'Front end code',
@@ -458,6 +461,8 @@ class DiagnosticTables {
         var frontEndCode = message.frontEndCode;
         frontEndCodeDuplicateChecker[frontEndCode] = message;
         sortedFrontEndDiagnostics.add(message);
+        frontEndDiagnosticsByPascalCaseName[frontEndCode.pascalCaseName] =
+            message;
       }
       if (message is SharedMessage) {
         sortedSharedDiagnostics.add(message);

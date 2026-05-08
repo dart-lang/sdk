@@ -1,0 +1,167 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/ffi.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/ffi.dart'
+    uses dart:ffi
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/ffi.dart'
+
+
+Function 'testVoidNoArg', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                5
+  CheckStack           0
+  PushConstant         CP#0
+  PushConstant         CP#1
+  DirectCall           CP#2, 2
+  PopLocal             r2
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 r2
+  StoreContextVar      0, 0
+  PushConstant         CP#4
+  Push                 r0
+  PushNull
+  AllocateClosure
+  PopLocal             r4
+  Push                 r4
+  Push                 r0
+  LoadContextParent
+  PopLocal             r0
+  PopLocal             r3
+  Push                 r3
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#9, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:ffi::NativeFunction < FunctionType () -> dart:ffi::Void > >
+  [1] = ObjectRef const 3735928559
+  [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ClosureFunction 0
+  [5] = InstanceField dart:core::_Closure::_context (field)
+  [6] = Reserved
+  [7] = FfiCall
+  [8] = EndClosureFunctionScope
+  [9] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testVoidNoArg::'#ffiClosure0' annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:ffi:call-closure', dart:core::pragma::options (field): const dart:ffi::_FfiCall < FunctionType () -> dart:ffi::Void > {dart:ffi::_FfiCall::isLeaf (field): const false}}]
+ () -> void
+ClosureCode {
+  Entry                2
+  Push                 FP[-5]
+  LoadFieldTOS         CP#5
+  PopLocal             r0
+  CheckStack           0
+  Push                 r0
+  LoadContextVar       0, 0
+  FfiCall              CP#7
+  ReturnTOS
+}
+
+
+Function 'testIntInt', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                5
+  CheckStack           0
+  PushConstant         CP#0
+  PushConstant         CP#1
+  DirectCall           CP#2, 2
+  PopLocal             r2
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 r2
+  StoreContextVar      0, 0
+  PushConstant         CP#4
+  Push                 r0
+  PushNull
+  AllocateClosure
+  PopLocal             r4
+  Push                 r4
+  Push                 r0
+  LoadContextParent
+  PopLocal             r0
+  PopLocal             r3
+  Push                 r3
+  StoreLocal           r4
+  PushInt              42
+  Push                 r4
+  UncheckedClosureCall CP#12, 2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:ffi::NativeFunction < FunctionType (dart:ffi::Int64) -> dart:ffi::Int32 > >
+  [1] = ObjectRef const 3735928559
+  [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ClosureFunction 0
+  [5] = InstanceField dart:core::_Closure::_context (field)
+  [6] = Reserved
+  [7] = Type dart:core::int
+  [8] = ObjectRef 'arg1'
+  [9] = SubtypeTestCache
+  [10] = FfiCall
+  [11] = EndClosureFunctionScope
+  [12] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testIntInt::'#ffiClosure1' annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:ffi:call-closure', dart:core::pragma::options (field): const dart:ffi::_FfiCall < FunctionType (dart:ffi::Int64) -> dart:ffi::Int32 > {dart:ffi::_FfiCall::isLeaf (field): const false}}]
+ (dart:core::int arg1) -> dart:core::int
+ClosureCode {
+  Entry                2
+  Push                 FP[-6]
+  LoadFieldTOS         CP#5
+  PopLocal             r0
+  CheckStack           0
+  JumpIfUnchecked      L1
+  Push                 FP[-5]
+  PushConstant         CP#7
+  PushNull
+  PushNull
+  PushConstant         CP#8
+  AssertAssignable     1, CP#9
+  Drop1
+L1:
+  PushNull
+  Drop1
+  Push                 FP[-5]
+  Push                 r0
+  LoadContextVar       0, 0
+  FfiCall              CP#10
+  ReturnTOS
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  DirectCall           CP#0, 0
+  Drop1
+  DirectCall           CP#2, 0
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testVoidNoArg', ArgDesc num-args 0, num-type-args 0, names []
+  [1] = Reserved
+  [2] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testIntInt', ArgDesc num-args 0, num-type-args 0, names []
+  [3] = Reserved
+}
+

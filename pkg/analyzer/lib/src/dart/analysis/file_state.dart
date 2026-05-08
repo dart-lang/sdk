@@ -30,7 +30,6 @@ import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -161,31 +160,6 @@ abstract class FileContent {
   String get contentHash;
 
   bool get exists;
-}
-
-/// [FileContentOverlay] is used to temporary override content of files.
-class FileContentOverlay {
-  final _map = <String, String>{};
-
-  /// Return the paths currently being overridden.
-  Iterable<String> get paths => _map.keys;
-
-  /// Return the content of the file with the given [path], or `null` the
-  /// overlay does not override the content of the file.
-  ///
-  /// The [path] must be absolute and normalized.
-  String? operator [](String path) => _map[path];
-
-  /// Return the new [content] of the file with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
-  void operator []=(String path, String? content) {
-    if (content == null) {
-      _map.remove(path);
-    } else {
-      _map[path] = content;
-    }
-  }
 }
 
 abstract class FileContentStrategy {
@@ -337,6 +311,41 @@ abstract class FileKind {
   }
 
   List<UnlinkedLibraryImportDirective> get _unlinkedDocImports;
+
+  void addDirectivesSignature(ApiSignature signature) {
+    void appendDirectiveUri(DirectiveUri selectedUri) {
+      switch (selectedUri) {
+        case DirectiveUriWithFile(:var file):
+          signature.addInt(0);
+          signature.addBool(file.exists);
+          signature.addBool(file.kind is PartFileKind);
+          signature.addString(file.uriStr);
+        case DirectiveUriWithInSummarySource(:var source):
+          signature.addInt(1);
+          signature.addString(source.uri.toString());
+        case DirectiveUriWithUri(:var relativeUri):
+          signature.addInt(2);
+          signature.addString(relativeUri.toString());
+        case DirectiveUriWithString(:var relativeUriStr):
+          signature.addInt(3);
+          signature.addString(relativeUriStr);
+        case DirectiveUriWithoutString():
+          signature.addInt(4);
+      }
+    }
+
+    signature.addList(libraryExports, (directive) {
+      appendDirectiveUri(directive.selectedUri);
+    });
+
+    signature.addList(libraryImports, (directive) {
+      appendDirectiveUri(directive.selectedUri);
+    });
+
+    signature.addList(docLibraryImports, (directive) {
+      appendDirectiveUri(directive.selectedUri);
+    });
+  }
 
   /// Collect files that are transitively referenced by this file.
   @mustCallSuper
@@ -545,11 +554,6 @@ class FileState {
     return _driverUnlinkedUnit!.definedClassMemberNames;
   }
 
-  /// The top-level names defined by the file.
-  Set<String> get definedTopLevelNames {
-    return _driverUnlinkedUnit!.definedTopLevelNames;
-  }
-
   /// Return `true` if the file exists.
   bool get exists => _fileContent!.exists;
 
@@ -578,9 +582,6 @@ class FileState {
 
   String get unlinkedKey => _unlinkedKey!;
 
-  /// The MD5 signature based on the content, feature sets, language version.
-  Uint8List get unlinkedSignature => _unlinkedSignature!;
-
   /// Return the [uri] string.
   String get uriStr => uri.toString();
 
@@ -593,12 +594,14 @@ class FileState {
   CompilationUnitImpl parse({
     DiagnosticListener diagnosticListener = DiagnosticListener.nullListener,
     required OperationPerformanceImpl performance,
+    bool scanComments = true,
   }) {
     try {
       return parseCode(
         code: content,
         diagnosticListener: diagnosticListener,
         performance: performance,
+        scanComments: scanComments,
       );
     } catch (exception, stackTrace) {
       throw CaughtExceptionWithFiles(exception, stackTrace, {path: content});
@@ -610,16 +613,18 @@ class FileState {
     required String code,
     required DiagnosticListener diagnosticListener,
     required OperationPerformanceImpl performance,
+    required bool scanComments,
   }) {
     return performance.run('parseCode', (performance) {
       performance.getDataInt('length').add(code.length);
 
-      CharSequenceReader reader = CharSequenceReader(code);
-      Scanner scanner = Scanner(source, reader, diagnosticListener)
+      var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
+      Scanner scanner = Scanner(code, diagnosticReporter)
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),
         );
+      scanner.preserveComments = scanComments;
       Token token = scanner.tokenize(reportScannerErrors: false);
       LineInfo lineInfo = LineInfo(scanner.lineStarts);
       var languageVersion = LibraryLanguageVersion(
@@ -628,8 +633,7 @@ class FileState {
       );
 
       Parser parser = Parser(
-        source,
-        diagnosticListener,
+        diagnosticReporter,
         featureSet: scanner.featureSet,
         lineInfo: lineInfo,
         languageVersion: languageVersion,
@@ -977,7 +981,7 @@ class FileState {
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           docImports: buildDocImports(directive),
-          name: directive.name?.name,
+          name: directive.name?.tokens.map((e) => e.lexeme).join(),
         );
       } else if (directive is PartDirective) {
         var unlinked = _serializePart(directive);
@@ -988,7 +992,7 @@ class FileState {
         if (libraryName != null) {
           partOfNameDirective ??= UnlinkedPartOfNameDirective(
             docImports: buildDocImports(directive),
-            name: libraryName.name,
+            name: libraryName.tokens.map((e) => e.lexeme).join(),
             nameRange: UnlinkedSourceRange(
               offset: libraryName.offset,
               length: libraryName.length,
@@ -1109,7 +1113,7 @@ class FileState {
     List<Configuration> configurations,
   ) {
     return configurations.map((configuration) {
-      var name = configuration.name.components.join('.');
+      var name = configuration.name.tokens.map((e) => e.lexeme).join();
       var value = configuration.value?.stringValue ?? '';
       return UnlinkedNamespaceDirectiveConfiguration(
         name: name,
@@ -1187,6 +1191,7 @@ class FileStateTestView {
 
   FileStateTestView(this.file);
 
+  @visibleForTesting
   String get unlinkedKey => file._unlinkedKey!;
 }
 
@@ -1290,13 +1295,9 @@ class FileSystemState {
   /// Update the state to reflect the fact that the file with the given [path]
   /// was changed. Specifically this means that we evict this file and every
   /// file that referenced it.
-  void changeFile(String path, Set<FileState> removedFiles) {
+  void changeFile(String path) {
     var file = _pathToFile.remove(path);
     if (file == null) {
-      return;
-    }
-
-    if (!removedFiles.add(file)) {
       return;
     }
 
@@ -1311,7 +1312,7 @@ class FileSystemState {
 
     // Recursively remove files that reference the removed file.
     for (var reference in file.referencingFiles.toList()) {
-      changeFile(reference.path, removedFiles);
+      changeFile(reference.path);
     }
   }
 
@@ -1488,24 +1489,30 @@ class FileSystemState {
     _clearFiles();
   }
 
-  /// Computes the set of [FileState]'s used/not used to analyze the given
-  /// [paths]. Removes the [FileState]'s of the files not used for analysis from
-  /// the cache. Returns the set of unused [FileState]'s.
-  Set<FileState> removeUnusedFiles(List<String> paths) {
+  /// Removes [FileState]s not used to analyze the given [paths].
+  ///
+  /// Calls [beforeRemoving] with the set of files that will be removed before
+  /// disposal begins, so higher layers can clear state that depends on their
+  /// current library cycles.
+  Set<FileState> removeFilesNotNecessaryForAnalysisOf(
+    List<String> paths, {
+    required void Function(Set<FileState> files) beforeRemoving,
+  }) {
     var referenced = <FileState>{};
     for (var path in paths) {
       var library = _pathToFile[path]?.kind.library;
       library?.collectTransitive(referenced);
     }
 
-    var removed = <FileState>{};
-    for (var file in _pathToFile.values.toList()) {
-      if (!referenced.contains(file)) {
-        changeFile(file.path, removed);
-      }
+    var unused = _pathToFile.values.whereNot(referenced.contains).toSet();
+
+    beforeRemoving(unused);
+
+    for (var file in unused) {
+      changeFile(file.path);
     }
 
-    return removed;
+    return unused;
   }
 
   /// Clear all [FileState] data - all maps from path or URI, etc.
@@ -1522,7 +1529,7 @@ class FileSystemState {
   }
 
   AnalysisOptionsImpl _getAnalysisOptions(File file) =>
-      _analysisOptionsMap.getOptions(file);
+      _analysisOptionsMap[file];
 
   FeatureSet _getFeatureSet(
     String path,
@@ -1870,7 +1877,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   /// The files extracted from [fileKinds].
   List<FileState> get files {
-    return fileKinds.map((kind) => kind.file).toList();
+    return fileKinds.map((kind) => kind.file).toSet().toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;

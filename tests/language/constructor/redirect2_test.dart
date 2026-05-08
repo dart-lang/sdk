@@ -17,7 +17,6 @@ class A {
   A.illegalInit() : this(3), x = 5;
   //                         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
-  //                           ^
   // [cfe] A redirecting constructor can't have other initializers.
 
   // Redirecting constructor must not have initializing formal parameters.

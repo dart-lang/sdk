@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -220,6 +219,32 @@ f() {
     case A(a: >0 && final int b): print(b);
   }
 }
+''');
+  }
+
+  Future<void> test_primaryConstructor_final() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.always_specify_types],
+    );
+    await resolveTestCode(r'''
+class A([final b = 1]);
+''');
+    await assertHasFix(r'''
+class A([final int b = 1]);
+''');
+  }
+
+  Future<void> test_primaryConstructor_var() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.always_specify_types],
+    );
+    await resolveTestCode(r'''
+class A([var b = 1]);
+''');
+    await assertHasFix(r'''
+class A([var int b = 1]);
 ''');
   }
 

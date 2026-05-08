@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  f([var x]) {}
-  foo(var a, [x, y]) {}
+  f([x]) {}
+  foo(a, [x, y]) {}
 }
 
 class C extends A {
@@ -12,7 +12,7 @@ class C extends A {
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   // [cfe] The method 'C.f' has fewer positional arguments than those of overridden method 'A.f'.
-  foo(var a, [x]) {}
+  foo(a, [x]) {}
   // [error column 3, length 3]
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   // [cfe] The method 'C.foo' has fewer positional arguments than those of overridden method 'A.foo'.

@@ -108,6 +108,33 @@ main() {
       expect(testsNames, isNot(contains('group 1 failing test')));
     });
 
+    test('does not get skip-reason spam when using solo:true', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(soloTestProgram);
+
+      // Collect output and test events while running the script.
+      final outputEvents = await client.collectTestOutput(
+        launch: () => client.launch(
+          testFile.path,
+          noDebug: true,
+        ),
+      );
+
+      final printedOutput = outputEvents.output.map((e) => e.output).join();
+      final printEventMessages = outputEvents.testNotifications
+          .where((e) => e['type'] == 'print')
+          .map((e) => e['message'] as String)
+          .join('\n');
+
+      const soloSkipMessage = 'Skip: does not have "solo"';
+
+      // Printed output should NOT contain the skip reasons.
+      expect(printedOutput, isNot(contains(soloSkipMessage)));
+
+      // The print events SHOULD still contain the skip reasons.
+      expect(printEventMessages, contains(soloSkipMessage));
+    });
+
     test('includes absolute paths in OutputEvent metadata', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleFailingTestProgram);

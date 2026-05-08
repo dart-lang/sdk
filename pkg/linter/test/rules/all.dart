@@ -233,6 +233,7 @@ import 'remove_deprecations_in_breaking_test.dart'
     as remove_deprecations_in_breaking;
 import 'require_trailing_commas_test.dart' as require_trailing_commas;
 import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
+import 'simple_directive_paths_test.dart' as simple_directive_paths;
 import 'simplify_variable_pattern_test.dart' as simplify_variable_pattern;
 import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
 import 'sized_box_shrink_expand_test.dart' as sized_box_shrink_expand;
@@ -331,6 +332,7 @@ import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
 import 'use_to_and_as_if_applicable_test.dart' as use_to_and_as_if_applicable;
 import 'use_truncating_division_test.dart' as use_truncating_division;
 import 'valid_regexps_test.dart' as valid_regexps;
+import 'var_with_no_type_annotation_test.dart' as var_with_no_type_annotation;
 import 'void_checks_test.dart' as void_checks;
 
 void main() {
@@ -500,6 +502,7 @@ void main() {
   remove_deprecations_in_breaking.main();
   require_trailing_commas.main();
   secure_pubspec_urls.main();
+  simple_directive_paths.main();
   simplify_variable_pattern.main();
   sized_box_for_whitespace.main();
   sized_box_shrink_expand.main();
@@ -574,5 +577,6 @@ void main() {
   use_to_and_as_if_applicable.main();
   use_truncating_division.main();
   valid_regexps.main();
+  var_with_no_type_annotation.main();
   void_checks.main();
 }

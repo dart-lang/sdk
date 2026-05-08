@@ -50,7 +50,7 @@ VariableDeclaration
         FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: z
               declaredFragment: <testLibraryFragment> z@100
                 element: hasImplicitType isPublic
@@ -117,7 +117,7 @@ VariableDeclaration
         FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: z
               declaredFragment: <testLibraryFragment> z@108
                 element: hasImplicitType isPublic

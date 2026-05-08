@@ -470,6 +470,42 @@ void f(E e) { }
     );
   }
 
+  test_deprecatedField_inObjectPattern_explicitName() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  @Deprecated('')
+  final int foo = 0;
+}
+
+int f(Object x) =>
+  switch (x) {
+    A(foo: var bar) => bar,
+    _ => 0,
+  };
+''',
+      [lint(92, 3)],
+    );
+  }
+
+  test_deprecatedField_inObjectPattern_inferredName() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  @Deprecated('')
+  final int foo = 0;
+}
+
+int f(Object x) =>
+  switch (x) {
+    A(:var foo) => foo,
+    _ => 0,
+  };
+''',
+      [lint(97, 3)],
+    );
+  }
+
   test_deprecatedField_usedAsGetter() async {
     await assertDiagnostics(
       r'''
@@ -698,6 +734,19 @@ class B extends A {
 ''');
   }
 
+  test_deprecatedMethod_usedInPrimaryConstructorBody() async {
+    await assertDiagnosticsFromMarkdown(r'''
+@deprecated
+void deprecatedMethod() {}
+
+class B(var int x) {
+  this {
+    [!deprecatedMethod!]();
+  }
+}
+''');
+  }
+
   test_deprecatedMethod_withMessage() async {
     await assertDiagnostics(
       r'''
@@ -833,6 +882,15 @@ class C {
     );
   }
 
+  test_deprecatedParameterOfPrimaryConstructor_usedInDeclaringConstructorBody() async {
+    await assertNoDiagnostics(r'''
+class C({@deprecated int? p}) {
+  this : q = p;
+  int? q;
+}
+''');
+  }
+
   test_deprecatedPositionalParameterOfFunction() async {
     await assertDiagnostics(
       r'''
@@ -842,6 +900,19 @@ void g() => f(1);
 ''',
       [lint(47, 1)],
     );
+  }
+
+  test_deprecatedPrimaryConstructor_bodyPart() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A(var int x) {
+  @deprecated
+  this;
+}
+
+void f() {
+  var a = [!A!](1);
+}
+''');
   }
 
   test_deprecatedSetter() async {
@@ -910,6 +981,20 @@ class C {
 var x = C();
 ''',
       [lint(42, 1)],
+    );
+  }
+
+  test_deprecatedUnnamedConstructor_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  @deprecated
+  new();
+}
+
+var x = C();
+''',
+      [lint(44, 1)],
     );
   }
 }

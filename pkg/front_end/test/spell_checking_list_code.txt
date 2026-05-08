@@ -297,6 +297,7 @@ code's
 codebase
 codec
 codes
+coherently
 collides
 collision
 coloring
@@ -364,6 +365,7 @@ containment
 contextually
 continuations
 contra
+contrary
 contribute
 conveniently
 convention
@@ -451,6 +453,7 @@ deftypes
 degrades
 degree
 del
+delaying
 delegated
 delegating
 delim
@@ -493,6 +496,7 @@ deterministic
 dev
 developed
 device
+diag
 dictates
 dies
 diff
@@ -545,6 +549,7 @@ downloaded
 downloading
 dq
 dquote
+draft
 drawn
 ds
 dsdk
@@ -575,6 +580,7 @@ efficiently
 ei
 eight
 eighth
+elaborated
 elected
 elem
 eliminating
@@ -661,6 +667,7 @@ expr
 expression's
 ext
 extenders
+extern
 extracted
 extracts
 extras
@@ -776,6 +783,7 @@ glyph
 gn
 gobble
 goldens
+googleapis
 googlesource
 goto
 gotos
@@ -1467,6 +1475,7 @@ ranges
 ranked
 rapid
 rarely
+rate
 ratio
 rb
 rc

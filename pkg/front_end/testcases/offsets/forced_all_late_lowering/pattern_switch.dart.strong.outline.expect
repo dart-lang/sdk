@@ -1,5 +1,5 @@
 library;
 import self as self;
 
-[217]static method method([224] dynamic o) → dynamic
+[217]static method [223] [325] method([224] dynamic o) → dynamic
 [-1]  ;

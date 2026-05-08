@@ -25,9 +25,8 @@ class C extends A {
   C() : super(0);
   // Implicit call to non-const constructor A(x).
   const C.named(x);
-  //    ^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
   //    ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
   // [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
 }

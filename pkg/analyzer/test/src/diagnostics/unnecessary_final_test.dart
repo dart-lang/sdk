@@ -17,6 +17,7 @@ main() {
 class UnnecessaryFinalTest extends PubPackageResolutionTest {
   test_final() async {
     await assertNoErrorsInCode('''
+// @dart = 3.10
 class C {
   C(final int value);
 }
@@ -26,18 +27,20 @@ class C {
   test_positional() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.10
 class C {
   C([final this.value = 0]);
   int value;
 }
 ''',
-      [error(diag.unnecessaryFinal, 15, 5)],
+      [error(diag.unnecessaryFinal, 31, 5)],
     );
   }
 
   test_super() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.10
 class A {
   A(this.value);
   int value;
@@ -47,19 +50,20 @@ class B extends A {
   B(final super.value);
 }
 ''',
-      [error(diag.unnecessaryFinal, 67, 5)],
+      [error(diag.unnecessaryFinal, 83, 5)],
     );
   }
 
   test_this() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.10
 class C {
   C(final this.value);
   int value;
 }
 ''',
-      [error(diag.unnecessaryFinal, 14, 5)],
+      [error(diag.unnecessaryFinal, 30, 5)],
     );
   }
 }

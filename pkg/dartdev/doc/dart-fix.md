@@ -38,4 +38,4 @@ Usage: dart fix [arguments]
 Run "dart help" to see global options.
 ```
 
-[analysis_options.yaml]: https://dart.dev/guides/language/analysis-options
+[analysis_options.yaml]: https://dart.dev/tools/analysis

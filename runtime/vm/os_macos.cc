@@ -119,10 +119,6 @@ intptr_t OS::ActivationFrameAlignment() {
 #endif  // DART_HOST_OS_IOS
 }
 
-int OS::NumberOfAvailableProcessors() {
-  return sysconf(_SC_NPROCESSORS_ONLN);
-}
-
 uintptr_t OS::CurrentRSS() {
   struct mach_task_basic_info info;
   mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;

@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -29,18 +30,7 @@ import '../base/messages.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
-        codeConstConstructorLateFinalFieldCause,
-        codeConstConstructorLateFinalFieldError,
-        codeConstConstructorNonFinalField,
-        codeConstConstructorNonFinalFieldCause,
-        codeConstConstructorRedirectionToNonConst,
         noLength,
-        codeFieldNonNullableNotInitializedByConstructorError,
-        codeFieldNonNullableWithoutInitializerError,
-        codeFinalFieldNotInitialized,
-        codeFinalFieldNotInitializedByConstructor,
-        codeMissingImplementationCause,
-        codeSuperclassHasNoDefaultConstructor,
         CompilationPhaseForProblemReporting;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/ticker.dart' show Ticker;
@@ -62,11 +52,13 @@ import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_declaration_builder.dart';
+import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_property_builder.dart';
 import '../type_inference/type_schema.dart';
+import '../util/helpers.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
 import 'constant_evaluator.dart'
@@ -561,17 +553,6 @@ class KernelTarget {
 
         benchmarker
         // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-        loader.checkSupertypes(
-          sortedSourceClassBuilders,
-          sortedSourceExtensionTypeBuilders,
-          objectClass,
-          enumClass,
-          underscoreEnumClass,
-        );
-
-        benchmarker
-        // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
         installSyntheticConstructors(sortedSourceClassBuilders);
 
@@ -632,6 +613,17 @@ class KernelTarget {
         // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
         loader.performTopLevelInference(sortedSourceClassBuilders);
+
+        benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
+        loader.checkSupertypes(
+          sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders,
+          objectClass,
+          enumClass,
+          underscoreEnumClass,
+        );
 
         benchmarker
         // Coverage-ignore(suite): Not run.
@@ -752,9 +744,14 @@ class KernelTarget {
       // Coverage-ignore(suite): Not run.
       ?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
       List<SourceClassBuilder>? sourceClasses = [];
+      List<SourceExtensionBuilder>? sourceExtensions = [];
       List<SourceExtensionTypeDeclarationBuilder>? extensionTypeDeclarations =
           [];
-      loader.collectSourceClasses(sourceClasses, extensionTypeDeclarations);
+      loader.collectSourceDeclarations(
+        sourceClasses,
+        extensionTypeDeclarations,
+        sourceExtensions,
+      );
 
       benchmarker
       // Coverage-ignore(suite): Not run.
@@ -769,7 +766,11 @@ class KernelTarget {
       benchmarker
       // Coverage-ignore(suite): Not run.
       ?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
-      finishAllConstructors(sourceClasses, extensionTypeDeclarations);
+      finishConstruction(
+        sourceClasses,
+        sourceExtensions,
+        extensionTypeDeclarations,
+      );
 
       benchmarker
       // Coverage-ignore(suite): Not run.
@@ -807,6 +808,7 @@ class KernelTarget {
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
       sourceClasses = null;
+      sourceExtensions = null;
       extensionTypeDeclarations = null;
 
       context.options.hooksForTesting
@@ -1409,29 +1411,34 @@ class KernelTarget {
     loader.computeCoreTypes(platformLibraries);
   }
 
-  void finishAllConstructors(
-    List<SourceClassBuilder> sourceClassBuilders,
-    List<SourceExtensionTypeDeclarationBuilder>
-    sourceExtensionTypeDeclarationBuilders,
+  /// Checks field initialization and finishes constructors for
+  /// [classBuilders], [extensionBuilders], and [extensionTypeBuilders].
+  void finishConstruction(
+    List<SourceClassBuilder> classBuilders,
+    List<SourceExtensionBuilder> extensionBuilders,
+    List<SourceExtensionTypeDeclarationBuilder> extensionTypeBuilders,
   ) {
     Class objectClass = this.objectClass;
-    for (SourceClassBuilder builder in sourceClassBuilders) {
+    for (SourceClassBuilder builder in classBuilders) {
       Class cls = builder.cls;
       if (cls != objectClass) {
-        finishConstructors(builder);
+        _finishClassConstruction(builder);
       }
     }
+    for (SourceExtensionBuilder builder in extensionBuilders) {
+      _finishExtensionConstruction(builder);
+    }
     for (SourceExtensionTypeDeclarationBuilder builder
-        in sourceExtensionTypeDeclarationBuilders) {
-      finishExtensionTypeConstructors(builder);
+        in extensionTypeBuilders) {
+      _finishExtensionTypesConstruction(builder);
     }
 
     ticker.logMs("Finished constructors");
   }
 
-  /// Ensure constructors of [classBuilder] have the correct initializers and
-  /// other requirements.
-  void finishConstructors(SourceClassBuilder classBuilder) {
+  /// Checks field initialization and finishes constructors for
+  /// [classBuilder].
+  void _finishClassConstruction(SourceClassBuilder classBuilder) {
     Class cls = classBuilder.cls;
 
     Constructor? superTarget;
@@ -1448,12 +1455,15 @@ class KernelTarget {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             classBuilder.libraryBuilder.addProblem(
-              codeConstConstructorRedirectionToNonConst,
+              diag.constConstructorRedirectionToNonConst,
               initializer.fileOffset,
               initializer.target.name.text.length,
               constructor.fileUri,
             );
           }
+          isRedirecting = true;
+          break;
+        } else if (initializer.isRedirectingInitializer) {
           isRedirecting = true;
           break;
         }
@@ -1475,8 +1485,8 @@ class KernelTarget {
               offset = cls.fileOffset;
               fileUri = cls.fileUri;
             }
-            Message message = codeSuperclassHasNoDefaultConstructor
-                .withArgumentsOld(cls.superclass!.name);
+            Message message = diag.superclassHasNoDefaultConstructor
+                .withArguments(className: cls.superclass!.name);
             classBuilder.libraryBuilder.addProblem(
               message,
               offset,
@@ -1489,7 +1499,8 @@ class KernelTarget {
                   CfeSeverity.error,
                 )
                 .plain;
-            initializer = new InvalidInitializer(text);
+            initializer = new InvalidInitializer(text)
+              ..isSuperInitializer = true;
           } else {
             initializer = new SuperInitializer(
               superTarget,
@@ -1504,31 +1515,40 @@ class KernelTarget {
           /// >If a generative constructor c is not a redirecting constructor
           /// >and no body is provided, then c implicitly has an empty body {}.
           /// We use an empty statement instead.
-          constructor.function.body = new EmptyStatement()
-            ..parent = constructor.function;
+          constructor.function.registerFunctionBody(new EmptyStatement());
         }
       }
     }
 
-    _finishConstructors(classBuilder);
+    _finishConstruction(classBuilder);
   }
 
-  void finishExtensionTypeConstructors(
+  /// Checks field initialization for [extensionTypeDeclaration].
+  void _finishExtensionConstruction(SourceExtensionBuilder extensionBuilder) {
+    _finishConstruction(extensionBuilder);
+  }
+
+  /// Checks field initialization and finishes constructors for
+  /// [extensionTypeDeclaration].
+  void _finishExtensionTypesConstruction(
     SourceExtensionTypeDeclarationBuilder extensionTypeDeclaration,
   ) {
-    _finishConstructors(extensionTypeDeclaration);
+    _finishConstruction(extensionTypeDeclaration);
   }
 
-  void _finishConstructors(SourceDeclarationBuilder classDeclaration) {
-    SourceLibraryBuilder libraryBuilder = classDeclaration.libraryBuilder;
+  /// Checks field initialization and finishes constructors for
+  /// [declarationBuilder].
+  void _finishConstruction(SourceDeclarationBuilder declarationBuilder) {
+    SourceLibraryBuilder libraryBuilder = declarationBuilder.libraryBuilder;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     List<SourcePropertyBuilder> uninitializedFields = [];
     List<SourcePropertyBuilder> nonFinalFields = [];
     List<SourcePropertyBuilder> lateFinalFields = [];
+    List<SourcePropertyBuilder> nonLateClassInstanceFieldsWithInitializers = [];
 
-    Iterator<SourcePropertyBuilder> fieldIterator = classDeclaration
+    Iterator<SourcePropertyBuilder> fieldIterator = declarationBuilder
         .filteredMembersIterator(includeDuplicates: false);
     while (fieldIterator.moveNext()) {
       SourcePropertyBuilder fieldBuilder = fieldIterator.current;
@@ -1548,27 +1568,36 @@ class KernelTarget {
       if (!fieldBuilder.hasInitializer) {
         uninitializedFields.add(fieldBuilder);
       }
+      if (declarationBuilder is SourceClassBuilder &&
+          fieldBuilder.isDeclarationInstanceMember &&
+          !fieldBuilder.isLate &&
+          fieldBuilder.hasInitializer) {
+        nonLateClassInstanceFieldsWithInitializers.add(fieldBuilder);
+      }
     }
 
     Map<SourceConstructorBuilder, Set<SourcePropertyBuilder>>
-    constructorInitializedFields = new Map.identity();
-    Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
+    constructorInitializedFields = {};
+    Set<SourcePropertyBuilder>? initializedFieldBuilders;
+    Map<SourcePropertyBuilder, FieldInitialization>? fieldInitializations;
     Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
-    Iterator<SourceConstructorBuilder> constructorIterator = classDeclaration
+    Iterator<SourceConstructorBuilder> constructorIterator = declarationBuilder
         .filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       SourceConstructorBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
-        classDeclaration.libraryBuilder.addProblem(
-          codeConstConstructorNonFinalField,
+        declarationBuilder.libraryBuilder.addProblem(
+          declarationBuilder.isEnum
+              ? diag.enumConstructorNonFinalField
+              : diag.constConstructorNonFinalField,
           constructor.fileOffset,
           noLength,
           constructor.fileUri,
           context: nonFinalFields
               .map(
-                (field) => codeConstConstructorNonFinalFieldCause.withLocation(
+                (field) => diag.constConstructorNonFinalFieldCause.withLocation(
                   field.fileUri,
                   field.fileOffset,
                   noLength,
@@ -1580,11 +1609,11 @@ class KernelTarget {
       }
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
         for (SourcePropertyBuilder field in lateFinalFields) {
-          classDeclaration.libraryBuilder.addProblem2(
-            codeConstConstructorLateFinalFieldError,
+          declarationBuilder.libraryBuilder.addProblem2(
+            diag.constConstructorLateFinalFieldError,
             field.fieldUriOffset!,
             context: [
-              codeConstConstructorLateFinalFieldCause.withLocation(
+              diag.constConstructorLateFinalFieldCause.withLocation(
                 constructor.fileUri,
                 constructor.fileOffset,
                 noLength,
@@ -1603,21 +1632,75 @@ class KernelTarget {
             )
             .toSet();
         constructorInitializedFields[constructor] = uninitializedInstanceFields;
-        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
-            .addAll(uninitializedInstanceFields);
+        (initializedFieldBuilders ??= {}).addAll(uninitializedInstanceFields);
       } else {
-        Set<SourcePropertyBuilder> fields =
-            constructor.takeInitializedFields() ?? const {};
-        constructorInitializedFields[constructor] = fields;
-        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
-            .addAll(fields);
+        fieldInitializations = constructor.takeInitializedFields();
+        Set<SourcePropertyBuilder> set =
+            fieldInitializations?.keys.toSet() ?? const {};
+        (initializedFieldBuilders ??= {}).addAll(set);
+        constructorInitializedFields[constructor] = set;
+      }
+      if (constructor.isPrimaryConstructor) {
+        // We prepend the initializers in reversed order to preserve normal
+        // field initializer evaluation order.
+        for (SourcePropertyBuilder field
+            in nonLateClassInstanceFieldsWithInitializers.reversed) {
+          FieldInitialization? fieldInitialization =
+              fieldInitializations?[field];
+          if (fieldInitialization != null) {
+            if (fieldInitialization.fromInitializingFormal) {
+              declarationBuilder.libraryBuilder.addProblem2(
+                // ignore: lines_longer_than_80_chars
+                diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+                fieldInitialization.uriOffset,
+                context: [
+                  diag.fieldInitializedPrimaryConstructorDuplicateContext
+                      .withLocation2(field.fieldUriOffset!),
+                ],
+              );
+            } else {
+              declarationBuilder.libraryBuilder.addProblem2(
+                // ignore: lines_longer_than_80_chars
+                diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+                fieldInitialization.uriOffset,
+                context: [
+                  diag.fieldInitializedPrimaryConstructorDuplicateContext
+                      .withLocation2(field.fieldUriOffset!),
+                ],
+              );
+            }
+          } else if (!constructor.isConst) {
+            constructor.prependInitializer(
+              field.takePrimaryConstructorFieldInitializer(),
+            );
+          }
+        }
+        if (declarationBuilder is SourceClassBuilder) {
+          Iterator<SourceConstructorBuilder> otherConstructorIterator =
+              declarationBuilder.filteredConstructorsIterator(
+                includeDuplicates: false,
+              );
+          while (otherConstructorIterator.moveNext()) {
+            SourceConstructorBuilder otherConstructor =
+                otherConstructorIterator.current;
+            if (constructor != otherConstructor &&
+                !otherConstructor.isEffectivelyRedirecting) {
+              declarationBuilder.libraryBuilder.addProblem(
+                diag.nonRedirectingGenerativeConstructorWithPrimary,
+                otherConstructor.fileOffset,
+                noLength,
+                otherConstructor.fileUri,
+              );
+            }
+          }
+        }
       }
     }
 
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
     for (SourcePropertyBuilder fieldBuilder in uninitializedFields) {
-      if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
+      if (fieldBuilder.isInvalidField) continue;
       if (initializedFieldBuilders == null ||
           !initializedFieldBuilders.contains(fieldBuilder)) {
         if (!fieldBuilder.isLate) {
@@ -1634,8 +1717,8 @@ class KernelTarget {
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitialized.withArgumentsOld(
-                  fieldBuilder.name,
+                diag.finalFieldNotInitialized.withArguments(
+                  fieldName: fieldBuilder.name,
                 ),
                 fieldBuilder.fileOffset,
                 fieldBuilder.name.length,
@@ -1645,9 +1728,9 @@ class KernelTarget {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              codeFieldNonNullableWithoutInitializerError.withArgumentsOld(
-                fieldBuilder.name,
-                fieldBuilder.fieldType,
+              diag.fieldNonNullableWithoutInitializerError.withArguments(
+                fieldName: fieldBuilder.name,
+                fieldType: fieldBuilder.fieldType,
               ),
               fieldBuilder.fileOffset,
               fieldBuilder.name.length,
@@ -1668,7 +1751,7 @@ class KernelTarget {
       bool hasReportedErrors = false;
       for (SourcePropertyBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
-        if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
+        if (fieldBuilder.isInvalidField) continue;
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
           Initializer initializer = fieldBuilder.buildImplicitInitializer();
           constructorBuilder.prependInitializer(initializer);
@@ -1678,15 +1761,15 @@ class KernelTarget {
             // properly.
             if (!constructorBuilder.invokeTarget.isErroneous) {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitializedByConstructor.withArgumentsOld(
-                  fieldBuilder.name,
+                diag.finalFieldNotInitializedByConstructor.withArguments(
+                  fieldName: fieldBuilder.name,
                 ),
                 constructorBuilder.fileOffset,
                 constructorBuilder.name.length,
                 constructorBuilder.fileUri,
                 context: [
-                  codeMissingImplementationCause
-                      .withArgumentsOld(fieldBuilder.name)
+                  diag.missingImplementationCause
+                      .withArguments(name: fieldBuilder.name)
                       .withLocation(
                         fieldBuilder.fileUri,
                         fieldBuilder.fileOffset,
@@ -1700,14 +1783,17 @@ class KernelTarget {
               !fieldBuilder.isLate &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              codeFieldNonNullableNotInitializedByConstructorError
-                  .withArgumentsOld(fieldBuilder.name, fieldBuilder.fieldType),
+              diag.fieldNonNullableNotInitializedByConstructorError
+                  .withArguments(
+                    fieldName: fieldBuilder.name,
+                    fieldType: fieldBuilder.fieldType,
+                  ),
               constructorBuilder.fileOffset,
               noLength,
               constructorBuilder.fileUri,
               context: [
-                codeMissingImplementationCause
-                    .withArgumentsOld(fieldBuilder.name)
+                diag.missingImplementationCause
+                    .withArguments(name: fieldBuilder.name)
                     .withLocation(
                       fieldBuilder.fileUri,
                       fieldBuilder.fileOffset,
@@ -1840,6 +1926,7 @@ class KernelTarget {
       procedure,
       environmentDefines,
       logger: (String msg) => ticker.logMs(msg),
+      diagnosticReporter: new KernelDiagnosticReporter(loader),
     );
   }
 

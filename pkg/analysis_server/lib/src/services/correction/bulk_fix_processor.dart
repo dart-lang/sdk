@@ -128,7 +128,7 @@ class BulkFixProcessor {
     diag.wrongNumberOfTypeArguments: [DataDriven.new],
     diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
     diag.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
-    diag.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
+    diag.wrongNumberOfTypeArgumentsElement: [DataDriven.new],
     diag.deprecatedMemberUse: [DataDriven.new],
     diag.deprecatedMemberUseWithMessage: [DataDriven.new],
     diag.deprecatedExportUse: [DataDriven.new],
@@ -178,10 +178,9 @@ class BulkFixProcessor {
     this._instrumentationService,
     this._workspace, {
     List<String>? codes,
-    CancellationToken? cancellationToken,
+    this._cancellationToken,
   }) : builder = ChangeBuilder(workspace: _workspace),
-       _codes = codes?.map((e) => e.toLowerCase()).toList(),
-       _cancellationToken = cancellationToken;
+       _codes = codes?.map((e) => e.toLowerCase()).toList();
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -751,7 +750,7 @@ class BulkFixProcessor {
         }
       } else {
         var generators =
-            registeredFixGenerators.nonLintProducers[diagnosticCode] ?? [];
+            registeredFixGenerators.warningProducers[diagnosticCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
@@ -989,7 +988,7 @@ class BulkFixProcessor {
         );
       }
 
-      var producers = registeredFixGenerators.nonLintProducers[diagnosticCode];
+      var producers = registeredFixGenerators.warningProducers[diagnosticCode];
       if (hasBulkFixProducers(producers)) {
         return true;
       }
@@ -997,7 +996,7 @@ class BulkFixProcessor {
       // We can't do detailed checks on multi-producers because the set of
       // producers may vary depending on the resolved unit (we must configure
       // them before we can determine the producers).
-      return registeredFixGenerators.nonLintMultiProducers.containsKey(
+      return registeredFixGenerators.warningMultiProducers.containsKey(
             diagnosticCode,
           ) ||
           BulkFixProcessor.nonLintMultiProducerMap.containsKey(diagnosticCode);
@@ -1054,16 +1053,12 @@ class IterativeBulkFixProcessor {
   final CancellationToken? _cancellationToken;
 
   IterativeBulkFixProcessor({
-    required InstrumentationService instrumentationService,
-    required AnalysisContext context,
-    required void Function(SourceFileEdit) applyTemporaryOverlayEdits,
-    required Future<void> Function() applyOverlays,
-    CancellationToken? cancellationToken,
-  }) : _instrumentationService = instrumentationService,
-       _context = context,
-       _applyTemporaryOverlayEdits = applyTemporaryOverlayEdits,
-       _applyOverlays = applyOverlays,
-       _cancellationToken = cancellationToken;
+    required this._instrumentationService,
+    required this._context,
+    required this._applyTemporaryOverlayEdits,
+    required this._applyOverlays,
+    this._cancellationToken,
+  });
 
   /// The number of passes that produced edits.
   int get passesWithEdits => _passesWithEdits;

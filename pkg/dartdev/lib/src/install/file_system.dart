@@ -30,58 +30,46 @@ import 'package:dartdev/src/utils.dart';
 ///             └── [AppBundleDirectory]     (e.g., 'my_package/local/')
 /// </pre>
 extension type DartInstallDirectory._(Directory directory) {
-  static final DartInstallDirectory _singleton =
-      DartInstallDirectory._(Directory(getDartDataHome('install')));
+  static final DartInstallDirectory _singleton = DartInstallDirectory._(
+    Directory(getDartDataHome('install')),
+  );
 
   factory DartInstallDirectory() {
     return _singleton;
   }
 
-  BinOnPathDirectory get bin => BinOnPathDirectory._(
-        Directory.fromUri(
-          directory.uri.resolve('bin/'),
-        ),
-      );
+  BinOnPathDirectory get bin =>
+      BinOnPathDirectory._(Directory.fromUri(directory.uri.resolve('bin/')));
 
   Directory get _appBundles =>
       Directory.fromUri(directory.uri.resolve('app-bundles/'));
 
-  AppBundleDirectory gitAppBundle(
-    String packageName,
-    String gitHash,
-  ) =>
+  AppBundleDirectory gitAppBundle(String packageName, String gitHash) =>
       AppBundleDirectory._(
         Directory.fromUri(
           _appBundles.uri.resolve('$packageName/git/$gitHash/'),
         ),
       );
 
-  AppBundleDirectory hostedAppBundle(
-    String packageName,
-    String version,
-  ) =>
+  AppBundleDirectory hostedAppBundle(String packageName, String version) =>
       AppBundleDirectory._(
         Directory.fromUri(
           _appBundles.uri.resolve('$packageName/hosted/$version/'),
         ),
       );
 
-  AppBundleDirectory localAppBundle(
-    String packageName,
-  ) =>
-      AppBundleDirectory._(
-        Directory.fromUri(
-          _appBundles.uri.resolve('$packageName/local/'),
-        ),
-      );
+  AppBundleDirectory localAppBundle(String packageName) => AppBundleDirectory._(
+    Directory.fromUri(_appBundles.uri.resolve('$packageName/local/')),
+  );
 
   List<AppBundleDirectory> allAppBundlesSync({String? packageName}) {
     final dartInstallAppbundlesDir = _appBundles;
     if (!dartInstallAppbundlesDir.existsSync()) {
       return [];
     }
-    final packageDirs =
-        dartInstallAppbundlesDir.listSync().whereType<Directory>();
+    final packageDirs = dartInstallAppbundlesDir
+        .listSync()
+        .whereType<Directory>();
     final result = <AppBundleDirectory>[];
     for (final packageDir in packageDirs) {
       if (packageName != null && packageDir.name != packageName) {
@@ -92,18 +80,16 @@ extension type DartInstallDirectory._(Directory directory) {
       final localDir = Directory.fromUri(packageDir.uri.resolve('local/'));
       if (gitDir.existsSync()) {
         result.addAll(
-          gitDir
-              .listSync()
-              .whereType<Directory>()
-              .map((d) => AppBundleDirectory._(d.ensureEndWithSeparator)),
+          gitDir.listSync().whereType<Directory>().map(
+            (d) => AppBundleDirectory._(d.ensureEndWithSeparator),
+          ),
         );
       }
       if (hostedDir.existsSync()) {
         result.addAll(
-          hostedDir
-              .listSync()
-              .whereType<Directory>()
-              .map((d) => AppBundleDirectory._(d.ensureEndWithSeparator)),
+          hostedDir.listSync().whereType<Directory>().map(
+            (d) => AppBundleDirectory._(d.ensureEndWithSeparator),
+          ),
         );
       }
       if (localDir.existsSync()) {
@@ -130,7 +116,8 @@ extension type BinOnPathDirectory._(Directory directory) {
     }
     if (Platform.isWindows) {
       return ExecutableOnPath._windows(
-          File.fromUri(directory.uri.resolve('$name.bat')));
+        File.fromUri(directory.uri.resolve('$name.bat')),
+      );
     }
     throw UnsupportedError('Unsupported OS: ${Platform.operatingSystem}.');
   }
@@ -169,7 +156,8 @@ extension type ExecutableOnPath._(FileSystemEntity entity) {
       return unix.createSync(target.file.path, recursive: true);
     }
     if (Platform.isWindows) {
-      final wrapperScriptContents = '''
+      final wrapperScriptContents =
+          '''
 @ECHO OFF
 REM $_marker
 "${target.file.path}" %*
@@ -235,12 +223,11 @@ extension type AppBundleDirectory._(Directory directory) {
       // return null;
     }
     final relativeSegments = directory.uri.pathSegments
-        .skip(DartInstallDirectory()
-            ._appBundles
-            .uri
-            .pathSegments
-            .where((e) => e.isNotEmpty)
-            .length)
+        .skip(
+          DartInstallDirectory()._appBundles.uri.pathSegments
+              .where((e) => e.isNotEmpty)
+              .length,
+        )
         .toList();
     if (relativeSegments.length < 2) {
       throw StateError(
@@ -287,11 +274,11 @@ extension type AppBundleDirectory._(Directory directory) {
   ///
   /// The parameter [name] most not contain an extension.
   ExecutableInBundle executable(String name) {
-    return ExecutableInBundle._(File.fromUri(
-      _binDirectory.uri.resolve(
-        Platform.isWindows ? '$name.exe' : name,
+    return ExecutableInBundle._(
+      File.fromUri(
+        _binDirectory.uri.resolve(Platform.isWindows ? '$name.exe' : name),
       ),
-    ));
+    );
   }
 
   File get pubspec => File.fromUri(directory.uri.resolve('pubspec.yaml'));
@@ -315,9 +302,7 @@ extension type AppBundleDirectory._(Directory directory) {
 /// An executable inside an [AppBundleDirectory].
 extension type ExecutableInBundle._(File file) {
   AppBundleDirectory get appBundle {
-    return AppBundleDirectory._(Directory.fromUri(
-      file.uri.resolve('../../'),
-    ));
+    return AppBundleDirectory._(Directory.fromUri(file.uri.resolve('../../')));
   }
 
   ExecutableOnPath get onPath =>

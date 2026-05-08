@@ -24,13 +24,8 @@
 DECLARE_FLAG(bool, verbose_debug);
 
 // 'Trace Debugger' TD_Print.
-#if defined(_MSC_VER)
-#define TD_Print(format, ...)                                                  \
-  if (FLAG_verbose_debug) Log::Current()->Print(format, __VA_ARGS__)
-#else
 #define TD_Print(format, ...)                                                  \
   if (FLAG_verbose_debug) Log::Current()->Print(format, ##__VA_ARGS__)
-#endif
 
 namespace dart {
 
@@ -290,7 +285,7 @@ class CodeBreakpoint {
 
 // ActivationFrame represents one dart function activation frame
 // on the call stack.
-class ActivationFrame : public ZoneAllocated {
+class ActivationFrame : public ZoneObject {
  public:
   enum Kind {
     kRegular,
@@ -391,7 +386,6 @@ class ActivationFrame : public ZoneAllocated {
                   TokenPosition* visible_end_token_pos,
                   Object* value);
 
-  ArrayPtr GetLocalVariables();
   ObjectPtr GetParameter(intptr_t index);
   ClosurePtr GetClosure();
   ObjectPtr GetReceiver();
@@ -489,7 +483,7 @@ class ActivationFrame : public ZoneAllocated {
 };
 
 // Array of function activations on the call stack.
-class DebuggerStackTrace : public ZoneAllocated {
+class DebuggerStackTrace : public ZoneObject {
  public:
   explicit DebuggerStackTrace(int capacity)
       : thread_(Thread::Current()), zone_(thread_->zone()), trace_(capacity) {}
@@ -962,7 +956,7 @@ class Debugger {
   // interrupts, etc.
   void Pause(ServiceEvent* event);
 
-  void HandleSteppingRequest(bool skip_next_step = false);
+  void HandleSteppingRequest();
 
   void CacheStackTraces(DebuggerStackTrace* stack_trace,
                         DebuggerStackTrace* async_awaiter_stack_trace);
@@ -975,7 +969,12 @@ class Debugger {
                               intptr_t post_deopt_frame_index);
 
   void ResetSteppingFramePointer();
-  void SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
+  void SetSyncSteppingFramePointer(ActivationFrame* frame);
+
+  void ResetLastSteppingInformation();
+  void SetLastSteppingInformation(ActivationFrame* frame);
+  void SetLastSteppingInformation(BreakpointLocation* bpt_location);
+  bool MatchesLastSteppingInformation(ActivationFrame* frame);
 
   GroupDebugger* group_debugger() { return isolate_->group()->debugger(); }
 
@@ -1020,11 +1019,6 @@ class Debugger {
   // token position range.
   uword last_stepping_fp_;
   TokenPosition last_stepping_pos_;
-
-  // If we step while at a breakpoint, we would hit the same pc twice.
-  // We use this field to let us skip the next single-step after a
-  // breakpoint.
-  bool skip_next_step_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 

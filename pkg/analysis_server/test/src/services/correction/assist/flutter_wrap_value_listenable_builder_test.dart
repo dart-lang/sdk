@@ -28,16 +28,16 @@ class FlutterWrapValueListenableBuilderTest extends AssistProcessorTest {
 
   Future<void> test_aroundBuilder() async {
     await resolveTestCode('''
-  import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 
-  void f(ValueListenable<int> v) {
-    ^Builder(
-      builder: (context) {
-        return Text('a');
-      },
-    );
-  }
-  ''');
+void f(ValueListenable<int> v) {
+  ^Builder(
+    builder: (context) {
+      return Text('a');
+    },
+  );
+}
+''');
     await assertNoAssist();
   }
 
@@ -65,34 +65,34 @@ void f() {
 
   Future<void> test_aroundValueListenableBuilder() async {
     await resolveTestCode('''
-  import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 
-  void f(ValueListenable<int> v) {
-    ^ValueListenableBuilder<int>(
-      valueListenable: v,
-      builder: (context, value, _) {
-        return Text('a');
-      },
-    );
-  }
-  ''');
+void f(ValueListenable<int> v) {
+  ^ValueListenableBuilder<int>(
+    valueListenable: v,
+    builder: (context, value, _) {
+      return Text('a');
+    },
+  );
+}
+''');
     await assertHasAssist('''
-  import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 
-  void f(ValueListenable<int> v) {
-    ValueListenableBuilder(
-      valueListenable: valueListenable,
-      builder: (context, value, child) {
-        return ValueListenableBuilder<int>(
-          valueListenable: v,
-          builder: (context, value, _) {
-            return Text('a');
-          },
-        );
-      }
-    );
-  }
-  ''');
+void f(ValueListenable<int> v) {
+  ValueListenableBuilder(
+    valueListenable: valueListenable,
+    builder: (context, value, child) {
+      return ValueListenableBuilder<int>(
+        valueListenable: v,
+        builder: (context, value, _) {
+          return Text('a');
+        },
+      );
+    }
+  );
+}
+''');
   }
 
   Future<void> test_insideValueListenableBuilder() async {

@@ -15,7 +15,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final NominalParameterNameSpace typeParameterNameSpace;
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
-  final bool forAbstractClassOrMixin;
+  final bool forAbstractClassOrEnumOrMixin;
   Token? _beginInitializers;
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
@@ -23,6 +23,8 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   SourceConstructorBuilder? _builder;
 
   ConstructorFragmentDeclaration? _declaration;
+
+  PrimaryConstructorBodyFragment? _primaryConstructorBodyFragment;
 
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(
@@ -41,7 +43,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     required this.typeParameterNameSpace,
     required this.typeParameterScope,
     required this.formals,
-    required this.forAbstractClassOrMixin,
+    required this.forAbstractClassOrEnumOrMixin,
     required Token? beginInitializers,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
@@ -81,14 +83,23 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     _declaration = value;
   }
 
+  void set primaryConstructorBodyFragment(
+    PrimaryConstructorBodyFragment? value,
+  ) {
+    _primaryConstructorBodyFragment = value;
+  }
+
   int get fileOffset => constructorName.nameOffset ?? formalsOffset;
 
   @override
   String get name => constructorName.name;
 
   @override
-  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
-    return new _PrimaryConstructorBodyBuildingContext(this);
+  FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
+    return new _PrimaryConstructorBodyBuildingContext(
+      this,
+      shouldFinishFunction: _primaryConstructorBodyFragment == null,
+    );
   }
 
   @override
@@ -97,9 +108,15 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
 class _PrimaryConstructorBodyBuildingContext
     implements FunctionBodyBuildingContext {
-  PrimaryConstructorFragment _fragment;
+  final PrimaryConstructorFragment _fragment;
 
-  _PrimaryConstructorBodyBuildingContext(this._fragment);
+  @override
+  final bool shouldFinishFunction;
+
+  _PrimaryConstructorBodyBuildingContext(
+    this._fragment, {
+    required this.shouldFinishFunction,
+  });
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -114,9 +131,6 @@ class _PrimaryConstructorBodyBuildingContext
   // odd given that it used to allow 'covariant' modifiers, which shouldn't be
   // allowed on constructors.
   MemberKind get memberKind => MemberKind.NonStaticMethod;
-
-  @override
-  bool get shouldBuild => !_fragment.modifiers.isConst;
 
   @override
   ExtensionScope get extensionScope {

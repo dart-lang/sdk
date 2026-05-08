@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
@@ -337,7 +338,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   // Coverage-ignore(suite): Not run.
   /// `true` if this is an augmentation library.
-  bool get isAugmentationLibrary => compilationUnit.forAugmentationLibrary;
+  bool get isAugmentationLibrary => compilationUnit.isAugmenting;
 
   // Coverage-ignore(suite): Not run.
   /// `true` if this is a patch library.
@@ -481,10 +482,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // TODO(ahe): We should probably use a context object here
     // instead of including URIs in this message.
-    Message message = codeDuplicatedExport.withArgumentsOld(
-      name,
-      firstUri,
-      secondUri,
+    Message message = diag.duplicatedExport.withArguments(
+      name: name,
+      uri: firstUri,
+      uri2: secondUri,
     );
     addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
     // We report the error lazily (setting errorHasBeenReported to false)
@@ -794,8 +795,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void collectSourceClassesAndExtensionTypes(
+  void collectSourceDeclarations(
     List<SourceClassBuilder> sourceClasses,
+    List<SourceExtensionBuilder>? sourceExtensions,
     List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes,
   ) {
     Iterator<Builder> iterator = unfilteredMembersIterator;
@@ -803,6 +805,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder member = iterator.current;
       if (member is SourceClassBuilder) {
         sourceClasses.add(member);
+      } else if (member is SourceExtensionBuilder) {
+        sourceExtensions?.add(member);
       } else if (member is SourceExtensionTypeDeclarationBuilder) {
         sourceExtensionTypes.add(member);
       }

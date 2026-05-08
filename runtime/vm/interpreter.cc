@@ -201,13 +201,13 @@ class InterpreterHelpers {
     intptr_t guarded_list_length =
         Smi::Value(field->untag()->guarded_list_length());
 
-    if (UNLIKELY(guarded_list_length >= Field::kUnknownFixedLength)) {
+    if (guarded_list_length >= Field::kUnknownFixedLength) [[unlikely]] {
       // Guarding length, check this in the runtime.
       return true;
     }
 
-    if (UNLIKELY(field->untag()->static_type_exactness_state_ >=
-                 StaticTypeExactnessState::Uninitialized().Encode())) {
+    if (field->untag()->static_type_exactness_state_ >=
+        StaticTypeExactnessState::Uninitialized().Encode()) [[unlikely]] {
       // Guarding "exactness", check this in the runtime.
       return true;
     }
@@ -229,54 +229,6 @@ DART_FORCE_INLINE static const KBCInstr* SavedCallerPC(ObjectPtr* FP) {
 
 DART_FORCE_INLINE static FunctionPtr FrameFunction(ObjectPtr* FP) {
   return Function::RawCast(FP[kKBCFunctionSlotFromFp]);
-}
-
-DART_FORCE_INLINE static ObjectPtr InitializeHeader(uword addr,
-                                                    intptr_t class_id,
-                                                    intptr_t instance_size) {
-  uint32_t tags = 0;
-  ASSERT(class_id != kIllegalCid);
-  tags = UntaggedObject::ClassIdTag::update(class_id, tags);
-  tags = UntaggedObject::SizeTag::update(instance_size, tags);
-  const bool is_old = false;
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
-  tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
-  tags = UntaggedObject::ImmutableBit::update(
-      Object::ShouldHaveImmutabilityBitSet(class_id), tags);
-#if defined(HASH_IN_OBJECT_HEADER)
-  tags = UntaggedObject::HashTag::update(0, tags);
-#endif
-  // Also writes zero in the hash_ field.
-  *reinterpret_cast<uword*>(addr + Object::tags_offset()) = tags;
-  return UntaggedObject::FromAddr(addr);
-}
-
-DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
-                                          intptr_t class_id,
-                                          intptr_t instance_size,
-                                          ObjectPtr* result) {
-  ASSERT(instance_size > 0);
-  ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
-  ASSERT(IsAllocatableInNewSpace(instance_size));
-
-#if !defined(PRODUCT)
-  auto* const class_table = thread->isolate_group()->class_table();
-  if (UNLIKELY(class_table->ShouldTraceAllocationFor(class_id))) {
-    // Fall back to the runtime for profiled allocation of classes.
-    return false;
-  }
-#endif  // !defined(PRODUCT)
-
-  const uword top = thread->top();
-  const intptr_t remaining = thread->end() - top;
-  if (LIKELY(remaining >= instance_size)) {
-    thread->set_top(top + instance_size);
-    *result = InitializeHeader(top, class_id, instance_size);
-    return true;
-  }
-  return false;
 }
 
 void LookupCache::Clear() {
@@ -376,7 +328,7 @@ Interpreter::Interpreter()
 
   last_setjmp_buffer_ = nullptr;
 
-  DEBUG_ONLY(icount_ = 1);  // So that tracing after 0 traces first bytecode.
+  DEBUG_ONLY(icount_ = 0);
 
 #if defined(DEBUG)
   trace_file_bytes_written_ = 0;
@@ -426,7 +378,6 @@ Interpreter* Interpreter::Current() {
 
 #if defined(DEBUG)
 // Returns true if tracing of executed instructions is enabled.
-// May be called on entry, when icount_ has not been incremented yet.
 DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
   return icount_ > FLAG_trace_interpreter_after;
 }
@@ -437,10 +388,13 @@ DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc,
   THR_Print("%" Pu64 " ", icount_);
   if (FLAG_support_disassembler) {
     auto const bytecode = Function::GetBytecode(FrameFunction(FP));
+    auto const start = reinterpret_cast<uword>(pc);
+    auto const end = reinterpret_cast<uword>(KernelBytecode::Next(pc));
     KernelBytecodeDisassembler::Disassemble(
-        reinterpret_cast<uword>(pc),
-        reinterpret_cast<uword>(KernelBytecode::Next(pc)),
-        Bytecode::PayloadStartOf(bytecode));
+        start, end,
+        UntaggedBytecode::ContainsPC(bytecode, start)
+            ? Bytecode::PayloadStartOf(bytecode)
+            : start);
   } else {
     THR_Print("Disassembler not supported in this mode.\n");
   }
@@ -482,6 +436,54 @@ DART_NOINLINE void Interpreter::WriteInstructionToTrace(const KBCInstr* pc) {
   }
   if (trace_buffer_idx_ == kTraceBufferInstrs) {
     FlushTraceBuffer();
+  }
+}
+
+void Interpreter::PrintStackFrames(const ObjectPtr* FP,
+                                   const ObjectPtr* SP,
+                                   intptr_t depth) {
+  const word *fp = reinterpret_cast<const word*>(FP),
+             *sp = reinterpret_cast<const word*>(SP);
+  for (intptr_t i = 0; i < depth; i++) {
+    const word caller_pc = fp[kKBCSavedCallerPcSlotFromFp];
+    const bool is_entry_frame = caller_pc == kEntryFramePcMarker;
+    // The entry frame slots are printed separately from the rest of the frame.
+    auto* const frame_end = fp + (is_entry_frame ? kKBCEntrySavedSlots : 0);
+
+    THR_Print("Frame %" Pd "%s:\n", i, is_entry_frame ? " (entry)" : "");
+    for (auto* current = sp; current >= frame_end; --current) {
+      THR_Print("  %#" Px ": %#" Px "\n", reinterpret_cast<uword>(current),
+                *current);
+    }
+
+    if (is_entry_frame) {
+      THR_Print("  %#" Px ": %#" Px " (pool pointer)\n",
+                reinterpret_cast<uword>(fp + kKBCSavedPpSlotFromEntryFp),
+                fp[kKBCSavedPpSlotFromEntryFp]);
+      THR_Print("  %#" Px ": %#" Px " (args descriptor)\n",
+                reinterpret_cast<uword>(fp + kKBCSavedArgDescSlotFromEntryFp),
+                fp[kKBCSavedArgDescSlotFromEntryFp]);
+      THR_Print("  %#" Px ": %#" Px " (exit link)\n",
+                reinterpret_cast<uword>(fp + kKBCExitLinkSlotFromEntryFp),
+                fp[kKBCExitLinkSlotFromEntryFp]);
+    }
+
+    THR_Print("  %#" Px ": %#" Px " (saved caller fp)\n",
+              reinterpret_cast<uword>(fp + kKBCSavedCallerFpSlotFromFp),
+              fp[kKBCSavedCallerFpSlotFromFp]);
+    THR_Print("  %#" Px ": %#" Px " (saved caller pc)\n",
+              reinterpret_cast<uword>(fp + kKBCSavedCallerPcSlotFromFp),
+              fp[kKBCSavedCallerPcSlotFromFp]);
+    if (is_entry_frame) break;
+    THR_Print("  %#" Px ": %#" Px " (caller pc)\n",
+              reinterpret_cast<uword>(fp + kKBCPcMarkerSlotFromFp),
+              fp[kKBCPcMarkerSlotFromFp]);
+    THR_Print("  %#" Px ": %#" Px " (called function)\n",
+              reinterpret_cast<uword>(fp + kKBCFunctionSlotFromFp),
+              fp[kKBCFunctionSlotFromFp]);
+    sp = fp + kKBCCallerSpSlotFromFp;
+    fp = reinterpret_cast<const word*>(fp[kKBCSavedCallerFpSlotFromFp]);
+    THR_Print("\n");
   }
 }
 
@@ -659,7 +661,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // (in the case of an unhandled exception) or it must be returned to the
   // caller of the interpreter to be propagated.
   const intptr_t result_cid = result->GetClassId();
-  if (UNLIKELY(result_cid == kUnhandledExceptionCid)) {
+  if (result_cid == kUnhandledExceptionCid) [[unlikely]] {
     (*SP)[0] = UnhandledException::RawCast(result)->untag()->exception();
     (*SP)[1] = UnhandledException::RawCast(result)->untag()->stacktrace();
     (*SP)[2] = 0;  // Do not bypass debugger.
@@ -671,7 +673,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     }
     UNREACHABLE();
   }
-  if (UNLIKELY(IsErrorClassId(result_cid))) {
+  if (IsErrorClassId(result_cid)) [[unlikely]] {
     // Unwind to entry frame.
     fp_ = *FP;
     pc_ = SavedCallerPC(fp_);
@@ -766,8 +768,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   intptr_t receiver_cid = call_base[receiver_idx]->GetClassId();
 
   FunctionPtr target;
-  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
-                                     &target))) {
+  if (!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_, &target))
+      [[unlikely]] {
     // Table lookup miss.
     top[0] = null_value;  // Clean up slot as it may be visited by GC.
     top[1] = call_base[receiver_idx];
@@ -852,31 +854,26 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 // Counts and prints executed bytecode instructions (in DEBUG mode).
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
+  icount_++;                                                                   \
   if (IsTracingExecution()) {                                                  \
     TraceInstruction(pc, FP);                                                  \
   }                                                                            \
   if (IsWritingTraceFile()) {                                                  \
     WriteInstructionToTrace(pc);                                               \
-  }                                                                            \
-  icount_++;
+  }
 #define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION                                  \
   do {                                                                         \
-    if (IsTracingExecution()) {                                                \
-      /* Use the original instruction count. */                                \
-      auto const icount = icount_ - 1;                                         \
-      auto const instr_size = KernelBytecode::kInstructionSize[op];            \
-      THR_Print("%" Pu64 " ", icount);                                         \
-      THR_Print("dispatching to original instruction\n");                      \
-      THR_Print("%" Pu64 " ", icount);                                         \
-      if (FLAG_support_disassembler) {                                         \
-        KBCInstr temp[6];                                                      \
-        *temp = op;                                                            \
-        memmove(temp + 1, pc + 1, instr_size - 1);                             \
-        KernelBytecodeDisassembler::Disassemble(                               \
-            reinterpret_cast<uword>(temp),                                     \
-            reinterpret_cast<uword>(temp + instr_size));                       \
-      } else {                                                                 \
-        THR_Print("Disassembler not supported in this mode.\n");               \
+    if (IsTracingExecution() || IsWritingTraceFile()) {                        \
+      KBCInstr temp[KernelBytecode::kMaxInstructionSize];                      \
+      *temp = op;                                                              \
+      memmove(temp + 1, pc + 1, KernelBytecode::kInstructionSize[op] - 1);     \
+      if (IsTracingExecution()) {                                              \
+        THR_Print("%" Pu64 " ", icount_);                                      \
+        THR_Print("dispatching to original instruction\n");                    \
+        TraceInstruction(temp, FP);                                            \
+      }                                                                        \
+      if (IsWritingTraceFile()) {                                              \
+        WriteInstructionToTrace(temp);                                         \
       }                                                                        \
     }                                                                          \
   } while (0)
@@ -906,17 +903,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
   } while (0)
 #if !defined(PRODUCT)
-// The breakpoint should dispatch to the single step handler, if any, in case
-// the breakpoint was set on a call that should then be stepped into or over
-// appropriately. Note that op has already been set to the original opcode
-// that had been replaced with the breakpoint opcode during patching.
-#define BREAKPOINT_DISPATCH                                                    \
-  do {                                                                         \
-    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
-    goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
-  } while (0)
-// The dispatch from a single step check back to the original instruction
-// implementation should ignore single_stepping_offset.
+// Used when dispatching from a breakpoint or single step handler back to
+// the original instruction implementation.
 #define DISPATCH_ORIGINAL_OPCODE goto* dispatch[op]
 #endif  // !defined(PRODUCT)
 #else
@@ -927,17 +915,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     goto SwitchDispatch;                                                       \
   } while (0)
 #if !defined(PRODUCT)
-// The breakpoint should dispatch to the single step handler, if any, in case
-// the breakpoint was set on a call that should then be stepped into or over
-// appropriately. Note that op has already been set to the original opcode
-// that had been replaced with the breakpoint opcode during patching.
-#define BREAKPOINT_DISPATCH                                                    \
-  do {                                                                         \
-    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
-    goto SwitchDispatch;                                                       \
-  } while (0)
-// The dispatch from a single step check back to the original instruction
-// implementation should ignore single_stepping_offset.
+// Used when dispatching from a breakpoint or single step handler back to
+// the original instruction implementation.
 #define DISPATCH_ORIGINAL_OPCODE goto SwitchDispatchNoSingleStep
 #endif  // !defined(PRODUCT)
 #endif  // defined(DART_HAS_COMPUTED_GOTO)
@@ -1105,10 +1084,10 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #define UNBOX_INT64(value, obj, selector)                                      \
   int64_t value;                                                               \
   {                                                                            \
-    if (LIKELY(!obj.IsHeapObject())) {                                         \
+    if (!obj.IsHeapObject()) [[likely]] {                                      \
       value = Smi::Value(Smi::RawCast(obj));                                   \
     } else {                                                                   \
-      if (UNLIKELY(obj == null_value)) {                                       \
+      if (obj == null_value) [[unlikely]] {                                    \
         SP[0] = selector.ptr();                                                \
         goto ThrowNullError;                                                   \
       }                                                                        \
@@ -1117,7 +1096,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   }
 
 #define BOX_INT64_RESULT(result)                                               \
-  if (LIKELY(Smi::IsValid(result))) {                                          \
+  if (Smi::IsValid(result)) [[likely]] {                                       \
     SP[0] = Smi::New(static_cast<intptr_t>(result));                           \
   } else if (!AllocateMint(thread, result, pc, FP, SP)) {                      \
     HANDLE_EXCEPTION;                                                          \
@@ -1127,7 +1106,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #define UNBOX_DOUBLE(value, obj, selector)                                     \
   double value;                                                                \
   {                                                                            \
-    if (UNLIKELY(obj == null_value)) {                                         \
+    if (obj == null_value) [[unlikely]] {                                      \
       SP[0] = selector.ptr();                                                  \
       goto ThrowNullError;                                                     \
     }                                                                          \
@@ -1431,7 +1410,7 @@ bool Interpreter::AssertAssignableField(Thread* thread,
   }
 
   SubtypeTestCachePtr cache = subtype_test_cache_;
-  if (UNLIKELY(cache == SubtypeTestCache::null())) {
+  if (cache == SubtypeTestCache::null()) [[unlikely]] {
     // Allocate new cache.
     SP[1] = instance;        // Preserve.
     SP[2] = field;           // Preserve.
@@ -1592,10 +1571,10 @@ bool Interpreter::AllocateArray(Thread* thread,
                                 const KBCInstr* pc,
                                 ObjectPtr* FP,
                                 ObjectPtr* SP) {
-  if (LIKELY(!length_object->IsHeapObject())) {
+  if (!length_object->IsHeapObject()) [[likely]] {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
-    if (LIKELY(static_cast<uintptr_t>(length) <=
-               static_cast<uintptr_t>(Array::kMaxNewSpaceElements))) {
+    if (static_cast<uintptr_t>(length) <=
+        static_cast<uintptr_t>(Array::kMaxNewSpaceElements)) [[likely]] {
       ASSERT(Array::IsValidLength(length));
       ArrayPtr result;
       if (TryAllocate(thread, kArrayCid, Array::InstanceSize(length),
@@ -2040,7 +2019,7 @@ SwitchDispatchNoSingleStep:
   }
 
   {
-    BYTECODE(DebugCheck, 0);
+    BYTECODE(Nop, 0);
     DISPATCH();
   }
 
@@ -2319,7 +2298,7 @@ SwitchDispatchNoSingleStep:
       ObjectPtr* call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      if (UNLIKELY(receiver == null_value)) {
+      if (receiver == null_value) [[unlikely]] {
         SP[0] = Symbols::call().ptr();
         goto ThrowNullError;
       }
@@ -2392,7 +2371,7 @@ SwitchDispatchNoSingleStep:
       NativeFunction native_function =
           reinterpret_cast<NativeFunction>(LOAD_CONSTANT_RAW(rD + 1));
 
-      if (UNLIKELY(trampoline == nullptr || native_function == nullptr)) {
+      if (trampoline == nullptr || native_function == nullptr) [[unlikely]] {
         SP[1] = 0;  // Unused space for result.
         SP[2] = function;
         SP[3] = Smi::New(rD);
@@ -2542,7 +2521,7 @@ SwitchDispatchNoSingleStep:
     FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD));
     InstancePtr value = Instance::RawCast(*SP--);
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -2554,7 +2533,7 @@ SwitchDispatchNoSingleStep:
     BYTECODE(LoadStatic, D);
     FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD));
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -2724,7 +2703,7 @@ SwitchDispatchNoSingleStep:
   {
     BYTECODE(Allocate, D);
     ClassPtr cls = Class::RawCast(LOAD_CONSTANT(rD));
-    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
+    if (InterpreterHelpers::IsAllocateFinalized(cls)) [[likely]] {
       const intptr_t class_id = cls->untag()->id_;
       ASSERT(Class::is_valid_id(class_id));
       const intptr_t instance_size =
@@ -2769,7 +2748,7 @@ SwitchDispatchNoSingleStep:
     BYTECODE(AllocateT, 0);
     ClassPtr cls = Class::RawCast(SP[0]);
     TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
-    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
+    if (InterpreterHelpers::IsAllocateFinalized(cls)) [[likely]] {
       const intptr_t class_id = cls->untag()->id_;
       const intptr_t instance_size =
           cls->untag()->host_instance_size_in_words_ * kCompressedWordSize;
@@ -3067,7 +3046,7 @@ SwitchDispatchNoSingleStep:
   {
     BYTECODE(NullCheck, D);
 
-    if (UNLIKELY(SP[0] == null_value)) {
+    if (SP[0] == null_value) [[unlikely]] {
       // Load selector.
       SP[0] = LOAD_CONSTANT(rD);
       goto ThrowNullError;
@@ -3125,11 +3104,11 @@ SwitchDispatchNoSingleStep:
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::TruncDivOperator());
     UNBOX_INT64(b, SP[1], Symbols::TruncDivOperator());
-    if (UNLIKELY(b == 0)) {
+    if (b == 0) [[unlikely]] {
       goto ThrowIntegerDivisionByZeroException;
     }
     int64_t result;
-    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+    if ((a == Mint::kMinValue) && (b == -1)) [[unlikely]] {
       result = Mint::kMinValue;
     } else {
       result = a / b;
@@ -3144,11 +3123,11 @@ SwitchDispatchNoSingleStep:
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Percent());
     UNBOX_INT64(b, SP[1], Symbols::Percent());
-    if (UNLIKELY(b == 0)) {
+    if (b == 0) [[unlikely]] {
       goto ThrowIntegerDivisionByZeroException;
     }
     int64_t result;
-    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+    if ((a == Mint::kMinValue) && (b == -1)) [[unlikely]] {
       result = 0;
     } else {
       result = a % b;
@@ -3465,7 +3444,7 @@ SwitchDispatchNoSingleStep:
     ASSERT(!Field::UnboxedBit::decode(field->untag()->kind_bits_));
     ObjectPtr value = GET_FIELD(instance, offset_in_words);
 
-    if (UNLIKELY(value == Object::sentinel().ptr())) {
+    if (value == Object::sentinel().ptr()) [[unlikely]] {
       SP[1] = 0;  // Result slot.
       SP[2] = instance;
       SP[3] = field;
@@ -3484,8 +3463,8 @@ SwitchDispatchNoSingleStep:
     *++SP = value;
 
 #if !defined(PRODUCT)
-    if (UNLIKELY(
-            Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))) {
+    if (Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))
+        [[unlikely]] {
       if (!AssertAssignableField<true>(thread, pc, FP, SP, instance, field,
                                        Instance::RawCast(value))) {
         HANDLE_EXCEPTION;
@@ -3527,7 +3506,7 @@ SwitchDispatchNoSingleStep:
     if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
       // Check that final field was not initialized already.
       ObjectPtr old_value = GET_FIELD(instance, offset_in_words);
-      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+      if (old_value != Object::sentinel().ptr()) [[unlikely]] {
         SP[0] = field;
         SP[1] = 0;  // Unused space for result.
         Exit(thread, FP, SP + 2, pc);
@@ -3572,7 +3551,7 @@ SwitchDispatchNoSingleStep:
     // Field object is cached in function's data_.
     FieldPtr field = Field::RawCast(function->untag()->data());
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -3596,8 +3575,8 @@ SwitchDispatchNoSingleStep:
     *++SP = value;
 
 #if !defined(PRODUCT)
-    if (UNLIKELY(
-            Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))) {
+    if (Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))
+        [[unlikely]] {
       if (!AssertAssignableField<true>(thread, pc, FP, SP,
                                        Instance::RawCast(null_value), field,
                                        Instance::RawCast(value))) {
@@ -3639,8 +3618,8 @@ SwitchDispatchNoSingleStep:
     *++SP = value;
 
 #if !defined(PRODUCT)
-    if (UNLIKELY(
-            Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))) {
+    if (Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))
+        [[unlikely]] {
       if (!AssertAssignableField<true>(thread, pc, FP, SP,
                                        Instance::RawCast(null_value), field,
                                        Instance::RawCast(value))) {
@@ -3661,7 +3640,7 @@ SwitchDispatchNoSingleStep:
     // Field object is cached in function's data_.
     FieldPtr field = Field::RawCast(function->untag()->data());
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -3670,7 +3649,7 @@ SwitchDispatchNoSingleStep:
     ASSERT(Field::FinalBit::decode(field->untag()->kind_bits_));
     // Check that final field was not initialized already.
     ObjectPtr old_value = thread->field_table_values()[field_id];
-    if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+    if (old_value != Object::sentinel().ptr()) [[unlikely]] {
       ++SP;
       SP[0] = field;
       SP[1] = 0;  // Unused space for result.
@@ -3702,7 +3681,7 @@ SwitchDispatchNoSingleStep:
     if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
       // Check that final field was not initialized already.
       ObjectPtr old_value = thread->shared_field_table_values()[field_id];
-      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+      if (old_value != Object::sentinel().ptr()) [[unlikely]] {
         ++SP;
         SP[0] = field;
         SP[1] = 0;  // Unused space for result.
@@ -4455,9 +4434,9 @@ SwitchDispatchNoSingleStep:
   }
 
 #if !defined(PRODUCT)
-#define DEFINE_BREAKPOINT(Format)                                              \
-  {                                                                            \
-    BYTECODE(VMInternal_Breakpoint_##Format, Format)                           \
+#define DEFINE_BREAKPOINT_BODY                                                 \
+  do {                                                                         \
+    pc += KernelBytecode::kInstructionSize[op];                                \
     SP[1] = 0; /* Smi containing the original opcode. */                       \
     Exit(thread, FP, SP + 2, pc);                                              \
     INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler,                               \
@@ -4471,35 +4450,60 @@ SwitchDispatchNoSingleStep:
     /* the original instruction's implementation, so re-adjust it to   */      \
     /* before the breakpoint/original instruction prior to dispatch.   */      \
     pc -= KernelBytecode::kInstructionSize[op];                                \
-    BREAKPOINT_DISPATCH;                                                       \
+  } while (0)
+
+#define DEFINE_BREAKPOINT(Name, __, ___, ____, _____, ______)                  \
+  {                                                                            \
+    BYTECODE_ENTRY_LABEL(Name) DEFINE_BREAKPOINT_BODY;                         \
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
+    DISPATCH_ORIGINAL_OPCODE;                                                  \
   }
-  DEFINE_BREAKPOINT(0)      // size 1
-  DEFINE_BREAKPOINT(D)      // size 2 and 5
-  DEFINE_BREAKPOINT(A_E)    // size 3 and 6
-  DEFINE_BREAKPOINT(A_B_C)  // size 4
+  INTERNAL_KERNEL_BREAKPOINT_BYTECODES(DEFINE_BREAKPOINT)
 #undef DEFINE_BREAKPOINT
 
-  {
-#define SINGLE_STEP_HANDLER_ENTRY(Name, __, ___, ____, _____, ______)          \
-  bc##Name##_SingleStep:
-    KERNEL_BYTECODES_LIST(SINGLE_STEP_HANDLER_ENTRY)
-#undef SINGLE_STEP_HANDLER_ENTRY
+#define SINGLE_STEP_HANDLER_BODY_NO_TRACE                                      \
+  do {                                                                         \
+    /* The debugger expects return addresses in the frames when retrieving */  \
+    /* source positions, so use the next instruction's address. */             \
+    Exit(thread, FP, SP + 1, KernelBytecode::Next(pc));                        \
+    INVOKE_RUNTIME(DRT_SingleStepHandler,                                      \
+                   NativeArguments(thread, 0, nullptr, nullptr));              \
+  } while (0)
 
 #if defined(DEBUG)
-    if (IsTracingExecution()) {
-      // Use the original instruction count, as it was incremented before
-      // the dispatch jump.
-      THR_Print("%" Pu64 " calling single step handler\n", icount_ - 1);
-    }
-#endif
+#define SINGLE_STEP_HANDLER_BODY                                               \
+  do {                                                                         \
+    if (IsTracingExecution()) {                                                \
+      THR_Print("%" Pu64 " calling single step handler\n", icount_);           \
+    }                                                                          \
+    SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                         \
+  } while (0)
+#else
+#define SINGLE_STEP_HANDLER_BODY SINGLE_STEP_HANDLER_BODY_NO_TRACE
+#endif  // defined(DEBUG)
 
-    // The debugger expects return addresses in the frames when retrieving
-    // source positions, so use the next instruction's address.
-    Exit(thread, FP, SP + 1, KernelBytecode::Next(pc));
-    INVOKE_RUNTIME(DRT_SingleStepHandler,
-                   NativeArguments(thread, 0, nullptr, nullptr));
+#define SINGLE_STEP_HANDLER_ENTRY(Name, __, ___, ____, _____, ______)          \
+  bc##Name##_SingleStep:
+
+  {
+    KERNEL_BYTECODES_LIST_WITH_NO_BREAKPOINTS(SINGLE_STEP_HANDLER_ENTRY)
+    SINGLE_STEP_HANDLER_BODY;
     DISPATCH_ORIGINAL_OPCODE;
   }
+
+  {
+    INTERNAL_KERNEL_BREAKPOINT_BYTECODES(SINGLE_STEP_HANDLER_ENTRY)
+    // First check the breakpoint, then single step so that the debugger does
+    // not pause immediately at the same location before hitting the breakpoint.
+    DEFINE_BREAKPOINT_BODY;
+    SINGLE_STEP_HANDLER_BODY;
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;
+    DISPATCH_ORIGINAL_OPCODE;
+  }
+#undef SINGLE_STEP_HANDLER_ENTRY
+#undef SINGLE_STEP_HANDLER_BODY
+#undef SINGLE_STEP_HANDLER_BODY_NO_TRACE
+#undef DEFINE_BREAKPOINT_BODY
 #endif  // !defined(PRODUCT)
 
   UNREACHABLE();

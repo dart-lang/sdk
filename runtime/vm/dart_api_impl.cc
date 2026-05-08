@@ -102,14 +102,6 @@ DEFINE_FLAG(bool,
     }                                                                          \
   }
 
-ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
-Dart_Handle Api::true_handle_ = nullptr;
-Dart_Handle Api::false_handle_ = nullptr;
-Dart_Handle Api::null_handle_ = nullptr;
-Dart_Handle Api::empty_string_handle_ = nullptr;
-Dart_Handle Api::no_callbacks_error_handle_ = nullptr;
-Dart_Handle Api::unwind_in_progress_error_handle_ = nullptr;
-
 const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
     return func + 6;
@@ -500,8 +492,8 @@ bool Api::IsValid(Dart_Handle handle) {
              reinterpret_cast<Dart_PersistentHandle>(handle)) ||
          isolate_group->api_state()->IsActiveWeakPersistentHandle(
              reinterpret_cast<Dart_WeakPersistentHandle>(handle)) ||
-         Dart::IsReadOnlyApiHandle(handle) ||
-         Dart::IsReadOnlyHandle(reinterpret_cast<uword>(handle));
+         Roots::IsReadOnlyApiHandle(reinterpret_cast<uword>(handle)) ||
+         Roots::IsReadOnlyHandle(reinterpret_cast<uword>(handle));
 }
 
 ApiLocalScope* Api::TopScope(Thread* thread) {
@@ -511,20 +503,6 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
   return scope;
 }
 
-void Api::Init() {
-  if (api_native_key_ == kUnsetThreadLocalKey) {
-    api_native_key_ = OSThread::CreateThreadLocal();
-  }
-  ASSERT(api_native_key_ != kUnsetThreadLocalKey);
-}
-
-static Dart_Handle InitNewReadOnlyApiHandle(ObjectPtr raw) {
-  ASSERT(raw->untag()->InVMIsolateHeap());
-  LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
-  ref->set_ptr(raw);
-  return ref->apiHandle();
-}
-
 void Api::InitHandles() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != nullptr);
@@ -532,35 +510,17 @@ void Api::InitHandles() {
   ApiState* state = isolate->group()->api_state();
   ASSERT(state != nullptr);
 
-  ASSERT(true_handle_ == nullptr);
-  true_handle_ = InitNewReadOnlyApiHandle(Bool::True().ptr());
-
-  ASSERT(false_handle_ == nullptr);
-  false_handle_ = InitNewReadOnlyApiHandle(Bool::False().ptr());
-
-  ASSERT(null_handle_ == nullptr);
-  null_handle_ = InitNewReadOnlyApiHandle(Object::null());
-
-  ASSERT(empty_string_handle_ == nullptr);
-  empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().ptr());
-
-  ASSERT(no_callbacks_error_handle_ == nullptr);
-  no_callbacks_error_handle_ =
-      InitNewReadOnlyApiHandle(Object::no_callbacks_error().ptr());
-
-  ASSERT(unwind_in_progress_error_handle_ == nullptr);
-  unwind_in_progress_error_handle_ =
-      InitNewReadOnlyApiHandle(Object::unwind_in_progress_error().ptr());
+  Roots::true_api_handle()->set_ptr(Bool::True().ptr());
+  Roots::false_api_handle()->set_ptr(Bool::False().ptr());
+  Roots::null_api_handle()->set_ptr(Object::null());
+  Roots::empty_string_api_handle()->set_ptr(Symbols::Empty().ptr());
+  Roots::no_callbacks_error_api_handle()->set_ptr(
+      Object::no_callbacks_error().ptr());
+  Roots::unwind_in_progress_error_api_handle()->set_ptr(
+      Object::unwind_in_progress_error().ptr());
 }
 
-void Api::Cleanup() {
-  true_handle_ = nullptr;
-  false_handle_ = nullptr;
-  null_handle_ = nullptr;
-  empty_string_handle_ = nullptr;
-  no_callbacks_error_handle_ = nullptr;
-  unwind_in_progress_error_handle_ = nullptr;
-}
+void Api::Cleanup() {}
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               int arg_index,
@@ -1563,21 +1523,15 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
 }
 
 DART_EXPORT void Dart_StartProfiling() {
-#if !defined(PRODUCT)
-  if (!FLAG_profiler) {
-    FLAG_profiler = true;
-    Profiler::Init();
-  }
-#endif  // !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
+  Profiler::SetConfig({.enabled = true});
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_StopProfiling() {
-#if !defined(PRODUCT)
-  if (FLAG_profiler) {
-    Profiler::Cleanup();
-    FLAG_profiler = false;
-  }
-#endif  // !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
+  Profiler::SetConfig({.enabled = false});
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_ThreadDisableProfiling() {
@@ -1611,7 +1565,7 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
 #if defined(PRODUCT)
   return false;
 #else
-  if (!FLAG_profiler) {
+  if (!Profiler::IsRunning()) {
     if (error != nullptr) {
       *error = Utils::StrDup("The profiler is not running.");
     }
@@ -2234,6 +2188,16 @@ DART_EXPORT void Dart_SetCurrentThreadOwnsIsolate() {
   if (!isolate->SetOwnerThread(OSThread::kInvalidThreadId,
                                OSThread::GetCurrentThreadId())) {
     FATAL("Tried to claim ownership of isolate %s, but it is already owned\n",
+          isolate->name());
+  }
+}
+
+DART_EXPORT void Dart_ClearCurrentThreadOwnsIsolate_ForTesting() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (!isolate->SetOwnerThread(OSThread::GetCurrentThreadId(),
+                               OSThread::kInvalidThreadId)) {
+    FATAL("Tried to clear ownership of isolate %s, but we don't own it\n",
           isolate->name());
   }
 }
@@ -3896,7 +3860,7 @@ static Dart_Handle NewExternalTypedData(Thread* thread,
                               callback);
   }
   if (unmodifiable) {
-    result.SetImmutable();  // Can pass by reference.
+    result.SetDeeplyImmutable();  // Can pass by reference.
     const intptr_t view_cid = cid - kTypedDataCidRemainderExternal +
                               kTypedDataCidRemainderUnmodifiable;
     result = TypedDataView::New(view_cid, ExternalTypedData::Cast(result), 0,
@@ -3922,7 +3886,7 @@ static Dart_Handle NewExternalByteData(Thread* thread,
   const ExternalTypedData& array =
       Api::UnwrapExternalTypedDataHandle(zone, ext_data);
   if (unmodifiable) {
-    array.SetImmutable();  // Can pass by reference.
+    array.SetDeeplyImmutable();  // Can pass by reference.
   }
   return Api::NewHandle(
       thread, TypedDataView::New(unmodifiable ? kUnmodifiableByteDataViewCid
@@ -7076,54 +7040,6 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
 #endif
 }
 
-#if (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
-
-// Any flag that affects how we compile code might cause a problem when the
-// snapshot writer generates code with one value of the flag and the snapshot
-// reader expects code to behave according to another value of the flag.
-// Normally, we add these flags to Dart::FeaturesString and refuse to run the
-// snapshot it they don't match, but since --interpret-irregexp affects only
-// 2 functions we choose to remove the code instead. See issue #34422.
-static void DropRegExpMatchCode(Zone* zone) {
-  const String& execute_match_name =
-      String::Handle(zone, String::New("_ExecuteMatch"));
-  const String& execute_match_sticky_name =
-      String::Handle(zone, String::New("_ExecuteMatchSticky"));
-
-  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-  const Class& reg_exp_class =
-      Class::Handle(zone, core_lib.LookupClassAllowPrivate(Symbols::_RegExp()));
-  ASSERT(!reg_exp_class.IsNull());
-
-  auto thread = Thread::Current();
-  Function& func = Function::Handle(
-      zone, reg_exp_class.LookupFunctionAllowPrivate(execute_match_name));
-  ASSERT(!func.IsNull());
-  Code& code = Code::Handle(zone);
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  if (func.HasCode()) {
-    code = func.CurrentCode();
-    ASSERT(!code.IsNull());
-    code.DisableDartCode();
-  }
-  func.ClearCode();
-  func.ClearICDataArray();
-  ASSERT(!func.HasCode());
-
-  func = reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
-  ASSERT(!func.IsNull());
-  if (func.HasCode()) {
-    code = func.CurrentCode();
-    ASSERT(!code.IsNull());
-    code.DisableDartCode();
-  }
-  func.ClearCode();
-  func.ClearICDataArray();
-  ASSERT(!func.HasCode());
-}
-
-#endif  // (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
-
 #if !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 static void KillNonMainIsolatesSlow(Thread* thread, Isolate* main_isolate) {
   auto group = main_isolate->group();
@@ -7177,7 +7093,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   KillNonMainIsolatesSlow(T, I);
 
   NoBackgroundCompilerScope no_bg_compiler(T);
-  DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);
 

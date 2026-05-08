@@ -36,8 +36,12 @@ abstract class DartdevCommand extends Command<int> {
   @override
   final bool hidden;
 
-  DartdevCommand(this._name, this._description, this._verbose,
-      {this.hidden = false}) {
+  DartdevCommand(
+    this._name,
+    this._description,
+    this._verbose, {
+    this.hidden = false,
+  }) {
     flagContributor?.call(argParser, _name);
   }
 
@@ -133,7 +137,7 @@ Future<int> runProcess(
   final (_, _, exitCode) = await (
     forward(process.stdout, false),
     forward(process.stderr, true),
-    process.exitCode
+    process.exitCode,
   ).wait;
   return exitCode;
 }

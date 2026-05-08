@@ -6,7 +6,8 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
 import 'widget_previews/widget_previews.dart';
 
-/// The set of compilation units that make up the mock 'widget_previews' package.
+/// The set of compilation units that make up the mock 'widget_previews'
+/// component of the 'flutter' package.
 final List<MockLibraryUnit> units = [
   _widgetPreviewsLibrary,
   widgetPreviewsWidgetPreviewsLibrary,

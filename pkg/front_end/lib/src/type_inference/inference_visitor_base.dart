@@ -7,8 +7,8 @@ import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
@@ -29,7 +29,9 @@ import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
+import '../kernel/assigned_variables_impl.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/external_ast_helper.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -41,7 +43,7 @@ import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
-import 'external_ast_helper.dart';
+import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'object_access_target.dart';
@@ -70,14 +72,14 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   for (VariableDeclaration positionalParameter
       in functionExpression.function.positionalParameters) {
     int key = unnamedParameterIndex++;
-    if (!(positionalParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(positionalParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
   for (VariableDeclaration namedParameter
       in functionExpression.function.namedParameters) {
     String key = namedParameter.name!;
-    if (!(namedParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(namedParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
@@ -124,8 +126,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     this.expressionEvaluationHelper,
   );
 
-  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
-      _inferrer.assignedVariables;
+  ThisVariable get internalThisVariable;
+
+  // TODO(cstefantsova): Replace this flag by implementing the default
+  // strategy.
+  bool get isClosureContextLoweringEnabled => _inferrer
+      .libraryBuilder
+      .loader
+      .target
+      .backendTarget
+      .flags
+      .isClosureContextLoweringEnabled;
+
+  AssignedVariablesImpl get assignedVariables => _inferrer.assignedVariables;
 
   InterfaceType? get thisType => _inferrer.thisType;
 
@@ -135,7 +148,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
   get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
@@ -239,7 +252,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           }
           TreeNode origNode = node;
           while (origNode is VariableGet &&
-              origNode.variable.name == null &&
+              origNode.variable.cosmeticName == null &&
               origNode.variable.initializer != null) {
             // This is a read of a synthetic variable, presumably from a "let".
             // Find the original expression.
@@ -354,7 +367,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool coerceExpression = true,
-    Template<Message Function(DartType, DartType), Function>? errorTemplate,
+    Template<
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
+    errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     return ensureAssignableResult(
@@ -390,7 +409,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
-    Template<Message Function(DartType, DartType), Function>?
+    Template<
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
     preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
       inferenceResult.expression,
     );
@@ -435,7 +459,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ..isTypeError = true
               ..isForDynamic = expressionType is DynamicType
               ..fileOffset = fileOffset;
-        flowAnalysis.forwardExpression(asExpression, expression);
+        flowAnalysis.storeExpressionInfo(
+          asExpression,
+          flowAnalysis.getExpressionInfo(expression),
+        );
         return new ExpressionInferenceResult(
           expressionType,
           asExpression,
@@ -476,15 +503,26 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool isCoercionAllowed = true,
-    Template<Message Function(DartType, DartType), Function>? errorTemplate,
+    Template<
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
+    errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    errorTemplate ??= codeInvalidAssignmentError;
+    errorTemplate ??= diag.invalidAssignmentError;
 
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
-    Template<Message Function(DartType, DartType), Function>?
+    Template<
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
     preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
       inferenceResult.expression,
     );
@@ -532,9 +570,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           expression,
           expressionType,
           contextType,
-          errorTemplate.withArgumentsOld(
-            expressionType,
-            declaredContextType ?? contextType,
+          errorTemplate.withArguments(
+            actualType: expressionType,
+            expectedType: declaredContextType ?? contextType,
           ),
         );
         break;
@@ -543,7 +581,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         result = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: expression,
-          message: codeVoidExpression,
+          message: diag.voidExpression,
           fileUri: fileUri,
           fileOffset: expression.fileOffset,
           length: noLength,
@@ -556,9 +594,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         result = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: expression,
-          message: preciseTypeErrorTemplate!.withArgumentsOld(
-            expressionType,
-            contextType,
+          message: preciseTypeErrorTemplate!.withArguments(
+            actualType: expressionType,
+            expectedType: contextType,
           ),
           fileUri: fileUri,
           fileOffset: expression.fileOffset,
@@ -566,25 +604,23 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         break;
       case AssignabilityKind.unassignableCantTearoff:
-        result = _wrapTearoffErrorExpression(
-          expression,
-          contextType,
-          codeNullableTearoffError,
-        );
+        result = _wrapTearoffErrorExpression(expression, contextType);
         break;
       case AssignabilityKind.unassignableNullability:
         if (expressionType == assignabilityResult.subtype &&
             contextType == assignabilityResult.supertype &&
             expression is! NullLiteral &&
             expressionType is! NullType) {
-          whyNotPromoted ??= flowAnalysis.whyNotPromoted(expression);
+          whyNotPromoted ??= flowAnalysis.whyNotPromoted(
+            flowAnalysis.getExpressionInfo(expression),
+          );
           result = _wrapUnassignableExpression(
             expression,
             expressionType,
             contextType,
-            errorTemplate.withArgumentsOld(
-              expressionType,
-              declaredContextType ?? contextType,
+            errorTemplate.withArguments(
+              actualType: expressionType,
+              expectedType: declaredContextType ?? contextType,
             ),
             context: getWhyNotPromotedContext(
               whyNotPromoted.call(),
@@ -598,9 +634,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             expression,
             expressionType,
             contextType,
-            errorTemplate.withArgumentsOld(
-              expressionType,
-              declaredContextType ?? contextType,
+            errorTemplate.withArguments(
+              actualType: expressionType,
+              expectedType: declaredContextType ?? contextType,
             ),
           );
         }
@@ -608,7 +644,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (result != null) {
-      flowAnalysis.forwardExpression(result, expression);
+      flowAnalysis.storeExpressionInfo(
+        result,
+        flowAnalysis.getExpressionInfo(expression),
+      );
       return new ExpressionInferenceResult(
         expressionType,
         result,
@@ -630,7 +669,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool coerceExpression = true,
-    Template<Message Function(DartType, DartType), Function>? errorTemplate,
+    Template<
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
+    errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (coerceExpression) {
@@ -667,7 +712,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression _wrapTearoffErrorExpression(
     Expression expression,
     DartType contextType,
-    Template<Message Function(String), Function> template,
   ) {
     Expression errorNode =
         new AsExpression(
@@ -687,7 +731,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       errorNode = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: errorNode,
-        message: template.withArgumentsOld(callName.text),
+        message: diag.nullableTearoffError.withArguments(
+          methodName: callName.text,
+        ),
         fileUri: fileUri,
         fileOffset: errorNode.fileOffset,
         length: noLength,
@@ -1461,13 +1507,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// If target is missing on a non-dynamic receiver, an error is reported
-  /// using [errorTemplate] and an invalid expression is returned.
+  /// using [diag.undefinedSetter] and an invalid expression is returned.
   Expression? reportMissingInterfaceMember(
     ObjectAccessTarget target,
     DartType receiverType,
     Name name,
     int fileOffset,
-    Template<Message Function(String, DartType), Function> errorTemplate,
   ) {
     assert(isKnown(receiverType));
     if (target.isMissing) {
@@ -1478,9 +1523,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       return problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: errorTemplate.withArgumentsOld(
-          name.text,
-          receiverType.nonTypeParameterBound,
+        message: diag.undefinedSetter.withArguments(
+          name: name.text,
+          type: receiverType.nonTypeParameterBound,
         ),
         fileUri: fileUri,
         fileOffset: fileOffset,
@@ -1612,15 +1657,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType inferDeclarationType(
     DartType initializerType, {
     bool forSyntheticVariable = false,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     if (forSyntheticVariable) {
       return initializerType;
     } else if (initializerType is NullType) {
-      // If the initializer type is Null or bottom, the inferred type is
-      // dynamic.
-      // TODO(paulberry): this rule is inherited from analyzer behavior but is
-      // not spec'ed anywhere.
-      return const DynamicType();
+      switch (inferenceDefaultType) {
+        case InferenceDefaultType.NullableObject:
+          // For primary constructors, `Object?` used in this case.
+          return coreTypes.objectNullableRawType;
+        case InferenceDefaultType.Dynamic:
+          // If the initializer type is Null or bottom, the inferred type is
+          // dynamic.
+          // TODO(paulberry): this rule is inherited from analyzer behavior but
+          //  is not spec'ed anywhere.
+          return const DynamicType();
+      }
     } else {
       return demoteTypeInLibrary(initializerType);
     }
@@ -1902,7 +1954,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           hoistedExpressions,
         );
         if (isIdenticalCall) {
-          argumentInfo.identicalInfo = flowAnalysis.equalityOperand_end(
+          argumentInfo.identicalInfo = flowAnalysis.getExpressionInfo(
             expression,
           );
         }
@@ -1948,7 +2000,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           DartType inferredType = result.inferredType;
           Expression expression = result.expression;
           if (isIdenticalCall) {
-            deferredArgument.identicalInfo = flowAnalysis.equalityOperand_end(
+            deferredArgument.identicalInfo = flowAnalysis.getExpressionInfo(
               expression,
             );
           }
@@ -1966,12 +2018,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (isIdenticalCall) {
-      flowAnalysis.equalityOperation_end(
+      flowAnalysis.storeExpressionInfo(
         actualArguments.parent as Expression,
-        argumentsInfo[0].identicalInfo,
-        new SharedTypeView(argumentsInfo[0].actualType),
-        argumentsInfo[1].identicalInfo,
-        new SharedTypeView(argumentsInfo[1].actualType),
+        flowAnalysis.equalityOperation_end(
+          argumentsInfo[0].identicalInfo,
+          new SharedTypeView(argumentsInfo[0].actualType),
+          argumentsInfo[1].identicalInfo,
+          new SharedTypeView(argumentsInfo[1].actualType),
+        ),
       );
     }
 
@@ -2034,7 +2088,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 prevNamedExpression.value,
                 namedExpression.value,
               ),
-              message: codeDuplicatedNamedArgument.withArgumentsOld(name),
+              message: diag.duplicatedNamedArgument.withArguments(name: name),
               fileUri: fileUri,
               fileOffset: namedExpression.fileOffset,
               length: name.length,
@@ -2145,7 +2199,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           argumentResultToCheck,
           isVoidAllowed: expectedType is VoidType,
           isCoercionAllowed: argumentInfo.coerceExpression,
-          errorTemplate: codeArgumentTypeNotAssignable,
+          errorTemplate: diag.argumentTypeNotAssignable,
         );
 
         argumentInfo.argument.expression = argumentResultToCheck.expression;
@@ -2198,8 +2252,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
     // (including required, positional optional, and named optional parameters).
     // If any type `Pi` is missing, denote it as `_`.
-    List<VariableDeclaration> formals = function.positionalParameters.toList()
-      ..addAll(function.namedParameters);
+    List<VariableDeclaration> formals = [
+      ...function.positionalParameters,
+      ...function.namedParameters,
+    ];
 
     // Let `B` denote the closure body.  If `B` is an expression function body
     // (`=> e`), treat it as equivalent to a block function body containing a
@@ -2255,7 +2311,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      VariableDeclarationImpl formal = formals[i] as VariableDeclarationImpl;
+      InternalVariable formal = formals[i] as InternalVariable;
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
@@ -2292,12 +2348,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           formal.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          codeOptionalNonNullableWithoutInitializerError.withArgumentsOld(
-            formal.name!,
-            formal.type,
+          diag.optionalNonNullableWithoutInitializerError.withArguments(
+            parameterName: formal.cosmeticName!,
+            parameterType: formal.type,
           ),
           formal.fileOffset,
-          formal.name!.length,
+          formal.cosmeticName!.length,
           fileUri,
         );
         formal.isErroneouslyInitialized = true;
@@ -2308,9 +2364,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
       VariableDeclaration parameter = positionalParameters[i];
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      VariableDeclaration parameterAstVariable =
+          (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
-        parameter,
-        new SharedTypeView(parameter.type),
+        parameterAstVariable,
+        new SharedTypeView(parameterAstVariable.type),
         initialized: true,
       );
       inferMetadata(visitor, parameter);
@@ -2324,9 +2384,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     for (VariableDeclaration parameter in function.namedParameters) {
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      VariableDeclaration parameterAstVariable =
+          (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
-        parameter,
-        new SharedTypeView(parameter.type),
+        parameterAstVariable,
+        new SharedTypeView(parameterAstVariable.type),
         initialized: true,
       );
       inferMetadata(visitor, parameter);
@@ -2341,15 +2405,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     for (VariableDeclaration parameter in function.namedParameters) {
-      VariableDeclarationImpl formal = parameter as VariableDeclarationImpl;
+      InternalVariable formal = parameter as InternalVariable;
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          codeRequiredNamedParameterHasDefaultValueError.withArgumentsOld(
-            formal.name!,
+          diag.requiredNamedParameterHasDefaultValueError.withArguments(
+            parameterName: formal.cosmeticName!,
           ),
           formal.fileOffset,
-          formal.name!.length,
+          formal.cosmeticName!.length,
           fileUri,
         );
       }
@@ -2660,14 +2724,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //     void Function() get call => () {};
         //   }
         List<LocatedMessage>? context = getWhyNotPromotedContext(
-          flowAnalysis.whyNotPromoted(receiver)(),
+          flowAnalysis.whyNotPromoted(
+            flowAnalysis.getExpressionInfo(receiver),
+          )(),
           staticInvocation,
           // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable,
         );
         result = wrapExpressionInferenceResultInProblem(
           result,
-          codeNullableExpressionCallError.withArgumentsOld(receiverType),
+          diag.nullableExpressionCallError.withArguments(type: receiverType),
           fileOffset,
           noLength,
           context: context,
@@ -2715,7 +2781,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       if (target.isNullable) {
         List<LocatedMessage>? context = getWhyNotPromotedContext(
-          flowAnalysis.whyNotPromoted(receiver)(),
+          flowAnalysis.whyNotPromoted(
+            flowAnalysis.getExpressionInfo(receiver),
+          )(),
           staticInvocation,
           // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable,
@@ -2731,8 +2799,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = problemReporting.wrapInProblem(
             compilerContext: compilerContext,
             expression: replacement,
-            message: codeNullableExpressionCallError.withArgumentsOld(
-              receiverType,
+            message: diag.nullableExpressionCallError.withArguments(
+              type: receiverType,
             ),
             fileUri: fileUri,
             fileOffset: fileOffset,
@@ -2750,9 +2818,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = problemReporting.wrapInProblem(
             compilerContext: compilerContext,
             expression: replacement,
-            message: codeNullableMethodCallError.withArgumentsOld(
-              name.text,
-              receiverType,
+            message: diag.nullableMethodCallError.withArguments(
+              methodName: name.text,
+              receiverType: receiverType,
             ),
             fileUri: fileUri,
             fileOffset: fileOffset,
@@ -2809,7 +2877,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
-      ExpressionVariable variable = receiver.variable;
+      VariableDeclaration variable = receiver.variable;
       TreeNode? parent = variable.parent;
       if (parent is FunctionDeclaration) {
         assert(
@@ -2818,7 +2886,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         localName = variable.cosmeticName!;
         expression = new LocalFunctionInvocation(
-          variable as VariableDeclaration,
+          variable,
           createArgumentsFromInternalNode(
             result.typeArguments,
             result.positional,
@@ -2861,7 +2929,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression replacement = result.applyResult(expression);
     if (target.isNullableCallFunction) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(receiver)(),
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver))(),
         expression,
         // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
@@ -2873,8 +2941,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableExpressionCallError.withArgumentsOld(
-            receiverType,
+          message: diag.nullableExpressionCallError.withArguments(
+            type: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -2888,9 +2956,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableMethodCallError.withArgumentsOld(
-            callName.text,
-            receiverType,
+          message: diag.nullableMethodCallError.withArguments(
+            methodName: callName.text,
+            receiverType: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -3108,7 +3176,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     replacement = result.applyResult(replacement);
     if (target.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(receiver)(),
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver))(),
         expression,
         // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
@@ -3124,8 +3192,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableExpressionCallError.withArgumentsOld(
-            receiverType,
+          message: diag.nullableExpressionCallError.withArguments(
+            type: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -3139,9 +3207,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableMethodCallError.withArgumentsOld(
-            methodName.text,
-            receiverType,
+          message: diag.nullableMethodCallError.withArguments(
+            methodName: methodName.text,
+            receiverType: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -3152,6 +3220,210 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     return new ExpressionInferenceResult(result.inferredType, replacement);
+  }
+
+  ExpressionInferenceResult _finishFieldGetterInvocation(
+    InferenceVisitor visitor, {
+    required int fileOffset,
+    required Expression receiver,
+    required DartType receiverType,
+    required ObjectAccessTarget target,
+    required Member member,
+    required DartType declaredMemberType,
+    required DartType calleeType,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
+    required DartType typeContext,
+    required List<VariableDeclaration>? hoistedExpressions,
+    required bool isExpressionInvocation,
+  }) {
+    Expression originalReceiver = receiver;
+
+    List<VariableDeclaration>? locallyHoistedExpressions;
+    if (hoistedExpressions == null) {
+      hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
+    }
+    if (arguments.positionalCount > 0 || arguments.namedCount > 0) {
+      receiver = _hoist(receiver, receiverType, hoistedExpressions);
+    }
+
+    Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted;
+    if (target.isNullable) {
+      // We won't report the error until later (after we have an
+      // invocationResult), but we need to gather "why not promoted" info now,
+      // before we tell flow analysis about the property get.
+      whyNotPromoted = flowAnalysis.whyNotPromoted(
+        flowAnalysis.getExpressionInfo(originalReceiver),
+      );
+    }
+
+    Name originalName = member.name;
+    Member originalTarget = member;
+    InstanceAccessKind kind;
+    switch (target.kind) {
+      case ObjectAccessTargetKind.instanceMember:
+        kind = InstanceAccessKind.Instance;
+        break;
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        kind = InstanceAccessKind.Nullable;
+        break;
+      case ObjectAccessTargetKind.objectMember:
+        kind = InstanceAccessKind.Object;
+        break;
+      // Coverage-ignore(suite): Not run.
+      default:
+        // If we ever have function typed fields/getters on Object, this case
+        // can be triggered, if call with inapplicable arguments.
+        throw new UnsupportedError('Unexpected target kind $target');
+    }
+    InstanceGet originalPropertyGet = new InstanceGet(
+      kind,
+      receiver,
+      originalName,
+      resultType: calleeType,
+      interfaceTarget: originalTarget,
+    )..fileOffset = fileOffset;
+    var (
+      SharedTypeView? wrappedPromotedType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      computePropertyTarget(originalReceiver),
+      originalName.text,
+      originalTarget,
+      new SharedTypeView(calleeType),
+    );
+    flowAnalysis.storeExpressionInfo(originalPropertyGet, expressionInfo);
+    DartType? promotedCalleeType = wrappedPromotedType?.unwrapTypeView();
+    originalPropertyGet.resultType = calleeType;
+    Expression propertyGet = originalPropertyGet;
+    if (receiver is! ThisExpression &&
+        calleeType is! DynamicType &&
+        returnedTypeParametersOccurNonCovariantly(
+          member.enclosingTypeDeclaration!,
+          declaredMemberType,
+        )) {
+      propertyGet = new AsExpression(propertyGet, calleeType)
+        ..isTypeError = true
+        ..isCovarianceCheck = true
+        ..fileOffset = fileOffset;
+    }
+
+    if (promotedCalleeType != null) {
+      propertyGet = new AsExpression(propertyGet, promotedCalleeType)
+        ..isUnchecked = true
+        ..fileOffset = fileOffset;
+      calleeType = promotedCalleeType;
+    }
+
+    if (isExpressionInvocation) {
+      Expression error = problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: diag.implicitCallOfNonMethod.withArguments(type: receiverType),
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: noLength,
+      );
+      return new ExpressionInferenceResult(const InvalidType(), error);
+    }
+
+    ExpressionInferenceResult invocationResult = inferMethodInvocation(
+      visitor,
+      arguments.fileOffset,
+      propertyGet,
+      calleeType,
+      callName,
+      typeArguments,
+      arguments,
+      typeContext,
+      isExpressionInvocation: false,
+      isImplicitCall: true,
+      hoistedExpressions: hoistedExpressions,
+      implicitInvocationPropertyName: member.name,
+    );
+
+    if (target.isNullable) {
+      // Handles cases like:
+      //   C? c;
+      //   c.foo();
+      // Where C is defined as:
+      //   class C {
+      //     void Function() foo;
+      //     C(this.foo);
+      //   }
+      // TODO(paulberry): would it be better to report NullableMethodCallError
+      // in this scenario?
+      List<LocatedMessage>? context = getWhyNotPromotedContext(
+        whyNotPromoted!(),
+        invocationResult.expression,
+        // Coverage-ignore(suite): Not run.
+        (type) => !type.isPotentiallyNullable,
+      );
+      invocationResult = wrapExpressionInferenceResultInProblem(
+        invocationResult,
+        diag.nullableExpressionCallError.withArguments(type: receiverType),
+        fileOffset,
+        noLength,
+        context: context,
+      );
+    }
+
+    if (!libraryBuilder
+        .loader
+        .target
+        .backendTarget
+        .supportsExplicitGetterCalls) {
+      // TODO(johnniwinther): Remove this when dart2js/ddc supports explicit
+      //  getter calls.
+      Expression nullAwareAction = invocationResult.expression;
+      if (nullAwareAction is InstanceInvocation &&
+          nullAwareAction.receiver == originalPropertyGet) {
+        invocationResult = new ExpressionInferenceResult(
+          invocationResult.inferredType,
+          new InstanceGetterInvocation(
+            originalPropertyGet.kind,
+            receiver,
+            originalName,
+            nullAwareAction.arguments,
+            interfaceTarget: originalTarget,
+            functionType: nullAwareAction.functionType,
+          )..fileOffset = nullAwareAction.fileOffset,
+        );
+      } else if (nullAwareAction is DynamicInvocation &&
+          nullAwareAction.receiver == originalPropertyGet) {
+        invocationResult = new ExpressionInferenceResult(
+          invocationResult.inferredType,
+          new InstanceGetterInvocation(
+            originalPropertyGet.kind,
+            receiver,
+            originalName,
+            nullAwareAction.arguments,
+            interfaceTarget: originalTarget,
+            functionType: null,
+          )..fileOffset = nullAwareAction.fileOffset,
+        );
+      } else if (nullAwareAction is FunctionInvocation &&
+          nullAwareAction.receiver == originalPropertyGet) {
+        invocationResult = new ExpressionInferenceResult(
+          invocationResult.inferredType,
+          new InstanceGetterInvocation(
+            originalPropertyGet.kind,
+            receiver,
+            originalName,
+            nullAwareAction.arguments,
+            interfaceTarget: originalTarget,
+            functionType: nullAwareAction.functionType,
+          )..fileOffset = nullAwareAction.fileOffset,
+        );
+      }
+    }
+    invocationResult = _insertHoistedExpression(
+      invocationResult,
+      locallyHoistedExpressions,
+    );
+    return new ExpressionInferenceResult(
+      invocationResult.inferredType,
+      invocationResult.expression,
+    );
   }
 
   ExpressionInferenceResult _inferInstanceGetterInvocation(
@@ -3174,170 +3446,27 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Procedure? getter = target.classMember as Procedure;
     assert(getter.kind == ProcedureKind.Getter);
 
-    // TODO(johnniwinther): This is inconsistent with the handling below. Remove
-    // this or add handling similar to [_inferMethodInvocation].
     if (receiverType == const DynamicType() &&
         _isInvalidDynamicTarget(getter.function, arguments)) {
       target = const ObjectAccessTarget.dynamic();
-      getter = null;
     }
 
     DartType calleeType = target.getGetterType(this);
 
-    List<VariableDeclaration>? locallyHoistedExpressions;
-    if (hoistedExpressions == null) {
-      hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
-    }
-    if (arguments.positionalCount > 0 || arguments.namedCount > 0) {
-      receiver = _hoist(receiver, receiverType, hoistedExpressions);
-    }
-
-    Name originalName = getter!.name;
-    Expression originalReceiver = receiver;
-    Member originalTarget = getter;
-    InstanceAccessKind kind;
-    switch (target.kind) {
-      case ObjectAccessTargetKind.instanceMember:
-        kind = InstanceAccessKind.Instance;
-        break;
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        kind = InstanceAccessKind.Nullable;
-        break;
-      case ObjectAccessTargetKind.objectMember:
-        kind = InstanceAccessKind.Object;
-        break;
-      // Coverage-ignore(suite): Not run.
-      default:
-        throw new UnsupportedError('Unexpected target kind $target');
-    }
-    InstanceGet originalPropertyGet = new InstanceGet(
-      kind,
-      originalReceiver,
-      originalName,
-      resultType: calleeType,
-      interfaceTarget: originalTarget,
-    )..fileOffset = fileOffset;
-    Expression propertyGet = originalPropertyGet;
-    if (calleeType is! DynamicType &&
-        receiver is! ThisExpression &&
-        returnedTypeParametersOccurNonCovariantly(
-          getter.enclosingTypeDeclaration!,
-          getter.function.returnType,
-        )) {
-      // Coverage-ignore-block(suite): Not run.
-      propertyGet = new AsExpression(propertyGet, calleeType)
-        ..isTypeError = true
-        ..isCovarianceCheck = true
-        ..fileOffset = fileOffset;
-    }
-
-    if (isExpressionInvocation) {
-      Expression error = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: noLength,
-      );
-      return new ExpressionInferenceResult(const InvalidType(), error);
-    }
-
-    ExpressionInferenceResult invocationResult = inferMethodInvocation(
+    return _finishFieldGetterInvocation(
       visitor,
-      arguments.fileOffset,
-      propertyGet,
-      calleeType,
-      callName,
-      typeArguments,
-      arguments,
-      typeContext,
+      fileOffset: fileOffset,
+      receiver: receiver,
+      receiverType: receiverType,
+      target: target,
+      member: getter,
+      declaredMemberType: getter.function.returnType,
+      calleeType: calleeType,
+      typeArguments: typeArguments,
+      arguments: arguments,
+      typeContext: typeContext,
       hoistedExpressions: hoistedExpressions,
-      isExpressionInvocation: false,
-      isImplicitCall: true,
-      implicitInvocationPropertyName: getter.name,
-    );
-
-    if (target.isNullable) {
-      // Handles cases like:
-      //   C? c;
-      //   c.foo();
-      // Where C is defined as:
-      //   class C {
-      //     void Function() get foo => () {};
-      //   }
-      List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(receiver)(),
-        invocationResult.expression,
-        // Coverage-ignore(suite): Not run.
-        (type) => !type.isPotentiallyNullable,
-      );
-      invocationResult = wrapExpressionInferenceResultInProblem(
-        invocationResult,
-        codeNullableExpressionCallError.withArgumentsOld(receiverType),
-        fileOffset,
-        noLength,
-        context: context,
-      );
-    }
-
-    if (!libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .supportsExplicitGetterCalls) {
-      // TODO(johnniwinther): Remove this when dart2js/ddc supports explicit
-      //  getter calls.
-      Expression nullAwareAction = invocationResult.expression;
-      if (nullAwareAction is InstanceInvocation &&
-          // Coverage-ignore(suite): Not run.
-          nullAwareAction.receiver == originalPropertyGet) {
-        // Coverage-ignore-block(suite): Not run.
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            originalReceiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: nullAwareAction.functionType,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      } else if (nullAwareAction is DynamicInvocation &&
-          nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            originalReceiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: null,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      } else if (nullAwareAction is FunctionInvocation &&
-          nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            originalReceiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: nullAwareAction.functionType,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      }
-    }
-    invocationResult = _insertHoistedExpression(
-      invocationResult,
-      locallyHoistedExpressions,
-    );
-    return new ExpressionInferenceResult(
-      invocationResult.inferredType,
-      invocationResult.expression,
+      isExpressionInvocation: isExpressionInvocation,
     );
   }
 
@@ -3347,7 +3476,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<VariableDeclaration>? hoistedExpressions,
   ) {
     if (hoistedExpressions != null &&
-        expression is! ThisExpression &&
+        !isThisExpression(expression) &&
         expression is! FunctionExpression) {
       VariableDeclaration variable = createVariable(expression, type);
       hoistedExpressions.add(variable);
@@ -3388,191 +3517,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           target.isNullableInstanceMember,
     );
     Field field = target.classMember as Field;
-    Expression originalReceiver = receiver;
-
     DartType calleeType = target.getGetterType(this);
 
-    List<VariableDeclaration>? locallyHoistedExpressions;
-    if (hoistedExpressions == null) {
-      hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
-    }
-    if (arguments.positionalCount > 0 || arguments.namedCount > 0) {
-      receiver = _hoist(receiver, receiverType, hoistedExpressions);
-    }
-
-    Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted;
-    if (target.isNullable) {
-      // We won't report the error until later (after we have an
-      // invocationResult), but we need to gather "why not promoted" info now,
-      // before we tell flow analysis about the property get.
-      whyNotPromoted = flowAnalysis.whyNotPromoted(originalReceiver);
-    }
-
-    Name originalName = field.name;
-    Member originalTarget = field;
-    InstanceAccessKind kind;
-    switch (target.kind) {
-      case ObjectAccessTargetKind.instanceMember:
-        kind = InstanceAccessKind.Instance;
-        break;
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        kind = InstanceAccessKind.Nullable;
-        break;
-      // Coverage-ignore(suite): Not run.
-      case ObjectAccessTargetKind.objectMember:
-        kind = InstanceAccessKind.Object;
-        break;
-      // Coverage-ignore(suite): Not run.
-      default:
-        throw new UnsupportedError('Unexpected target kind $target');
-    }
-    InstanceGet originalPropertyGet = new InstanceGet(
-      kind,
-      receiver,
-      originalName,
-      resultType: calleeType,
-      interfaceTarget: originalTarget,
-    )..fileOffset = fileOffset;
-    DartType? promotedCalleeType = flowAnalysis
-        .propertyGet(
-          originalPropertyGet,
-          computePropertyTarget(originalReceiver),
-          originalName.text,
-          originalTarget,
-          new SharedTypeView(calleeType),
-        )
-        ?.unwrapTypeView();
-    originalPropertyGet.resultType = calleeType;
-    Expression propertyGet = originalPropertyGet;
-    if (receiver is! ThisExpression &&
-        calleeType is! DynamicType &&
-        returnedTypeParametersOccurNonCovariantly(
-          field.enclosingTypeDeclaration!,
-          field.type,
-        )) {
-      propertyGet = new AsExpression(propertyGet, calleeType)
-        ..isTypeError = true
-        ..isCovarianceCheck = true
-        ..fileOffset = fileOffset;
-    }
-
-    if (promotedCalleeType != null) {
-      propertyGet = new AsExpression(propertyGet, promotedCalleeType)
-        ..isUnchecked = true
-        ..fileOffset = fileOffset;
-      calleeType = promotedCalleeType;
-    }
-
-    if (isExpressionInvocation) {
-      Expression error = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: noLength,
-      );
-      return new ExpressionInferenceResult(const InvalidType(), error);
-    }
-
-    ExpressionInferenceResult invocationResult = inferMethodInvocation(
+    return _finishFieldGetterInvocation(
       visitor,
-      arguments.fileOffset,
-      propertyGet,
-      calleeType,
-      callName,
-      typeArguments,
-      arguments,
-      typeContext,
-      isExpressionInvocation: false,
-      isImplicitCall: true,
+      fileOffset: fileOffset,
+      receiver: receiver,
+      receiverType: receiverType,
+      target: target,
+      member: field,
+      declaredMemberType: field.type,
+      calleeType: calleeType,
+      typeArguments: typeArguments,
+      arguments: arguments,
+      typeContext: typeContext,
       hoistedExpressions: hoistedExpressions,
-      implicitInvocationPropertyName: field.name,
-    );
-
-    if (target.isNullable) {
-      // Handles cases like:
-      //   C? c;
-      //   c.foo();
-      // Where C is defined as:
-      //   class C {
-      //     void Function() foo;
-      //     C(this.foo);
-      //   }
-      // TODO(paulberry): would it be better to report NullableMethodCallError
-      // in this scenario?
-      List<LocatedMessage>? context = getWhyNotPromotedContext(
-        whyNotPromoted!(),
-        invocationResult.expression,
-        // Coverage-ignore(suite): Not run.
-        (type) => !type.isPotentiallyNullable,
-      );
-      invocationResult = wrapExpressionInferenceResultInProblem(
-        invocationResult,
-        codeNullableExpressionCallError.withArgumentsOld(receiverType),
-        fileOffset,
-        noLength,
-        context: context,
-      );
-    }
-
-    if (!libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .supportsExplicitGetterCalls) {
-      // TODO(johnniwinther): Remove this when dart2js/ddc supports explicit
-      //  getter calls.
-      Expression nullAwareAction = invocationResult.expression;
-      if (nullAwareAction is InstanceInvocation &&
-          nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            receiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: nullAwareAction.functionType,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      } else if (nullAwareAction is DynamicInvocation &&
-          // Coverage-ignore(suite): Not run.
-          nullAwareAction.receiver == originalPropertyGet) {
-        // Coverage-ignore-block(suite): Not run.
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            receiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: null,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      } else if (nullAwareAction is FunctionInvocation &&
-          nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            receiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: nullAwareAction.functionType,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      }
-    }
-    invocationResult = _insertHoistedExpression(
-      invocationResult,
-      locallyHoistedExpressions,
-    );
-    return new ExpressionInferenceResult(
-      invocationResult.inferredType,
-      invocationResult.expression,
+      isExpressionInvocation: isExpressionInvocation,
     );
   }
 
@@ -3764,14 +3724,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   (void Function())? r;
           //   r.$1();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             receiver,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            codeNullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArguments(type: receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -3794,7 +3756,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.nullableRecordNamed:
         if (isImplicitCall && !target.isNullable) {
           libraryBuilder.addProblem(
-            codeRecordUsedAsCallable,
+            diag.recordUsedAsCallable,
             receiver.fileOffset,
             noLength,
             fileUri,
@@ -3815,14 +3777,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   ({void Function() foo})? r;
           //   r.foo();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             receiver,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            codeNullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArguments(type: receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -3845,19 +3809,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
-        type =
-            flowAnalysis
-                .propertyGet(
-                  null,
-                  computePropertyTarget(receiver),
-                  name.text,
-                  (target as ExtensionTypeRepresentationAccessTarget)
-                      .representationField,
-                  new SharedTypeView(type),
-                )
-                // Coverage-ignore(suite): Not run.
-                ?.unwrapTypeView() ??
-            type;
+        var (SharedTypeView? wrappedPromotedType, _) = flowAnalysis.propertyGet(
+          computePropertyTarget(receiver),
+          name.text,
+          (target as ExtensionTypeRepresentationAccessTarget)
+              .representationField,
+          new SharedTypeView(type),
+        );
+        // Coverage-ignore(suite): Not run.
+        type = wrappedPromotedType?.unwrapTypeView() ?? type;
         Expression read = new AsExpression(receiver, type)
           ..isUnchecked = true
           ..fileOffset = fileOffset;
@@ -3873,13 +3833,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   method(Foo? r) => r.bar();
           //
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             receiver,
             (type) => !type.isPotentiallyNullable,
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            codeNullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArguments(type: receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -4070,6 +4032,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       inferredType,
       result.applyResult(
         createSuperMethodInvocation(
+          isClosureContextLoweringEnabled
+              ? (new VariableGet(internalThisVariable)..fileOffset = fileOffset)
+              : (new ThisExpression()..fileOffset = fileOffset),
           name,
           procedure,
           createArgumentsFromInternalNode(
@@ -4110,19 +4075,27 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // TODO(johnniwinther): Create an [AbstractSuperPropertyGet] if
         //  [isAbstract] is `true`, once [AbstractSuperPropertyGet] is
         //  supported by backends.
-        new SuperPropertyGet(name, member)..fileOffset = nameOffset;
+        new SuperPropertyGet(
+          isClosureContextLoweringEnabled
+              ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+              : (new ThisExpression()..fileOffset = nameOffset),
+          name,
+          member,
+        )..fileOffset = nameOffset;
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, node);
     }
-    DartType? promotedType = flowAnalysis
-        .propertyGet(
-          node,
-          SuperPropertyTarget.singleton,
-          name.text,
-          member,
-          new SharedTypeView(inferredType),
-        )
-        ?.unwrapTypeView();
+    var (
+      SharedTypeView? wrappedPromotedType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      SuperPropertyTarget.singleton,
+      name.text,
+      member,
+      new SharedTypeView(inferredType),
+    );
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    DartType? promotedType = wrappedPromotedType?.unwrapTypeView();
     if (promotedType != null) {
       node = new AsExpression(node, promotedType)
         ..isUnchecked = true
@@ -4174,7 +4147,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       node.value = rhs..parent = node;
     } else {
       assert(node == null, "Unexpected node for super property set $node.");
-      node = new SuperPropertySet(name, rhs, member)..fileOffset = nameOffset;
+      node = new SuperPropertySet(
+        isClosureContextLoweringEnabled
+            ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+            : (new ThisExpression()..fileOffset = nameOffset),
+        name,
+        rhs,
+        member,
+      )..fileOffset = nameOffset;
     }
     return new ExpressionInferenceResult(rhsResult.inferredType, node!);
   }
@@ -4244,7 +4224,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableGet] is created.
   ExpressionInferenceResult inferVariableGet({
-    required InternalExpressionVariable variable,
+    required InternalVariable variable,
     required DartType typeContext,
     required int nameOffset,
     VariableGet? node,
@@ -4252,18 +4232,21 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     node ??= new VariableGet(variable.astVariable)..fileOffset = nameOffset;
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
+    ExpressionInfo? expressionInfo;
     if (isExtensionThis(variable.astVariable)) {
-      flowAnalysis.thisOrSuper(
-        node,
+      expressionInfo = flowAnalysis.thisOrSuper(
         new SharedTypeView(variable.type),
         isSuper: true,
       );
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
-      promotedType = flowAnalysis
-          .variableRead(node, variable.astVariable)
-          ?.unwrapTypeView();
+      SharedTypeView? wrappedPromotedType;
+      (wrappedPromotedType, expressionInfo) = flowAnalysis.variableRead(
+        variable.astVariable,
+      );
+      promotedType = wrappedPromotedType?.unwrapTypeView();
     }
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
     node.promotedType = promotedType;
     DartType resultType = promotedType ?? declaredOrInferredType;
     Expression resultExpression;
@@ -4278,9 +4261,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable get, so instruct flow analysis to forward the
       // expression information.
-      flowAnalysis.forwardExpression(resultExpression, node);
+      flowAnalysis.storeExpressionInfo(
+        resultExpression,
+        flowAnalysis.getExpressionInfo(node),
+      );
     } else {
-      resultExpression = node..expressionVariable = variable.astVariable;
+      resultExpression = node..variable = variable.astVariable;
     }
 
     bool isUnassigned = !flowAnalysis.isAssigned(variable.astVariable);
@@ -4314,7 +4300,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: codeLateDefinitelyUnassignedError.withArgumentsOld(name),
+              message: diag.lateDefinitelyUnassignedError.withArguments(
+                variableName: name,
+              ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
               length: name.length,
@@ -4329,12 +4317,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               problemReporting.wrapInProblem(
                 compilerContext: compilerContext,
                 expression: resultExpression,
-                message: codeFinalNotAssignedError.withArgumentsOld(
-                  node.variable.name!,
+                message: diag.finalNotAssignedError.withArguments(
+                  variableName: node.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.variable.name!.length,
+                length: node.variable.cosmeticName!.length,
               ),
             );
           } else if (declaredOrInferredType.isPotentiallyNonNullable) {
@@ -4343,12 +4331,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               problemReporting.wrapInProblem(
                 compilerContext: compilerContext,
                 expression: resultExpression,
-                message: codeNonNullableNotAssignedError.withArgumentsOld(
-                  node.expressionVariable.cosmeticName!,
+                message: diag.nonNullableNotAssignedError.withArguments(
+                  variableName: node.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.expressionVariable.cosmeticName!.length,
+                length: node.variable.cosmeticName!.length,
               ),
             );
           }
@@ -4362,7 +4350,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Computes the possible promoted variable type of [variable] and the type
   /// context for the value expression in a local set to [variable].
   (DartType variableType, DartType writeContext)
-  computeVariableSetTypeAndWriteContext(InternalExpressionVariable variable) {
+  computeVariableSetTypeAndWriteContext(InternalVariable variable) {
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType? promotedType = flowAnalysis
         .promotedType(variable.astVariable)
@@ -4376,7 +4364,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableSet] is created.
   ExpressionInferenceResult inferVariableSet({
-    required InternalExpressionVariable variable,
+    required InternalVariable variable,
     required DartType variableType,
     required ExpressionInferenceResult rhsResult,
     required int assignOffset,
@@ -4396,11 +4384,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression rhs = rhsResult.expression;
     node ??= new VariableSet(variable.astVariable, rhs)
       ..fileOffset = nameOffset;
-    flowAnalysis.write(
+    flowAnalysis.storeExpressionInfo(
       node,
-      variable.astVariable,
-      new SharedTypeView(rhsResult.inferredType),
-      rhsResult.expression,
+      flowAnalysis.write(
+        node,
+        variable.astVariable,
+        new SharedTypeView(rhsResult.inferredType),
+        flowAnalysis.getExpressionInfo(rhsResult.expression),
+      ),
     );
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;
@@ -4413,10 +4404,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable set, so instruct flow analysis to forward the
       // expression information.
-      flowAnalysis.forwardExpression(resultExpression, node);
+      flowAnalysis.storeExpressionInfo(
+        resultExpression,
+        flowAnalysis.getExpressionInfo(node),
+      );
     } else {
       node.value = rhs..parent = node;
-      resultExpression = node..expressionVariable = variable.astVariable;
+      resultExpression = node..variable = variable.astVariable;
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
@@ -4431,12 +4425,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: codeLateDefinitelyAssignedError.withArgumentsOld(
-                node.variable.name!,
+              message: diag.lateDefinitelyAssignedError.withArguments(
+                variableName: node.variable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.variable.name!.length,
+              length: node.variable.cosmeticName!.length,
             ),
           );
         }
@@ -4447,12 +4441,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: codeFinalPossiblyAssignedError.withArgumentsOld(
-                node.variable.name!,
+              message: diag.finalPossiblyAssignedError.withArguments(
+                variableName: node.variable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.variable.name!.length,
+              length: node.variable.cosmeticName!.length,
             ),
           );
         }
@@ -4804,31 +4798,36 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// If it is, an error message template is returned, which can be used by the
   /// caller to report an invalid cast.  Otherwise, `null` is returned.
-  Template<Message Function(DartType, DartType), Function>?
+  Template<
+    Message Function({
+      required DartType actualType,
+      required DartType expectedType,
+    })
+  >?
   _getPreciseTypeErrorTemplate(Expression expression) {
     if (expression is ListLiteral) {
-      return codeInvalidCastLiteralList;
+      return diag.invalidCastLiteralList;
     }
     if (expression is MapLiteral) {
-      return codeInvalidCastLiteralMap;
+      return diag.invalidCastLiteralMap;
     }
     if (expression is SetLiteral || _isLoweredSetLiteral(expression)) {
-      return codeInvalidCastLiteralSet;
+      return diag.invalidCastLiteralSet;
     }
     if (expression is FunctionExpression) {
-      return codeInvalidCastFunctionExpr;
+      return diag.invalidCastFunctionExpr;
     }
     if (expression is ConstructorInvocation) {
-      return codeInvalidCastNewExpr;
+      return diag.invalidCastNewExpr;
     }
     if (expression is StaticGet) {
       Member target = expression.target;
       if (target is Procedure && target.kind == ProcedureKind.Method) {
         // Coverage-ignore-block(suite): Not run.
         if (target.enclosingClass != null) {
-          return codeInvalidCastStaticMethod;
+          return diag.invalidCastStaticMethod;
         } else {
-          return codeInvalidCastTopLevelFunction;
+          return diag.invalidCastTopLevelFunction;
         }
       }
       return null;
@@ -4836,15 +4835,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (expression is StaticTearOff) {
       Member target = expression.target;
       if (target.enclosingClass != null) {
-        return codeInvalidCastStaticMethod;
+        return diag.invalidCastStaticMethod;
       } else {
-        return codeInvalidCastTopLevelFunction;
+        return diag.invalidCastTopLevelFunction;
       }
     }
     if (expression is VariableGet) {
-      ExpressionVariable variable = expression.expressionVariable;
+      VariableDeclaration variable = expression.variable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
-        return codeInvalidCastLocalFunction;
+        return diag.invalidCastLocalFunction;
       }
     }
     return null;
@@ -4934,17 +4933,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name name,
     Expression? wrappedExpression,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
-    Template<Message Function(String, DartType), Function> missingTemplate,
-    Template<Message Function(String, DartType), Function> ambiguousTemplate,
+    Template<Message Function({required String name, required DartType type})>
+    missingTemplate,
+    Template<Message Function({required String name, required DartType type})>
+    ambiguousTemplate,
   ) {
     List<LocatedMessage>? context;
-    Template<Message Function(String, DartType), Function> template =
-        missingTemplate;
+    Template<Message Function({required String name, required DartType type})>
+    template = missingTemplate;
     if (extensionAccessCandidates != null) {
       context = extensionAccessCandidates
           .map(
             (ExtensionAccessCandidate c) =>
-                codeAmbiguousExtensionCause.withLocation(
+                diag.ambiguousExtensionCause.withLocation(
                   c.memberBuilder.fileUri!,
                   c.memberBuilder.fileOffset,
                   name == unaryMinusName ? 1 : c.memberBuilder.name.length,
@@ -4957,9 +4958,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: wrappedExpression,
-        message: template.withArgumentsOld(
-          name.text,
-          receiverType.nonTypeParameterBound,
+        message: template.withArguments(
+          name: name.text,
+          type: receiverType.nonTypeParameterBound,
         ),
         fileUri: fileUri,
         fileOffset: fileOffset,
@@ -4969,9 +4970,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     } else {
       return problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: template.withArgumentsOld(
-          name.text,
-          receiverType.nonTypeParameterBound,
+        message: template.withArguments(
+          name: name.text,
+          type: receiverType.nonTypeParameterBound,
         ),
         fileUri: fileUri,
         fileOffset: fileOffset,
@@ -5006,8 +5007,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             name,
             arguments!,
           ),
-          message: codeInvokeNonFunction.withArgumentsOld(
-            implicitInvocationPropertyName.text,
+          message: diag.invokeNonFunction.withArguments(
+            name: implicitInvocationPropertyName.text,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -5017,8 +5018,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // Coverage-ignore-block(suite): Not run.
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeInvokeNonFunction.withArgumentsOld(
-            implicitInvocationPropertyName.text,
+          message: diag.invokeNonFunction.withArguments(
+            name: implicitInvocationPropertyName.text,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -5035,8 +5036,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ? _createInvalidInvocation(fileOffset, receiver, name, arguments!)
             : null,
         extensionAccessCandidates,
-        codeUndefinedMethod,
-        codeAmbiguousExtensionMethod,
+        diag.undefinedMethod,
+        diag.ambiguousExtensionMethod,
       );
     }
   }
@@ -5256,9 +5257,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (readTarget.isNullable) {
       readResult = wrapExpressionInferenceResultInProblem(
         readResult,
-        codeNullablePropertyAccessError.withArgumentsOld(
-          propertyName.text,
-          receiverType,
+        diag.nullablePropertyAccessError.withArguments(
+          propertyName: propertyName.text,
+          receiverType: receiverType,
         ),
         read.fileOffset,
         propertyName.text.length,
@@ -5281,8 +5282,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression? receiver,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedGetter;
+    Template<Message Function({required String name, required DartType type})>
+    codeMissing = diag.undefinedGetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       propertyName.text.length,
@@ -5293,7 +5294,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           : null,
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionProperty,
+      diag.ambiguousExtensionProperty,
     );
   }
 
@@ -5306,8 +5307,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedSetter;
+    Template<Message Function({required String name, required DartType type})>
+    codeMissing = diag.undefinedSetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       propertyName.text.length,
@@ -5316,7 +5317,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       _createInvalidSet(fileOffset, receiver, propertyName, value),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionProperty,
+      diag.ambiguousExtensionProperty,
     );
   }
 
@@ -5327,8 +5328,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression index, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+    Template<Message Function({required String name, required DartType type})>
+    codeMissing = diag.undefinedOperator;
 
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5343,7 +5344,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5356,8 +5357,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+    Template<Message Function({required String name, required DartType type})>
+    codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       noLength,
@@ -5371,7 +5372,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5384,8 +5385,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     assert(binaryName != equalsName);
-    Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+    Template<Message Function({required String name, required DartType type})>
+    codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       binaryName.text.length,
@@ -5399,7 +5400,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5410,8 +5411,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name unaryName, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+    Template<Message Function({required String name, required DartType type})>
+    codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       unaryName == unaryMinusName ? 1 : unaryName.text.length,
@@ -5425,7 +5426,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5443,8 +5444,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(!libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
     if (isGenericFunctionTypeOrAlias(typeArgument)) {
       libraryBuilder.addProblem(
-        codeGenericFunctionTypeInferredAsActualTypeArgument.withArgumentsOld(
-          typeArgument,
+        diag.genericFunctionTypeInferredAsActualTypeArgument.withArguments(
+          type: typeArgument,
         ),
         fileOffset,
         noLength,
@@ -5477,9 +5478,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     int length = literal?.length ?? noLength;
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeWebLiteralCannotBeRepresentedExactly.withArgumentsOld(
-        text,
-        nearest,
+      message: diag.webLiteralCannotBeRepresentedExactly.withArguments(
+        integerLiteral: text,
+        nearestJsValue: nearest,
       ),
       fileUri: fileUri,
       fileOffset: charOffset,
@@ -5512,6 +5513,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// inference to visit a node.  This performs assertions to make sure that
   /// temporary type inference state has been properly cleaned up.
   void checkCleanState();
+
+  /// Performs preliminary computations before inferring the body of a function.
+  ///
+  /// [parameters] are those of the function being inferred.
+  ScopeProviderInfo beginFunctionBodyInference(
+    List<VariableDeclaration> parameters, {
+    required ThisVariable? internalThisVariable,
+  });
+
+  /// Performs finishing computations after inferring the body of a function.
+  void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);
 }
 
 /// Describes assignability kind of one type to another.
@@ -5585,7 +5597,7 @@ class _WhyNotPromotedVisitor
         NonPromotionReasonVisitor<
           List<LocatedMessage>,
           Node,
-          ExpressionVariable
+          VariableDeclaration
         > {
   final InferenceVisitorBase inferrer;
 
@@ -5595,7 +5607,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<ExpressionVariable> reason,
+    DemoteViaExplicitWrite<VariableDeclaration> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
@@ -5608,10 +5620,10 @@ class _WhyNotPromotedVisitor
     }
     int offset = node.fileOffset;
     return [
-      codeVariableCouldBeNullDueToWrite
-          .withArgumentsOld(
-            reason.variable.cosmeticName!,
-            reason.documentationLink.url,
+      diag.variableCouldBeNullDueToWrite
+          .withArguments(
+            variableName: reason.variable.cosmeticName!,
+            documentationUrl: reason.documentationLink.url,
           )
           .withLocation(inferrer.fileUri, offset, noLength),
     ];
@@ -5643,33 +5655,38 @@ class _WhyNotPromotedVisitor
     if (fieldNameInfo != null) {
       for (SourceMemberBuilder field in fieldNameInfo.conflictingFields) {
         messages.add(
-          codeFieldNotPromotedBecauseConflictingField
-              .withArgumentsOld(
-                reason.propertyName,
-                field.readTarget!.enclosingClass!.name,
-                NonPromotionDocumentationLink.conflictingNonPromotableField.url,
+          diag.fieldNotPromotedBecauseConflictingField
+              .withArguments(
+                propertyName: reason.propertyName,
+                conflictingFieldClassName:
+                    field.readTarget!.enclosingClass!.name,
+                documentationUrl: NonPromotionDocumentationLink
+                    .conflictingNonPromotableField
+                    .url,
               )
               .withLocation(field.fileUri, field.fileOffset, noLength),
         );
       }
       for (SourceMemberBuilder getter in fieldNameInfo.conflictingGetters) {
         messages.add(
-          codeFieldNotPromotedBecauseConflictingGetter
-              .withArgumentsOld(
-                reason.propertyName,
-                getter.readTarget!.enclosingClass!.name,
-                NonPromotionDocumentationLink.conflictingGetter.url,
+          diag.fieldNotPromotedBecauseConflictingGetter
+              .withArguments(
+                propertyName: reason.propertyName,
+                conflictingGetterClassName:
+                    getter.readTarget!.enclosingClass!.name,
+                documentationUrl:
+                    NonPromotionDocumentationLink.conflictingGetter.url,
               )
               .withLocation(getter.fileUri, getter.fileOffset, noLength),
         );
       }
       for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
         messages.add(
-          codeFieldNotPromotedBecauseConflictingNsmForwarder
-              .withArgumentsOld(
-                reason.propertyName,
-                nsmClass.name,
-                NonPromotionDocumentationLink
+          diag.fieldNotPromotedBecauseConflictingNsmForwarder
+              .withArguments(
+                propertyName: reason.propertyName,
+                conflictingNsmClassName: nsmClass.name,
+                documentationUrl: NonPromotionDocumentationLink
                     .conflictingNoSuchMethodForwarder
                     .url,
               )
@@ -5701,20 +5718,28 @@ class _WhyNotPromotedVisitor
         member = stubTarget;
       }
       propertyReference = member;
-      Template<Message Function(String, String), Function> template =
-          switch (reason.whyNotPromotable) {
-            PropertyNonPromotabilityReason.isNotField =>
-              codeFieldNotPromotedBecauseNotField,
-            PropertyNonPromotabilityReason.isNotPrivate =>
-              codeFieldNotPromotedBecauseNotPrivate,
-            PropertyNonPromotabilityReason.isExternal =>
-              codeFieldNotPromotedBecauseExternal,
-            PropertyNonPromotabilityReason.isNotFinal =>
-              codeFieldNotPromotedBecauseNotFinal,
-          };
+      Template<
+        Message Function({
+          required String propertyName,
+          required String documentationUrl,
+        })
+      >
+      template = switch (reason.whyNotPromotable) {
+        PropertyNonPromotabilityReason.isNotField =>
+          diag.fieldNotPromotedBecauseNotField,
+        PropertyNonPromotabilityReason.isNotPrivate =>
+          diag.fieldNotPromotedBecauseNotPrivate,
+        PropertyNonPromotabilityReason.isExternal =>
+          diag.fieldNotPromotedBecauseExternal,
+        PropertyNonPromotabilityReason.isNotFinal =>
+          diag.fieldNotPromotedBecauseNotFinal,
+      };
       List<LocatedMessage> messages = [
         template
-            .withArgumentsOld(reason.propertyName, reason.documentationLink.url)
+            .withArguments(
+              propertyName: reason.propertyName,
+              documentationUrl: reason.documentationLink.url,
+            )
             .withLocation(member.fileUri, member.fileOffset, noLength),
       ];
       if (!reason.fieldPromotionEnabled) {
@@ -5735,8 +5760,8 @@ class _WhyNotPromotedVisitor
   @override
   List<LocatedMessage> visitThisNotPromoted(ThisNotPromoted reason) {
     return [
-      codeThisNotPromoted
-          .withArgumentsOld(reason.documentationLink.url)
+      diag.thisNotPromoted
+          .withArguments(documentationUrl: reason.documentationLink.url)
           .withoutLocation(),
     ];
   }
@@ -5748,10 +5773,11 @@ class _WhyNotPromotedVisitor
     Object? member = reason.propertyMember;
     if (member is Member) {
       messages.add(
-        codeFieldNotPromotedBecauseNotEnabled
-            .withArgumentsOld(
-              reason.propertyName,
-              NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
+        diag.fieldNotPromotedBecauseNotEnabled
+            .withArguments(
+              variableName: reason.propertyName,
+              documentationUrl:
+                  NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
             )
             .withLocation(member.fileUri, member.fileOffset, noLength),
       );
@@ -5998,9 +6024,9 @@ class _ObjectAccessDescriptor {
         // Coverage-ignore(suite): Not run.
         case Nullability.undetermined:
           return internalProblem(
-            codeInternalProblemUnsupportedNullability.withArgumentsOld(
-              "${receiverBound.nullability}",
-              receiverBound,
+            diag.internalProblemUnsupportedNullability.withArguments(
+              nullability: "${receiverBound.nullability}",
+              type: receiverBound,
             ),
             fileOffset,
             visitor.libraryBuilder.fileUri,

@@ -405,6 +405,7 @@ class GridLayout extends ViewLayout {
 
     // Fill in tracks
     for (int i = first; i < length; i++) {
+      // ignore: dead_code
       if (tracks[i] == null) {
         tracks[i] = GridTrack(sizing);
       }

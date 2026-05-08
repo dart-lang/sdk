@@ -4,13 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
 /// actually constant.
@@ -20,28 +20,43 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   ConstArgumentsVerifier(this._diagnosticReporter);
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    if (node.operator.type == TokenType.EQ) {
-      _check(arguments: [node.rightHandSide], errorNode: node.operator);
-    } else if (node
-            .rightHandSide
-            .correspondingParameter
-            ?.metadata
-            .hasMustBeConst ??
-        false) {
-      // If the operator is not `=`, then the argument cannot be const, as it
-      // depends on the value of the left hand side.
-      _diagnosticReporter.atNode(
-        node.rightHandSide,
-        diag.nonConstArgumentForConstParameter,
-        arguments: [node.rightHandSide],
-      );
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    var parameters = node.parameters?.parameters;
+    if (parameters == null || parameters.isEmpty) {
+      return;
     }
+
+    var parameter = parameters.first;
+    var element = parameter.declaredFragment?.element;
+    if (element == null) {
+      return;
+    }
+
+    if (element.metadata.hasMustBeConst) {
+      var target = node.realTarget;
+      if (!_isConst(target)) {
+        _diagnosticReporter.report(
+          diag.nonConstArgumentForConstParameter
+              .withArguments(name: element.name!)
+              .at(target),
+        );
+      }
+    }
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _check(arguments: [node.rightHandSide], errorNode: node.operator);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _check(arguments: [node.rightOperand], errorNode: node.operator);
+  }
+
+  @override
+  void visitConstructorReference(ConstructorReference node) {
+    _checkTearoff(node, node.constructorName.element);
   }
 
   @override
@@ -71,6 +86,16 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _checkTearoff(node.identifier, node.element);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    _checkTearoff(node.propertyName, node.propertyName.element);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -78,6 +103,19 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
       arguments: node.argumentList.arguments,
       errorNode: node.constructorName ?? node.thisKeyword,
     );
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var parent = node.parent;
+    if (parent is PropertyAccess && parent.propertyName == node) return;
+    if (parent is PrefixedIdentifier && parent.identifier == node) return;
+    if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
+      return;
+    }
+    if (parent is DotShorthandInvocation && parent.memberName == node) return;
+    if (parent is MethodInvocation && parent.methodName == node) return;
+    _checkTearoff(node, node.element);
   }
 
   @override
@@ -111,12 +149,27 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
           resolvedArgument = argument;
         }
         if (!_isConst(resolvedArgument)) {
-          _diagnosticReporter.atNode(
-            argument,
-            diag.nonConstArgumentForConstParameter,
-            arguments: [parameterName],
+          _diagnosticReporter.report(
+            diag.nonConstArgumentForConstParameter
+                .withArguments(name: parameterName)
+                .at(argument),
           );
         }
+      }
+    }
+  }
+
+  void _checkTearoff(Expression node, Element? element) {
+    if (element is! ExecutableElement) return;
+    if (!element.formalParameters.any((p) => p.metadata.hasMustBeConst)) return;
+    if (_isTearOff(node)) {
+      var name = element.name;
+      if (name != null && name.isNotEmpty) {
+        _diagnosticReporter.report(
+          diag.tearoffWithMustBeConstParameter
+              .withArguments(name: name)
+              .at(node),
+        );
       }
     }
   }
@@ -148,6 +201,26 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         case VariableElement():
           return element.isConst;
       }
+    }
+    return false;
+  }
+
+  bool _isTearOff(Expression node) {
+    if (node is ConstructorReference) return true;
+    if (node is FunctionReference) return true;
+    if (node is DotShorthandPropertyAccess) return true;
+    if (node.inCommentReference) return false;
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is ConstructorName) {
+        parent = parent.parent;
+      }
+      while (parent is ParenthesizedExpression) {
+        parent = parent.parent;
+      }
+      if (parent is InvocationExpression) return false;
+      if (node.element is TopLevelFunctionElement) return true;
+      if (node.element is MethodElement) return true;
     }
     return false;
   }

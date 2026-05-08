@@ -34,13 +34,13 @@ class B {
     await assertErrorsInCode(
       r'''
 class A {}
-f(var a) {
+f(a) {
   if (a is A) {
     a + 1;
   }
 }
 ''',
-      [error(diag.undefinedOperator, 44, 1)],
+      [error(diag.undefinedOperator, 40, 1)],
     );
   }
 
@@ -61,13 +61,13 @@ class A {}
 class B extends A {
   operator +(B b) {}
 }
-f(var a) {
+f(a) {
   if (a is A) {
     a + 1;
   }
 }
 ''',
-      [error(diag.undefinedOperator, 87, 1)],
+      [error(diag.undefinedOperator, 83, 1)],
     );
   }
 
@@ -361,13 +361,13 @@ m() {
     await assertErrorsInCode(
       r'''
 class A {}
-f(var a) {
+f(a) {
   if (a is A) {
     a++;
   }
 }
 ''',
-      [error(diag.undefinedOperator, 43, 2)],
+      [error(diag.undefinedOperator, 39, 2)],
     );
   }
 
@@ -378,13 +378,13 @@ class A {}
 class B extends A {
   operator +(B b) {return new B();}
 }
-f(var a) {
+f(a) {
   if (a is A) {
     a++;
   }
 }
 ''',
-      [error(diag.undefinedOperator, 101, 2)],
+      [error(diag.undefinedOperator, 97, 2)],
     );
   }
 
@@ -446,13 +446,13 @@ m() {
     await assertErrorsInCode(
       r'''
 class A {}
-f(var a) {
+f(a) {
   if (a is A) {
     ++a;
   }
 }
 ''',
-      [error(diag.undefinedOperator, 42, 2)],
+      [error(diag.undefinedOperator, 38, 2)],
     );
   }
 
@@ -463,13 +463,13 @@ class A {}
 class B extends A {
   operator +(B b) {return new B();}
 }
-f(var a) {
+f(a) {
   if (a is A) {
     ++a;
   }
 }
 ''',
-      [error(diag.undefinedOperator, 100, 2)],
+      [error(diag.undefinedOperator, 96, 2)],
     );
   }
 

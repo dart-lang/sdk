@@ -9,17 +9,8 @@ library vm.transformations.ffi;
 
 // This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show
-        codeFfiLeafCallMustNotReturnHandle,
-        codeFfiLeafCallMustNotTakeHandle,
-        codeFfiVariableLengthArrayNotLast,
-        codeNegativeVariableDimension,
-        codeNonPositiveArrayDimensions,
-        codeFfiSizeAnnotation,
-        codeFfiSizeAnnotationDimensions,
-        codeFfiTypeInvalid,
-        codeFfiTypeMismatch;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -1068,11 +1059,22 @@ class FfiTransformer extends Transformer {
   @override
   TreeNode visitLibrary(Library node) {
     assert(_currentLibrary == null);
-    _currentLibrary = node;
-    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
+    initCurrentLibrary(node);
     final result = super.visitLibrary(node);
-    _currentLibrary = null;
+    cleanupCurrentLibrary();
     return result;
+  }
+
+  /// Initializes the current library context for transformations.
+  void initCurrentLibrary(Library library) {
+    _currentLibrary = library;
+    currentLibraryIndex = referenceFromIndex?.lookupLibrary(library);
+  }
+
+  /// Clears the current library context after transformations.
+  void cleanupCurrentLibrary() {
+    _currentLibrary = null;
+    currentLibraryIndex = null;
   }
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
@@ -1275,8 +1277,9 @@ class FfiTransformer extends Transformer {
       if (returnType == null) return null;
 
       final argumentTypes = <DartType>[];
-      for (final paramDartType
-          in flattenVarargs(dartType).positionalParameters) {
+      for (final paramDartType in flattenVarargs(
+        dartType,
+      ).positionalParameters) {
         argumentTypes.add(
           convertDartTypeToNativeType(paramDartType) ?? dummyDartType,
         );
@@ -1359,8 +1362,9 @@ class FfiTransformer extends Transformer {
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
   Expression runtimeBranchOnLayout(Map<Abi, int?> values) {
-    final elementNullability =
-        values.isPartial ? Nullability.nullable : Nullability.nonNullable;
+    final elementNullability = values.isPartial
+        ? Nullability.nullable
+        : Nullability.nonNullable;
     final result = InstanceInvocation(
       InstanceAccessKind.Instance,
       intListConstantExpression([
@@ -1477,7 +1481,9 @@ class FfiTransformer extends Transformer {
         variableLength = sizeAnnotations.single.$2;
         if (arrayDimensions(type) != dimensions.length) {
           diagnosticReporter.report(
-            codeFfiSizeAnnotationDimensions.withArgumentsOld(node.name.text),
+            diag.ffiSizeAnnotationDimensions.withArguments(
+              fieldName: node.name.text,
+            ),
             node.fileOffset,
             node.name.text.length,
             node.fileUri,
@@ -1486,7 +1492,7 @@ class FfiTransformer extends Transformer {
         if (variableLength) {
           if (!allowVariableLength) {
             diagnosticReporter.report(
-              codeFfiVariableLengthArrayNotLast,
+              diag.ffiVariableLengthArrayNotLast,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1499,7 +1505,7 @@ class FfiTransformer extends Transformer {
             // Variable dimension can't be negative.
             if (dimensions[0] < 0) {
               diagnosticReporter.report(
-                codeNegativeVariableDimension,
+                diag.negativeVariableDimension,
                 node.fileOffset,
                 node.name.text.length,
                 node.fileUri,
@@ -1510,7 +1516,7 @@ class FfiTransformer extends Transformer {
 
           if (dimensions[i] <= 0) {
             diagnosticReporter.report(
-              codeNonPositiveArrayDimensions,
+              diag.nonPositiveArrayDimensions,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1521,7 +1527,7 @@ class FfiTransformer extends Transformer {
       }
     } else {
       diagnosticReporter.report(
-        codeFfiSizeAnnotation.withArgumentsOld(node.name.text),
+        diag.ffiSizeAnnotation.withArguments(fieldName: node.name.text),
         node.fileOffset,
         node.name.text.length,
         node.fileUri,
@@ -1568,12 +1574,11 @@ class FfiTransformer extends Transformer {
       arraySizeDimension4Field,
       arraySizeDimension5Field,
     ];
-    final result =
-        dimensionFields
-            .map((f) => constant.fieldValues[f.fieldReference])
-            .whereType<IntConstant>()
-            .map((c) => c.value)
-            .toList();
+    final result = dimensionFields
+        .map((f) => constant.fieldValues[f.fieldReference])
+        .whereType<IntConstant>()
+        .map((c) => c.value)
+        .toList();
     return (result, variableLength);
   }
 
@@ -1680,17 +1685,16 @@ class FfiTransformer extends Transformer {
   }
 
   MapConstant? getAbiSpecificIntegerMappingAnnotation(Class node) {
-    final annotations =
-        node.annotations
-            .whereType<ConstantExpression>()
-            .map((e) => e.constant)
-            .whereType<InstanceConstant>()
-            .where((e) => e.classNode == abiSpecificIntegerMappingClass)
-            .map(
-              (instanceConstant) =>
-                  instanceConstant.fieldValues.values.single as MapConstant,
-            )
-            .toList();
+    final annotations = node.annotations
+        .whereType<ConstantExpression>()
+        .map((e) => e.constant)
+        .whereType<InstanceConstant>()
+        .where((e) => e.classNode == abiSpecificIntegerMappingClass)
+        .map(
+          (instanceConstant) =>
+              instanceConstant.fieldValues.values.single as MapConstant,
+        )
+        .toList();
 
     // There can be at most one annotation (checked by `_FfiDefinitionTransformer`)
     if (annotations.length == 1) {
@@ -1866,7 +1870,7 @@ class FfiTransformer extends Transformer {
       if (returnType is InterfaceType) {
         if (returnType.classNode == handleClass) {
           diagnosticReporter.report(
-            codeFfiLeafCallMustNotReturnHandle,
+            diag.ffiLeafCallMustNotReturnHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,
@@ -1878,7 +1882,7 @@ class FfiTransformer extends Transformer {
       for (DartType param in functionType.positionalParameters) {
         if ((param as InterfaceType).classNode == handleClass) {
           diagnosticReporter.report(
-            codeFfiLeafCallMustNotTakeHandle,
+            diag.ffiLeafCallMustNotTakeHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,
@@ -1905,18 +1909,15 @@ class FfiTransformer extends Transformer {
     final DartType correspondingDartType;
     switch (direction) {
       case FfiTypeCheckDirection.nativeToDart:
-        correspondingDartType =
-            convertNativeTypeToDartType(
-              nativeType,
-              allowStructAndUnion: true,
-              allowHandle: allowHandle,
-              allowInlineArray: allowArray,
-              allowVoid: allowVoid,
-              mode:
-                  HandleToDartTypeConversionMode
-                      .varianceBasedBehaviorForSubtype,
-              variance: Variance.covariant,
-            )!;
+        correspondingDartType = convertNativeTypeToDartType(
+          nativeType,
+          allowStructAndUnion: true,
+          allowHandle: allowHandle,
+          allowInlineArray: allowArray,
+          allowVoid: allowVoid,
+          mode: HandleToDartTypeConversionMode.varianceBasedBehaviorForSubtype,
+          variance: Variance.covariant,
+        )!;
         if (env.isSubtypeOf(correspondingDartType, dartType)) {
           // If subtype, manually check the return type is not void.
           if (correspondingDartType is FunctionType) {
@@ -1934,27 +1935,25 @@ class FfiTransformer extends Transformer {
           }
         }
       case FfiTypeCheckDirection.dartToNative:
-        correspondingDartType =
-            convertNativeTypeToDartType(
-              nativeType,
-              allowStructAndUnion: true,
-              allowHandle: allowHandle,
-              allowInlineArray: allowArray,
-              allowVoid: allowVoid,
-              mode:
-                  HandleToDartTypeConversionMode
-                      .varianceBasedBehaviorForSupertype,
-              variance: Variance.covariant,
-            )!;
+        correspondingDartType = convertNativeTypeToDartType(
+          nativeType,
+          allowStructAndUnion: true,
+          allowHandle: allowHandle,
+          allowInlineArray: allowArray,
+          allowVoid: allowVoid,
+          mode:
+              HandleToDartTypeConversionMode.varianceBasedBehaviorForSupertype,
+          variance: Variance.covariant,
+        )!;
         if (env.isSubtypeOf(dartType, correspondingDartType)) {
           return correspondingDartType;
         }
     }
     diagnosticReporter.report(
-      codeFfiTypeMismatch.withArgumentsOld(
-        dartType,
-        correspondingDartType,
-        nativeType,
+      diag.ffiTypeMismatch.withArguments(
+        actualType: dartType,
+        expectedType: correspondingDartType,
+        nativeType: nativeType,
       ),
       reportErrorOn.fileOffset,
       1,
@@ -1979,7 +1978,7 @@ class FfiTransformer extends Transformer {
       allowVoid: allowVoid,
     )) {
       diagnosticReporter.report(
-        codeFfiTypeInvalid.withArgumentsOld(nativeType),
+        diag.ffiTypeInvalid.withArguments(type: nativeType),
         reportErrorOn.fileOffset,
         1,
         reportErrorOn.location?.file,

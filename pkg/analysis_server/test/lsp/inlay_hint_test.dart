@@ -144,6 +144,26 @@ void f([int? _, int? _]) {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_primaryConstructor() async {
+    var content = '''
+class const A(int x, [int y = 0]);
+
+class const B(int x, int y) extends A {
+  this : super(x + 1, y + 1);
+}
+''';
+
+    var expected = '''
+class const A(int x, [int y = 0]);
+
+class const B(int x, int y) extends A {
+  this : super((Parameter:x:) x + 1, (Parameter:y:) y + 1);
+}
+''';
+
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_requiredPositional() async {
     var content = '''
 void f(int a, int b) {
@@ -993,6 +1013,26 @@ void f() {
   };
 }
 ''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_primaryConstructor() async {
+    var content = '''
+class const A({x});
+
+class const B({x}) extends A {
+  this : super(x: x);
+}
+''';
+
+    var expected = '''
+class const A({(Type:dynamic) x});
+
+class const B({(Type:dynamic) x}) extends A {
+  this : super(x: x);
+}
+''';
+
     await _expectHints(content, expected);
   }
 

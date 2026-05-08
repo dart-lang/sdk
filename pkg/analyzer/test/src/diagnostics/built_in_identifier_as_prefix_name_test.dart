@@ -38,4 +38,48 @@ import 'dart:async' as Function;
       ],
     );
   }
+
+  test_inout() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:async' as inout;
+''',
+      [
+        error(diag.unusedImport, 7, 12),
+        error(diag.builtInIdentifierAsPrefixName, 23, 5),
+      ],
+    );
+  }
+
+  test_inout_language310() async {
+    await assertErrorsInCode(
+      '''
+// @dart = 3.10
+import 'dart:async' as inout;
+''',
+      [error(diag.unusedImport, 23, 12)],
+    );
+  }
+
+  test_out() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:async' as out;
+''',
+      [
+        error(diag.unusedImport, 7, 12),
+        error(diag.builtInIdentifierAsPrefixName, 23, 3),
+      ],
+    );
+  }
+
+  test_out_language310() async {
+    await assertErrorsInCode(
+      '''
+// @dart = 3.10
+import 'dart:async' as out;
+''',
+      [error(diag.unusedImport, 23, 12)],
+    );
+  }
 }

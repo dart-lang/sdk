@@ -18,6 +18,13 @@ extension type const ArenaPointer(int _index) {
     return ArenaPointer(_index + size);
   }
 
+  /// Number of 32-bit elements between [base] and [this] pointers.
+  int operator -(ArenaPointer base) {
+    assert(this != Null);
+    assert(base != Null);
+    return this._index - base._index;
+  }
+
   /// 32-bit unsigned integer value of this pointer.
   int toInt() => _index;
 }

@@ -15,6 +15,12 @@ main() {
 
 @reflectiveTest
 class InvalidUseOfCovariantTest extends PubPackageResolutionTest {
+  test_class_primaryConstructor() async {
+    await assertNoErrorsInCode('''
+class A(covariant var int a);
+''');
+  }
+
   test_functionExpression() async {
     await assertErrorsInCode(
       '''

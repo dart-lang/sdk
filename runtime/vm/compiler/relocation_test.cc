@@ -43,7 +43,7 @@ struct RelocatorTestHelper {
   explicit RelocatorTestHelper(Thread* thread)
       : thread(thread),
         locker(thread, thread->isolate_group()->program_lock()),
-        safepoint_and_growth_scope(thread, SafepointLevel::kGC) {
+        safepoint_scope(thread) {
     // So the relocator uses the correct instruction size layout.
     FLAG_precompiled_mode = true;
 
@@ -272,7 +272,7 @@ struct RelocatorTestHelper {
 
   Thread* thread;
   SafepointWriteRwLocker locker;
-  ForceGrowthSafepointOperationScope safepoint_and_growth_scope;
+  GcSafepointOperationScope safepoint_scope;
   GrowableArray<const Code*> codes;
 };
 

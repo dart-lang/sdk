@@ -22,45 +22,46 @@ void f<V>(T p<T, U>(U a, V b)) {}
 
     var node = findNode.singleFunctionTypedFormalParameter;
     assertResolvedNodeText(node, r'''
-FunctionTypedFormalParameter
-  returnType: NamedType
+RegularFormalParameter
+  type: NamedType
     name: T
     element: #E0 T
     type: T
   name: p
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-        declaredFragment: <testLibraryFragment> T@14
-          defaultType: null
-      TypeParameter
-        name: U
-        declaredFragment: <testLibraryFragment> U@17
-          defaultType: null
-    rightBracket: >
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      type: NamedType
-        name: U
-        element: #E1 U
-        type: U
-      name: a
-      declaredFragment: <testLibraryFragment> a@22
-        element: isPublic
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@14
+            defaultType: null
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@17
+            defaultType: null
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E1 U
           type: U
-    parameter: SimpleFormalParameter
-      type: NamedType
-        name: V
-        element: #E2 V
-        type: V
-      name: b
-      declaredFragment: <testLibraryFragment> b@27
-        element: isPublic
+        name: a
+        declaredFragment: <testLibraryFragment> a@22
+          element: isPublic
+            type: U
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: V
+          element: #E2 V
           type: V
-    rightParenthesis: )
+        name: b
+        declaredFragment: <testLibraryFragment> b@27
+          element: isPublic
+            type: V
+      rightParenthesis: )
   declaredFragment: <testLibraryFragment> p@12
     element: isPublic
       type: T Function<T, U>(U, V)
@@ -74,24 +75,25 @@ void f(void p(int a)) {}
 
     var node = findNode.singleFunctionTypedFormalParameter;
     assertResolvedNodeText(node, r'''
-FunctionTypedFormalParameter
-  returnType: NamedType
+RegularFormalParameter
+  type: NamedType
     name: void
     element: <null>
     type: void
   name: p
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      type: NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-      name: a
-      declaredFragment: <testLibraryFragment> a@18
-        element: isPublic
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
           type: int
-    rightParenthesis: )
+        name: a
+        declaredFragment: <testLibraryFragment> a@18
+          element: isPublic
+            type: int
+      rightParenthesis: )
   declaredFragment: <testLibraryFragment> p@12
     element: isPublic
       type: void Function(int)

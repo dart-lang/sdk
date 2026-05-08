@@ -42,11 +42,26 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
        );
 
   @override
-  // Coverage-ignore(suite): Not run.
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    /// Initializer formals or super parameters cannot occur in getters so
-    /// we don't need to create a new scope.
-    return parent;
+  bool get inPrimaryConstructorFieldInitializer {
+    DeclarationBuilder? declarationBuilder = _builder.declarationBuilder;
+    if (declarationBuilder is SourceClassBuilder &&
+        !_declaration.isStatic &&
+        !isLateField) {
+      return declarationBuilder.hasPrimaryConstructor;
+    }
+    return false;
+  }
+
+  @override
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    DeclarationBuilder? declarationBuilder = _builder.declarationBuilder;
+    if (declarationBuilder is SourceClassBuilder &&
+        !_declaration.isStatic &&
+        !isLateField) {
+      return declarationBuilder.primaryConstructorInitializerScopeParameters;
+    }
+    return null;
   }
 
   @override

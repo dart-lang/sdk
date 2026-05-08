@@ -154,7 +154,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
   /// generators that can be used to apply the fix.
   Set<DiagnosticCode> get _codesWhereThisIsValid {
     var constructors = [RemoveUnnecessaryConst.new, RemoveConst.new];
-    var nonLintMultiProducers = registeredFixGenerators.nonLintProducers;
+    var nonLintMultiProducers = registeredFixGenerators.warningProducers;
     return {
       for (var MapEntry(:key, :value) in nonLintMultiProducers.entries)
         if (value.containsAny(constructors)) key,

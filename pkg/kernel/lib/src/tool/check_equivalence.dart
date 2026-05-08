@@ -12,14 +12,17 @@ import 'package:kernel/src/tool/command_line_util.dart';
 void main(List<String> args) {
   ParsedOptions parsedOptions = ParsedOptions.parse(args, optionSpecification);
 
-  CommandLineHelper.requireVariableArgumentCount([2], parsedOptions.arguments,
-      () {
-    print('''
+  CommandLineHelper.requireVariableArgumentCount(
+    [2],
+    parsedOptions.arguments,
+    () {
+      print('''
 Usage:
 
     dart check_equivalence.dart [options] <dill1> <dill2>
 ''');
-  });
+    },
+  );
   if (parsedOptions.arguments.length != 2) {
     exit(1);
   }
@@ -50,18 +53,22 @@ Usage:
 
   Component dill1 = CommandLineHelper.tryLoadDill(parsedOptions.arguments[0]);
   Component dill2 = CommandLineHelper.tryLoadDill(parsedOptions.arguments[1]);
-  EquivalenceResult result = checkEquivalence(dill1, dill2,
-      strategy: new Strategy(
-          unorderedLibraries: unorderedLibraries,
-          unorderedLibraryDependencies: unorderedLibraryDependencies,
-          unorderedAdditionalExports: unorderedAdditionalExports,
-          unorderedParts: unorderedParts,
-          unorderedTypedefs: unorderedTypedefs,
-          unorderedClasses: unorderedClasses,
-          unorderedFields: unorderedFields,
-          unorderedProcedures: unorderedProcedures,
-          unorderedConstructors: unorderedConstructors,
-          unorderedAnnotations: unorderedAnnotations));
+  EquivalenceResult result = checkEquivalence(
+    dill1,
+    dill2,
+    strategy: new Strategy(
+      unorderedLibraries: unorderedLibraries,
+      unorderedLibraryDependencies: unorderedLibraryDependencies,
+      unorderedAdditionalExports: unorderedAdditionalExports,
+      unorderedParts: unorderedParts,
+      unorderedTypedefs: unorderedTypedefs,
+      unorderedClasses: unorderedClasses,
+      unorderedFields: unorderedFields,
+      unorderedProcedures: unorderedProcedures,
+      unorderedConstructors: unorderedConstructors,
+      unorderedAnnotations: unorderedAnnotations,
+    ),
+  );
   if (result.isEquivalent) {
     print('The dills are equivalent.');
   } else {
@@ -84,18 +91,22 @@ EquivalenceResult checkNodeEquivalence(
   bool unorderedConstructors = false,
   bool unorderedAnnotations = false,
 }) {
-  return checkEquivalence(node1, node2,
-      strategy: new Strategy(
-          unorderedLibraries: unorderedLibraries,
-          unorderedLibraryDependencies: unorderedLibraryDependencies,
-          unorderedAdditionalExports: unorderedAdditionalExports,
-          unorderedParts: unorderedParts,
-          unorderedTypedefs: unorderedTypedefs,
-          unorderedClasses: unorderedClasses,
-          unorderedFields: unorderedFields,
-          unorderedProcedures: unorderedProcedures,
-          unorderedConstructors: unorderedConstructors,
-          unorderedAnnotations: unorderedAnnotations));
+  return checkEquivalence(
+    node1,
+    node2,
+    strategy: new Strategy(
+      unorderedLibraries: unorderedLibraries,
+      unorderedLibraryDependencies: unorderedLibraryDependencies,
+      unorderedAdditionalExports: unorderedAdditionalExports,
+      unorderedParts: unorderedParts,
+      unorderedTypedefs: unorderedTypedefs,
+      unorderedClasses: unorderedClasses,
+      unorderedFields: unorderedFields,
+      unorderedProcedures: unorderedProcedures,
+      unorderedConstructors: unorderedConstructors,
+      unorderedAnnotations: unorderedAnnotations,
+    ),
+  );
 }
 
 class Strategy extends EquivalenceStrategy {
@@ -110,235 +121,382 @@ class Strategy extends EquivalenceStrategy {
   final bool unorderedConstructors;
   final bool unorderedAnnotations;
 
-  Strategy(
-      {required this.unorderedLibraries,
-      required this.unorderedLibraryDependencies,
-      required this.unorderedAdditionalExports,
-      required this.unorderedParts,
-      required this.unorderedTypedefs,
-      required this.unorderedClasses,
-      required this.unorderedFields,
-      required this.unorderedProcedures,
-      required this.unorderedConstructors,
-      required this.unorderedAnnotations});
+  Strategy({
+    required this.unorderedLibraries,
+    required this.unorderedLibraryDependencies,
+    required this.unorderedAdditionalExports,
+    required this.unorderedParts,
+    required this.unorderedTypedefs,
+    required this.unorderedClasses,
+    required this.unorderedFields,
+    required this.unorderedProcedures,
+    required this.unorderedConstructors,
+    required this.unorderedAnnotations,
+  });
 
   @override
   bool checkComponent_libraries(
-      EquivalenceVisitor visitor, Component node, Component other) {
+    EquivalenceVisitor visitor,
+    Component node,
+    Component other,
+  ) {
     if (unorderedLibraries) {
-      return visitor.checkSets(node.libraries.toSet(), other.libraries.toSet(),
-          visitor.matchNamedNodes, visitor.checkNodes, 'libraries');
+      return visitor.checkSets(
+        node.libraries.toSet(),
+        other.libraries.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'libraries',
+      );
     } else {
       return visitor.checkLists(
-          node.libraries, other.libraries, visitor.checkNodes, 'libraries');
+        node.libraries,
+        other.libraries,
+        visitor.checkNodes,
+        'libraries',
+      );
     }
   }
 
   @override
   bool checkLibrary_dependencies(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedLibraryDependencies) {
-      return visitor
-          .checkSets(node.dependencies.toSet(), other.dependencies.toSet(),
-              (LibraryDependency dependency1, LibraryDependency dependency2) {
-        return visitor.matchReferences(dependency1.importedLibraryReference,
-                dependency2.importedLibraryReference) &&
-            dependency1.flags == dependency2.flags &&
-            dependency1.name == dependency2.name &&
-            dependency1.fileOffset == dependency2.fileOffset;
-      }, visitor.checkNodes, 'dependencies');
+      return visitor.checkSets(
+        node.dependencies.toSet(),
+        other.dependencies.toSet(),
+        (LibraryDependency dependency1, LibraryDependency dependency2) {
+          return visitor.matchReferences(
+                dependency1.importedLibraryReference,
+                dependency2.importedLibraryReference,
+              ) &&
+              dependency1.flags == dependency2.flags &&
+              dependency1.name == dependency2.name &&
+              dependency1.fileOffset == dependency2.fileOffset;
+        },
+        visitor.checkNodes,
+        'dependencies',
+      );
     } else {
-      return visitor.checkLists(node.dependencies, other.dependencies,
-          visitor.checkNodes, 'dependencies');
+      return visitor.checkLists(
+        node.dependencies,
+        other.dependencies,
+        visitor.checkNodes,
+        'dependencies',
+      );
     }
   }
 
   @override
   bool checkLibrary_parts(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedParts) {
-      return visitor.checkSets(node.parts.toSet(), other.parts.toSet(),
-          (LibraryPart part1, LibraryPart part2) {
-        return part1.partUri == part2.partUri;
-      }, visitor.checkNodes, 'parts');
+      return visitor.checkSets(
+        node.parts.toSet(),
+        other.parts.toSet(),
+        (LibraryPart part1, LibraryPart part2) {
+          return part1.partUri == part2.partUri;
+        },
+        visitor.checkNodes,
+        'parts',
+      );
     } else {
       return visitor.checkLists(
-          node.parts, other.parts, visitor.checkNodes, 'parts');
+        node.parts,
+        other.parts,
+        visitor.checkNodes,
+        'parts',
+      );
     }
   }
 
   @override
   bool checkLibrary_typedefs(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedTypedefs) {
-      return visitor.checkSets(node.typedefs.toSet(), other.typedefs.toSet(),
-          visitor.matchNamedNodes, visitor.checkNodes, 'typedefs');
+      return visitor.checkSets(
+        node.typedefs.toSet(),
+        other.typedefs.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'typedefs',
+      );
     } else {
       return visitor.checkLists(
-          node.typedefs, other.typedefs, visitor.checkNodes, 'typedefs');
+        node.typedefs,
+        other.typedefs,
+        visitor.checkNodes,
+        'typedefs',
+      );
     }
   }
 
   @override
   bool checkLibrary_additionalExports(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedAdditionalExports) {
       return visitor.checkSets(
-          node.additionalExports.toSet(),
-          other.additionalExports.toSet(),
-          visitor.matchReferences,
-          visitor.checkReferences,
-          'additionalExports');
+        node.additionalExports.toSet(),
+        other.additionalExports.toSet(),
+        visitor.matchReferences,
+        visitor.checkReferences,
+        'additionalExports',
+      );
     } else {
-      return visitor.checkLists(node.additionalExports, other.additionalExports,
-          visitor.checkReferences, 'additionalExports');
+      return visitor.checkLists(
+        node.additionalExports,
+        other.additionalExports,
+        visitor.checkReferences,
+        'additionalExports',
+      );
     }
   }
 
   @override
   bool checkLibrary_classes(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedClasses) {
-      return visitor.checkSets(node.classes.toSet(), other.classes.toSet(),
-          visitor.matchNamedNodes, visitor.checkNodes, 'classes');
+      return visitor.checkSets(
+        node.classes.toSet(),
+        other.classes.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'classes',
+      );
     } else {
       return visitor.checkLists(
-          node.classes, other.classes, visitor.checkNodes, 'classes');
+        node.classes,
+        other.classes,
+        visitor.checkNodes,
+        'classes',
+      );
     }
   }
 
   @override
   bool checkLibrary_fields(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedFields) {
-      return visitor.checkSets(node.fields.toSet(), other.fields.toSet(),
-          visitor.matchNamedNodes, visitor.checkNodes, 'fields');
+      return visitor.checkSets(
+        node.fields.toSet(),
+        other.fields.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'fields',
+      );
     } else {
       return visitor.checkLists(
-          node.fields, other.fields, visitor.checkNodes, 'fields');
+        node.fields,
+        other.fields,
+        visitor.checkNodes,
+        'fields',
+      );
     }
   }
 
   @override
   bool checkLibrary_procedures(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedProcedures) {
       return visitor.checkSets(
-          node.procedures.toSet(),
-          other.procedures.toSet(),
-          visitor.matchNamedNodes,
-          visitor.checkNodes,
-          'procedures');
+        node.procedures.toSet(),
+        other.procedures.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'procedures',
+      );
     } else {
       return visitor.checkLists(
-          node.procedures, other.procedures, visitor.checkNodes, 'procedures');
+        node.procedures,
+        other.procedures,
+        visitor.checkNodes,
+        'procedures',
+      );
     }
   }
 
   @override
   bool checkLibrary_annotations(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     if (unorderedAnnotations) {
       return visitor.checkSets(
-          node.annotations.toSet(),
-          other.annotations.toSet(),
-          _matchAnnotations,
-          visitor.checkNodes,
-          'annotations');
+        node.annotations.toSet(),
+        other.annotations.toSet(),
+        _matchAnnotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     } else {
-      return visitor.checkLists(node.annotations, other.annotations,
-          visitor.checkNodes, 'annotations');
+      return visitor.checkLists(
+        node.annotations,
+        other.annotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     }
   }
 
   @override
   bool checkClass_fields(EquivalenceVisitor visitor, Class node, Class other) {
     if (unorderedFields) {
-      return visitor.checkSets(node.fields.toSet(), other.fields.toSet(),
-          visitor.matchNamedNodes, visitor.checkNodes, 'fields');
+      return visitor.checkSets(
+        node.fields.toSet(),
+        other.fields.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'fields',
+      );
     } else {
       return visitor.checkLists(
-          node.fields, other.fields, visitor.checkNodes, 'fields');
+        node.fields,
+        other.fields,
+        visitor.checkNodes,
+        'fields',
+      );
     }
   }
 
   @override
   bool checkClass_procedures(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     if (unorderedProcedures) {
       return visitor.checkSets(
-          node.procedures.toSet(),
-          other.procedures.toSet(),
-          visitor.matchNamedNodes,
-          visitor.checkNodes,
-          'procedures');
+        node.procedures.toSet(),
+        other.procedures.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'procedures',
+      );
     } else {
       return visitor.checkLists(
-          node.procedures, other.procedures, visitor.checkNodes, 'procedures');
+        node.procedures,
+        other.procedures,
+        visitor.checkNodes,
+        'procedures',
+      );
     }
   }
 
   @override
   bool checkClass_constructors(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     if (unorderedConstructors) {
       return visitor.checkSets(
-          node.constructors.toSet(),
-          other.constructors.toSet(),
-          visitor.matchNamedNodes,
-          visitor.checkNodes,
-          'constructors');
+        node.constructors.toSet(),
+        other.constructors.toSet(),
+        visitor.matchNamedNodes,
+        visitor.checkNodes,
+        'constructors',
+      );
     } else {
-      return visitor.checkLists(node.constructors, other.constructors,
-          visitor.checkNodes, 'constructors');
+      return visitor.checkLists(
+        node.constructors,
+        other.constructors,
+        visitor.checkNodes,
+        'constructors',
+      );
     }
   }
 
   @override
   bool checkClass_annotations(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     if (unorderedAnnotations) {
       return visitor.checkSets(
-          node.annotations.toSet(),
-          other.annotations.toSet(),
-          _matchAnnotations,
-          visitor.checkNodes,
-          'annotations');
+        node.annotations.toSet(),
+        other.annotations.toSet(),
+        _matchAnnotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     } else {
-      return visitor.checkLists(node.annotations, other.annotations,
-          visitor.checkNodes, 'annotations');
+      return visitor.checkLists(
+        node.annotations,
+        other.annotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     }
   }
 
   @override
   bool checkExtension_annotations(
-      EquivalenceVisitor visitor, Extension node, Extension other) {
+    EquivalenceVisitor visitor,
+    Extension node,
+    Extension other,
+  ) {
     if (unorderedAnnotations) {
       return visitor.checkSets(
-          node.annotations.toSet(),
-          other.annotations.toSet(),
-          _matchAnnotations,
-          visitor.checkNodes,
-          'annotations');
+        node.annotations.toSet(),
+        other.annotations.toSet(),
+        _matchAnnotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     } else {
-      return visitor.checkLists(node.annotations, other.annotations,
-          visitor.checkNodes, 'annotations');
+      return visitor.checkLists(
+        node.annotations,
+        other.annotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     }
   }
 
   @override
   bool checkMember_annotations(
-      EquivalenceVisitor visitor, Member node, Member other) {
+    EquivalenceVisitor visitor,
+    Member node,
+    Member other,
+  ) {
     if (unorderedAnnotations) {
       return visitor.checkSets(
-          node.annotations.toSet(),
-          other.annotations.toSet(),
-          _matchAnnotations,
-          visitor.checkNodes,
-          'annotations');
+        node.annotations.toSet(),
+        other.annotations.toSet(),
+        _matchAnnotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     } else {
-      return visitor.checkLists(node.annotations, other.annotations,
-          visitor.checkNodes, 'annotations');
+      return visitor.checkLists(
+        node.annotations,
+        other.annotations,
+        visitor.checkNodes,
+        'annotations',
+      );
     }
   }
 
@@ -366,30 +524,54 @@ class Flags {
 }
 
 class Options {
-  static const Option<bool> unordered =
-      const Option(Flags.unordered, const BoolValue(false));
-  static const Option<bool> unorderedLibraries =
-      const Option(Flags.unorderedLibraries, const BoolValue(false));
-  static const Option<bool> unorderedLibraryDependencies =
-      const Option(Flags.unorderedLibraryDependencies, const BoolValue(false));
-  static const Option<bool> unorderedParts =
-      const Option(Flags.unorderedParts, const BoolValue(false));
-  static const Option<bool> unorderedAdditionalExports =
-      const Option(Flags.unorderedAdditionalExports, const BoolValue(false));
-  static const Option<bool> unorderedTypedefs =
-      const Option(Flags.unorderedTypedefs, const BoolValue(false));
-  static const Option<bool> unorderedClasses =
-      const Option(Flags.unorderedClasses, const BoolValue(false));
-  static const Option<bool> unorderedMembers =
-      const Option(Flags.unorderedMembers, const BoolValue(false));
-  static const Option<bool> unorderedFields =
-      const Option(Flags.unorderedFields, const BoolValue(false));
-  static const Option<bool> unorderedProcedures =
-      const Option(Flags.unorderedProcedures, const BoolValue(false));
-  static const Option<bool> unorderedConstructors =
-      const Option(Flags.unorderedConstructors, const BoolValue(false));
-  static const Option<bool> unorderedAnnotations =
-      const Option(Flags.unorderedAnnotations, const BoolValue(false));
+  static const Option<bool> unordered = const Option(
+    Flags.unordered,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedLibraries = const Option(
+    Flags.unorderedLibraries,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedLibraryDependencies = const Option(
+    Flags.unorderedLibraryDependencies,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedParts = const Option(
+    Flags.unorderedParts,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedAdditionalExports = const Option(
+    Flags.unorderedAdditionalExports,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedTypedefs = const Option(
+    Flags.unorderedTypedefs,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedClasses = const Option(
+    Flags.unorderedClasses,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedMembers = const Option(
+    Flags.unorderedMembers,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedFields = const Option(
+    Flags.unorderedFields,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedProcedures = const Option(
+    Flags.unorderedProcedures,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedConstructors = const Option(
+    Flags.unorderedConstructors,
+    const BoolValue(false),
+  );
+  static const Option<bool> unorderedAnnotations = const Option(
+    Flags.unorderedAnnotations,
+    const BoolValue(false),
+  );
 }
 
 const List<Option> optionSpecification = [

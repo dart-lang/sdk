@@ -170,11 +170,10 @@ class CompilationCommand extends ProcessCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {required bool alwaysCompile,
+      {required this._alwaysCompile,
       String? workingDirectory,
       int index = 0})
-      : _alwaysCompile = alwaysCompile,
-        super(displayName, executable, arguments, environmentOverrides,
+      : super(displayName, executable, arguments, environmentOverrides,
             workingDirectory, index);
 
   @override
@@ -195,7 +194,8 @@ class CompilationCommand extends ProcessCommand {
       [int pid = 0]) {
     if (displayName == 'precompiler' ||
         displayName == 'app_jit' ||
-        displayName == 'dart2bytecode') {
+        displayName == 'dart2bytecode' ||
+        displayName == 'modaot') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
     } else if (displayName == 'dart2wasm') {
@@ -270,14 +270,11 @@ class Dart2jsCompilationCommand extends CompilationCommand {
       List<String> arguments,
       Map<String, String> environmentOverrides,
       {required this.useSdk,
-      required bool alwaysCompile,
-      String? workingDirectory,
-      int index = 0})
+      required super.alwaysCompile,
+      super.workingDirectory,
+      super.index = 0})
       : super("dart2js", outputFile, bootstrapDependencies, executable,
-            arguments, environmentOverrides,
-            alwaysCompile: alwaysCompile,
-            workingDirectory: workingDirectory,
-            index: index);
+            arguments, environmentOverrides);
 
   @override
   Dart2jsCompilationCommand indexedCopy(int index) => Dart2jsCompilationCommand(
@@ -339,15 +336,12 @@ class DevCompilerCompilationCommand extends CompilationCommand {
       List<String> arguments,
       Map<String, String> environmentOverrides,
       {required this.compilerPath,
-      required bool alwaysCompile,
+      required super.alwaysCompile,
       required this.enableHostAsserts,
-      String? workingDirectory,
-      int index = 0})
+      super.workingDirectory,
+      super.index = 0})
       : super("ddc", outputFile, bootstrapDependencies, executable, arguments,
-            environmentOverrides,
-            alwaysCompile: alwaysCompile,
-            workingDirectory: workingDirectory,
-            index: index);
+            environmentOverrides);
 
   @override
   DevCompilerCompilationCommand indexedCopy(int index) =>
@@ -408,12 +402,10 @@ class FastaCompilationCommand extends CompilationCommand {
       List<String> arguments,
       Map<String, String> environmentOverrides,
       String? workingDirectory,
-      {int index = 0})
+      {super.index = 0})
       : super("fasta", outputFile, bootstrapDependencies, executable, arguments,
             environmentOverrides,
-            alwaysCompile: true,
-            workingDirectory: workingDirectory,
-            index: index);
+            alwaysCompile: true, workingDirectory: workingDirectory);
 
   @override
   FastaCompilationCommand indexedCopy(int index) => FastaCompilationCommand(
@@ -504,11 +496,10 @@ class VMKernelCompilationCommand extends CompilationCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {required bool alwaysCompile,
-      int index = 0})
+      {required super.alwaysCompile,
+      super.index = 0})
       : super('vm_compile_to_kernel', outputFile, bootstrapDependencies,
-            executable, arguments, environmentOverrides,
-            alwaysCompile: alwaysCompile, index: index);
+            executable, arguments, environmentOverrides);
 
   @override
   VMKernelCompilationCommand indexedCopy(int index) =>
@@ -550,8 +541,8 @@ class BrowserTestCommand extends Command {
   final String url;
   final TestConfiguration configuration;
 
-  BrowserTestCommand(this.url, this.configuration, {int index = 0})
-      : super._(configuration.runtime.name, index: index);
+  BrowserTestCommand(this.url, this.configuration, {super.index = 0})
+      : super._(configuration.runtime.name);
 
   @override
   BrowserTestCommand indexedCopy(int index) =>
@@ -829,8 +820,8 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       this.arguments,
       this.useElf,
       this.extraLibraries,
-      {int index = 0})
-      : super._("adb_precompilation", index: index);
+      {super.index = 0})
+      : super._("adb_precompilation");
 
   @override
   AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand(
@@ -893,8 +884,8 @@ class AdbDartkCommand extends Command implements AdbCommand {
       this.kernelFile,
       this.arguments,
       this.extraLibraries,
-      {int index = 0})
-      : super._("adb_precompilation", index: index);
+      {super.index = 0})
+      : super._("adb_precompilation");
 
   @override
   AdbDartkCommand indexedCopy(int index) => AdbDartkCommand(

@@ -6,6 +6,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -73,8 +74,9 @@ class InstanceCreationExpressionResolver {
       dotShorthandContextType,
     );
 
-    if (dotShorthandContextType is InterfaceTypeImpl) {
-      InterfaceElementImpl? contextElement = dotShorthandContextType.element;
+    if (dotShorthandContextType case InterfaceTypeImpl(
+      element: var contextElement,
+    ) when contextElement.isAccessibleIn(_resolver.definingLibrary)) {
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
       // rewritten [DotShorthandConstructorInvocation] that resulted from
@@ -106,19 +108,23 @@ class InstanceCreationExpressionResolver {
           diag.instantiateAbstractClass.at(node),
         );
       } else if (typeArguments != null) {
-        _resolver.diagnosticReporter.atNode(
-          typeArguments,
-          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          arguments: [
-            dotShorthandContextType.getDisplayString(),
-            node.constructorName.name,
-          ],
+        _resolver.diagnosticReporter.report(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor
+              .withArguments(
+                className: dotShorthandContextType.element.displayName,
+                constructorName: node.constructorName.name,
+              )
+              .at(typeArguments),
         );
       }
     } else {
       _resolver.diagnosticReporter.report(
         diag.dotShorthandMissingContext.at(node),
       );
+      // Prevents `constructorElementToInfer` (called by
+      // `_resolveDotShorthandConstructorInvocation`) from considering the
+      // context type to be valid.
+      dotShorthandContextType = InvalidTypeImpl.instance;
     }
 
     _resolveDotShorthandConstructorInvocation(
@@ -140,18 +146,22 @@ class InstanceCreationExpressionResolver {
       constructorName: node.constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    var returnType =
-        DotShorthandConstructorInvocationInferrer(
-          resolver: _resolver,
-          node: node,
-          argumentList: node.argumentList,
-          contextType: contextType,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-        ).resolveInvocation(
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `ConstructorElementToInfer.asType`.
-          rawType: elementToInfer?.asType as FunctionTypeImpl?,
-        );
+    var target = elementToInfer == null
+        ? null
+        : InvocationTargetConstructorElement(
+            elementToInfer.element,
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            elementToInfer.asType as FunctionTypeImpl,
+          );
+    var returnType = DotShorthandConstructorInvocationInferrer(
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      target: target,
+    ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
       node.argumentList,
@@ -174,17 +184,22 @@ class InstanceCreationExpressionResolver {
       constructorName: node.constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );
+    var target = elementToInfer == null
+        ? null
+        : InvocationTargetConstructorElement(
+            elementToInfer.element,
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            elementToInfer.asType as FunctionTypeImpl,
+          );
     InstanceCreationInferrer(
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `ConstructorElementToInfer.asType`.
-      rawType: elementToInfer?.asType as FunctionTypeImpl?,
-    );
+      target: target,
+    ).resolveInvocation();
     node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
       node.argumentList,

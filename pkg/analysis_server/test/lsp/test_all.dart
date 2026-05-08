@@ -32,6 +32,8 @@ import 'document_symbols_test.dart' as document_symbols;
 import 'edit_argument_test.dart' as edit_argument;
 import 'editable_arguments_test.dart' as editable_arguments;
 import 'error_or_test.dart' as error_or;
+import 'exhaustive_flutter_widget_preview_test.dart'
+    as exhaustive_flutter_widget_preview;
 import 'file_modification_test.dart' as file_modification;
 import 'flutter_outline_test.dart' as flutter_outline;
 import 'folding_test.dart' as folding;
@@ -96,6 +98,7 @@ void main() {
     edit_argument.main();
     editable_arguments.main();
     error_or.main();
+    exhaustive_flutter_widget_preview.main();
     file_modification.main();
     flutter_outline.main();
     folding.main();

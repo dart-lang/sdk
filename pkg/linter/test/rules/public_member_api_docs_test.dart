@@ -11,9 +11,9 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(PublicMemberApiDocsExtensionTypesTest);
     defineReflectiveTests(PublicMemberApiDocsTest);
     defineReflectiveTests(PublicMemberApiDocsTestDirTest);
-    defineReflectiveTests(PublicMemberApiDocsExtensionTypesTest);
     defineReflectiveTests(PublicMemberApiDocsTestPackageTest);
   });
 }
@@ -43,10 +43,7 @@ extension type E(int i) {
   int? f;
 }
 ''',
-      [
-        // No lint.
-        error(diag.extensionTypeDeclaresInstanceField, 42, 1),
-      ],
+      [error(diag.extensionTypeDeclaresInstanceField, 42, 1)],
     );
   }
 
@@ -150,6 +147,17 @@ class C {
 }
 ''',
       [lint(6, 1), lint(14, 1)],
+    );
+  }
+
+  test_constructor_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  new();
+}
+''',
+      [lint(6, 1), lint(12, 3)],
     );
   }
 
@@ -375,6 +383,38 @@ class A { }
 ''',
       [lint(25, 1)],
     );
+  }
+
+  test_primaryConstructor_bodyPartNoDoc() async {
+    await assertDiagnosticsFromMarkdown(r'''
+/// Doc.
+class C(int x) {
+  [!this!];
+}
+''');
+  }
+
+  test_primaryConstructor_bodyPartWithDoc() async {
+    await assertNoDiagnostics(r'''
+/// Class doc.
+class C(int x) {
+  /// Constructor doc.
+  this;
+}
+''');
+  }
+
+  test_primaryConstructor_classNoDoc() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!C!](var int x);
+''');
+  }
+
+  test_primaryConstructor_declaringParameterNoDoc() async {
+    await assertDiagnosticsFromMarkdown(r'''
+/// Doc.
+class [!C!](var int x);
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4526

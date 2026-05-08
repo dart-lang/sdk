@@ -29,9 +29,12 @@ void screenshotsValidator(PubspecValidationContext ctx) {
     if (entryValue is! YamlScalar) continue;
     var path = entryValue.value;
     if (path is String && !fileExistsAtPath(path)) {
-      ctx.reportErrorForNode(entryValue, diag.pathDoesNotExist, [
-        entryValue.valueOrThrow,
-      ]);
+      ctx.reportErrorForNode(
+        entryValue,
+        diag.pathDoesNotExist.withArguments(
+          path: entryValue.valueOrThrow.toString(),
+        ),
+      );
     }
   }
 }

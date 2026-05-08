@@ -33,6 +33,7 @@ import 'dot_shorthand_property_access_test.dart'
 import 'enum_test.dart' as enum_resolution;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
+import 'extension_test.dart' as extension_resolution;
 import 'extension_type_test.dart' as extension_type;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'field_promotion_test.dart' as field_promotion;
@@ -149,6 +150,7 @@ main() {
     enum_resolution.main();
     extension_method.main();
     extension_override.main();
+    extension_resolution.main();
     extension_type.main();
     field_formal_parameter.main();
     field_promotion.main();

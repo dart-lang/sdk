@@ -25,6 +25,6 @@ mixin ApiParseUtil {
     if (match == null) throw 'Unable to locate service protocol version';
 
     // Append a `.0`.
-    return Version.parse('${match.group(0)}.0');
+    return Version.parse('${match[0]}.0');
   }
 }

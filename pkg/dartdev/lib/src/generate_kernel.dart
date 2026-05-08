@@ -20,12 +20,14 @@ import 'resident_frontend_utils.dart';
 import 'sdk.dart';
 import 'unified_analytics.dart';
 
-typedef CompileRequestGeneratorCallback = String Function({
-  required String executable,
-  required String outputDill,
-  required ArgResults args,
-  String? packages,
-});
+typedef CompileRequestGeneratorCallback =
+    String Function({
+      required String executable,
+      required String outputDill,
+      required ArgResults args,
+      String? packages,
+      String? nativeAssetsYaml,
+    });
 
 /// Uses the resident frontend compiler to compute a kernel file for
 /// [executable]. Throws a [FrontendCompilerException] if the compilation
@@ -51,22 +53,26 @@ Future<DartExecutableWithPackageConfig> generateKernel(
   CompileRequestGeneratorCallback compileRequestGenerator, {
   required bool quiet,
   bool aot = false,
+  String? nativeAssetsYaml,
+  bool progressUpdatesOnStderr = false,
 }) async {
   // Locates the package_config.json and cached kernel file, makes sure the
   // resident frontend server is up and running, and computes a kernel.
   await ensureCompilationServerIsRunning(
     serverInfoFile,
     quiet: quiet,
+    progressUpdatesOnStderr: progressUpdatesOnStderr,
   );
 
   final packageRoot = _packageRootFor(executable);
-  final packageConfig =
-      packageRoot != null ? p.join(packageRoot, packageConfigName) : null;
+  final packageConfig = packageRoot != null
+      ? p.join(packageRoot, packageConfigName)
+      : null;
 
   final canonicalizedExecutablePath = p.canonicalize(executable.executable);
-  final cachedDillPath =
-      computeCachedDillAndCompilerOptionsPaths(canonicalizedExecutablePath)
-          .cachedDillPath;
+  final cachedDillPath = computeCachedDillAndCompilerOptionsPaths(
+    canonicalizedExecutablePath,
+  ).cachedDillPath;
 
   Map<String, dynamic> result;
   try {
@@ -76,6 +82,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
         outputDill: cachedDillPath,
         packages: packageConfig,
         args: args,
+        nativeAssetsYaml: nativeAssetsYaml,
       ),
       serverInfoFile,
     );
@@ -108,6 +115,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
 Future<void> ensureCompilationServerIsRunning(
   File serverInfoFile, {
   required bool quiet,
+  bool progressUpdatesOnStderr = false,
 }) async {
   if (serverInfoFile.existsSync()) {
     final residentCompilerInfo = ResidentCompilerInfo.fromFile(serverInfoFile);
@@ -136,7 +144,7 @@ Future<void> ensureCompilationServerIsRunning(
         sdk.dartAotRuntime,
         [
           sdk.frontendServerAotSnapshot,
-          '--resident-info-file-name=${serverInfoFile.absolute.path}'
+          '--resident-info-file-name=${serverInfoFile.absolute.path}',
         ],
         workingDirectory: homeDir?.path,
         mode: ProcessStartMode.detachedWithStdio,
@@ -145,18 +153,18 @@ Future<void> ensureCompilationServerIsRunning(
       throw StateError('Unable to find snapshot for frontend server');
     }
 
-    final serverOutput =
-        String.fromCharCodes(await frontendServerProcess.stdout.first).trim();
+    final serverOutput = String.fromCharCodes(
+      await frontendServerProcess.stdout.first,
+    ).trim();
     if (serverOutput.startsWith('Error')) {
       throw StateError(serverOutput);
     }
     if (!quiet) {
+      final sink = progressUpdatesOnStderr ? log.stderr : log.stdout;
       // Prints the server's address and port information
-      log.stdout(serverOutput);
-      log.stdout('');
-      log.stdout(
-        'Run dart compilation-server shutdown to terminate the process.',
-      );
+      sink(serverOutput);
+      sink('');
+      sink('Run dart compilation-server shutdown to terminate the process.');
     }
   } catch (e) {
     throw FrontendCompilerException._(
@@ -169,8 +177,9 @@ Future<void> ensureCompilationServerIsRunning(
 /// Returns the path to the root of the [executable]'s package, or null
 /// if it is a standalone dart file.
 String? _packageRootFor(DartExecutableWithPackageConfig executable) {
-  Directory currentDirectory =
-      Directory(p.dirname(p.canonicalize(executable.executable)));
+  Directory currentDirectory = Directory(
+    p.dirname(p.canonicalize(executable.executable)),
+  );
 
   while (currentDirectory.parent.path != currentDirectory.path) {
     if (File(p.join(currentDirectory.path, packageConfigName)).existsSync()) {

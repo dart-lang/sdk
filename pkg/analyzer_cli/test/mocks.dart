@@ -142,6 +142,16 @@ class MockLineInfo implements LineInfo {
   int getOffsetOfLineAfter(int offset) {
     throw StateError('Unexpected invocation of getOffsetOfLineAfter');
   }
+
+  @override
+  int lineNumberDifference(int offset1, int offset2) {
+    throw StateError('Unexpected invocation of lineNumberDifference');
+  }
+
+  @override
+  bool onSameLine(int offset1, int offset2) {
+    throw StateError('Unexpected invocation of onSameLine');
+  }
 }
 
 class MockSource implements Source {

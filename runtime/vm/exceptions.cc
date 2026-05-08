@@ -1288,16 +1288,4 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
                                           *constructor_name, arguments);
 }
 
-UnhandledExceptionPtr Exceptions::CreateUnhandledException(Zone* zone,
-                                                           ExceptionType type,
-                                                           const char* msg) {
-  const String& error_str = String::Handle(zone, String::New(msg));
-  const Array& args = Array::Handle(zone, Array::New(1));
-  args.SetAt(0, error_str);
-
-  Object& result = Object::Handle(zone, Exceptions::Create(type, args));
-  const StackTrace& stacktrace = StackTrace::Handle(zone);
-  return UnhandledException::New(Instance::Cast(result), stacktrace);
-}
-
 }  // namespace dart

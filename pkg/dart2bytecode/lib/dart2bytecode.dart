@@ -30,65 +30,115 @@ import 'package:vm/kernel_front_end.dart'
         parseCommandLineDefines,
         successExitCode,
         writeDepfile;
+import 'package:vm/transformations/prefix_library_uris.dart'
+    as prefix_library_uris;
 
 import 'bytecode_serialization.dart' show BytecodeSizeStatistics;
 import 'bytecode_generator.dart' show generateBytecode;
 import 'options.dart' show BytecodeOptions;
 
 final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
-  ..addOption('platform',
-      help: 'Path to vm_platform.dill file', defaultsTo: null)
-  ..addOption('packages',
-      help: 'Path to .dart_tool/package_config.json file', defaultsTo: null)
-  ..addOption('output',
-      abbr: 'o', help: 'Path to resulting bytecode file', defaultsTo: null)
+  ..addOption(
+    'platform',
+    help: 'Path to vm_platform.dill file',
+    defaultsTo: null,
+  )
+  ..addOption(
+    'packages',
+    help: 'Path to .dart_tool/package_config.json file',
+    defaultsTo: null,
+  )
+  ..addOption(
+    'output',
+    abbr: 'o',
+    help: 'Path to resulting bytecode file',
+    defaultsTo: null,
+  )
   ..addOption('depfile', help: 'Path to output Ninja depfile')
   ..addOption(
     'depfile-target',
     help: 'Override the target in the generated depfile',
     hide: true,
   )
-  ..addMultiOption('filesystem-root',
-      help: 'A base path for the multi-root virtual file system.'
-          ' If multi-root file system is used, the input script and .dart_tool/package_config.json file should be specified using URI.')
-  ..addOption('filesystem-scheme',
-      help: 'The URI scheme for the multi-root virtual filesystem.')
-  ..addOption('target',
-      help: 'Target model that determines what core libraries are available',
-      allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
-      defaultsTo: 'vm')
-  ..addMultiOption('define',
-      abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).')
-  ..addOption('import-dill',
-      help: 'Import libraries from existing dill file', defaultsTo: null)
-  ..addFlag('enable-asserts',
-      help: 'Whether asserts will be enabled.', defaultsTo: false)
-  ..addMultiOption('bytecode-options',
-      help: 'Specify options for bytecode generation:',
-      valueHelp: 'opt1,opt2,...',
-      allowed: BytecodeOptions.commandLineFlags.keys,
-      allowedHelp: BytecodeOptions.commandLineFlags)
-  ..addMultiOption('enable-experiment',
-      help: 'Comma separated list of experimental features to enable.')
-  ..addFlag('help',
-      abbr: 'h', negatable: false, help: 'Print this help message.')
-  ..addFlag('track-widget-creation',
-      help: 'Run a kernel transformer to track creation locations for widgets.',
-      defaultsTo: false)
-  ..addOption('invocation-modes',
-      help: 'Provides information to the front end about how it is invoked.',
-      defaultsTo: '')
-  ..addOption('validate',
-      help:
-          'Validate dynamic module against specified dynamic interface YAML file',
-      defaultsTo: null)
-  ..addOption('verbosity',
-      help: 'Sets the verbosity level used for filtering messages during '
-          'compilation.',
-      defaultsTo: Verbosity.defaultValue);
+  ..addMultiOption(
+    'filesystem-root',
+    help:
+        'A base path for the multi-root virtual file system.'
+        ' If multi-root file system is used, the input script and .dart_tool/package_config.json file should be specified using URI.',
+  )
+  ..addOption(
+    'filesystem-scheme',
+    help: 'The URI scheme for the multi-root virtual filesystem.',
+  )
+  ..addOption(
+    'target',
+    help: 'Target model that determines what core libraries are available',
+    allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
+    defaultsTo: 'vm',
+  )
+  ..addMultiOption(
+    'define',
+    abbr: 'D',
+    help: 'The values for the environment constants (e.g. -Dkey=value).',
+  )
+  ..addOption(
+    'import-dill',
+    help: 'Import libraries from existing dill file',
+    defaultsTo: null,
+  )
+  ..addFlag(
+    'enable-asserts',
+    help: 'Whether asserts will be enabled.',
+    defaultsTo: false,
+  )
+  ..addMultiOption(
+    'bytecode-options',
+    help: 'Specify options for bytecode generation:',
+    valueHelp: 'opt1,opt2,...',
+    allowed: BytecodeOptions.commandLineFlags.keys,
+    allowedHelp: BytecodeOptions.commandLineFlags,
+  )
+  ..addMultiOption(
+    'enable-experiment',
+    help: 'Comma separated list of experimental features to enable.',
+  )
+  ..addFlag(
+    'help',
+    abbr: 'h',
+    negatable: false,
+    help: 'Print this help message.',
+  )
+  ..addFlag(
+    'track-widget-creation',
+    help: 'Run a kernel transformer to track creation locations for widgets.',
+    defaultsTo: false,
+  )
+  ..addOption(
+    'invocation-modes',
+    help: 'Provides information to the front end about how it is invoked.',
+    defaultsTo: '',
+  )
+  ..addOption(
+    'validate',
+    help:
+        'Validate dynamic module against specified dynamic interface YAML file',
+    defaultsTo: null,
+  )
+  ..addOption(
+    'verbosity',
+    help:
+        'Sets the verbosity level used for filtering messages during '
+        'compilation.',
+    defaultsTo: Verbosity.defaultValue,
+  )
+  ..addOption(
+    'prefix-library-uris',
+    help: 'Slash-separated prefix to add to all library uris',
+    defaultsTo: '',
+  );
 
-final String _usage = '''
+final String _usage =
+    '''
 Usage: dart2bytecode --platform vm_platform.dill [--import-dill host_app.dill] [--validate dynamic_interface.yaml] [options] input.dart
 Compiles Dart sources to Dart bytecode.
 
@@ -138,6 +188,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String cfeInvocationModes = options['invocation-modes'];
   final bool trackWidgetCreation = options['track-widget-creation'];
   final List<String>? bytecodeGeneratorOptions = options['bytecode-options'];
+  final String libraryUrisPrefix = options['prefix-library-uris']!;
 
   return await runCompilerWithOptions(
     input: input,
@@ -158,6 +209,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     bytecodeGeneratorOptions: bytecodeGeneratorOptions,
     depfile: depfile,
     depfileTarget: depfileTarget,
+    libraryUrisPrefix: libraryUrisPrefix,
   );
 }
 
@@ -183,9 +235,12 @@ Future<int> runCompilerWithOptions({
   List<String>? bytecodeGeneratorOptions,
   String? depfile,
   String? depfileTarget,
+  required String libraryUrisPrefix,
 }) async {
-  final fileSystem =
-      createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
+  final fileSystem = createFrontEndFileSystem(
+    fileSystemScheme,
+    fileSystemRoots,
+  );
 
   final Uri? packagesUri = packages != null ? resolveInputUri(packages) : null;
 
@@ -198,8 +253,8 @@ Future<int> runCompilerWithOptions({
 
   final Uri? dynamicInterfaceSpecificationUri =
       (validateDynamicInterface != null)
-          ? resolveInputUri(validateDynamicInterface)
-          : null;
+      ? resolveInputUri(validateDynamicInterface)
+      : null;
 
   final verbosity = Verbosity.parseArgument(messageVerbosity);
   final errorPrinter = ErrorPrinter(verbosity, println: printMessage);
@@ -210,9 +265,9 @@ Future<int> runCompilerWithOptions({
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
-  final BytecodeOptions bytecodeOptions =
-      BytecodeOptions(enableAsserts: enableAsserts)
-        ..parseCommandLineFlags(bytecodeGeneratorOptions);
+  final BytecodeOptions bytecodeOptions = BytecodeOptions(
+    enableAsserts: enableAsserts,
+  )..parseCommandLineFlags(bytecodeGeneratorOptions);
 
   final CompilerOptions compilerOptions = CompilerOptions()
     ..sdkSummary = platformKernelUri
@@ -221,52 +276,66 @@ Future<int> runCompilerWithOptions({
     ..packagesFileUri = packagesUri
     ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
     ..explicitExperimentalFlags = parseExperimentalFlags(
-        parseExperimentalArguments(experimentalFlags),
-        onError: printMessage)
+      parseExperimentalArguments(experimentalFlags),
+      onError: printMessage,
+    )
     ..onDiagnostic = (CfeDiagnosticMessage m) {
       errorDetector(m);
     }
     ..embedSourceText = bytecodeOptions.embedSourceText
     ..invocationModes = InvocationMode.parseArguments(cfeInvocationModes)
     ..verbosity = verbosity
-    ..target = createFrontEndTarget(targetName,
-        trackWidgetCreation: trackWidgetCreation,
-        supportMirrors: false,
-        isClosureContextLoweringEnabled:
-            bytecodeOptions.isClosureContextLoweringEnabled);
+    ..target = createFrontEndTarget(
+      targetName,
+      trackWidgetCreation: trackWidgetCreation,
+      supportMirrors: false,
+      isClosureContextLoweringEnabled:
+          bytecodeOptions.isClosureContextLoweringEnabled,
+    );
 
   if (compilerOptions.target == null) {
     printMessage('Failed to create front-end target $targetName.');
     return badUsageExitCode;
   }
 
-  final results = await compileToKernel(KernelCompilationArguments(
+  final results = await compileToKernel(
+    KernelCompilationArguments(
       source: mainUri,
       options: compilerOptions,
       requireMain: false,
       includePlatform: false,
       environmentDefines: Map.of(environmentDefines),
-      enableAsserts: enableAsserts));
+      enableAsserts: enableAsserts,
+    ),
+  );
 
   errorPrinter.printCompilationMessages();
 
-  final Component? component = results.component;
+  Component? component = results.component;
   if (errorDetector.hasCompilationErrors || component == null) {
     return compileTimeErrorExitCode;
   }
-
+  component = prefix_library_uris.prefixLibraryUris(
+    component,
+    results.loadedLibraries,
+    libraryUrisPrefix,
+  );
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
   }
   final io.IOSink sink = io.File(outputFileName).openWrite();
-  generateBytecode(component, sink,
-      libraries: component.libraries
-          .where((lib) => !results.loadedLibraries.contains(lib))
-          .toList(),
-      hierarchy: results.classHierarchy!,
-      coreTypes: results.coreTypes!,
-      options: bytecodeOptions,
-      target: compilerOptions.target!);
+  generateBytecode(
+    component,
+    sink,
+    libraries: component.libraries
+        .where((lib) => !results.loadedLibraries.contains(lib))
+        .toList(),
+    hierarchy: results.classHierarchy!,
+    coreTypes: results.coreTypes!,
+    options: bytecodeOptions,
+    target: compilerOptions.target!,
+    extraLoadedLibraries: results.loadedLibraries,
+  );
   await sink.close();
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.dump();

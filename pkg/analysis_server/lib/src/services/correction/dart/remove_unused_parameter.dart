@@ -45,9 +45,35 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
       return;
     }
 
+    bool needsSeparator = false;
+    String? defaultValue;
+    String? fieldName;
+    if (parameter.isOptional && maybeParameter is FieldFormalParameter) {
+      // To preserve the semantics, removing an optional field formal parameter
+      // requires assigning the default value to field in the constructor's
+      // initializer list.
+      fieldName = maybeParameter.declaredFragment?.element.field?.name;
+      if (fieldName == null) return;
+
+      if (parameter is! DefaultFormalParameter) return;
+
+      var constructor = parameterList.parent;
+      if (constructor is! ConstructorDeclaration) return;
+
+      var separator = constructor.separator;
+      if (separator != null && separator.type != TokenType.COLON) return;
+
+      needsSeparator = separator == null;
+      var expression = parameter.defaultValue;
+      defaultValue = expression == null
+          ? 'null'
+          : utils.getRangeText(expression.sourceRange);
+    }
+
     var parameters = parameterList.parameters;
     var index = parameters.indexOf(parameter);
     await builder.addDartFileEdit(file, (builder) {
+      // Remove the parameter.
       if (index == 0) {
         // Remove the first parameter in the list.
         if (parameters.length == 1) {
@@ -104,6 +130,29 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
           // The parameter to be removed and the preceding parameter are of
           // the same kind, so there is no delimiter between them.
           builder.addDeletion(range.endEnd(preceding, parameter));
+        }
+      }
+
+      // Add an initializer if the parameter is a field formal parameter.
+      if (defaultValue case var defaultValue?) {
+        if (parameterList.parent case ConstructorDeclaration constructor?) {
+          if (needsSeparator) {
+            builder.addInsertion(parameterList.end, (builder) {
+              builder.write(' : ');
+              builder.write(fieldName!);
+              builder.write(' = ');
+              builder.write(defaultValue);
+            });
+          } else {
+            var separator = constructor.separator!;
+            builder.addInsertion(separator.end, (builder) {
+              builder.write(' ');
+              builder.write(fieldName!);
+              builder.write(' = ');
+              builder.write(defaultValue);
+              builder.write(',');
+            });
+          }
         }
       }
     });

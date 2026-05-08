@@ -305,6 +305,17 @@ findInterceptorForType(Type? type) {}
 /// the dart:rti library because stores information used for type checks.
 class JavaScriptFunction extends LegacyJavaScriptObject implements Function {}
 
+// TODO(srujzs): In dart2js, this is guaranteed to be unique per isolate. DDC
+// doesn't have a mechanism to guarantee that, so use a Symbol instead to match
+// the unique-per-runtime semantics of [allowInterop].
+final _functionToJSPropertyName = r'_$dart_dartClosure';
+final functionToJSProperty = JS('!', "Symbol($_functionToJSPropertyName)");
+
+/// Returns whether [f] is a wrapped Dart function through `dart:js_interop`'s
+/// conversion methods.
+bool isJSExportedDartFunction(JavaScriptFunction f) =>
+    JS('', '#.#', f, functionToJSProperty) != null;
+
 /// Interceptor for JavaScript BigInt primitive values, i.e. values `x` for
 /// which `typeof x == "bigint"`.
 @JsPeerInterface(name: 'BigInt')

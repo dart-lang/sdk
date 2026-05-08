@@ -1,0 +1,33 @@
+class SubClass extends SuperClass {
+  SubClass();
+  SubClass.constructor1(a, {b = 0}) {}
+  SubClass.constructor2(int x, String y, int z, String w);
+  SubClass.constructor3(a, {b = 0}) : this.constructor2(a, a, b, b);
+  factory SubClass.constructor4(a, {b = 0}) {}
+  method1(a, {b}) {}
+  method2(a, {b = 0}) {}
+  static method3(a, {b = 0}) {}
+}
+
+class SuperClass {
+  void method(void f(a, {b})) {}
+  void method1(int a, {int? b}) {}
+}
+
+extension on int {
+  method1(a, {b = 0}) {}
+  static method2(a, {b = 0}) {}
+}
+
+extension type SubExtensionType(int i) implements SuperExtensionType {
+  method3(a, {b}) {}
+  method4(a, {b = 0}) {}
+}
+
+extension type SuperExtensionType(int i) {
+  void method3(int a, {int? b}) {}
+}
+
+method0(a, {b = 0}) {}
+
+typedef void Typedef1(a, {b});

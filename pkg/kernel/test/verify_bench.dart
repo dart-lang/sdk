@@ -23,18 +23,27 @@ void main(List<String> args) {
   var component = loadComponentFromBinary(args[0]);
   var watch = new Stopwatch()..start();
   verifyComponent(
-      target, VerificationStage.afterModularTransformations, component);
+    target,
+    VerificationStage.afterModularTransformations,
+    component,
+  );
   print('Cold: ${watch.elapsedMilliseconds} ms');
   const int warmUpTrials = 20;
   for (int i = 0; i < warmUpTrials; ++i) {
     verifyComponent(
-        target, VerificationStage.afterModularTransformations, component);
+      target,
+      VerificationStage.afterModularTransformations,
+      component,
+    );
   }
   watch.reset();
   const int numberOfTrials = 100;
   for (int i = 0; i < numberOfTrials; ++i) {
     verifyComponent(
-        target, VerificationStage.afterModularTransformations, component);
+      target,
+      VerificationStage.afterModularTransformations,
+      component,
+    );
   }
   double millisecondsPerRun = watch.elapsedMilliseconds / numberOfTrials;
   print('Hot:  $millisecondsPerRun ms');

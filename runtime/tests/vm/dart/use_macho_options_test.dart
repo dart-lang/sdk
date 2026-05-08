@@ -129,6 +129,7 @@ enum TestType {
   MinOSVersion,
   NoLinkerSignature,
   ReplaceInstallName,
+  Encryptable,
 }
 
 @pragma('vm:platform-const')
@@ -156,6 +157,7 @@ Future<void> checkCases(List<TestCase> testCases) async {
     checkRunPaths(c);
     checkBuildVersion(c);
     checkCodeSignature(c);
+    checkEncryptionInfo(c);
   }
   // Unsigned snapshots are not runnable.
   final runnableCases = testCases
@@ -242,13 +244,13 @@ void checkDebugMaps(List<TestCase> testCases) {
   for (int i = 0; i < expected.length; i++) {
     final expectedLine = expected[i];
     final isSymbol = _symbolLineRegExp.hasMatch(expectedLine);
-    final expectedTriple = _tripleLineRegExp.firstMatch(expectedLine)?.group(1);
+    final expectedTriple = _tripleLineRegExp.firstMatch(expectedLine)?[1];
 
     final expectedTimestampMatch = _timestampLineRegExp.firstMatch(
       expectedLine,
     );
     if (expectedTimestampMatch != null) {
-      final expectedTimestamp = int.tryParse(expectedTimestampMatch.group(1)!);
+      final expectedTimestamp = int.tryParse(expectedTimestampMatch[1]!);
       // The timestamp (value of the N_OSO symbol) in our snapshots is always 0.
       Expect.equals(0, expectedTimestamp);
     }
@@ -263,7 +265,7 @@ void checkDebugMaps(List<TestCase> testCases) {
     for (final c in got) {
       final gotLine = c[i];
       if (expectedTriple != null) {
-        final gotTriple = _tripleLineRegExp.firstMatch(gotLine)?.group(1);
+        final gotTriple = _tripleLineRegExp.firstMatch(gotLine)?[1];
         Expect.equals(expectedTriple, gotTriple);
       } else if (isSymbol) {
         Expect.isTrue(_symbolLineRegExp.hasMatch(gotLine));
@@ -326,6 +328,21 @@ void checkCodeSignature(TestCase testCase) {
     Expect.isEmpty(codeSignatureCommands);
   } else {
     Expect.equals(1, codeSignatureCommands.length);
+  }
+}
+
+void checkEncryptionInfo(TestCase testCase) {
+  final encryptionInfoCommands = testCase.snapshot.commands
+      .whereType<macho.EncryptionInfoCommand>();
+  if (testCase.type == TestType.Encryptable) {
+    Expect.equals(1, encryptionInfoCommands.length);
+    final cmd = encryptionInfoCommands.singleOrNull;
+    if (cmd != null) {
+      // gen_snapshot doesn't encrypt any segments.
+      Expect.equals(0, cmd.cryptId);
+    }
+  } else {
+    Expect.isEmpty(encryptionInfoCommands);
   }
 }
 

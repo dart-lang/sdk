@@ -17,7 +17,7 @@ abstract class SimpleWorkspace extends Workspace {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider provider;
 
-  /// Information about packages available in the workspace.
+  @override
   final Packages packages;
 
   /// The absolute workspace root path.

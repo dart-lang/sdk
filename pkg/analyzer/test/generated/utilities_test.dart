@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/feature_sets.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -146,7 +145,7 @@ class LineInfoTest {
 }
 
 @reflectiveTest
-class NodeReplacerTest {
+class NodeReplacerTest extends ParserDiagnosticsTest {
   void test_adjacentStrings() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
@@ -1124,18 +1123,6 @@ library foo;
     );
   }
 
-  void test_libraryIdentifier() {
-    var findNode = _parseStringToFindNode(r'''
-library foo.bar;
-''');
-    var node = findNode.libraryIdentifier('foo');
-    _assertReplaceInList(
-      destination: node,
-      child: node.components[0],
-      replacement: node.components[1],
-    );
-  }
-
   void test_listLiteral() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
@@ -1847,11 +1834,8 @@ void f() sync* {
   }
 
   FindNode _parseStringToFindNode(String content) {
-    var parseResult = parseString(
-      content: content,
-      featureSet: FeatureSets.latestWithExperiments,
-    );
-    return FindNode(parseResult.content, parseResult.unit);
+    var parseResult = parseStringWithErrors(content);
+    return parseResult.findNode;
   }
 }
 

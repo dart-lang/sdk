@@ -64,11 +64,10 @@ class ServerDriver {
 
   /// Creates a new driver that can be used to communicate with a server.
   ///
-  /// When the server is [start]ed, it will use the given [protocol].
+  /// When the server is [start]ed, it will use the given [_protocol].
   ///
   /// The server is run in a separate process.
-  ServerDriver._({required this.arguments, required ServerProtocol protocol})
-    : _protocol = protocol;
+  ServerDriver._({required this.arguments, required this._protocol});
 
   /// The messages read from the analysis server's stdout.
   Stream<Message> get serverMessages => _serverMessagesController.stream;

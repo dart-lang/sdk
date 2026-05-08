@@ -343,7 +343,7 @@ enum E with C {
   v
 }
 ''',
-      [error(diag.mixinInheritsFromNotObject, 74, 1)],
+      [error(diag.classUsedAsMixin, 74, 1)],
     );
   }
 

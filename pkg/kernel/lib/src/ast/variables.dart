@@ -5,7 +5,7 @@
 part of '../../ast.dart';
 
 /// Generalized notion of a variable.
-sealed class Variable extends TreeNode {
+sealed class VariableBase extends TreeNode implements Annotatable {
   VariableContext get context => parent as VariableContext;
 
   /// The cosmetic name of the variable from the source code, if exists.
@@ -22,13 +22,13 @@ sealed class Variable extends TreeNode {
 }
 
 /// This is a helper class to enable mixing a mixin into concrete
-/// implementations of the sealed class [ExpressionVariable]. It's not supposed
+/// implementations of the sealed class [VariableDeclaration]. It's not supposed
 /// to be used as a type annotation, but purely for declaring the class
 /// hierarchy.
-abstract interface class IExpressionVariable implements TreeNode {
+abstract interface class IVariable implements TreeNode {
   abstract DartType type;
   abstract String? cosmeticName;
-  abstract VariableInitialization? variableInitialization;
+  abstract VariableInitializationBase? variableInitialization;
   abstract Expression? initializer;
   abstract bool isFinal;
   abstract bool isConst;
@@ -44,6 +44,15 @@ abstract interface class IExpressionVariable implements TreeNode {
   abstract bool isWildcard;
   abstract bool isSuperInitializingFormal;
   abstract bool isErroneouslyInitialized;
+
+  // The following is due to [VariableDeclaration] implementing
+  // [VariableInitialization].
+  abstract int binaryOffsetNoTag;
+  abstract List<VariableContext>? contexts;
+  abstract int fileEqualsOffset;
+  abstract VariableDeclaration variable;
+  void clearAnnotations();
+
   bool get isAssignable;
   bool get hasIsFinal;
   bool get hasIsConst;
@@ -59,23 +68,26 @@ abstract interface class IExpressionVariable implements TreeNode {
   bool get hasIsWildcard;
   bool get hasIsSuperInitializingFormal;
   bool get hasIsErroneouslyInitialized;
-  ExpressionVariable get asExpressionVariable;
+  VariableDeclaration get asExpressionVariable;
 }
 
 /// The root of the sealed hierarchy of non-type variables.
-sealed class ExpressionVariable extends Variable
-    implements IExpressionVariable {
+sealed class VariableDeclaration extends VariableBase
+    implements IVariable, Statement, VariableInitializationBase {
   /// Static type of the variable.
   @override
   abstract DartType type;
 
   /// Initialization node for the variable, if available.
   @override
-  abstract VariableInitialization? variableInitialization;
+  abstract VariableInitializationBase? variableInitialization;
 
   /// Derived from [variableInitialization], if available.
   @override
   abstract Expression? initializer;
+
+  @override
+  abstract List<Expression> annotations;
 
   @override
   abstract bool isFinal;
@@ -105,6 +117,40 @@ sealed class ExpressionVariable extends Variable
   abstract bool isSuperInitializingFormal;
   @override
   abstract bool isErroneouslyInitialized;
+
+  factory VariableDeclaration(
+    String? name, {
+    Expression? initializer,
+    DartType type,
+    int flags,
+    bool isFinal,
+    bool isConst,
+    bool isInitializingFormal,
+    bool isSuperInitializingFormal,
+    bool isCovariantByDeclaration,
+    bool isLate,
+    bool isRequired,
+    bool isLowered,
+    bool isSynthesized,
+    bool isHoisted,
+    bool hasDeclaredInitializer,
+    bool isWildcard,
+  }) = VariableStatement;
+
+  factory VariableDeclaration.forValue(
+    Expression? initializer, {
+    bool isFinal,
+    bool isConst,
+    bool isInitializingFormal,
+    bool isSuperInitializingFormal,
+    bool isLate,
+    bool isRequired,
+    bool isLowered,
+    DartType type,
+  }) = VariableStatement.forValue;
+
+  VariableDeclaration.empty();
+
   @override
   bool get hasIsFinal;
   @override
@@ -138,14 +184,17 @@ sealed class ExpressionVariable extends Variable
   bool get isAssignable;
 
   @override
-  ExpressionVariable get asExpressionVariable => this;
+  VariableDeclaration get asExpressionVariable => this;
+
+  @override
+  String? get name;
 }
 
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
-/// the [VariableContext] it appears in. [VariableInitialization]
+/// the [VariableContext] it appears in. [VariableInitializationBase]
 /// (which is a [Statement]) marks the spot of the original variable declaration
 /// in the Dart program.
-class LocalVariable extends ExpressionVariable {
+class LocalVariable extends VariableDeclaration {
   @override
   String? cosmeticName;
 
@@ -153,10 +202,33 @@ class LocalVariable extends ExpressionVariable {
   DartType type;
 
   @override
-  VariableInitialization? variableInitialization;
+  VariableInitializationBase? variableInitialization;
 
-  LocalVariable({this.cosmeticName, required DartType? type})
-      : type = type ?? const DynamicType();
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  LocalVariable({
+    this.cosmeticName,
+    required DartType? type,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isLate = false,
+    bool isWildcard = false,
+  }) : type = type ?? const DynamicType(),
+       super.empty() {
+    this.isFinal = isFinal;
+    this.isConst = isConst;
+    this.isLate = isLate;
+    this.isWildcard = isWildcard;
+  }
+
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
 
   static const int FlagFinal = 1 << 0;
   static const int FlagWildcard = 1 << 1;
@@ -284,9 +356,7 @@ class LocalVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isSynthesized {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isSynthesized => false;
 
   @override
   void set isSynthesized(bool value) {
@@ -304,10 +374,10 @@ class LocalVariable extends ExpressionVariable {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitLocalVariable(this);
+  R accept<R>(StatementVisitor<R> v) => v.visitLocalVariable(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitLocalVariable(this, arg);
 
   @override
@@ -335,12 +405,15 @@ class LocalVariable extends ExpressionVariable {
   @override
   void set initializer(Expression? value) {
     if (value != null && variableInitialization == null) {
-      throw new StateError("Attempt to assign initializer to variable "
-          "without an initialization node.");
+      throw new StateError(
+        "Attempt to assign initializer to variable "
+        "without an initialization node.",
+      );
     }
     variableInitialization!.initializer = value;
   }
 
+  @override
   String? get name => cosmeticName;
 
   @override
@@ -356,7 +429,7 @@ class LocalVariable extends ExpressionVariable {
   bool get hasIsInitializingFormal => false;
 
   @override
-  bool get hasIsSynthesized => false;
+  bool get hasIsSynthesized => true;
 
   @override
   bool get hasIsHoisted => true;
@@ -384,10 +457,378 @@ class LocalVariable extends ExpressionVariable {
 
   @override
   bool get hasIsErroneouslyInitialized => false;
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  VariableDeclaration get variable => this;
+
+  @override
+  void set variable(VariableDeclaration variable) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations.clear();
+  }
+
+  @override
+  set name(String? value) {
+    cosmeticName = value;
+  }
+}
+
+/// Since the `catch` block isn't invoked by the user code, but is redirected to
+/// by the runtime, its parameters, the exception and the stack trace,
+/// represented by `e` and `s` in the example below, are filled in by the
+/// runtime too. The semantics of populating the variables makes them distinct
+/// from function parameters, and they have a separate representation from them.
+///
+///     try {
+///       foo();
+///     } catch (e, s) {
+///       bar();
+///     }
+class CatchVariable extends VariableDeclaration {
+  final String catchVariableName;
+
+  @override
+  DartType type;
+
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  CatchVariable({
+    required String name,
+    required DartType? type,
+    bool isWildcard = false,
+  }) : catchVariableName = name,
+       type = type ?? const DynamicType(),
+       super.empty() {
+    this.isWildcard = isWildcard;
+  }
+
+  @override
+  String? get cosmeticName => catchVariableName;
+
+  @override
+  void set cosmeticName(String? value) {
+    throw new UnsupportedError("${this.runtimeType}.cosmeticName=");
+  }
+
+  @override
+  VariableInitializationBase? get variableInitialization {
+    throw new UnsupportedError("${this.runtimeType}.variableInitialization");
+  }
+
+  @override
+  void set variableInitialization(VariableInitializationBase? value) {
+    throw new UnsupportedError("${this.runtimeType}.variableInitialization=");
+  }
+
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
+
+  static const int FlagWildcard = 1 << 0;
+
+  @override
+  bool get isFinal => true;
+
+  @override
+  void set isFinal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isFinal=");
+  }
+
+  @override
+  bool get isWildcard => flags & FlagWildcard != 0;
+
+  @override
+  void set isWildcard(bool value) {
+    flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
+  }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  void set isConst(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isConst=");
+  }
+
+  @override
+  bool get isLate => false;
+
+  @override
+  void set isLate(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isLate=");
+  }
+
+  @override
+  bool get isLowered => false;
+
+  @override
+  void set isLowered(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isLowered=");
+  }
+
+  @override
+  bool get isHoisted {
+    throw new UnsupportedError("${this.runtimeType}.isHoisted");
+  }
+
+  @override
+  void set isHoisted(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isHoisted=");
+  }
+
+  @override
+  bool get isCovariantByClass {
+    throw new UnsupportedError("${this.runtimeType}.isCovariantByClass");
+  }
+
+  @override
+  void set isCovariantByClass(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isCovariantByClass=");
+  }
+
+  @override
+  bool get isCovariantByDeclaration {
+    throw new UnsupportedError("${this.runtimeType}.isCovariantByDeclaration");
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isCovariantByDeclaration=");
+  }
+
+  @override
+  bool get isErroneouslyInitialized {
+    throw new UnsupportedError("${this.runtimeType}.isErroneouslyInitialized");
+  }
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isErroneouslyInitialized=");
+  }
+
+  @override
+  bool get hasDeclaredInitializer {
+    throw new UnsupportedError("${this.runtimeType}.hasDeclaredInitializer");
+  }
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.hasDeclaredInitializer=");
+  }
+
+  @override
+  bool get isInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}.isInitializingFormal");
+  }
+
+  @override
+  void set isInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isInitializingFormal=");
+  }
+
+  @override
+  bool get isRequired {
+    throw new UnsupportedError("${this.runtimeType}.isRequired");
+  }
+
+  @override
+  void set isRequired(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isRequired=");
+  }
+
+  @override
+  bool get isSuperInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}.isSuperInitializingFormal");
+  }
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    throw new UnsupportedError(
+      "${this.runtimeType}.isSuperInitializingFormal=",
+    );
+  }
+
+  @override
+  bool get isSynthesized {
+    throw new UnsupportedError("${this.runtimeType}.isSynthesized");
+  }
+
+  @override
+  void set isSynthesized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}.isSynthesized=");
+  }
+
+  @override
+  bool get isAssignable => false;
+
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitCatchVariable(this);
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitCatchVariable(this, arg);
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
+  String toString() {
+    return "CatchVariable(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(this);
+  }
+
+  @override
+  Expression? get initializer {
+    throw new UnsupportedError("${this.runtimeType}.initializer");
+  }
+
+  @override
+  void set initializer(Expression? value) {
+    throw new UnsupportedError("${this.runtimeType}.initializer=");
+  }
+
+  @override
+  bool get hasIsFinal => false;
+
+  @override
+  bool get hasIsConst => true;
+
+  @override
+  bool get hasIsLate => true;
+
+  @override
+  bool get hasIsInitializingFormal => false;
+
+  @override
+  bool get hasIsSynthesized => false;
+
+  @override
+  bool get hasIsHoisted => false;
+
+  @override
+  bool get hasHasDeclaredInitializer => false;
+
+  @override
+  bool get hasIsCovariantByClass => false;
+
+  @override
+  bool get hasIsRequired => false;
+
+  @override
+  bool get hasIsCovariantByDeclaration => false;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsWildcard => false;
+
+  @override
+  bool get hasIsSuperInitializingFormal => false;
+
+  @override
+  bool get hasIsErroneouslyInitialized => false;
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  VariableDeclaration get variable => this;
+
+  @override
+  void set variable(VariableDeclaration variable) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations.clear();
+  }
+
+  @override
+  String? get name => cosmeticName;
+
+  @override
+  set name(String? value) {
+    cosmeticName = value;
+  }
 }
 
 /// Abstract parameter class, the parent for positional and named parameters.
-sealed class FunctionParameter extends ExpressionVariable {
+sealed class FunctionParameter extends VariableDeclaration {
+  Expression? defaultValue;
+
+  FunctionParameter({
+    required Expression? defaultValue,
+    required bool isCovariantByDeclaration,
+    required bool isRequired,
+    required bool isInitializingFormal,
+    required bool isSuperInitializingFormal,
+    required bool isFinal,
+    required bool hasDeclaredDefaultType,
+    required bool isLowered,
+    required bool isSynthesized,
+    required bool isWildcard,
+  }) : super.empty() {
+    this.isCovariantByDeclaration = isCovariantByDeclaration;
+    this.isRequired = isRequired;
+    this.isInitializingFormal = isInitializingFormal;
+    this.isSuperInitializingFormal = isSuperInitializingFormal;
+    this.isFinal = isFinal;
+    this.hasDeclaredDefaultType = hasDeclaredDefaultType;
+    this.isLowered = isLowered;
+    this.isSynthesized = isSynthesized;
+    this.isWildcard = isWildcard;
+  }
+
   /// Function parameters can't be `const` or `late`, so they are assignable if
   /// they aren't final.
   @override
@@ -395,10 +836,18 @@ sealed class FunctionParameter extends ExpressionVariable {
 
   /// Function parameters don't have initializers, only default values.
   @override
-  VariableInitialization? get variableInitialization => null;
+  VariableInitializationBase? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableInitialization? value) {}
+  void set variableInitialization(VariableInitializationBase? value) {}
+
+  @override
+  Expression? get initializer => defaultValue;
+
+  @override
+  void set initializer(Expression? value) {
+    defaultValue = value;
+  }
 
   static const int FlagFinal = 1 << 0;
   static const int FlagWildcard = 1 << 1;
@@ -407,6 +856,10 @@ sealed class FunctionParameter extends ExpressionVariable {
   static const int FlagInitializingFormal = 1 << 4;
   static const int FlagSuperInitializingFormal = 1 << 5;
   static const int FlagRequired = 1 << 6;
+  static const int FlagLowered = 1 << 7;
+  static const int FlagHasDeclaredDefaultType = 1 << 8;
+  static const int FlagSynthesized = 1 << 9;
+  static const int FlagErroneouslyInitialized = 1 << 10;
 
   @override
   bool get isFinal => flags & FlagFinal != 0;
@@ -474,52 +927,66 @@ sealed class FunctionParameter extends ExpressionVariable {
   }
 
   @override
-  bool get isErroneouslyInitialized {
-    throw new UnsupportedError("${this.runtimeType}");
+  bool get isLowered => flags & FlagLowered != 0;
+
+  @override
+  void set isLowered(bool value) {
+    flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  bool get hasDeclaredDefaultType => flags & FlagHasDeclaredDefaultType != 0;
+
+  void set hasDeclaredDefaultType(bool value) {
+    flags = value
+        ? (flags | FlagHasDeclaredDefaultType)
+        : (flags & ~FlagHasDeclaredDefaultType);
   }
 
   @override
-  void set isErroneouslyInitialized(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  bool get hasDeclaredInitializer {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get hasDeclaredInitializer => hasDeclaredDefaultType;
 
   @override
   void set hasDeclaredInitializer(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
+    hasDeclaredDefaultType = value;
   }
 
   @override
-  bool get isSynthesized {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isSynthesized => flags & FlagSynthesized != 0;
 
   @override
   void set isSynthesized(bool value) {
+    flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
+  }
+
+  @override
+  bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    flags = value
+        ? (flags | FlagErroneouslyInitialized)
+        : (flags & ~FlagErroneouslyInitialized);
+  }
+
+  @override
+  bool get isLate {
+    // Function parameters can't be 'late'.
+    return false;
+  }
+
+  @override
+  void set isLate(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
   bool get isConst {
-    throw new UnsupportedError("${this.runtimeType}");
+    // Function parameters can't be 'const'.
+    return false;
   }
 
   @override
   void set isConst(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  bool get isLate {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set isLate(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -530,16 +997,6 @@ sealed class FunctionParameter extends ExpressionVariable {
 
   @override
   void set isHoisted(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  bool get isLowered {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set isLowered(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
@@ -553,23 +1010,54 @@ class PositionalParameter extends FunctionParameter {
   @override
   DartType type;
 
-  PositionalParameter({this.cosmeticName, required this.type});
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  PositionalParameter({
+    this.cosmeticName,
+    required this.type,
+    super.defaultValue,
+    super.isCovariantByDeclaration = false,
+    super.isRequired = false,
+    super.isInitializingFormal = false,
+    super.isSuperInitializingFormal = false,
+    super.isFinal = false,
+    super.hasDeclaredDefaultType = false,
+    super.isLowered = false,
+    super.isSynthesized = false,
+    super.isWildcard = false,
+  });
 
   @override
-  bool get isRequired {
-    throw new UnsupportedError("${this.runtimeType}");
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
   }
 
   @override
-  void set isRequired(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitPositionalParameter(this);
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+  void clearAnnotations() {
+    annotations = const <Expression>[];
+  }
+
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitPositionalParameter(this);
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitPositionalParameter(this, arg);
 
   @override
@@ -587,25 +1075,21 @@ class PositionalParameter extends FunctionParameter {
   }
 
   @override
-  Expression? get initializer {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  String? get name => cosmeticName;
 
   @override
-  void set initializer(Expression? value) {
-    throw new UnsupportedError("${this.runtimeType}");
+  void set name(String? value) {
+    cosmeticName = value;
   }
-
-  String? get name => cosmeticName;
 
   @override
   bool get hasIsFinal => true;
 
   @override
-  bool get hasIsConst => false;
+  bool get hasIsConst => true;
 
   @override
-  bool get hasIsLate => false;
+  bool get hasIsLate => true;
 
   @override
   bool get hasIsInitializingFormal => true;
@@ -617,7 +1101,7 @@ class PositionalParameter extends FunctionParameter {
   bool get hasIsHoisted => false;
 
   @override
-  bool get hasHasDeclaredInitializer => false;
+  bool get hasHasDeclaredInitializer => true;
 
   @override
   bool get hasIsCovariantByClass => true;
@@ -629,7 +1113,7 @@ class PositionalParameter extends FunctionParameter {
   bool get hasIsCovariantByDeclaration => true;
 
   @override
-  bool get hasIsLowered => false;
+  bool get hasIsLowered => true;
 
   @override
   bool get hasIsWildcard => true;
@@ -638,31 +1122,86 @@ class PositionalParameter extends FunctionParameter {
   bool get hasIsSuperInitializingFormal => true;
 
   @override
-  bool get hasIsErroneouslyInitialized => false;
+  bool get hasIsErroneouslyInitialized => true;
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  VariableDeclaration get variable => this;
+
+  @override
+  void set variable(VariableDeclaration value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
 }
 
 /// Named parameters. The [name] field is mandatory.
 class NamedParameter extends FunctionParameter {
-  String name;
+  String parameterName;
 
   @override
-  String get cosmeticName => name;
+  String? get cosmeticName => parameterName;
 
   @override
   void set cosmeticName(String? value) {
-    name = value!;
+    parameterName = value!;
   }
 
   @override
   DartType type;
 
-  NamedParameter({required this.name, required this.type});
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  NamedParameter({
+    required this.parameterName,
+    required this.type,
+    super.defaultValue,
+    super.isCovariantByDeclaration = false,
+    super.isRequired = false,
+    super.isInitializingFormal = false,
+    super.isSuperInitializingFormal = false,
+    super.isFinal = false,
+    super.hasDeclaredDefaultType = false,
+    super.isLowered = false,
+    super.isSynthesized = false,
+    super.isWildcard = false,
+  });
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitNamedParameter(this);
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations = const <Expression>[];
+  }
+
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitNamedParameter(this);
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitNamedParameter(this, arg);
 
   @override
@@ -680,23 +1219,13 @@ class NamedParameter extends FunctionParameter {
   }
 
   @override
-  Expression? get initializer {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set initializer(Expression? value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
   bool get hasIsFinal => true;
 
   @override
-  bool get hasIsConst => false;
+  bool get hasIsConst => true;
 
   @override
-  bool get hasIsLate => false;
+  bool get hasIsLate => true;
 
   @override
   bool get hasIsInitializingFormal => true;
@@ -708,7 +1237,7 @@ class NamedParameter extends FunctionParameter {
   bool get hasIsHoisted => false;
 
   @override
-  bool get hasHasDeclaredInitializer => false;
+  bool get hasHasDeclaredInitializer => true;
 
   @override
   bool get hasIsCovariantByClass => true;
@@ -720,7 +1249,7 @@ class NamedParameter extends FunctionParameter {
   bool get hasIsCovariantByDeclaration => true;
 
   @override
-  bool get hasIsLowered => false;
+  bool get hasIsLowered => true;
 
   @override
   bool get hasIsWildcard => true;
@@ -729,32 +1258,81 @@ class NamedParameter extends FunctionParameter {
   bool get hasIsSuperInitializingFormal => true;
 
   @override
-  bool get hasIsErroneouslyInitialized => false;
+  bool get hasIsErroneouslyInitialized => true;
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  String? get name => parameterName;
+
+  @override
+  void set name(String? value) {
+    parameterName = value!;
+  }
+
+  @override
+  VariableDeclaration get variable => this;
+
+  @override
+  void set variable(VariableDeclaration value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
 }
 
 /// The variable storage for `this`.
-class ThisVariable extends ExpressionVariable {
+class ThisVariable extends VariableDeclaration {
   @override
-  String get cosmeticName => "this";
+  String get cosmeticName => "this-variable";
 
   @override
   void set cosmeticName(String? value) {}
 
   @override
-  VariableInitialization? get variableInitialization => null;
+  VariableInitializationBase? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableInitialization? value) {}
+  void set variableInitialization(VariableInitializationBase? value) {}
 
   @override
   DartType type;
 
-  ThisVariable({required this.type});
+  // TODO(cstefantsova): Consider a throwing implementation instead.
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  ThisVariable({required this.type}) : super.empty();
+
+  // TODO(cstefantsova): Consider a throwing implementation instead.
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
 
   @override
-  bool get isFinal {
+  bool get isConst => false;
+
+  @override
+  void set isConst(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  bool get isLate => false;
+
+  @override
+  void set isLate(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isFinal => true;
 
   @override
   void set isFinal(bool value) {
@@ -852,26 +1430,6 @@ class ThisVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isConst {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set isConst(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  bool get isLate {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set isLate(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
   bool get isHoisted {
     throw new UnsupportedError("${this.runtimeType}");
   }
@@ -892,10 +1450,10 @@ class ThisVariable extends ExpressionVariable {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitThisVariable(this);
+  R accept<R>(StatementVisitor<R> v) => v.visitThisVariable(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitThisVariable(this, arg);
 
   @override
@@ -925,6 +1483,7 @@ class ThisVariable extends ExpressionVariable {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
+  @override
   String? get name => cosmeticName;
 
   @override
@@ -937,42 +1496,76 @@ class ThisVariable extends ExpressionVariable {
   bool get hasIsLate => true;
 
   @override
-  bool get hasIsInitializingFormal => true;
+  bool get hasIsInitializingFormal => false;
 
   @override
-  bool get hasIsSynthesized => true;
+  bool get hasIsSynthesized => false;
 
   @override
-  bool get hasIsHoisted => true;
+  bool get hasIsHoisted => false;
 
   @override
-  bool get hasHasDeclaredInitializer => true;
+  bool get hasHasDeclaredInitializer => false;
 
   @override
-  bool get hasIsCovariantByClass => true;
+  bool get hasIsCovariantByClass => false;
 
   @override
-  bool get hasIsRequired => true;
+  bool get hasIsRequired => false;
 
   @override
-  bool get hasIsCovariantByDeclaration => true;
+  bool get hasIsCovariantByDeclaration => false;
 
   @override
-  bool get hasIsLowered => true;
+  bool get hasIsLowered => false;
 
   @override
-  bool get hasIsWildcard => true;
+  bool get hasIsWildcard => false;
 
   @override
-  bool get hasIsSuperInitializingFormal => true;
+  bool get hasIsSuperInitializingFormal => false;
 
   @override
-  bool get hasIsErroneouslyInitialized => true;
+  bool get hasIsErroneouslyInitialized => false;
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  VariableDeclaration get variable => this;
+
+  @override
+  void set variable(VariableDeclaration variable) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations.clear();
+  }
+
+  @override
+  set name(String? value) {
+    cosmeticName = value;
+  }
 }
 
 /// A variable introduced during desugaring. Such variables don't correspond to
 /// any variable declared by the programmer.
-class SyntheticVariable extends ExpressionVariable {
+class SyntheticVariable extends VariableDeclaration {
   @override
   String? cosmeticName;
 
@@ -980,9 +1573,22 @@ class SyntheticVariable extends ExpressionVariable {
   DartType type;
 
   @override
-  VariableInitialization? variableInitialization;
+  VariableInitializationBase? variableInitialization;
 
-  SyntheticVariable({this.cosmeticName, required this.type});
+  // TODO(cstefantsova): Consider a throwing implementation instead.
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  SyntheticVariable({this.cosmeticName, required this.type}) : super.empty();
+
+  // TODO(cstefantsova): Consider a throwing implementation instead.
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
 
   static const int FlagFinal = 1 << 0;
   static const int FlagLowered = 1 << 1;
@@ -1083,9 +1689,7 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isSynthesized {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isSynthesized => true;
 
   @override
   void set isSynthesized(bool value) {
@@ -1093,9 +1697,7 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isConst {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isConst => false;
 
   @override
   void set isConst(bool value) {
@@ -1103,9 +1705,7 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isLate {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isLate => false;
 
   @override
   void set isLate(bool value) {
@@ -1123,10 +1723,10 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitSyntheticVariable(this);
+  R accept<R>(StatementVisitor<R> v) => v.visitSyntheticVariable(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitSyntheticVariable(this, arg);
 
   @override
@@ -1152,28 +1752,31 @@ class SyntheticVariable extends ExpressionVariable {
   @override
   void set initializer(Expression? value) {
     if (value != null && variableInitialization == null) {
-      throw new StateError("Attempt to assign initializer to variable "
-          "without an initialization node.");
+      throw new StateError(
+        "Attempt to assign initializer to variable "
+        "without an initialization node.",
+      );
     }
     variableInitialization!.initializer = value;
   }
 
+  @override
   String? get name => cosmeticName;
 
   @override
   bool get hasIsFinal => true;
 
   @override
-  bool get hasIsConst => false;
+  bool get hasIsConst => true;
 
   @override
-  bool get hasIsLate => false;
+  bool get hasIsLate => true;
 
   @override
   bool get hasIsInitializingFormal => false;
 
   @override
-  bool get hasIsSynthesized => false;
+  bool get hasIsSynthesized => true;
 
   @override
   bool get hasIsHoisted => true;
@@ -1201,27 +1804,57 @@ class SyntheticVariable extends ExpressionVariable {
 
   @override
   bool get hasIsErroneouslyInitialized => false;
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  VariableDeclaration get variable => this;
+
+  @override
+  void set variable(VariableDeclaration variable) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations.clear();
+  }
+
+  @override
+  set name(String? value) {
+    cosmeticName = value;
+  }
 }
 
 /// The enum reflecting the kind of a variable context. A context is
 /// [assertCaptured] if it contains the variables captured in a closure within
 /// an `assert` and not captured anywhere outside of `assert`s.
-enum CaptureKind {
-  notCaptured,
-  captured,
-  assertCaptured;
-}
+enum CaptureKind { notCaptured, directCaptured, assertCaptured }
 
 /// The box storing some of the variables in the scope it's associated with. It
 /// serves as the "declaration" of the variables it contains for the runtime
 /// environments.
 class VariableContext extends TreeNode {
   final CaptureKind captureKind;
-  final List<Variable> variables;
+  final List<VariableBase> variables;
 
   VariableContext({required this.captureKind, required this.variables});
 
-  void addVariable(Variable variable) {
+  void addVariable(VariableBase variable) {
     variable.parent = this;
     variables.add(variable);
   }
@@ -1334,9 +1967,17 @@ class Scope extends TreeNode {
 /// The root of the sealed hierarchy of the nodes that provide a scope, such as
 /// loops, functions, and blocks.
 sealed class ScopeProvider implements TreeNode {
-  /// The scope of the [ScopeProvider].
+  /// Scope of the [ScopeProvider].
   ///
   /// It's represented as nullable due to the experimental status of the
   /// feature. When the feature isn't enabled, [scope] should return null.
   abstract Scope? scope;
+}
+
+/// The root of the sealed hierarchy of the nodes that consume variable
+/// contexts, that is, they capture variables from those contexts, such as
+/// functions or initialization nodes of late variables.
+sealed class ContextConsumer implements TreeNode {
+  /// Contexts the variables captured by [ContextConsumer] are from.
+  abstract List<VariableContext>? contexts;
 }

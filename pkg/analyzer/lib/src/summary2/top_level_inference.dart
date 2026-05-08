@@ -13,7 +13,6 @@ import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/instance_member_inferrer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -66,7 +65,7 @@ class ConstantInitializersResolver {
 
     var fragment = constantInitializer.fragment;
     var node = linker.elementNodes[fragment] as VariableDeclarationImpl;
-    var scope = LinkingNodeContext.get(node).scope;
+    var scope = node.initializerScope!;
 
     var astResolver = AstResolver(
       linker,
@@ -74,9 +73,21 @@ class ConstantInitializersResolver {
       scope,
       analysisOptions,
     );
+
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
+    if (element case FieldElementImpl field) {
+      if (field.isInstanceField && !field.isLate) {
+        inScopePrimaryConstructorParameters = field.enclosingElement
+            .tryCast<InterfaceElementImpl>()
+            ?.primaryConstructor
+            ?.formalParameters;
+      }
+    }
+
     astResolver.resolveExpression(
       () => node.initializer!,
       contextType: element.type,
+      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
     );
 
     // We could have rewritten the initializer.
@@ -198,20 +209,29 @@ class _PropertyInducingElementTypeInference
     LibraryFragmentImpl? initializerLibraryFragment;
     Scope? scope;
     ExpressionImpl Function()? getInitializer;
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
     for (var fragment in _element.fragments) {
       var node = _linker.elementNodes[fragment];
       switch (node) {
         case VariableDeclarationImpl():
           if (node.initializer != null) {
             initializerLibraryFragment = fragment.libraryFragment;
-            scope = LinkingNodeContext.get(node).scope;
+            scope = node.initializerScope!;
             getInitializer = () => node.initializer!;
+            if (_element case FieldElementImpl field) {
+              if (field.isInstanceField && !field.isLate) {
+                inScopePrimaryConstructorParameters = field.enclosingElement
+                    .tryCast<InterfaceElementImpl>()
+                    ?.primaryConstructor
+                    ?.formalParameters;
+              }
+            }
           }
         case DefaultFormalParameterImpl():
           _assertElementFieldOriginDeclaringFormalParameter();
           if (node.defaultValue != null) {
             initializerLibraryFragment = fragment.libraryFragment;
-            scope = LinkingNodeContext.get(node).scope;
+            scope = node.scope!;
             getInitializer = () => node.defaultValue!;
           } else {
             _status = _InferenceStatus.inferred;
@@ -242,9 +262,8 @@ class _PropertyInducingElementTypeInference
     if (_status == _InferenceStatus.beingInferred) {
       var startIndex = _inferring.indexOf(this);
       var cycle = _inferring.slice(startIndex);
-      var inferenceError = TopLevelInferenceError(
-        kind: TopLevelInferenceErrorKind.dependencyCycle,
-        arguments: cycle.map((e) => e._element.name ?? '').sorted(),
+      var inferenceError = TopLevelInferenceErrorDependencyCycle(
+        cycle: cycle.map((e) => e._element.name ?? '').sorted(),
       );
       for (var inference in cycle) {
         if (inference._status == _InferenceStatus.beingInferred) {
@@ -265,7 +284,7 @@ class _PropertyInducingElementTypeInference
 
     var enclosingElement = _element.enclosingElement;
     var enclosingInterfaceElement = enclosingElement
-        .ifTypeOrNull<InterfaceElementImpl>();
+        .tryCast<InterfaceElementImpl>();
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
@@ -275,7 +294,10 @@ class _PropertyInducingElementTypeInference
       analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,
     );
-    astResolver.resolveExpression(getInitializer);
+    astResolver.resolveExpression(
+      getInitializer,
+      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
+    );
 
     // Pop self from the stack.
     var self = _inferring.removeLast();

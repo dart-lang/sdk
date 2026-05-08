@@ -26,23 +26,25 @@ Future<void> copyPath(String from, String to) async {
 }
 
 Future<void> main() async {
-  test('Regression test for https://github.com/dart-lang/sdk/issues/46364',
-      () async {
-    ensureRunFromSdkBinDart();
+  test(
+    'Regression test for https://github.com/dart-lang/sdk/issues/46364',
+    () async {
+      ensureRunFromSdkBinDart();
 
-    final exePath = Platform.resolvedExecutable;
-    final sdkDir = p.dirname(p.dirname(exePath));
-    // Try to run the VM located on a path with % encoded characters. The VM
-    // should not try and resolve the path as a URI for SDK artifacts (e.g.,
-    // dartdev.dart.snapshot).
-    final d = Directory.systemTemp.createTempSync('dart_symlink%3A');
-    try {
-      await copyPath(sdkDir, d.path);
-      final path = '${d.path}/bin/dart';
-      final result = await Process.run(path, ['help']);
-      Expect.equals(result.exitCode, 0);
-    } finally {
-      await d.delete(recursive: true);
-    }
-  });
+      final exePath = Platform.resolvedExecutable;
+      final sdkDir = p.dirname(p.dirname(exePath));
+      // Try to run the VM located on a path with % encoded characters. The VM
+      // should not try and resolve the path as a URI for SDK artifacts (e.g.,
+      // dartdev.dart.snapshot).
+      final d = Directory.systemTemp.createTempSync('dart_symlink%3A');
+      try {
+        await copyPath(sdkDir, d.path);
+        final path = '${d.path}/bin/dart';
+        final result = await Process.run(path, ['help']);
+        Expect.equals(result.exitCode, 0);
+      } finally {
+        await d.delete(recursive: true);
+      }
+    },
+  );
 }

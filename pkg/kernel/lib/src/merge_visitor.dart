@@ -31,20 +31,25 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   FunctionType? mergeFunctionTypes(
-      FunctionType a, FunctionType b, Nullability nullability) {
+    FunctionType a,
+    FunctionType b,
+    Nullability nullability,
+  ) {
     assert(a.typeParameters.length == b.typeParameters.length);
     assert(a.requiredParameterCount == b.requiredParameterCount);
     assert(a.positionalParameters.length == b.positionalParameters.length);
     assert(a.namedParameters.length == b.namedParameters.length);
 
     List<StructuralParameter> newTypeParameters =
-        new List<StructuralParameter>.generate(a.typeParameters.length,
-            (int i) {
-      StructuralParameter aTypeParameter = a.typeParameters[i];
-      StructuralParameter bTypeParameter = b.typeParameters[i];
-      return new StructuralParameter(
-          aTypeParameter.name ?? bTypeParameter.name);
-    }, growable: false);
+        new List<StructuralParameter>.generate(a.typeParameters.length, (
+          int i,
+        ) {
+          StructuralParameter aTypeParameter = a.typeParameters[i];
+          StructuralParameter bTypeParameter = b.typeParameters[i];
+          return new StructuralParameter(
+            aTypeParameter.name ?? bTypeParameter.name,
+          );
+        }, growable: false);
 
     FunctionTypeInstantiator? aInstantiator;
     FunctionTypeInstantiator? bInstantiator;
@@ -60,24 +65,32 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     if (newTypeParameters.isNotEmpty) {
       aInstantiator = FunctionTypeInstantiator.fromInstantiation(a, [
         for (int i = 0; i < newTypeParameters.length; i++)
-          new StructuralParameterType(newTypeParameters[i],
-              a.typeParameters[i].computeNullabilityFromBound())
+          new StructuralParameterType(
+            newTypeParameters[i],
+            a.typeParameters[i].computeNullabilityFromBound(),
+          ),
       ]);
       bInstantiator = FunctionTypeInstantiator.fromInstantiation(b, [
         for (int i = 0; i < newTypeParameters.length; i++)
-          new StructuralParameterType(newTypeParameters[i],
-              b.typeParameters[i].computeNullabilityFromBound())
+          new StructuralParameterType(
+            newTypeParameters[i],
+            b.typeParameters[i].computeNullabilityFromBound(),
+          ),
       ]);
 
       for (int i = 0; i < newTypeParameters.length; i++) {
-        DartType? newBound =
-            mergeTypes(a.typeParameters[i].bound, b.typeParameters[i].bound);
+        DartType? newBound = mergeTypes(
+          a.typeParameters[i].bound,
+          b.typeParameters[i].bound,
+        );
         if (newBound == null) {
           return null;
         }
         newTypeParameters[i].bound = newBound;
         DartType? newDefaultType = mergeTypes(
-            a.typeParameters[i].defaultType, b.typeParameters[i].defaultType);
+          a.typeParameters[i].defaultType,
+          b.typeParameters[i].defaultType,
+        );
         if (newDefaultType == null) {
           return null;
         }
@@ -87,35 +100,50 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
 
     DartType? newReturnType = mergeTypes(a.returnType, b.returnType);
     if (newReturnType == null) return null;
-    List<DartType> newPositionalParameters =
-        new List<DartType>.filled(a.positionalParameters.length, dummyDartType);
+    List<DartType> newPositionalParameters = new List<DartType>.filled(
+      a.positionalParameters.length,
+      dummyDartType,
+    );
     for (int i = 0; i < a.positionalParameters.length; i++) {
-      DartType? newType =
-          mergeTypes(a.positionalParameters[i], b.positionalParameters[i]);
+      DartType? newType = mergeTypes(
+        a.positionalParameters[i],
+        b.positionalParameters[i],
+      );
       if (newType == null) {
         return null;
       }
       newPositionalParameters[i] = newType;
     }
-    List<NamedType> newNamedParameters =
-        new List<NamedType>.filled(a.namedParameters.length, dummyNamedType);
+    List<NamedType> newNamedParameters = new List<NamedType>.filled(
+      a.namedParameters.length,
+      dummyNamedType,
+    );
     for (int i = 0; i < a.namedParameters.length; i++) {
-      DartType? newType =
-          mergeTypes(a.namedParameters[i].type, b.namedParameters[i].type);
+      DartType? newType = mergeTypes(
+        a.namedParameters[i].type,
+        b.namedParameters[i].type,
+      );
       if (newType == null) {
         return null;
       }
-      NamedType? newNamedType =
-          mergeNamedTypes(a.namedParameters[i], b.namedParameters[i], newType);
+      NamedType? newNamedType = mergeNamedTypes(
+        a.namedParameters[i],
+        b.namedParameters[i],
+        newType,
+      );
       if (newNamedType == null) {
         return null;
       }
       newNamedParameters[i] = newNamedType;
     }
-    return new FunctionType(newPositionalParameters, newReturnType, nullability,
-        namedParameters: newNamedParameters,
-        typeParameters: newTypeParameters,
-        requiredParameterCount: a.requiredParameterCount);
+    return new FunctionType(
+      newPositionalParameters,
+      newReturnType,
+      nullability,
+      namedParameters: newNamedParameters,
+      typeParameters: newTypeParameters,
+      requiredParameterCount: a.requiredParameterCount,
+    );
   }
 
   @override
@@ -135,7 +163,10 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   RecordType? mergeRecordTypes(
-      RecordType a, RecordType b, Nullability nullability) {
+    RecordType a,
+    RecordType b,
+    Nullability nullability,
+  ) {
     assert(a.positional.length == b.positional.length);
     assert(a.named.length == b.named.length);
 
@@ -143,8 +174,10 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       return a.accept1(this, b);
     }
 
-    List<DartType> newPositional =
-        new List<DartType>.filled(a.positional.length, dummyDartType);
+    List<DartType> newPositional = new List<DartType>.filled(
+      a.positional.length,
+      dummyDartType,
+    );
     for (int i = 0; i < a.positional.length; i++) {
       DartType? newType = mergeTypes(a.positional[i], b.positional[i]);
       if (newType == null) {
@@ -152,15 +185,20 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       }
       newPositional[i] = newType;
     }
-    List<NamedType> newNamed =
-        new List<NamedType>.filled(a.named.length, dummyNamedType);
+    List<NamedType> newNamed = new List<NamedType>.filled(
+      a.named.length,
+      dummyNamedType,
+    );
     for (int i = 0; i < a.named.length; i++) {
       DartType? newType = mergeTypes(a.named[i].type, b.named[i].type);
       if (newType == null) {
         return null;
       }
-      NamedType? newNamedType =
-          mergeNamedTypes(a.named[i], b.named[i], newType);
+      NamedType? newNamedType = mergeNamedTypes(
+        a.named[i],
+        b.named[i],
+        newType,
+      );
       if (newNamedType == null) {
         return null;
       }
@@ -194,14 +232,19 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   DartType? mergeInterfaceTypes(
-      InterfaceType a, InterfaceType b, Nullability nullability) {
+    InterfaceType a,
+    InterfaceType b,
+    Nullability nullability,
+  ) {
     assert(a.classNode == b.classNode);
     assert(a.typeArguments.length == b.typeArguments.length);
     if (a.typeArguments.isEmpty) {
       return new InterfaceType(a.classNode, nullability);
     }
-    List<DartType> newTypeArguments =
-        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
+    List<DartType> newTypeArguments = new List<DartType>.filled(
+      a.typeArguments.length,
+      dummyDartType,
+    );
     for (int i = 0; i < a.typeArguments.length; i++) {
       DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
       if (newType == null) {
@@ -229,14 +272,19 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   DartType? mergeExtensionTypes(
-      ExtensionType a, ExtensionType b, Nullability nullability) {
+    ExtensionType a,
+    ExtensionType b,
+    Nullability nullability,
+  ) {
     assert(a.extensionTypeDeclaration == b.extensionTypeDeclaration);
     assert(a.typeArguments.length == b.typeArguments.length);
     if (a.typeArguments.isEmpty) {
       return new ExtensionType(a.extensionTypeDeclaration, nullability);
     }
-    List<DartType> newTypeArguments =
-        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
+    List<DartType> newTypeArguments = new List<DartType>.filled(
+      a.typeArguments.length,
+      dummyDartType,
+    );
     for (int i = 0; i < a.typeArguments.length; i++) {
       DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
       if (newType == null) {
@@ -245,7 +293,10 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       newTypeArguments[i] = newType;
     }
     return new ExtensionType(
-        a.extensionTypeDeclaration, nullability, newTypeArguments);
+      a.extensionTypeDeclaration,
+      nullability,
+      newTypeArguments,
+    );
   }
 
   @override
@@ -263,7 +314,10 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   DartType? mergeFutureOrTypes(
-      FutureOrType a, FutureOrType b, Nullability nullability) {
+    FutureOrType a,
+    FutureOrType b,
+    Nullability nullability,
+  ) {
     DartType? newTypeArgument = a.typeArgument.accept1(this, b.typeArgument);
     if (newTypeArgument == null) {
       return null;
@@ -324,8 +378,10 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   @override
   DartType? visitTypeParameterType(TypeParameterType a, DartType b) {
     if (b is TypeParameterType && a.parameter == b.parameter) {
-      Nullability? nullability =
-          mergeNullability(a.declaredNullability, b.declaredNullability);
+      Nullability? nullability = mergeNullability(
+        a.declaredNullability,
+        b.declaredNullability,
+      );
       if (nullability == null) {
         return null;
       }
@@ -338,17 +394,24 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   DartType mergeTypeParameterTypes(
-      TypeParameterType a, TypeParameterType b, Nullability nullability) {
+    TypeParameterType a,
+    TypeParameterType b,
+    Nullability nullability,
+  ) {
     assert(a.parameter == b.parameter);
     return new TypeParameterType(a.parameter, nullability);
   }
 
   @override
   DartType? visitStructuralParameterType(
-      StructuralParameterType a, DartType b) {
+    StructuralParameterType a,
+    DartType b,
+  ) {
     if (b is StructuralParameterType && a.parameter == b.parameter) {
-      Nullability? nullability =
-          mergeNullability(a.declaredNullability, b.declaredNullability);
+      Nullability? nullability = mergeNullability(
+        a.declaredNullability,
+        b.declaredNullability,
+      );
       if (nullability == null) {
         return null;
       }
@@ -360,8 +423,11 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     return null;
   }
 
-  DartType mergeStructuralParameterTypes(StructuralParameterType a,
-      StructuralParameterType b, Nullability nullability) {
+  DartType mergeStructuralParameterTypes(
+    StructuralParameterType a,
+    StructuralParameterType b,
+    Nullability nullability,
+  ) {
     assert(a.parameter == b.parameter);
     return new StructuralParameterType(a.parameter, nullability);
   }
@@ -406,14 +472,19 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   DartType? mergeTypedefTypes(
-      TypedefType a, TypedefType b, Nullability nullability) {
+    TypedefType a,
+    TypedefType b,
+    Nullability nullability,
+  ) {
     assert(a.typedefNode == b.typedefNode);
     assert(a.typeArguments.length == b.typeArguments.length);
     if (a.typeArguments.isEmpty) {
       return new TypedefType(a.typedefNode, nullability);
     }
-    List<DartType> newTypeArguments =
-        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
+    List<DartType> newTypeArguments = new List<DartType>.filled(
+      a.typeArguments.length,
+      dummyDartType,
+    );
     for (int i = 0; i < a.typeArguments.length; i++) {
       DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
       if (newType == null) return null;
@@ -425,22 +496,29 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   @override
   DartType? visitAuxiliaryType(AuxiliaryType a, DartType b) {
     throw new UnsupportedError(
-        "Unsupported auxiliary type ${a} (${a.runtimeType}).");
+      "Unsupported auxiliary type ${a} (${a.runtimeType}).",
+    );
   }
 
   @override
   DartType? visitFunctionTypeParameterType(
-      FunctionTypeParameterType node, DartType arg) {
+    FunctionTypeParameterType node,
+    DartType arg,
+  ) {
     // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 
   @override
   DartType? visitClassTypeParameterType(
-      ClassTypeParameterType node, DartType arg) {
+    ClassTypeParameterType node,
+    DartType arg,
+  ) {
     // TODO(cstefantsova): Implement visitClassTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 }

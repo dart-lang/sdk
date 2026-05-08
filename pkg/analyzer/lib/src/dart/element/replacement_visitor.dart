@@ -234,6 +234,7 @@ class ReplacementVisitor
         newAlias = InstantiatedTypeAliasElementImpl(
           element: alias.element,
           typeArguments: newArguments,
+          nullabilitySuffix: alias.nullabilitySuffix,
         );
       }
     }
@@ -370,6 +371,7 @@ class ReplacementVisitor
         newAlias = InstantiatedTypeAliasElementImpl(
           element: alias.element,
           typeArguments: newArguments,
+          nullabilitySuffix: alias.nullabilitySuffix,
         );
       }
     }
@@ -442,6 +444,7 @@ class ReplacementVisitor
         newAlias = InstantiatedTypeAliasElementImpl(
           element: alias.element,
           typeArguments: newArguments,
+          nullabilitySuffix: alias.nullabilitySuffix,
         );
       }
     }

@@ -114,6 +114,25 @@ extension on String {
 ''');
   }
 
+  Future<void> test_existingExtension_emptyBody() async {
+    await resolveTestCode('''
+void f() {
+  ''.test;
+}
+
+extension E on String;
+''');
+    await assertHasFix('''
+void f() {
+  ''.test;
+}
+
+extension E on String {
+  get test => null;
+}
+''');
+  }
+
   Future<void> test_existingExtension_generic_matching() async {
     await resolveTestCode('''
 void f(List<int> a) {
@@ -663,6 +682,25 @@ void f() {
 
 extension on String {
   int test() {}
+}
+''');
+  }
+
+  Future<void> test_existingExtension_emptyBody() async {
+    await resolveTestCode('''
+void f(List<int> a) {
+  a.test();
+}
+
+extension E on List<int>;
+''');
+    await assertHasFix('''
+void f(List<int> a) {
+  a.test();
+}
+
+extension E on List<int> {
+  void test() {}
 }
 ''');
   }

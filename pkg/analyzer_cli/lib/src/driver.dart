@@ -275,14 +275,13 @@ class Driver implements CommandLineStarter {
           var sdkVersionConstraint = (package is PubPackage)
               ? package.sdkVersionConstraint
               : null;
-          var errors = analyzeAnalysisOptions(
-            FileSource(file),
-            content,
-            analysisDriver.sourceFactory,
-            contextRoot.root.path,
-            sdkVersionConstraint,
-            resourceProvider,
-          );
+          var errors = AnalysisOptionsAnalyzer(
+            initialSource: FileSource(file),
+            sourceFactory: analysisDriver.sourceFactory,
+            contextRoot: contextRoot.root.path,
+            sdkVersionConstraint: sdkVersionConstraint,
+            resourceProvider: resourceProvider,
+          ).walkIncludes(content: content);
           var analysisOptions = fileResult.analysisOptions;
           await formatter.formatErrors([
             ErrorsResultImpl(
@@ -607,7 +606,7 @@ class _AnalysisContextProvider {
       byteStore: Driver.analysisDriverMemoryByteStore,
       includedPaths: _pathList,
       optionsFile: _commandLineOptions!.defaultAnalysisOptionsPath,
-      packagesFile: _commandLineOptions!.defaultPackagesPath,
+      packageConfigFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
       updateAnalysisOptions4: _updateAnalysisOptions,

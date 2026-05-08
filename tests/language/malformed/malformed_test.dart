@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:expect/expect.dart' as prefix; // Define 'prefix'.
 
-checkIsUnresolved(var v) {
+checkIsUnresolved(v) {
   v is Unresolved;
   //   ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_UNDEFINED_NAME
@@ -26,7 +26,7 @@ checkIsUnresolved(var v) {
   // [cfe] 'Unresolved' isn't a type.
 }
 
-checkIsListUnresolved(var v) {
+checkIsListUnresolved(v) {
   v is List<Unresolved>;
   //        ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
@@ -51,7 +51,7 @@ checkIsListUnresolved(var v) {
   // [cfe] Expected 1 type arguments.
 }
 
-checkAsUnresolved(var v) {
+checkAsUnresolved(v) {
   v as Unresolved;
   //   ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
@@ -72,7 +72,7 @@ checkAsUnresolved(var v) {
   // [cfe] 'Unresolved' isn't a type.
 }
 
-checkAsListUnresolved(var v) {
+checkAsListUnresolved(v) {
   v as List<Unresolved>;
   //        ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT

@@ -9,7 +9,7 @@ class A {
     return 1;
   }
 
-  void set a(var val) {
+  void set a(val) {
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
     // [cfe] The setter conflicts with declaration 'a'.

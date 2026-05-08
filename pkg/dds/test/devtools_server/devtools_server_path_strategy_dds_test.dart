@@ -42,7 +42,7 @@ void main() {
         (String line) {
           final match = devToolsBannerRegex.firstMatch(line);
           if (match != null) {
-            completer.complete(match.group(1)!);
+            completer.complete(match[1]!);
           }
         },
         onDone: () {
@@ -98,7 +98,7 @@ void main() {
 
         // Extract the base href so if the test failures, we get a simpler error
         // than just the entire content.
-        final actualBaseHref = baseHrefRegex.firstMatch(bodyContent)!.group(1);
+        final actualBaseHref = baseHrefRegex.firstMatch(bodyContent)![1];
         expect(actualBaseHref, htmlEscape.convert(expectedBaseHref));
       }, timeout: const Timeout.factor(10));
     }

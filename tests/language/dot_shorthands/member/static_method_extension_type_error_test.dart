@@ -5,8 +5,6 @@
 // Error when we are trying to use a static method from the wrapped type of an
 // extension type.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 extension type ExtensionType(int integer) {}

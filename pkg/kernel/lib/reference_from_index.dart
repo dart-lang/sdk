@@ -60,9 +60,11 @@ mixin _IndexedProceduresMixin {
       _setterReferences[name] = procedure.reference;
     } else {
       assert(_getterReferences[name] == null);
-      assert(procedure.kind == ProcedureKind.Method ||
-          procedure.kind == ProcedureKind.Getter ||
-          procedure.kind == ProcedureKind.Operator);
+      assert(
+        procedure.kind == ProcedureKind.Method ||
+            procedure.kind == ProcedureKind.Getter ||
+            procedure.kind == ProcedureKind.Operator,
+      );
       _getterReferences[name] = procedure.reference;
     }
   }
@@ -103,7 +105,7 @@ class IndexedLibrary extends IndexedContainerImpl {
   final Map<String, Typedef> _typedefs = {};
   final Map<String, IndexedClass> _indexedClasses = {};
   final Map<String, IndexedExtensionTypeDeclaration>
-      _indexedExtensionTypeDeclarations = {};
+  _indexedExtensionTypeDeclarations = {};
   final Map<String, Extension> _extensions = {};
   @override
   final Library library;
@@ -142,8 +144,10 @@ class IndexedLibrary extends IndexedContainerImpl {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           library.extensionTypeDeclarations[i];
       extensionTypeDeclaration.reference.canonicalName = null;
-      assert(_indexedExtensionTypeDeclarations[extensionTypeDeclaration.name] ==
-          null);
+      assert(
+        _indexedExtensionTypeDeclarations[extensionTypeDeclaration.name] ==
+            null,
+      );
       _indexedExtensionTypeDeclarations[extensionTypeDeclaration.name] =
           new IndexedExtensionTypeDeclaration(this, extensionTypeDeclaration);
     }
@@ -160,8 +164,8 @@ class IndexedLibrary extends IndexedContainerImpl {
   Reference? lookupExtension(String name) => _extensions[name]?.reference;
 
   IndexedExtensionTypeDeclaration? lookupIndexedExtensionTypeDeclaration(
-          String name) =>
-      _indexedExtensionTypeDeclarations[name];
+    String name,
+  ) => _indexedExtensionTypeDeclarations[name];
 
   @override
   Reference? lookupConstructorReference(Name name) {
@@ -207,7 +211,9 @@ class IndexedExtensionTypeDeclaration
   final ExtensionTypeDeclaration extensionTypeDeclaration;
 
   IndexedExtensionTypeDeclaration(
-      this._indexedLibrary, this.extensionTypeDeclaration) {
+    this._indexedLibrary,
+    this.extensionTypeDeclaration,
+  ) {
     _addProcedures(extensionTypeDeclaration.procedures);
   }
 

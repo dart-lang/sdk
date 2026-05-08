@@ -13,7 +13,7 @@ class Assumptions {
       new Map<TypeParameter, TypeParameter>.identity();
 
   Map<StructuralParameter, StructuralParameter>
-      _structuralParameterAssumptionMap =
+  _structuralParameterAssumptionMap =
       new Map<StructuralParameter, StructuralParameter>.identity();
 
   void _addAssumption(TypeParameter a, TypeParameter b) {
@@ -22,7 +22,9 @@ class Assumptions {
   }
 
   void _addStructuralParameterAssumption(
-      StructuralParameter a, StructuralParameter b) {
+    StructuralParameter a,
+    StructuralParameter b,
+  ) {
     assert(!_structuralParameterAssumptionMap.containsKey(a));
     _structuralParameterAssumptionMap[a] = b;
   }
@@ -38,9 +40,12 @@ class Assumptions {
   }
 
   void _removeStructuralParameterAssumption(
-      StructuralParameter a, StructuralParameter b) {
-    StructuralParameter? assumption =
-        _structuralParameterAssumptionMap.remove(a);
+    StructuralParameter a,
+    StructuralParameter b,
+  ) {
+    StructuralParameter? assumption = _structuralParameterAssumptionMap.remove(
+      a,
+    );
     assert(identical(assumption, b));
   }
 
@@ -58,7 +63,9 @@ class Assumptions {
   /// Returns `true` if [a] and [b] are assumed to be equivalent.
   // TODO(cstefantsova): Is this method needed?
   bool isAssumedStructuralParameter(
-      StructuralParameter a, StructuralParameter b) {
+    StructuralParameter a,
+    StructuralParameter b,
+  ) {
     return identical(_structuralParameterAssumptionMap[a], b);
   }
 
@@ -68,8 +75,10 @@ class Assumptions {
     sb.write('Assumptions(');
     String comma = '';
     _assumptionMap.forEach((TypeParameter a, TypeParameter b) {
-      sb.write('$comma$a (${identityHashCode(a)})->'
-          '$b (${identityHashCode(b)})');
+      sb.write(
+        '$comma$a (${identityHashCode(a)})->'
+        '$b (${identityHashCode(b)})',
+      );
       comma = ',';
     });
     sb.write(')');

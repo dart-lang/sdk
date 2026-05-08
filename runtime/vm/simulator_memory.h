@@ -26,20 +26,12 @@ class DirectSimulatorMemory {
 
   template <typename T>
   T Load(uword addr, std::memory_order order) {
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->load(order);
+    return std::atomic_ref(*reinterpret_cast<T*>(addr)).load(order);
   }
 
   template <typename T>
   void Store(uword addr, T value, std::memory_order order) {
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    reinterpret_cast<std::atomic<T>*>(addr)->store(value, order);
+    std::atomic_ref(*reinterpret_cast<T*>(addr)).store(value, order);
   }
 
   template <typename T>
@@ -47,12 +39,8 @@ class DirectSimulatorMemory {
                        T& old_value,
                        T value,
                        std::memory_order order) {
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->compare_exchange_weak(
-        old_value, value, order);
+    return std::atomic_ref(*reinterpret_cast<T*>(addr))
+        .compare_exchange_weak(old_value, value, order);
   }
 
   void FlushAddress(uword addr) {}
@@ -63,8 +51,8 @@ class BufferedSimulatorMemory {
  public:
   template <typename T>
   T Load(uword addr) {
-    if (UNLIKELY((sizeof(T) > sizeof(uword)) ||
-                 ((addr & (sizeof(T) - 1)) != 0))) {
+    if ((sizeof(T) > sizeof(uword)) || ((addr & (sizeof(T) - 1)) != 0))
+        [[unlikely]] {
       FlushAll();
       return LoadUnaligned(reinterpret_cast<T*>(addr));
     }
@@ -82,8 +70,8 @@ class BufferedSimulatorMemory {
 
   template <typename T>
   void Store(uword addr, T value) {
-    if (UNLIKELY((sizeof(T) > sizeof(uword)) ||
-                 ((addr & (sizeof(T) - 1)) != 0))) {
+    if ((sizeof(T) > sizeof(uword)) || ((addr & (sizeof(T) - 1)) != 0))
+        [[unlikely]] {
       FlushAll();
       StoreUnaligned(reinterpret_cast<T*>(addr), value);
       return;
@@ -112,21 +100,13 @@ class BufferedSimulatorMemory {
   template <typename T>
   T Load(uword addr, std::memory_order order) {
     FlushAddress(addr);
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->load(order);
+    return std::atomic_ref(*reinterpret_cast<T*>(addr)).load(order);
   }
 
   template <typename T>
   void Store(uword addr, T value, std::memory_order order) {
     FlushAddress(addr);
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    reinterpret_cast<std::atomic<T>*>(addr)->store(value, order);
+    std::atomic_ref(*reinterpret_cast<T*>(addr)).store(value, order);
   }
 
   template <typename T>
@@ -135,12 +115,8 @@ class BufferedSimulatorMemory {
                        T value,
                        std::memory_order order) {
     FlushAddress(addr);
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->compare_exchange_weak(
-        old_value, value, order);
+    return std::atomic_ref<T>(*reinterpret_cast<T*>(addr))
+        .compare_exchange_weak(old_value, value, order);
   }
 
   void FlushAddress(uword addr) {
@@ -188,7 +164,7 @@ class SimulatorMemory {
 
   template <typename T>
   T Load(uword addr) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Load<T>(addr);
     } else {
       return direct_.Load<T>(addr);
@@ -197,7 +173,7 @@ class SimulatorMemory {
 
   template <typename T>
   void Store(uword addr, T value) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Store<T>(addr, value);
     } else {
       return direct_.Store<T>(addr, value);
@@ -206,7 +182,7 @@ class SimulatorMemory {
 
   template <typename T>
   T Load(uword addr, std::memory_order order) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Load<T>(addr, order);
     } else {
       return direct_.Load<T>(addr, order);
@@ -215,7 +191,7 @@ class SimulatorMemory {
 
   template <typename T>
   void Store(uword addr, T value, std::memory_order order) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Store<T>(addr, value, order);
     } else {
       return direct_.Store<T>(addr, value, order);
@@ -227,7 +203,7 @@ class SimulatorMemory {
                        T& old_value,
                        T value,
                        std::memory_order order) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.CompareExchange<T>(addr, old_value, value, order);
     } else {
       return direct_.CompareExchange<T>(addr, old_value, value, order);
@@ -235,7 +211,7 @@ class SimulatorMemory {
   }
 
   void FlushAddress(uword addr) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.FlushAddress(addr);
     } else {
       return direct_.FlushAddress(addr);
@@ -243,7 +219,7 @@ class SimulatorMemory {
   }
 
   void FlushAll() {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.FlushAll();
     } else {
       return direct_.FlushAll();

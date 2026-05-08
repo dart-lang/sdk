@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/builder/property_builder.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/combinator.dart';
@@ -100,7 +101,7 @@ class PrefixBuilder extends NamedBuilderImpl
   }) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(
-        codeDeferredExtensionImport.withArgumentsOld(name),
+        diag.deferredExtensionImport.withArguments(extensionName: name),
         importOffset,
         noLength,
         fileUri,

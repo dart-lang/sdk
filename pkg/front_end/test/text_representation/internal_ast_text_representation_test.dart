@@ -14,8 +14,8 @@ import 'package:front_end/src/dill/dill_loader.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/dill/dill_type_alias_builder.dart';
 import 'package:front_end/src/kernel/collections.dart';
-import 'package:front_end/src/kernel/forest.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
+import 'package:front_end/src/kernel/internal_ast_helper.dart' as forest;
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/target/targets.dart';
@@ -200,7 +200,7 @@ void main() {
 
 void _testVariableDeclarations() {
   testStatement(
-    const Forest().variablesDeclaration([
+    forest.variablesDeclaration([
       new VariableDeclaration('a'),
       new VariableDeclaration('b'),
     ], dummyUri),
@@ -208,7 +208,7 @@ void _testVariableDeclarations() {
 dynamic a, b;''',
   );
   testStatement(
-    const Forest().variablesDeclaration([
+    forest.variablesDeclaration([
       new VariableDeclaration('a', type: const VoidType()),
       new VariableDeclaration('b', initializer: new NullLiteral()),
     ], dummyUri),

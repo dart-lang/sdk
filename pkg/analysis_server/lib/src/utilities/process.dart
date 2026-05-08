@@ -8,7 +8,9 @@ import 'dart:io';
 
 /// An abstraction over [Process] from 'dart:io' to allow mocking in tests.
 class ProcessRunner {
-  const ProcessRunner();
+  final Map<String, String>? environment;
+
+  const ProcessRunner({this.environment});
 
   ProcessResult runSync(
     String executable,
@@ -17,14 +19,16 @@ class ProcessRunner {
     Map<String, String>? environment,
     Encoding? stderrEncoding,
     Encoding? stdoutEncoding,
-  }) => Process.runSync(
-    executable,
-    arguments,
-    workingDirectory: workingDirectory,
-    environment: environment,
-    stderrEncoding: stderrEncoding,
-    stdoutEncoding: stdoutEncoding,
-  );
+  }) {
+    return Process.runSync(
+      executable,
+      arguments,
+      workingDirectory: workingDirectory,
+      environment: _mergedEnv(environment),
+      stderrEncoding: stderrEncoding,
+      stdoutEncoding: stdoutEncoding,
+    );
+  }
 
   Future<Process> start(
     String executable,
@@ -39,10 +43,15 @@ class ProcessRunner {
       executable,
       arguments,
       workingDirectory: workingDirectory,
-      environment: environment,
+      environment: _mergedEnv(environment),
       includeParentEnvironment: includeParentEnvironment,
       runInShell: runInShell,
       mode: mode,
     );
+  }
+
+  Map<String, String>? _mergedEnv(Map<String, String>? environment) {
+    var merged = <String, String>{...?this.environment, ...?environment};
+    return merged.isNotEmpty ? merged : null;
   }
 }

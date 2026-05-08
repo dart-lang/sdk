@@ -457,13 +457,13 @@ void f(void x) {
   test_useOfVoidInForeachIterableError() async {
     await assertErrorsInCode(
       r'''
-void f(void x, var y) {
+void f(void x, y) {
   for (y in x) {}
 }
 ''',
       [
-        error(diag.uncheckedUseOfNullableValueAsIterator, 36, 1),
-        error(diag.useOfVoidResult, 36, 1),
+        error(diag.uncheckedUseOfNullableValueAsIterator, 32, 1),
+        error(diag.useOfVoidResult, 32, 1),
       ],
     );
   }

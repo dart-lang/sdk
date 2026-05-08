@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:path/path.dart' as path;
 
 /// A class to represent a SDK configuration file.
@@ -31,7 +32,7 @@ class SdkConfiguration {
   SdkConfiguration.readFromSdk() {
     // <dart-sdk>/config/settings.json:
     var sdkDir = Directory(
-      path.dirname(path.dirname(Platform.resolvedExecutable)),
+      path.dirname(path.dirname(platform.resolvedExecutable)),
     );
     var configFile = File(path.join(sdkDir.path, 'config', 'settings.json'));
 

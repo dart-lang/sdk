@@ -72,7 +72,7 @@ class BlockBuilder;
 struct TableSelector;
 }  // namespace compiler
 
-class Value : public ZoneAllocated {
+class Value : public ZoneObject {
  public:
   // A forward iterator that allows removing the current value from the
   // underlying use list during iteration.
@@ -199,7 +199,7 @@ class Value : public ZoneAllocated {
 
 // Represents a range of class-ids for use in class checks and polymorphic
 // dispatches.  The range includes both ends, i.e. it is [cid_start, cid_end].
-struct CidRange : public ZoneAllocated {
+struct CidRange : public ZoneObject {
   CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
       : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
   CidRange() : cid_start(kIllegalCid), cid_end(kIllegalCid) {}
@@ -501,7 +501,6 @@ struct InstrAttrs {
   M(MathMinMax, kNoGC)                                                         \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
-  M(CaseInsensitiveCompare, kNoGC)                                             \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(UnaryInt64Op, kNoGC)                                                       \
   M(CheckArrayBound, kNoGC)                                                    \
@@ -520,6 +519,7 @@ struct InstrAttrs {
   M(GuardFieldClass, _)                                                        \
   M(GuardFieldLength, _)                                                       \
   M(GuardFieldType, _)                                                         \
+  M(CheckFieldImmutability, _)                                                 \
   M(IfThenElse, kNoGC)                                                         \
   M(MaterializeObject, _)                                                      \
   M(TestInt, kNoGC)                                                            \
@@ -738,7 +738,7 @@ struct TargetInfo : public CidRange {
 
 // A set of class-ids, arranged in ranges. Used for the CheckClass
 // and PolymorphicInstanceCall instructions.
-class Cids : public ZoneAllocated {
+class Cids : public ZoneObject {
  public:
   explicit Cids(Zone* zone) : cid_ranges_(zone, 6) {}
   // Creates the off-heap Cids object that reflects the contents
@@ -838,7 +838,7 @@ class CallTargets : public Cids {
 
 // Represents type feedback for the binary operators, and a few recognized
 // static functions (see MethodRecognizer::NumArgsCheckedForStaticCall).
-class BinaryFeedback : public ZoneAllocated {
+class BinaryFeedback : public ZoneObject {
  public:
   explicit BinaryFeedback(Zone* zone) : feedback_(zone, 2) {}
 
@@ -964,7 +964,7 @@ class ValueListIterable {
   Value* value_;
 };
 
-class Instruction : public ZoneAllocated {
+class Instruction : public ZoneObject {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
   enum Tag { FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_TAG) kNumInstructions };
@@ -1525,11 +1525,11 @@ class TemplateInstruction
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class MoveOperands : public ZoneAllocated {
+class MoveOperands : public ZoneObject {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
   MoveOperands(const MoveOperands& other)
-      : ZoneAllocated(), dest_(other.dest_), src_(other.src_) {}
+      : ZoneObject(), dest_(other.dest_), src_(other.src_) {}
 
   MoveOperands& operator=(const MoveOperands& other) {
     dest_ = other.dest_;
@@ -1642,7 +1642,7 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
 
-class OsrEntryRelinkingInfo : public ZoneAllocated {
+class OsrEntryRelinkingInfo : public ZoneObject {
  public:
   OsrEntryRelinkingInfo(GraphEntryInstr* graph_entry,
                         Instruction* instr,
@@ -6608,6 +6608,55 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
 };
 
+// Throws if [value] is not immutable.
+//
+// This is used when it's impossible to conclude from the variable static type
+// whether value is immutable(in case of closures, for example).
+class CheckFieldImmutabilityInstr : public TemplateInstruction<1, Throws> {
+ public:
+  CheckFieldImmutabilityInstr(Value* value,
+                              const Field& field,
+                              intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), field_(field) {
+    SetInputAt(0, value);
+    CheckField(field);
+  }
+
+  Value* value() const { return inputs_[0]; }
+  enum {
+    kValue = 0,
+  };
+
+  const Field& field() const { return field_; }
+
+  DECLARE_INSTRUCTION(CheckFieldImmutability)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return !CompilerState::Current().is_aot();
+  }
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AttributesEqual(const Instruction& other) const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F) F(const Field&, field_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckFieldImmutabilityInstr,
+                                          TemplateInstruction,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CheckFieldImmutabilityInstr);
+};
+
 enum class SlowPathOnSentinelValue {
   kDoNothing,
   kThrowAccessError,  // This is part of shared field implementation.
@@ -7504,7 +7553,8 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return IsAllocatableInNewSpace(cls.target_instance_size());
+    return compiler::target::Heap::IsAllocatableInNewSpace(
+        cls.target_instance_size());
   }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
@@ -7616,7 +7666,8 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
   }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
+    return compiler::target::Heap::IsAllocatableInNewSpace(
+        compiler::target::Closure::InstanceSize());
   }
 
 #define FIELD_LIST(F)                                                          \
@@ -7683,7 +7734,7 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(
+    return compiler::target::Heap::IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -7735,7 +7786,7 @@ class AllocateSmallRecordInstr : public TemplateAllocation<3> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(
+    return compiler::target::Heap::IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -8882,67 +8933,6 @@ bool Definition::IsInt64Definition() {
   return (Type()->ToCid() == kMintCid) || IsBinaryInt64Op() ||
          IsUnaryInt64Op() || IsBoxInt64() || IsUnboxInt64();
 }
-
-// Calls into the runtime and performs a case-insensitive comparison of the
-// UTF16 strings (i.e. TwoByteString) located at
-// str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
-// Depending on [handle_surrogates], we will treat the strings as either
-// UCS2 (no surrogate handling) or UTF16 (surrogates handled appropriately).
-class CaseInsensitiveCompareInstr
-    : public TemplateDefinition<4, NoThrow, Pure> {
- public:
-  CaseInsensitiveCompareInstr(Value* str,
-                              Value* lhs_index,
-                              Value* rhs_index,
-                              Value* length,
-                              bool handle_surrogates,
-                              intptr_t cid)
-      : handle_surrogates_(handle_surrogates), cid_(cid) {
-    ASSERT(cid == kTwoByteStringCid);
-    ASSERT(index_scale() == 2);
-    SetInputAt(0, str);
-    SetInputAt(1, lhs_index);
-    SetInputAt(2, rhs_index);
-    SetInputAt(3, length);
-  }
-
-  Value* str() const { return inputs_[0]; }
-  Value* lhs_index() const { return inputs_[1]; }
-  Value* rhs_index() const { return inputs_[2]; }
-  Value* length() const { return inputs_[3]; }
-
-  const RuntimeEntry& TargetFunction() const;
-  intptr_t class_id() const { return cid_; }
-
-  intptr_t index_scale() const {
-    return compiler::target::Instance::ElementSizeFor(cid_);
-  }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual Representation representation() const { return kTagged; }
-
-  DECLARE_INSTRUCTION(CaseInsensitiveCompare)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(const Instruction& other) const {
-    const auto* other_compare = other.AsCaseInsensitiveCompare();
-    return (other_compare->handle_surrogates_ == handle_surrogates_) &&
-           (other_compare->cid_ == cid_);
-  }
-
-#define FIELD_LIST(F)                                                          \
-  F(const bool, handle_surrogates_)                                            \
-  F(const intptr_t, cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CaseInsensitiveCompareInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareInstr);
-};
 
 // Represents Math's static min and max functions.
 class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
@@ -11473,7 +11463,7 @@ class SuspendInstr : public TemplateDefinition<2, Throws> {
 
 #undef DECLARE_INSTRUCTION
 
-class Environment : public ZoneAllocated {
+class Environment : public ZoneObject {
  public:
   // Iterate the non-null values in the innermost level of an environment.
   class ShallowIterator : public ValueObject {

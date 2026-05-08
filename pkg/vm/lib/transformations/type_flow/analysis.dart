@@ -671,10 +671,9 @@ final class _DispatchableInvocation extends _Invocation {
 
     final selector = this.selector;
     if (selector is InterfaceSelector) {
-      final staticReceiverType =
-          typeFlowAnalysis.hierarchyCache
-              .getTFClass(selector.member.enclosingClass!)
-              .coneType;
+      final staticReceiverType = typeFlowAnalysis.hierarchyCache
+          .getTFClass(selector.member.enclosingClass!)
+          .coneType;
       receiver = receiver.intersection(
         staticReceiverType,
         typeFlowAnalysis.hierarchyCache,
@@ -888,16 +887,9 @@ final class _DispatchableInvocation extends _Invocation {
       isDynamicallyOverridden = true;
     }
     if (kPrintTrace) {
-      tracePrint(
-        "isDynamicallyOverridden = $isDynamicallyOverridden, isPrivate = ${selector.name.isPrivate}",
-      );
+      tracePrint("isDynamicallyOverridden = $isDynamicallyOverridden");
     }
-    // Edge case: when desugaring enums, front-end generates classes which
-    // override private _enumToString method from a different library.
-    // So analysis should treat _enumToString as public for correctness.
-    return !isDynamicallyOverridden ||
-        (selector.name.isPrivate &&
-            selector.name != typeFlowAnalysis.enumToStringName);
+    return !isDynamicallyOverridden;
   }
 
   void _recordMismatchedDynamicInvocation(
@@ -1074,10 +1066,9 @@ class _InvocationsCache {
   _Invocation getInvocation(Selector selector, Args<Type> args) {
     ++Statistics.invocationsQueriedInCache;
     final bool isDirectSelector = (selector is DirectSelector);
-    _Invocation invocation =
-        isDirectSelector
-            ? new _DirectInvocation(selector, args)
-            : new _DispatchableInvocation(selector, args);
+    _Invocation invocation = isDirectSelector
+        ? new _DirectInvocation(selector, args)
+        : new _DispatchableInvocation(selector, args);
     _Invocation? result = _invocations.lookup(invocation);
     if (result != null) {
       return result;
@@ -1121,9 +1112,8 @@ class _InvocationsCache {
       // approximate extra invocations with a single invocation with raw
       // arguments.
 
-      final sa =
-          (_interfaceSelectorApproximations[selector] ??=
-              new _SelectorApproximation());
+      final sa = (_interfaceSelectorApproximations[selector] ??=
+          new _SelectorApproximation());
 
       if (sa.count >=
           _typeFlowAnalysis.config.maxInterfaceInvocationsPerSelector) {
@@ -1239,10 +1229,10 @@ class _FieldValue extends _DependencyTracker {
     final typeGuardSummary = this.typeGuardSummary;
     return (typeGuardSummary != null)
         ? typeGuardSummary.apply(
-          Args([receiverType!, value]),
-          typeFlowAnalysis.hierarchyCache,
-          typeFlowAnalysis,
-        )
+            Args([receiverType!, value]),
+            typeFlowAnalysis.hierarchyCache,
+            typeFlowAnalysis,
+          )
         : value;
   }
 
@@ -1278,18 +1268,15 @@ class _FieldValue extends _DependencyTracker {
     final hierarchy = typeFlowAnalysis.hierarchyCache;
     // TODO(sjindel/tfa): Perform narrowing inside 'TypeCheck'.
     final typeGuardSummary = this.typeGuardSummary;
-    final narrowedNewValue =
-        typeGuardSummary != null
-            ? typeGuardSummary
-                .apply(
-                  new Args([receiverType!, newValue]),
-                  hierarchy,
-                  typeFlowAnalysis,
-                )
-                .intersection(staticType, hierarchy)
-            : newValue
-                .specialize(hierarchy)
-                .intersection(staticType, hierarchy);
+    final narrowedNewValue = typeGuardSummary != null
+        ? typeGuardSummary
+              .apply(
+                new Args([receiverType!, newValue]),
+                hierarchy,
+                typeFlowAnalysis,
+              )
+              .intersection(staticType, hierarchy)
+        : newValue.specialize(hierarchy).intersection(staticType, hierarchy);
     Type newType = value
         .union(narrowedNewValue, hierarchy)
         .specialize(hierarchy);
@@ -1646,8 +1633,9 @@ class _ClassHierarchyCache extends TypeHierarchy {
       supertypes.addAll(getTFClass(sup.classNode).supertypes);
     }
     Class? superclassNode = c.superclass;
-    _TFClassImpl? superclass =
-        superclassNode != null ? getTFClass(superclassNode) : null;
+    _TFClassImpl? superclass = superclassNode != null
+        ? getTFClass(superclassNode)
+        : null;
     return _TFClassImpl(++_classIdCounter, c, superclass, supertypes, null);
   }
 
@@ -1775,7 +1763,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
     }
     return classImpl.hasNonTrivialNoSuchMethod =
         (classImpl._dispatchTargetsNonSetters[noSuchMethodName] !=
-            objectNoSuchMethod);
+        objectNoSuchMethod);
   }
 
   _DynamicTargetSet getDynamicTargetSet(DynamicSelector selector) {
@@ -2276,9 +2264,19 @@ class TypeFlowAnalysis
     assert(!field.isStatic);
     final fieldValue = getFieldValue(field);
     fieldValue.setValue(value, this, instance);
-    // Make sure the field is retained as removing fields used in constants
-    // may affect identity of the constants.
-    fieldValue.isGetterUsed = true;
+
+    if (!fieldValue.isGetterUsed) {
+      final newFieldValue = fieldValue.value;
+      final fieldHasConstantValue =
+          newFieldValue is ConcreteType &&
+          newFieldValue.attributes?.constant != null;
+      if (!fieldHasConstantValue) {
+        // Make sure the field is retained as removing fields used in constants
+        // may affect identity of the constants. Though if all constants have the
+        // same field value, then removing the field will not influence identity.
+        fieldValue.isGetterUsed = true;
+      }
+    }
   }
 
   @override

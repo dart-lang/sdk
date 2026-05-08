@@ -9,7 +9,7 @@ import 'package:dartdev/dartdev.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 // Needed to reset the global HTTP client after a test.
-import 'package:pub/src/http.dart' show innerHttpClient;
+import 'package:pub/src/http.dart' as pub show withHttpClient;
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -17,9 +17,9 @@ import 'experiment_util.dart';
 import 'utils.dart';
 
 List<Map<String, Object?>> extractAnalytics(io.ProcessResult result) {
-  return LineSplitter.split(result.stderr)
-      .where((line) => line.startsWith('[analytics]: '))
-      .map((line) {
+  return LineSplitter.split(
+    result.stderr,
+  ).where((line) => line.startsWith('[analytics]: ')).map((line) {
     return (json.decode(line.substring('[analytics]: '.length)) as Map)
         .cast<String, Object?>();
   }).toList();
@@ -35,27 +35,24 @@ void main() {
     });
 
     test('--no-analytics', () async {
-      final result =
-          await command.runCommand(command.parse(['--no-analytics']));
+      final result = await command.runCommand(
+        command.parse(['--no-analytics']),
+      );
       expect(result, 0);
       expect(command.unifiedAnalytics.telemetryEnabled, false);
     });
 
     test('--suppress-analytics', () async {
-      final result =
-          await command.runCommand(command.parse(['--suppress-analytics']));
+      final result = await command.runCommand(
+        command.parse(['--suppress-analytics']),
+      );
       expect(result, 0);
       expect(command.unifiedAnalytics.telemetryEnabled, false);
     });
 
     test('--suppress-analytics and --disable-analytics', () async {
       final result = await command.runCommand(
-        command.parse(
-          [
-            '--suppress-analytics',
-            '--disable-analytics',
-          ],
-        ),
+        command.parse(['--suppress-analytics', '--disable-analytics']),
       );
       // --suppress-analytics and --disable-analytics can't be provided
       // together to ensure analytics state properly sticks.
@@ -64,12 +61,7 @@ void main() {
 
     test('--suppress-analytics and --enable-analytics', () async {
       final result = await command.runCommand(
-        command.parse(
-          [
-            '--suppress-analytics',
-            '--enable-analytics',
-          ],
-        ),
+        command.parse(['--suppress-analytics', '--enable-analytics']),
       );
       // --suppress-analytics and --enable-analytics can't be provided
       // together to ensure analytics state properly sticks.
@@ -82,10 +74,7 @@ void main() {
       final p = project();
       final analytics = await p.runLocalWithFakeAnalytics(['help']);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'help',
-          enabledExperiments: '',
-        )
+        Event.dartCliCommandExecuted(name: 'help', enabledExperiments: ''),
       ]);
     });
 
@@ -98,25 +87,17 @@ void main() {
         path.join(io.Directory.systemTemp.createTempSync().path, 'name'),
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'create',
-          enabledExperiments: '',
-        ),
+        Event.dartCliCommandExecuted(name: 'create', enabledExperiments: ''),
       ]);
     });
 
     group('pub', () {
-      setUp(() {
-        // Inside each pub test reset the pub http client.
-        innerHttpClient = http.Client();
-      });
-
       test(
         'get',
         () async {
           final p = project(
             pubspecExtras: {
-              'dependencies': {'lints': '2.0.1'}
+              'dependencies': {'lints': '2.0.1'},
             },
           );
           final analytics = await p.runLocalWithFakeAnalytics(['pub', 'get']);
@@ -138,31 +119,30 @@ void main() {
 
     test('format', () async {
       final p = project();
-      final analytics =
-          await p.runLocalWithFakeAnalytics(['format', '-l80', '.']);
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'format',
+        '-l80',
+        '.',
+      ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'format',
-          enabledExperiments: '',
-        ),
+        Event.dartCliCommandExecuted(name: 'format', enabledExperiments: ''),
       ]);
     });
 
     test('run', () async {
       final p = project(mainSrc: 'void main(List<String> args) => print(args)');
-      final analytics = await p.runLocalWithFakeAnalytics([
-        'run',
-        '--no-pause-isolates-on-exit',
-        '--enable-asserts',
-        'lib/main.dart',
-        '--argument'
-      ]);
-      expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'run',
-          enabledExperiments: '',
-        ),
-      ]);
+      await pub.withHttpClient(client: http.Client(), () async {
+        final analytics = await p.runLocalWithFakeAnalytics([
+          'run',
+          '--no-pause-isolates-on-exit',
+          '--enable-asserts',
+          'lib/main.dart',
+          '--argument',
+        ]);
+        expect(analytics.sentEvents, [
+          Event.dartCliCommandExecuted(name: 'run', enabledExperiments: ''),
+        ]);
+      });
     });
 
     group('run --enable-experiments', () {
@@ -171,17 +151,19 @@ void main() {
           final p = project(mainSrc: experiment.validation);
           {
             for (final no in ['', 'no-']) {
-              final analytics = await p.runLocalWithFakeAnalytics([
-                'run',
-                '--enable-experiment=$no${experiment.name}',
-                'lib/main.dart',
-              ]);
-              expect(analytics.sentEvents, [
-                Event.dartCliCommandExecuted(
-                  name: 'run',
-                  enabledExperiments: '$no${experiment.name}',
-                ),
-              ]);
+              await pub.withHttpClient(client: http.Client(), () async {
+                final analytics = await p.runLocalWithFakeAnalytics([
+                  'run',
+                  '--enable-experiment=$no${experiment.name}',
+                  'lib/main.dart',
+                ]);
+                expect(analytics.sentEvents, [
+                  Event.dartCliCommandExecuted(
+                    name: 'run',
+                    enabledExperiments: '$no${experiment.name}',
+                  ),
+                ]);
+              });
             }
           }
         });

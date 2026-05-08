@@ -107,7 +107,8 @@ class ElementNameUnion {
     return element.enclosingElement is LibraryElement ||
         element is FieldElement ||
         element is MethodElement ||
-        element is PropertyAccessorElement;
+        element is PropertyAccessorElement ||
+        element is ConstructorElement;
   }
 }
 

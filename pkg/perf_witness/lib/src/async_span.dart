@@ -60,12 +60,12 @@ import '../server.dart';
 /// reveal when it was actively running on the stack.
 class AsyncSpan {
   final String name;
-  final Map<String, Object?>? parameters;
+  final Map<String, Object?>? arguments;
   final Flow _flow = Flow.begin();
   bool issuedBegin = false;
   int running = 0;
 
-  AsyncSpan._(this.name, {this.parameters});
+  AsyncSpan._(this.name, {this.arguments});
 
   static AsyncSpan of(Zone zone) => zone[AsyncSpan] as AsyncSpan;
 
@@ -101,18 +101,33 @@ class AsyncSpan {
         },
   );
 
+  /// Records execution of [action] as a timeline span with the given [name].
+  ///
+  /// If [PerfWitnessServer.isRecordingTimelineWithAsyncSpans] is `true`,
+  /// [action] will be run inside a custom [Zone] which tracks synchronous
+  /// execution segments within the asynchronous task.
+  ///
+  /// Otherwise, it records a `Timeline.startSync` for the initial
+  /// synchronous portion and a `Timeline.startSync` with an instantaneous
+  /// flow event for the completion, providing an estimate of the total
+  /// duration.
+  ///
+  /// The optional [arguments] provide additional data to associate with the
+  /// first recorded span.
+  ///
+  /// Returns a [Future] that completes with the result of the [action].
   static Future<R> run<R>(
     String name,
     Future<R> Function() action, {
-    Map<String, Object?>? parameters,
+    Map<String, Object?>? arguments,
   }) async {
     if (PerfWitnessServer.isRecordingTimelineWithAsyncSpans) {
-      return AsyncSpan._create(name, parameters: parameters).run(action);
+      return AsyncSpan._create(name, arguments: arguments).run(action);
     } else {
       final Future<R> result;
       final flow = Flow.begin();
       try {
-        Timeline.startSync(name, flow: flow);
+        Timeline.startSync(name, flow: flow, arguments: arguments);
         result = action();
       } finally {
         Timeline.finishSync();
@@ -127,22 +142,38 @@ class AsyncSpan {
     }
   }
 
+  /// Records execution of [action] with the given [arg] as a timeline span
+  /// with the given [name].
+  ///
+  /// If [PerfWitnessServer.isRecordingTimelineWithAsyncSpans] is `true`,
+  /// [action] will be run inside a custom [Zone] which tracks synchronous
+  /// execution segments within the asynchronous task.
+  ///
+  /// Otherwise, it records a `Timeline.startSync` for the initial
+  /// synchronous portion and a `Timeline.startSync` with an instantaneous
+  /// flow event for the completion, providing an estimate of the total
+  /// duration.
+  ///
+  /// The optional [arguments] provide additional data to associate with the
+  /// first recorded span.
+  ///
+  /// Returns a [Future] that completes with the result of the [action].
   static Future<R> runUnary<R, T>(
     String name,
     Future<R> Function(T) action,
     T arg, {
-    Map<String, Object?>? parameters,
+    Map<String, Object?>? arguments,
   }) async {
     if (PerfWitnessServer.isRecordingTimelineWithAsyncSpans) {
       return AsyncSpan._create(
         name,
-        parameters: parameters,
+        arguments: arguments,
       ).runUnary(action, arg);
     } else {
       final Future<R> result;
       final flow = Flow.begin();
       try {
-        Timeline.startSync(name, flow: flow);
+        Timeline.startSync(name, flow: flow, arguments: arguments);
         result = action(arg);
       } finally {
         Timeline.finishSync();
@@ -157,10 +188,10 @@ class AsyncSpan {
     }
   }
 
-  static Zone _create(String name, {Map<String, Object?>? parameters}) =>
+  static Zone _create(String name, {Map<String, Object?>? arguments}) =>
       Zone.current.fork(
         specification: _zoneSpecification,
-        zoneValues: {AsyncSpan: AsyncSpan._(name, parameters: parameters)},
+        zoneValues: {AsyncSpan: AsyncSpan._(name, arguments: arguments)},
       );
 
   void startSync() {
@@ -168,7 +199,7 @@ class AsyncSpan {
       Timeline.startSync(
         name,
         flow: issuedBegin ? Flow.step(_flow.id) : _flow,
-        arguments: issuedBegin ? null : parameters,
+        arguments: issuedBegin ? null : arguments,
       );
       issuedBegin = true;
     }

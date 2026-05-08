@@ -163,7 +163,7 @@ class JSSyntaxRegExp implements RegExp {
 
   String? stringMatch(String string) {
     var match = firstMatch(string);
-    if (match != null) return match.group(0);
+    if (match != null) return match[0];
     return null;
   }
 
@@ -237,16 +237,16 @@ class _MatchImplementation implements RegExpMatch {
 
   // The JS below changes the static type to avoid an implicit cast.
   // TODO(sra): Find a nicer way to do this, e.g. unsafeCast.
-  String? group(int index) => JS('String|Null', '#', _match[index]);
+  String? group(int index) => this[index];
 
-  String? operator [](int index) => group(index);
+  String? operator [](int index) => JS('String|Null', '#', _match[index]);
 
   int get groupCount => _match.length - 1;
 
   List<String?> groups(List<int> groups) {
     List<String?> out = [];
     for (int i in groups) {
-      out.add(group(i));
+      out.add(this[i]);
     }
     return out;
   }

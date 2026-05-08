@@ -140,6 +140,14 @@ static constexpr uint32_t LC_RPATH = (0x1c | LC_REQ_DYLD);
 // The code signature which protects the preceding portion of the object file.
 // Must be the last contents in the object file. (linkedit_data_command)
 static constexpr uint32_t LC_CODE_SIGNATURE = 0x1d;
+// Information about encrypted segments for 32-bit targets. Must also be present
+// for programs with no encrypted segments that are uploaded to the App Store
+// so it can be updated appropriately.
+static constexpr uint32_t LC_ENCRYPTION_INFO = 0x21;
+// Information about encrypted segments for 64-bit targets. Must also be present
+// for programs with no encrypted segments that are uploaded to the App Store
+// so it can be updated appropriately.
+static constexpr uint32_t LC_ENCRYPTION_INFO_64 = 0x2c;
 // An arbitrary piece of data not specified by the Mach-O format. (note_command)
 static constexpr uint32_t LC_NOTE = 0x31;
 // The target platform and minimum and target OS versions for this object file.
@@ -742,6 +750,23 @@ static constexpr uint32_t RELOC_TYPE_ARM64_UNSIGNED = 0 << 28;
 // Note that in the list of the relocations, the source comes immediately
 // _before_ the target (UNSIGNED) entry that it is subtracted from.
 static constexpr uint32_t RELOC_TYPE_ARM64_SUBTRACTOR = 1 << 28;
+
+struct encryption_info_command {
+  uint32_t cmd;  // LC_ENCRYPTION_INFO
+  uint32_t cmdsize;
+  uint32_t cryptoff;   // file offset of the encrypted segment(s)
+  uint32_t cryptsize;  // file size of the encrypted segment(s)
+  uint32_t cryptid;    // encryption cypher used (0 == not encrypted)
+};
+
+struct encryption_info_command_64 {
+  uint32_t cmd;  // LC_ENCRYPTION_INFO_64
+  uint32_t cmdsize;
+  uint32_t cryptoff;   // file offset of the encrypted segment(s)
+  uint32_t cryptsize;  // file size of the encrypted segment(s)
+  uint32_t cryptid;    // encryption cypher used (0 == not encrypted)
+  uint32_t pad;        // padding to a multiple of 64 bits
+};
 
 #pragma pack(pop)
 

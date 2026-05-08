@@ -33,7 +33,7 @@ final class StructInlineArrayMultiDimensional extends ffi::Struct {
   static synthetic get a0#offsetOf() → core::int
     return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {

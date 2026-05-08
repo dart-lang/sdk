@@ -13,13 +13,13 @@ import 'box_border.dart';
 import 'decoration.dart';
 
 class BoxDecoration extends Decoration {
-  final Color color;
+  final Color? color;
 
   final BoxBorder? border;
 
   final BorderRadiusGeometry? borderRadius;
 
-  final InvalidType backgroundBlendMode;
+  final BlendMode? backgroundBlendMode;
 
   final BoxShape shape;
 

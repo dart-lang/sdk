@@ -92,14 +92,17 @@ void main() {
 
     void test(DartType a, DartType b, DartType? expectedOutputType) {
       DartType? actualOutputType = nnbdTopMerge(env.coreTypes, a, b);
-      print('nnbdTopMerge($a,$b) = '
-          '$actualOutputType (expected=$expectedOutputType)');
+      print(
+        'nnbdTopMerge($a,$b) = '
+        '$actualOutputType (expected=$expectedOutputType)',
+      );
       Expect.equals(
-          expectedOutputType,
-          actualOutputType,
-          "Unexpected nnbd top merge of $a vs $b ('$input'):\n"
-          "Expected: ${expectedOutputType} ('$output')\n"
-          "Actual: ${actualOutputType}");
+        expectedOutputType,
+        actualOutputType,
+        "Unexpected nnbd top merge of $a vs $b ('$input'):\n"
+        "Expected: ${expectedOutputType} ('$output')\n"
+        "Actual: ${actualOutputType}",
+      );
     }
 
     test(aType, bType, expectedOutputType1);

@@ -138,14 +138,16 @@ class UnoptimizedCall : public ValueObject {
     MatchCallPattern(&pc);
     MatchDataLoadFromPool(&pc, &argument_index_);
     MatchCodeLoadFromPool(&pc, &code_index_);
-    ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
+    ASSERT(Object::Handle(
+               object_pool_.ObjectAt<std::memory_order_acquire>(code_index_))
+               .IsCode());
   }
 
   intptr_t argument_index() const { return argument_index_; }
 
   CodePtr target() const {
     Code& code = Code::Handle();
-    code ^= object_pool_.ObjectAt(code_index_);
+    code ^= object_pool_.ObjectAt<std::memory_order_acquire>(code_index_);
     return code.ptr();
   }
 
@@ -173,7 +175,9 @@ class NativeCall : public ValueObject {
     MatchCallPattern(&pc);
     MatchCodeLoadFromPool(&pc, &code_index_);
     MatchDataLoadFromPool(&pc, &argument_index_);
-    ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
+    ASSERT(Object::Handle(
+               object_pool_.ObjectAt<std::memory_order_acquire>(code_index_))
+               .IsCode());
   }
 
   intptr_t argument_index() const { return argument_index_; }
@@ -190,7 +194,7 @@ class NativeCall : public ValueObject {
 
   CodePtr target() const {
     Code& code = Code::Handle();
-    code ^= object_pool_.ObjectAt(code_index_);
+    code ^= object_pool_.ObjectAt<std::memory_order_acquire>(code_index_);
     return code.ptr();
   }
 
@@ -261,12 +265,14 @@ class PoolPointerCall : public ValueObject {
 
     MatchCallPattern(&pc);
     MatchCodeLoadFromPool(&pc, &code_index_);
-    ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
+    ASSERT(Object::Handle(
+               object_pool_.ObjectAt<std::memory_order_acquire>(code_index_))
+               .IsCode());
   }
 
   CodePtr Target() const {
     Code& code = Code::Handle();
-    code ^= object_pool_.ObjectAt(code_index_);
+    code ^= object_pool_.ObjectAt<std::memory_order_acquire>(code_index_);
     return code.ptr();
   }
 
@@ -301,7 +307,9 @@ class SwitchableCallBase : public ValueObject {
   }
 
   void SetDataRelease(const Object& data) const {
-    ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
+    ASSERT(!Object::Handle(
+                object_pool_.ObjectAt<std::memory_order_relaxed>(data_index()))
+                .IsCode());
     object_pool_.SetObjectAt<std::memory_order_release>(data_index(), data);
     // No need to flush the instruction cache, since the code is not modified.
   }
@@ -359,16 +367,22 @@ class SwitchableCall : public SwitchableCallBase {
     } else {
       FATAL("Failed to decode at %" Px, pc);
     }
-    ASSERT(Object::Handle(object_pool_.ObjectAt(target_index_)).IsCode());
+    ASSERT(Object::Handle(
+               object_pool_.ObjectAt<std::memory_order_relaxed>(target_index_))
+               .IsCode());
   }
 
   void SetTargetRelease(const Code& target) const {
-    ASSERT(Object::Handle(object_pool_.ObjectAt(target_index())).IsCode());
+    ASSERT(Object::Handle(
+               object_pool_.ObjectAt<std::memory_order_relaxed>(target_index()))
+               .IsCode());
     object_pool_.SetObjectAt<std::memory_order_release>(target_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
-  ObjectPtr target() const { return object_pool_.ObjectAt(target_index()); }
+  ObjectPtr target() const {
+    return object_pool_.ObjectAt<std::memory_order_acquire>(target_index());
+  }
 };
 
 // See [SwitchableCallBase] for a switchable calls in general.
@@ -413,7 +427,9 @@ class BareSwitchableCall : public SwitchableCallBase {
     } else {
       FATAL("Failed to decode at %" Px, pc);
     }
-    ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index_)).IsCode());
+    ASSERT(!Object::Handle(
+                object_pool_.ObjectAt<std::memory_order_relaxed>(data_index_))
+                .IsCode());
 
     // movq RCX, [PP + offset]
     static int16_t load_code_disp8[] = {

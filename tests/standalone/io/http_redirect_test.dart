@@ -490,13 +490,18 @@ void testShouldCopyHeadersOnRedirect() {
   shouldCopyHeaderOnRedirect(
     String headerKey,
     Uri originalUrl,
-    Uri redirectUri,
+    Uri redirectUrl,
   ) =>
-      clientClass.invoke(fnName, [
-            headerKey,
-            originalUrl,
-            redirectUri,
-          ]).reflectee
+      clientClass
+              .invoke(
+                fnName,
+                [headerKey],
+                {
+                  Symbol("originalUrl"): originalUrl,
+                  Symbol("redirectUrl"): redirectUrl,
+                },
+              )
+              .reflectee
           as bool;
 
   checkShouldCopyHeader(

@@ -1,4 +1,51 @@
-## 0.1.8-dev
+## 0.2.5-dev
+
+- Require version `12.1.0-dev` of the `analyzer` package.
+
+## 0.2.4
+
+- Require version `12.0.0` of the `analyzer` package.
+
+## 0.2.3-dev
+
+- Require version `11.1.0-dev` of the `analyzer` package.
+
+## 0.2.2
+
+- Require version `^11.0.0-0` of the `analyzer` package.
+
+## 0.2.1-dev
+
+- Require version `10.3.0-dev` of the `analyzer` package.
+
+## 0.2.1
+
+- Require version `10.2.0` of the `analyzer` package.
+
+## 0.2.0
+
+- Remove deprecated mock APIs: `MockPackagesMixin.addAngularMeta`
+  `MockPackagesMixin.addFlutterTest` `MockPackagesMixin.addJs`
+  `MockPackagesMixin.addKernel` `MockPackagesMixin.pedantic` and
+  `MockPackagesMixin.addUI`.
+- Require version `10.1.0` of the `analyzer` package.
+
+## 0.1.10
+
+- A stub Flutter package can be added in tests by overriding the
+  `addFlutterPackageDep` getter to return `true`. This API existed before but is
+  now functional; same with `addFixnumPackageDep`, `addMetaPackageDep`, and
+  `addTestReflectiveLoaderPackageDep`.
+- Require version `10.0.2` of the `analyzer` package.
+
+## 0.1.9
+
+- Deprecate `MockPackagesMixin.addUI`; This is replaced by `addSkyEngine`.
+- Deprecate `MockPackagesMixin.addFlutterTest`. A mock `flutter_test` package
+  can still be written with `PubPackageResolutionTest.newPackage`.
+- Require version `10.0.1` of the `analyzer` package.
+
+## 0.1.8
 
 - Require version `10.0.0` of the `analyzer` package.
 - Change the behavior of `analysisOptionsContent` so that by default, the

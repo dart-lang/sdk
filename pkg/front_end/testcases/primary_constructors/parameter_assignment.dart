@@ -1,0 +1,64 @@
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class C1(int x, Object? z) {
+  Record y = (
+    ++x,
+
+    --x,
+
+    x++,
+
+    x--,
+
+    x = 2,
+
+    x += 2,
+
+    x -= 2,
+
+    (x) = 2,
+
+    [x] = [2],
+
+    {null: x} = {null: 2},
+
+    (x, name: _) = (2, name: true),
+
+    (x && z) = 2,
+
+    int(runtimeType: z) = 2,
+  );
+}
+
+class C2(int x, Object? z) {
+  Record y;
+  this : y = (
+    ++x,
+
+    --x,
+
+    x++,
+
+    x--,
+
+    x = 2,
+
+    x += 2,
+
+    x -= 2,
+
+    (x) = 2,
+
+    [x] = [2],
+
+    {null: x} = {null: 2},
+
+    (x, name: _) = (2, name: true),
+
+    (x && z) = 2,
+
+    int(runtimeType: z) = 2,
+  );
+}

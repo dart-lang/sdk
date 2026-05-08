@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import '../../base/messages.dart';
@@ -1029,23 +1030,23 @@ class _SanitizedMember {
         for (ClassMember classMember in extensionTypeMemberDeclarations) {
           context.add(
             (extensionTypeMemberDeclarations.length > 1
-                    ? codeExtensionTypeMemberOneOfContext
-                    : codeExtensionTypeMemberContext)
+                    ? diag.extensionTypeMemberOneOfContext
+                    : diag.extensionTypeMemberContext)
                 .withLocation2(classMember.uriOffset),
           );
         }
         for (ClassMember classMember in nonExtensionTypeMemberDeclarations) {
           context.add(
             (nonExtensionTypeMemberDeclarations.length > 1
-                    ? codeNonExtensionTypeMemberOneOfContext
-                    : codeNonExtensionTypeMemberContext)
+                    ? diag.nonExtensionTypeMemberOneOfContext
+                    : diag.nonExtensionTypeMemberContext)
                 .withLocation2(classMember.uriOffset),
           );
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          codeImplementNonExtensionTypeAndExtensionTypeMember.withArgumentsOld(
-            extensionTypeDeclarationBuilder.name,
-            name.text,
+          diag.implementNonExtensionTypeAndExtensionTypeMember.withArguments(
+            extensionTypeName: extensionTypeDeclarationBuilder.name,
+            memberName: name.text,
           ),
           extensionTypeDeclarationBuilder.fileOffset,
           extensionTypeDeclarationBuilder.name.length,
@@ -1056,15 +1057,15 @@ class _SanitizedMember {
         List<LocatedMessage> context = [];
         for (ClassMember classMember in extensionTypeMemberDeclarations) {
           context.add(
-            codeExtensionTypeMemberOneOfContext.withLocation2(
+            diag.extensionTypeMemberOneOfContext.withLocation2(
               classMember.uriOffset,
             ),
           );
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          codeImplementMultipleExtensionTypeMembers.withArgumentsOld(
-            extensionTypeDeclarationBuilder.name,
-            name.text,
+          diag.implementMultipleExtensionTypeMembers.withArguments(
+            extensionTypeName: extensionTypeDeclarationBuilder.name,
+            memberName: name.text,
           ),
           extensionTypeDeclarationBuilder.fileOffset,
           extensionTypeDeclarationBuilder.name.length,

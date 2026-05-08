@@ -1,10 +1,13 @@
 include: package:dart_flutter_team_lints/analysis_options.yaml
 
-analyzer:
-  language:
-    strict-raw-types: true
-
 linter:
   rules:
     - avoid_void_async
+    - unawaited_futures
     - require_trailing_commas
+    - prefer_relative_imports
+
+analyzer:
+  language:
+    strict-inference: true
+    strict-raw-types: true

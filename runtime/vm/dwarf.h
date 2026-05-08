@@ -166,7 +166,7 @@ class DwarfWriteStream : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(DwarfWriteStream);
 };
 
-class Dwarf : public ZoneAllocated {
+class Dwarf : public ZoneObject {
  public:
   // The compilation unit name is used as the DW_AT_name for the
   // Dart program's compilation unit. If nullptr, then the name of

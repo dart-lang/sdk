@@ -11,6 +11,7 @@
 
 #include <setjmp.h>
 #include <memory>
+#include <utility>
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -32,6 +33,7 @@
 #include "vm/tags.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
+#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -351,17 +353,6 @@ struct TsanUtils {
   }
 };
 
-class MutatorThreadVisitor {
- public:
-  MutatorThreadVisitor() {}
-  virtual ~MutatorThreadVisitor() {}
-
-  virtual void VisitMutatorThread(Thread* mutator) = 0;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MutatorThreadVisitor);
-};
-
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by ThreadRegistry::GetFromFreelistLocked either
@@ -580,8 +571,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
-  NO_SANITIZE_THREAD
-  Isolate* isolate_ignore_race() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
   static intptr_t isolate_group_offset() {
     return OFFSET_OF(Thread, isolate_group_);
@@ -637,11 +626,9 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
-  bool IsExecutingDartCodeIgnoreRace() const;
 
   // Has |this| exited Dart code?
   bool HasExitedDartCode() const;
-  bool HasExitedDartCodeIgnoreRace() const;
 
   bool HasCompilerState() const { return compiler_state_ != nullptr; }
 
@@ -749,8 +736,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
-  NO_SANITIZE_THREAD
-  uword top_exit_frame_info_ignore_race() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword top_exit_frame_info) {
     top_exit_frame_info_ = top_exit_frame_info;
   }
@@ -881,8 +866,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 #endif
 
   uword vm_tag() const { return vm_tag_; }
-  NO_SANITIZE_THREAD
-  uword vm_tag_ignore_race() const { return vm_tag_; }
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
@@ -1116,7 +1099,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     kThreadInVM = 0,
     kThreadInGenerated,
     kThreadInNative,
-    kThreadInBlockedState
+    kThreadInBlockedState,
+    kThreadInReloadableBlockedState
   };
 
   ExecutionState execution_state() const {
@@ -1325,7 +1309,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     if (no_reload_scope_depth_ > 0) {
       return SafepointLevel::kGCAndDeopt;
     }
-    if (execution_state_ == kThreadInNative) {
+    if (execution_state_ == kThreadInNative ||
+        execution_state_ == kThreadInReloadableBlockedState) {
       return SafepointLevel::kGCAndDeoptAndReload;
     }
     if (allow_reload_scope_depth_ <= 0) {
@@ -1352,8 +1337,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
-  NO_SANITIZE_THREAD
-  bool IsDeoptimizingIgnoreRace() const { return deopt_context_ != nullptr; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == nullptr || deopt_context_ == nullptr);
@@ -1372,8 +1355,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
   uword user_tag() const { return user_tag_; }
-  NO_SANITIZE_THREAD
-  uword user_tag_ignore_race() const { return user_tag_; }
   static intptr_t user_tag_offset() { return OFFSET_OF(Thread, user_tag_); }
   static intptr_t current_tag_offset() {
     return OFFSET_OF(Thread, current_tag_);
@@ -1390,13 +1371,19 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   void set_user_tag(uword tag) { user_tag_ = tag; }
 
-  static void VisitMutators(MutatorThreadVisitor* visitor);
-
   ArrayPtr thread_locals() const { return thread_locals_; }
   void set_thread_locals(const Array& thread_locals);
 
   static intptr_t thread_locals_offset() {
     return OFFSET_OF(Thread, thread_locals_);
+  }
+
+  std::unique_ptr<VirtualMemory> TakeRegexpBacktrackStack() {
+    return std::move(regexp_backtracking_stack_cache_);
+  }
+
+  void CacheRegexpBacktrackStack(std::unique_ptr<VirtualMemory> stack) {
+    regexp_backtracking_stack_cache_ = std::move(stack);
   }
 
  private:
@@ -1674,6 +1661,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   std::unique_ptr<WeakTable> forward_table_old_;
 
   MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
+
+  std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
   explicit Thread(bool is_vm_isolate);
 

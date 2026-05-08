@@ -43,28 +43,47 @@ class Scenario {
     print('Initializing scenario for project: ${project.description}');
 
     print('Setting up project');
-    var projectDirs = await project.setUp();
+    var workspace = await project.setUp();
     late StreamSubscription<ProcessSignal> exitListener;
     exitListener = ProcessSignal.sigint.watch().listen((_) async {
       print('cleaning up project for clean exit... hit ctrl+c again to force');
       unawaited(exitListener.cancel());
-      await project.tearDown(projectDirs);
+      await project.tearDown(workspace);
       exit(1);
     });
 
     print('Reading logs');
-    var logs = Log.fromFile(logFile, {
-      for (var i = 0; i < projectDirs.length; i++)
-        '{{workspaceFolder-$i}}': projectDirs.elementAt(i).path,
-      '{{dartSdkRoot}}': sdkPath,
-    });
+    Log? logs;
+    try {
+      logs = Log.fromFile(logFile, {
+        for (var i = 0; i < workspace.workspaceDirectories.length; i++)
+          '{{workspaceFolder-$i}}': workspace.workspaceDirectories
+              .elementAt(i)
+              .path
+              .replaceAll(r'\', r'\\'),
+        '{{dartSdkRoot}}': sdkPath.replaceAll(r'\', r'\\'),
+        // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
+        for (var i = 0; i < workspace.contextRoots.length; i++)
+          for (var package in workspace.contextRoots[i].packageConfig.packages)
+            '{{context-$i:package-root:${package.name}}}': package.root
+                .toString()
+                .replaceAll(r'\', r'\\'),
+      });
+    } catch (e, s) {
+      print('''
+Scenario failed with Error: $e
 
+StackTrace:
+$s
+''');
+      exit(1);
+    }
     print('Creating log player');
     var logPlayer = LogPlayer(log: logs, timeout: timeout);
 
     print(
       'Scenario initialized with workpace dirs:\n'
-      '${projectDirs.map((dir) => '  - ${dir.path}').join('\n')}',
+      '${workspace.workspaceDirectories.map((dir) => '  - ${dir.path}').join('\n')}',
     );
     try {
       var scenarioWatch = Stopwatch()..start();
@@ -80,7 +99,7 @@ $s
 ''');
     } finally {
       print('Tearing down scenario for project');
-      await project.tearDown(projectDirs);
+      await project.tearDown(workspace);
       await exitListener.cancel();
       print('Scenario cleaned up');
     }

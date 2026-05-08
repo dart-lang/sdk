@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -208,11 +208,15 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // places all error tokens at the head of the stream.
     while (token.type == TokenType.BAD_INPUT) {
       translateErrorToken(token as ErrorToken, (
-        DiagnosticCode errorCode,
-        int offset,
-        List<Object>? arguments,
+        LocatedDiagnostic locatedDiagnostic,
       ) {
-        listener.errors.add(new TestError(offset, errorCode, arguments));
+        listener.errors.add(
+          new TestError(
+            locatedDiagnostic.offset,
+            locatedDiagnostic.locatableDiagnostic.code,
+            locatedDiagnostic.locatableDiagnostic.arguments,
+          ),
+        );
       });
       token = token.next!;
     }

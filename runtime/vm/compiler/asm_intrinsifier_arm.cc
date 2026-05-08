@@ -1545,7 +1545,7 @@ static void TryAllocateString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
     __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
@@ -1703,39 +1703,6 @@ void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
 
   StringEquality(assembler, R0, R1, R2, R3, R0, normal_ir_body,
                  kTwoByteStringCid);
-}
-
-void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
-                                                   Label* normal_ir_body,
-                                                   bool sticky) {
-  if (FLAG_interpret_irregexp) return;
-
-  const intptr_t kRegExpParamOffset = 2 * target::kWordSize;
-  const intptr_t kStringParamOffset = 1 * target::kWordSize;
-  // start_index smi is located at offset 0.
-
-  // Incoming registers:
-  // R0: Function. (Will be reloaded with the specialized matcher function.)
-  // R4: Arguments descriptor. (Will be preserved.)
-  // R9: Unknown. (Must be GC safe on tail call.)
-
-  // Load the specialized function pointer into R0. Leverage the fact the
-  // string CIDs as well as stored function pointers are in sequence.
-  __ ldr(R2, Address(SP, kRegExpParamOffset));
-  __ ldr(R1, Address(SP, kStringParamOffset));
-  __ LoadClassId(R1, R1);
-  __ AddImmediate(R1, -kOneByteStringCid);
-  __ add(R1, R2, Operand(R1, LSL, target::kWordSizeLog2));
-  __ ldr(FUNCTION_REG, FieldAddress(R1, target::RegExp::function_offset(
-                                            kOneByteStringCid, sticky)));
-
-  // Registers are now set up for the lazy compile stub. It expects the function
-  // in R0, the argument descriptor in R4, and IC-Data in R9.
-  __ eor(R9, R9, Operand(R9));
-
-  // Tail-call the function.
-  __ ldr(CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
-  __ Branch(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
 void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,

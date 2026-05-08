@@ -29,7 +29,7 @@ class BasicClassHierarchy implements ClassHierarchy {
   final Map<Class, int> classIndex = <Class, int>{};
 
   BasicClassHierarchy(Component component)
-      : knownLibraries = component.libraries.toSet() {
+    : knownLibraries = component.libraries.toSet() {
     for (var library in knownLibraries) {
       for (var classNode in library.classes) {
         buildSuperTypeSets(classNode);
@@ -42,7 +42,9 @@ class BasicClassHierarchy implements ClassHierarchy {
 
   @override
   void forEachOverridePair(
-      Class class_, callback(Member member, Member superMember, bool setter)) {
+    Class class_,
+    callback(Member member, Member superMember, bool setter),
+  ) {
     void report(Member member, Member superMember, bool setter) {
       if (!identical(member, superMember)) {
         callback(member, superMember, setter);
@@ -53,15 +55,19 @@ class BasicClassHierarchy implements ClassHierarchy {
     for (var member in class_.mixin.members) {
       for (var supertype in class_.supers) {
         if (member.hasGetter) {
-          for (var superMember
-              in getInterfaceMembersByName(supertype.classNode, member.name)) {
+          for (var superMember in getInterfaceMembersByName(
+            supertype.classNode,
+            member.name,
+          )) {
             report(member, superMember, false);
           }
         }
         if (member.hasSetter) {
           for (var superMember in getInterfaceMembersByName(
-              supertype.classNode, member.name,
-              setter: true)) {
+            supertype.classNode,
+            member.name,
+            setter: true,
+          )) {
             report(member, superMember, true);
           }
         }
@@ -74,16 +80,20 @@ class BasicClassHierarchy implements ClassHierarchy {
         // Report overriding inheritable members.
         for (var supertype in class_.supers) {
           for (var superMember in getInterfaceMembersByName(
-              supertype.classNode, member.name,
-              setter: setter)) {
+            supertype.classNode,
+            member.name,
+            setter: setter,
+          )) {
             report(member, superMember, setter);
           }
         }
         // Report overriding declared abstract members.
         if (!class_.isAbstract && member.enclosingClass != class_.mixin) {
           for (var declaredMember in getInterfaceMembersByName(
-              class_, member.name,
-              setter: setter)) {
+            class_,
+            member.name,
+            setter: setter,
+          )) {
             report(member, declaredMember, setter);
           }
         }
@@ -118,16 +128,19 @@ class BasicClassHierarchy implements ClassHierarchy {
   void buildSuperTypeInstantiations(Class node) {
     if (supertypeInstantiations.containsKey(node)) return;
     supertypeInstantiations[node] = <Class, Supertype>{
-      node: node.asThisSupertype
+      node: node.asThisSupertype,
     };
     for (var supertype in node.supers) {
       var superclass = supertype.classNode;
       buildSuperTypeInstantiations(superclass);
       var substitution = Substitution.fromPairs(
-          superclass.typeParameters, supertype.typeArguments);
+        superclass.typeParameters,
+        supertype.typeArguments,
+      );
       supertypeInstantiations[superclass]!.forEach((key, type) {
-        supertypeInstantiations[node]![key] =
-            substitution.substituteSupertype(type);
+        supertypeInstantiations[node]![key] = substitution.substituteSupertype(
+          type,
+        );
       });
     }
   }
@@ -138,8 +151,9 @@ class BasicClassHierarchy implements ClassHierarchy {
     setters[node] = <Name, Member>{};
     if (node.supertype != null) {
       buildDispatchTable(node.supertype!.classNode);
-      gettersAndCalls[node]!
-          .addAll(gettersAndCalls[node.supertype!.classNode]!);
+      gettersAndCalls[node]!.addAll(
+        gettersAndCalls[node.supertype!.classNode]!,
+      );
       setters[node]!.addAll(setters[node.supertype!.classNode]!);
     }
     // Overwrite map entries with declared members.
@@ -162,7 +176,9 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   void mergeMaps(
-      Map<Name, List<Member>> source, Map<Name, List<Member>> destination) {
+    Map<Name, List<Member>> source,
+    Map<Name, List<Member>> destination,
+  ) {
     for (var name in source.keys) {
       destination.putIfAbsent(name, () => <Member>[]).addAll(source[name]!);
     }
@@ -175,8 +191,10 @@ class BasicClassHierarchy implements ClassHierarchy {
     void inheritFrom(Supertype? type) {
       if (type == null) return;
       buildInterfaceTable(type.classNode);
-      mergeMaps(interfaceGettersAndCalls[type.classNode]!,
-          interfaceGettersAndCalls[node]!);
+      mergeMaps(
+        interfaceGettersAndCalls[type.classNode]!,
+        interfaceGettersAndCalls[node]!,
+      );
       mergeMaps(interfaceSetters[type.classNode]!, interfaceSetters[node]!);
     }
 
@@ -241,8 +259,11 @@ class BasicClassHierarchy implements ClassHierarchy {
     return tryFirst(getInterfaceMembersByName(class_, name, setter: setter));
   }
 
-  Iterable<Member> getInterfaceMembersByName(Class class_, Name name,
-      {bool setter = false}) {
+  Iterable<Member> getInterfaceMembersByName(
+    Class class_,
+    Name name, {
+    bool setter = false,
+  }) {
     var iterable = setter
         ? interfaceSetters[class_]![name]
         : interfaceGettersAndCalls[class_]![name];

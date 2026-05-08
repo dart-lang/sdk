@@ -70,7 +70,7 @@ class Coordinate extends ffi::Struct {
   set next(synthesized ffi::Pointer<self::Coordinate> #v) → void
     return ffi::_storePointer<self::Coordinate>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #v);
   @#C11
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C21.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {}

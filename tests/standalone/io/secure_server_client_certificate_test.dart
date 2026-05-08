@@ -127,7 +127,9 @@ Future testClientCertificate({
   X509Certificate serverCertificate = clientEnd.peerCertificate!;
   Expect.isTrue(serverCertificate.subject.contains("localhost"));
   Expect.isTrue(serverCertificate.issuer.contains("intermediateauthority"));
+  clientEnd.drain();
   clientEnd.close();
+  serverEnd.drain();
   serverEnd.close();
 }
 

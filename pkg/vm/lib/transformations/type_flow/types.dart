@@ -88,10 +88,9 @@ class TFClass {
   bool operator ==(other) => identical(this, other);
 
   @override
-  String toString() =>
-      isRecord
-          ? '${nodeToText(classNode)}[$recordShape]'
-          : nodeToText(classNode);
+  String toString() => isRecord
+      ? '${nodeToText(classNode)}[$recordShape]'
+      : nodeToText(classNode);
 
   ConcreteType _concreteTypeWithAttributes(TypeAttributes attr) =>
       _concreteTypesWithAttributes[attr] ??= ConcreteType._(this, null, attr);
@@ -124,10 +123,9 @@ class RecordShape {
 
   RecordShape(RecordType type)
     : numPositionalFields = type.positional.length,
-      namedFields =
-          type.named.isEmpty
-              ? const <String>[]
-              : type.named.map((nt) => nt.name).toList(growable: false);
+      namedFields = type.named.isEmpty
+          ? const <String>[]
+          : type.named.map((nt) => nt.name).toList(growable: false);
 
   int get numFields => numPositionalFields + namedFields.length;
 
@@ -174,10 +172,9 @@ class RecordShape {
           listEquals(this.namedFields, other.namedFields));
 
   @override
-  String toString() =>
-      namedFields.isEmpty
-          ? '$numPositionalFields'
-          : '$numPositionalFields,${namedFields.join(',')}';
+  String toString() => namedFields.isEmpty
+      ? '$numPositionalFields'
+      : '$numPositionalFields,${namedFields.join(',')}';
 }
 
 abstract class GenericInterfacesInfo {
@@ -220,8 +217,9 @@ abstract class TypesBuilder {
 
   late final Type functionType = getTFClass(coreTypes.functionClass).coneType;
 
-  late final ConcreteType boolType =
-      getTFClass(coreTypes.boolClass).concreteType;
+  late final ConcreteType boolType = getTFClass(
+    coreTypes.boolClass,
+  ).concreteType;
 
   late final ConcreteType constantTrue = boolType.cls.constantConcreteType(
     BoolConstant(true),
@@ -484,10 +482,9 @@ class NullableType extends Type {
   bool get isSpecialized => baseType.isSpecialized;
 
   @override
-  Type specialize(TypeHierarchy typeHierarchy) =>
-      baseType.isSpecialized
-          ? this
-          : baseType.specialize(typeHierarchy).nullable();
+  Type specialize(TypeHierarchy typeHierarchy) => baseType.isSpecialized
+      ? this
+      : baseType.specialize(typeHierarchy).nullable();
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
@@ -1073,12 +1070,12 @@ class Closure {
   // Create a synthetic 'call' method.
   Procedure createCallMethod() {
     final localFunction = this.function;
-    final functionNode =
-        (localFunction != null) ? localFunction.function : member.function!;
-    final typeParameters =
-        (localFunction == null && member is Constructor)
-            ? member.enclosingClass!.typeParameters
-            : functionNode.typeParameters;
+    final functionNode = (localFunction != null)
+        ? localFunction.function
+        : member.function!;
+    final typeParameters = (localFunction == null && member is Constructor)
+        ? member.enclosingClass!.typeParameters
+        : functionNode.typeParameters;
     final freshTypeParameters = getFreshTypeParameters(typeParameters);
     List<VariableDeclaration> convertParameters(
       List<VariableDeclaration> params,
@@ -1086,12 +1083,11 @@ class Closure {
       for (final p in params)
         VariableDeclaration(
           p.name,
-          initializer:
-              (p.initializer != null)
-                  ? ConstantExpression(
-                    (p.initializer as ConstantExpression).constant,
-                  )
-                  : null,
+          initializer: (p.initializer != null)
+              ? ConstantExpression(
+                  (p.initializer as ConstantExpression).constant,
+                )
+              : null,
           type: freshTypeParameters.substitute(p.type),
           flags: p.flags,
         ),
@@ -1214,8 +1210,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
   ConcreteType._(this.cls, List<Type>? typeArgs_, this.attributes)
     : typeArgs = typeArgs_,
-      numImmediateTypeArgs =
-          typeArgs_ != null ? cls.classNode.typeParameters.length : 0,
+      numImmediateTypeArgs = typeArgs_ != null
+          ? cls.classNode.typeParameters.length
+          : 0,
       super._() {
     assert(!cls.classNode.isAbstract);
     assert(typeArgs == null || cls.classNode.typeParameters.isNotEmpty);
@@ -1308,8 +1305,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           );
           typeArg = typeArgs![interfaceOffset];
         }
-        final RuntimeType lhs =
-            typeArg is RuntimeType ? typeArg : RuntimeType(DynamicType(), null);
+        final RuntimeType lhs = typeArg is RuntimeType
+            ? typeArg
+            : RuntimeType(DynamicType(), null);
         return lhs.isSubtypeOfRuntimeType(
           typeHierarchy,
           runtimeType.typeArgs![0],
@@ -1389,10 +1387,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       if (this == other) {
         return this;
       } else if (!identical(this.cls, other.cls)) {
-        final types =
-            (this.cls.id < other.cls.id)
-                ? <ConcreteType>[this, other]
-                : <ConcreteType>[other, this];
+        final types = (this.cls.id < other.cls.id)
+            ? <ConcreteType>[this, other]
+            : <ConcreteType>[other, this];
         return SetType(types);
       } else {
         assert(
@@ -1497,10 +1494,9 @@ class RuntimeType extends Type {
 
   RuntimeType(DartType type, this.typeArgs)
     : _type = type,
-      numImmediateTypeArgs =
-          type is InterfaceType
-              ? type.classNode.typeParameters.length
-              : (type is FutureOrType ? 1 : 0),
+      numImmediateTypeArgs = type is InterfaceType
+          ? type.classNode.typeParameters.length
+          : (type is FutureOrType ? 1 : 0),
       super._() {
     if (_type is InterfaceType && numImmediateTypeArgs > 0) {
       assert(typeArgs!.length >= numImmediateTypeArgs);
@@ -1544,11 +1540,10 @@ class RuntimeType extends Type {
     final type = _type;
     if (type is InterfaceType && typeArgs != null) {
       final klass = type.classNode;
-      final typeArguments =
-          typeArgs!
-              .take(klass.typeParameters.length)
-              .map((pt) => pt.representedType)
-              .toList();
+      final typeArguments = typeArgs!
+          .take(klass.typeParameters.length)
+          .map((pt) => pt.representedType)
+          .toList();
       return new InterfaceType(klass, type.nullability, typeArguments);
     } else if (type is FutureOrType) {
       return new FutureOrType(typeArgs![0].representedType, type.nullability);
@@ -1584,14 +1579,12 @@ class RuntimeType extends Type {
 
   @override
   String toString() {
-    final head =
-        _type is InterfaceType
-            ? "${nodeToText(_type.classNode)}"
-            : "${nodeToText(_type)}";
-    final typeArgsStrs =
-        (numImmediateTypeArgs == 0)
-            ? ""
-            : "<${typeArgs!.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
+    final head = _type is InterfaceType
+        ? "${nodeToText(_type.classNode)}"
+        : "${nodeToText(_type)}";
+    final typeArgsStrs = (numImmediateTypeArgs == 0)
+        ? ""
+        : "<${typeArgs!.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
     final nullability = _type.nullability.suffix;
     return "$head$typeArgsStrs$nullability";
   }

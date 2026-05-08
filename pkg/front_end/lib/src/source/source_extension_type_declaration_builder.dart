@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -9,19 +10,20 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
-import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
@@ -32,7 +34,6 @@ import '../type_inference/type_inference_engine.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
-import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
@@ -42,7 +43,9 @@ import 'source_type_parameter_builder.dart';
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
     with SourceDeclarationBuilderBaseMixin, SourceDeclarationBuilderMixin
-    implements Comparable<SourceExtensionTypeDeclarationBuilder> {
+    implements
+        Comparable<SourceExtensionTypeDeclarationBuilder>,
+        InferredTypeListener {
   @override
   final SourceLibraryBuilder parent;
 
@@ -102,6 +105,8 @@ class SourceExtensionTypeDeclarationBuilder
        _representationFieldFragment = representationFieldFragment {
     _introductory.builder = this;
     _introductory.bodyScope.declarationBuilder = this;
+
+    _representationFieldFragment?.type.registerInferredTypeListener(this);
 
     // TODO(johnniwinther): Move this to the [build] once augmentations are
     // handled through fragments.
@@ -245,18 +250,21 @@ class SourceExtensionTypeDeclarationBuilder
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
-            errorMessage = codeSuperExtensionTypeIsIllegalAliased
-                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+            errorMessage = diag.superExtensionTypeIsIllegalAliased
+                .withArguments(
+                  typeName: typeBuilder.fullNameForErrors,
+                  aliasedType: interface,
+                );
             errorContext = [
-              codeTypedefCause.withLocation(
+              diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
                 aliasBuilder.fileOffset,
                 noLength,
               ),
             ];
           } else {
-            errorMessage = codeSuperExtensionTypeIsIllegal.withArgumentsOld(
-              typeBuilder.fullNameForErrors,
+            errorMessage = diag.superExtensionTypeIsIllegal.withArguments(
+              typeName: typeBuilder.fullNameForErrors,
             );
           }
           libraryBuilder.addProblem(
@@ -280,16 +288,19 @@ class SourceExtensionTypeDeclarationBuilder
             if (!variance.greaterThanOrEqual(variable.variance)) {
               Message? errorMessage;
               if (variable.parameter.isLegacyCovariant) {
-                errorMessage = codeWrongTypeParameterVarianceInSuperinterface
-                    .withArgumentsOld(variable.name, interface);
+                errorMessage = diag.wrongTypeParameterVarianceInSuperinterface
+                    .withArguments(
+                      typeVariableName: variable.name,
+                      type: interface,
+                    );
               } else {
                 // Coverage-ignore-block(suite): Not run.
-                errorMessage = codeInvalidTypeParameterInSupertypeWithVariance
-                    .withArgumentsOld(
-                      variable.variance.keyword,
-                      variable.name,
-                      variance.keyword,
-                      typeBuilder.typeName!.name,
+                errorMessage = diag.invalidTypeParameterInSupertypeWithVariance
+                    .withArguments(
+                      typeVariableVariance: variable.variance.keyword,
+                      typeVariableName: variable.name,
+                      useVariance: variance.keyword,
+                      supertypeName: typeBuilder.typeName!.name,
                     );
               }
               libraryBuilder.addProblem(
@@ -304,12 +315,15 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
-            Message? errorMessage = codeSuperExtensionTypeIsNullableAliased
-                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+            Message? errorMessage = diag.superExtensionTypeIsNullableAliased
+                .withArguments(
+                  typeName: typeBuilder.fullNameForErrors,
+                  aliasedType: interface,
+                );
             List<LocatedMessage>? errorContext;
             if (aliasBuilder != null) {
               errorContext = [
-                codeTypedefCause.withLocation(
+                diag.typedefCause.withLocation(
                   aliasBuilder.fileUri,
                   aliasBuilder.fileOffset,
                   noLength,
@@ -331,15 +345,18 @@ class SourceExtensionTypeDeclarationBuilder
             Message? errorMessage;
             List<LocatedMessage>? errorContext;
             if (typeBuilder.nullabilityBuilder.isNullable) {
-              errorMessage = codeNullableInterfaceError.withArgumentsOld(
-                typeBuilder.fullNameForErrors,
+              errorMessage = diag.nullableInterfaceError.withArguments(
+                interfaceName: typeBuilder.fullNameForErrors,
               );
             } else {
-              errorMessage = codeSuperExtensionTypeIsNullableAliased
-                  .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+              errorMessage = diag.superExtensionTypeIsNullableAliased
+                  .withArguments(
+                    typeName: typeBuilder.fullNameForErrors,
+                    aliasedType: interface,
+                  );
               if (aliasBuilder != null) {
                 errorContext = [
-                  codeTypedefCause.withLocation(
+                  diag.typedefCause.withLocation(
                     aliasBuilder.fileUri,
                     aliasBuilder.fileOffset,
                     noLength,
@@ -358,13 +375,13 @@ class SourceExtensionTypeDeclarationBuilder
             extensionTypeDeclaration.implements.add(interface);
           }
         } else if (interface is TypeParameterType) {
-          Message? errorMessage = codeSuperExtensionTypeIsTypeParameter
-              .withArgumentsOld(typeBuilder.fullNameForErrors);
+          Message? errorMessage = diag.superExtensionTypeIsTypeParameter
+              .withArguments(typeName: typeBuilder.fullNameForErrors);
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
             errorContext = [
-              codeTypedefCause.withLocation(
+              diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
                 aliasBuilder.fileOffset,
                 noLength,
@@ -382,18 +399,21 @@ class SourceExtensionTypeDeclarationBuilder
           Message? errorMessage;
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
-            errorMessage = codeSuperExtensionTypeIsIllegalAliased
-                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+            errorMessage = diag.superExtensionTypeIsIllegalAliased
+                .withArguments(
+                  typeName: typeBuilder.fullNameForErrors,
+                  aliasedType: interface,
+                );
             errorContext = [
-              codeTypedefCause.withLocation(
+              diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
                 aliasBuilder.fileOffset,
                 noLength,
               ),
             ];
           } else {
-            errorMessage = codeSuperExtensionTypeIsIllegal.withArgumentsOld(
-              typeBuilder.fullNameForErrors,
+            errorMessage = diag.superExtensionTypeIsIllegal.withArguments(
+              typeName: typeBuilder.fullNameForErrors,
             );
           }
           libraryBuilder.addProblem(
@@ -406,7 +426,13 @@ class SourceExtensionTypeDeclarationBuilder
         }
       }
     }
+    _buildRepresentationType();
+    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
+    return _extensionTypeDeclaration;
+  }
+
+  void _buildRepresentationType() {
     DartType representationType;
     String representationName;
     if (_representationFieldFragment != null) {
@@ -429,7 +455,7 @@ class SourceExtensionTypeDeclarationBuilder
             );
             if (representationType.accept(checker)) {
               libraryBuilder.addProblem(
-                codeNonCovariantTypeParameterInRepresentationType,
+                diag.nonCovariantTypeParameterInRepresentationType,
                 typeBuilder.charOffset!,
                 noLength,
                 typeBuilder.fileUri,
@@ -438,7 +464,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
           if (isBottom(representationType)) {
             libraryBuilder.addProblem(
-              codeExtensionTypeRepresentationTypeBottom,
+              diag.extensionTypeRepresentationTypeBottom,
               _representationFieldFragment!.nameOffset,
               _representationFieldFragment!.name.length,
               _representationFieldFragment!.fileUri,
@@ -446,19 +472,20 @@ class SourceExtensionTypeDeclarationBuilder
             representationType = const InvalidType();
           }
         }
+        _extensionTypeDeclaration.declaredRepresentationType =
+            representationType;
       } else {
-        representationType = const DynamicType();
+        // representationType = const DynamicType();
+        // _extensionTypeDeclaration.declaredRepresentationType =
+        //     representationType;
       }
       representationName = _representationFieldFragment!.name;
     } else {
       representationType = const InvalidType();
       representationName = '#';
+      _extensionTypeDeclaration.declaredRepresentationType = representationType;
     }
-    _extensionTypeDeclaration.declaredRepresentationType = representationType;
     _extensionTypeDeclaration.representationName = representationName;
-    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
-
-    return _extensionTypeDeclaration;
   }
 
   bool _checkRepresentationDependency(
@@ -492,7 +519,7 @@ class SourceExtensionTypeDeclarationBuilder
                 in seenExtensionTypeDeclarations) {
               if (extensionTypeDeclarationBuilder != this) {
                 context.add(
-                  codeExtensionTypeDeclarationCause.withLocation(
+                  diag.extensionTypeDeclarationCause.withLocation(
                     extensionTypeDeclarationBuilder.fileUri,
                     extensionTypeDeclarationBuilder.fileOffset,
                     extensionTypeDeclarationBuilder.name.length,
@@ -502,7 +529,7 @@ class SourceExtensionTypeDeclarationBuilder
             }
             for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
               context.add(
-                codeTypedefCause.withLocation(
+                diag.typedefCause.withLocation(
                   typeAliasBuilder.fileUri,
                   typeAliasBuilder.fileOffset,
                   typeAliasBuilder.name.length,
@@ -510,7 +537,7 @@ class SourceExtensionTypeDeclarationBuilder
               );
             }
             libraryBuilder.addProblem(
-              codeCyclicRepresentationDependency,
+              diag.cyclicRepresentationDependency,
               _representationFieldFragment!.type.charOffset!,
               noLength,
               _representationFieldFragment!.type.fileUri,
@@ -663,14 +690,14 @@ class SourceExtensionTypeDeclarationBuilder
         );
         if (interface is InterfaceType) {
           if (!hierarchyBuilder.types.isSubtypeOf(
-            declaredRepresentationType,
+            _declaredRepresentationType,
             interface,
           )) {
             libraryBuilder.addProblem(
-              codeInvalidExtensionTypeSuperInterface.withArgumentsOld(
-                interface,
-                declaredRepresentationType,
-                name,
+              diag.invalidExtensionTypeSuperInterface.withArguments(
+                interfaceType: interface,
+                representationType: _declaredRepresentationType,
+                extensionTypeName: name,
               ),
               typeBuilder.charOffset!,
               noLength,
@@ -679,7 +706,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         } else if (interface is ExtensionType) {
           if (!hierarchyBuilder.types.isSubtypeOf(
-            declaredRepresentationType,
+            _declaredRepresentationType,
             interface,
           )) {
             DartType instantiatedImplementedRepresentationType =
@@ -687,15 +714,16 @@ class SourceExtensionTypeDeclarationBuilder
                   interface.extensionTypeDeclaration.declaredRepresentationType,
                 );
             if (!hierarchyBuilder.types.isSubtypeOf(
-              declaredRepresentationType,
+              _declaredRepresentationType,
               instantiatedImplementedRepresentationType,
             )) {
               libraryBuilder.addProblem(
-                codeInvalidExtensionTypeSuperExtensionType.withArgumentsOld(
-                  declaredRepresentationType,
-                  name,
-                  instantiatedImplementedRepresentationType,
-                  interface,
+                diag.invalidExtensionTypeSuperExtensionType.withArguments(
+                  representationType: _declaredRepresentationType,
+                  extensionTypeName: name,
+                  implementedExtensionRepresentationType:
+                      instantiatedImplementedRepresentationType,
+                  implementedExtensionType: interface,
                 ),
                 typeBuilder.charOffset!,
                 noLength,
@@ -731,9 +759,9 @@ class SourceExtensionTypeDeclarationBuilder
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
           libraryBuilder.addProblem(
-            codeImplementsRepeated.withArgumentsOld(
-              typeDeclaration.name,
-              count,
+            diag.implementsRepeated.withArguments(
+              name: typeDeclaration.name,
+              extraCount: count,
             ),
             offset,
             noLength,
@@ -987,21 +1015,16 @@ class SourceExtensionTypeDeclarationBuilder
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     if (name.text == "new") {
       // Coverage-ignore-block(suite): Not run.
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
-    if (builder is SourceConstructorBuilder) {
-      return builder;
-    }
-    return null;
+    return nameSpace.lookupConstructor(name.text);
   }
 
-  @override
-  DartType get declaredRepresentationType =>
+  DartType get _declaredRepresentationType =>
       _extensionTypeDeclaration.declaredRepresentationType;
 
   BodyBuilderContext createBodyBuilderContext() {
@@ -1044,4 +1067,9 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Reference get reference => _extensionTypeDeclaration.reference;
+
+  @override
+  void onInferredType(DartType type) {
+    _extensionTypeDeclaration.declaredRepresentationType = type;
+  }
 }

@@ -142,6 +142,12 @@ class B extends A {
 ''');
   }
 
+  test_unused_declaring_primary() async {
+    await assertNoDiagnostics(r'''
+class C([final int p = 0]);
+''');
+  }
+
   test_unused_optionalPositional() async {
     await assertDiagnostics(
       r'''
@@ -150,6 +156,15 @@ class C {
 }
 ''',
       [lint(15, 9)],
+    );
+  }
+
+  test_unused_optionalPositional_primary() async {
+    await assertDiagnostics(
+      r'''
+class C([int p = 0]);
+''',
+      [lint(9, 9)],
     );
   }
 
@@ -174,11 +189,29 @@ class C {
 ''');
   }
 
+  test_usedInConstructorBody_primary() async {
+    await assertNoDiagnostics(r'''
+class C({int p = 0}) {
+  this {
+   p;
+  }
+}
+''');
+  }
+
   test_usedInConstructorInitializer() async {
     await assertNoDiagnostics(r'''
 class C {
   int f;
   C({int p = 0}) : f = p;
+}
+''');
+  }
+
+  test_usedInConstructorInitializer_primary() async {
+    await assertNoDiagnostics(r'''
+class C({int p = 0}) {
+  this : assert(p > 0);
 }
 ''');
   }
@@ -202,6 +235,19 @@ class C {
 
 class D extends C {
   D(int p) : super(p);
+}
+''');
+  }
+
+  test_usedInSuperInitializer_primary() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int p;
+  C(this.p);
+}
+
+class D(int p) extends C {
+  this : super(p);
 }
 ''');
   }

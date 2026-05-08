@@ -29,6 +29,19 @@ void f(Directory dir) async {
     );
   }
 
+  test_directory_exists_extensionType_implements() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:io';
+extension type MyDir(Directory dir) implements Directory {}
+void f(MyDir dir) async {
+  await dir.exists();
+}
+''',
+      [lint(112, 12)],
+    );
+  }
+
   test_directory_existsSync() async {
     await assertNoDiagnostics(r'''
 import 'dart:io';
@@ -69,6 +82,31 @@ void f(File file) async {
 ''',
       [lint(52, 13)],
     );
+  }
+
+  test_file_exists_extensionType_implements() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:io';
+extension type MyFile(File file) implements File {}
+void f(MyFile file) async {
+  await file.exists();
+}
+''',
+      [lint(106, 13)],
+    );
+  }
+
+  test_file_exists_extensionType_redeclares() async {
+    await assertNoDiagnostics(r'''
+import 'dart:io';
+extension type MyFile(File file) {
+  void exists() {}
+}
+void f(MyFile file) async {
+  file.exists();
+}
+''');
   }
 
   test_file_existsSync() async {

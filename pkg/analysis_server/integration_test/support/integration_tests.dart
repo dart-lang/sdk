@@ -148,6 +148,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   /// updates.
   bool _subscribedToServerStatus = false;
 
+  @override
   String dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
 
   StreamController<Request> serverToClientRequestsController =

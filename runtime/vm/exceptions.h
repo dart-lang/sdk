@@ -103,12 +103,6 @@ class Exceptions : AllStatic {
   // otherwise returns an ErrorPtr.
   static ObjectPtr Create(ExceptionType type, const Array& arguments);
 
-  // Returns RawUnhandledException that wraps exception of type [type] with
-  // [msg] as a single argument.
-  static UnhandledExceptionPtr CreateUnhandledException(Zone* zone,
-                                                        ExceptionType type,
-                                                        const char* msg);
-
   DART_NORETURN static void JumpToFrame(Thread* thread,
                                         uword program_counter,
                                         uword stack_pointer,

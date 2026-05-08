@@ -1,0 +1,23 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_fields.dart:5:17: Error: Each extension type should have exactly one representation field.
+// extension type E(final int a, final int b);
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type E(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  abstract extension-type-member representation-field get b() → core::int;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static extension-type-member method E|constructor#(final core::int a, final core::int b) → self::E% /* erasure=core::int, declared=! */ {
+  lowered final self::E% /* erasure=core::int, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::int a, core::int b) → self::E% /* erasure=core::int, declared=! */
+  return self::E|constructor#(a, b);

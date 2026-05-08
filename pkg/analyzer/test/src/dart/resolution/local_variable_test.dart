@@ -139,6 +139,23 @@ void f() {
     expect(x.isStatic, isFalse);
   }
 
+  test_initializerReference_ifStatement_nonBlock() async {
+    await assertNoErrorsInCode(r'''
+void f(bool c) {
+  if (c)
+    // ignore: unused_local_variable
+    var a = 0, b = a; // ref
+}
+''');
+
+    assertResolvedNodeText(findNode.simple('a; // ref'), r'''
+SimpleIdentifier
+  token: a
+  element: a@71
+  staticType: int
+''');
+  }
+
   test_localVariable_wildcardFunction() async {
     await assertErrorsInCode(
       '''

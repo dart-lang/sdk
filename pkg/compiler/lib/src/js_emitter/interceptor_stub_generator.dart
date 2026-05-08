@@ -13,16 +13,15 @@ import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
 import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
-import '../js_backend/namer.dart' show Namer;
 import '../js_backend/custom_elements_analysis.dart'
     show CustomElementsCodegenAnalysis;
-import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_backend/namer.dart' show Namer;
+import '../js_backend/native_data.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-
 import 'js_emitter.dart' show Emitter;
 
 class InterceptorStubGenerator {

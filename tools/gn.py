@@ -215,10 +215,13 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
         gn_args['dart_force_simulator'] = True
     gn_args['dart_use_compressed_pointers'] = IsCompressedPointerArch(arch)
 
-    # Configure Crashpad library if it is used.
-    gn_args['dart_use_crashpad'] = ((args.use_crashpad or
+    # Configure Crashpad library if it is used, but never use it with ubsan
+    # as it seems to have issues with it where dartvm binary exits with
+    # exit code 3.
+    gn_args['dart_use_crashpad'] = (((args.use_crashpad or
                                      DART_USE_CRASHPAD in os.environ) and
-                                    gn_args['target_cpu'] in ['x86', 'x64'])
+                                     gn_args['target_cpu'] in ['x86', 'x64']) and
+                                    sanitizer != 'ubsan')
     if gn_args['dart_use_crashpad']:
         # Tell Crashpad's BUILD files which checkout layout to use.
         gn_args['crashpad_dependencies'] = 'dart'
@@ -276,6 +279,10 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
 
     if not args.platform_sdk:
         gn_args['dart_platform_sdk'] = args.platform_sdk
+
+    if args.include_experimental_vm_service:
+        gn_args[
+            'include_experimental_vm_service'] = args.include_experimental_vm_service
 
     # We don't support stripping on Windows
     if host_os != 'win':
@@ -552,6 +559,11 @@ def AddCommonGnOptionArgs(parser):
                         help='Sign executables using the given identity.',
                         default='',
                         type=str)
+    parser.add_argument(
+        '--include-experimental-vm-service',
+        help='Use the Dart Runtime Service based VM service implementation.',
+        default=False,
+        action='store_true')
 
 
 def AddCommonConfigurationArgs(parser):

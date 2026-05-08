@@ -4,11 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-
-import '../../../utilities/extensions/ast.dart';
 
 class CreateNoSuchMethod extends ResolvedCorrectionProducer {
   CreateNoSuchMethod({required super.context});
@@ -27,26 +26,27 @@ class CreateNoSuchMethod extends ResolvedCorrectionProducer {
     if (targetClass is! ClassDeclaration) {
       return;
     }
-    // prepare environment
-    var prefix = utils.oneIndent;
-    var insertOffset = targetClass.end - 1;
+
+    var invocationType = (await sessionHelper.getClass(
+      'dart:core',
+      'Invocation',
+    ))?.thisType;
+
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(insertOffset, (builder) {
+      builder.insertIntoUnitMember(targetClass, (builder) {
         builder.selectHere();
-        // insert empty line before existing member
-        if (targetClass.members2.isNotEmpty) {
-          builder.writeln();
-        }
         // append method
-        builder.write(prefix);
         builder.write('@override');
         builder.writeln();
-        builder.write(prefix);
-        builder.write(
-          'dynamic noSuchMethod(Invocation invocation) => '
-          'super.noSuchMethod(invocation);',
+        builder.write(utils.oneIndent);
+        builder.writeFunctionDeclaration(
+          'noSuchMethod',
+          returnType: DynamicTypeImpl.instance,
+          parameterWriter: () {
+            builder.writeParameter('invocation', type: invocationType);
+          },
+          bodyWriter: () => builder.write('=> super.noSuchMethod(invocation);'),
         );
-        builder.writeln();
       });
     });
   }

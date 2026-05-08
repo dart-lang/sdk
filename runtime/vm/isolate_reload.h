@@ -23,22 +23,12 @@ DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, trace_reload_verbose);
 
 // 'Trace Isolate Reload' TIR_Print
-#if defined(_MSC_VER)
-#define TIR_Print(format, ...)                                                 \
-  if (FLAG_trace_reload) Log::Current()->Print(format, __VA_ARGS__)
-#else
 #define TIR_Print(format, ...)                                                 \
   if (FLAG_trace_reload) Log::Current()->Print(format, ##__VA_ARGS__)
-#endif
 
 // 'Verbose Trace Isolate Reload' VTIR_Print
-#if defined(_MSC_VER)
-#define VTIR_Print(format, ...)                                                \
-  if (FLAG_trace_reload_verbose) Log::Current()->Print(format, __VA_ARGS__)
-#else
 #define VTIR_Print(format, ...)                                                \
   if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
-#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -63,7 +53,7 @@ struct FieldMapping {
 using FieldMappingArray = ZoneGrowableArray<FieldMapping>;
 using FieldOffsetArray = ZoneGrowableArray<intptr_t>;
 
-class InstanceMorpher : public ZoneAllocated {
+class InstanceMorpher : public ZoneObject {
  public:
   // Creates a new [InstanceMorpher] based on the [from]/[to] class
   // descriptions.
@@ -106,7 +96,7 @@ class InstanceMorpher : public ZoneAllocated {
   GrowableArray<const Instance*> before_;
 };
 
-class ReasonForCancelling : public ZoneAllocated {
+class ReasonForCancelling : public ZoneObject {
  public:
   explicit ReasonForCancelling(Zone* zone) {}
   virtual ~ReasonForCancelling() {}

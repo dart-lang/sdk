@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-[217]static method method([224] dynamic o) → dynamic {
+[217]static method [223] [325] method([224] dynamic o) → dynamic {
 [231]  #L1:
 [231]  {
 [239]    [239] final synthesized dynamic #0#0 = [239] [239] o;

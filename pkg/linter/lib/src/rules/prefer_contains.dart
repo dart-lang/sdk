@@ -14,7 +14,6 @@ import '../analyzer.dart';
 import '../ast.dart';
 import '../diagnostic.dart' as diag;
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use contains for `List` and `String` instances.';
 

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/base/command_line_options.dart';
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show MessageCode, codeFastaUsageLong;
+import 'package:front_end/src/codes/cfe_codes.dart' show MessageCode;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/target/targets.dart' show targets;
 
 import 'additional_targets.dart' show installAdditionalTargets;
@@ -13,7 +13,7 @@ void main() {
   installAdditionalTargets();
   String expected =
       "  ${Flags.target}=${(targets.keys.toList()..sort()).join('|')}";
-  MessageCode code = codeFastaUsageLong;
+  MessageCode code = diag.fastaUsageLong;
   if (!code.problemMessage.contains(expected)) {
     throw "Error: ${code.name} in pkg/front_end/messages.yaml doesn't contain"
         " '$expected'.";

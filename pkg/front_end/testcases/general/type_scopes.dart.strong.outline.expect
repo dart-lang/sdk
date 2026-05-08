@@ -161,4 +161,4 @@ static extension-type-member synthetic method ET|constructor#_#new#tearOff<X4 ex
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///type_scopes.dart:28:3 -> InstanceConstant(const Enum<int>{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///type_scopes.dart:27:6 -> ListConstant(const <Enum<dynamic>>[const Enum<int>{_Enum.index: 0, _Enum._name: "a"}])
-Extra constant evaluation: evaluated: 38, effectively constant: 2
+Extra constant evaluation: evaluated: 41, effectively constant: 2

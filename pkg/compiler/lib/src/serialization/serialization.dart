@@ -4,7 +4,9 @@
 
 import 'dart:collection';
 import 'dart:typed_data';
+
 import 'package:kernel/ast.dart' as ir;
+
 import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart';
@@ -22,13 +24,12 @@ import '../js_model/closure.dart';
 import '../js_model/elements.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
+import '../options.dart';
 import '../universe/record_shape.dart' show RecordShape;
 import '../universe/selector.dart';
-
-import '../options.dart';
 import 'deferrable.dart';
-import 'member_data.dart';
 import 'indexed_sink_source.dart';
+import 'member_data.dart';
 import 'tags.dart';
 
 export 'binary_sink.dart';
@@ -39,9 +40,9 @@ export 'object_sink.dart';
 export 'object_source.dart';
 export 'tags.dart';
 
+part 'helpers.dart';
 part 'sink.dart';
 part 'source.dart';
-part 'helpers.dart';
 
 abstract class StringInterner {
   String internString(String string);

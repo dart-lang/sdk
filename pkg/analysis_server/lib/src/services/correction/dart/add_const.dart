@@ -36,6 +36,14 @@ class AddConst extends ResolvedCorrectionProducer {
       return;
     }
 
+    if (targetNode is PrimaryConstructorDeclaration) {
+      var offset = targetNode.offset;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(offset, 'const ');
+      });
+      return;
+    }
+
     if (targetNode is ConstructorDeclaration) {
       var offset = targetNode.firstTokenAfterCommentAndMetadata.offset;
       await builder.addDartFileEdit(file, (builder) {
@@ -129,6 +137,9 @@ class AddConst extends ResolvedCorrectionProducer {
     if (targetNode is SimpleIdentifier) {
       targetNode = targetNode.parent;
     }
+    if (targetNode is FormalParameterList) {
+      targetNode = targetNode.parent;
+    }
     if (targetNode is TypeArgumentList) {
       while (targetNode is! CompilationUnit && targetNode is! ConstantPattern) {
         targetNode = targetNode?.parent;
@@ -141,6 +152,9 @@ class AddConst extends ResolvedCorrectionProducer {
       targetNode = targetNode.parent;
     }
     if (targetNode is ConstructorName) {
+      targetNode = targetNode.parent;
+    }
+    if (targetNode is PrimaryConstructorName) {
       targetNode = targetNode.parent;
     }
     return targetNode;

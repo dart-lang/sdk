@@ -1028,6 +1028,7 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: String?
       alias: <testLibrary>::@typeAlias::A
+        nullabilitySuffix: NullabilitySuffix.question
   operator: !
   element: <null>
   staticType: String
@@ -1164,6 +1165,7 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int,)?
       alias: <testLibrary>::@typeAlias::A
+        nullabilitySuffix: NullabilitySuffix.question
   operator: !
   element: <null>
   staticType: (int,)

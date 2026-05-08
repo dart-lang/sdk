@@ -146,7 +146,7 @@ class FormatOnTypeHandler
       '}' => switch (node) {
         Block(:var rightBracket) ||
         BlockClassBody(:var rightBracket) ||
-        EnumBody(:var rightBracket) ||
+        BlockEnumBody(:var rightBracket) ||
         ListLiteral(:var rightBracket) ||
         SetOrMapLiteral(:var rightBracket) ||
         SwitchExpression(:var rightBracket) ||

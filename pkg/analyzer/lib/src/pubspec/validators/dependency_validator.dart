@@ -23,7 +23,10 @@ void dependencyValidator(PubspecValidationContext ctx) {
     } else if (field is YamlMap) {
       return field.nodes;
     }
-    ctx.reportErrorForNode(field, diag.dependenciesFieldNotMap, [key]);
+    ctx.reportErrorForNode(
+      field,
+      diag.dependenciesFieldNotMap.withArguments(fieldName: key),
+    );
     return <String, YamlNode>{};
   }
 
@@ -46,7 +49,10 @@ void dependencyValidator(PubspecValidationContext ctx) {
       YamlNode pathValue() => dependency.valueAt(PubspecField.PATH_FIELD)!;
 
       if (pathEntry.contains(r'\')) {
-        ctx.reportErrorForNode(pathValue(), diag.pathNotPosix, [pathEntry]);
+        ctx.reportErrorForNode(
+          pathValue(),
+          diag.pathNotPosix.withArguments(path: pathEntry),
+        );
         return;
       }
       var context = ctx.provider.pathContext;
@@ -57,18 +63,23 @@ void dependencyValidator(PubspecValidationContext ctx) {
       dependencyPath = context.normalize(dependencyPath);
       var packageFolder = ctx.provider.getFolder(dependencyPath);
       if (!packageFolder.exists) {
-        ctx.reportErrorForNode(pathValue(), diag.pathDoesNotExist, [pathEntry]);
+        ctx.reportErrorForNode(
+          pathValue(),
+          diag.pathDoesNotExist.withArguments(path: pathEntry),
+        );
       } else {
         if (!packageFolder.getChild(file_paths.pubspecYaml).exists) {
-          ctx.reportErrorForNode(pathValue(), diag.pathPubspecDoesNotExist, [
-            pathEntry,
-          ]);
+          ctx.reportErrorForNode(
+            pathValue(),
+            diag.pathPubspecDoesNotExist.withArguments(path: pathEntry),
+          );
         }
       }
       if (checkForPathAndGitDeps) {
-        ctx.reportErrorForNode(pathKey(), diag.invalidDependency, [
-          PubspecField.PATH_FIELD,
-        ]);
+        ctx.reportErrorForNode(
+          pathKey(),
+          diag.invalidDependency.withArguments(kind: PubspecField.PATH_FIELD),
+        );
       }
     }
 
@@ -76,8 +87,7 @@ void dependencyValidator(PubspecValidationContext ctx) {
     if (gitEntry != null && checkForPathAndGitDeps) {
       ctx.reportErrorForNode(
         dependency.getKey(PubspecField.GIT_FIELD)!,
-        diag.invalidDependency,
-        [PubspecField.GIT_FIELD],
+        diag.invalidDependency.withArguments(kind: PubspecField.GIT_FIELD),
       );
     }
   }
@@ -107,9 +117,12 @@ void dependencyValidator(PubspecValidationContext ctx) {
   for (var dependency in declaredDevDependencies.entries) {
     var packageName = dependency.key as YamlNode;
     if (declaredDependencies.containsKey(packageName)) {
-      ctx.reportErrorForNode(packageName, diag.unnecessaryDevDependency, [
-        packageName.valueOrThrow,
-      ]);
+      ctx.reportErrorForNode(
+        packageName,
+        diag.unnecessaryDevDependency.withArguments(
+          package: packageName.valueOrThrow.toString(),
+        ),
+      );
     }
     validatePathEntries(dependency.value, false);
   }

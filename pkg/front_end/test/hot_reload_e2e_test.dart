@@ -84,7 +84,7 @@ abstract class TestCase {
     var portLine = await lines[0];
     Expect.isTrue(dartVMServicePortRegExp.hasMatch(portLine));
     var match = dartVMServicePortRegExp.firstMatch(portLine);
-    return int.parse(match!.group(1)!);
+    return int.parse(match![1]!);
   }
 
   /// Request vm to resume execution

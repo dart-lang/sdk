@@ -147,7 +147,7 @@ class JSSyntaxRegExp implements RegExp {
 
   String? stringMatch(String string) {
     var match = firstMatch(string);
-    if (match != null) return match.group(0);
+    if (match != null) return match[0];
     return null;
   }
 
@@ -199,20 +199,20 @@ class _MatchImplementation implements RegExpMatch {
 
   int get end => (start + (_match[0].toString()).length);
 
-  String? group(int index) {
+  String? group(int index) => this[index];
+
+  String? operator [](int index) {
     // index < 0 || index >= _match.length
     IndexErrorUtils.checkIndex(index, _match.length);
     return _match[index]?.toString();
   }
-
-  String? operator [](int index) => group(index);
 
   int get groupCount => _match.length - 1;
 
   List<String?> groups(List<int> groups) {
     List<String?> out = [];
     for (int i in groups) {
-      out.add(group(i));
+      out.add(this[i]);
     }
     return out;
   }

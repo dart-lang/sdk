@@ -1,0 +1,207 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •() → self::C1
+    ;
+  constructor other() → self::C1
+    ;
+}
+class C2 extends core::Object {
+  constructor •() → self::C2
+    ;
+  constructor other1() → self::C2
+    ;
+  constructor other2() → self::C2
+    ;
+}
+class C3 extends core::Object {
+  constructor •() → self::C3
+    ;
+  constructor other() → self::C3
+    ;
+}
+class C4 extends core::Object {
+  constructor •() → self::C4
+    ;
+  constructor other() → self::C4
+    ;
+}
+class C5 extends core::Object {
+  constructor primary() → self::C5
+    ;
+  constructor •() → self::C5
+    ;
+}
+class C6 extends core::Object {
+  constructor primary() → self::C6
+    ;
+  constructor •() → self::C6
+    ;
+}
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 a = const self::E1::•(0, "a");
+  enum-element static const field self::E1 b = const self::E1::other(1, "b");
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::a, self::E1::b];
+  const constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 a = const self::E2::•(0, "a");
+  enum-element static const field self::E2 b = const self::E2::other1(1, "b");
+  enum-element static const field self::E2 c = const self::E2::other2(2, "c");
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::a, self::E2::b, self::E2::c];
+  const constructor •(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other1(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other2(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E3 a = const self::E3::•(0, "a");
+  enum-element static const field self::E3 b = const self::E3::other(1, "b");
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::a, self::E3::b];
+  const constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other(core::int #index, core::String #name) → self::E3
+    : this self::E3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E4 a = const self::E4::•(0, "a");
+  enum-element static const field self::E4 b = const self::E4::other(1, "b");
+  static const field core::List<self::E4> values = const <self::E4>[self::E4::a, self::E4::b];
+  const constructor •(core::int #index, core::String #name) → self::E4
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other(core::int #index, core::String #name) → self::E4
+    : this self::E4::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E5 a = const self::E5::•(0, "a");
+  enum-element static const field self::E5 b = const self::E5::primary(1, "b");
+  static const field core::List<self::E5> values = const <self::E5>[self::E5::a, self::E5::b];
+  const constructor primary(core::int #index, core::String #name) → self::E5
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor •(core::int #index, core::String #name) → self::E5
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E6 a = const self::E6::•(0, "a");
+  enum-element static const field self::E6 b = const self::E6::primary(1, "b");
+  static const field core::List<self::E6> values = const <self::E6>[self::E6::a, self::E6::b];
+  const constructor primary(core::int #index, core::String #name) → self::E6
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor •(core::int #index, core::String #name) → self::E6
+    : this self::E6::primary(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+  constructor other = self::ET1|constructor#other;
+  constructor tearoff other = self::ET1|constructor#_#other#tearOff;
+}
+extension type E2T(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::E2T|constructor#;
+  constructor tearoff • = self::E2T|constructor#_#new#tearOff;
+  constructor other = self::E2T|constructor#other;
+  constructor tearoff other = self::E2T|constructor#_#other#tearOff;
+}
+extension type ET3(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor primary = self::ET3|constructor#primary;
+  constructor tearoff primary = self::ET3|constructor#_#primary#tearOff;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor primary = self::ET4|constructor#primary;
+  constructor tearoff primary = self::ET4|constructor#_#primary#tearOff;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(i);
+static extension-type-member method ET1|constructor#other(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#other#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#other(i);
+static extension-type-member method E2T|constructor#(core::int i) → self::E2T% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E2T|constructor#_#new#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
+  return self::E2T|constructor#(i);
+static extension-type-member method E2T|constructor#other(core::int i) → self::E2T% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method E2T|constructor#_#other#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
+  return self::E2T|constructor#other(i);
+static extension-type-member method ET3|constructor#primary(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET3|constructor#_#primary#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#primary(i);
+static extension-type-member method ET3|constructor#(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(i);
+static extension-type-member method ET4|constructor#primary(core::int i) → self::ET4% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET4|constructor#_#primary#tearOff(core::int i) → self::ET4% /* erasure=core::int, declared=! */
+  return self::ET4|constructor#primary(i);
+static extension-type-member method ET4|constructor#(core::int i) → self::ET4% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET4|constructor#_#new#tearOff(core::int i) → self::ET4% /* erasure=core::int, declared=! */
+  return self::ET4|constructor#(i);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:31:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:31:10 -> InstanceConstant(const E1{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:30:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "a"}, const E1{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:36:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:36:10 -> InstanceConstant(const E2{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:36:22 -> InstanceConstant(const E2{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:35:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}, const E2{_Enum.index: 1, _Enum._name: "b"}, const E2{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:42:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:42:10 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:41:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "a"}, const E3{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:47:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:47:10 -> InstanceConstant(const E4{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:46:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "a"}, const E4{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:52:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:52:10 -> InstanceConstant(const E5{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:51:6 -> ListConstant(const <E5>[const E5{_Enum.index: 0, _Enum._name: "a"}, const E5{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:57:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:57:10 -> InstanceConstant(const E6{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:56:6 -> ListConstant(const <E6>[const E6{_Enum.index: 0, _Enum._name: "a"}, const E6{_Enum.index: 1, _Enum._name: "b"}])
+Extra constant evaluation: evaluated: 79, effectively constant: 19

@@ -46,6 +46,24 @@ class ModuleBuilder with Builder<ir.Module> {
     types = TypesBuilder(this, parent: parent?.types);
   }
 
+  /// Whether loading the module would have no effect.
+  ///
+  /// This means no code is executable and no external data would be modified.
+  bool get hasNoEffect {
+    // Exports can be used from the outside.
+    if (exports.hasExports) return false;
+
+    // Start function is implicitly used from the outside - it's run at module
+    // instantiation time.
+    if (_startFunction != null) return false;
+
+    // Active element segments are implicitly used from the outside - they are
+    // run at module instantiation time and may patch imported tables.
+    if (elements.hasActiveElementSegments) return false;
+
+    return true;
+  }
+
   FunctionBuilder get startFunction => _startFunction ??=
       functions.define(types.defineFunction(const [], const []), "#init");
 

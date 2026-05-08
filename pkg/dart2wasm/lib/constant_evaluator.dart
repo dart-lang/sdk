@@ -28,44 +28,56 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
   final Procedure? _dartInternalDeferredLoadingViaEmbedderLoadId;
 
   ConstantEvaluator(
-      WasmCompilerOptions options,
-      WasmTarget target,
-      Component component,
-      CoreTypes coreTypes,
-      ClassHierarchy classHierarchy,
-      LibraryIndex libraryIndex)
-      : _checkBounds = !options.translatorOptions.omitBoundsChecks,
-        _minify = options.translatorOptions.minify,
-        _hasDynamicModuleSupport = options.enableDynamicModules,
-        _deferredLoadingEnabled =
-            options.translatorOptions.enableDeferredLoading ||
-                options.translatorOptions.enableMultiModuleStressTestMode,
-        _deferredLoadingViaEmbedderLoadId = options.loadsIdsUri != null,
-        _dartInternalCheckBoundsGetter = libraryIndex.tryGetProcedure(
-            "dart:_internal", LibraryIndex.topLevel, "get:checkBounds"),
-        _dartInternalMinifyGetter = libraryIndex.tryGetProcedure(
-            "dart:_internal", LibraryIndex.topLevel, "get:minify"),
-        _dartInternalHasDynamicModuleSupportGetter =
-            libraryIndex.tryGetProcedure("dart:_internal",
-                LibraryIndex.topLevel, "get:hasDynamicModuleSupport"),
-        _dartInternalDeferredLoadingEnabled = libraryIndex.tryGetProcedure(
+    WasmCompilerOptions options,
+    WasmTarget target,
+    Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy classHierarchy,
+    LibraryIndex libraryIndex,
+  ) : _checkBounds = !options.translatorOptions.omitBoundsChecks,
+      _minify = options.translatorOptions.minify,
+      _hasDynamicModuleSupport = options.enableDynamicModules,
+      _deferredLoadingEnabled =
+          options.translatorOptions.enableDeferredLoading ||
+          options.translatorOptions.enableMultiModuleStressTestMode,
+      _deferredLoadingViaEmbedderLoadId = options.loadsIdsUri != null,
+      _dartInternalCheckBoundsGetter = libraryIndex.tryGetProcedure(
+        "dart:_internal",
+        LibraryIndex.topLevel,
+        "get:checkBounds",
+      ),
+      _dartInternalMinifyGetter = libraryIndex.tryGetProcedure(
+        "dart:_internal",
+        LibraryIndex.topLevel,
+        "get:minify",
+      ),
+      _dartInternalHasDynamicModuleSupportGetter = libraryIndex.tryGetProcedure(
+        "dart:_internal",
+        LibraryIndex.topLevel,
+        "get:hasDynamicModuleSupport",
+      ),
+      _dartInternalDeferredLoadingEnabled = libraryIndex.tryGetProcedure(
+        "dart:_internal",
+        LibraryIndex.topLevel,
+        "get:deferredLoadingEnabled",
+      ),
+      _dartInternalDeferredLoadingViaEmbedderLoadId = libraryIndex
+          .tryGetProcedure(
             "dart:_internal",
             LibraryIndex.topLevel,
-            "get:deferredLoadingEnabled"),
-        _dartInternalDeferredLoadingViaEmbedderLoadId =
-            libraryIndex.tryGetProcedure("dart:_internal",
-                LibraryIndex.topLevel, "get:deferredLoadingViaEmbedderLoadId"),
-        super(
-          target.dartLibrarySupport,
-          target.constantsBackend,
-          component,
-          options.environment,
-          TypeEnvironment(coreTypes, classHierarchy),
-          const kernel.SimpleErrorReporter(),
-          enableTripleShift: true,
-          enableAsserts: options.translatorOptions.enableAsserts,
-          errorOnUnevaluatedConstant: true,
-        );
+            "get:deferredLoadingViaEmbedderLoadId",
+          ),
+      super(
+        target.dartLibrarySupport,
+        target.constantsBackend,
+        component,
+        options.environment,
+        TypeEnvironment(coreTypes, classHierarchy),
+        const kernel.SimpleErrorReporter(),
+        enableTripleShift: true,
+        enableAsserts: options.translatorOptions.enableAsserts,
+        errorOnUnevaluatedConstant: true,
+      );
 
   @override
   Constant visitStaticGet(StaticGet node) {

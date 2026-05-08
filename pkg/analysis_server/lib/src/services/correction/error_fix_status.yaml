@@ -185,6 +185,19 @@ ambiguous_set_or_map_literal_either:
   status: noFix
   notes: |-
     We don't have enough information to add type arguments for the user.
+anonymous_method_wrong_parameter_list:
+  status: noFix
+  notes: |-
+    We could remove the parameter list, or we could change it
+    to `(id)` where `id` is an identifier, but we don't know
+    which parameter name would be a good choice.
+anonymous_method_wrong_parameter_type:
+  status: noFix
+  notes: |-
+    We could remove the type annotation, or we could replace the
+    specified type by the static type of the receiver, but having a
+    type annotation is probably only relevant when the developer has
+    a specific reason to _not_ use the precise type of the receiver.
 argument_type_not_assignable:
   status: hasFix
 assert_in_redirecting_constructor:
@@ -194,6 +207,8 @@ assignment_to_const:
   notes: |-
     Making the field non-const doesn't seem to be a good choice, but it is a
     possibility.
+assignment_to_primary_constructor_parameter:
+  status: needsEvaluation
 assignment_to_final:
   status: hasFix
 assignment_to_final_local:
@@ -306,6 +321,10 @@ class_used_as_mixin:
   notes: |-
     Theoretically we could add the mixin modifier to the class if the class if
     doing so would be valid.
+class_used_as_mixin_declares_generative_constructor:
+  status: needsFix
+  notes: |-
+    Remove the constructor.
 class_instantiation_access_to_instance_member:
   status: noFix
   since: 2.15
@@ -424,6 +443,10 @@ const_constructor_with_non_const_super:
   status: noFix
 const_constructor_with_non_final_field:
   status: noFix
+const_primary_constructor_with_block_body:
+  status: needsEvaluation
+const_primary_constructor_with_expression_body:
+  status: needsEvaluation
 const_deferred_class:
   status: needsFix
   notes: |-
@@ -735,6 +758,12 @@ field_initialized_by_multiple_initializers:
     Remove all but one of the initializers.
     Replace the field name with the name of a different field (from the
     enclosing class).
+field_initialized_in_declaration_and_initializer_of_primary_constructor:
+  status: needsEvaluation
+  notes: |-
+    Remove all but one of the initializers.
+field_initialized_in_declaration_and_parameter_of_primary_constructor:
+  status: needsEvaluation
 field_initialized_in_initializer_and_declaration:
   status: needsFix
   notes: |-
@@ -791,8 +820,6 @@ generic_function_type_cannot_be_type_argument:
 generic_method_type_instantiation_on_dynamic:
   status: needsFix
   since: 2.15
-getter_not_assignable_setter_types:
-  status: noFix
 getter_not_subtype_setter_types:
   status: noFix
 if_element_condition_from_deferred_library:
@@ -857,8 +884,6 @@ import_internal_library:
   status: hasFix
 import_of_non_library:
   status: hasFix
-inconsistent_case_expression_types:
-  status: noFix
 inconsistent_inheritance:
   status: needsFix
   notes: |-
@@ -925,38 +950,6 @@ invalid_annotation_from_deferred_library:
     Remove the `deferred` keyword from the import.
 invalid_assignment:
   status: hasFix
-invalid_cast_function:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_function_expr:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal_list:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal_map:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal_set:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_method:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_new_expr:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
 invalid_constant:
   status: hasFix
   notes: |-
@@ -1006,7 +999,7 @@ invalid_reference_to_generative_enum_constructor_tearoff:
   status: noFix
   since: 2.17
 invalid_reference_to_this:
-  status: noFix
+  status: hasFix
 invalid_super_formal_parameter_location:
   status: needsFix
   since: 2.17
@@ -1085,8 +1078,6 @@ missing_const_in_set_literal:
   status: noFix
   notes: |-
     Not displayed to users.
-missing_dart_library:
-  status: noFix
 missing_default_value_for_parameter:
   status: hasFix
 missing_default_value_for_parameter_positional:
@@ -1098,6 +1089,8 @@ missing_named_pattern_field_name:
 missing_required_argument:
   status: hasFix
 missing_variable_pattern:
+  status: noFix
+mixin_application_class_augmentation:
   status: noFix
 mixin_application_concrete_super_invoked_member_type:
   status: needsFix
@@ -1111,7 +1104,7 @@ mixin_application_not_implemented_interface:
   status: hasFix
 mixin_class_declaration_extends_not_object:
   status: hasFix
-mixin_class_declares_constructor:
+mixin_class_declares_non_trivial_generative_constructor:
   status: needsFix
   notes: |-
     Remove the constructor.
@@ -1159,6 +1152,8 @@ multiple_super_initializers:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
+new_constructor_dot_name:
+  status: needsEvaluation
 new_constructor_new_name:
   status: needsEvaluation
 new_constructor_qualified_name:
@@ -1390,7 +1385,13 @@ prefix_identifier_not_followed_by_dot:
   status: noFix
 prefix_shadowed_by_local_declaration:
   status: noFix
+primary_constructor_body_with_expression_body:
+  status: needsEvaluation
+primary_constructor_body_with_modifier:
+  status: needsEvaluation
 primary_constructor_body_without_declaration:
+  status: needsEvaluation
+primary_constructor_cannot_redirect:
   status: needsEvaluation
 private_collision_in_mixin_application:
   status: noFix
@@ -1669,6 +1670,8 @@ uri_with_interpolation:
 use_of_native_extension:
   status: noFix
   since: ~2.15
+use_of_private_parameter_name:
+  status: hasFix
 use_of_void_result:
   status: noFix
 values_declaration_in_enum:
@@ -1694,9 +1697,6 @@ wrong_number_of_parameters_for_operator_minus:
     removing all but a singular used parameter, if only one is used.
 wrong_number_of_type_arguments:
   status: hasFix
-wrong_number_of_type_arguments_anonymous_function:
-  status: needsFix
-  since: 2.15
 wrong_number_of_type_arguments_constructor:
   status: hasFix
 wrong_number_of_type_arguments_dot_shorthand_constructor:
@@ -1713,7 +1713,7 @@ wrong_number_of_type_arguments_extension:
 wrong_number_of_type_arguments_function:
   status: needsFix
   since: ~2.15
-wrong_number_of_type_arguments_method:
+wrong_number_of_type_arguments_element:
   status: hasFix
 wrong_type_parameter_variance_in_superinterface:
   status: noFix
@@ -1936,9 +1936,7 @@ avoid_escaping_inner_quotes:
 avoid_field_initializers_in_const_classes:
   status: noFix
 avoid_final_parameters:
-  status: needsFix
-  notes: |-
-    The fix is to remove the `final` keyword.
+  status: hasFix
 avoid_function_literals_in_foreach_calls:
   status: hasFix
 avoid_futureor_void:
@@ -2140,6 +2138,8 @@ implicit_reopen:
   status: hasFix
 invalid_case_patterns:
   status: hasFix
+invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type:
+  status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_dart_as_js:
   status: needsEvaluation
   notes: |-
@@ -2385,6 +2385,8 @@ remove_deprecations_in_breaking_versions:
     We can implement the fixes indicated in the messages.yaml.
 require_trailing_commas:
   status: hasFix
+simple_directive_paths:
+  status: hasFix
 secure_pubspec_urls:
   status: noFix
 simplify_variable_pattern:
@@ -2425,6 +2427,8 @@ strict_top_level_inference_split_to_types:
     the LUB of those value(s)' type(s).
 switch_on_type:
   status: noFix
+tearoff_with_must_be_const_parameter:
+  status: needsEvaluation
 test_types_in_equals:
   status: noFix
 throw_in_finally:
@@ -2484,7 +2488,7 @@ no_wildcard_variable_uses:
 unnecessary_null_aware_assignments:
   status: hasFix
 unnecessary_null_aware_operator_on_extension_on_nullable:
-  status: needsFix
+  status: hasFix
 unnecessary_null_checks:
   status: hasFix
 unnecessary_null_in_if_null_operators:
@@ -2514,7 +2518,7 @@ unnecessary_underscores:
 unreachable_from_main:
   status: hasFix
 unrelated_type_equality_checks_in_expression:
-  status: needsEvaluation
+  status: hasFix
 unrelated_type_equality_checks_in_pattern:
   status: needsEvaluation
 unsafe_variance:
@@ -2998,8 +3002,6 @@ invalid_literal_in_configuration:
   status: noFix
 invalid_operator:
   status: noFix
-invalid_operator_for_super:
-  status: noFix
 invalid_operator_questionmark_period_for_super:
   status: needsFix
   notes: |-
@@ -3108,10 +3110,6 @@ missing_star_after_sync:
     Remove the `sync` keyword. Add a `*`.
 missing_statement:
   status: noFix
-missing_terminator_for_parameter_group:
-  status: needsFix
-  notes: |-
-    Add the missing terminator.
 missing_typedef_parameters:
   status: hasFix
 missing_variable_in_for_each:
@@ -3159,8 +3157,6 @@ multiple_representation_fields:
   notes: |-
     Remove extra fields.
     Maybe wrap into a record.
-multiple_variables_in_for_each:
-  status: noFix
 multiple_variance_modifiers:
   status: noFix
 multiple_with_clauses:
@@ -3200,8 +3196,6 @@ non_part_of_directive_in_part:
   notes: |-
     Remove the directive. Move the directive to the library.
 non_string_literal_as_uri:
-  status: noFix
-non_user_definable_operator:
   status: noFix
 normal_before_optional_parameters:
   status: needsFix
@@ -3255,8 +3249,7 @@ redirection_in_non_factory_constructor:
   notes: |-
     Remove the redirection.
 representation_field_modifier:
-  status: needsFix
-  notes: Remove it.
+  status: hasFix
 representation_field_trailing_comma:
   status: hasFix
 sealed_enum:
@@ -3307,14 +3300,12 @@ type_parameter_on_operator:
   status: needsFix
   notes: |-
     Remove the type parameters.
+typedef_augmentation:
+  status: noFix
 typedef_in_class:
   status: needsFix
   notes: |-
     Move the typedef to the top level.
-unexpected_terminator_for_parameter_group:
-  status: needsFix
-  notes: |-
-    Remove the terminator.
 unexpected_token:
   status: noFix
 unexpected_tokens:
@@ -3351,10 +3342,6 @@ wrong_number_of_parameters_for_setter:
   status: needsFix
 wrong_separator_for_positional_parameter:
   status: hasFix
-wrong_terminator_for_parameter_group:
-  status: needsFix
-  notes: |-
-    Replace the terminator with the correct terminator.
 asset_does_not_exist:
   status: noFix
   since: ~2.15
@@ -3388,6 +3375,8 @@ flutter_field_not_map:
   since: ~2.15
 invalid_dependency:
   status: noFix
+invalid_covariant_modifier_in_primary_constructor:
+  status: hasFix
 invalid_platforms_field:
   status: needsEvaluation
 missing_dependency:
@@ -3430,8 +3419,6 @@ missing_digit:
 missing_hex_digit:
   status: noFix
 missing_quote:
-  status: noFix
-unable_get_content:
   status: noFix
 unexpected_dollar_in_string:
   status: noFix
@@ -3730,6 +3717,8 @@ mixin_on_sealed_class:
     in the next stable release.
 multiple_combinators:
   status: hasFix
+multiple_primary_constructor_body_declarations:
+  status: needsEvaluation
 must_be_immutable:
   status: noFix
 must_call_super:
@@ -3905,5 +3894,7 @@ uri_does_not_exist_in_doc_import:
   status: needsFix
   notes: |-
     The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
+var_with_no_type_annotation:
+  status: hasFix
 deprecated_factory_method:
   status: hasFix

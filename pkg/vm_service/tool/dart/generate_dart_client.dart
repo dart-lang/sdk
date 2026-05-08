@@ -249,7 +249,11 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
 
     try {
       return await service(params);
+    } on RPCError catch (e) {
+      // Preserve RPCError exceptions as-is.
+      return {'error': e.toMap()};
     } catch (e, st) {
+      // Wrap other exceptions.
       final error = RPCError.withDetails(
         method,
         RPCErrorKind.kServerError.code,

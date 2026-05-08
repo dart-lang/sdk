@@ -26,10 +26,17 @@ class ArchiveFolder {
   final Channel channel;
 
   Uri fileUri(String path, {required Stage stage}) => SdkCache.archiveUri(
-      channel: channel, version: 'hash/$revision', stage: stage, path: path);
+    channel: channel,
+    version: 'hash/$revision',
+    stage: stage,
+    path: path,
+  );
 
-  ArchiveFolder(
-      {required this.version, required this.revision, required this.channel});
+  ArchiveFolder({
+    required this.version,
+    required this.revision,
+    required this.channel,
+  });
 }
 
 /// Cache for retrieving artifacts that are not shipped with the Dart SDK.
@@ -45,18 +52,18 @@ class SdkCache {
   final StringSink _stderr;
   final io.ProcessResult Function(String) _setUserExecutable;
 
-  SdkCache(
-      {required String directory,
-      required this.verbose,
-      http.Client Function()? createHttpClient,
-      FileSystem? fs,
-      StringSink? stderr,
-      io.ProcessResult Function(String)? chmod,
-      http.Client? httpClient})
-      : _setUserExecutable = chmod ?? _defaultSetUserExecutable,
-        _httpClient = httpClient ?? http.Client(),
-        _stderr = stderr ?? io.stderr,
-        fs = fs ?? LocalFileSystem() {
+  SdkCache({
+    required String directory,
+    required this.verbose,
+    http.Client Function()? createHttpClient,
+    FileSystem? fs,
+    StringSink? stderr,
+    io.ProcessResult Function(String)? chmod,
+    http.Client? httpClient,
+  }) : _setUserExecutable = chmod ?? _defaultSetUserExecutable,
+       _httpClient = httpClient ?? http.Client(),
+       _stderr = stderr ?? io.stderr,
+       fs = fs ?? LocalFileSystem() {
     this.directory = this.fs.directory(directory);
   }
 
@@ -69,25 +76,30 @@ class SdkCache {
   /// exists in the remote archive, or falls back to the latest revision if it
   /// does not (this may happen when Dart SDK is built locally from a local
   /// revision, or built with RBE, in which case there's no revision at all).
-  Future<ArchiveFolder> resolveVersion(
-      {required String version,
-      required String revision,
-      required String channelName,
-      Target? host}) async {
+  Future<ArchiveFolder> resolveVersion({
+    required String version,
+    required String revision,
+    required String channelName,
+    Target? host,
+  }) async {
     host ??= Target.current;
     final channel = Channel.fromString(channelName);
     if (channel == null) {
       throw ArgumentError('Unsupported channel: "$channelName".');
     }
 
-    final folderFromArgs =
-        ArchiveFolder(version: version, revision: revision, channel: channel);
+    final folderFromArgs = ArchiveFolder(
+      version: version,
+      revision: revision,
+      channel: channel,
+    );
     if (channel != Channel.main) {
       // Past main channel, we always assume that given version and revision
       // must exist on the server.
       if (revision.isEmpty) {
         throw ArgumentError(
-            'Channel "${channel.name}" requires valid revision.');
+          'Channel "${channel.name}" requires valid revision.',
+        );
       }
 
       return folderFromArgs;
@@ -104,12 +116,16 @@ class SdkCache {
     // commit revision, which does not exist on storage.
     if (revision.isNotEmpty) {
       // Check that the given revision exists.
-      var exists =
-          await _exists(folderFromArgs.fileUri('VERSION', stage: stage));
+      var exists = await _exists(
+        folderFromArgs.fileUri('VERSION', stage: stage),
+      );
 
       if (exists) {
         return ArchiveFolder(
-            version: version, revision: revision, channel: channel);
+          version: version,
+          revision: revision,
+          channel: channel,
+        );
       } else {
         if (verbose) {
           _stderr.writeln('Cannot find revision $revision in an archive.');
@@ -119,13 +135,18 @@ class SdkCache {
 
     // No revision or invalid revision, checking the latest version.
     _stderr.writeln('Checking the latest available revision...');
-    (version, revision) =
-        await _getLatestVersion(channel: channel, stage: stage);
+    (version, revision) = await _getLatestVersion(
+      channel: channel,
+      stage: stage,
+    );
     if (verbose) {
       _stderr.writeln('Using revision $revision.');
     }
     return ArchiveFolder(
-        version: version, revision: revision, channel: channel);
+      version: version,
+      revision: revision,
+      channel: channel,
+    );
   }
 
   void _ensureExecutable(File destinationFile, OS hostOS) {
@@ -141,16 +162,18 @@ class SdkCache {
     final chmodResult = _setUserExecutable(destinationFile.path);
     if (chmodResult.exitCode != 0) {
       throw SdkCacheException(
-          'Cannot make ${destinationFile.path} executable, chmod failed.\n'
-          'exitCode: ${chmodResult.exitCode}\n'
-          'stderr: ${chmodResult.stderr}');
+        'Cannot make ${destinationFile.path} executable, chmod failed.\n'
+        'exitCode: ${chmodResult.exitCode}\n'
+        'stderr: ${chmodResult.stderr}',
+      );
     }
   }
 
-  Future<String> ensureGenSnapshot(
-      {required ArchiveFolder archiveFolder,
-      required Target target,
-      Target? host}) {
+  Future<String> ensureGenSnapshot({
+    required ArchiveFolder archiveFolder,
+    required Target target,
+    Target? host,
+  }) {
     host ??= Target.current;
     // Determine a file base name.
     var basename = 'gen_snapshot_${host}_$target';
@@ -158,11 +181,12 @@ class SdkCache {
       basename = '$basename.exe';
     }
     return ensureArtifact(
-        archiveFolder: archiveFolder,
-        host: host,
-        target: target,
-        basename: basename,
-        isExecutable: true);
+      archiveFolder: archiveFolder,
+      host: host,
+      target: target,
+      basename: basename,
+      isExecutable: true,
+    );
   }
 
   Future<String> ensureDartAotRuntime({
@@ -172,11 +196,12 @@ class SdkCache {
   }) {
     host ??= Target.current;
     return ensureArtifact(
-        archiveFolder: archiveFolder,
-        basename: 'dartaotruntime_$target',
-        target: target,
-        host: host,
-        isExecutable: false);
+      archiveFolder: archiveFolder,
+      basename: 'dartaotruntime_$target',
+      target: target,
+      host: host,
+      isExecutable: false,
+    );
   }
 
   Future<String> ensureArtifact({
@@ -187,8 +212,9 @@ class SdkCache {
     required bool isExecutable,
   }) async {
     // Calculate the local path.
-    var localFile =
-        directory.childDirectory(archiveFolder.version).childFile(basename);
+    var localFile = directory
+        .childDirectory(archiveFolder.version)
+        .childFile(basename);
     if (localFile.existsSync()) {
       if (isExecutable) {
         _ensureExecutable(localFile, host.os);
@@ -197,11 +223,14 @@ class SdkCache {
     }
 
     localFile.parent.createSync(recursive: true);
-    final uri = archiveFolder.fileUri('sdk/$basename',
-        stage: resolveStage(
-            channel: archiveFolder.channel,
-            isExecutable: isExecutable,
-            hostOS: host.os));
+    final uri = archiveFolder.fileUri(
+      'sdk/$basename',
+      stage: resolveStage(
+        channel: archiveFolder.channel,
+        isExecutable: isExecutable,
+        hostOS: host.os,
+      ),
+    );
 
     try {
       localFile.writeAsBytesSync(await _download(uri));
@@ -218,10 +247,22 @@ class SdkCache {
   }
 
   /// For a given channel, find the latest available revision.
-  Future<(String, String)> _getLatestVersion(
-      {required Channel channel, required Stage stage}) async {
-    final json = jsonDecode(utf8.decode(await _download(archiveUri(
-        channel: channel, stage: stage, version: 'latest', path: 'VERSION'))));
+  Future<(String, String)> _getLatestVersion({
+    required Channel channel,
+    required Stage stage,
+  }) async {
+    final json = jsonDecode(
+      utf8.decode(
+        await _download(
+          archiveUri(
+            channel: channel,
+            stage: stage,
+            version: 'latest',
+            path: 'VERSION',
+          ),
+        ),
+      ),
+    );
     return (json['version'] as String, json['revision'] as String);
   }
 
@@ -250,10 +291,11 @@ class SdkCache {
     return response.bodyBytes;
   }
 
-  static Stage resolveStage(
-      {required Channel channel,
-      required bool isExecutable,
-      required OS hostOS}) {
+  static Stage resolveStage({
+    required Channel channel,
+    required bool isExecutable,
+    required OS hostOS,
+  }) {
     if (channel == Channel.main || !isExecutable) {
       return Stage.raw;
     }
@@ -261,13 +303,15 @@ class SdkCache {
     return hostOS == OS.macOS ? Stage.signed : Stage.raw;
   }
 
-  static Uri archiveUri(
-          {required Channel channel,
-          required Stage stage,
-          required String version,
-          required String path}) =>
-      Uri.https('storage.googleapis.com',
-          'dart-archive/channels/${channel.name}/${stage.name}/$version/$path');
+  static Uri archiveUri({
+    required Channel channel,
+    required Stage stage,
+    required String version,
+    required String path,
+  }) => Uri.https(
+    'storage.googleapis.com',
+    'dart-archive/channels/${channel.name}/${stage.name}/$version/$path',
+  );
 
   /// Default implementation fdor making a [path] executable.
   ///

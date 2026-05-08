@@ -4,11 +4,17 @@
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/registry.dart';
+
+typedef UnnecessaryIgnoreDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String name})
+    >;
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
@@ -22,10 +28,11 @@ class IgnoreValidator {
   ///
   /// These codes are set when the `UnnecessaryIgnore` lint rule is instantiated and
   /// registered by the linter.
-  static late DiagnosticCode unnecessaryIgnoreLocationLintCode;
-  static late DiagnosticCode unnecessaryIgnoreFileLintCode;
-  static late DiagnosticCode unnecessaryIgnoreNameLocationLintCode;
-  static late DiagnosticCode unnecessaryIgnoreNameFileLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode unnecessaryIgnoreLocationLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode unnecessaryIgnoreFileLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode
+  unnecessaryIgnoreNameLocationLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode unnecessaryIgnoreNameFileLintCode;
 
   /// The diagnostic reporter to which diagnostics are to be reported.
   final DiagnosticReporter _diagnosticReporter;
@@ -157,11 +164,10 @@ class IgnoreValidator {
     for (var unignorableName in unignorable) {
       if (unignorableName is IgnoredDiagnosticName) {
         var name = unignorableName.name;
-        _diagnosticReporter.atOffset(
-          diagnosticCode: diag.unignorableIgnore,
-          offset: unignorableName.offset,
-          length: name.length,
-          arguments: [name],
+        _diagnosticReporter.report(
+          diag.unignorableIgnore
+              .withArguments(diagnosticName: name)
+              .atOffset(offset: unignorableName.offset, length: name.length),
         );
         list.remove(unignorableName);
       }
@@ -169,19 +175,20 @@ class IgnoreValidator {
     for (var ignoredElement in duplicated) {
       if (ignoredElement is IgnoredDiagnosticName) {
         var name = ignoredElement.name;
-        _diagnosticReporter.atOffset(
-          offset: ignoredElement.offset,
-          length: name.length,
-          diagnosticCode: diag.duplicateIgnore,
-          arguments: [name],
+        _diagnosticReporter.report(
+          diag.duplicateIgnore
+              .withArguments(name: name)
+              .atOffset(offset: ignoredElement.offset, length: name.length),
         );
         list.remove(ignoredElement);
       } else if (ignoredElement is IgnoredDiagnosticType) {
-        _diagnosticReporter.atOffset(
-          offset: ignoredElement.offset,
-          length: ignoredElement.length,
-          diagnosticCode: diag.duplicateIgnore,
-          arguments: [ignoredElement.type],
+        _diagnosticReporter.report(
+          diag.duplicateIgnore
+              .withArguments(name: ignoredElement.type)
+              .atOffset(
+                offset: ignoredElement.offset,
+                length: ignoredElement.length,
+              ),
         );
         list.remove(ignoredElement);
       }
@@ -212,19 +219,21 @@ class IgnoreValidator {
           } else if (state.isRemoved) {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
-              _diagnosticReporter.atOffset(
-                diagnosticCode: diag.replacedLintUse,
-                offset: ignoredName.offset,
-                length: name.length,
-                arguments: [name, since, replacedBy],
+              _diagnosticReporter.report(
+                diag.replacedLintUse
+                    .withArguments(
+                      ruleName: name,
+                      since: since,
+                      replacement: replacedBy,
+                    )
+                    .atOffset(offset: ignoredName.offset, length: name.length),
               );
               continue;
             } else {
-              _diagnosticReporter.atOffset(
-                diagnosticCode: diag.removedLintUse,
-                offset: ignoredName.offset,
-                length: name.length,
-                arguments: [name, since],
+              _diagnosticReporter.report(
+                diag.removedLintUse
+                    .withArguments(ruleName: name, since: since)
+                    .atOffset(offset: ignoredName.offset, length: name.length),
               );
               continue;
             }
@@ -261,7 +270,7 @@ class IgnoreValidator {
           }
         }
 
-        late DiagnosticCode lintCode;
+        late UnnecessaryIgnoreDiagnosticCode lintCode;
         if (forFile) {
           lintCode = diagnosticsOnLine > 1
               ? unnecessaryIgnoreNameFileLintCode
@@ -272,11 +281,10 @@ class IgnoreValidator {
               : unnecessaryIgnoreLocationLintCode;
         }
 
-        _diagnosticReporter.atOffset(
-          diagnosticCode: lintCode,
-          offset: ignoredName.offset,
-          length: name.length,
-          arguments: [name],
+        _diagnosticReporter.report(
+          lintCode
+              .withArguments(name: name)
+              .atOffset(offset: ignoredName.offset, length: name.length),
         );
       }
     }

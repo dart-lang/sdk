@@ -187,6 +187,15 @@ void main() {
 ''');
   }
 
+  test_locate_DottedName_libraryDirective() async {
+    await resolveTestCode('library foo.bar;');
+    var node = findNode.singleDottedName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>
+''');
+  }
+
   test_locate_EnumConstantDeclaration() async {
     await resolveTestCode(r'''
 enum E {
@@ -348,15 +357,6 @@ void f(int a) {
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
-''');
-  }
-
-  test_locate_Identifier_libraryDirective() async {
-    await resolveTestCode('library foo.bar;');
-    var node = findNode.simple('foo');
-    var element = ElementLocator.locate(node);
-    _assertElement(element, r'''
-<testLibrary>
 ''');
   }
 
@@ -648,6 +648,15 @@ dart:core::@class::num::@method::+
 ''');
   }
 
+  test_locate_PrimaryConstructorBody() async {
+    await resolveTestCode('class A() { this { } }');
+    var node = findNode.singlePrimaryConstructorBody;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::new
+''');
+  }
+
   test_locate_PrimaryConstructorDeclaration() async {
     await resolveTestCode('extension type A(int it) {}');
     var node = findNode.singlePrimaryConstructorDeclaration;
@@ -657,12 +666,30 @@ dart:core::@class::num::@method::+
 ''');
   }
 
-  test_locate_PrimaryConstructorDeclaration2() async {
+  test_locate_PrimaryConstructorDeclaration_named() async {
     await resolveTestCode('extension type A.named(int it) {}');
     var node = findNode.singlePrimaryConstructorDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
+<testLibrary>::@extensionType::A
+''');
+  }
+
+  test_locate_PrimaryConstructorDeclaration_named_atConstructorName() async {
+    await resolveTestCode('extension type A.named(int it) {}');
+    var node = findNode.singlePrimaryConstructorDeclaration.constructorName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
 <testLibrary>::@extensionType::A::@constructor::named
+''');
+  }
+
+  test_locate_PrimaryConstructorDeclaration_namedConstructor_constructorName() async {
+    await resolveTestCode('class A.named() {}');
+    var node = findNode.singlePrimaryConstructorDeclaration.constructorName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::named
 ''');
   }
 

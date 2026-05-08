@@ -27,6 +27,12 @@ class ProcessedSample;
 class ProcessedSampleBuffer;
 class Profile;
 
+#if defined(SUPPORT_PERFETTO)
+namespace perfetto_utils {
+class InternedDataBuilder;
+}  // namespace perfetto_utils
+#endif
+
 class Sample;
 class SampleBlock;
 
@@ -51,25 +57,45 @@ struct ProfilerCounters {
 #undef DECLARE_PROFILER_COUNTER
 };
 
+DECLARE_FLAG(int, profile_period);
+DECLARE_FLAG(int, max_profile_depth);
+
 class Profiler : public AllStatic {
  public:
+  // Initialize profiler's state on VM startup.
+  //
+  // To reconfigure profiler (e.g. to start or stop) use |SetConfig|.
   static void Init();
+
+  // Cleanup profiler's state on VM shutdown.
   static void Cleanup();
 
-  static void SetSampleDepth(intptr_t depth);
-  // Sets |FLAG_profile_period| to |max(period, 50)|.
-  static void UpdateFlagProfilePeriod(intptr_t period);
-  // Restarts sampling with a given profile period. This is called after the
-  // profile period is changed via the service protocol.
-  static void UpdateSamplePeriod();
-  // Starts or shuts down the profiler after --profiler is changed via the
-  // service protocol.
-  static void UpdateRunningState();
+  struct Config {
+    RelaxedAtomic<bool> enabled = FLAG_profiler;
+    intptr_t period_us = FLAG_profile_period;
+    RelaxedAtomic<intptr_t> max_depth = FLAG_max_profile_depth;
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+    RelaxedAtomic<bool> stream_to_timeline = false;
+#endif
+  };
 
-  typedef void (*ProfileProcessorCallback)(Profile&);
+  // Configure the profiler.
+  //
+  // Can be used to start/stop the profiler (by toggling |Config::enabled|) or
+  // to reconfigure profiler (e.g. change sampling period or depth).
+  //
+  // Note: changing |Config::max_depth| or |Config::period_us| while profiler
+  // is running will not resize the underlying sample buffer. To resize the
+  // buffer stop and then restart the profiler.
+  static void SetConfig(const Config& config);
+  static const Config& CurrentConfig() { return config_; }
 
-  static void SetProfileProcessorCallback(ProfileProcessorCallback callback) {
-    process_profile_callback_ = callback;
+  DART_FORCE_INLINE static bool IsRunning() {
+#if defined(DART_INCLUDE_PROFILER)
+    return running_;
+#else
+    return false;
+#endif  // defined(DART_INCLUDE_PROFILER)
   }
 
   static SampleBlockBuffer* sample_block_buffer() {
@@ -102,13 +128,20 @@ class Profiler : public AllStatic {
   }
   inline static intptr_t Size();
 
-  // This function is currently a no-op, but should not be fully deleted
-  // because it will be used to implement
-  // go/dart-universal-observability-for-tools.
-  static void ProcessCompletedBlocks(Isolate* isolate);
-  static void IsolateShutdown(Thread* thread);
+  static void IsolateShutdown(Isolate* thread);
+  static void IsolateGroupShutdown(IsolateGroup* isolate_group);
 
  private:
+  // Start the profiler.
+  //
+  // Must be called by a thread holding |monitor_|.
+  static void StartLocked();
+
+  // Stop the profiler.
+  //
+  // Must be called by a thread holding |monitor_|.
+  static void StopLocked();
+
   static void DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash);
 
   // Calculates the sample buffer capacity. Returns
@@ -122,13 +155,16 @@ class Profiler : public AllStatic {
   static void SampleThreadSingleFrame(Thread* thread,
                                       Sample* sample,
                                       uintptr_t pc);
-  static RelaxedAtomic<bool> initialized_;
+
+  static Monitor* monitor_;
+
+  static Profiler::Config config_;
+
+  static RelaxedAtomic<bool> running_;
 
   static SampleBlockBuffer* sample_block_buffer_;
 
   static ProfilerCounters counters_;
-
-  static ProfileProcessorCallback process_profile_callback_;
 
   friend class Thread;
 };
@@ -351,6 +387,25 @@ class Sample {
 
   Sample* continuation_sample() const { return next_; }
 
+  Sample* Next() const {
+    if (!is_continuation_sample()) return nullptr;
+    Sample* next_sample = continuation_sample();
+    // Detect invalid chaining.
+    if (this == next_sample) {
+      return nullptr;
+    }
+    if (port() != next_sample->port()) {
+      return nullptr;
+    }
+    if (timestamp() != next_sample->timestamp()) {
+      return nullptr;
+    }
+    if (tid() != next_sample->tid()) {
+      return nullptr;
+    }
+    return next_sample;
+  }
+
   intptr_t allocation_cid() const {
     ASSERT(is_allocation_sample());
     return metadata();
@@ -373,22 +428,22 @@ class Sample {
   }
 
   static constexpr int kPCArraySizeInWords = 32;
-  uword* GetPCArray() { return &pc_array_[0]; }
+  RelaxedAtomic<uword>* GetPCArray() { return &pc_array_[0]; }
 
   static constexpr int kStackBufferSizeInWords = 2;
-  uword* GetStackBuffer() { return &stack_buffer_[0]; }
+  RelaxedAtomic<uword>* GetStackBuffer() { return &stack_buffer_[0]; }
 
  private:
-  int64_t timestamp_;
-  Dart_Port port_;
-  ThreadId tid_;
-  uword stack_buffer_[kStackBufferSizeInWords];
-  uword pc_array_[kPCArraySizeInWords];
-  uword vm_tag_;
-  uword user_tag_;
-  Sample* next_;
-  uint32_t state_;
-  uint32_t allocation_identity_hash_;
+  RelaxedAtomic<int64_t> timestamp_;
+  RelaxedAtomic<Dart_Port> port_;
+  RelaxedAtomic<ThreadId> tid_;
+  RelaxedAtomic<uword> stack_buffer_[kStackBufferSizeInWords];
+  RelaxedAtomic<uword> pc_array_[kPCArraySizeInWords];
+  RelaxedAtomic<uword> vm_tag_;
+  RelaxedAtomic<uword> user_tag_;
+  RelaxedAtomic<Sample*> next_;
+  RelaxedAtomic<uint32_t> state_;
+  RelaxedAtomic<uint32_t> allocation_identity_hash_;
 
   using HeadSampleBit = BitField<decltype(state_), bool, 0, 1>;
   using LeafFrameIsDart =
@@ -523,7 +578,7 @@ class AbstractCode {
 };
 
 // A Code object descriptor.
-class CodeDescriptor : public ZoneAllocated {
+class CodeDescriptor : public ZoneObject {
  public:
   explicit CodeDescriptor(const AbstractCode code);
 
@@ -565,7 +620,7 @@ class CodeDescriptor : public ZoneAllocated {
 };
 
 // Fast lookup of Dart code objects.
-class CodeLookupTable : public ZoneAllocated {
+class CodeLookupTable : public ZoneObject {
  public:
   explicit CodeLookupTable(Thread* thread);
 
@@ -645,8 +700,6 @@ class SampleBuffer {
       ProcessedSampleBuffer* buffer = nullptr);
 
  protected:
-  Sample* Next(Sample* sample);
-
   ProcessedSample* BuildProcessedSample(Sample* sample,
                                         const CodeLookupTable& clt);
 
@@ -700,7 +753,7 @@ class SampleBlock : public SampleBuffer {
   }
   bool TryAcquireStreaming(Isolate* isolate) {
     if (state_.load(std::memory_order_relaxed) != kCompleted) return false;
-    if (owner_ != isolate) return false;
+    if (isolate != nullptr && owner_ != isolate) return false;
 
     State expected = kCompleted;
     State desired = kStreaming;
@@ -783,10 +836,20 @@ class SampleBlockBuffer {
 
   intptr_t Size() const { return memory_->size(); }
 
+  intptr_t Capacity() const { return capacity_; }
+
   ProcessedSampleBuffer* BuildProcessedSampleBuffer(
       Isolate* isolate,
       SampleFilter* filter,
       ProcessedSampleBuffer* buffer = nullptr);
+
+#if defined(SUPPORT_PERFETTO)
+  void WritePerfetto(int64_t from_micros,
+                     int64_t to_micros,
+                     perfetto_utils::InternedDataBuilder& interned_data_builder,
+                     void* file,
+                     Dart_FileWriteCallback write_bytes);
+#endif
 
  private:
   Sample* ReserveSampleImpl(Isolate* isolate, bool allocation_sample);
@@ -818,7 +881,7 @@ intptr_t Profiler::Size() {
 // A |ProcessedSample| is a combination of 1 (or more) |Sample|(s) that have
 // been merged into a logical sample. The raw data may have been processed to
 // improve the quality of the stack trace.
-class ProcessedSample : public ZoneAllocated {
+class ProcessedSample : public ZoneObject {
  public:
   ProcessedSample();
 
@@ -881,12 +944,12 @@ class ProcessedSample : public ZoneAllocated {
  private:
   void FixupCaller(const CodeLookupTable& clt,
                    uword pc_marker,
-                   uword* stack_buffer);
+                   RelaxedAtomic<uword>* stack_buffer);
 
   void CheckForMissingDartFrame(const CodeLookupTable& clt,
                                 const CodeDescriptor* code,
                                 uword pc_marker,
-                                uword* stack_buffer);
+                                RelaxedAtomic<uword>* stack_buffer);
 
   ZoneGrowableArray<uword> pcs_;
   int64_t timestamp_;
@@ -903,7 +966,7 @@ class ProcessedSample : public ZoneAllocated {
 };
 
 // A collection of |ProcessedSample|s.
-class ProcessedSampleBuffer : public ZoneAllocated {
+class ProcessedSampleBuffer : public ZoneObject {
  public:
   ProcessedSampleBuffer();
 
@@ -924,12 +987,20 @@ class ProcessedSampleBuffer : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ProcessedSampleBuffer);
 };
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 class SampleBlockProcessor : public AllStatic {
  public:
+  // Initialize the state on VM startup.
   static void Init();
 
+  // Cleanup the state on VM shutdown.
+  static void Cleanup();
+
+  // Start the worker thread.
   static void Startup();
-  static void Cleanup(bool drain = false);
+
+  // Shutdown the worker thread.
+  static void Shutdown();
 
  private:
   static constexpr intptr_t kMaxThreads = 4096;
@@ -942,6 +1013,7 @@ class SampleBlockProcessor : public AllStatic {
 
   static void ThreadMain(uword parameters);
 };
+#endif
 
 class NoAllocationSampleFilter : public SampleFilter {
  public:

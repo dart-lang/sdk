@@ -34,8 +34,9 @@ class WasmCompilerFileSystem extends WasmCompilerFileSystemBase {
       if (isJSShell) {
         return jsshellWrite(path, bytes.toJS);
       }
-      final buffer =
-          (Uint8List(bytes.length)..setRange(0, bytes.length, bytes)).buffer;
+      final buffer = (Uint8List(
+        bytes.length,
+      )..setRange(0, bytes.length, bytes)).buffer;
       if (isD8) {
         return d8Write(path, buffer.toJS);
       }

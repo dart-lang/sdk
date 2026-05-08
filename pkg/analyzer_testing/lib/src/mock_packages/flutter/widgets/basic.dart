@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 import 'framework.dart';
 
 export 'package:flutter/animation.dart';
+export 'package:flutter/foundation.dart';
 export 'package:flutter/painting.dart';
 export 'package:flutter/rendering.dart';
 
@@ -172,5 +173,15 @@ class SliverPadding extends SingleChildRenderObjectWidget {
 
 class SliverToBoxAdapter extends SingleChildRenderObjectWidget {
   const SliverToBoxAdapter({super.key, super.child});
+}
+
+class RichText extends Widget {
+  final TextSpan text;
+  const RichText({required this.text});
+}
+
+class Wrap extends MultiChildRenderObjectWidget {
+  const Wrap({List<Widget> children = const []})
+      : super(children: children);
 }
 ''');

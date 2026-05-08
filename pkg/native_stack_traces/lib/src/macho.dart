@@ -130,6 +130,8 @@ class LoadCommand {
   static const LC_UUID = 0x1b;
   static const LC_RPATH = 0x1c | LC_REQ_DYLD;
   static const LC_CODE_SIGNATURE = 0x1d; // Only used in vm/dart tests.
+  static const LC_ENCRYPTION_INFO = 0x21;
+  static const LC_ENCRYPTION_INFO_64 = 0x2c;
   static const LC_BUILD_VERSION = 0x32;
 
   static LoadCommand fromReader(Reader reader) {
@@ -156,6 +158,9 @@ class LoadCommand {
         command = DylibCommand.fromReader(reader, cmd, cmdsize);
       case LC_RPATH:
         command = RunPathCommand.fromReader(reader, cmd, cmdsize);
+      case LC_ENCRYPTION_INFO:
+      case LC_ENCRYPTION_INFO_64:
+        command = EncryptionInfoCommand.fromReader(reader, cmd, cmdsize);
       default:
         break;
     }
@@ -599,6 +604,38 @@ class BuildVersionCommand extends LoadCommand {
         v.writeToStringBuffer(buffer);
       }
     }
+  }
+}
+
+class EncryptionInfoCommand extends LoadCommand {
+  final int fileOffset;
+  final int fileSize;
+  final int cryptId;
+
+  EncryptionInfoCommand._(
+      super.cmd, super.cmdsize, this.fileOffset, this.fileSize, this.cryptId)
+      : super._();
+
+  static EncryptionInfoCommand fromReader(Reader reader, int cmd, int cmdsize) {
+    final fileOffset = _readMachOUint32(reader);
+    final fileSize = _readMachOUint32(reader);
+    final cryptId = _readMachOUint32(reader);
+    if (cmd == LoadCommand.LC_ENCRYPTION_INFO_64) {
+      _readMachOUint32(reader); // padding
+    }
+    return EncryptionInfoCommand._(cmd, cmdsize, fileOffset, fileSize, cryptId);
+  }
+
+  @override
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..writeln('Encryption info: ')
+      ..write('  File offset: ')
+      ..writeln(paddedHex(fileOffset, 4))
+      ..write('  File size: ')
+      ..writeln(fileSize)
+      ..write('  Crypt id: ')
+      ..writeln(cryptId);
   }
 }
 

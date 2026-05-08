@@ -285,6 +285,19 @@ extension type E(int? i) {
 ''');
   }
 
+  test_extensionType_primaryConstructorBody() async {
+    await assertDiagnostics(
+      r'''
+extension type E(int? i) {
+  this {
+    assert(i != null);
+  }
+}
+''',
+      [lint(40, 6)],
+    );
+  }
+
   test_firstStatement() async {
     await assertDiagnostics(
       r'''
@@ -335,6 +348,30 @@ class A {
         error(diag.nonBoolExpression, 40, 50),
       ],
     );
+  }
+
+  test_primaryConstructorBody() async {
+    await assertDiagnostics(
+      r'''
+class C(int? x) {
+  this {
+    assert(x != null);
+  }
+}
+''',
+      [lint(31, 6)],
+    );
+  }
+
+  test_primaryConstructorBody_dependsOnInstanceProperty() async {
+    await assertNoDiagnostics(r'''
+class C(var int x) {
+  int get y => x;
+  this {
+    assert(y > 0);
+  }
+}
+''');
   }
 
   test_super() async {

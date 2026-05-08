@@ -145,7 +145,8 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
             : MemberKind.NonStaticMethod);
 
   @override
-  bool get shouldBuild => true;
+  // Coverage-ignore(suite): Not run.
+  bool get shouldFinishFunction => true;
 
   @override
   List<TypeParameter>? get thisTypeParameters =>

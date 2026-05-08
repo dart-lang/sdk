@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
 
 import '../ast.dart';
 import '../extensions.dart';
@@ -232,26 +231,6 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
 
 typedef AstNodePredicate = bool Function(AstNode node);
 
-class InterfaceTypeDefinition {
-  final String name;
-  final String library;
-
-  InterfaceTypeDefinition(this.name, this.library);
-
-  @override
-  int get hashCode => Object.hash(name, library);
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is InterfaceTypeDefinition &&
-        name == other.name &&
-        library == other.library;
-  }
-}
-
 extension on TypeSystem {
   bool interfaceTypesAreUnrelated(
     InterfaceType leftType,
@@ -285,41 +264,33 @@ extension on TypeSystem {
       return false;
     } else {
       var leftSuper = leftElement.supertype;
-      var sameSupertypes = leftSuper == rightElement.supertype;
+      if (leftSuper == null) return true;
+      if (leftSuper != rightElement.supertype) return true;
 
-      // Unrelated Enums have the same supertype, but they are not the same
-      // element, so they are unrelated. Mixins always have supertype null,
-      // and so do extension types, and they are both considered unrelated
-      // when their elements are not equal.
-      if (sameSupertypes && (leftElement is EnumElement || leftSuper == null)) {
-        return true;
-      }
+      // Unrelated enums (and subclassess of ProtobufEnum) have the same
+      // supertype, but they are not the same element, so they are unrelated.
+      // Mixins always have supertype null, and so do extension types, and they
+      // are both considered unrelated when their elements are not equal.
+      if (leftElement is EnumElement) return true;
 
-      return (leftElement.supertype?.isDartCoreObject ?? false) ||
-          !sameSupertypes;
+      // We include this special case, but it may be removed if generated
+      // protobuf enums become final classes. See
+      // https://github.com/google/protobuf.dart/issues/820.
+      if (leftSuper.isProtobufEnum) return true;
+
+      return leftElement.supertype?.isDartCoreObject ?? false;
     }
   }
 }
 
-extension DartTypeExtensions on DartType {
-  /// Returns the type which should be used when conducting "interface checks"
-  /// on `this`.
-  ///
-  /// If `this` is a type variable, then the type-for-interface-check of its
-  /// promoted bound or bound is returned. Otherwise, `this` is returned.
-  // TODO(srawlins): Move to extensions.dart.
-  DartType get typeForInterfaceCheck {
-    var self = this;
-    if (self is TypeParameterType) {
-      if (self is TypeParameterTypeImpl) {
-        var promotedType = self.promotedBound;
-        if (promotedType != null) {
-          return promotedType.typeForInterfaceCheck;
-        }
-      }
-      return self.bound.typeForInterfaceCheck;
-    } else {
-      return self;
-    }
-  }
+extension on InterfaceType {
+  static final _protobufEnumLibraryUri = Uri.parse(
+    'package:protobuf/src/protobuf/protobuf_enum.dart',
+  );
+
+  /// Whether this interface is the ProtobufEnum class from the protobuf
+  /// package.
+  bool get isProtobufEnum =>
+      element.name == 'ProtobufEnum' &&
+      element.library.uri == _protobufEnumLibraryUri;
 }

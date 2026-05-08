@@ -7,9 +7,9 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final paintingBasicTypesLibrary = MockLibraryUnit(
   'lib/src/painting/basic_types.dart',
   r'''
-import 'package:ui/ui.dart' show TextDirection;
+import 'dart:ui' show TextDirection;
 
-export 'package:ui/ui.dart'
+export 'dart:ui'
     show
         BlendMode,
         Color,

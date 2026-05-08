@@ -19,7 +19,7 @@ linter:
     - always_declare_return_types
     - avoid_dynamic_calls
     - deprecated_member_use_from_same_package
+    - directives_ordering
     - no_default_cases
     - unnecessary_ignore
     - unnecessary_statements
-    - use_null_aware_elements

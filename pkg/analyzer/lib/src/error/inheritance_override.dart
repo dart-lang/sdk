@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -18,29 +17,40 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<InternalExecutableElement>>();
 
+typedef DisallowedClassDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required DartType disallowedType})
+    >;
+
 class InheritanceOverrideVerifier {
   final TypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
-  final DiagnosticReporter _reporter;
 
-  InheritanceOverrideVerifier(
-    this._typeSystem,
-    this._inheritance,
-    this._reporter,
-  ) : _typeProvider = _typeSystem.typeProvider;
+  final Map<InterfaceElementImpl, _InterfaceElementState>
+  _interfaceElementStates = {};
 
-  void verifyUnit(CompilationUnitImpl unit) {
+  InheritanceOverrideVerifier(this._typeSystem, this._inheritance)
+    : _typeProvider = _typeSystem.typeProvider;
+
+  void verifyUnit(CompilationUnitImpl unit, DiagnosticReporter reporter) {
     var library = unit.declaredFragment!.element;
+
+    _InterfaceElementState interfaceElementState(InterfaceElementImpl element) {
+      return _interfaceElementStates[element] ??= _InterfaceElementState();
+    }
+
     for (var declaration in unit.declarations) {
       _ClassVerifier verifier;
       if (declaration is ClassDeclarationImpl) {
@@ -49,85 +59,76 @@ class InheritanceOverrideVerifier {
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
-          reporter: _reporter,
+          reporter: reporter,
           featureSet: unit.featureSet,
           library: library,
           node: declaration,
           classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
+          classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           members: declaration.body.members,
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
+          interfaceElementState: interfaceElementState(fragment.element),
         );
-        if (fragment.isAugmentation) {
-          verifier._checkDirectSuperTypes();
-          continue;
-        }
       } else if (declaration is ClassTypeAliasImpl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
-          reporter: _reporter,
+          reporter: reporter,
           featureSet: unit.featureSet,
           library: library,
           node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
+          classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
+          interfaceElementState: interfaceElementState(fragment.element),
         );
-        if (fragment.isAugmentation) {
-          verifier._checkDirectSuperTypes();
-          continue;
-        }
       } else if (declaration is EnumDeclarationImpl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
-          reporter: _reporter,
+          reporter: reporter,
           featureSet: unit.featureSet,
           library: library,
           node: declaration,
           classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
+          classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           members: declaration.body.members,
           withClause: declaration.withClause,
+          interfaceElementState: interfaceElementState(fragment.element),
         );
-        if (fragment.isAugmentation) {
-          verifier._checkDirectSuperTypes();
-          continue;
-        }
       } else if (declaration is MixinDeclarationImpl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
-          reporter: _reporter,
+          reporter: reporter,
           featureSet: unit.featureSet,
           library: library,
           node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
+          classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           members: declaration.body.members,
           onClause: declaration.onClause,
         );
-        if (fragment.isAugmentation) {
-          verifier._checkDirectSuperTypes();
-          continue;
-        }
       } else {
         continue;
       }
@@ -165,6 +166,7 @@ class _ClassVerifier {
   final LibraryElementImpl library;
   final Uri libraryUri;
   final InterfaceElementImpl classElement;
+  final InterfaceFragmentImpl classFragment;
 
   final CompilationUnitMember node;
   final Token classNameToken;
@@ -173,6 +175,7 @@ class _ClassVerifier {
   final MixinOnClause? onClause;
   final NamedType? superclass;
   final WithClause? withClause;
+  final _InterfaceElementState? interfaceElementState;
 
   final List<InterfaceType> directSuperInterfaces = [];
 
@@ -193,12 +196,14 @@ class _ClassVerifier {
     required this.node,
     required this.classNameToken,
     required this.classElement,
+    required this.classFragment,
     required this.diagnosticSource,
     this.implementsClause,
     this.members = const [],
     this.onClause,
     this.superclass,
     this.withClause,
+    this.interfaceElementState,
   }) : libraryUri = library.uri;
 
   /// Verify inheritance overrides, and return `true` if an error was
@@ -245,12 +250,17 @@ class _ClassVerifier {
     //   class C extends S&M2 { ...members of C... }
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
-    var mixinNodes = withClause?.mixinTypes;
-    var mixinTypes = element.mixins;
-    for (var i = 0; i < mixinTypes.length; i++) {
-      var mixinType = mixinTypes[i];
-      _checkDeclaredMembers(mixinNodes![i], mixinType, mixinIndex: i);
-      directSuperInterfaces.add(mixinType);
+    var mixinNodes = withClause?.mixinTypes ?? <NamedType>[];
+    for (var node in mixinNodes) {
+      var mixinType = node.type;
+      // When building the element model, we skip incorrect types.
+      // So, here we skip corresponding nodes to keep the index in sync.
+      if (mixinType is InterfaceTypeImpl &&
+          isInterfaceTypeInterface(mixinType)) {
+        var index = interfaceElementState!.mixinIndex++;
+        _checkDeclaredMembers(node, mixinType, mixinIndex: index);
+        directSuperInterfaces.add(mixinType);
+      }
     }
 
     directSuperInterfaces.addAll(element.interfaces);
@@ -493,7 +503,7 @@ class _ClassVerifier {
   /// types such as `num` or `String`.
   bool _checkDirectSuperTypeNode(
     NamedType namedType,
-    DiagnosticCode diagnosticCode,
+    DisallowedClassDiagnosticCode diagnosticCode,
   ) {
     if (namedType.isSynthetic) {
       return false;
@@ -506,7 +516,9 @@ class _ClassVerifier {
         reporter.report(diag.concreteClassHasEnumSuperinterface.at(namedType));
       },
       notSubtypable: () {
-        reporter.atNode(namedType, diagnosticCode, arguments: [type]);
+        reporter.report(
+          diagnosticCode.withArguments(disallowedType: type).at(namedType),
+        );
       },
     );
   }
@@ -637,10 +649,10 @@ class _ClassVerifier {
           classElement is EnumElementImpl ||
           classElement is MixinElementImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
-          reporter.atToken(
-            name,
-            diag.illegalConcreteEnumMemberDeclaration,
-            arguments: [name.lexeme],
+          reporter.report(
+            diag.illegalConcreteEnumMemberDeclaration
+                .withArguments(name: name.lexeme)
+                .at(name),
           );
         }
       }
@@ -667,10 +679,13 @@ class _ClassVerifier {
           var enclosingClass = member.enclosingElement;
           if (enclosingClass != null) {
             if (enclosingClass is! ClassElement || filter(enclosingClass)) {
-              reporter.atToken(
-                classNameToken,
-                diag.illegalConcreteEnumMemberInheritance,
-                arguments: [memberName, enclosingClass.name!],
+              reporter.report(
+                diag.illegalConcreteEnumMemberInheritance
+                    .withArguments(
+                      memberName: memberName,
+                      className: enclosingClass.name!,
+                    )
+                    .at(classNameToken),
               );
             }
           }
@@ -701,10 +716,10 @@ class _ClassVerifier {
       );
       var inherited = getter ?? setter;
       if (inherited != null) {
-        reporter.atToken(
-          classNameToken,
-          diag.illegalEnumValuesInheritance,
-          arguments: [inherited.enclosingElement!.name!],
+        reporter.report(
+          diag.illegalEnumValuesInheritance
+              .withArguments(className: inherited.enclosingElement!.name!)
+              .at(classNameToken),
         );
       }
     }
@@ -799,14 +814,14 @@ class _ClassVerifier {
       // elements so it is safe to assume that
       // `conflict.getter.enclosingElement.name` and
       // `conflict.method.enclosingElement.name` are both non-`null`.
-      reporter.atToken(
-        token,
-        diag.inconsistentInheritanceGetterAndMethod,
-        arguments: [
-          name.name,
-          conflict.getter.enclosingElement!.name!,
-          conflict.method.enclosingElement!.name!,
-        ],
+      reporter.report(
+        diag.inconsistentInheritanceGetterAndMethod
+            .withArguments(
+              memberName: name.name,
+              getterInterface: conflict.getter.enclosingElement!.name!,
+              methodInterface: conflict.method.enclosingElement!.name!,
+            )
+            .at(token),
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates
@@ -817,10 +832,10 @@ class _ClassVerifier {
           })
           .join(', ');
 
-      reporter.atToken(
-        token,
-        diag.inconsistentInheritance,
-        arguments: [name.name, candidatesStr],
+      reporter.report(
+        diag.inconsistentInheritance
+            .withArguments(name: name.name, inheritedSignatures: candidatesStr)
+            .at(token),
       );
     } else {
       throw StateError('${conflict.runtimeType}');
@@ -854,45 +869,49 @@ class _ClassVerifier {
     descriptions.sort();
 
     if (descriptions.length == 1) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberOne,
-        arguments: [descriptions[0]],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberOne
+            .withArguments(name: descriptions[0])
+            .at(classNameToken),
       );
     } else if (descriptions.length == 2) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberTwo,
-        arguments: [descriptions[0], descriptions[1]],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberTwo
+            .withArguments(name1: descriptions[0], name2: descriptions[1])
+            .at(classNameToken),
       );
     } else if (descriptions.length == 3) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberThree,
-        arguments: [descriptions[0], descriptions[1], descriptions[2]],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberThree
+            .withArguments(
+              name1: descriptions[0],
+              name2: descriptions[1],
+              name3: descriptions[2],
+            )
+            .at(classNameToken),
       );
     } else if (descriptions.length == 4) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberFour,
-        arguments: [
-          descriptions[0],
-          descriptions[1],
-          descriptions[2],
-          descriptions[3],
-        ],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberFour
+            .withArguments(
+              name1: descriptions[0],
+              name2: descriptions[1],
+              name3: descriptions[2],
+              name4: descriptions[3],
+            )
+            .at(classNameToken),
       );
     } else {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberFivePlus,
-        arguments: [
-          descriptions[0],
-          descriptions[1],
-          descriptions[2],
-          descriptions[3],
-          descriptions.length - 4,
-        ],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberFivePlus
+            .withArguments(
+              name1: descriptions[0],
+              name2: descriptions[1],
+              name3: descriptions[2],
+              name4: descriptions[3],
+              remainingCount: descriptions.length - 4,
+            )
+            .at(classNameToken),
       );
     }
   }
@@ -901,12 +920,14 @@ class _ClassVerifier {
     var fragment = node.declaredFragment;
     if (fragment is MethodFragmentImpl) {
       var inferenceError = fragment.element.typeInferenceError;
-      if (inferenceError?.kind ==
-          TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
-        reporter.atToken(
-          node.name,
-          diag.noCombinedSuperSignature,
-          arguments: [classElement.name ?? '', inferenceError!.arguments[0]],
+      if (inferenceError is TopLevelInferenceErrorNoCombinedSuperSignature) {
+        reporter.report(
+          diag.noCombinedSuperSignature
+              .withArguments(
+                className: classElement.name ?? '',
+                candidateSignatures: inferenceError.candidateSignatures,
+              )
+              .at(node.name),
         );
         return true;
       }
@@ -1000,28 +1021,38 @@ class _ClassVerifier {
         .toSet()
         .toList();
 
-    if (namesForError.length == 1) {
-      reporter.atToken(
-        classNameToken,
-        diag.missingOverrideOfMustBeOverriddenOne,
-        arguments: namesForError,
-      );
-    } else if (namesForError.length == 2) {
-      reporter.atToken(
-        classNameToken,
-        diag.missingOverrideOfMustBeOverriddenTwo,
-        arguments: namesForError,
-      );
-    } else {
-      reporter.report(
-        diag.missingOverrideOfMustBeOverriddenThreePlus
+    LocatableDiagnostic locatableDiagnostic;
+    switch (namesForError) {
+      case [var member]:
+        locatableDiagnostic = diag.missingOverrideOfMustBeOverriddenOne
+            .withArguments(member: member);
+      case [var firstMember, var secondMember]:
+        locatableDiagnostic = diag.missingOverrideOfMustBeOverriddenTwo
             .withArguments(
-              firstMember: namesForError[0],
-              secondMember: namesForError[1],
-              additionalCount: (namesForError.length - 2).toString(),
-            )
-            .at(classNameToken),
-      );
+              firstMember: firstMember,
+              secondMember: secondMember,
+            );
+      case [var firstMember, var secondMember, ...var remainingMembers]:
+        locatableDiagnostic = diag.missingOverrideOfMustBeOverriddenThreePlus
+            .withArguments(
+              firstMember: firstMember,
+              secondMember: secondMember,
+              additionalCount: remainingMembers.length,
+            );
+      default:
+        // Should be unreachable since the above cases cover all possible counts
+        // other than zero, and this function has an early exit if
+        // `notOverridden.isEmpty`.
+        assert(false);
+        return;
     }
+    reporter.report(locatableDiagnostic.at(classNameToken));
   }
+}
+
+/// Maintains an [InterfaceElementImpl]'s mixin index across multiple fragments.
+class _InterfaceElementState {
+  int mixinIndex = 0;
+
+  _InterfaceElementState();
 }

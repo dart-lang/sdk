@@ -15,7 +15,8 @@ class C {
   }
 }
 
-dynamic createClosure1() => (arg) => print(arg);
+dynamic createClosure1() =>
+    (arg) => print(arg);
 
 dynamic createClosure2() {
   void inner(arg) {

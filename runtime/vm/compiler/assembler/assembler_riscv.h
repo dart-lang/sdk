@@ -1030,6 +1030,8 @@ class Assembler : public MicroAssembler {
 
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
+  void PushRegistersAligned(const RegisterSet& registers, intptr_t space);
+  void PopRegistersAligned(const RegisterSet& registers, intptr_t space);
 
   void PushRegistersInOrder(std::initializer_list<Register> regs);
 
@@ -1332,6 +1334,12 @@ class Assembler : public MicroAssembler {
                           Register index,
                           ScaleFactor scale,
                           OperandSize sz = kWordBytes) override;
+  void LoadS(FRegister dest, const Address& address) {
+    LoadSFromOffset(dest, address.base(), address.offset());
+  }
+  void LoadD(FRegister dest, const Address& address) {
+    LoadDFromOffset(dest, address.base(), address.offset());
+  }
   void LoadSFromOffset(FRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(FRegister dest, Register base, int32_t offset);
   void LoadSFieldFromOffset(FRegister dest, Register base, int32_t offset) {
@@ -1350,6 +1358,12 @@ class Assembler : public MicroAssembler {
              OperandSize sz = kWordBytes) override;
   void StoreZero(const Address& address, Register temp = kNoRegister) {
     Store(ZR, address);
+  }
+  void StoreS(FRegister src, const Address& address) {
+    StoreSToOffset(src, address.base(), address.offset());
+  }
+  void StoreD(FRegister src, const Address& address) {
+    StoreDToOffset(src, address.base(), address.offset());
   }
   void StoreSToOffset(FRegister src, Register base, int32_t offset);
   void StoreSFieldToOffset(FRegister src, Register base, int32_t offset) {

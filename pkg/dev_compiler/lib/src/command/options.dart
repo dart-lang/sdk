@@ -412,31 +412,16 @@ class Options {
 /// A summary path can contain "=" followed by an explicit module name to
 /// allow working with summaries whose physical location is outside of the
 /// module root directory.
-Map<String, String> _parseCustomSummaryModules(
-  List<String> summaryPaths, [
-  String? moduleRoot,
-  String? summaryExt,
-]) {
+Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths) {
   var pathToModule = <String, String>{};
   for (var summaryPath in summaryPaths) {
     var equalSign = summaryPath.indexOf('=');
     String modulePath;
-    var summaryPathWithoutExt = summaryExt != null
-        ? summaryPath.substring(
-            0,
-            // Strip off the extension, including the last `.`.
-            summaryPath.length - (summaryExt.length + 1),
-          )
-        : p.withoutExtension(summaryPath);
     if (equalSign != -1) {
       modulePath = summaryPath.substring(equalSign + 1);
       summaryPath = summaryPath.substring(0, equalSign);
-    } else if (moduleRoot != null && p.isWithin(moduleRoot, summaryPath)) {
-      // TODO: Determine if this logic is still needed.
-      modulePath = p.url.joinAll(
-        p.split(p.relative(summaryPathWithoutExt, from: moduleRoot)),
-      );
     } else {
+      var summaryPathWithoutExt = p.withoutExtension(summaryPath);
       modulePath = p.basename(summaryPathWithoutExt);
     }
     pathToModule[summaryPath] = modulePath;

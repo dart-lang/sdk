@@ -59,7 +59,7 @@ class C {
 
   test_typeLiteral() async {
     await assertNoErrorsInCode(r'''
-void f(var e) {
+void f(e) {
   switch (e) {
     case bool:
     case int:

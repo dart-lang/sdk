@@ -10,9 +10,7 @@ class A {
   int foo5 = 43;
 
   A(this.foo4) : foo5 = 44;
-  A.constr2(int x, int y)
-      : foo1 = x,
-        foo5 = y + 1;
+  A.constr2(int x, int y) : foo1 = x, foo5 = y + 1;
 
   A.redirecting1() : this(45);
   A.redirecting2(int a, int b, int c) : this.constr2(a, b * c);
@@ -24,9 +22,7 @@ class B extends A {
   static const int foo8 = 48;
 
   B() : super(49);
-  B.c2(int i, int j)
-      : foo6 = 50,
-        super.redirecting2(i, j, 51);
+  B.c2(int i, int j) : foo6 = 50, super.redirecting2(i, j, 51);
 }
 
 main() {}

@@ -12,11 +12,13 @@
 namespace dart {
 
 #if defined(DART_COMPRESSED_POINTERS)
+// int32 index + Simd128 element type -> 32 GB reach from base pointer.
+static constexpr intptr_t kGuardRegionSize = 32 * GB;
 static constexpr intptr_t kCompressedHeapSize = 4 * GB;
 static constexpr intptr_t kCompressedHeapAlignment = 4 * GB;
-static constexpr intptr_t kCompressedPageSize = kPageSize;
+static constexpr intptr_t kCompressedPageSize = Page::kPageSize;
 static constexpr intptr_t kCompressedHeapNumPages =
-    kCompressedHeapSize / kPageSize;
+    kCompressedHeapSize / Page::kPageSize;
 static constexpr intptr_t kCompressedHeapBitmapSize =
     kCompressedHeapNumPages / 8;
 

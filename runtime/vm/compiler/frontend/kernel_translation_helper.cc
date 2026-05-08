@@ -2326,10 +2326,12 @@ void KernelReaderHelper::ReadUntilFunctionNode() {
       ReadTag();
       ReadPosition();
       SkipVariableDeclaration();
+      ReadUInt();
       break;
     case kFunctionExpression:
       ReadTag();
       ReadPosition();
+      ReadUInt();
       break;
     case kFunctionNode:
       // Already at start of FunctionNode.
@@ -2515,6 +2517,7 @@ void KernelReaderHelper::SkipInitializer() {
     case kInvalidInitializer:
       ReadPosition();         // read position.
       ReadStringReference();  // read message
+      ReadByte();             // read flags
       return;
     case kFieldInitializer:
       ReadPosition();                // read position.
@@ -2632,11 +2635,13 @@ void KernelReaderHelper::SkipExpression() {
       break;
     case kSuperPropertyGet:
       ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
       SkipName();                          // read name.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
       ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
       SkipName();                          // read name.
       SkipExpression();                    // read value.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
@@ -2700,6 +2705,7 @@ void KernelReaderHelper::SkipExpression() {
       break;
     case kSuperMethodInvocation:
       ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
       SkipName();                          // read name.
       SkipArguments();                     // read arguments.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
@@ -2806,6 +2812,7 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kFunctionExpression:
       ReadPosition();      // read position.
+      ReadUInt();          // read id.
       SkipFunctionNode();  // read function node.
       return;
     case kLet:
@@ -3031,6 +3038,7 @@ void KernelReaderHelper::SkipStatement() {
     case kFunctionDeclaration:
       ReadPosition();             // read position.
       SkipVariableDeclaration();  // read variable.
+      ReadUInt();                 // read id.
       SkipFunctionNode();         // read function node.
       return;
     case kForInStatement:

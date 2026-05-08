@@ -11,8 +11,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../utilities/extensions/ast.dart';
-
 /// Sorter for unit/class members.
 class MemberSorter {
   final String _initialCode;
@@ -101,13 +99,13 @@ class MemberSorter {
   void _sortClassesMembers() {
     for (var unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        _sortClassMembers(unitMember.members2);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is EnumDeclaration) {
         _sortClassMembers(unitMember.body.members);
       } else if (unitMember is ExtensionDeclaration) {
         _sortClassMembers(unitMember.body.members);
       } else if (unitMember is ExtensionTypeDeclaration) {
-        _sortClassMembers(unitMember.members2);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is MixinDeclaration) {
         _sortClassMembers(unitMember.body.members);
       }
@@ -148,6 +146,9 @@ class MemberSorter {
         } else {
           kind = _MemberKind.classMethod;
         }
+      } else if (member is PrimaryConstructorBody) {
+        kind = _MemberKind.primaryConstructorBody;
+        name = 'this';
       } else {
         throw StateError('Unsupported class of member: ${member.runtimeType}');
       }
@@ -266,6 +267,8 @@ class MemberSorter {
       _PriorityItem(false, _MemberKind.unitExtension, false),
       _PriorityItem(false, _MemberKind.unitExtension, true),
       if (codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.primaryConstructorBody, false),
+      if (codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, false),
       if (codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, true),
@@ -273,6 +276,8 @@ class MemberSorter {
       _PriorityItem(true, _MemberKind.classAccessor, false),
       _PriorityItem(true, _MemberKind.classAccessor, true),
       _PriorityItem(false, _MemberKind.classField, false),
+      if (codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.primaryConstructorBody, false),
       if (!codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, false),
       if (!codeStyle.sortConstructorsFirst)
@@ -309,6 +314,7 @@ enum _MemberKind {
   classConstructor,
   classField,
   classMethod,
+  primaryConstructorBody,
   unitAccessor,
   unitClass,
   unitExtension,

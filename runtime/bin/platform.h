@@ -21,7 +21,7 @@ namespace bin {
 class Platform {
  public:
   // Perform platform specific initialization.
-  static bool Initialize();
+  static bool Initialize(bool install_crash_handler = true);
 
   // Returns the number of processors on the machine.
   static int NumberOfProcessors();
@@ -109,10 +109,6 @@ class Platform {
   DART_NORETURN static void _Exit(int exit_code);
 
   static void SetCoreDumpResourceLimit(int value);
-
-#if defined(DART_HOST_OS_FUCHSIA)
-  static zx_handle_t GetVMEXResource();
-#endif
 
  private:
   // The path to the executable.

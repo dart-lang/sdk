@@ -369,9 +369,7 @@ class _DuplicateIdentifierScope<T extends AstNode> {
     }
 
     // Wildcards do not collide.
-    if (identifier.lexeme == '_' &&
-        _verifier._currentLibrary.hasWildcardVariablesFeatureEnabled &&
-        isWildcard(node)) {
+    if (isWildcard(identifier, node)) {
       return;
     }
 
@@ -398,9 +396,11 @@ class _DuplicateIdentifierScope<T extends AstNode> {
   DiagnosticWithArguments<LocatableDiagnostic Function({required String name})>
   getDiagnostic(T previous, T current) => diag.duplicateDefinition;
 
-  /// Whether [node] whose name is known to be `_` should be treated as a
-  /// wildcard or not.
-  bool isWildcard(T node) => true;
+  /// Whether [node] named [identifier] acts as a wildcard.
+  bool isWildcard(Token identifier, T node) {
+    return identifier.lexeme == '_' &&
+        _verifier._currentLibrary.hasWildcardVariablesFeatureEnabled;
+  }
 }
 
 /// A [_DuplicateIdentifierScope] for formal parameters.
@@ -444,9 +444,17 @@ class _FormalParameterDuplicateIdentifierScope
   }
 
   @override
-  bool isWildcard(FormalParameter node) {
+  bool isWildcard(Token identifier, FormalParameter node) {
+    if (!super.isWildcard(identifier, node)) {
+      return false;
+    }
+
     // Since fields can be named `_`, initializing formals are not
     // considered wildcards.
-    return node.notDefault is! FieldFormalParameter;
+    var element = node.declaredFragment!.element;
+    if (element is FieldFormalParameterElement) {
+      return false;
+    }
+    return true;
   }
 }

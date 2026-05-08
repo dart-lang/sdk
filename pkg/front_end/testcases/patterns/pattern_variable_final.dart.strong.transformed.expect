@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/pattern_variable_final.dart:8:4: Error: Can't assign to the final variable 'i'.
+//   (i, _) = r;
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method method((core::int, core::int) r, final core::int i) → dynamic {
+  {
+    final synthesized(core::int, core::int) #0#0 = r;
+    if(!invalid-expression "pkg/front_end/testcases/patterns/pattern_variable_final.dart:8:4: Error: Can't assign to the final variable 'i'.
+  (i, _) = r;
+   ^")
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+}

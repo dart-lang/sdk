@@ -36,7 +36,10 @@ class KernelBytecodeDisassembler : public AllStatic {
                           DisassemblyFormatter* formatter,
                           const Bytecode& bytecode) {
     ASSERT(!bytecode.IsNull());
-    Disassemble(start, end, bytecode.PayloadStart(), formatter, bytecode);
+    Disassemble(
+        start, end,
+        bytecode.ContainsInstructionAt(start) ? bytecode.PayloadStart() : start,
+        formatter, bytecode);
   }
 
   static void Disassemble(uword start, uword end, const Bytecode& bytecode) {

@@ -57,3 +57,9 @@ aot_compile_using_prebuilt_sdk("gen_kernel.exe") {
   output = "$root_out_dir/gen_kernel.exe"
   package_config = "$_dart_root/.dart_tool/package_config.json"
 }
+
+# Does not write to the file if the content is unchanged.
+generated_file("git_version") {
+  outputs = [ "$target_gen_dir/git_version" ]
+  contents = exec_script("../tools/make_version.py", [], "trim string")
+}

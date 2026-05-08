@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../utilities/git.dart';
 import 'project_generator.dart';
 
@@ -16,23 +18,43 @@ class GitCloneProjectGenerator implements ProjectGenerator {
   /// The ref (commit sha, tag, or branch) to check out.
   final String ref;
 
-  GitCloneProjectGenerator(this.repo, this.ref);
+  /// Relative paths to the sub-directories of the repo to open in the
+  /// workspace.
+  final Iterable<String>? openSubdirs;
+
+  GitCloneProjectGenerator(this.repo, this.ref, {this.openSubdirs});
 
   @override
   String get description => 'Cloning git repo "$repo" at ref "$ref"';
 
   @override
-  Future<Iterable<Directory>> setUp() async {
+  Future<Workspace> setUp() async {
     var outputDir = await Directory.systemTemp.createTemp('as_git_clone');
     await runGitCommand(['clone', repo, '.'], outputDir);
     await runGitCommand(['fetch', 'origin', ref], outputDir);
     await runGitCommand(['checkout', ref], outputDir);
-    await runPubGet(outputDir);
-    return [outputDir];
+    var workspaceDirectories = <Directory>[];
+    var contextRoots = <ContextRoot>[];
+    if (openSubdirs != null) {
+      for (var subdir in openSubdirs!) {
+        var dir = Directory(p.join(outputDir.path, subdir));
+        workspaceDirectories.add(dir);
+        contextRoots.addAll(await getContextRoots(dir.path));
+      }
+    } else {
+      workspaceDirectories.add(outputDir);
+      contextRoots.addAll(await getContextRoots(outputDir.path));
+    }
+    return Workspace(
+      contextRoots: contextRoots,
+      workspaceDirectories: workspaceDirectories,
+    );
   }
 
   @override
-  Future<void> tearDown(Iterable<Directory> workspaceDirs) async {
-    await Future.wait(workspaceDirs.map((dir) => dir.delete(recursive: true)));
+  Future<void> tearDown(Workspace workspace) async {
+    await Future.wait(
+      workspace.rootDirectories.map((dir) => dir.delete(recursive: true)),
+    );
   }
 }

@@ -446,6 +446,10 @@ void ObjectStore::LazyInitCoreMembers() {
     ASSERT(!field.IsNull());
     enum_name_field_.store(field.ptr());
 
+    cls = core_lib.LookupClassAllowPrivate(Symbols::_BigIntImpl());
+    ASSERT(!cls.IsNull());
+    bigint_impl_class_.store(cls.ptr());
+
     auto& function = Function::Handle(zone);
 
     function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectHashCode());

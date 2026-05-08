@@ -16,10 +16,16 @@ class MapFactorySpecializer extends BaseSpecializer {
   final Constructor _internalLinkedHashMapConstructor;
 
   MapFactorySpecializer(CoreTypes coreTypes)
-      : _linkedHashMapDefaultFactory = coreTypes.index
-            .getProcedure('dart:collection', 'LinkedHashMap', ''),
-        _internalLinkedHashMapConstructor = coreTypes.index
-            .getConstructor('dart:_compact_hash', 'DefaultMap', '') {
+    : _linkedHashMapDefaultFactory = coreTypes.index.getProcedure(
+        'dart:collection',
+        'LinkedHashMap',
+        '',
+      ),
+      _internalLinkedHashMapConstructor = coreTypes.index.getConstructor(
+        'dart:_compact_hash',
+        'DefaultMap',
+        '',
+      ) {
     transformers.addAll({_linkedHashMapDefaultFactory: transformLinkedHashMap});
   }
 

@@ -46,6 +46,7 @@ extension type KernelGenerator._(_Generator _generator) {
     bool verbose = false,
     String verbosity = 'all',
     required Directory tempDir,
+    bool progressUpdatesOnStderr = false,
   }) : _generator = _Generator(
           genSnapshot: genSnapshot,
           targetDartAotRuntime: targetDartAotRuntime,
@@ -62,6 +63,7 @@ extension type KernelGenerator._(_Generator _generator) {
           verbose: verbose,
           verbosity: verbosity,
           depFile: depFile,
+          progressUpdatesOnStderr: progressUpdatesOnStderr,
         );
 
   /// Generate a kernel file,
@@ -71,10 +73,12 @@ extension type KernelGenerator._(_Generator _generator) {
   Future<SnapshotGenerator> generate({
     String? recordedUsagesFile,
     List<String>? extraOptions,
+    bool progressUpdatesOnStderr = false,
   }) =>
       _generator.generateKernel(
         recordedUsagesFile: recordedUsagesFile,
         extraOptions: extraOptions,
+        progressUpdatesOnStderr: progressUpdatesOnStderr,
       );
 }
 
@@ -132,6 +136,7 @@ class _Generator {
   ///
   final bool _enableAsserts;
   final bool _verbose;
+  final bool _progressUpdatesOnStderr;
 
   /// Specifies the logging verbosity of the CFE.
   final String _verbosity;
@@ -161,37 +166,26 @@ class _Generator {
   final String _targetDartAotRuntime;
 
   _Generator({
-    required String genSnapshot,
-    required String targetDartAotRuntime,
+    required this._genSnapshot,
+    required this._targetDartAotRuntime,
     required String sourceFile,
-    required List<String> defines,
-    required Kind kind,
-    String? outputFile,
-    String? debugFile,
+    required this._defines,
+    required this._kind,
+    this._outputFile,
+    this._debugFile,
     String? packages,
-    OS? targetOS,
-    String? depFile,
-    required String enableExperiment,
-    required bool enableAsserts,
-    required bool verbose,
-    required String verbosity,
+    this._targetOS,
+    this._depFile,
+    required this._enableExperiment,
+    required this._enableAsserts,
+    required this._verbose,
+    required this._verbosity,
     required Directory tempDir,
-  })  : _kind = kind,
-        _verbose = verbose,
-        _tempDir = tempDir,
-        _verbosity = verbosity,
-        _enableAsserts = enableAsserts,
-        _enableExperiment = enableExperiment,
-        _targetOS = targetOS,
-        _debugFile = debugFile,
-        _outputFile = outputFile,
-        _defines = defines,
-        _depFile = depFile,
+    this._progressUpdatesOnStderr = false,
+  })  : _tempDir = tempDir,
         _programKernelFile = path.join(tempDir.path, 'program.dill'),
         _sourcePath = _normalize(sourceFile)!,
-        _packages = _normalize(packages),
-        _genSnapshot = genSnapshot,
-        _targetDartAotRuntime = targetDartAotRuntime {
+        _packages = _normalize(packages) {
     if (_kind == Kind.exe) {
       if (_targetOS == null) {
         throw ArgumentError('targetOS must be specified for executables.');
@@ -199,15 +193,24 @@ class _Generator {
     }
   }
 
+  void _log(String message) {
+    if (_progressUpdatesOnStderr) {
+      stderr.writeln(message);
+    } else {
+      print(message);
+    }
+  }
+
   Future<SnapshotGenerator> generateKernel({
     String? recordedUsagesFile,
     List<String>? extraOptions,
+    bool progressUpdatesOnStderr = false,
   }) async {
     if (_verbose) {
       if (_targetOS != null) {
-        print('Specializing Platform getters for target OS $_targetOS.');
+        _log('Specializing Platform getters for target OS $_targetOS.');
       }
-      print('Generating AOT kernel dill.');
+      _log('Generating AOT kernel dill.');
     }
 
     final kernelResult = await generateKernelHelper(
@@ -294,23 +297,24 @@ class _Generator {
 
     if (_kind == Kind.exe) {
       if (_verbose) {
-        print('Generating executable.');
+        _log('Generating executable.');
       }
       await writeAppendedExecutable(
           _targetDartAotRuntime, snapshotFile, outputPath, _targetOS!);
 
       if (Platform.isLinux || Platform.isMacOS) {
         if (_verbose) {
-          print('Marking binary executable.');
+          _log('Marking binary executable.');
         }
         await markExecutable(outputPath);
       }
     }
 
     if (_verbosity != Verbosity.error.name) {
-      print('Generated: $outputPath');
+      _log('Generated: $outputPath');
     }
   }
+
 
   Future<String> _concatenateAssetsToKernel(String? nativeAssets) async {
     if (nativeAssets == null) {
@@ -403,6 +407,7 @@ Future<void> generateKernel({
   String? recordedUsagesFile,
   String? depFile,
   List<String>? extraOptions,
+  bool progressUpdatesOnStderr = false,
 }) async {
   final sourcePath = _normalize(sourceFile)!;
   final outputPath = _normalize(outputFile)!;

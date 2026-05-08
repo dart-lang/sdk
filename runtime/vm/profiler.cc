@@ -4,11 +4,16 @@
 
 #include "vm/profiler.h"
 
+#include <utility>
+
 #include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
+#if defined(SUPPORT_PERFETTO)
+#include "third_party/perfetto/protos/perfetto/trace/profiling/profile_packet.pbzero.h"
+#endif
 #include "vm/allocation.h"
 #include "vm/code_patcher.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -17,6 +22,9 @@
 #include "vm/debugger.h"
 #include "vm/globals.h"
 #include "vm/heap/safepoint.h"
+#if defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/image_snapshot.h"
+#endif
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
@@ -24,7 +32,11 @@
 #include "vm/message_handler.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
+#if defined(SUPPORT_PERFETTO)
+#include "vm/perfetto_utils.h"
+#endif
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
 #include "vm/signal_handler.h"
@@ -160,7 +172,7 @@ class ProfilerStackWalker : public ValueObject {
       return true;
     }
 #if defined(DART_INCLUDE_PROFILER)
-    if (total_frames_ >= FLAG_max_profile_depth) {
+    if (total_frames_ >= Profiler::CurrentConfig().max_depth) {
       sample_->set_truncated_trace(true);
       return false;
     }
@@ -197,25 +209,21 @@ class ProfilerStackWalker : public ValueObject {
 };
 
 // MSAN/ASAN are unaware of frames initialized by generated code.
+// ProfilerNativeStackWalker may also read a random slot in the stack if a
+// function on the stack doesn't use frame pointers and puts something that
+// looks like a stack address into the FP register.
 NO_SANITIZE_ADDRESS
 NO_SANITIZE_MEMORY
-#if defined(DART_HOST_OS_MACOS)
-// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
-// establishes synchronization.
-NO_SANITIZE_THREAD
-#endif
 static uword* LoadStackSlot(uword* ptr) {
   return reinterpret_cast<uword*>(*ptr);
 }
 
-#if defined(DART_HOST_OS_MACOS)
-// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
-// establishes synchronization.
-#define IGNORE_RACE(x) x##_ignore_race
-#define IGNORE_RACE2(x) x##IgnoreRace
+// Clang on Windows inlines the load from LoadStackSlot and still applies the
+// sanitizer instrumentation to the load in callers.
+#if defined(DART_HOST_OS_WINDOWS)
+#define WINDOWS_EXTRA_NO_SANITIZE_ADDRESS NO_SANITIZE_ADDRESS
 #else
-#define IGNORE_RACE(x) x
-#define IGNORE_RACE2(x) x
+#define WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
 #endif
 
 // The layout of C stack frames.
@@ -266,6 +274,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         original_sp_(sp),
         lower_bound_(stack_lower) {}
 
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   void walk() {
     Append(original_pc_, original_fp_);
 
@@ -320,11 +329,13 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   }
 
  private:
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != nullptr);
     return LoadStackSlot(fp + kHostSavedCallerPcSlotFromFp);
   }
 
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != nullptr);
     return LoadStackSlot(fp + kHostSavedCallerFpSlotFromFp);
@@ -351,10 +362,11 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   uword lower_bound_;
 };
 
-static bool ValidateThreadStackBounds(uintptr_t fp,
+static bool ValidateThreadStackBounds(uintptr_t* fp,
                                       uintptr_t sp,
                                       uword stack_lower,
-                                      uword stack_upper) {
+                                      uword stack_upper,
+                                      bool allow_invalid_fp = false) {
   if (stack_lower >= stack_upper) {
     // Stack boundary is invalid.
     return false;
@@ -365,8 +377,12 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
     return false;
   }
 
-  if ((fp < stack_lower) || (fp >= stack_upper)) {
+  if ((*fp < stack_lower) || (*fp >= stack_upper)) {
     // Frame pointer is outside threads's stack boundary.
+    if (allow_invalid_fp) {
+      *fp = 0;
+      return true;
+    }
     return false;
   }
 
@@ -376,20 +392,25 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
 #if defined(DART_INCLUDE_PROFILER)
 // Get |thread|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
+//
+// If |allow_invalid_fp| is true, then |fp| is allowed to be outside the
+// stack boundary - in which case |fp| will be set to `0`. This is usefull
+// to allow sampling threads which exited the Dart code - in which case
+// fp and sp values are not going to be used directly anyway.
 static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
                                             Thread* thread,
-                                            uintptr_t fp,
+                                            uintptr_t* fp,
                                             uintptr_t sp,
                                             uword* stack_lower,
-                                            uword* stack_upper) {
+                                            uword* stack_upper,
+                                            bool allow_invalid_fp = false) {
   ASSERT(os_thread != nullptr);
   ASSERT(stack_lower != nullptr);
   ASSERT(stack_upper != nullptr);
 
 #if defined(DART_INCLUDE_SIMULATOR)
   const bool use_simulator_stack_bounds =
-      FLAG_use_simulator && thread != nullptr &&
-      thread->IGNORE_RACE2(IsExecutingDartCode)();
+      FLAG_use_simulator && thread != nullptr && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != nullptr);
@@ -415,7 +436,8 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
     *stack_lower = sp;
   }
 
-  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
+  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper,
+                                   allow_invalid_fp);
 }
 #endif  // defined(DART_INCLUDE_PROFILER)
 
@@ -439,7 +461,7 @@ static bool GetAndValidateCurrentThreadStackBounds(uintptr_t fp,
     *stack_lower = sp;
   }
 
-  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
+  return ValidateThreadStackBounds(&fp, sp, *stack_lower, *stack_upper);
 }
 
 void Profiler::DumpStackTrace(void* context) {
@@ -600,9 +622,12 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
         sp = interpreter->get_sp();
         fp = interpreter->get_fp();
         pc = interpreter->get_pc();
+        StackFrame::DumpCurrentTrace(sp, fp, pc);
       }
 #endif  // defined(DART_DYNAMIC_MODULES)
-      StackFrame::DumpCurrentTrace(sp, fp, pc);
+      if (thread->vm_tag() == VMTag::kDartTagId) {
+        StackFrame::DumpCurrentTrace(sp, fp, pc);
+      }
     }
   }
 
@@ -612,10 +637,14 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
 #if defined(DART_INCLUDE_PROFILER)
 
-RelaxedAtomic<bool> Profiler::initialized_ = false;
+Monitor* Profiler::monitor_ = nullptr;
+Profiler::Config Profiler::config_ = {.enabled = false,
+                                      .period_us = 0,
+                                      .max_depth = 0};
+RelaxedAtomic<bool> Profiler::running_ = false;
 SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;
-Profiler::ProfileProcessorCallback Profiler::process_profile_callback_ =
-    nullptr;
+
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 bool SampleBlockProcessor::initialized_ = false;
 bool SampleBlockProcessor::shutdown_ = false;
 bool SampleBlockProcessor::drain_ = false;
@@ -623,26 +652,109 @@ bool SampleBlockProcessor::thread_running_ = false;
 ThreadJoinId SampleBlockProcessor::processor_thread_id_ =
     OSThread::kInvalidThreadJoinId;
 Monitor* SampleBlockProcessor::monitor_ = nullptr;
+#endif
 
 void Profiler::Init() {
-  // Place some sane restrictions on user controlled flags.
-  SetSampleDepth(FLAG_max_profile_depth);
-  if (!FLAG_profiler) {
-    return;
-  }
-  ASSERT(!initialized_);
-  // The profiler may have been shutdown previously, in which case the sample
-  // buffer will have already been initialized.
-  if (sample_block_buffer_ == nullptr) {
-    intptr_t num_blocks = CalculateSampleBufferCapacity();
-    sample_block_buffer_ = new SampleBlockBuffer(num_blocks);
-  }
-  UpdateFlagProfilePeriod(FLAG_profile_period);
-  ThreadInterrupter::Init(FLAG_profile_period);
-  ThreadInterrupter::Startup();
+  monitor_ = new Monitor();
+  ThreadInterrupter::Init();
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
   SampleBlockProcessor::Init();
-  SampleBlockProcessor::Startup();
-  initialized_ = true;
+#endif
+  SetConfig({});
+}
+
+void Profiler::Cleanup() {
+  {
+    SafepointMonitorLocker lock(monitor_);
+    StopLocked();
+  }
+
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+  SampleBlockProcessor::Cleanup();
+#endif
+  ThreadInterrupter::Cleanup();
+  delete monitor_;
+}
+
+namespace {
+Profiler::Config NormalizeConfig(const Profiler::Config& config) {
+  const intptr_t kMinimumDepth = 2;
+  const intptr_t kMaximumDepth = 255;
+  const intptr_t kMinimumProfilePeriodUs = 50;
+  return {
+      .enabled = config.enabled,
+      .period_us = Utils::Maximum(kMinimumProfilePeriodUs, config.period_us),
+      .max_depth = Utils::Minimum(
+          kMaximumDepth,
+          Utils::Maximum(kMinimumDepth, config.max_depth.load())),
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+      .stream_to_timeline = config.stream_to_timeline,
+#endif
+  };
+}
+}  // namespace
+
+void Profiler::SetConfig(const Profiler::Config& config) {
+  SafepointMonitorLocker lock(monitor_);
+
+  const auto new_config = NormalizeConfig(config);
+  const auto old_config = config_;
+  config_ = new_config;
+
+  if (new_config.enabled != old_config.enabled) {
+    // Update running state.
+    if (new_config.enabled) {
+      StartLocked();
+    } else {
+      StopLocked();
+    }
+  } else if (old_config.enabled) {
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+    if (new_config.stream_to_timeline != old_config.stream_to_timeline) {
+      if (new_config.stream_to_timeline) {
+        SampleBlockProcessor::Startup();
+      } else {
+        SampleBlockProcessor::Shutdown();
+      }
+    }
+#endif
+
+    // Check if we need to reconfigure a running profiler.
+    //
+    // Note: this will not resize the sampling buffer, you
+    // need to stop and restart the profiler to resize it.
+    if (new_config.period_us != old_config.period_us) {
+      ThreadInterrupter::SetInterruptPeriod(new_config.period_us);
+    }
+
+    // Profiling thread will automatically pickup a change in
+    // config_.max_depth, but to resize underlying buffer
+    // you need to start and stop the profiler.
+  }
+}
+
+void Profiler::StartLocked() {
+  RELEASE_ASSERT(!running_);
+
+  // The profiler may have been shutdown previously, in which case the sample
+  // buffer will have already been initialized. However it might be too small.
+  const intptr_t sample_buffer_capacity = CalculateSampleBufferCapacity();
+  if (sample_block_buffer_ != nullptr &&
+      sample_buffer_capacity > sample_block_buffer_->Capacity()) {
+    delete sample_block_buffer_;
+    sample_block_buffer_ = nullptr;
+  }
+  if (sample_block_buffer_ == nullptr) {
+    sample_block_buffer_ = new SampleBlockBuffer(sample_buffer_capacity);
+  }
+  ThreadInterrupter::SetInterruptPeriod(config_.period_us);
+  ThreadInterrupter::Startup();
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+  if (config_.stream_to_timeline) {
+    SampleBlockProcessor::Startup();
+  }
+#endif
+  running_ = true;
 }
 
 class SampleBlockCleanupVisitor : public IsolateVisitor {
@@ -656,45 +768,20 @@ class SampleBlockCleanupVisitor : public IsolateVisitor {
   }
 };
 
-void Profiler::Cleanup() {
-  if (!FLAG_profiler && !initialized_) {
+void Profiler::StopLocked() {
+  if (!running_) {
     return;
   }
-  ASSERT(initialized_);
-  ThreadInterrupter::Cleanup();
 
-  const bool should_drain = process_profile_callback_ != nullptr;
-  SampleBlockProcessor::Cleanup(should_drain);
+  ThreadInterrupter::Shutdown();
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+  SampleBlockProcessor::Shutdown();
+#endif
 
   SampleBlockCleanupVisitor visitor;
   Isolate::VisitIsolates(&visitor);
 
-  initialized_ = false;
-}
-
-void Profiler::UpdateRunningState() {
-  if (!FLAG_profiler && initialized_) {
-    Cleanup();
-  } else if (FLAG_profiler && !initialized_) {
-    Init();
-  }
-}
-
-void Profiler::SetSampleDepth(intptr_t depth) {
-  const int kMinimumDepth = 2;
-  const int kMaximumDepth = 255;
-  if (depth < kMinimumDepth) {
-    FLAG_max_profile_depth = kMinimumDepth;
-  } else if (depth > kMaximumDepth) {
-    FLAG_max_profile_depth = kMaximumDepth;
-  } else {
-    FLAG_max_profile_depth = depth;
-  }
-}
-
-static intptr_t SamplesPerSecond() {
-  const intptr_t kMicrosPerSec = 1000000;
-  return kMicrosPerSec / FLAG_profile_period;
+  running_ = false;
 }
 
 intptr_t Profiler::CalculateSampleBufferCapacity() {
@@ -708,25 +795,13 @@ intptr_t Profiler::CalculateSampleBufferCapacity() {
   // We use the fact that `ceil((float)a / (float)b) == (a + b - 1) / b` when
   // `a` and `b` are positive integers below.
   const intptr_t max_sample_chain_length =
-      (FLAG_max_profile_depth + Sample::kPCArraySizeInWords - 1) /
+      (config_.max_depth + Sample::kPCArraySizeInWords - 1) /
       Sample::kPCArraySizeInWords;
+  const intptr_t kMicrosPerSec = 1000000;
+  const intptr_t samples_per_second = kMicrosPerSec / config_.period_us;
   const intptr_t sample_count = FLAG_sample_buffer_duration *
-                                SamplesPerSecond() * max_sample_chain_length;
+                                samples_per_second * max_sample_chain_length;
   return (sample_count / SampleBlock::kSamplesPerBlock) + 1;
-}
-
-void Profiler::UpdateFlagProfilePeriod(intptr_t period) {
-  const int kMinimumProfilePeriod = 50;
-  if (period < kMinimumProfilePeriod) {
-    FLAG_profile_period = kMinimumProfilePeriod;
-  } else {
-    FLAG_profile_period = period;
-  }
-}
-
-void Profiler::UpdateSamplePeriod() {
-  UpdateFlagProfilePeriod(FLAG_profile_period);
-  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
 }
 
 SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
@@ -928,7 +1003,9 @@ class ReturnAddressLocator : public ValueObject {
     ASSERT(code_.ContainsInstructionAt(pc()));
   }
 
-  ReturnAddressLocator(uword pc, uword* stack_buffer, const Code& code)
+  ReturnAddressLocator(uword pc,
+                       RelaxedAtomic<uword>* stack_buffer,
+                       const Code& code)
       : stack_buffer_(stack_buffer),
         pc_(pc),
         code_(Code::ZoneHandle(code.ptr())) {
@@ -962,7 +1039,7 @@ class ReturnAddressLocator : public ValueObject {
   }
 
  private:
-  uword* stack_buffer_;
+  RelaxedAtomic<uword>* stack_buffer_;
   uword pc_;
   const Code& code_;
 };
@@ -1073,13 +1150,12 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   void walk() {
     RELEASE_ASSERT(StubCode::HasBeenInitialized());
-    if (thread_->IGNORE_RACE2(IsDeoptimizing)()) {
+    if (thread_->IsDeoptimizing()) {
       sample_->set_ignore_sample(true);
       return;
     }
 
-    uword* exit_fp =
-        reinterpret_cast<uword*>(thread_->IGNORE_RACE(top_exit_frame_info)());
+    uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
     bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
       // Exited from compiled code or interpreter.
@@ -1090,14 +1166,13 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       pc_ = CallerPC();
       fp_ = CallerFP();
     } else {
-      if (thread_->IGNORE_RACE(vm_tag)() == VMTag::kDartTagId) {
+      if (thread_->vm_tag() == VMTag::kDartTagId) {
         // Running compiled code.
         // Use the FP and PC from the thread interrupt or simulator; already set
         // in the constructor.
 
 #if defined(DART_DYNAMIC_MODULES)
-      } else if (thread_->IGNORE_RACE(vm_tag)() ==
-                 VMTag::kDartInterpretedTagId) {
+      } else if (thread_->vm_tag() == VMTag::kDartInterpretedTagId) {
         // Running interpreter.
         pc_ = reinterpret_cast<uword*>(thread_->interpreter()->get_pc());
         fp_ = reinterpret_cast<uword*>(thread_->interpreter()->get_fp());
@@ -1209,7 +1284,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   ASSERT(sample != nullptr);
   uword* sp = reinterpret_cast<uword*>(sp_addr);
-  uword* buffer = sample->GetStackBuffer();
+  RelaxedAtomic<uword>* buffer = sample->GetStackBuffer();
   if (sp != nullptr) {
     for (intptr_t i = 0; i < Sample::kStackBufferSizeInWords; i++) {
       buffer[i] = reinterpret_cast<uword>(LoadStackSlot(sp));
@@ -1247,6 +1322,7 @@ static void CollectSample(Isolate* isolate,
                           uword sp,
                           ProfilerCounters* counters) {
   ASSERT(counters != nullptr);
+
 #if defined(DART_HOST_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
@@ -1300,7 +1376,7 @@ static Sample* SetupSample(Thread* thread,
                            bool allocation_sample,
                            ThreadId tid) {
   ASSERT(thread != nullptr);
-  Isolate* isolate = thread->IGNORE_RACE(isolate)();
+  Isolate* isolate = thread->isolate();
   SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
   Sample* sample = allocation_sample ? buffer->ReserveAllocationSample(isolate)
                                      : buffer->ReserveCPUSample(isolate);
@@ -1308,7 +1384,7 @@ static Sample* SetupSample(Thread* thread,
     return nullptr;
   }
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
-  uword vm_tag = thread->IGNORE_RACE(vm_tag)();
+  uword vm_tag = thread->vm_tag();
 #if defined(DART_INCLUDE_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
@@ -1321,7 +1397,7 @@ static Sample* SetupSample(Thread* thread,
   }
 #endif
   sample->set_vm_tag(vm_tag);
-  sample->set_user_tag(thread->IGNORE_RACE(user_tag)());
+  sample->set_user_tag(thread->user_tag());
   sample->set_thread_task(thread->task_kind());
   return sample;
 }
@@ -1362,8 +1438,9 @@ void Profiler::SampleAllocation(Thread* thread,
   uword stack_lower = 0;
   uword stack_upper = 0;
 
-  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
-                                       &stack_upper)) {
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, &fp, sp, &stack_lower,
+                                       &stack_upper,
+                                       /*allow_invalid_fp=*/exited_dart_code)) {
     // Could not get stack boundary.
     return;
   }
@@ -1405,7 +1482,7 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   ASSERT(Profiler::sample_block_buffer() != nullptr);
 
 #if !defined(PRODUCT)
-  Isolate* isolate = thread->IGNORE_RACE(isolate)();
+  Isolate* isolate = thread->isolate();
 
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
@@ -1441,9 +1518,9 @@ void ReleaseToCurrentBlock(Isolate* isolate) {
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != nullptr);
-  OSThread* os_thread = thread->IGNORE_RACE(os_thread)();
+  OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  Isolate* isolate = thread->IGNORE_RACE(isolate)();
+  Isolate* isolate = thread->isolate();
 
   // Double check if interrupts are disabled
   // after the thread interrupter decided to send a signal.
@@ -1465,7 +1542,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  const bool in_dart_code = thread->IGNORE_RACE2(IsExecutingDartCode)();
+  const bool in_dart_code = thread->IsExecutingDartCode();
 
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
@@ -1513,7 +1590,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (thread->IsDartMutatorThread()) {
-    if (thread->IGNORE_RACE2(IsDeoptimizing)()) {
+    if (thread->IsDeoptimizing()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
       ReleaseToCurrentBlock(isolate);
@@ -1523,8 +1600,10 @@ void Profiler::SampleThread(Thread* thread,
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
-                                       &stack_upper)) {
+  const bool exited_dart_code = thread->HasExitedDartCode();
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, &fp, sp, &stack_lower,
+                                       &stack_upper,
+                                       /*allow_invalid_fp=*/exited_dart_code)) {
     counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, sample, pc);
@@ -1547,7 +1626,6 @@ void Profiler::SampleThread(Thread* thread,
   Dart_Port port = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   ProfilerNativeStackWalker native_stack_walker(
       &counters_, port, sample, isolate, stack_lower, stack_upper, pc, fp, sp);
-  const bool exited_dart_code = thread->IGNORE_RACE2(HasExitedDartCode)();
   ProfilerDartStackWalker dart_stack_walker(thread, port, sample, isolate, pc,
                                             fp, sp, lr,
                                             /*allocation_sample=*/false);
@@ -1607,7 +1685,23 @@ void CodeLookupTable::Build(Thread* thread) {
 
   thread->CheckForSafepoint();
   // Add all found Code objects.
-  {
+  if (FLAG_precompiled_mode) {
+    const GrowableObjectArray& tables = GrowableObjectArray::Handle(
+        IsolateGroup::Current()->object_store()->instructions_tables());
+    InstructionsTable& table = InstructionsTable::Handle();
+    Array& codes = Array::Handle();
+    for (intptr_t i = 0; i < tables.Length(); i++) {
+      table ^= tables.At(i);
+      codes = table.code_objects();
+      for (intptr_t j = 0; j < codes.Length(); j++) {
+        Code& code = Code::Handle();  // Separate handle for each.
+        code ^= codes.At(j);
+        if (!Code::IsUnknownDartCode(code.ptr())) {
+          Add(code);
+        }
+      }
+    }
+  } else {
     TimelineBeginEndScope tl(Timeline::GetIsolateStream(),
                              "CodeLookupTable::Build HeapIterationScope");
     HeapIterationScope iteration(thread);
@@ -1732,6 +1826,327 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
   return buffer;
 }
 
+#if defined(SUPPORT_PERFETTO) && defined(DART_PRECOMPILED_RUNTIME)
+class PerfettoPerfSampleWriter : public ValueObject {
+ public:
+  PerfettoPerfSampleWriter(
+      int64_t from_micros,
+      int64_t to_micros,
+      perfetto_utils::InternedDataBuilder& interned_data_builder,
+      void* file,
+      Dart_FileWriteCallback write_bytes)
+      : from_micros_(from_micros),
+        to_micros_(to_micros),
+        file_(file),
+        write_bytes_(write_bytes),
+        interned_data_builder_(interned_data_builder) {
+    CollectMappings();
+  }
+
+  ~PerfettoPerfSampleWriter() {
+    for (auto m : mappings_) {
+      delete m;
+    }
+  }
+
+  struct SnapshotMapping : public MallocAllocated {
+    uint32_t iid;
+
+    uword start;
+    uword end;
+    const char* path;
+    Dart_Port isolate_group_id;
+    bool is_root_unit;
+
+    bool Contains(uword pc) { return start < pc && pc <= end; }
+  };
+
+  void CollectMappings() {
+    IsolateGroup::ForEach([&](IsolateGroup* group) {
+      const auto group_source = group->source();
+      const auto isolate_group_instructions =
+          reinterpret_cast<uword>(group_source->snapshot_instructions);
+      const Image isolate_group_image(isolate_group_instructions);
+      group->heap()->old_space()->ForEachImagePage([&](Page* page) {
+        if (page->is_executable()) {
+          mappings_.Add(new SnapshotMapping{
+              .start = page->object_start(),
+              .end = page->object_end(),
+              .path = group->source()->script_uri,
+              .isolate_group_id = group->id(),
+              .is_root_unit =
+                  (page->object_start() ==
+                   reinterpret_cast<uword>(isolate_group_image.object_start())),
+          });
+        }
+      });
+    });
+
+    mappings_.Sort([](auto a, auto b) -> int {
+      if ((*a)->start < (*b)->start) return -1;
+      if ((*a)->start > (*b)->start) return 1;
+      return 0;
+    });
+
+    // Remove duplicated mappings.
+    intptr_t j = 0;
+    for (intptr_t i = 0; i < mappings_.length(); i++) {
+      if (j > 0 && mappings_[j - 1]->start == mappings_[i]->start) {
+        delete mappings_[i];
+      } else {
+        mappings_[j++] = mappings_[i];
+      }
+    }
+    mappings_.SetLength(j);
+  }
+
+  void WriteSamples(SampleBuffer* buffer) {
+    const intptr_t length = buffer->capacity();
+    for (intptr_t i = 0; i < length; i++) {
+      Sample* sample = buffer->At(i);
+
+      if (sample->ignore_sample()) {
+        // Bad sample.
+        continue;
+      }
+
+      if (!sample->head_sample()) {
+        // An inner sample in a chain of samples.
+        continue;
+      }
+
+      if (sample->timestamp() == 0) {
+        // Empty.
+        continue;
+      }
+
+      if (sample->At(0) == 0) {
+        // No frames.
+        continue;
+      }
+
+      if (sample->is_allocation_sample()) {
+        continue;
+      }
+
+      auto timestamp = sample->timestamp();
+      if (from_micros_ > timestamp || to_micros_ < timestamp) {
+        continue;
+      }
+
+      WriteSample(sample);
+    }
+  }
+
+  std::pair<uint32_t, uint64_t> FindMapping(uword pc) {
+    const auto lower_bound =
+        std::lower_bound(mappings_.begin(), mappings_.end(), pc,
+                         [](auto m, auto pc) { return m->end < pc; });
+
+    if (lower_bound == mappings_.end() || !(*lower_bound)->Contains(pc)) {
+      return std::make_pair(0, pc);
+    }
+
+    const auto m = *lower_bound;
+
+    return std::make_pair(InternMapping(m), pc - m->start);
+  }
+
+  uint32_t InternMapping(SnapshotMapping* m) {
+    if (m->iid == 0) {
+      // When Perfetto is matching ModuleSymbols to a corresponding mapping,
+      // it uses both path and build_id for matching (and both of them are
+      // used as opaque identifiers). We use this to support deferred units:
+      // all mappings corresponding to an isolate group have the same build-id
+      // (which is based on isolate group id) while path is based on the script
+      // uri with address of the mapping appended for non-root units - this
+      // makes the combination of path+build_id unique for each unit including
+      // the root one.
+      //
+      // Additionally we make sure to prepend "/" to the path if it does not
+      // start with "/" to compensation for similar logic in Perfetto:
+      // Mapping.path_string_ids is an array of path components, to construct
+      // mappings path from path components Perfetto joins them with "/"
+      // and prepends "/" if there is no leading slash (see [1]). To normalize
+      // paths between Mapping and ModuleSymbols we simply ensure that path
+      // here always starts with "/".
+      //
+      // [1]: https://github.com/google/perfetto/blob/a3e107ec803c876a870205f89c1e37742184b598/src/trace_processor/importers/proto/profile_packet_utils.cc#L24-L38
+
+      const char* path = m->path;
+      if (!m->is_root_unit) {
+        Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_),
+                       "%s%s(%016" Px64 ")", m->path[0] == '/' ? "" : "/",
+                       m->path, static_cast<uint64_t>(m->start));
+        path = name_buf_;
+      } else if (m->path[0] != '/') {
+        Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_), "/%s", m->path);
+        path = name_buf_;
+      }
+
+      const auto path_id = interned_data_builder_.mapping_paths().Intern(path);
+      const auto build_id_iid =
+          interned_data_builder_.InternSyntheticBuildIdForIsolateGroup(
+              m->isolate_group_id);
+
+      m->iid = interned_data_builder_.mappings().Intern({
+          .start = m->start,
+          .end = m->end,
+          .path_string = path_id,
+          .build_id = build_id_iid,
+      });
+    }
+    return m->iid;
+  }
+
+  void WriteSample(Sample* sample) {
+    WriteClockSnapshotPacket();
+
+    // Walk the sampled PCs and intern the stack.
+    callstack_.Clear();
+
+    Sample* current = sample;
+    bool unknown_mappings = false;
+    intptr_t pc_adjustment = 0;
+    while (current != nullptr) {
+      for (intptr_t i = 0; i < Sample::kPCArraySizeInWords; i++) {
+        if (current->At(i) == 0) {
+          break;
+        }
+
+        const uword pc = current->At(i) + pc_adjustment;
+        const auto [mapping_iid, rel_pc] = FindMapping(pc);
+
+        const auto frame_iid = interned_data_builder_.frames().Intern({
+            .rel_pc = rel_pc,
+            .mapping_iid = mapping_iid,
+        });
+
+        if (mapping_iid == 0) {
+          unknown_mappings = true;
+
+          // Eagerly symbolize native frames.
+          const auto& frame =
+              interned_data_builder_.frames().GetByIid(frame_iid);
+          if (frame.function_name_iid == 0) {
+            const auto name_iid =
+                interned_data_builder_.function_names().Intern(
+                    LookupNativeName(pc));
+            const_cast<perfetto_utils::InternedDataBuilder::Frame&>(frame)
+                .function_name_iid = name_iid;
+          }
+        }
+
+        callstack_.Add(frame_iid);
+        pc_adjustment = -1;
+      }
+
+      current = current->Next();
+    }
+
+    if (unknown_mappings) {
+      interned_data_builder_.MarkNeedUnknownMapping();
+    }
+
+    // Perfetto UI requires callstack frames to be in caller-first order, while
+    // profiler records samples in callee-first order.
+    callstack_.Reverse();
+
+    const auto callstack_iid = interned_data_builder_.callstacks().Intern(
+        {&callstack_[0], callstack_.length()});
+
+    perfetto_utils::SetTrustedPacketSequenceId(packet_.get());
+    perfetto_utils::SetTimestampAndMonotonicClockId(packet_.get(),
+                                                    sample->timestamp());
+
+    auto& perf_sample = *packet_->set_perf_sample();
+    perf_sample.set_pid(pid_);
+    perf_sample.set_tid(OSThread::ThreadIdToIntPtr(sample->tid()));
+    perf_sample.set_callstack_iid(callstack_iid);
+
+    interned_data_builder_.AttachInternedDataTo(packet_.get());
+
+    perfetto_utils::WritePacketBytes(&packet_, [this](auto bytes, auto size) {
+      write_bytes_(bytes, size, file_);
+    });
+    packet_.Reset();
+  }
+
+ private:
+  void WriteClockSnapshotPacket() {
+    if (clock_snapshot_written_) {
+      return;
+    }
+
+    perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
+    perfetto_utils::WritePacketBytes(&packet_, [this](auto bytes, auto size) {
+      write_bytes_(bytes, size, file_);
+    });
+    packet_.Reset();
+    clock_snapshot_written_ = true;
+  }
+
+  char* LookupNativeName(uword pc) {
+    uword start;
+    if (auto const name = NativeSymbolResolver::LookupSymbolName(pc, &start)) {
+      Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_),
+                     "[Native] %s+0x%" Px "", name, pc - start);
+      NativeSymbolResolver::FreeSymbolName(name);
+      return &name_buf_[0];
+    }
+
+    uword dso_base;
+    const char* dso_name;
+    if (NativeSymbolResolver::LookupSharedObject(pc, &dso_base, &dso_name)) {
+      uword dso_offset = pc - dso_base;
+      Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_),
+                     "[Native] %s+0x%" Px "", dso_name, dso_offset);
+      NativeSymbolResolver::FreeSymbolName(dso_name);
+      return &name_buf_[0];
+    } else {
+      Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_), "[Native] %" Px "",
+                     pc);
+      return &name_buf_[0];
+    }
+  }
+
+  int64_t from_micros_;
+  int64_t to_micros_;
+
+  void* file_;
+  Dart_FileWriteCallback write_bytes_;
+
+  const intptr_t pid_ = OS::ProcessId();
+
+  MallocGrowableArray<SnapshotMapping*> mappings_;
+  char name_buf_[1024];
+
+  perfetto_utils::InternedDataBuilder& interned_data_builder_;
+
+  bool clock_snapshot_written_ = false;
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
+  MallocGrowableArray<uint64_t> callstack_{128};
+};
+
+void SampleBlockBuffer::WritePerfetto(
+    int64_t from_micros,
+    int64_t to_micros,
+    perfetto_utils::InternedDataBuilder& interned_data_builder,
+    void* file,
+    Dart_FileWriteCallback write_bytes) {
+  PerfettoPerfSampleWriter writer(from_micros, to_micros, interned_data_builder,
+                                  file, write_bytes);
+
+  for (intptr_t i = 0; i < capacity_; ++i) {
+    SampleBlock* block = &blocks_[i];
+    if (block->TryAcquireStreaming(/*isolate=*/nullptr)) {
+      writer.WriteSamples(block);
+      block->StreamingToFree();  // We consumed samples.
+    }
+  }
+}
+#endif
+
 ProcessedSample* SampleBuffer::BuildProcessedSample(
     Sample* sample,
     const CodeLookupTable& clt) {
@@ -1754,8 +2169,9 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 
   // Copy stack trace from sample(s).
   bool truncated = false;
-  Sample* current = sample;
-  while (current != nullptr) {
+
+  for (Sample* current = sample; current != nullptr;
+       current = current->Next()) {
     for (intptr_t i = 0; i < Sample::kPCArraySizeInWords; i++) {
       if (current->At(i) == 0) {
         break;
@@ -1764,7 +2180,6 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
     }
 
     truncated = truncated || current->truncated_trace();
-    current = Next(current);
   }
 
   if (!sample->exit_frame_sample()) {
@@ -1774,24 +2189,6 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 
   processed_sample->set_truncated(truncated);
   return processed_sample;
-}
-
-Sample* SampleBuffer::Next(Sample* sample) {
-  if (!sample->is_continuation_sample()) return nullptr;
-  Sample* next_sample = sample->continuation_sample();
-  // Sanity check.
-  ASSERT(sample != next_sample);
-  // Detect invalid chaining.
-  if (sample->port() != next_sample->port()) {
-    return nullptr;
-  }
-  if (sample->timestamp() != next_sample->timestamp()) {
-    return nullptr;
-  }
-  if (sample->tid() != next_sample->tid()) {
-    return nullptr;
-  }
-  return next_sample;
 }
 
 ProcessedSample::ProcessedSample()
@@ -1805,7 +2202,7 @@ ProcessedSample::ProcessedSample()
 
 void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
                                   uword pc_marker,
-                                  uword* stack_buffer) {
+                                  RelaxedAtomic<uword>* stack_buffer) {
   const CodeDescriptor* cd = clt.FindCode(At(0));
   if (cd == nullptr) {
     // No Dart code.
@@ -1818,10 +2215,11 @@ void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
   CheckForMissingDartFrame(clt, cd, pc_marker, stack_buffer);
 }
 
-void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
-                                               const CodeDescriptor* cd,
-                                               uword pc_marker,
-                                               uword* stack_buffer) {
+void ProcessedSample::CheckForMissingDartFrame(
+    const CodeLookupTable& clt,
+    const CodeDescriptor* cd,
+    uword pc_marker,
+    RelaxedAtomic<uword>* stack_buffer) {
   ASSERT(cd != nullptr);
   if (cd->code().IsBytecode()) {
     // Bytecode frame build is atomic from the profiler's perspective,
@@ -1882,21 +2280,27 @@ ProcessedSampleBuffer::ProcessedSampleBuffer()
   ASSERT(code_lookup_table_ != nullptr);
 }
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 void SampleBlockProcessor::Init() {
   ASSERT(!initialized_);
-  if (monitor_ == nullptr) {
-    monitor_ = new Monitor();
-  }
-  ASSERT(monitor_ != nullptr);
+  monitor_ = new Monitor();
   initialized_ = true;
-  shutdown_ = false;
+  shutdown_ = true;
   drain_ = false;
+}
+
+void SampleBlockProcessor::Cleanup() {
+  Shutdown();
+  initialized_ = false;
+  delete monitor_;
 }
 
 void SampleBlockProcessor::Startup() {
   ASSERT(initialized_);
   ASSERT(processor_thread_id_ == OSThread::kInvalidThreadJoinId);
   SafepointMonitorLocker startup_ml(monitor_);
+  shutdown_ = false;
+  drain_ = false;
   OSThread::Start("Dart Profiler SampleBlockProcessor", ThreadMain, 0);
   while (!thread_running_) {
     startup_ml.Wait();
@@ -1904,16 +2308,14 @@ void SampleBlockProcessor::Startup() {
   ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
 }
 
-void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
+void SampleBlockProcessor::Shutdown() {
   {
     SafepointMonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
       // Already shutdown.
       return;
     }
-    drain_ = drain;
     shutdown_ = true;
-    // Notify.
     shutdown_ml.Notify();
     ASSERT(initialized_);
   }
@@ -1928,35 +2330,20 @@ void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
     OSThread::Join(processor_thread_id_);
   }
   processor_thread_id_ = OSThread::kInvalidThreadJoinId;
-  initialized_ = false;
   ASSERT(!thread_running_);
 }
 
-void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
-  const auto process_profile_callback = process_profile_callback_;
-  if (process_profile_callback == nullptr) {
-    return;
-  }
-
-  auto thread = Thread::Current();
-  if (Isolate::IsSystemIsolate(isolate)) return;
-
-  TIMELINE_DURATION(thread, Isolate, "Profiler::ProcessCompletedBlocks")
-  DisableThreadInterruptsScope dtis(thread);
-  StackZone zone(thread);
-  HandleScope handle_scope(thread);
-
-  NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
-                                  -1, -1);
-  Profile profile;
-  profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
-
-  process_profile_callback(profile);
+void Profiler::IsolateShutdown(Isolate* isolate) {
+  FlushSampleBlocks(isolate);
+  NOT_IN_PRECOMPILED(Timeline::DrainCompletedSampleBlocksIntoRecorder(isolate));
 }
 
-void Profiler::IsolateShutdown(Thread* thread) {
-  FlushSampleBlocks(thread->isolate());
-  ProcessCompletedBlocks(thread->isolate());
+void Profiler::IsolateGroupShutdown(IsolateGroup* isolate_group) {
+#if defined(SUPPORT_TIMELINE)
+  if (config_.enabled && config_.stream_to_timeline) {
+    Timeline::NotifyAboutIsolateGroupShutdown(isolate_group);
+  }
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 void SampleBlockProcessor::ThreadMain(uword parameters) {
@@ -1976,10 +2363,23 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
   const int64_t wakeup_interval = 1000 * 100;
   while (true) {
     wait_ml.WaitMicros(wakeup_interval);
-    if (shutdown_ && !drain_) {
-      break;
-    }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // If shutting down flush all sample blocks from all isolates.
+    if (shutdown_) {
+      IsolateGroup::ForEach([&](IsolateGroup* group) {
+        if (group == Dart::vm_isolate_group()) return;
+
+        const bool kBypassSafepoint = false;
+        Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
+                                          kBypassSafepoint);
+        group->ForEachIsolate(
+            [&](Isolate* isolate) { FlushSampleBlocks(isolate); });
+        Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+      });
+    }
+    Timeline::DrainCompletedSampleBlocksIntoRecorder();
+#else
     IsolateGroup::ForEach([&](IsolateGroup* group) {
       if (group == Dart::vm_isolate_group()) return;
 
@@ -1987,15 +2387,16 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
       Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
                                         kBypassSafepoint);
       group->ForEachIsolate([&](Isolate* isolate) {
-        if (drain_) {
+        if (shutdown_) {
           FlushSampleBlocks(isolate);
         }
         if (isolate->TakeHasCompletedBlocks()) {
-          Profiler::ProcessCompletedBlocks(isolate);
+          Timeline::DrainCompletedSampleBlocksIntoRecorder(isolate);
         }
       });
       Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     });
+#endif
 
     if (shutdown_) {
       break;
@@ -2004,6 +2405,7 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
   // Signal to main thread we are exiting.
   thread_running_ = false;
 }
+#endif
 
 #endif  // defined(DART_INCLUDE_PROFILER)
 

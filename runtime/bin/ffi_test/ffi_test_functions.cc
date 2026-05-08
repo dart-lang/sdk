@@ -26,13 +26,7 @@
 #endif
 
 #include "bin/ffi_test/ffi_test_fields.h"
-
-#if defined(_WIN32)
-#define DART_EXPORT extern "C" __declspec(dllexport)
-#else
-#define DART_EXPORT                                                            \
-  extern "C" __attribute__((visibility("default"))) __attribute((used))
-#endif
+#include "include/dart_api.h"
 
 namespace dart {
 
@@ -1447,6 +1441,20 @@ DART_EXPORT void TwiddleVec4Components(Vec4 input, Vec4* result) {
   result->y = input.z;
   result->z = input.w;
   result->w = input.x;
+}
+
+DART_EXPORT int32_t CallTwoIntFunctionIsolateOwnership(
+    void (*Dart_ClearCurrentThreadOwnsIsolate_ForTesting)(),
+    int32_t (*fn)(int32_t, int32_t),
+    int32_t a,
+    int32_t b) {
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  Dart_SetCurrentThreadOwnsIsolate();
+  Dart_ExitIsolate();
+  int result = fn(a, b);
+  Dart_EnterIsolate(isolate);
+  Dart_ClearCurrentThreadOwnsIsolate_ForTesting();
+  return result;
 }
 
 }  // namespace dart

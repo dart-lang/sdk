@@ -34,7 +34,7 @@ DECLARE_FLAG(bool, trace_inlining_intervals);
 
 static bool IsRedundant(Instruction* instr) {
   if (auto constant = instr->AsConstant()) {
-    return !constant->HasUses();
+    return constant->HasSSATemp() && !constant->HasUses();
   } else if (auto move = instr->AsParallelMove()) {
     return move->IsRedundant();
   } else {
@@ -956,6 +956,11 @@ void NativeCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void GuardFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s %s, ", String::Handle(field().name()).ToCString(),
             field().GuardedPropertiesAsCString());
+  value()->PrintTo(f);
+}
+
+void CheckFieldImmutabilityInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("%s , ", String::Handle(field().name()).ToCString());
   value()->PrintTo(f);
 }
 

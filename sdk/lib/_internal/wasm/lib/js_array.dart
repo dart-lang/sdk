@@ -11,14 +11,13 @@ extension JSArrayImplUncheckedOperations<T extends JSAny?> on JSArrayImpl {
 
 // TODO(joshualitt): Refactor indexing here and in `js_string` to elide range
 // checks for internal functions.
-class JSArrayImpl<T extends JSAny?> implements List<T> {
-  final WasmExternRef? _ref;
-
+class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
+    implements List<T> {
   static bool _checkRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Array', ref);
 
-  JSArrayImpl.fromRefUnchecked(this._ref) {
-    assert(_checkRefType(_ref));
+  JSArrayImpl.fromRefUnchecked(WasmExternRef? ref) : super(ref) {
+    assert(_checkRefType(ref));
   }
 
   factory JSArrayImpl.fromRef(WasmExternRef? ref) {
@@ -36,14 +35,11 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   static JSArrayImpl<T>? box<T extends JSAny?>(WasmExternRef? ref) =>
       js.isDartNull(ref) ? null : JSArrayImpl<T>.fromRefUnchecked(ref);
 
-  WasmExternRef? get toExternRef => _ref;
-
   @override
   List<R> cast<R>() => List.castFrom<T, R>(this);
 
   @override
-  void add(T value) =>
-      js.JS<void>('(a, i) => a.push(i)', toExternRef, value.toExternRef);
+  void add(T value) => arrayPush(wrappedExternRef, value.toExternRef);
 
   @override
   T removeAt(int index) {
@@ -51,7 +47,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
     return js.JSValue.boxT<T>(
       js.JS<WasmExternRef?>(
         '(a, i) => a.splice(i, 1)[0]',
-        toExternRef,
+        wrappedExternRef,
         WasmI32.fromInt(index),
       ),
     );
@@ -62,7 +58,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     js.JS<void>(
       '(a, i, v) => a.splice(i, 0, v)',
-      toExternRef,
+      wrappedExternRef,
       WasmI32.fromInt(index),
       value.toExternRef,
     );
@@ -70,7 +66,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
 
   void _setLengthUnsafe(int newLength) => js.JS<void>(
     '(a, l) => a.length = l',
-    toExternRef,
+    wrappedExternRef,
     WasmI32.fromInt(newLength),
   );
 
@@ -95,8 +91,9 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   }
 
   @override
-  T removeLast() =>
-      js.JSValue.boxT<T>(js.JS<WasmExternRef?>('a => a.pop()', toExternRef));
+  T removeLast() => js.JSValue.boxT<T>(
+    js.JS<WasmExternRef?>('a => a.pop()', wrappedExternRef),
+  );
 
   @override
   bool remove(Object? element) {
@@ -104,7 +101,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
       if (this[i] == element) {
         js.JS<void>(
           '(a, i) => a.splice(i, 1)',
-          toExternRef,
+          wrappedExternRef,
           WasmI32.fromInt(i),
         );
         return true;
@@ -176,7 +173,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
     WasmExternRef? result;
     result = js.JS<WasmExternRef?>(
       '(a, s) => a.join(s)',
-      toExternRef,
+      wrappedExternRef,
       separator.toExternRef,
     );
     return JSStringImpl.fromRefUnchecked(result);
@@ -274,7 +271,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
     return JSArrayImpl<T>.fromRefUnchecked(
       js.JS<WasmExternRef?>(
         '(a, s, e) => a.slice(s, e)',
-        toExternRef,
+        wrappedExternRef,
         WasmI32.fromInt(start),
         WasmI32.fromInt(end),
       ),
@@ -312,7 +309,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
     int deleteCount = end - start;
     js.JS<void>(
       '(a, s, e) => a.splice(s, e)',
-      toExternRef,
+      wrappedExternRef,
       WasmI32.fromInt(start),
       WasmI32.fromInt(deleteCount),
     );
@@ -497,13 +494,13 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   Iterator<T> get iterator => JSArrayImplIterator<T>(this);
 
   @override
-  int get length => js.JS<double>('a => a.length', toExternRef).toInt();
+  int get length => js.JS<double>('a => a.length', wrappedExternRef).toInt();
 
   void set length(int newLength) {
     RangeErrorUtils.checkNotNegative(newLength, "length");
     js.JS<void>(
       '(a, l) => a.length = l',
-      toExternRef,
+      wrappedExternRef,
       WasmI32.fromInt(newLength),
     );
   }
@@ -512,7 +509,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   T _getUnchecked(int index) => js.JSValue.boxT<T>(
     js.JS<WasmExternRef?>(
       '(a, i) => a[i]',
-      toExternRef,
+      wrappedExternRef,
       WasmI32.fromInt(index),
     ),
   );
@@ -527,7 +524,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @pragma("wasm:prefer-inline")
   void _setUnchecked(int index, T value) => js.JS<void>(
     '(a, i, v) => a[i] = v',
-    toExternRef,
+    wrappedExternRef,
     WasmI32.fromInt(index),
     value.toExternRef,
   );
@@ -555,7 +552,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
       return JSArrayImpl<T>.fromRefUnchecked(
         js.JS<WasmExternRef?>(
           '(a, t) => a.concat(t)',
-          toExternRef,
+          wrappedExternRef,
           other.toJS.toExternRef,
         ),
       );
@@ -633,3 +630,6 @@ class JSArrayImplIterator<T extends JSAny?> implements Iterator<T> {
     return true;
   }
 }
+
+void arrayPush(WasmExternRef? array, WasmExternRef? elem) =>
+    js.JS<void>('(a, i) => a.push(i)', array, elem);

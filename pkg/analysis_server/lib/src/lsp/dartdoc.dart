@@ -17,10 +17,7 @@ String? cleanDartdoc(String? doc) {
 
   // Remove any code block section names like ```dart preamble that Flutter
   // docs contain.
-  doc = doc.replaceAllMapped(
-    _dartdocCodeBlockSections,
-    (match) => match.group(1)!,
-  );
+  doc = doc.replaceAllMapped(_dartdocCodeBlockSections, (match) => match[1]!);
 
   return doc;
 }

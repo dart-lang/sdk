@@ -26,31 +26,30 @@ Options:
 ''';
 
 void main(List<String> args) async {
-  final parser =
-      ArgParser()
-        ..addFlag(
-          'uninitialized',
-          abbr: 'u',
-          help:
-              'Create allocation and initializion methods for uninitialized instances',
-        )
-        ..addFlag(
-          'error-unhandled',
-          abbr: 'e',
-          help: 'Error for entry points that cannot be shimmed',
-        )
-        ..addFlag(
-          'help',
-          abbr: 'h',
-          help: 'Prints usage information and exits',
-          negatable: false,
-        )
-        ..addOption(
-          'package',
-          abbr: 'p',
-          help: 'Consider entry points only from the specified package',
-          valueHelp: 'URI',
-        );
+  final parser = ArgParser()
+    ..addFlag(
+      'uninitialized',
+      abbr: 'u',
+      help:
+          'Create allocation and initializion methods for uninitialized instances',
+    )
+    ..addFlag(
+      'error-unhandled',
+      abbr: 'e',
+      help: 'Error for entry points that cannot be shimmed',
+    )
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      help: 'Prints usage information and exits',
+      negatable: false,
+    )
+    ..addOption(
+      'package',
+      abbr: 'p',
+      help: 'Consider entry points only from the specified package',
+      valueHelp: 'URI',
+    );
 
   Never usageFail([String? prefix]) {
     if (prefix != null) {

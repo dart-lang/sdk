@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show Code, Message, PseudoSharedCode;
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Code, Message;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -58,20 +57,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.constConstructorWithBody:
-        diagnosticReporter?.report(
-          diag.constConstructorWithBody.atOffset(
-            offset: offset,
-            length: length,
-          ),
-        );
+        // Reported by [ErrorVerifier]
         return;
       case PseudoSharedCode.constNotInitialized:
-        var name = arguments['name'] as String;
-        diagnosticReporter?.report(
-          diag.constNotInitialized
-              .withArguments(name: name)
-              .atOffset(offset: offset, length: length),
-        );
+        // Reported by [ErrorVerifier]
         return;
       case PseudoSharedCode.defaultValueInFunctionType:
         diagnosticReporter?.report(
@@ -97,11 +86,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.expectedToken:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.expectedToken,
-          arguments: [arguments['string'] as Object],
+        diagnosticReporter?.report(
+          diag.expectedToken
+              .withArguments(token: arguments['expected'] as String)
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.expectedTypeName:
@@ -110,17 +98,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.extensionDeclaresInstanceField:
-        // Reported by
-        // [ErrorVerifier._checkForExtensionDeclaresInstanceField]
+        // Reported by [ErrorVerifier._checkForExtensionDeclaresInstanceField]
         return;
       case PseudoSharedCode.finalNotInitialized:
-        var name = arguments['name'] as String;
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.finalNotInitialized,
-          arguments: [name],
-        );
+        // Reported by [ErrorVerifier]
         return;
       case PseudoSharedCode.getterWithParameters:
         diagnosticReporter?.report(
@@ -128,10 +109,11 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.illegalCharacter:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.illegalCharacter,
+        var codePoint = (arguments['unicode'] ?? arguments['character']) as int;
+        diagnosticReporter?.report(
+          diag.illegalCharacter
+              .withArguments(codePoint: codePoint)
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.invalidInlineFunctionType:
@@ -151,11 +133,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.invalidCodePoint:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.invalidCodePoint,
-          arguments: ['\\u{...}'],
+        diagnosticReporter?.report(
+          diag.invalidCodePoint
+              .withArguments(escapeSequence: '\\u{...}')
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.invalidModifierOnSetter:
@@ -273,11 +254,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.unexpectedToken:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.unexpectedToken,
-          arguments: [lexeme()],
+        diagnosticReporter?.report(
+          diag.unexpectedToken
+              .withArguments(text: lexeme())
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.unterminatedMultiLineComment:
@@ -377,6 +357,12 @@ class FastaErrorReporter {
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
     if (code.sharedCode case var sharedCode?) {
+      // Reported by [ErrorVerifier].
+      if (sharedCode == SharedCode.externalFactoryWithBody ||
+          sharedCode == SharedCode.redirectingConstructorWithBody ||
+          sharedCode == SharedCode.externalMethodWithBody) {
+        return;
+      }
       var diagnosticCode = sharedAnalyzerCodes[sharedCode.index];
       diagnosticReporter!.reportError(
         Diagnostic.tmp(
@@ -392,19 +378,8 @@ class FastaErrorReporter {
     reportByCode(code.pseudoSharedCode, offset, length, message);
   }
 
-  void reportScannerError(
-    DiagnosticCode code,
-    int offset,
-    List<Object>? arguments,
-  ) {
-    // TODO(danrubel): update client to pass length in addition to offset.
-    int length = 1;
-    diagnosticReporter?.atOffset(
-      diagnosticCode: code,
-      offset: offset,
-      length: length,
-      arguments: arguments ?? const [],
-    );
+  void reportScannerError(LocatedDiagnostic locatedDiagnostic) {
+    diagnosticReporter?.report(locatedDiagnostic);
   }
 
   void _reportByCode({

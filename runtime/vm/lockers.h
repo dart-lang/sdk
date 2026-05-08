@@ -379,6 +379,7 @@ class SafepointRwLock {
  private:
   friend class SafepointReadRwLocker;
   friend class SafepointWriteRwLocker;
+  friend class ReloadableStealableWriteRwLocker;
 
   // returns [true] if read lock was acquired,
   // returns [false] if the thread didn't have to acquire read lock due
@@ -388,6 +389,7 @@ class SafepointRwLock {
   void LeaveRead();
 
   void EnterWrite();
+  void EnterWriteReloadableStealable();
   bool TryEnterWrite(bool can_block);
   void LeaveWrite();
 
@@ -495,6 +497,23 @@ class SafepointWriteRwLocker : public StackResource {
   }
 
   ~SafepointWriteRwLocker() { rw_lock_->LeaveWrite(); }
+
+ private:
+  SafepointRwLock* rw_lock_;
+};
+
+/*
+ * Allows reload safepoint and active mutator slot stealing while blocked.
+ */
+class ReloadableStealableWriteRwLocker : public StackResource {
+ public:
+  ReloadableStealableWriteRwLocker(ThreadState* thread_state,
+                                   SafepointRwLock* rw_lock)
+      : StackResource(thread_state), rw_lock_(rw_lock) {
+    rw_lock_->EnterWriteReloadableStealable();
+  }
+
+  ~ReloadableStealableWriteRwLocker() { rw_lock_->LeaveWrite(); }
 
  private:
   SafepointRwLock* rw_lock_;

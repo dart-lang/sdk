@@ -420,7 +420,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "bar", 7),
     ];
     var expectedErrors = [
-      new TestError(9, diag.unterminatedStringLiteral, null),
+      new TestError(9, diag.unterminatedStringLiteral, const []),
     ];
     // The scanner inserts synthetic closers
     expectedTokens.addAll([
@@ -1062,7 +1062,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "name", 5),
     ];
     var expectedErrors = [
-      new TestError(8, diag.unterminatedStringLiteral, null),
+      new TestError(8, diag.unterminatedStringLiteral, const []),
     ];
     // Fasta inserts synthetic closers.
     expectedTokens.addAll([
@@ -1239,7 +1239,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.IDENTIFIER, "", 4, 0),
       new StringToken(TokenType.STRING, "'", 4),
     ]);
-    expectedErrors.addAll([new TestError(4, diag.missingIdentifier, null)]);
+    expectedErrors.addAll([new TestError(4, diag.missingIdentifier, const [])]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\$x\$'", listener);
     listener.assertErrors(expectedErrors);
@@ -1255,7 +1255,7 @@ abstract class ScannerTestBase {
     expectedTokens.addAll([
       new SyntheticStringToken(TokenType.IDENTIFIER, "", 2),
     ]);
-    expectedErrors.addAll([new TestError(2, diag.missingIdentifier, null)]);
+    expectedErrors.addAll([new TestError(2, diag.missingIdentifier, const [])]);
     expectedTokens.addAll([new StringToken(TokenType.STRING, "1'", 2)]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\$1'", listener);
@@ -1304,7 +1304,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "name", 3),
     ];
     List<TestError> expectedErrors = [
-      new TestError(6, diag.unterminatedStringLiteral, null),
+      new TestError(6, diag.unterminatedStringLiteral, const []),
     ];
     // Fasta inserts synthetic closers.
     expectedTokens.addAll([
@@ -1412,7 +1412,7 @@ abstract class ScannerTestBase {
     DiagnosticCode expectedError,
     int expectedOffset,
     String source, [
-    List<Object>? arguments,
+    List<Object> arguments = const [],
   ]) {
     ErrorListener listener = new ErrorListener();
     var tokens = scanWithListener(source, listener);
@@ -1439,7 +1439,9 @@ abstract class ScannerTestBase {
   ) {
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener(source, listener);
-    listener.assertErrors([new TestError(expectedOffset, expectedError, null)]);
+    listener.assertErrors([
+      new TestError(expectedOffset, expectedError, const []),
+    ]);
     _checkTokens(token, expectedTokens);
   }
 
@@ -1601,17 +1603,15 @@ int finishHash(int hash) {
 class TestError {
   final int offset;
   final DiagnosticCode diagnosticCode;
-  final List<Object>? arguments;
+  final List<Object> arguments;
 
   TestError(this.offset, this.diagnosticCode, this.arguments);
 
   @override
   int get hashCode {
     int h = combineHash(combineHash(0, offset), diagnosticCode.hashCode);
-    if (arguments != null) {
-      for (Object argument in arguments!) {
-        h = combineHash(h, argument.hashCode);
-      }
+    for (Object argument in arguments) {
+      h = combineHash(h, argument.hashCode);
     }
     return finishHash(h);
   }
@@ -1621,11 +1621,9 @@ class TestError {
     if (other is TestError &&
         offset == other.offset &&
         diagnosticCode == other.diagnosticCode) {
-      if (arguments == null) return other.arguments == null;
-      if (other.arguments == null) return false;
-      if (arguments!.length != other.arguments!.length) return false;
-      for (int i = 0; i < arguments!.length; i++) {
-        if (arguments![i] != other.arguments![i]) return false;
+      if (arguments.length != other.arguments.length) return false;
+      for (int i = 0; i < arguments.length; i++) {
+        if (arguments[i] != other.arguments[i]) return false;
       }
       return true;
     }
@@ -1634,7 +1632,7 @@ class TestError {
 
   @override
   String toString() {
-    var argString = arguments == null ? '' : '(${arguments!.join(', ')})';
+    var argString = arguments.isEmpty ? '' : '(${arguments.join(', ')})';
     return 'Error($offset, $diagnosticCode$argString)';
   }
 }

@@ -18,10 +18,7 @@ Element? getElementOfNode2(AstNode? node) {
   if (node is NameWithTypeParameters) {
     node = node.parent;
   }
-  if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-    node = node.parent;
-  }
-  if (node is LibraryIdentifier) {
+  if (node is DottedName) {
     node = node.parent;
   }
   if (node is StringLiteral && node.parent is UriBasedDirective) {
@@ -34,6 +31,10 @@ Element? getElementOfNode2(AstNode? node) {
       return MockLibraryImportElement(node.libraryImport!);
     case ImportPrefixReference():
       element = node.element;
+    case ConstructorDeclaration():
+      return node.declaredFragment?.element;
+    case PrimaryConstructorDeclaration():
+      return node.declaredFragment?.element;
     default:
       element = ElementLocator.locate(node);
   }
@@ -92,13 +93,11 @@ MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   }
   // prepare used element
   Element? usedElement;
-  if (parent is PrefixedIdentifier) {
-    var prefixed = parent;
+  if (parent case PrefixedIdentifier prefixed) {
     if (prefixed.prefix == prefixNode) {
       usedElement = prefixed.element;
     }
-  } else if (parent is MethodInvocation) {
-    var invocation = parent;
+  } else if (parent case MethodInvocation invocation) {
     if (invocation.target == prefixNode) {
       usedElement = invocation.methodName.element;
     }
@@ -349,15 +348,14 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    var fragment = node.declaredFragment;
-    if (fragment?.element == element) {
-      if ((node.period, node.name) case (var period?, var nameToken?)) {
-        var offset = period.offset;
-        var length = nameToken.end - offset;
+    if (node.declaredFragment?.element == element) {
+      if (node.name case var name?) {
+        var offset = node.period?.offset ?? name.offset;
+        var length = name.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       } else {
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        references.add(MatchInfo(node.typeName!.end, 0, MatchKind.DECLARATION));
+        var end = (node.typeName ?? node.newKeyword)!.end;
+        references.add(MatchInfo(end, 0, MatchKind.DECLARATION));
       }
     }
     super.visitConstructorDeclaration(node);
@@ -425,6 +423,23 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
     node.importPrefix?.accept(this);
     node.typeArguments?.accept(this);
+  }
+
+  @override
+  visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    if (node.declaredFragment?.element == element) {
+      if (node.constructorName case var constructorName?) {
+        var offset = constructorName.period.offset;
+        var length = constructorName.name.end - offset;
+        references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
+      } else {
+        var end = node.typeName.end;
+        references.add(MatchInfo(end, 0, MatchKind.DECLARATION));
+      }
+    }
+    super.visitPrimaryConstructorDeclaration(node);
   }
 
   @override

@@ -31,12 +31,24 @@ class PluginWatcher implements DriverWatcher {
   final Map<AnalysisDriver, _DriverInfo> _driverInfo =
       <AnalysisDriver, _DriverInfo>{};
 
+  final bool _pluginsAreEnabled;
+
   /// Initialize a newly created plugin watcher.
-  PluginWatcher(this.resourceProvider, this.manager)
-    : _locator = PluginLocator(resourceProvider);
+  PluginWatcher(
+    this.resourceProvider,
+    this.manager, {
+    required this._pluginsAreEnabled,
+  }) : _locator = PluginLocator(resourceProvider);
 
   @override
   void addedDriver(AnalysisDriver driver) {
+    if (!_pluginsAreEnabled) {
+      // Call the plugin manager "initialized."
+      if (!manager.initializedCompleter.isCompleted) {
+        manager.initializedCompleter.complete();
+      }
+      return;
+    }
     var contextRoot = driver.analysisContext!.contextRoot;
     _driverInfo[driver] = _DriverInfo(contextRoot, <String>[
       contextRoot.root.path,
@@ -66,9 +78,11 @@ class PluginWatcher implements DriverWatcher {
     _addPlugins(driver);
   }
 
-  /// The context manager has just removed the given analysis [driver].
   @override
   void removedDriver(AnalysisDriver driver) {
+    if (!_pluginsAreEnabled) {
+      return;
+    }
     var info = _driverInfo[driver];
     if (info == null) {
       throw StateError('Cannot remove a driver that was not added');

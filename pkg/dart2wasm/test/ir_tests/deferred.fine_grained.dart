@@ -4,7 +4,7 @@
 
 // functionFilter=foo.*Code
 // functionFilter=Foo.*doit
-// tableFilter=static[0-9]+
+// tableFilter=cross-module-funcs
 // globalFilter=fooGlobal
 // globalFilter=FooConst
 // typeFilter=NoMatch

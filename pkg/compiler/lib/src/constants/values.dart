@@ -6,9 +6,9 @@ library;
 
 import '../common.dart';
 import '../common/elements.dart' show CommonElements;
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../js/js.dart' as js;
 import '../universe/record_shape.dart';
 import '../util/util.dart';
@@ -919,6 +919,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
   // TODO(johnniwinther): Make [fields] private to avoid misuse of the map
   // ordering and mutability.
   final Map<FieldEntity, ConstantValue> fields;
+
   @override
   final int hashCode;
 

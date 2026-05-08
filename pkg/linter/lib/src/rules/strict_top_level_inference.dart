@@ -41,6 +41,7 @@ class StrictTopLevelInference extends MultiAnalysisRule {
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
   }
 }
@@ -90,6 +91,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (fragment is MethodFragmentImpl) {
       _checkMethod(node, fragment);
     }
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _checkFormalParameters(node.formalParameters.parameters);
   }
 
   @override

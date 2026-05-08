@@ -243,7 +243,7 @@ R? visitFunctionDeclaration(FunctionDeclaration node) {
   if (node.parent is FunctionDeclarationStatement) {
     return visitNode(node);
   }
-  return visitNamedCompilationUnitMember(node);
+  return visitCompilationUnitMember(node);
 }''');
         continue;
       }
@@ -641,7 +641,7 @@ class _Node {
 
   _Node? get superNode {
     var superElement = implElement.supertype?.element;
-    return superElement.ifTypeOrNull<ClassElement>()?.asNode;
+    return superElement.tryCast<ClassElement>()?.asNode;
   }
 }
 
@@ -694,6 +694,9 @@ abstract class RuleVisitorRegistry {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('@experimental');
+        }
+        if (node.isDeprecated) {
+          out.writeln("@Deprecated('See ${node.apiElementName} for details')");
         }
         out.writeln('''
 void add$name(AbstractAnalysisRule rule, AstVisitor visitor);

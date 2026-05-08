@@ -35,7 +35,12 @@ class DeprecatedFunctionalityVerifier {
   }
 
   void constructorDeclaration(ConstructorDeclaration node) {
-    _checkForDeprecatedOptionalSuperParameters(node);
+    _checkForDeprecatedOptionalSuperParameters(
+      parameters: node.parameters,
+      initializers: node.initializers,
+      superConstructor: node.declaredFragment?.element.superConstructor,
+      errorRange: node.errorRange,
+    );
     _checkForDeprecatedOptionalRedirectedParameters(node);
 
     // Check redirectiong constructor invocations in the initializer list.
@@ -125,6 +130,15 @@ class DeprecatedFunctionalityVerifier {
     // Not technically "implementing," but is similar enough for
     // `@Deprecated.implement` and `@Deprecated.subclass`.
     _checkForDeprecatedImplement(node.onClause?.superclassConstraints);
+  }
+
+  void primaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _checkForDeprecatedOptionalSuperParameters(
+      parameters: node.formalParameters,
+      initializers: node.body?.initializers ?? const [],
+      superConstructor: node.declaredFragment?.element.superConstructor,
+      errorRange: node.errorRange,
+    );
   }
 
   void _checkForDeprecatedExtend(NamedType? node) {
@@ -259,8 +273,15 @@ class DeprecatedFunctionalityVerifier {
     }
   }
 
-  void _checkForDeprecatedOptionalSuperParameters(ConstructorDeclaration node) {
-    var superConstructorInvocations = node.initializers
+  void _checkForDeprecatedOptionalSuperParameters({
+    required FormalParameterList parameters,
+    required List<ConstructorInitializer> initializers,
+    required ConstructorElement? superConstructor,
+    required SourceRange errorRange,
+  }) {
+    if (superConstructor == null) return;
+
+    var superConstructorInvocations = initializers
         .whereType<SuperConstructorInvocation>();
     if (superConstructorInvocations.length > 1) {
       // Error reported elsewhere.
@@ -271,49 +292,25 @@ class DeprecatedFunctionalityVerifier {
       :positionalArgumentCount,
       :namedArgumentNames,
     ) = verifySuperFormalParameters(
-      constructor: node,
+      formalParameterList: parameters,
       diagnosticReporter: _diagnosticReporter,
     );
 
-    ConstructorElement superConstructor;
     List<Expression> superConstructorArguments;
-    int errorOffset;
-    int errorLength;
 
     if (superConstructorInvocations.isEmpty) {
-      // The unnamed super-constructor will be invoked; report a warning for
-      // each `@Deprecated.optional` parameter in that constructor without a
-      // matching super-parameter.
-      if (node.declaredFragment!.element.superConstructor
-          case var unnamedSuperConstructor?) {
-        superConstructor = unnamedSuperConstructor;
-      } else {
-        // Error reported elsewhere.
-        return;
-      }
       superConstructorArguments = [];
-      SourceRange(offset: errorOffset, length: errorLength) = node.errorRange;
     } else {
       // Arguments may be passed to the super constructor _either_ in
       // `superConstructorInvocation` or via super-parameters.
-
       var superConstructorInvocation = superConstructorInvocations.single;
-      if (superConstructorInvocation.element
-          case var superInvocationConstructor?) {
-        superConstructor = superInvocationConstructor;
-      } else {
-        // Error reported elsewhere.
-        return;
-      }
-
       superConstructorArguments =
           superConstructorInvocation.argumentList.arguments;
 
       var errorEntity =
           superConstructorInvocation.constructorName ??
           superConstructorInvocation.superKeyword;
-      errorOffset = errorEntity.offset;
-      errorLength = errorEntity.length;
+      errorRange = errorEntity.sourceRange;
     }
 
     var namedSuperConstructorArgumentNames = superConstructorArguments
@@ -346,7 +343,7 @@ class DeprecatedFunctionalityVerifier {
       _diagnosticReporter.report(
         diag.deprecatedOptional
             .withArguments(parameterName: parameter.name ?? '<unknown>')
-            .atOffset(offset: errorOffset, length: errorLength),
+            .atSourceRange(errorRange),
       );
     }
   }

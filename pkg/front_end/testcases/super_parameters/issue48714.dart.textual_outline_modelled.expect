@@ -1,3 +1,5 @@
+// @dart = 3.10
+
 class Base {
   Base(this.value);
   int value;

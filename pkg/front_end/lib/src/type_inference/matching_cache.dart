@@ -9,7 +9,7 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_unstable/util.dart';
-import '../type_inference/external_ast_helper.dart';
+import '../kernel/external_ast_helper.dart';
 import 'delayed_expressions.dart';
 import 'type_schema.dart';
 

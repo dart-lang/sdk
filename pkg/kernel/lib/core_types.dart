@@ -34,10 +34,7 @@ class CoreTypes {
       'ReachabilityError',
       'Symbol',
     ],
-    'dart:async': [
-      'Future',
-      'Stream',
-    ]
+    'dart:async': ['Future', 'Stream'],
   };
 
   final LibraryIndex index;
@@ -99,12 +96,14 @@ class CoreTypes {
       new Map<Class, InterfaceType>.identity();
 
   CoreTypes(Component component)
-      : index = new LibraryIndex.coreLibraries(component);
+    : index = new LibraryIndex.coreLibraries(component);
 
   late final Library asyncLibrary = index.getLibrary('dart:async');
 
-  late final Procedure asyncStarMoveNextHelper =
-      index.getTopLevelProcedure('dart:async', '_asyncStarMoveNextHelper');
+  late final Procedure asyncStarMoveNextHelper = index.getTopLevelProcedure(
+    'dart:async',
+    '_asyncStarMoveNextHelper',
+  );
 
   late final Class boolClass = index.getClass('dart:core', 'bool');
 
@@ -127,55 +126,83 @@ class CoreTypes {
       index.getMember('dart:async', 'Future', 'value') as Procedure;
 
   // TODO(cstefantsova): Remove it when FutureOrType is fully supported.
-  late final Class deprecatedFutureOrClass =
-      index.getClass('dart:async', 'FutureOr');
+  late final Class deprecatedFutureOrClass = index.getClass(
+    'dart:async',
+    'FutureOr',
+  );
 
-  late final Procedure identicalProcedure =
-      index.getTopLevelProcedure('dart:core', 'identical');
+  late final Procedure identicalProcedure = index.getTopLevelProcedure(
+    'dart:core',
+    'identical',
+  );
 
-  late final Procedure printProcedure =
-      index.getTopLevelProcedure('dart:core', 'print');
+  late final Procedure printProcedure = index.getTopLevelProcedure(
+    'dart:core',
+    'print',
+  );
 
   late final Class intClass = index.getClass('dart:core', 'int');
 
-  late final Class internalSymbolClass =
-      index.getClass('dart:_internal', 'Symbol');
+  late final Class internalSymbolClass = index.getClass(
+    'dart:_internal',
+    'Symbol',
+  );
 
   late final Class invocationClass = index.getClass('dart:core', 'Invocation');
 
-  late final Class invocationMirrorClass =
-      index.getClass('dart:core', '_InvocationMirror');
+  late final Class invocationMirrorClass = index.getClass(
+    'dart:core',
+    '_InvocationMirror',
+  );
 
-  late final Constructor invocationMirrorWithTypeConstructor =
-      index.getConstructor('dart:core', '_InvocationMirror', '_withType');
+  late final Constructor invocationMirrorWithTypeConstructor = index
+      .getConstructor('dart:core', '_InvocationMirror', '_withType');
 
   late final Class iterableClass = index.getClass('dart:core', 'Iterable');
 
-  late final Procedure iterableGetIterator =
-      index.getProcedure('dart:core', 'Iterable', 'get:iterator');
+  late final Procedure iterableGetIterator = index.getProcedure(
+    'dart:core',
+    'Iterable',
+    'get:iterator',
+  );
 
   late final Class iteratorClass = index.getClass('dart:core', 'Iterator');
 
-  late final Procedure iteratorMoveNext =
-      index.getProcedure('dart:core', 'Iterator', 'moveNext');
+  late final Procedure iteratorMoveNext = index.getProcedure(
+    'dart:core',
+    'Iterator',
+    'moveNext',
+  );
 
-  late final Procedure iteratorGetCurrent =
-      index.getProcedure('dart:core', 'Iterator', 'get:current');
+  late final Procedure iteratorGetCurrent = index.getProcedure(
+    'dart:core',
+    'Iterator',
+    'get:current',
+  );
 
   late final Class listClass = index.getClass('dart:core', 'List');
 
-  late final Procedure listFromConstructor =
-      index.getProcedure('dart:core', 'List', 'from');
+  late final Procedure listFromConstructor = index.getProcedure(
+    'dart:core',
+    'List',
+    'from',
+  );
 
-  late final Procedure listUnmodifiableConstructor =
-      index.getProcedure('dart:core', 'List', 'unmodifiable');
+  late final Procedure listUnmodifiableConstructor = index.getProcedure(
+    'dart:core',
+    'List',
+    'unmodifiable',
+  );
 
   late final Class setClass = index.getClass('dart:core', 'Set');
 
   late final Class mapClass = index.getClass('dart:core', 'Map');
 
-  late final Procedure mapUnmodifiable =
-      index.getProcedure('dart:core', 'Map', 'unmodifiable');
+  late final Procedure mapUnmodifiable = index.getProcedure(
+    'dart:core',
+    'Map',
+    'unmodifiable',
+  );
 
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   late final Library? mirrorsLibrary = index.tryGetLibrary('dart:mirrors');
@@ -190,8 +217,11 @@ class CoreTypes {
 
   late final Class objectClass = index.getClass('dart:core', 'Object');
 
-  late final Procedure objectEquals =
-      index.getProcedure('dart:core', 'Object', '==');
+  late final Procedure objectEquals = index.getProcedure(
+    'dart:core',
+    'Object',
+    '==',
+  );
 
   late final Class? platformClass = index.tryGetClass('dart:io', 'Platform');
 
@@ -199,33 +229,53 @@ class CoreTypes {
 
   late final Field pragmaName = index.getField('dart:core', 'pragma', 'name');
 
-  late final Field pragmaOptions =
-      index.getField('dart:core', 'pragma', 'options');
+  late final Field pragmaOptions = index.getField(
+    'dart:core',
+    'pragma',
+    'options',
+  );
 
-  late final Constructor pragmaConstructor =
-      index.getConstructor('dart:core', 'pragma', '_');
+  late final Constructor pragmaConstructor = index.getConstructor(
+    'dart:core',
+    'pragma',
+    '_',
+  );
 
   late final Class stackTraceClass = index.getClass('dart:core', 'StackTrace');
 
   late final Class streamClass = index.getClass('dart:core', 'Stream');
 
-  late final Member streamIteratorSubscription =
-      index.getMember('dart:async', '_StreamIterator', '_subscription');
+  late final Member streamIteratorSubscription = index.getMember(
+    'dart:async',
+    '_StreamIterator',
+    '_subscription',
+  );
 
-  late final Procedure streamIteratorCancel =
-      index.getProcedure('dart:async', '_StreamIterator', 'cancel');
+  late final Procedure streamIteratorCancel = index.getProcedure(
+    'dart:async',
+    '_StreamIterator',
+    'cancel',
+  );
 
-  late final Class streamIteratorClass =
-      index.getClass('dart:async', '_StreamIterator');
+  late final Class streamIteratorClass = index.getClass(
+    'dart:async',
+    '_StreamIterator',
+  );
 
-  late final Constructor streamIteratorDefaultConstructor =
-      index.getConstructor('dart:async', '_StreamIterator', '');
+  late final Constructor streamIteratorDefaultConstructor = index
+      .getConstructor('dart:async', '_StreamIterator', '');
 
-  late final Procedure streamIteratorMoveNext =
-      index.getProcedure('dart:async', '_StreamIterator', 'moveNext');
+  late final Procedure streamIteratorMoveNext = index.getProcedure(
+    'dart:async',
+    '_StreamIterator',
+    'moveNext',
+  );
 
-  late final Member streamIteratorCurrent =
-      index.getMember('dart:async', '_StreamIterator', 'get:current');
+  late final Member streamIteratorCurrent = index.getMember(
+    'dart:async',
+    '_StreamIterator',
+    'get:current',
+  );
 
   late final Class stringClass = index.getClass('dart:core', 'String');
 
@@ -233,25 +283,35 @@ class CoreTypes {
 
   late final Class typeClass = index.getClass('dart:core', 'Type');
 
-  late final Procedure boolFromEnvironment =
-      index.getProcedure('dart:core', 'bool', 'fromEnvironment');
+  late final Procedure boolFromEnvironment = index.getProcedure(
+    'dart:core',
+    'bool',
+    'fromEnvironment',
+  );
 
-  late final Procedure intUnaryMinus =
-      index.getProcedure('dart:core', 'int', 'unary-');
+  late final Procedure intUnaryMinus = index.getProcedure(
+    'dart:core',
+    'int',
+    'unary-',
+  );
 
-  late final Procedure createSentinelMethod =
-      index.getTopLevelProcedure('dart:_internal', 'createSentinel');
+  late final Procedure createSentinelMethod = index.getTopLevelProcedure(
+    'dart:_internal',
+    'createSentinel',
+  );
 
-  late final Procedure isSentinelMethod =
-      index.getTopLevelProcedure('dart:_internal', 'isSentinel');
+  late final Procedure isSentinelMethod = index.getTopLevelProcedure(
+    'dart:_internal',
+    'isSentinel',
+  );
 
   late final Constructor
-      lateInitializationFieldAssignedDuringInitializationConstructor =
-      index.getConstructor('dart:_internal', 'LateError', 'fieldADI');
+  lateInitializationFieldAssignedDuringInitializationConstructor = index
+      .getConstructor('dart:_internal', 'LateError', 'fieldADI');
 
   late final Constructor
-      lateInitializationLocalAssignedDuringInitializationConstructor =
-      index.getConstructor('dart:_internal', 'LateError', 'localADI');
+  lateInitializationLocalAssignedDuringInitializationConstructor = index
+      .getConstructor('dart:_internal', 'LateError', 'localADI');
 
   late final Constructor lateInitializationFieldNotInitializedConstructor =
       index.getConstructor('dart:_internal', 'LateError', 'fieldNI');
@@ -265,11 +325,17 @@ class CoreTypes {
   late final Constructor lateInitializationLocalAlreadyInitializedConstructor =
       index.getConstructor('dart:_internal', 'LateError', 'localAI');
 
-  late final Constructor reachabilityErrorConstructor =
-      index.getConstructor('dart:_internal', 'ReachabilityError', '');
+  late final Constructor reachabilityErrorConstructor = index.getConstructor(
+    'dart:_internal',
+    'ReachabilityError',
+    '',
+  );
 
-  late final Constructor stateErrorConstructor =
-      index.getConstructor('dart:core', 'StateError', '');
+  late final Constructor stateErrorConstructor = index.getConstructor(
+    'dart:core',
+    'StateError',
+    '',
+  );
 
   late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
 
@@ -279,14 +345,18 @@ class CoreTypes {
   late final Constructor cellNamedConstructor =
       index.getMember('dart:_late_helper', '_Cell', 'named') as Constructor;
 
-  late final Class initializedCellClass =
-      index.getClass('dart:_late_helper', '_InitializedCell');
+  late final Class initializedCellClass = index.getClass(
+    'dart:_late_helper',
+    '_InitializedCell',
+  );
 
-  late final Constructor initializedCellConstructor = index.getMember(
-      'dart:_late_helper', '_InitializedCell', '') as Constructor;
+  late final Constructor initializedCellConstructor =
+      index.getMember('dart:_late_helper', '_InitializedCell', '')
+          as Constructor;
 
-  late final Constructor initializedCellNamedConstructor = index.getMember(
-      'dart:_late_helper', '_InitializedCell', 'named') as Constructor;
+  late final Constructor initializedCellNamedConstructor =
+      index.getMember('dart:_late_helper', '_InitializedCell', 'named')
+          as Constructor;
 
   late final Procedure cellReadLocal =
       index.getMember('dart:_late_helper', '_Cell', 'readLocal') as Procedure;
@@ -294,55 +364,80 @@ class CoreTypes {
   late final Procedure cellReadField =
       index.getMember('dart:_late_helper', '_Cell', 'readField') as Procedure;
 
-  late final Procedure initializedCellRead = index.getMember(
-      'dart:_late_helper', '_InitializedCell', 'read') as Procedure;
+  late final Procedure initializedCellRead =
+      index.getMember('dart:_late_helper', '_InitializedCell', 'read')
+          as Procedure;
 
-  late final Procedure initializedCellReadFinal = index.getMember(
-      'dart:_late_helper', '_InitializedCell', 'readFinal') as Procedure;
+  late final Procedure initializedCellReadFinal =
+      index.getMember('dart:_late_helper', '_InitializedCell', 'readFinal')
+          as Procedure;
 
   late final Procedure cellValueSetter =
       index.getMember('dart:_late_helper', '_Cell', 'set:value') as Procedure;
 
-  late final Procedure cellFinalLocalValueSetter = index.getMember(
-      'dart:_late_helper', '_Cell', 'set:finalLocalValue') as Procedure;
+  late final Procedure cellFinalLocalValueSetter =
+      index.getMember('dart:_late_helper', '_Cell', 'set:finalLocalValue')
+          as Procedure;
 
-  late final Procedure cellFinalFieldValueSetter = index.getMember(
-      'dart:_late_helper', '_Cell', 'set:finalFieldValue') as Procedure;
+  late final Procedure cellFinalFieldValueSetter =
+      index.getMember('dart:_late_helper', '_Cell', 'set:finalFieldValue')
+          as Procedure;
 
-  late final Procedure initializedCellValueSetter = index.getMember(
-      'dart:_late_helper', '_InitializedCell', 'set:value') as Procedure;
+  late final Procedure initializedCellValueSetter =
+      index.getMember('dart:_late_helper', '_InitializedCell', 'set:value')
+          as Procedure;
 
-  late final Procedure initializedCellFinalValueSetter = index.getMember(
-      'dart:_late_helper', '_InitializedCell', 'set:finalValue') as Procedure;
+  late final Procedure initializedCellFinalValueSetter =
+      index.getMember('dart:_late_helper', '_InitializedCell', 'set:finalValue')
+          as Procedure;
 
-  late final Procedure lateReadCheck =
-      index.getTopLevelProcedure('dart:_late_helper', '_lateReadCheck');
+  late final Procedure lateReadCheck = index.getTopLevelProcedure(
+    'dart:_late_helper',
+    '_lateReadCheck',
+  );
 
-  late final Procedure lateWriteOnceCheck =
-      index.getTopLevelProcedure('dart:_late_helper', '_lateWriteOnceCheck');
+  late final Procedure lateWriteOnceCheck = index.getTopLevelProcedure(
+    'dart:_late_helper',
+    '_lateWriteOnceCheck',
+  );
 
   late final Procedure lateInitializeOnceCheck = index.getTopLevelProcedure(
-      'dart:_late_helper', '_lateInitializeOnceCheck');
+    'dart:_late_helper',
+    '_lateInitializeOnceCheck',
+  );
 
-  late final Procedure wrapAwaitedExpression =
-      index.getTopLevelProcedure('dart:async', '_wrapAwaitedExpression');
+  late final Procedure wrapAwaitedExpression = index.getTopLevelProcedure(
+    'dart:async',
+    '_wrapAwaitedExpression',
+  );
 
-  late final Field enumNameField =
-      index.getField('dart:core', '_Enum', '_name');
+  late final Field enumNameField = index.getField(
+    'dart:core',
+    '_Enum',
+    '_name',
+  );
 
-  late final Procedure jsGetFlag =
-      index.getTopLevelProcedure('dart:_foreign_helper', 'JS_GET_FLAG');
+  late final Procedure jsGetFlag = index.getTopLevelProcedure(
+    'dart:_foreign_helper',
+    'JS_GET_FLAG',
+  );
 
   InterfaceType get objectNullableRawType {
     return _objectNullableRawType ??= _nullableRawTypes[objectClass] ??=
         new InterfaceType(
-            objectClass, Nullability.nullable, const <DartType>[]);
+          objectClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get objectNonNullableRawType {
     return _objectNonNullableRawType ??= _nonNullableRawTypes[objectClass] ??=
         new InterfaceType(
-            objectClass, Nullability.nonNullable, const <DartType>[]);
+          objectClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType objectRawType(Nullability nullability) {
@@ -353,7 +448,8 @@ class CoreTypes {
         return objectNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
@@ -361,7 +457,10 @@ class CoreTypes {
   InterfaceType get deprecatedNullType {
     return _deprecatedNullType ??= _nullableRawTypes[deprecatedNullClass] ??=
         new InterfaceType(
-            deprecatedNullClass, Nullability.nullable, const <DartType>[]);
+          deprecatedNullClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get boolNullableRawType {
@@ -372,7 +471,10 @@ class CoreTypes {
   InterfaceType get boolNonNullableRawType {
     return _boolNonNullableRawType ??= _nonNullableRawTypes[boolClass] ??=
         new InterfaceType(
-            boolClass, Nullability.nonNullable, const <DartType>[]);
+          boolClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType boolRawType(Nullability nullability) {
@@ -383,7 +485,8 @@ class CoreTypes {
         return boolNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
@@ -395,7 +498,10 @@ class CoreTypes {
   InterfaceType get intNonNullableRawType {
     return _intNonNullableRawType ??= _nonNullableRawTypes[intClass] ??=
         new InterfaceType(
-            intClass, Nullability.nonNullable, const <DartType>[]);
+          intClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType intRawType(Nullability nullability) {
@@ -406,7 +512,8 @@ class CoreTypes {
         return intNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
@@ -418,7 +525,10 @@ class CoreTypes {
   InterfaceType get numNonNullableRawType {
     return _numNonNullableRawType ??= _nonNullableRawTypes[numClass] ??=
         new InterfaceType(
-            numClass, Nullability.nonNullable, const <DartType>[]);
+          numClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType numRawType(Nullability nullability) {
@@ -429,20 +539,27 @@ class CoreTypes {
         return numNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get doubleNullableRawType {
     return _doubleNullableRawType ??= _nullableRawTypes[doubleClass] ??=
         new InterfaceType(
-            doubleClass, Nullability.nullable, const <DartType>[]);
+          doubleClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get doubleNonNullableRawType {
     return _doubleNonNullableRawType ??= _nonNullableRawTypes[doubleClass] ??=
         new InterfaceType(
-            doubleClass, Nullability.nonNullable, const <DartType>[]);
+          doubleClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType doubleRawType(Nullability nullability) {
@@ -453,20 +570,27 @@ class CoreTypes {
         return doubleNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get stringNullableRawType {
     return _stringNullableRawType ??= _nullableRawTypes[stringClass] ??=
         new InterfaceType(
-            stringClass, Nullability.nullable, const <DartType>[]);
+          stringClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get stringNonNullableRawType {
     return _stringNonNullableRawType ??= _nonNullableRawTypes[stringClass] ??=
         new InterfaceType(
-            stringClass, Nullability.nonNullable, const <DartType>[]);
+          stringClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType stringRawType(Nullability nullability) {
@@ -477,20 +601,23 @@ class CoreTypes {
         return stringNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get listNullableRawType {
     return _listNullableRawType ??= _nullableRawTypes[listClass] ??=
-        new InterfaceType(listClass, Nullability.nullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(listClass, Nullability.nullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType get listNonNullableRawType {
     return _listNonNullableRawType ??= _nonNullableRawTypes[listClass] ??=
-        new InterfaceType(listClass, Nullability.nonNullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(listClass, Nullability.nonNullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType listRawType(Nullability nullability) {
@@ -501,20 +628,23 @@ class CoreTypes {
         return listNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get setNullableRawType {
     return _setNullableRawType ??= _nullableRawTypes[setClass] ??=
-        new InterfaceType(setClass, Nullability.nullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(setClass, Nullability.nullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType get setNonNullableRawType {
     return _setNonNullableRawType ??= _nonNullableRawTypes[setClass] ??=
-        new InterfaceType(setClass, Nullability.nonNullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(setClass, Nullability.nonNullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType setRawType(Nullability nullability) {
@@ -525,20 +655,25 @@ class CoreTypes {
         return setNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get mapNullableRawType {
     return _mapNullableRawType ??= _nullableRawTypes[mapClass] ??=
-        new InterfaceType(mapClass, Nullability.nullable,
-            const <DartType>[const DynamicType(), const DynamicType()]);
+        new InterfaceType(mapClass, Nullability.nullable, const <DartType>[
+          const DynamicType(),
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType get mapNonNullableRawType {
     return _mapNonNullableRawType ??= _nonNullableRawTypes[mapClass] ??=
-        new InterfaceType(mapClass, Nullability.nonNullable,
-            const <DartType>[const DynamicType(), const DynamicType()]);
+        new InterfaceType(mapClass, Nullability.nonNullable, const <DartType>[
+          const DynamicType(),
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType mapRawType(Nullability nullability) {
@@ -549,20 +684,25 @@ class CoreTypes {
         return mapNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get iterableNullableRawType {
     return _iterableNullableRawType ??= _nullableRawTypes[iterableClass] ??=
-        new InterfaceType(iterableClass, Nullability.nullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(iterableClass, Nullability.nullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType get iterableNonNullableRawType {
     return _iterableNonNullableRawType ??=
-        _nonNullableRawTypes[iterableClass] ??= new InterfaceType(iterableClass,
-            Nullability.nonNullable, const <DartType>[const DynamicType()]);
+        _nonNullableRawTypes[iterableClass] ??= new InterfaceType(
+          iterableClass,
+          Nullability.nonNullable,
+          const <DartType>[const DynamicType()],
+        );
   }
 
   InterfaceType iterableRawType(Nullability nullability) {
@@ -573,20 +713,25 @@ class CoreTypes {
         return iterableNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get iteratorNullableRawType {
     return _iteratorNullableRawType ??= _nullableRawTypes[iteratorClass] ??=
-        new InterfaceType(iteratorClass, Nullability.nullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(iteratorClass, Nullability.nullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType get iteratorNonNullableRawType {
     return _iteratorNonNullableRawType ??=
-        _nonNullableRawTypes[iteratorClass] ??= new InterfaceType(iteratorClass,
-            Nullability.nonNullable, const <DartType>[const DynamicType()]);
+        _nonNullableRawTypes[iteratorClass] ??= new InterfaceType(
+          iteratorClass,
+          Nullability.nonNullable,
+          const <DartType>[const DynamicType()],
+        );
   }
 
   InterfaceType iteratorRawType(Nullability nullability) {
@@ -597,20 +742,27 @@ class CoreTypes {
         return iteratorNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get symbolNullableRawType {
     return _symbolNullableRawType ??= _nullableRawTypes[symbolClass] ??=
         new InterfaceType(
-            symbolClass, Nullability.nullable, const <DartType>[]);
+          symbolClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get symbolNonNullableRawType {
     return _symbolNonNullableRawType ??= _nonNullableRawTypes[symbolClass] ??=
         new InterfaceType(
-            symbolClass, Nullability.nonNullable, const <DartType>[]);
+          symbolClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType symbolRawType(Nullability nullability) {
@@ -621,7 +773,8 @@ class CoreTypes {
         return symbolNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
@@ -633,7 +786,10 @@ class CoreTypes {
   InterfaceType get typeNonNullableRawType {
     return _typeNonNullableRawType ??= _nonNullableRawTypes[typeClass] ??=
         new InterfaceType(
-            typeClass, Nullability.nonNullable, const <DartType>[]);
+          typeClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType typeRawType(Nullability nullability) {
@@ -644,20 +800,27 @@ class CoreTypes {
         return typeNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get functionNullableRawType {
     return _functionNullableRawType ??= _nullableRawTypes[functionClass] ??=
         new InterfaceType(
-            functionClass, Nullability.nullable, const <DartType>[]);
+          functionClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get functionNonNullableRawType {
     return _functionNonNullableRawType ??=
         _nonNullableRawTypes[functionClass] ??= new InterfaceType(
-            functionClass, Nullability.nonNullable, const <DartType>[]);
+          functionClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType functionRawType(Nullability nullability) {
@@ -668,20 +831,27 @@ class CoreTypes {
         return functionNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get recordNullableRawType {
     return _recordNullableRawType ??= _nullableRawTypes[recordClass] ??=
         new InterfaceType(
-            recordClass, Nullability.nullable, const <DartType>[]);
+          recordClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get recordNonNullableRawType {
     return _recordNonNullableRawType ??= _nonNullableRawTypes[recordClass] ??=
         new InterfaceType(
-            recordClass, Nullability.nonNullable, const <DartType>[]);
+          recordClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType recordRawType(Nullability nullability) {
@@ -692,20 +862,27 @@ class CoreTypes {
         return recordNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get invocationNullableRawType {
     return _invocationNullableRawType ??= _nullableRawTypes[invocationClass] ??=
         new InterfaceType(
-            invocationClass, Nullability.nullable, const <DartType>[]);
+          invocationClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get invocationNonNullableRawType {
     return _invocationNonNullableRawType ??=
         _nonNullableRawTypes[invocationClass] ??= new InterfaceType(
-            invocationClass, Nullability.nonNullable, const <DartType>[]);
+          invocationClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType invocationRawType(Nullability nullability) {
@@ -716,20 +893,27 @@ class CoreTypes {
         return invocationNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get invocationMirrorNullableRawType {
     return _invocationMirrorNullableRawType ??=
         _nullableRawTypes[invocationMirrorClass] ??= new InterfaceType(
-            invocationMirrorClass, Nullability.nullable, const <DartType>[]);
+          invocationMirrorClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get invocationMirrorNonNullableRawType {
     return _invocationMirrorNonNullableRawType ??=
         _nonNullableRawTypes[invocationMirrorClass] ??= new InterfaceType(
-            invocationMirrorClass, Nullability.nonNullable, const <DartType>[]);
+          invocationMirrorClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType invocationMirrorRawType(Nullability nullability) {
@@ -740,20 +924,25 @@ class CoreTypes {
         return invocationMirrorNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get futureNullableRawType {
     return _futureNullableRawType ??= _nullableRawTypes[futureClass] ??=
-        new InterfaceType(futureClass, Nullability.nullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(futureClass, Nullability.nullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType get futureNonNullableRawType {
     return _futureNonNullableRawType ??= _nonNullableRawTypes[futureClass] ??=
-        new InterfaceType(futureClass, Nullability.nonNullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(
+          futureClass,
+          Nullability.nonNullable,
+          const <DartType>[const DynamicType()],
+        );
   }
 
   InterfaceType futureRawType(Nullability nullability) {
@@ -764,20 +953,27 @@ class CoreTypes {
         return futureNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get stackTraceNullableRawType {
     return _stackTraceNullableRawType ??= _nullableRawTypes[stackTraceClass] ??=
         new InterfaceType(
-            stackTraceClass, Nullability.nullable, const <DartType>[]);
+          stackTraceClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get stackTraceNonNullableRawType {
     return _stackTraceNonNullableRawType ??=
         _nonNullableRawTypes[stackTraceClass] ??= new InterfaceType(
-            stackTraceClass, Nullability.nonNullable, const <DartType>[]);
+          stackTraceClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType stackTraceRawType(Nullability nullability) {
@@ -788,20 +984,25 @@ class CoreTypes {
         return stackTraceNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get streamNullableRawType {
     return _streamNullableRawType ??= _nullableRawTypes[streamClass] ??=
-        new InterfaceType(streamClass, Nullability.nullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(streamClass, Nullability.nullable, const <DartType>[
+          const DynamicType(),
+        ]);
   }
 
   InterfaceType get streamNonNullableRawType {
     return _streamNonNullableRawType ??= _nonNullableRawTypes[streamClass] ??=
-        new InterfaceType(streamClass, Nullability.nonNullable,
-            const <DartType>[const DynamicType()]);
+        new InterfaceType(
+          streamClass,
+          Nullability.nonNullable,
+          const <DartType>[const DynamicType()],
+        );
   }
 
   InterfaceType streamRawType(Nullability nullability) {
@@ -812,20 +1013,27 @@ class CoreTypes {
         return streamNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType get pragmaNullableRawType {
     return _pragmaNullableRawType ??= _nullableRawTypes[pragmaClass] ??=
         new InterfaceType(
-            pragmaClass, Nullability.nullable, const <DartType>[]);
+          pragmaClass,
+          Nullability.nullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType get pragmaNonNullableRawType {
     return _pragmaNonNullableRawType ??= _nonNullableRawTypes[pragmaClass] ??=
         new InterfaceType(
-            pragmaClass, Nullability.nonNullable, const <DartType>[]);
+          pragmaClass,
+          Nullability.nonNullable,
+          const <DartType>[],
+        );
   }
 
   InterfaceType pragmaRawType(Nullability nullability) {
@@ -836,7 +1044,8 @@ class CoreTypes {
         return pragmaNonNullableRawType;
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
@@ -844,20 +1053,26 @@ class CoreTypes {
     // TODO(cstefantsova): Consider using computeBounds instead of DynamicType
     // here.
     return _nullableRawTypes[klass] ??= new InterfaceType(
-        klass,
-        Nullability.nullable,
-        new List<DartType>.filled(
-            klass.typeParameters.length, const DynamicType()));
+      klass,
+      Nullability.nullable,
+      new List<DartType>.filled(
+        klass.typeParameters.length,
+        const DynamicType(),
+      ),
+    );
   }
 
   InterfaceType nonNullableRawType(Class klass) {
     // TODO(cstefantsova): Consider using computeBounds instead of DynamicType
     // here.
     return _nonNullableRawTypes[klass] ??= new InterfaceType(
-        klass,
-        Nullability.nonNullable,
-        new List<DartType>.filled(
-            klass.typeParameters.length, const DynamicType()));
+      klass,
+      Nullability.nonNullable,
+      new List<DartType>.filled(
+        klass.typeParameters.length,
+        const DynamicType(),
+      ),
+    );
   }
 
   InterfaceType rawType(Class klass, Nullability nullability) {
@@ -868,33 +1083,44 @@ class CoreTypes {
         return nonNullableRawType(klass);
       case Nullability.undetermined:
         throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
+          "Unsupported nullability $nullability on an InterfaceType.",
+        );
     }
   }
 
   InterfaceType thisInterfaceType(Class klass, Nullability nullability) {
     InterfaceType? result = _thisInterfaceTypes[klass];
     if (result == null) {
-      return _thisInterfaceTypes[klass] = new InterfaceType(klass, nullability,
-          getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
+      return _thisInterfaceTypes[klass] = new InterfaceType(
+        klass,
+        nullability,
+        getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary),
+      );
     }
     if (result.nullability != nullability) {
-      return _thisInterfaceTypes[klass] =
-          result.withDeclaredNullability(nullability);
+      return _thisInterfaceTypes[klass] = result.withDeclaredNullability(
+        nullability,
+      );
     }
     return result;
   }
 
   ExtensionType thisExtensionType(
-      ExtensionTypeDeclaration klass, Nullability nullability) {
+    ExtensionTypeDeclaration klass,
+    Nullability nullability,
+  ) {
     ExtensionType? result = _thisExtensionTypes[klass];
     if (result == null) {
-      return _thisExtensionTypes[klass] = new ExtensionType(klass, nullability,
-          getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
+      return _thisExtensionTypes[klass] = new ExtensionType(
+        klass,
+        nullability,
+        getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary),
+      );
     }
     if (result.nullability != nullability) {
-      return _thisExtensionTypes[klass] =
-          result.withDeclaredNullability(nullability);
+      return _thisExtensionTypes[klass] = result.withDeclaredNullability(
+        nullability,
+      );
     }
     return result;
   }
@@ -902,12 +1128,16 @@ class CoreTypes {
   TypedefType thisTypedefType(Typedef typedef, Nullability nullability) {
     TypedefType? result = _thisTypedefTypes[typedef];
     if (result == null) {
-      return _thisTypedefTypes[typedef] = new TypedefType(typedef, nullability,
-          getAsTypeArguments(typedef.typeParameters, typedef.enclosingLibrary));
+      return _thisTypedefTypes[typedef] = new TypedefType(
+        typedef,
+        nullability,
+        getAsTypeArguments(typedef.typeParameters, typedef.enclosingLibrary),
+      );
     }
     if (result.nullability != nullability) {
-      return _thisTypedefTypes[typedef] =
-          result.withDeclaredNullability(nullability);
+      return _thisTypedefTypes[typedef] = result.withDeclaredNullability(
+        nullability,
+      );
     }
     return result;
   }
@@ -916,14 +1146,18 @@ class CoreTypes {
     InterfaceType? result = _bottomInterfaceTypes[klass];
     if (result == null) {
       return _bottomInterfaceTypes[klass] = new InterfaceType(
-          klass,
-          nullability,
-          new List<DartType>.filled(
-              klass.typeParameters.length, const NeverType.nonNullable()));
+        klass,
+        nullability,
+        new List<DartType>.filled(
+          klass.typeParameters.length,
+          const NeverType.nonNullable(),
+        ),
+      );
     }
     if (result.nullability != nullability) {
-      return _bottomInterfaceTypes[klass] =
-          result.withDeclaredNullability(nullability);
+      return _bottomInterfaceTypes[klass] = result.withDeclaredNullability(
+        nullability,
+      );
     }
     return result;
   }
@@ -943,8 +1177,9 @@ class CoreTypes {
 
     // TOP(T?) is true iff TOP(T) or OBJECT(T).
     if (type.declaredNullability == Nullability.nullable) {
-      DartType nonNullableType =
-          type_algebra.unwrapNullabilityConstructor(type);
+      DartType nonNullableType = type_algebra.unwrapNullabilityConstructor(
+        type,
+      );
       if (!identical(type, nonNullableType)) {
         return isTop(nonNullableType) || isObject(nonNullableType);
       }
@@ -1002,8 +1237,9 @@ class CoreTypes {
     // NULL(T?) is true iff NULL(T) or BOTTOM(T).
     // NULL(T*) is true iff NULL(T) or BOTTOM(T).
     if (type.nullability == Nullability.nullable) {
-      DartType nonNullableType =
-          type.withDeclaredNullability(Nullability.nonNullable);
+      DartType nonNullableType = type.withDeclaredNullability(
+        Nullability.nonNullable,
+      );
       return isBottom(nonNullableType);
     }
 

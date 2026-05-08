@@ -17,7 +17,7 @@ abstract class DiagnosticableTree with Diagnosticable {
   const DiagnosticableTree();
 
   @protected
-  List<DiagnosticsNode> debugDescribeChildren();
+  external List<DiagnosticsNode> debugDescribeChildren();
 }
 
 class DiagnosticPropertiesBuilder {
@@ -25,6 +25,10 @@ class DiagnosticPropertiesBuilder {
 }
 
 abstract class DiagnosticsNode {}
+
+enum DiagnosticsTreeStyle {
+  singleLine;
+}
 
 class DiagnosticsProperty<T> extends DiagnosticsNode {
   DiagnosticsProperty(

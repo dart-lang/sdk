@@ -22,31 +22,28 @@ class AnalysisOptionsMapTest with ResourceProviderMixin {
   test_nestedOptions() {
     var rootOptions = AnalysisOptionsImpl();
     var rootFolder = newFolder('/home/test');
-    map.add(rootFolder, rootOptions);
+    map[rootFolder] = rootOptions;
 
     var nestedOptions = AnalysisOptionsImpl();
     var nestedFolder = newFolder('/home/test/example');
-    map.add(nestedFolder, nestedOptions);
+    map[nestedFolder] = nestedOptions;
 
     var rootFile = newFile('/home/test/a.dart', '');
     var nestedFile = newFile('/home/test/example/a.dart', '');
-    expect(map.getOptions(rootFile), rootOptions);
-    expect(map.getOptions(nestedFile), nestedOptions);
+    expect(map[rootFile], rootOptions);
+    expect(map[nestedFile], nestedOptions);
   }
 
   test_noOptions() {
     var file = newFile('/home/test/a.dart', '');
-    expect(map.getOptions(file).file, isNull);
+    expect(map[file].file, isNull);
   }
 
   /// https://github.com/dart-lang/sdk/issues/55252
   test_optionsMapLookup() {
-    AnalysisOptions optionsFor(String file) =>
-        map.getOptions(newFile(file, ''));
-
     AnalysisOptions addOptions(String folder) {
       var options = AnalysisOptionsImpl();
-      map.add(newFolder(folder), options);
+      map[newFolder(folder)] = options;
       return options;
     }
 
@@ -58,20 +55,20 @@ class AnalysisOptionsMapTest with ResourceProviderMixin {
     var fgOptions = addOptions('/home/test/f/g');
 
     // Ensure lookup retrieves the most specific options files.
-    expect(optionsFor('/home/test/f/c.dart'), fOptions);
-    expect(optionsFor('/home/test/f/g/c.dart'), fgOptions);
-    expect(optionsFor('/home/test/f/g/h/c.dart'), fghOptions);
-    expect(optionsFor('/home/test/f/g/h/i/c.dart'), fghiOptions);
+    expect(map[newFile('/home/test/f/c.dart', '')], fOptions);
+    expect(map[newFile('/home/test/f/g/c.dart', '')], fgOptions);
+    expect(map[newFile('/home/test/f/g/h/c.dart', '')], fghOptions);
+    expect(map[newFile('/home/test/f/g/h/i/c.dart', '')], fghiOptions);
   }
 
   test_singleOptions() {
     var rootOptions = AnalysisOptionsImpl();
     var rootFolder = newFolder('/home/test');
-    map.add(rootFolder, rootOptions);
+    map[rootFolder] = rootOptions;
 
     var rootFile = newFile('/home/test/a.dart', '');
     var nestedFile = newFile('/home/test/example/lib/src/a.dart', '');
-    expect(map.getOptions(rootFile), rootOptions);
-    expect(map.getOptions(nestedFile), rootOptions);
+    expect(map[rootFile], rootOptions);
+    expect(map[nestedFile], rootOptions);
   }
 }

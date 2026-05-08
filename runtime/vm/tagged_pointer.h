@@ -457,6 +457,9 @@ inline intptr_t RawSmiValue(const SmiPtr raw_value) {
       static_cast<uint32_t>(static_cast<uintptr_t>(raw_value))));
 #endif
   ASSERT((value & kSmiTagMask) == kSmiTag);
+  // Let the C++ compiler know that it is safe to combine this right shift with
+  // a following left shift, such as often occurs for index scaling.
+  DART_ASSUME((value & kSmiTagMask) == kSmiTag);
   return (value >> kSmiTagShift);
 }
 

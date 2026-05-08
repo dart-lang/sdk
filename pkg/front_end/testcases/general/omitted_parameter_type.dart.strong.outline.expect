@@ -1,0 +1,80 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Typedef1 = (dynamic, {b: dynamic}) → void;
+class SuperClass extends core::Object {
+  synthetic constructor •() → self::SuperClass
+    ;
+  method method((dynamic, {b: dynamic}) → void f) → void
+    ;
+  method method1(core::int a, {core::int? b = null}) → void
+    ;
+}
+class SubClass extends self::SuperClass {
+  constructor •() → self::SubClass
+    ;
+  constructor constructor1(dynamic a, {dynamic b = 0}) → self::SubClass
+    ;
+  constructor constructor2(core::int x, core::String y, core::int z, core::String w) → self::SubClass
+    ;
+  constructor constructor3(dynamic a, {dynamic b = 0}) → self::SubClass
+    ;
+  static factory constructor4(dynamic a, {dynamic b = 0}) → self::SubClass
+    ;
+  method method1(core::int a, {core::int? b = null}) → void
+    ;
+  method method2(dynamic a, {dynamic b = 0}) → dynamic
+    ;
+  static method method3(dynamic a, {has-declared-initializer dynamic b}) → dynamic
+    ;
+}
+extension /* unnamed */ _extension#0 on core::int {
+  method method1 = self::_extension#0|method1;
+  method tearoff method1 = self::_extension#0|get#method1;
+  static method method2 = self::_extension#0|method2;
+}
+extension type SuperExtensionType(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  method method3 = self::SuperExtensionType|method3;
+  method tearoff method3 = self::SuperExtensionType|get#method3;
+  constructor • = self::SuperExtensionType|constructor#;
+  constructor tearoff • = self::SuperExtensionType|constructor#_#new#tearOff;
+}
+extension type SubExtensionType(core::int i) implements self::SuperExtensionType% /* erasure=core::int, declared=! */ {
+  abstract extension-type-member representation-field get i() → core::int;
+  method method3 = self::SubExtensionType|method3;
+  method tearoff method3 = self::SubExtensionType|get#method3;
+  method method4 = self::SubExtensionType|method4;
+  method tearoff method4 = self::SubExtensionType|get#method4;
+  constructor • = self::SubExtensionType|constructor#;
+  constructor tearoff • = self::SubExtensionType|constructor#_#new#tearOff;
+}
+static method method0(dynamic a, {has-declared-initializer dynamic b}) → dynamic
+  ;
+static extension-member method _extension#0|method1(lowered final core::int #this, dynamic a, {has-declared-initializer dynamic b}) → dynamic
+  ;
+static extension-member method _extension#0|get#method1(lowered final core::int #this) → (dynamic, {b: dynamic}) → dynamic
+  return (dynamic a, {dynamic b}) → dynamic => self::_extension#0|method1(#this, a, b: b);
+static extension-member method _extension#0|method2(dynamic a, {has-declared-initializer dynamic b}) → dynamic
+  ;
+static extension-type-member method SuperExtensionType|constructor#(core::int i) → self::SuperExtensionType% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method SuperExtensionType|constructor#_#new#tearOff(core::int i) → self::SuperExtensionType% /* erasure=core::int, declared=! */
+  return self::SuperExtensionType|constructor#(i);
+static extension-type-member method SuperExtensionType|method3(lowered final self::SuperExtensionType% /* erasure=core::int, declared=! */ #this, core::int a, {core::int? b}) → void
+  ;
+static extension-type-member method SuperExtensionType|get#method3(lowered final self::SuperExtensionType% /* erasure=core::int, declared=! */ #this) → (core::int, {b: core::int?}) → void
+  return (core::int a, {core::int? b}) → void => self::SuperExtensionType|method3(#this, a, b: b);
+static extension-type-member method SubExtensionType|constructor#(core::int i) → self::SubExtensionType% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method SubExtensionType|constructor#_#new#tearOff(core::int i) → self::SubExtensionType% /* erasure=core::int, declared=! */
+  return self::SubExtensionType|constructor#(i);
+static extension-type-member method SubExtensionType|method3(lowered final self::SubExtensionType% /* erasure=core::int, declared=! */ #this, dynamic a, {dynamic b}) → dynamic
+  ;
+static extension-type-member method SubExtensionType|get#method3(lowered final self::SubExtensionType% /* erasure=core::int, declared=! */ #this) → (dynamic, {b: dynamic}) → dynamic
+  return (dynamic a, {dynamic b}) → dynamic => self::SubExtensionType|method3(#this, a, b: b);
+static extension-type-member method SubExtensionType|method4(lowered final self::SubExtensionType% /* erasure=core::int, declared=! */ #this, dynamic a, {has-declared-initializer dynamic b}) → dynamic
+  ;
+static extension-type-member method SubExtensionType|get#method4(lowered final self::SubExtensionType% /* erasure=core::int, declared=! */ #this) → (dynamic, {b: dynamic}) → dynamic
+  return (dynamic a, {dynamic b}) → dynamic => self::SubExtensionType|method4(#this, a, b: b);

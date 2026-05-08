@@ -13,22 +13,8 @@ export 'generate_messages_lib.dart';
 
 void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
-  Messages message = generateMessagesFiles(repoDir);
-  if (message.sharedMessages.trim().isEmpty ||
-      message.cfeMessages.trim().isEmpty) {
-    print(
-      "Bailing because of errors: "
-      "Refusing to overwrite with empty file!",
-    );
-  } else {
-    _writeAndFormat(
-      new File.fromUri(computeSharedGeneratedFile(repoDir)),
-      message.sharedMessages,
-    );
-    _writeAndFormat(
-      new File.fromUri(computeCfeGeneratedFile(repoDir)),
-      message.cfeMessages,
-    );
+  for (var messages in generateMessagesFiles(repoDir)) {
+    _writeAndFormat(new File.fromUri(messages.uri(repoDir)), messages.contents);
   }
 }
 
@@ -37,6 +23,6 @@ void _writeAndFormat(File file, String contents) {
   DartFormat.formatFile(file);
 }
 
-Messages generateMessagesFiles(Uri repoDir) {
+List<Messages> generateMessagesFiles(Uri repoDir) {
   return generateMessagesFilesRaw(repoDir);
 }

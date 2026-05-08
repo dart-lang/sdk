@@ -4,11 +4,10 @@
 
 import 'dart:collection' show Queue;
 
+import '../elements/entities.dart';
 import 'algorithm_state.dart';
 import 'entity_data.dart';
 import 'import_set.dart';
-
-import '../elements/entities.dart';
 
 /// The entity_data_state work queue.
 class WorkQueue {

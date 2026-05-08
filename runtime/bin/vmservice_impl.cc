@@ -20,6 +20,8 @@ namespace bin {
 
 #if !defined(PRODUCT)
 
+bool VmService::enable_experimental_vm_service = false;
+
 #define RETURN_ERROR_HANDLE(handle)                                            \
   if (Dart_IsError(handle)) {                                                  \
     return handle;                                                             \
@@ -32,9 +34,6 @@ namespace bin {
     Dart_ShutdownIsolate();                                                    \
     return false;                                                              \
   }
-
-static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
-static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -66,6 +65,8 @@ struct VmServiceIONativeEntry {
 };
 
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
+    // TODO(bkonyi): these aren't used by any known embedders and can be
+    // removed.
     {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
     {"VMServiceIO_Shutdown", 0, Shutdown},
 };
@@ -105,7 +106,12 @@ const uint8_t* VmServiceIONativeSymbol(Dart_NativeFunction nf) {
 const char* VmService::error_msg_ = nullptr;
 char VmService::server_uri_[kServerUriStringBufferSize];
 
+static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
+
 void VmService::SetNativeResolver() {
+  if (enable_experimental_vm_service) {
+    return;
+  }
   Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (!Dart_IsError(library)) {
@@ -113,6 +119,8 @@ void VmService::SetNativeResolver() {
                            VmServiceIONativeSymbol);
   }
 }
+
+static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
@@ -140,14 +148,16 @@ bool VmService::Setup(const char* server_ip,
       /*flag_profile_microtasks=*/false, DartIoSettings{});
   SHUTDOWN_ON_ERROR(result);
 
-  Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
-  Dart_Handle library = Dart_LookupLibrary(url);
-  SHUTDOWN_ON_ERROR(library);
-  result = Dart_SetRootLibrary(library);
-  SHUTDOWN_ON_ERROR(library);
-  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver,
-                                  VmServiceIONativeSymbol);
-  SHUTDOWN_ON_ERROR(result);
+  if (!enable_experimental_vm_service) {
+    Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
+    Dart_Handle library = Dart_LookupLibrary(url);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetRootLibrary(library);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver,
+                                    VmServiceIONativeSymbol);
+    SHUTDOWN_ON_ERROR(result);
+  }
 
   // Make runnable.
   Dart_ExitScope();
@@ -161,7 +171,7 @@ bool VmService::Setup(const char* server_ip,
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
 
-  library = Dart_RootLibrary();
+  Dart_Handle library = Dart_RootLibrary();
   SHUTDOWN_ON_ERROR(library);
 
   // Set HTTP server state.
@@ -172,6 +182,12 @@ bool VmService::Setup(const char* server_ip,
     // port when the HTTP server is started.
     server_port = 0;
   }
+#if defined(EXPERIMENTAL_VM_SERVICE)
+  if (enable_experimental_vm_service) {
+    // TODO(bkonyi): remove once DDS support is added.
+    wait_for_dds_to_advertise_service = false;
+  }
+#endif
   if (wait_for_dds_to_advertise_service) {
     result = DartUtils::SetStringField(library, "_ddsIP", server_ip);
     SHUTDOWN_ON_ERROR(result);

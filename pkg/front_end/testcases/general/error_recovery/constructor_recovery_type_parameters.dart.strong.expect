@@ -76,35 +76,19 @@ library;
 //   C<T>() : this();
 //   ^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:2:12: Error: Couldn't find constructor 'C'.
-//   C<T>() : this();
-//            ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:13: Error: Couldn't find constructor 'C'.
-//   C!<T>() : this();
-//             ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:4:11: Error: Couldn't find constructor 'C'.
-//   C<T() : this();
-//           ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:5:13: Error: Couldn't find constructor 'C'.
-//   C<T>=() : this();
-//             ^^^^
-//
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic C = null;
   constructor •() → self::C
-    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:2:12: Error: Couldn't find constructor 'C'.
+    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:2:12: Error: Can't use 'new' because it is declared more than once.
   C<T>() : this();
-           ^^^^"
+           ^"
     ;
   constructor !() → self::C
-    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:13: Error: Couldn't find constructor 'C'.
+    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:13: Error: Can't use 'new' because it is declared more than once.
   C!<T>() : this();
-            ^^^^"
+            ^"
     ;
 }

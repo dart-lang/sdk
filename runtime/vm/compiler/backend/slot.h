@@ -432,7 +432,7 @@ class FieldGuardState {
 // compared by pointer. If two slots are different they must not alias.
 // If two slots can alias - they must be represented by identical
 // slot object.
-class Slot : public ZoneAllocated {
+class Slot : public ZoneObject {
  public:
   // clang-format off
   enum class Kind : uint8_t {

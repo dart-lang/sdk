@@ -18,35 +18,29 @@ import 'dart:typed_data';
 
 part 'regexp_helper.dart';
 
-// TODO(joshualitt): After we have JS types and more efficient JS interop, we
-// should be able to rewrite a significant amount of logic in this file and
-// `js_runtime_blob` such that most of the conversion logic can live in Dart.
-// TODO(joshualitt): In many places we use `WasmExternRef?` when the ref can't
-// be null, we should use `WasmExternRef` in those cases.
+/// [JSValue] is just a box for a `ref null extern` that is not a JS `null` or
+/// `undefined`.
+///
+/// This is the type that all JS interop types (`JSAny`, `JSNumber` etc.) are an
+/// extension of.
+class JSValue extends JSExternWrapper {
+  /// This reference is always non-null and it never points to a JS `undefined`.
+  /// We currently don't make it non-nullable as that makes it impossible to
+  /// dummy-initialize locals with `JSValue` type.
+  JSValue(WasmExternRef? ref) : assert(!isDartNull(ref)), super(ref);
 
-/// [JSValue] is just a box [WasmExternRef?]. For now, it is the single box for
-/// all JS types, but in time we may want to make each JS type a unique box
-/// type.
-class JSValue {
-  final WasmExternRef? _ref;
-
-  JSValue(this._ref);
-
-  // TODO(joshualitt): Remove [box] and [unbox] once `JSNull` is boxed and users
-  // have been migrated over to the helpers in `dart:js_interop`.
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref);
 
   static T boxT<T>(WasmExternRef? ref) => unsafeCastOpaque<T>(box(ref));
 
-  // We need to handle the case of a nullable [JSValue] to match the semantics
-  // of the JS backends.
+  @pragma('wasm:prefer-inline')
   static WasmExternRef? unbox(JSValue? v) =>
-      v == null ? WasmExternRef.nullRef : v._ref;
+      v == null ? WasmExternRef.nullRef : v.wrappedExternRef;
 
   @override
   bool operator ==(Object that) =>
-      that is JSValue && areEqualInJS(_ref, that._ref);
+      that is JSValue && areEqualInJS(wrappedExternRef, that.wrappedExternRef);
 
   // Because [JSValue] is a subtype of [Object] it can be used in Dart
   // collections. Unfortunately, JS does not expose an efficient hash code
@@ -61,10 +55,9 @@ class JSValue {
   int get hashCode => 0;
 
   @override
-  String toString() => stringify(_ref);
+  String toString() => stringify(wrappedExternRef);
 
-  // Overrides to avoid using [ObjectToJS].
-  WasmExternRef? get toExternRef => _ref;
+  bool get isExternalizedDartValue => isWasmGCStruct(wrappedExternRef);
 }
 
 // Extension helpers to convert to an externref.
@@ -79,7 +72,7 @@ extension DoubleToExternRef on double? {
 extension StringToExternRef on String? {
   WasmExternRef? get toExternRef => this == null
       ? WasmExternRef.nullRef
-      : jsStringFromDartString(this!).toExternRef;
+      : jsStringFromDartString(this!).wrappedExternRef;
 }
 
 extension JSValueToExternRef on JSValue? {
@@ -158,16 +151,88 @@ bool isJSRegExp(WasmExternRef? o) => JS<bool>("o => o instanceof RegExp", o);
 bool areEqualInJS(WasmExternRef? l, WasmExternRef? r) =>
     JS<bool>("(l, r) => l === r", l, r);
 
-// The JS runtime will run helpful conversion routines between refs and bool /
-// double. In the longer term hopefully we can find a way to avoid the round
-// trip.
-double toDartNumber(WasmExternRef? o) => JS<double>("o => o", o);
+@pragma('wasm:entry-point')
+double toDartDouble(WasmExternRef? ref) {
+  final numberType = _checkNumberType(ref);
+  if (numberType != 1) {
+    throw ArgumentError('JS value is not a number');
+  }
+  return _toDartDoubleUnchecked(ref);
+}
 
 @pragma('wasm:entry-point')
-WasmExternRef? toJSNumber(double o) => JS<WasmExternRef?>("o => o", o);
+double? toDartNullableDouble(WasmExternRef? ref) {
+  final refType = _checkNumberType(ref);
+  if (refType == 0) return null;
+  if (refType == 1) return _toDartDoubleUnchecked(ref);
+  throw ArgumentError('JS value is not a number');
+}
+
+double _toDartDoubleUnchecked(WasmExternRef? ref) => JS<double>("o => o", ref);
+
+int _checkNumberType(WasmExternRef? ref) {
+  return JS<WasmI32>("""o => {
+      if (o === undefined || o === null) return 0;
+      if (typeof o === 'number') return 1;
+      return 2;
+    }""", ref).toIntUnsigned();
+}
+
+int _jsNonNullToInt(WasmExternRef? ref, bool typeIsRight) {
+  if (typeIsRight) {
+    final dartDouble = _toDartDoubleUnchecked(ref);
+    if (dartDouble.isFinite) {
+      final dartInt = dartDouble.toInt();
+      if (dartInt.toDouble() == dartDouble) {
+        return dartInt;
+      }
+    }
+  }
+  throw ArgumentError('JS value is not integer');
+}
 
 @pragma('wasm:entry-point')
-bool toDartBool(WasmExternRef? o) => JS<bool>("o => o", o);
+int toDartInt(WasmExternRef? ref) {
+  final numberType = _checkNumberType(ref);
+  return _jsNonNullToInt(ref, numberType == 1);
+}
+
+@pragma('wasm:entry-point')
+int? toDartNullableInt(WasmExternRef? ref) {
+  final numberType = _checkNumberType(ref);
+  if (numberType == 0) return null;
+  return _jsNonNullToInt(ref, numberType == 1);
+}
+
+@pragma('wasm:entry-point')
+WasmExternRef? toJSNumber(double ref) => JS<WasmExternRef?>("o => o", ref);
+
+int _checkBoolType(WasmExternRef? ref) {
+  return JS<WasmI32>("""o => {
+      if (o === undefined || o === null) return 0;
+      if (typeof o === 'boolean') return 1;
+      return 2;
+    }""", ref).toIntUnsigned();
+}
+
+@pragma('wasm:entry-point')
+bool toDartBool(WasmExternRef? ref) {
+  final refType = _checkBoolType(ref);
+  if (refType != 1) {
+    throw ArgumentError('JS value is not a boolean');
+  }
+  return _toDartBoolUnchecked(ref);
+}
+
+@pragma('wasm:entry-point')
+bool? toDartNullableBool(WasmExternRef? ref) {
+  final refType = _checkBoolType(ref);
+  if (refType == 0) return null;
+  if (refType == 1) return _toDartBoolUnchecked(ref);
+  throw ArgumentError('JS value is not a boolean');
+}
+
+bool _toDartBoolUnchecked(WasmExternRef? ref) => JS<bool>("o => o", ref);
 
 WasmExternRef? toJSBoolean(bool b) => JS<WasmExternRef?>("b => !!b", b);
 
@@ -437,11 +502,12 @@ WasmExternRef? jsifyJSFloat64ArrayImpl(js_types.JSFloat64ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) => o.toExternRef;
+WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) =>
+    o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
 WasmExternRef? jsifyJSArrayBufferImpl(js_types.JSArrayBufferImpl o) =>
-    o.toExternRef;
+    o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
 WasmExternRef? jsifyByteData(ByteData o) =>
@@ -537,32 +603,28 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
   refType ??= externRefType(ref);
   return switch (refType) {
     ExternRefType.null_ || ExternRefType.undefined => null,
-    ExternRefType.boolean => toDartBool(ref),
-    ExternRefType.number => toDartNumber(ref),
+    ExternRefType.boolean => _toDartBoolUnchecked(ref),
+    ExternRefType.number => _toDartDoubleUnchecked(ref),
     ExternRefType.string => JSStringImpl.fromRefUnchecked(ref),
     ExternRefType.array => toDartList(ref),
-    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromArrayRefUnchecked(
-      ref,
-    ),
-    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromArrayRefUnchecked(
-      ref,
-    ),
+    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromRefUnchecked(ref),
     ExternRefType.uint8ClampedArray =>
-      js_types.JSUint8ClampedArrayImpl.fromArrayRefUnchecked(ref),
-    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromArrayRefUnchecked(
+      js_types.JSUint8ClampedArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromRefUnchecked(
       ref,
     ),
-    ExternRefType.uint16Array =>
-      js_types.JSUint16ArrayImpl.fromArrayRefUnchecked(ref),
-    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromArrayRefUnchecked(
+    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.uint32Array => js_types.JSUint32ArrayImpl.fromRefUnchecked(
       ref,
     ),
-    ExternRefType.uint32Array =>
-      js_types.JSUint32ArrayImpl.fromArrayRefUnchecked(ref),
-    ExternRefType.float32Array =>
-      js_types.JSFloat32ArrayImpl.fromArrayRefUnchecked(ref),
-    ExternRefType.float64Array =>
-      js_types.JSFloat64ArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.float32Array => js_types.JSFloat32ArrayImpl.fromRefUnchecked(
+      ref,
+    ),
+    ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromRefUnchecked(
+      ref,
+    ),
     ExternRefType.arrayBuffer || ExternRefType.sharedArrayBuffer =>
       js_types.JSArrayBufferImpl.fromRefUnchecked(ref),
     ExternRefType.dataView => js_types.JSDataViewImpl.fromRefUnchecked(ref),
@@ -581,18 +643,6 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
   };
 }
 
-@pragma('wasm:entry-point')
-int dartifyInt(WasmExternRef? ref) {
-  final dartDouble = toDartNumber(ref);
-  if (dartDouble.isFinite) {
-    final dartInt = dartDouble.toInt();
-    if (dartInt.toDouble() == dartDouble) {
-      return dartInt;
-    }
-  }
-  throw ArgumentError('JS value is not integer');
-}
-
 List<double> jsFloatTypedArrayToDartFloatTypedData(
   WasmExternRef? ref,
   List<double> makeTypedData(int size),
@@ -600,7 +650,7 @@ List<double> jsFloatTypedArrayToDartFloatTypedData(
   int length = objectLength(ref);
   List<double> list = makeTypedData(length);
   for (int i = 0; i < length; i++) {
-    list[i] = toDartNumber(objectReadIndex(ref, i));
+    list[i] = toDartDouble(objectReadIndex(ref, i));
   }
   return list;
 }
@@ -612,7 +662,7 @@ List<int> jsIntTypedArrayToDartIntTypedData(
   int length = objectLength(ref);
   List<int> list = makeTypedData(length);
   for (int i = 0; i < length; i++) {
-    list[i] = toDartNumber(objectReadIndex(ref, i)).toInt();
+    list[i] = toDartDouble(objectReadIndex(ref, i)).toInt();
   }
   return list;
 }
@@ -673,6 +723,12 @@ List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
   (int n) => dartifyRaw(objectReadIndex(ref, n)),
 );
 
+@pragma('wasm:entry-point')
+List<Object?>? toDartNullableList(WasmExternRef? ref) {
+  if (ref.isNull || isJSUndefined(ref)) return null;
+  return toDartList(ref);
+}
+
 // These two trivial helpers are needed to work around an issue with tearing off
 // functions that take / return [WasmExternRef].
 bool _isDartFunctionWrapped<F extends Function>(F f) =>
@@ -719,3 +775,110 @@ external T JS<T>(
 
 @pragma("wasm:intrinsic")
 external WasmExternRef get thisModule;
+
+/// Represents a JS `null` or `undefined` thrown from JS and caught in Wasm.
+///
+/// The class name is copied from the dart2js class for the same thing, for
+/// compatibility.
+///
+/// This class is allocated by the generated code.
+class NullThrownFromJavaScriptException implements Exception {
+  /// Whether the reference was `null`. If not, then it must be pointing to a JS
+  /// `undefined`.
+  final bool _isNull;
+
+  const NullThrownFromJavaScriptException.fromNull() : _isNull = true;
+
+  const NullThrownFromJavaScriptException.fromUndefined() : _isNull = false;
+
+  /// `toString` copied from dart2js's `NullThrownFromJavaScriptException` for
+  /// compatibility.
+  @override
+  String toString() =>
+      "Throw of null ('${_isNull ? 'null' : 'undefined'}' from JavaScript)";
+}
+
+/// Box an exception caught from JS, the same way as dart2js.
+///
+/// When the exception value is `null` or `undefined`, this returns a
+/// [NullThrownFromJavaScriptException].
+///
+/// Otherwise it returns a `JSValue`.
+///
+/// This is called by the generated code and passed a JS exception as
+/// `externref`, caught using the `WebAssembly.JSTag` exception tag. The return
+/// value will be used to assign the exception variable in `catch` blocks, so it
+/// needs to have type `Object`.
+@pragma('wasm:entry-point')
+Object boxJsException(WasmExternRef? ref) {
+  if (ref.isNull) return NullThrownFromJavaScriptException.fromNull();
+  if (isJSUndefined(ref))
+    return NullThrownFromJavaScriptException.fromUndefined();
+  return JSValue(ref);
+}
+
+/// Get the stack trace of an exception value thrown in JS and caught in Wasm.
+///
+/// This is called by the generated code, with the same argument as
+/// [boxJsException].
+///
+/// The return value will be assigned to the stack trace variables in `catch`
+/// blocks, so it needs to have type [StackTrace].
+@pragma('wasm:entry-point')
+StackTrace jsExceptionStackTrace(WasmExternRef? ref) => JavaScriptStack(
+  JS<WasmExternRef?>("""
+      (exn) => {
+        if (exn instanceof Error) {
+          return exn.stack;
+        } else {
+          return null;
+        }
+      }
+    """, ref),
+);
+
+class JavaScriptStack extends JSExternWrapper implements StackTrace {
+  final bool _fromCurrent;
+
+  JavaScriptStack(WasmExternRef? ref) : _fromCurrent = false, super(ref);
+
+  // Note: We remove the first four frames to prevent including
+  // `StackTrace.current`, other current helpers and the JS interop function.
+  // On Chrome, the first line is not a frame but a line with just "Error",
+  // sometimes with details:
+  // "Error: ...". Also remove that line.
+  late final String _stringified = wrappedExternRef.isNull
+      ? ""
+      : JSStringImpl.fromRefUnchecked(
+          _fromCurrent
+              ? JS<WasmExternRef?>(r"""(exn) => {
+            let stackString = exn.toString();
+            let frames = stackString.split('\n');
+            let drop = 4;
+            if (frames[0].startsWith('Error')) {
+                drop += 1;
+            }
+            return frames.slice(drop).join('\n');
+          }""", wrappedExternRef)
+              : wrappedExternRef,
+        );
+
+  @pragma("wasm:never-inline")
+  JavaScriptStack.current()
+    : _fromCurrent = true,
+      super(JS<WasmExternRef?>("() => new Error().stack"));
+
+  @override
+  String toString() => _stringified;
+}
+
+base class JSExternWrapper {
+  final WasmExternRef? _externRef;
+
+  JSExternWrapper(this._externRef);
+}
+
+extension JSExternWrapperExt on JSExternWrapper {
+  @pragma("wasm:prefer-inline")
+  WasmExternRef? get wrappedExternRef => _externRef;
+}

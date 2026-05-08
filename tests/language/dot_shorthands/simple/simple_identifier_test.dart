@@ -4,8 +4,6 @@
 
 // Shorthands for simple identifiers and const simple identifiers.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 class ColorContext {

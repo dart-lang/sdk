@@ -25,7 +25,10 @@ class MissingDependencyTest with ResourceProviderMixin {
 
   /// Asserts that when the validator is used on the given [content], a
   /// [diag.missingDependency] warning is produced.
-  void assertErrors(
+  ///
+  /// The problem message and correction message are returned so that it can be
+  /// further validated if desired.
+  ({String problemMessage, String correctionMessage}) assertErrors(
     String content, {
     required Set<String> usedDeps,
     required Set<String> usedDevDeps,
@@ -39,6 +42,10 @@ class MissingDependencyTest with ResourceProviderMixin {
     expect(data.addDeps, addDeps);
     expect(data.addDevDeps, addDevDeps);
     expect(data.removeDevDeps, removeDevDeps);
+    return (
+      problemMessage: error.problemMessage.messageText(includeUrl: false),
+      correctionMessage: error.correctionMessage!,
+    );
   }
 
   /// Assert that when the validator is used on the given [content] no errors
@@ -59,7 +66,7 @@ class MissingDependencyTest with ResourceProviderMixin {
   }
 
   test_missingDependency_error() {
-    assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dependencies:
@@ -69,10 +76,12 @@ dependencies:
       addDeps: ['matcher'],
       usedDevDeps: {},
     );
+    expect(problemMessage, contains("package 'matcher' in 'dependencies'"));
+    expect(correctionMessage, contains("adding 'matcher' to 'dependencies'"));
   }
 
   test_missingDependency_move_to_dev() {
-    assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dependencies:
@@ -85,6 +94,8 @@ dev_dependencies:
       removeDevDeps: ['test'],
       usedDevDeps: {},
     );
+    expect(problemMessage, contains("package 'test' in 'dependencies'"));
+    expect(correctionMessage, contains("adding 'test' to 'dependencies'"));
   }
 
   test_missingDependency_noError() {
@@ -114,7 +125,7 @@ dev_dependencies:
   }
 
   test_missingDevDependency_error() {
-    assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dependencies:
@@ -126,6 +137,8 @@ dev_dependencies:
       usedDevDeps: {'lints', 'test'},
       addDevDeps: ['test'],
     );
+    expect(problemMessage, contains("package 'test' in 'dev_dependencies'"));
+    expect(correctionMessage, contains("adding 'test' to 'dev_dependencies'"));
   }
 
   test_missingDevDependency_inDeps_noError() {
@@ -140,6 +153,74 @@ dev_dependencies:
 ''',
       usedDeps: {'test', 'path'},
       usedDevDeps: {'lints', 'path'},
+    );
+  }
+
+  test_missingDevDependency_multiple_deps() {
+    var (:problemMessage, :correctionMessage) = assertErrors(
+      '''
+name: sample
+dependencies:
+  path: any
+''',
+      usedDeps: {'path', 'test', 'args'},
+      usedDevDeps: {},
+      addDeps: ['test', 'args'],
+    );
+    expect(
+      problemMessage,
+      contains("packages 'test', 'args' in 'dependencies'"),
+    );
+    expect(
+      correctionMessage,
+      contains("adding 'test', 'args' to 'dependencies'"),
+    );
+  }
+
+  test_missingDevDependency_multiple_depsAndDevDeps() {
+    var (:problemMessage, :correctionMessage) = assertErrors(
+      '''
+name: sample
+''',
+      usedDeps: {'path', 'args'},
+      usedDevDeps: {'test', 'lints'},
+      addDeps: ['path', 'args'],
+      addDevDeps: ['test', 'lints'],
+    );
+    expect(
+      problemMessage,
+      contains(
+        "packages 'path', 'args' in 'dependencies', and packages 'test', "
+        "'lints' in 'dev_dependencies'",
+      ),
+    );
+    expect(
+      correctionMessage,
+      contains(
+        "adding 'path', 'args' to 'dependencies', and 'test', 'lints' to "
+        "'dev_dependencies'",
+      ),
+    );
+  }
+
+  test_missingDevDependency_multiple_devDeps() {
+    var (:problemMessage, :correctionMessage) = assertErrors(
+      '''
+name: sample
+dev_dependencies:
+  path: any
+''',
+      usedDeps: {},
+      usedDevDeps: {'path', 'test', 'args'},
+      addDevDeps: ['test', 'args'],
+    );
+    expect(
+      problemMessage,
+      contains("packages 'test', 'args' in 'dev_dependencies'"),
+    );
+    expect(
+      correctionMessage,
+      contains("adding 'test', 'args' to 'dev_dependencies'"),
     );
   }
 

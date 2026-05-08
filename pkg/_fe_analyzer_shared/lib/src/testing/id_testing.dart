@@ -1199,11 +1199,6 @@ bool skipForConfig(
       print("Skip: ${testName} for config '${configMarker}'");
       return true;
     }
-    skipList = skipMap[null];
-    if (skipList != null && skipList.contains(testName)) {
-      print("Skip: ${testName} for config '${configMarker}'");
-      return true;
-    }
   }
   return false;
 }

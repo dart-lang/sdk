@@ -23,8 +23,8 @@ class Api extends ApiNode {
     this.types,
     this.refactorings,
     dom.Element html, {
-    bool experimental = false,
-  }) : super(html, experimental: experimental, deprecated: false);
+    super.experimental = false,
+  }) : super(html, deprecated: false);
 }
 
 /// Base class for objects in the API model.
@@ -65,9 +65,9 @@ class Domain extends ApiNode {
     this.requests,
     this.notifications,
     dom.Element html, {
-    bool experimental = false,
-    bool deprecated = false,
-  }) : super(html, experimental: experimental, deprecated: deprecated);
+    super.experimental = false,
+    super.deprecated = false,
+  }) : super(html);
 
   @override
   dom.Element get html => super.html!;
@@ -203,8 +203,8 @@ class Notification extends ApiNode {
     this.event,
     this.params,
     dom.Element html, {
-    bool experimental = false,
-  }) : super(html, experimental: experimental, deprecated: false);
+    super.experimental = false,
+  }) : super(html, deprecated: false);
 
   /// Get the name of the notification, including the domain prefix.
   String get longEvent => '$domainName.$event';
@@ -249,8 +249,8 @@ class Refactoring extends ApiNode {
     this.feedback,
     this.options,
     dom.Element html, {
-    bool experimental = false,
-  }) : super(html, experimental: experimental, deprecated: false);
+    super.experimental = false,
+  }) : super(html, deprecated: false);
 }
 
 /// A collection of refactoring definitions.
@@ -260,8 +260,8 @@ class Refactorings extends ApiNode with IterableMixin<Refactoring> {
   Refactorings(
     this.refactorings,
     dom.Element? html, {
-    bool experimental = false,
-  }) : super(html, experimental: experimental, deprecated: false);
+    super.experimental = false,
+  }) : super(html, deprecated: false);
 
   @override
   Iterator<Refactoring> get iterator => refactorings.iterator;
@@ -289,9 +289,9 @@ class Request extends ApiNode {
     this.params,
     this.result,
     dom.Element html, {
-    bool experimental = false,
-    bool deprecated = false,
-  }) : super(html, experimental: experimental, deprecated: deprecated);
+    super.experimental = false,
+    super.deprecated = false,
+  }) : super(html);
 
   /// Get the name of the request, including the domain prefix.
   String get longMethod => '$domainName.$method';
@@ -357,9 +357,9 @@ class TypeDefinition extends ApiNode {
     this.name,
     this.type,
     dom.Element html, {
-    bool experimental = false,
-    bool deprecated = false,
-  }) : super(html, experimental: experimental, deprecated: deprecated);
+    super.experimental = false,
+    super.deprecated = false,
+  }) : super(html);
 }
 
 /// Type of an enum.  We represent enums in JSON as strings, so this type
@@ -370,9 +370,9 @@ class TypeEnum extends TypeDecl {
   TypeEnum(
     this.values,
     dom.Element html, {
-    bool experimental = false,
-    bool deprecated = false,
-  }) : super(html, experimental: experimental, deprecated: deprecated);
+    super.experimental = false,
+    super.deprecated = false,
+  }) : super(html);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeEnum(this);
@@ -385,9 +385,9 @@ class TypeEnumValue extends ApiNode {
   TypeEnumValue(
     this.value,
     dom.Element html, {
-    bool experimental = false,
-    bool deprecated = false,
-  }) : super(html, experimental: experimental, deprecated: deprecated);
+    super.experimental = false,
+    super.deprecated = false,
+  }) : super(html);
 
   @override
   dom.Element get html => super.html!;
@@ -397,8 +397,8 @@ class TypeEnumValue extends ApiNode {
 class TypeList extends TypeDecl {
   final TypeDecl itemType;
 
-  TypeList(this.itemType, dom.Element html, {bool experimental = false})
-    : super(html, experimental: experimental, deprecated: false);
+  TypeList(this.itemType, dom.Element html, {super.experimental = false})
+    : super(html, deprecated: false);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeList(this);
@@ -419,8 +419,8 @@ class TypeMap extends TypeDecl {
     this.keyType,
     this.valueType,
     dom.Element html, {
-    bool experimental = false,
-  }) : super(html, experimental: experimental, deprecated: false);
+    super.experimental = false,
+  }) : super(html, deprecated: false);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeMap(this);
@@ -433,9 +433,9 @@ class TypeObject extends TypeDecl {
   TypeObject(
     this.fields,
     dom.Element? html, {
-    bool experimental = false,
-    bool deprecated = false,
-  }) : super(html, experimental: experimental, deprecated: deprecated);
+    super.experimental = false,
+    super.deprecated = false,
+  }) : super(html);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeObject(this);
@@ -466,9 +466,9 @@ class TypeObjectField extends ApiNode {
     dom.Element? html, {
     this.optional = false,
     this.value,
-    bool experimental = false,
-    bool deprecated = false,
-  }) : super(html, experimental: experimental, deprecated: deprecated);
+    super.experimental = false,
+    super.deprecated = false,
+  }) : super(html);
 
   @override
   String toString() => name;
@@ -479,8 +479,8 @@ class TypeObjectField extends ApiNode {
 class TypeReference extends TypeDecl {
   final String typeName;
 
-  TypeReference(this.typeName, dom.Element? html, {bool experimental = false})
-    : super(html, experimental: experimental, deprecated: false) {
+  TypeReference(this.typeName, dom.Element? html, {super.experimental = false})
+    : super(html, deprecated: false) {
     if (typeName.isEmpty) {
       throw Exception('Empty type name');
     }
@@ -496,8 +496,8 @@ class Types extends ApiNode with IterableMixin<TypeDefinition> {
 
   List<String> importUris = <String>[];
 
-  Types(this.types, dom.Element? html, {bool experimental = false})
-    : super(html, experimental: experimental, deprecated: false);
+  Types(this.types, dom.Element? html, {super.experimental = false})
+    : super(html, deprecated: false);
 
   @override
   Iterator<TypeDefinition> get iterator => types.values.iterator;
@@ -520,8 +520,8 @@ class TypeUnion extends TypeDecl {
     this.choices,
     this.field,
     dom.Element html, {
-    bool experimental = false,
-  }) : super(html, experimental: experimental, deprecated: false);
+    super.experimental = false,
+  }) : super(html, deprecated: false);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeUnion(this);

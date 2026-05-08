@@ -48,10 +48,13 @@ The features are listed in alphabetical order.
   - [ ] Document Highlights (LSP feature)
 - [ ] Organize Imports
 - [ ] Outline
-  - [ ] Flutter Outline
-  - [ ] Legacy protocol, a.k.a. Document Symbols (for IntelliJ and Android
-        Studio)
-  - [ ] LSP feature
+  - [ ] Legacy protocol (for IntelliJ and Android Studio)
+  - [ ] LSP feature (Document Symbols - used for Outline, Breadcrumbs, Go to
+        Symbol in Editor)
+- [ ] Flutter Outline
+  - [ ] Legacy protocol (for IntelliJ and Android Studio)
+  - [ ] LSP feature (custom notification
+        `dart/textDocument/publishFlutterOutline`)
 - [ ] Refactorings and quick assists/fixes (note that in addition to potentially
   creating new refactorings and/or quick assists/fixes, part of the work
   required to implement a new language feature includes evaluating each existing

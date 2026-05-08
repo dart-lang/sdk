@@ -40,7 +40,7 @@ class [!A^aa!] {}
 ```dart
 class Aaa
 ```
-Declared in _package:test/test.dart_.
+Declared in *package:test/test.dart*.
 
 ---
 This is my class.

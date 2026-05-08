@@ -1,0 +1,25 @@
+Part 0
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart prefix: D1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart prefix: D3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart::@methods::d1
+  Constants
+
+Part 1
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart prefix: D3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart::@methods::baz
+  Constants
+     - StringConstant("baz")
+
+Part 2
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart prefix: D3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/constant.dart::@methods::bar
+  Constants
+     - StaticTearOffConstant(bar)

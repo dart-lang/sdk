@@ -1,0 +1,3 @@
+bar(List<int Function()> functions) {}
+
+foo(List<void Function()> functions) {}

@@ -50,9 +50,6 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isConst => baseElement.isConst;
 
   @override
-  bool get isDeclaring => baseElement.isDeclaring;
-
-  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
@@ -178,10 +175,6 @@ abstract class SubstitutedElementImpl implements Element {
 
   @override
   bool get isPublic => baseElement.isPublic;
-
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => baseElement.isSynthetic;
 
   @override
   ElementKind get kind => baseElement.kind;
@@ -734,11 +727,10 @@ class SubstitutedFormalParameterElementImpl
     FormalParameterElementImpl baseElement;
     var combined = substitution;
     if (element is SubstitutedFormalParameterElementImpl) {
-      var member = element;
-      baseElement = member.baseElement;
+      baseElement = element.baseElement;
 
       var map = <TypeParameterElement, DartType>{
-        for (var MapEntry(:key, :value) in member.substitution.map.entries)
+        for (var MapEntry(:key, :value) in element.substitution.map.entries)
           key: substitution.substituteType(value),
       };
       combined = Substitution.fromMap(map);
@@ -1035,7 +1027,7 @@ class SubstitutedSetterElementImpl
 
 class SubstitutedSuperFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
-    implements SuperFormalParameterElement {
+    with InternalSuperFormalParameterElement {
   factory SubstitutedSuperFormalParameterElementImpl({
     required SuperFormalParameterElementImpl baseElement,
     required MapSubstitution substitution,

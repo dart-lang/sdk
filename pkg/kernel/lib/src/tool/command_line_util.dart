@@ -8,8 +8,10 @@ import 'package:kernel/kernel.dart';
 
 class CommandLineHelper {
   static void requireExactlyOneArgument(
-      List<String> args, void Function() usage,
-      {bool requireFileExists = false}) {
+    List<String> args,
+    void Function() usage, {
+    bool requireFileExists = false,
+  }) {
     if (args.length != 1) {
       print("Expected exactly 1 argument, got ${args.length}.");
       usage();
@@ -18,10 +20,15 @@ class CommandLineHelper {
   }
 
   static void requireVariableArgumentCount(
-      List<int> ok, List<String> args, void Function() usage) {
+    List<int> ok,
+    List<String> args,
+    void Function() usage,
+  ) {
     if (!ok.contains(args.length)) {
-      print("Expected the argument count to be one of ${ok}, got "
-          "${args.length}.");
+      print(
+        "Expected the argument count to be one of ${ok}, got "
+        "${args.length}.",
+      );
       usage();
     }
   }

@@ -168,6 +168,36 @@ void f([dynamic p]) {}
     );
   }
 
+  test_primaryConstructor_declaringParameter() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C([!final dynamic a!]);
+''');
+  }
+
+  test_primaryConstructor_fieldFormalParameter() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C([!dynamic this.a!]) {
+  var a;
+}
+''');
+  }
+
+  test_primaryConstructor_simpleParameter() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C([!dynamic a!]);
+''');
+  }
+
+  test_primaryConstructor_superParameter() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A(this.a, this.b) {
+  var a;
+  var b;
+}
+class B(/*[0*/dynamic super.a/*0]*/, /*[1*/dynamic super.b/*1]*/) extends A;
+''');
+  }
+
   test_requiredParameter() async {
     await assertDiagnostics(
       r'''

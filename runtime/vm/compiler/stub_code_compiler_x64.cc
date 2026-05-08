@@ -48,7 +48,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // the remembered set and/or deferred marking worklist. This test assumes a
   // Page's TLAB use is always ascending.
   Label done;
-  __ AndImmediate(TMP, RAX, target::kPageMask);
+  __ AndImmediate(TMP, RAX, target::Page::kPageMask);
   __ LoadFromOffset(TMP, TMP, target::Page::original_top_offset());
   __ CompareRegisters(RAX, TMP);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
@@ -536,34 +536,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   const intptr_t shared_stub_start = __ CodeSize();
 
   // Save THR which is callee-saved.
+  __ EnterFrame(0);
   __ pushq(THR);
-
-  // 2 = THR & return address
-  COMPILE_ASSERT(2 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
-
-  // Save all registers which might hold arguments.
-  __ PushRegisters(kArgumentRegisterSet);
+  __ pushq(R12);
+  // 4 = return address, FP, THR, R12
+  COMPILE_ASSERT(4 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size of this shared stub.
   {
+    // Save all registers which might hold arguments.
+    __ PushRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, RAX);
-
-    // We also need to look up the entry point for the trampoline. This is
-    // returned using a pointer passed to the second arg of the C function
-    // below. We aim that pointer at a reserved stack slot.
-    COMPILE_ASSERT(RAX != CallingConventions::kArg2Reg);
-    __ pushq(Immediate(0));  // Reserve a stack slot for the entry point.
     __ movq(CallingConventions::kArg2Reg, RSP);
-
-    // We also need to know if this is a sync or async callback. This is also
-    // returned by pointer.
-    COMPILE_ASSERT(RAX != CallingConventions::kArg3Reg);
-    __ pushq(Immediate(0));  // Reserve a stack slot for the trampoline type.
-    __ movq(CallingConventions::kArg3Reg, RSP);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
@@ -579,146 +567,56 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kGetFfiCallbackMetadata, RAX);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
+    __ CallCFunction(RAX, /*restore_rsp=*/true);
     __ movq(THR, RAX);
 
-    __ LeaveFrame();
+    __ movq(RAX, Address(RSP, 0 * target::kWordSize));  // entry_point
+    __ movq(TMP, Address(RSP, 1 * target::kWordSize));  // is_tail
+    __ movq(R12, Address(RSP, 2 * target::kWordSize));  // epilogue
 
-    // The trampoline type is at the top of the stack. Pop it into RAX.
-    __ popq(RAX);
-
-    // Entry point is now at the top of the stack. Pop it into TMP.
-    __ popq(TMP);
+    // Restore the arguments.
+    __ PopRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
   }
 
-  // Restore the arguments.
-  __ PopRegisters(kArgumentRegisterSet);
+  Label tail;
+  __ cmpq(TMP, Immediate(0));
+  __ j(NOT_ZERO, &tail);
 
-  // Current state:
-  //
-  // Stack:
-  //  <old stack (arguments)>
-  //  <return address>
-  //  <saved THR>
-  //
-  // Registers: Like entry, except TMP == target, RAX == abi, and THR == thread
-  //            All argument registers are untouched.
+  const RegisterSet return_registers(
+      (1 << CallingConventions::kReturnReg) |
+          (1 << CallingConventions::kSecondReturnReg),
+      (1 << CallingConventions::kReturnFpuReg) |
+          (1 << CallingConventions::kSecondReturnFpuReg));
 
-  Label async_callback;
-  Label sync_isolate_group_bound_callback;
-  Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ cmpq(THR, Immediate(0));
-  __ j(EQUAL, &done);
-
-  // Check the trampoline type to see how the callback should be invoked.
-  __ cmpq(RAX, Immediate(static_cast<uword>(
-                   FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ j(EQUAL, &async_callback);
-
-  __ cmpq(RAX,
-          Immediate(static_cast<uword>(
-              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
-  __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
-
-  // Sync callback. The entry point contains the target function, so just call
-  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
-  // re-enter it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(TMP);
-
-  // Takes care to not clobber *any* registers (besides TMP).
-  __ EnterFullSafepoint();
-
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&sync_isolate_group_bound_callback);
-
-  __ call(TMP);
-
-  // Exit isolate group bound isolate.
   {
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
-                           RAX, TMP);
-    } else {
-      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
-                       DLRT_ExitIsolateGroupBoundIsolate)));
+    __ call(RAX);  // entry_point
+    __ PushRegistersAligned(return_registers, 0);
+    __ movq(CallingConventions::kArg1Reg, THR);
+    __ CallCFunction(R12, /*restore_rsp=*/true);  // DLRT_ExitSyncCallback, etc
+    if (FLAG_target_memory_sanitizer) {
+      __ CallCFunction(RAX, /*restore_rsp=*/true);  // dart_msan_unpoison_retval
     }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
-
-    __ LeaveFrame();
-
-    __ PopRegisters(return_registers);
-  }
-
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&async_callback);
-
-  // Async callback. The entrypoint marshals the arguments into a message and
-  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
-  // entered a temporary isolate, so exit it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(TMP);
-
-  // Exit the temporary isolate.
-  {
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, RAX,
-                           TMP);
-    } else {
-      __ movq(RAX,
-              Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    // Restore THR (callee-saved).
+    __ PopRegistersAligned(return_registers, 0);
+    __ popq(R12);
     __ popq(THR);
+    __ LeaveFrame();
+    __ ret();
+  }
 
+  {
+    __ Bind(&tail);
+    __ call(RAX);  // entry_point
+    __ movq(CallingConventions::kArg1Reg, THR);
+    __ movq(RAX, R12);
+    __ popq(R12);
+    __ popq(THR);
+    __ LeaveFrame();
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ jmp(RAX);
+    __ jmp(RAX);  // DLRT_ExitTemporaryIsolate
     __ int3();
   }
-
-  __ Bind(&done);
-
-  // Restore THR (callee-saved).
-  __ popq(THR);
-
-  __ ret();
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
@@ -1072,7 +970,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ addq(RBX, Immediate(target::kCompressedWordSize));
   __ subq(R12, Immediate(target::kWordSize));
   __ Bind(&loop_condition);
-  __ decq(R10);
+  __ subq(R10, Immediate(1));
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 }
 
@@ -1461,7 +1359,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       Label size_tag_overflow, done;
       __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -1692,7 +1590,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 #else
   __ pushq(Address(RDX, RAX, TIMES_8, 0));
 #endif
-  __ incq(RAX);
+  __ addq(RAX, Immediate(1));
   __ cmpq(RAX, RBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -1843,7 +1741,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
   __ LoadImmediate(RAX, Immediate(0));
   __ Bind(&push_arguments);
   __ pushq(Address(RDX, RAX, TIMES_8, 0));
-  __ incq(RAX);
+  __ addq(RAX, Immediate(1));
   __ cmpq(RAX, RBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -1948,7 +1846,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
     __ cmpq(R13, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(R13, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+    __ shlq(R13, Immediate(target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -2005,7 +1903,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 #endif  // DEBUG
       __ jmp(&entry, kJumpLength);
       __ Bind(&loop);
-      __ decq(R10);
+      __ subq(R10, Immediate(1));
       // No generational barrier needed, since we are storing null.
       __ StoreCompressedIntoObjectNoBarrier(
           RAX, Address(R13, R10, TIMES_COMPRESSED_WORD_SIZE, 0), R9);
@@ -2072,7 +1970,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
       Label loop, entry;
       __ jmp(&entry, Assembler::kNearJump);
       __ Bind(&loop);
-      __ decq(R10);
+      __ subq(R10, Immediate(1));
       __ LoadCompressed(R13, FieldAddress(R9, R10, TIMES_COMPRESSED_WORD_SIZE,
                                           target::Context::variable_offset(0)));
       __ StoreCompressedIntoObjectNoBarrier(
@@ -2149,35 +2047,26 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, is_new, done;
-    __ pushq(RAX);      // Spill.
-    __ pushq(RCX);      // Spill.
-    __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
-    __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
+    Label is_new, done;
+    __ pushq(RCX);  // Spill.
 
-    __ Bind(&retry);
-    __ movq(RCX, RAX);
-    __ testq(RCX, Immediate(1 << target::UntaggedObject::kNotMarkedBit));
-    __ j(ZERO, &done);  // Marked by another thread.
+    __ lock();
+    __ btrq(FieldAddress(RAX, target::Object::tags_offset()),
+            target::UntaggedObject::kNotMarkedBit);
+    __ j(NOT_CARRY, &done);  // Marked by another thread.
 
-    __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kNotMarkedBit)));
-    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-    // On failure, RAX is updated with the current value.
-    __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
-    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
-
-    __ testq(TMP,
+    __ testq(RAX,
              Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
     __ j(NOT_ZERO, &is_new);
 
     auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
-      __ movq(RAX, Address(THR, offset));
-      __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
-      __ movq(Address(RAX, RCX, TIMES_8,
+      __ movq(TMP, Address(THR, offset));
+      __ movl(RCX, Address(TMP, target::MarkingStackBlock::top_offset()));
+      __ movq(Address(TMP, RCX, TIMES_8,
                       target::MarkingStackBlock::pointers_offset()),
-              TMP);
-      __ incq(RCX);
-      __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
+              RAX);
+      __ addq(RCX, Immediate(1));
+      __ movl(Address(TMP, target::MarkingStackBlock::top_offset()), RCX);
       __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
       __ j(NOT_EQUAL, &done);
 
@@ -2200,7 +2089,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     __ Bind(&done);
     __ popq(RCX);  // Unspill.
-    __ popq(RAX);  // Unspill.
   }
 
   Label add_to_remembered_set, remember_card;
@@ -2229,37 +2117,28 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   }
   {
     // Atomically clear kOldAndNotRemembered.
-    Label retry, done;
-    __ pushq(RAX);  // Spill.
+    Label done;
     __ pushq(RCX);  // Spill.
-    __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
 
-    __ Bind(&retry);
-    __ movq(RCX, RAX);
-    __ testq(RCX,
-             Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-    __ j(ZERO, &done);  // Remembered by another thread.
-    __ andq(RCX,
-            Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
-    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-    // On failure, RAX is updated with the current value.
-    __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
-    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+    __ lock();
+    __ btrq(FieldAddress(RDX, target::Object::tags_offset()),
+            target::UntaggedObject::kOldAndNotRememberedBit);
+    __ j(NOT_CARRY, &done);  // Remembered by another thread.
 
     // Load the StoreBuffer block out of the thread. Then load top_ out of the
     // StoreBufferBlock and add the address to the pointers_.
     // RDX: Address being stored
-    __ movq(RAX, Address(THR, target::Thread::store_buffer_block_offset()));
-    __ movl(RCX, Address(RAX, target::StoreBufferBlock::top_offset()));
+    __ movq(TMP, Address(THR, target::Thread::store_buffer_block_offset()));
+    __ movl(RCX, Address(TMP, target::StoreBufferBlock::top_offset()));
     __ movq(
-        Address(RAX, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
+        Address(TMP, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
         RDX);
 
     // Increment top_ and check for overflow.
     // RCX: top_
-    // RAX: StoreBufferBlock
-    __ incq(RCX);
-    __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
+    // TMP: StoreBufferBlock
+    __ addq(RCX, Immediate(1));
+    __ movl(Address(TMP, target::StoreBufferBlock::top_offset()), RCX);
     __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
     __ j(NOT_EQUAL, &done);
 
@@ -2273,15 +2152,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     __ Bind(&done);
     __ popq(RCX);  // Unspill.
-    __ popq(RAX);  // Unspill.
     __ ret();
   }
 
   if (cards) {
     // Get card table.
     __ Bind(&remember_card);
-    __ movq(TMP, RDX);                           // Object.
-    __ andq(TMP, Immediate(target::kPageMask));  // Page.
+    __ movq(TMP, RDX);                                 // Object.
+    __ andq(TMP, Immediate(target::Page::kPageMask));  // Page.
 
     // Atomically dirty the card.
     __ pushq(RAX);
@@ -2587,7 +2465,8 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
     return;
   }
   Register func_reg = RDI;
-  __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+  __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+          Immediate(1));
 }
 
 // Loads function into 'temp_reg', preserves IC_DATA_REG.
@@ -2602,7 +2481,8 @@ void StubCodeCompiler::GenerateUsageCounterIncrement(Register temp_reg) {
     __ Comment("Increment function counter");
     __ movq(func_reg,
             FieldAddress(IC_DATA_REG, target::ICData::owner_offset()));
-    __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+    __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+            Immediate(1));
   }
 }
 
@@ -3205,7 +3085,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
               Immediate(0));
   Label args_count_ok;
   __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ incq(R11);
+  __ addq(R11, Immediate(1));
   __ Bind(&args_count_ok);
 
   // Compute argv.
@@ -3433,15 +3313,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
         __ PopRegisters(saved_registers);
         __ Ret();
       });
-}
-
-// Return the current stack pointer address, used to stack alignment
-// checks.
-// TOS + 0: return address
-// Result in RAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ leaq(RAX, Address(RSP, target::kWordSize));
-  __ ret();
 }
 
 // Jump to a frame on the call stack.
@@ -3973,7 +3844,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       Label size_tag_overflow, done;
       __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 

@@ -261,7 +261,7 @@ final class BoxedDouble implements double {
     return _roundToDouble(this);
   }
 
-  static double _roundToDouble(final double d) {
+  static double _roundToDouble(double d) {
     final int bits = doubleToIntBits(d);
     final int exponent = (bits >> _mantissaBits) & ((1 << _exponentBits) - 1);
 

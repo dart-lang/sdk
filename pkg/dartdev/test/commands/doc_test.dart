@@ -27,8 +27,12 @@ void defineDocTests() {
 
   test('Passing conflicting options fails', () async {
     final p = project();
-    final result =
-        await p.run(['doc', '--validate-links', '--dry-run', p.dirPath]);
+    final result = await p.run([
+      'doc',
+      '--validate-links',
+      '--dry-run',
+      p.dirPath,
+    ]);
     expect(
       result.stderr,
       contains("'dart doc' can not validate links when dry-running."),
@@ -39,8 +43,10 @@ void defineDocTests() {
   test('Passing multiple directories fails', () async {
     final p = project();
     final result = await p.run(['doc', 'foo', 'bar']);
-    expect(result.stderr,
-        contains("'dart doc' only supports one input directory.'"));
+    expect(
+      result.stderr,
+      contains("'dart doc' only supports one input directory.'"),
+    );
     expect(result.exitCode, errorExitCode);
   });
 

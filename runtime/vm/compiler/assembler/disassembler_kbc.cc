@@ -365,8 +365,6 @@ void KernelBytecodeDisassembler::Disassemble(uword start,
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
-  GrowableArray<const Function*> inlined_functions;
-  GrowableArray<TokenPosition> token_positions;
   while (pc < end) {
     int instruction_length;
     Object* object;
@@ -480,7 +478,8 @@ void KernelBytecodeDisassembler::PrintSourcePositions(Zone* zone,
     const TokenPosition pos = iter.TokenPos();
     buffer->Printf(" %*s", kSourcePositionColumnWidths[1], pos.ToCString());
     intptr_t line = -1, column = -1;
-    if (!script.IsNull() && script.GetTokenLocation(pos, &line, &column)) {
+    if (!script.IsNull() &&
+        script.GetRealOrSyntheticTokenLocation(pos, &line, &column)) {
       buffer->Printf(" %*" Pd " %*" Pd "", kSourcePositionColumnWidths[2], line,
                      kSourcePositionColumnWidths[3], column);
     } else {

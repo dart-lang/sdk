@@ -13,13 +13,17 @@ import 'dart:io';
 
 ArgParser argParser = new ArgParser()
   ..addFlag('basic', help: 'Measure the basic implementation', negatable: false)
-  ..addOption('cycle',
-      abbr: 'c',
-      help: 'Build N copies of the class hierarchy and cycle queries '
-          'between them',
-      defaultsTo: '1');
+  ..addOption(
+    'cycle',
+    abbr: 'c',
+    help:
+        'Build N copies of the class hierarchy and cycle queries '
+        'between them',
+    defaultsTo: '1',
+  );
 
-String usage = '''
+String usage =
+    '''
 Usage: class_hierarchy_bench [options] FILE.dill
 
 Options:
@@ -139,8 +143,10 @@ void main(List<String> args) {
 
   String subclassPerSecond = perSecond(subclassQueryTime, numQueryTrials);
   String subtypePerSecond = perSecond(subtypeQueryTime, numQueryTrials);
-  String asInstanceOfPerSecond =
-      perSecond(asInstanceOfQueryTime, numQueryTrials);
+  String asInstanceOfPerSecond = perSecond(
+    asInstanceOfQueryTime,
+    numQueryTrials,
+  );
 
   // Measure getDispatchTarget and getDispatchTargets.
   watch.reset();
@@ -213,19 +219,31 @@ void main(List<String> args) {
   interfaceGenericGetTime -= dispatchTargetNoise;
   interfaceAllTargetsTime -= dispatchTargetNoise;
 
-  String dispatchToStringPerSecond =
-      perSecond(dispatchToStringTime, numQueryTrials);
-  String dispatchGetPerSecond =
-      perSecond(dispatchGenericGetTime, numQueryTrials);
-  String dispatchAllTargetsPerSecond =
-      perSecond(dispatchAllTargetsTime, numQueryTrials);
+  String dispatchToStringPerSecond = perSecond(
+    dispatchToStringTime,
+    numQueryTrials,
+  );
+  String dispatchGetPerSecond = perSecond(
+    dispatchGenericGetTime,
+    numQueryTrials,
+  );
+  String dispatchAllTargetsPerSecond = perSecond(
+    dispatchAllTargetsTime,
+    numQueryTrials,
+  );
 
-  String interfaceToStringPerSecond =
-      perSecond(interfaceToStringTime, numQueryTrials);
-  String interfaceGetPerSecond =
-      perSecond(interfaceGenericGetTime, numQueryTrials);
-  String interfaceAllTargetsPerSecond =
-      perSecond(interfaceAllTargetsTime, numQueryTrials);
+  String interfaceToStringPerSecond = perSecond(
+    interfaceToStringTime,
+    numQueryTrials,
+  );
+  String interfaceGetPerSecond = perSecond(
+    interfaceGenericGetTime,
+    numQueryTrials,
+  );
+  String interfaceAllTargetsPerSecond = perSecond(
+    interfaceAllTargetsTime,
+    numQueryTrials,
+  );
 
   watch.reset();
   var classHierarchy = getClassHierarchy();
@@ -237,8 +255,10 @@ void main(List<String> args) {
   }
   int overrideTime = watch.elapsedMicroseconds;
 
-  String overridePairsPerSecond =
-      perSecond(overrideTime, numberOfOverridePairs);
+  String overridePairsPerSecond = perSecond(
+    overrideTime,
+    numberOfOverridePairs,
+  );
 
   Map<Class, int> classIds = new Map<Class, int>();
   for (Class class_ in classes) {
@@ -266,8 +286,10 @@ void main(List<String> args) {
   int totalDepth = sum(depth) as int;
 
   int numberOfClasses = classes.length;
-  String expenseHistogram =
-      classHierarchy.getExpenseHistogram().skip(1).join(' ');
+  String expenseHistogram = classHierarchy
+      .getExpenseHistogram()
+      .skip(1)
+      .join(' ');
 
   print('''
 classes: $numberOfClasses

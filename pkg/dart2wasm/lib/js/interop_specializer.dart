@@ -25,8 +25,8 @@ abstract class _Specializer {
   final InteropSpecializerFactory factory;
   final Procedure interopMethod;
   final String jsString;
-  late final bool isInstanceMember =
-      factory._extensionIndex.isInstanceInteropMember(interopMethod);
+  late final bool isInstanceMember = factory._extensionIndex
+      .isInstanceInteropMember(interopMethod);
 
   _Specializer(this.factory, this.interopMethod, this.jsString);
 
@@ -69,10 +69,11 @@ abstract class _Specializer {
     final receiver = isConstructor
         ? ''
         : isInstanceMember
-            ? parameterNames[0]
-            : 'globalThis';
-    final callArguments =
-        isInstanceMember ? parameterNames.sublist(1) : parameterNames;
+        ? parameterNames[0]
+        : 'globalThis';
+    final callArguments = isInstanceMember
+        ? parameterNames.sublist(1)
+        : parameterNames;
     final callArgumentsString = callArguments.join(',');
     String functionParameters = isInstanceMember
         ? '$receiver${callArguments.isEmpty ? '' : ',$callArgumentsString'}'
@@ -100,11 +101,16 @@ abstract class _Specializer {
       final DartType parameterType = parameter.type;
       final interopFunctionParameterType =
           parameterType == _util.coreTypes.doubleNonNullableRawType
-              ? _util.coreTypes.doubleNonNullableRawType
-              : _util.nullableWasmExternRefType;
+          ? _util.coreTypes.doubleNonNullableRawType
+          : _util.nullableWasmExternRefType;
       String parameterString = 'x$i';
-      dartPositionalParameters.add(VariableDeclaration(parameterString,
-          type: interopFunctionParameterType, isSynthesized: true));
+      dartPositionalParameters.add(
+        VariableDeclaration(
+          parameterString,
+          type: interopFunctionParameterType,
+          isSynthesized: true,
+        ),
+      );
       jsParameterStrings.add(parameterString);
     }
 
@@ -113,18 +119,23 @@ abstract class _Specializer {
     final dartProcedure = _methodCollector.addInteropProcedure(
       '|$jsMethodName',
       'dart2wasm.$jsMethodName',
-      FunctionNode(null,
-          positionalParameters: dartPositionalParameters,
-          returnType: function.returnType is VoidType
-              ? VoidType()
-              : _util.nullableWasmExternRefType),
+      FunctionNode(
+        null,
+        positionalParameters: dartPositionalParameters,
+        returnType: function.returnType is VoidType
+            ? VoidType()
+            : _util.nullableWasmExternRefType,
+      ),
       fileUri,
       AnnotationType.import,
       library: interopMethod.enclosingLibrary,
       isExternal: true,
     );
     _methodCollector.addMethod(
-        dartProcedure, jsMethodName, generateJS(jsParameterStrings));
+      dartProcedure,
+      jsMethodName,
+      generateJS(jsParameterStrings),
+    );
     return dartProcedure;
   }
 
@@ -138,7 +149,9 @@ abstract class _Specializer {
     if (cachedProcedure != null) return cachedProcedure;
     final dartProcedure = _getRawInteropProcedure();
     _overloadedProcedures.putIfAbsent(
-        interopMethod, () => {})[parameters.length] = dartProcedure;
+      interopMethod,
+      () => {},
+    )[parameters.length] = dartProcedure;
     return dartProcedure;
   }
 
@@ -157,8 +170,10 @@ abstract class _Specializer {
   ///
   /// If [receiver] is empty, potentially adds a `globalThis` at the beginning
   /// if needed for bracket notation.
-  String _splitSelectorsAndRecombine(
-      {required String fullDottedString, required String receiver}) {
+  String _splitSelectorsAndRecombine({
+    required String fullDottedString,
+    required String receiver,
+  }) {
     final selectors = jsString.split('.');
     final validPropertyStr = StringBuffer('');
     validPropertyStr.write(receiver);
@@ -196,18 +211,23 @@ abstract class _ProcedureSpecializer extends _Specializer {
   Expression specialize() {
     // Return the replacement body.
     final interopProcedure = _getOrCreateInteropProcedure();
-    final interopProcedureType =
-        interopProcedure.computeSignatureOrFunctionType();
+    final interopProcedureType = interopProcedure
+        .computeSignatureOrFunctionType();
     final List<Expression> jsifiedArguments = [];
     for (int i = 0; i < parameters.length; i += 1) {
-      jsifiedArguments.add(jsifyValue(
+      jsifiedArguments.add(
+        jsifyValue(
           parameters[i],
           interopProcedureType.positionalParameters[i],
           factory._util,
-          factory._staticTypeContext.typeEnvironment));
+          factory._staticTypeContext.typeEnvironment,
+        ),
+      );
     }
-    final invocation =
-        StaticInvocation(interopProcedure, Arguments(jsifiedArguments));
+    final invocation = StaticInvocation(
+      interopProcedure,
+      Arguments(jsifiedArguments),
+    );
     return _util.castInvocationForReturn(invocation, function.returnType);
   }
 }
@@ -225,7 +245,9 @@ class _ConstructorSpecializer extends _ProcedureSpecializer {
   String bodyString(String receiver, List<String> callArguments) {
     assert(receiver.isEmpty);
     final constructorStr = _splitSelectorsAndRecombine(
-        fullDottedString: jsString, receiver: receiver);
+      fullDottedString: jsString,
+      receiver: receiver,
+    );
     return "new $constructorStr(${callArguments.join(',')})";
   }
 }
@@ -243,7 +265,9 @@ class _GetterSpecializer extends _ProcedureSpecializer {
   String bodyString(String receiver, List<String> callArguments) {
     assert(receiver.isNotEmpty);
     return _splitSelectorsAndRecombine(
-        fullDottedString: jsString, receiver: receiver);
+      fullDottedString: jsString,
+      receiver: receiver,
+    );
   }
 }
 
@@ -260,7 +284,9 @@ class _SetterSpecializer extends _ProcedureSpecializer {
   String bodyString(String receiver, List<String> callArguments) {
     assert(receiver.isNotEmpty);
     final setterStr = _splitSelectorsAndRecombine(
-        fullDottedString: jsString, receiver: receiver);
+      fullDottedString: jsString,
+      receiver: receiver,
+    );
     return '$setterStr = ${callArguments[0]}';
   }
 }
@@ -278,7 +304,9 @@ class _MethodSpecializer extends _ProcedureSpecializer {
   String bodyString(String receiver, List<String> callArguments) {
     assert(receiver.isNotEmpty);
     final methodStr = _splitSelectorsAndRecombine(
-        fullDottedString: jsString, receiver: receiver);
+      fullDottedString: jsString,
+      receiver: receiver,
+    );
     return '$methodStr(${callArguments.join(',')})';
   }
 }
@@ -291,12 +319,13 @@ class _OperatorSpecializer extends _ProcedureSpecializer {
 
   @override
   bool get isSetter => switch (jsString) {
-        '[]' => false,
-        '[]=' => true,
-        _ => throw UnimplementedError(
-            'External operator $jsString is unsupported for static interop. '
-            'Please file a request in the SDK if you want it to be supported.')
-      };
+    '[]' => false,
+    '[]=' => true,
+    _ => throw UnimplementedError(
+      'External operator $jsString is unsupported for static interop. '
+      'Please file a request in the SDK if you want it to be supported.',
+    ),
+  };
 
   @override
   String bodyString(String receiver, List<String> callArguments) {
@@ -311,14 +340,22 @@ class _OperatorSpecializer extends _ProcedureSpecializer {
 abstract class _InvocationSpecializer extends _Specializer {
   final StaticInvocation invocation;
   _InvocationSpecializer(
-      super.factory, super.interopMethod, super.jsString, this.invocation);
+    super.factory,
+    super.interopMethod,
+    super.jsString,
+    this.invocation,
+  );
 }
 
 /// Config class for procedures that are lowered on the invocation-side, but
 /// only contain positional parameters.
 abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
   _PositionalInvocationSpecializer(
-      super.factory, super.interopMethod, super.jsString, super.invocation);
+    super.factory,
+    super.interopMethod,
+    super.jsString,
+    super.invocation,
+  );
 
   @override
   List<VariableDeclaration> get parameters => function.positionalParameters
@@ -331,31 +368,48 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     // Create or get the specialized procedure for the invoked number of
     // arguments. Cast as needed and return the final invocation.
     final interopProcedure = _getOrCreateInteropProcedure();
-    final interopProcedureType =
-        interopProcedure.computeSignatureOrFunctionType();
+    final interopProcedureType = interopProcedure
+        .computeSignatureOrFunctionType();
     final List<Expression> jsifiedArguments = [];
     final List<Expression> arguments = invocation.arguments.positional;
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = VariableDeclaration(null,
-          initializer: arguments[i],
-          type: arguments[i].getStaticType(factory._staticTypeContext),
-          isSynthesized: true);
-      jsifiedArguments.add(Let(
+      final temp = VariableDeclaration(
+        null,
+        initializer: arguments[i],
+        type: arguments[i].getStaticType(factory._staticTypeContext),
+        isSynthesized: true,
+      );
+      jsifiedArguments.add(
+        Let(
           temp,
-          jsifyValue(temp, interopProcedureType.positionalParameters[i],
-              factory._util, factory._staticTypeContext.typeEnvironment)));
+          jsifyValue(
+            temp,
+            interopProcedureType.positionalParameters[i],
+            factory._util,
+            factory._staticTypeContext.typeEnvironment,
+          ),
+        ),
+      );
     }
-    final staticInvocation =
-        StaticInvocation(interopProcedure, Arguments(jsifiedArguments));
+    final staticInvocation = StaticInvocation(
+      interopProcedure,
+      Arguments(jsifiedArguments),
+    );
     return _util.castInvocationForReturn(
-        staticInvocation, invocation.getStaticType(_staticTypeContext));
+      staticInvocation,
+      invocation.getStaticType(_staticTypeContext),
+    );
   }
 }
 
 class _ConstructorInvocationSpecializer
     extends _PositionalInvocationSpecializer {
   _ConstructorInvocationSpecializer(
-      super.factory, super.interopMethod, super.jsString, super.invocation);
+    super.factory,
+    super.interopMethod,
+    super.jsString,
+    super.invocation,
+  );
 
   @override
   bool get isConstructor => true;
@@ -367,14 +421,20 @@ class _ConstructorInvocationSpecializer
   String bodyString(String receiver, List<String> callArguments) {
     assert(receiver.isEmpty);
     final constructorStr = _splitSelectorsAndRecombine(
-        fullDottedString: jsString, receiver: receiver);
+      fullDottedString: jsString,
+      receiver: receiver,
+    );
     return "new $constructorStr(${callArguments.join(',')})";
   }
 }
 
 class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
   _MethodInvocationSpecializer(
-      super.factory, super.interopMethod, super.jsString, super.invocation);
+    super.factory,
+    super.interopMethod,
+    super.jsString,
+    super.invocation,
+  );
 
   @override
   bool get isConstructor => false;
@@ -386,7 +446,9 @@ class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
   String bodyString(String receiver, List<String> callArguments) {
     assert(receiver.isNotEmpty);
     final methodStr = _splitSelectorsAndRecombine(
-        fullDottedString: jsString, receiver: receiver);
+      fullDottedString: jsString,
+      receiver: receiver,
+    );
     return '$methodStr(${callArguments.join(',')})';
   }
 }
@@ -394,9 +456,11 @@ class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
 /// Config class for object literals, which only use named arguments and are
 /// only lowered at the invocation-level.
 class _ObjectLiteralSpecializer extends _InvocationSpecializer {
-  _ObjectLiteralSpecializer(InteropSpecializerFactory factory,
-      Procedure interopMethod, StaticInvocation invocation)
-      : super(factory, interopMethod, '', invocation);
+  _ObjectLiteralSpecializer(
+    InteropSpecializerFactory factory,
+    Procedure interopMethod,
+    StaticInvocation invocation,
+  ) : super(factory, interopMethod, '', invocation);
 
   @override
   bool get isConstructor => true;
@@ -410,8 +474,9 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     // Note that we preserve the procedure's ordering and not the invocation's.
     // This is also used below for the names of object literal arguments in
     // `generateJS`.
-    final usedArgs =
-        invocation.arguments.named.map((expr) => expr.name).toSet();
+    final usedArgs = invocation.arguments.named
+        .map((expr) => expr.name)
+        .toSet();
     return function.namedParameters
         .where((decl) => usedArgs.contains(decl.name))
         .toList();
@@ -461,24 +526,36 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     for (NamedExpression expr in invocation.arguments.named) {
       namedArgs[expr.name] = expr.value;
     }
-    final interopProcedureType =
-        interopProcedure.computeSignatureOrFunctionType();
-    final arguments =
-        parameters.map<Expression>((decl) => namedArgs[decl.name!]!).toList();
+    final interopProcedureType = interopProcedure
+        .computeSignatureOrFunctionType();
+    final arguments = parameters
+        .map<Expression>((decl) => namedArgs[decl.name!]!)
+        .toList();
     final List<Expression> jsifiedArguments = [];
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = VariableDeclaration(null,
-          initializer: arguments[i],
-          type: arguments[i].getStaticType(factory._staticTypeContext),
-          isSynthesized: true);
-      jsifiedArguments.add(Let(
+      final temp = VariableDeclaration(
+        null,
+        initializer: arguments[i],
+        type: arguments[i].getStaticType(factory._staticTypeContext),
+        isSynthesized: true,
+      );
+      jsifiedArguments.add(
+        Let(
           temp,
-          jsifyValue(temp, interopProcedureType.positionalParameters[i],
-              factory._util, factory._staticTypeContext.typeEnvironment)));
+          jsifyValue(
+            temp,
+            interopProcedureType.positionalParameters[i],
+            factory._util,
+            factory._staticTypeContext.typeEnvironment,
+          ),
+        ),
+      );
     }
     assert(factory._extensionIndex.isStaticInteropType(function.returnType));
-    return invokeOneArg(_util.jsValueBoxTarget,
-        StaticInvocation(interopProcedure, Arguments(jsifiedArguments)));
+    return invokeOneArg(
+      _util.jsValueBoxTarget,
+      StaticInvocation(interopProcedure, Arguments(jsifiedArguments)),
+    );
   }
 }
 
@@ -516,8 +593,12 @@ class InteropSpecializerFactory {
 
   late final ExtensionIndex _extensionIndex;
 
-  InteropSpecializerFactory(this._staticTypeContext, this._util,
-      this._methodCollector, this._extensionIndex);
+  InteropSpecializerFactory(
+    this._staticTypeContext,
+    this._util,
+    this._methodCollector,
+    this._extensionIndex,
+  );
 
   String _getJSString(Annotatable a, String initial) {
     String selectorString = getJSName(a);
@@ -528,7 +609,10 @@ class InteropSpecializerFactory {
   }
 
   String _getTopLevelJSString(
-      Annotatable a, String writtenName, Library enclosingLibrary) {
+    Annotatable a,
+    String writtenName,
+    Library enclosingLibrary,
+  ) {
     final name = _getJSString(a, writtenName);
     final libraryName = getJSName(enclosingLibrary);
     if (libraryName.isEmpty) return name;
@@ -538,8 +622,11 @@ class InteropSpecializerFactory {
   /// Get the `_Specializer` for the non-constructor [node] with its
   /// associated [jsString] name, and the [invocation] it's used in if this is
   /// an invocation-level lowering.
-  _Specializer? _getSpecializerForMember(Procedure node, String jsString,
-      [StaticInvocation? invocation]) {
+  _Specializer? _getSpecializerForMember(
+    Procedure node,
+    String jsString, [
+    StaticInvocation? invocation,
+  ]) {
     if (invocation == null) {
       if (_extensionIndex.isGetter(node)) {
         return _GetterSpecializer(this, node, jsString);
@@ -562,8 +649,11 @@ class InteropSpecializerFactory {
   /// [isObjectLiteral] or not, with its associated [jsString] name, and the
   /// [invocation] it's used in if this is an invocation-level lowering.
   _Specializer? _getSpecializerForConstructor(
-      bool isObjectLiteral, Procedure node, String jsString,
-      [StaticInvocation? invocation]) {
+    bool isObjectLiteral,
+    Procedure node,
+    String jsString, [
+    StaticInvocation? invocation,
+  ]) {
     if (invocation == null) {
       if (!isObjectLiteral) {
         return _ConstructorSpecializer(this, node, jsString);
@@ -573,7 +663,11 @@ class InteropSpecializerFactory {
         return _ObjectLiteralSpecializer(this, node, invocation);
       } else {
         return _ConstructorInvocationSpecializer(
-            this, node, jsString, invocation);
+          this,
+          node,
+          jsString,
+          invocation,
+        );
       }
     }
     return null;
@@ -585,44 +679,68 @@ class InteropSpecializerFactory {
   ///
   /// If [invocation] is not null, returns an invocation-level config for the
   /// [node] if it exists.
-  _Specializer? _getSpecializer(Procedure node,
-      [StaticInvocation? invocation]) {
+  _Specializer? _getSpecializer(
+    Procedure node, [
+    StaticInvocation? invocation,
+  ]) {
     if (node.enclosingClass != null &&
         hasJSInteropAnnotation(node.enclosingClass!)) {
       final cls = node.enclosingClass!;
-      final clsString =
-          _getTopLevelJSString(cls, cls.name, cls.enclosingLibrary);
+      final clsString = _getTopLevelJSString(
+        cls,
+        cls.name,
+        cls.enclosingLibrary,
+      );
       if (node.isFactory) {
         return _getSpecializerForConstructor(
-            hasAnonymousAnnotation(cls), node, clsString, invocation);
+          hasAnonymousAnnotation(cls),
+          node,
+          clsString,
+          invocation,
+        );
       } else {
         final memberSelectorString = _getJSString(node, node.name.text);
         return _getSpecializerForMember(
-            node, '$clsString.$memberSelectorString', invocation);
+          node,
+          '$clsString.$memberSelectorString',
+          invocation,
+        );
       }
     } else if (node.isExtensionTypeMember) {
       final nodeDescriptor = _extensionIndex.getExtensionTypeDescriptor(node);
       if (nodeDescriptor != null) {
         final cls = _extensionIndex.getExtensionType(node)!;
-        final clsString =
-            _getTopLevelJSString(cls, cls.name, node.enclosingLibrary);
+        final clsString = _getTopLevelJSString(
+          cls,
+          cls.name,
+          node.enclosingLibrary,
+        );
         final kind = nodeDescriptor.kind;
         if (kind == ExtensionTypeMemberKind.Constructor ||
             kind == ExtensionTypeMemberKind.Factory) {
           return _getSpecializerForConstructor(
-              _extensionIndex.isLiteralConstructor(node),
-              node,
-              clsString,
-              invocation);
+            _extensionIndex.isLiteralConstructor(node),
+            node,
+            clsString,
+            invocation,
+          );
         } else {
-          final memberSelectorString =
-              _getJSString(node, nodeDescriptor.name.text);
+          final memberSelectorString = _getJSString(
+            node,
+            nodeDescriptor.name.text,
+          );
           if (nodeDescriptor.isStatic) {
             return _getSpecializerForMember(
-                node, '$clsString.$memberSelectorString', invocation);
+              node,
+              '$clsString.$memberSelectorString',
+              invocation,
+            );
           } else {
             return _getSpecializerForMember(
-                node, memberSelectorString, invocation);
+              node,
+              memberSelectorString,
+              invocation,
+            );
           }
         }
       }
@@ -630,19 +748,25 @@ class InteropSpecializerFactory {
       final nodeDescriptor = _extensionIndex.getExtensionDescriptor(node);
       if (nodeDescriptor != null && !nodeDescriptor.isStatic) {
         return _getSpecializerForMember(
-            node, _getJSString(node, nodeDescriptor.name.text), invocation);
+          node,
+          _getJSString(node, nodeDescriptor.name.text),
+          invocation,
+        );
       }
     } else if (hasJSInteropAnnotation(node)) {
       return _getSpecializerForMember(
-          node,
-          _getTopLevelJSString(node, node.name.text, node.enclosingLibrary),
-          invocation);
+        node,
+        _getTopLevelJSString(node, node.name.text, node.enclosingLibrary),
+        invocation,
+      );
     }
     return null;
   }
 
   Expression? maybeSpecializeInvocation(
-      Procedure target, StaticInvocation node) {
+    Procedure target,
+    StaticInvocation node,
+  ) {
     if (target.isExternal || _overloadedProcedures.containsKey(target)) {
       return _getSpecializer(target, node)?.specialize();
     }

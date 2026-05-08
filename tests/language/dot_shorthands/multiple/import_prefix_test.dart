@@ -4,8 +4,6 @@
 
 // Contexts with a prefix import should still work with dot shorthands.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart' as prefix;
 
 void main() {

@@ -1,0 +1,15 @@
+testNotCapturedImplicitTypes() {}
+
+testNotCapturedExplicitTypes() {}
+
+testNotCapturedWildcards() {}
+
+testDirectCaptured() {}
+
+testAssertCaptured() {}
+
+testErroneousOptional() {}
+
+testErroneousOneOptional() {}
+
+testErroneousNamed() {}

@@ -111,6 +111,30 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     return buffer.toString();
   }
 
+  String _blockContents(Block block) {
+    // Extract the text inside the braces so we keep comments and blank lines.
+    var text = utils.getRangeText(
+      range.endStart(block.leftBracket, block.rightBracket),
+    );
+
+    // Drop the leading EOL so the first line doesn't turn into a blank line.
+    var eol = utils.endOfLine;
+    if (text.startsWith(eol)) {
+      text = text.substring(eol.length);
+    }
+
+    // Remove the trailing indent-only line that comes from the closing brace.
+    var lastEol = text.lastIndexOf(eol);
+    if (lastEol != -1) {
+      var lastLine = text.substring(lastEol + eol.length);
+      if (lastLine.trim().isEmpty) {
+        text = text.substring(0, lastEol + eol.length);
+      }
+    }
+
+    return text;
+  }
+
   Future<void> _conditionalExpression(
     ConditionalExpression node,
     ChangeBuilder builder,
@@ -158,11 +182,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   Future<void> _ifStatement(IfStatement node, ChangeBuilder builder) async {
     Future<void> replaceWithBlock(Block replacement) async {
-      var text = utils.getRangeText(
-        utils.getLinesRange(
-          range.endStart(replacement.leftBracket, replacement.rightBracket),
-        ),
-      );
+      var text = _blockContents(replacement);
       var unIndented = indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(

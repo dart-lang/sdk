@@ -23,18 +23,11 @@ library foo.bar;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name: LibraryIdentifier
-    components
-      SimpleIdentifier
-        token: foo
-        element: <null>
-        staticType: null
-      SimpleIdentifier
-        token: bar
-        element: <null>
-        staticType: null
-    element: <null>
-    staticType: null
+  name: DottedName
+    tokens
+      foo
+      .
+      bar
   semicolon: ;
   element: <testLibrary>
 ''');

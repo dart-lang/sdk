@@ -117,7 +117,7 @@ Future createTempDirectories() {
       .then((_) => new Directory(join(tempDirectory, 'dir1')).create());
 }
 
-testObjects(var ignored) {
+testObjects(ignored) {
   ['file1', 'link1', 'dir1', 'file2', 'link2', 'dir2'].map(testPath);
 }
 

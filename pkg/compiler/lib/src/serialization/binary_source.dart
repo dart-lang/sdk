@@ -15,8 +15,7 @@ class BinaryDataSource implements DataSource {
   final StringInterner? _stringInterner;
   late final Map<int, int> _deferredOffsetToSize;
 
-  BinaryDataSource(this._bytes, {StringInterner? stringInterner})
-    : _stringInterner = stringInterner {
+  BinaryDataSource(this._bytes, {this._stringInterner}) {
     final deferredDataStart = readAtOffset(_bytes.length - 4, readUint32);
     _deferredOffsetToSize = readAtOffset(deferredDataStart, () {
       final deferredSizesCount = readInt();

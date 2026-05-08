@@ -97,6 +97,35 @@ String f() {
     assertHasRegion(example2Path, length: example2Path.length);
   }
 
+  Future<void> test_constructor_factory() async {
+    addTestFile('''
+class Foo {
+  new _();
+  factory();
+}
+
+final a = Foo(1);
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo(1)');
+    assertHasRegionTarget('Foo(1)', 'factory()');
+  }
+
+  Future<void> test_constructor_new() async {
+    addTestFile('''
+class Foo {
+  new();
+}
+
+final a = Foo.new(1);
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'new(1)');
+    assertHasRegionTarget('new(1)', 'new()');
+  }
+
   Future<void> test_constructorInvocation() async {
     // Check that a constructor invocation navigates to the constructor and not
     // the class.
@@ -553,6 +582,18 @@ import 'dart:io' as _;
     await _getNavigation(search: '_');
     assertHasRegion('_');
     assertHasTarget('_');
+  }
+
+  Future<void> test_primaryConstructor() async {
+    addTestFile('''
+class Foo(final int a);
+
+final a = Foo(1);
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo(1);');
+    assertHasRegionTarget('Foo(1)', 'Foo(final int a)');
   }
 
   Future<void> test_topLevelVariable_underscore() async {

@@ -7,22 +7,28 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [LibraryImport]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
+  final CorrectionUtils utils;
+
   final MockLibraryImportElement importElement;
 
   factory RenameImportRefactoringImpl(
     RefactoringWorkspace workspace,
     AnalysisSessionHelper sessionHelper,
+    ResolvedUnitResult resolvedUnit,
     LibraryImport import,
   ) {
     var element2 = MockLibraryImportElement(import);
@@ -31,6 +37,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       sessionHelper,
       element2,
       element2,
+      resolvedUnit,
+      CorrectionUtils(resolvedUnit),
     );
   }
 
@@ -39,6 +47,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     super.sessionHelper,
     super.element,
     this.importElement,
+    this.resolvedUnit,
+    this.utils,
   ) : super();
 
   @override
@@ -47,6 +57,63 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     return 'Rename Import Prefix';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    // Update the declaration.
+    var node = await _findNode();
+    if (node == null) {
+      return;
+    }
+
+    var prefixNode = node.prefix;
+    var libraryPath = element.libraryFragment.source.fullName;
+    if (newName.isEmpty) {
+      // We shouldn't get `prefix == null` because we check in `checkNewName`
+      // that the new name is different.
+      if (prefixNode != null) {
+        var uriEnd = node.uri.end;
+        var prefixEnd = prefixNode.end;
+        await builder.addDartFileEdit(libraryPath, (builder) {
+          builder.addDeletion(range.startOffsetEndOffset(uriEnd, prefixEnd));
+        });
+      }
+    } else {
+      await builder.addDartFileEdit(libraryPath, (builder) {
+        if (prefixNode == null) {
+          builder.addSimpleInsertion(node.uri.end, ' as $newName');
+        } else {
+          builder.addSimpleReplacement(range.node(prefixNode), newName);
+        }
+      });
+    }
+
+    // Update the references.
+    var references = await searchEngine.searchLibraryImportReferences(
+      element.import,
+    );
+    for (var reference in references) {
+      var fragmentPath = reference.libraryFragment.source.fullName;
+      if (newName.isEmpty) {
+        await builder.addDartFileEdit(fragmentPath, (builder) {
+          builder.addDeletion(reference.range);
+        });
+      } else {
+        var identifier = await _getInterpolationIdentifier(reference);
+        if (identifier != null) {
+          await builder.addDartFileEdit(fragmentPath, (builder) {
+            builder.addSimpleReplacement(
+              range.node(identifier),
+              '{$newName.${identifier.name}}',
+            );
+          });
+        } else {
+          await builder.addDartFileEdit(fragmentPath, (builder) {
+            builder.addSimpleReplacement(reference.range, '$newName.');
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -63,75 +130,20 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<void> fillChange() async {
-    // update declaration
-    {
-      var node = await _findNode();
-      if (node == null) {
-        return;
-      }
-
-      var prefixNode = node.prefix;
-      SourceEdit? edit;
-      if (newName.isEmpty) {
-        // We should not get `prefix == null` because we check in
-        // `checkNewName` that the new name is different.
-        if (prefixNode != null) {
-          var uriEnd = node.uri.end;
-          var prefixEnd = prefixNode.end;
-          edit = newSourceEdit_range(
-            range.startOffsetEndOffset(uriEnd, prefixEnd),
-            '',
-          );
-        }
-      } else {
-        if (prefixNode == null) {
-          var uriEnd = node.uri.end;
-          edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
-        } else {
-          edit = newSourceEdit_range(range.node(prefixNode), newName);
-        }
-      }
-      if (edit != null) {
-        doSourceChange_addSourceEdit(
-          change,
-          element.libraryFragment.source,
-          edit,
-        );
-      }
-    }
-    // update references
-    var references = await searchEngine.searchLibraryImportReferences(
-      element.import,
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
     );
-    for (var reference in references) {
-      if (newName.isEmpty) {
-        doSourceChange_addSourceEdit(
-          change,
-          reference.libraryFragment.source,
-          newSourceEdit_range(reference.range, ''),
-        );
-      } else {
-        var identifier = await _getInterpolationIdentifier(reference);
-        if (identifier != null) {
-          doSourceChange_addFragmentEdit(
-            change,
-            reference.libraryFragment,
-            SourceEdit(
-              identifier.offset,
-              identifier.length,
-              '{$newName.${identifier.name}}',
-            ),
-          );
-        } else {
-          doSourceChange_addSourceEdit(
-            change,
-            reference.libraryFragment.source,
-            newSourceEdit_range(reference.range, '$newName.'),
-          );
-        }
-      }
-    }
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
+
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 
   /// Return the [ImportDirective] node that corresponds to the element.

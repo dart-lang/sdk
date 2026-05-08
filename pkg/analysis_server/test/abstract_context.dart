@@ -56,6 +56,9 @@ class AbstractContextTest
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
+  @override
+  String get dartSdkPath => sdkRoot.path;
+
   /// The line terminator being used for test files and to be expected in edits.
   String get eol => testEol;
 

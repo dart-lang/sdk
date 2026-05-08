@@ -20,9 +20,16 @@ const _desc = r'Avoid lines longer than 80 characters.';
 
 const _lf = '\n';
 
-/// String looks like URI if it contains a slash or backslash.
-final _uriRegExp = RegExp(r'[/\\]');
-bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
+bool _looksLikeUriOrPath(String value) {
+  /// String looks like URI if it contains a slash or backslash.
+  const int $SLASH = 47;
+  const int $BACKSLASH = 92;
+  for (int i = 0; i < value.length; i++) {
+    int char = value.codeUnitAt(i);
+    if (char == $BACKSLASH || char == $SLASH) return true;
+  }
+  return false;
+}
 
 class LinesLongerThan80Chars extends AnalysisRule {
   LinesLongerThan80Chars()
@@ -51,20 +58,14 @@ class _AllowedCommentVisitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     Token? token = node.beginToken;
     while (token != null) {
-      _getPrecedingComments(token).forEach(_visitComment);
+      Token? comment = token.precedingComments;
+      while (comment != null) {
+        _visitComment(comment);
+        comment = comment.next;
+      }
       if (token == token.next) break;
       token = token.next;
     }
-  }
-
-  Iterable<Token> _getPrecedingComments(Token token) {
-    var tokens = <Token>[];
-    Token? comment = token.precedingComments;
-    while (comment != null) {
-      tokens.add(comment);
-      comment = comment.next;
-    }
-    return tokens;
   }
 
   void _visitComment(Token comment) {

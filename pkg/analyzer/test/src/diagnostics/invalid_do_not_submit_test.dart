@@ -48,6 +48,28 @@ void b() {
     ]);
   }
 
+  test_constructor_primary() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A() {
+  @doNotSubmit
+  this;
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+var a = A();
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(diag.invalidUseOfDoNotSubmitMember, 26, 1),
+    ]);
+  }
+
   test_constructorFactory() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -283,7 +305,9 @@ void b() {
 ''');
 
     await assertErrorsInFile2(a, [error(diag.invalidAnnotationTarget, 35, 11)]);
-    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(b, [
+      error(diag.invalidUseOfDoNotSubmitMember, 31, 1),
+    ]);
   }
 
   test_method() async {
@@ -315,14 +339,14 @@ void b() {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
-void a({@doNotSubmit int? a}) {}
+void a({@doNotSubmit int? p}) {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
 void b() {
-  a(a: 0);
+  a(p: 0);
 }
 ''');
 
@@ -332,11 +356,30 @@ void b() {
     ]);
   }
 
+  test_parameter_inPrimaryConstructor() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A([@doNotSubmit int x = 0]);
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+var a = A(1);
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(diag.invalidUseOfDoNotSubmitMember, 28, 1),
+    ]);
+  }
+
   test_positionalParameter() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
-void a([@doNotSubmit int? a]) {}
+void a([@doNotSubmit int? p]) {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''

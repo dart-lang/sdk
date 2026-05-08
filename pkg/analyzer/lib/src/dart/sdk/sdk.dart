@@ -34,13 +34,15 @@ Version languageVersionFromSdkVersion(String sdkVersionStr) {
 /// library map.
 abstract class AbstractDartSdk implements DartSdk {
   /// The resource provider used to access the file system.
-  late final ResourceProvider resourceProvider;
+  final ResourceProvider resourceProvider;
 
   /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
   /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source?> _uriToSourceMap = HashMap<String, Source?>();
+
+  AbstractDartSdk(this.resourceProvider);
 
   @override
   List<SdkLibraryImpl> get sdkLibraries => libraryMap.sdkLibraries;
@@ -200,18 +202,17 @@ class EmbedderSdk extends AbstractDartSdk {
 
   static const String _embeddedLibMapKey = 'embedded_libs';
 
-  late final Version _languageVersion;
+  final Version _languageVersion;
 
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
-  EmbedderSdk(
-    ResourceProvider resourceProvider,
-    Map<Folder, YamlMap>? embedderYamls, {
+  EmbedderSdk.new2(
+    super.resourceProvider,
+    Folder libFolder,
+    YamlMap? embedderYaml, {
     required Version languageVersion,
-  }) {
-    this.resourceProvider = resourceProvider;
-    _languageVersion = languageVersion;
-    embedderYamls?.forEach(_processEmbedderYaml);
+  }) : _languageVersion = languageVersion {
+    _processEmbedderYaml(libFolder, embedderYaml);
   }
 
   @override
@@ -297,17 +298,21 @@ class EmbedderSdk extends AbstractDartSdk {
     libraryMap.setLibrary(name, library);
   }
 
-  /// Given the 'embedderYamls' from [EmbedderYamlLocator] check each one for
-  /// the top level key 'embedded_libs'. Under the 'embedded_libs' key are key
-  /// value pairs. Each key is a 'dart:' library uri and each value is a path
-  /// (relative to the directory containing `_embedder.yaml`) to a dart script
-  /// for the given library. For example:
+  /// Given a sky_engine embedder YAML [map], checks for the top level key
+  /// 'embedded_libs'.
   ///
+  /// Under the 'embedded_libs' key are key/value pairs. Each key is a 'dart:'
+  /// library URI and each value is a path (relative to the directory containing
+  /// `_embedder.yaml`) to a dart script for the given library. For example:
+  ///
+  /// ```yaml
   /// embedded_libs:
   ///   'dart:io': '../../sdk/io/io.dart'
+  /// ```
   ///
-  /// If a key doesn't begin with `dart:` it is ignored.
-  void _processEmbedderYaml(Folder libDir, YamlMap map) {
+  /// If a key doesn't begin with `dart:`, it is ignored.
+  void _processEmbedderYaml(Folder libDir, YamlMap? map) {
+    if (map == null) return;
     var embeddedLibs = map[_embeddedLibMapKey] as YamlNode;
     if (embeddedLibs is YamlMap) {
       embeddedLibs.forEach(
@@ -387,9 +392,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   /// Initialize a newly created SDK to represent the Dart SDK installed in the
   /// [sdkDirectory].
-  FolderBasedDartSdk(ResourceProvider resourceProvider, Folder sdkDirectory)
+  FolderBasedDartSdk(super.resourceProvider, Folder sdkDirectory)
     : _sdkDirectory = sdkDirectory {
-    this.resourceProvider = resourceProvider;
     libraryMap = initialLibraryMap();
   }
 

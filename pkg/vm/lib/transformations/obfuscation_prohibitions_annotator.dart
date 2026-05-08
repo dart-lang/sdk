@@ -29,8 +29,8 @@ void transformComponent(
 
   if (keepClassNamesImplementing != null &&
       keepClassNamesImplementing.isNotEmpty) {
-    final subtypes =
-        (hierarchy as ClosedWorldClassHierarchy).computeSubtypesInformation();
+    final subtypes = (hierarchy as ClosedWorldClassHierarchy)
+        .computeSubtypesInformation();
     final names = visitor.metadata.protectedNames;
     for (final lib in component.libraries) {
       for (final cls in lib.classes) {

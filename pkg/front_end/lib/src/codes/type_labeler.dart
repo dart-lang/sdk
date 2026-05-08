@@ -4,9 +4,10 @@
 
 import 'dart:convert' show json;
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
-import 'cfe_codes.dart' show Message, codeTypeOrigin, codeTypeOriginWithFileUri;
+import 'cfe_codes.dart' show Message;
 import 'denylisted_classes.dart' show denylistedCoreClasses;
 
 /// A labeled string returned by [TypeLabeler].
@@ -268,8 +269,12 @@ class TypeLabeler
           // Coverage-ignore-block(suite): Not run.
           result.add(", ");
         }
-        node.namedParameters[i].type.accept(this);
-        result.add(" ${node.namedParameters[i].name}");
+        NamedType namedParameter = node.namedParameters[i];
+        if (namedParameter.isRequired) {
+          result.add("required ");
+        }
+        namedParameter.type.accept(this);
+        result.add(" ${namedParameter.name}");
         first = false;
       }
       result.add("}");
@@ -664,13 +669,13 @@ class LabeledNode {
       }
     }
     Message message = (importUri == fileUri || importUri.isScheme('dart'))
-        ? codeTypeOrigin.withArgumentsOld(toString(), importUri)
+        ? diag.typeOrigin.withArguments(name: toString(), uri: importUri)
         :
           // Coverage-ignore(suite): Not run.
-          codeTypeOriginWithFileUri.withArgumentsOld(
-            toString(),
-            importUri,
-            fileUri,
+          diag.typeOriginWithFileUri.withArguments(
+            name: toString(),
+            importUri: importUri,
+            fileUri: fileUri,
           );
     return "\n - " + message.problemMessage;
   }

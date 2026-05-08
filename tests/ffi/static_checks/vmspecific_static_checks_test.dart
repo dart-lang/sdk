@@ -603,9 +603,9 @@ class TestStruct3 extends TestStruct {}
 //    ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] Class 'TestStruct' cannot be extended or implemented.
+// [cfe] Deeply immutable classes must be final or sealed.
 // [cfe] TestStruct 'TestStruct3' is empty. Empty structs and unions are undefined behavior.
 // [cfe] The type 'TestStruct3' must be 'base', 'final' or 'sealed' because the supertype 'TestStruct' is 'final'.
-// [cfe] Deeply immutable classes must be final or sealed.
 //                        ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_STRUCT_CLASS
 
@@ -671,8 +671,8 @@ final class TestStruct8 extends Struct {
   double z = 10.0;
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_MUST_BE_EXTERNAL_IN_STRUCT
-  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
   // [cfe] Deeply immutable classes must only have final non-late instance fields.
+  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
 
   external Pointer notEmpty;
 }
@@ -683,13 +683,13 @@ final class TestStruct9 extends Struct {
   double z;
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_MUST_BE_EXTERNAL_IN_STRUCT
-  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
   // [cfe] Deeply immutable classes must only have final non-late instance fields.
+  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
 
   external Pointer notEmpty;
 
   TestStruct9() : z = 0.0 {}
-  //                ^
+  //              ^
   // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
 }
 
@@ -902,8 +902,8 @@ class IStruct implements Struct {}
 //    ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] Class 'Object' cannot be extended or implemented.
-// [cfe] The type 'IStruct' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
 // [cfe] Subtypes of deeply immutable classes must be deeply immutable.
+// [cfe] The type 'IStruct' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
 //                       ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'Struct' can't be implemented outside of its library because it's a base class.

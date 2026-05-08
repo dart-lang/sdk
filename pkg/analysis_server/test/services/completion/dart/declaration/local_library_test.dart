@@ -275,6 +275,18 @@ suggestions
     kind: typeAlias
   t2
     kind: typeAlias
+  t2.empty
+    kind: constructorInvocation
+  t2.filled
+    kind: constructorInvocation
+  t2.from
+    kind: constructorInvocation
+  t2.generate
+    kind: constructorInvocation
+  t2.of
+    kind: constructorInvocation
+  t2.unmodifiable
+    kind: constructorInvocation
 ''');
   }
 

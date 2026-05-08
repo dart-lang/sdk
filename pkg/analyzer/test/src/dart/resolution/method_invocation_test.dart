@@ -1975,7 +1975,7 @@ FunctionExpressionInvocation
 
   test_error_invocationOfNonFunction_parameter_dynamic() async {
     await assertNoErrorsInCode(r'''
-main(var foo) {
+main(foo) {
   foo();
 }
 ''');
@@ -3065,7 +3065,7 @@ main() {
   foo<int>();
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 29, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 29, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -3100,7 +3100,7 @@ main() {
   foo<int>();
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 67, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 67, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -3153,7 +3153,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: p@null
+        correspondingParameter: p@27
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -4021,9 +4021,12 @@ var v = C()..foo(0) = 0;
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::C::@getter::foo
+  function: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5273,6 +5276,36 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: void Function()
   staticType: void
+''');
+  }
+
+  test_hasReceiver_neverQuestion_nullAware() async {
+    await assertErrorsInCode(
+      '''
+void f(Never? a) {
+  a?.foo();
+}
+''',
+      [error(diag.deadCode, 24, 5)],
+    );
+
+    var node = findNode.methodInvocation('foo');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Never?
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never?
 ''');
   }
 
@@ -8347,7 +8380,7 @@ main() {
   foo<int, double>();
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 32, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 32, 13)],
     );
 
     var node = findNode.methodInvocation('foo<int, double>();');

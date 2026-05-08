@@ -20,14 +20,14 @@ class NonHintCodeTest extends PubPackageResolutionTest {
     // https://code.google.com/p/dart/issues/detail?id=20904
     await assertErrorsInCode(
       r'''
-f(var message, var dynamic_) {
+f(message, dynamic_) {
   if (message is Function) {
     message = dynamic_;
   }
   int s = message;
 }
 ''',
-      [error(diag.unusedLocalVariable, 94, 1)],
+      [error(diag.unusedLocalVariable, 86, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ f(var message, var dynamic_) {
     // https://code.google.com/p/dart/issues/detail?id=20904
     await assertErrorsInCode(
       r'''
-f(var message) {
+f(message) {
   var dynamic_;
   if (message is Function) {
     message = dynamic_;
@@ -45,7 +45,7 @@ f(var message) {
   int s = message;
 }
 ''',
-      [error(diag.unusedLocalVariable, 119, 1)],
+      [error(diag.unusedLocalVariable, 115, 1)],
     );
   }
 
@@ -53,7 +53,7 @@ f(var message) {
     // https://code.google.com/p/dart/issues/detail?id=20904
     await assertErrorsInCode(
       r'''
-f(var message) {
+f(message) {
   if (message is Function) {
     message = '';
   } else {
@@ -62,7 +62,7 @@ f(var message) {
   String s = message;
 }
 ''',
-      [error(diag.unusedLocalVariable, 100, 1)],
+      [error(diag.unusedLocalVariable, 96, 1)],
     );
   }
 
@@ -87,7 +87,7 @@ class A {}
 class B extends A {
   operator +(B b) {return new B();}
 }
-f(var a, var a2) {
+f(a, a2) {
   a = new A();
   a2 = new A();
   a += a2;

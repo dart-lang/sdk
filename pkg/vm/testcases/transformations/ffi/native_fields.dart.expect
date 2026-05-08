@@ -42,7 +42,7 @@ final class Vec2d extends ffi::Struct {
   static synthetic get y#offsetOf() → core::int
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -70,7 +70,7 @@ final class MyStruct extends ffi::Struct {
   static synthetic get array#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -98,7 +98,7 @@ final class MyStruct2 extends ffi::Struct {
   static synthetic get array#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C32.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -126,7 +126,7 @@ final class MyStruct3 extends ffi::Struct {
   static synthetic get array#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -154,7 +154,7 @@ final class MyStruct4 extends ffi::Struct {
   static synthetic get array#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C41.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -189,7 +189,7 @@ final class MyUnion extends ffi::Union {
   static synthetic get indirectVector#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C52

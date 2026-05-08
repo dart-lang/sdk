@@ -92,4 +92,4 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:21:6 -> Lis
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:23:19 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "one"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:23:24 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "two"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:23:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "one"}, const E3{_Enum.index: 1, _Enum._name: "two"}])
-Extra constant evaluation: evaluated: 37, effectively constant: 9
+Extra constant evaluation: evaluated: 41, effectively constant: 9

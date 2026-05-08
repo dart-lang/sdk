@@ -22,7 +22,7 @@ class InfoCommand extends DartdevCommand {
   CommandCategory get commandCategory => CommandCategory.tools;
 
   InfoCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose) {
+    : super(cmdName, cmdDescription, verbose) {
     addSubcommand(_DumpCommand(verbose: verbose), isDefault: true);
     addSubcommand(_RecordPerformanceCommand(verbose: verbose));
   }
@@ -38,7 +38,7 @@ class _DumpCommand extends DartdevCommand {
   CommandCategory get commandCategory => CommandCategory.tools;
 
   _DumpCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose) {
+    : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag(
       removeFilePathsFlag,
       help: 'Remove file paths in displayed information.',
@@ -134,7 +134,7 @@ class _RecordPerformanceCommand extends DartdevCommand {
   CommandCategory get commandCategory => CommandCategory.tools;
 
   _RecordPerformanceCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose) {
+    : super(cmdName, cmdDescription, verbose) {
     PerfWitnessRecorderConfig.configureArgParser(argParser);
   }
 

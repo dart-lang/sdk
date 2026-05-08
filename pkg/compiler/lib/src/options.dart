@@ -495,9 +495,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// this RegExp pattern.
   String? dumpSsaPattern;
 
-  /// Whether to generate a `.resources.json` file detailing the use of resource
-  /// identifiers.
-  bool writeResources = false;
+  /// Whether to generate a `.resources.json` file containing all recorded uses
+  /// of definitions annotated with `@RecordUse()`.
+  bool writeRecordedUses = false;
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
@@ -886,7 +886,7 @@ class CompilerOptions implements DiagnosticOptions {
         '${Flags.dumpSsa}=',
         null,
       )
-      ..writeResources = _hasOption(options, Flags.writeResources)
+      ..writeRecordedUses = _hasOption(options, Flags.writeRecordedUses)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..omitLateNames = _hasOption(options, Flags.omitLateNames)

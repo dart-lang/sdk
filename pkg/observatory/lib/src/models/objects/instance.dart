@@ -148,6 +148,9 @@ enum InstanceKind {
 
   /// An instance of UserTag
   userTag,
+
+  /// An instance of the dart:ffi Pointer<T> class.
+  pointer,
 }
 
 bool isTypedData(InstanceKind? kind) {

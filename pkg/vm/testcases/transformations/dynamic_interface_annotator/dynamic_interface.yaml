@@ -13,6 +13,13 @@ callable:
   - library: 'prefix/lib1.dart'
   - library: 'prefix/lib2.dart'
 
+can-be-used-as-type:
+  - library: 'lib5.dart'
+  - library: 'lib3.dart'
+    class: ['F', 'G']
+  - library: 'lib3.dart'
+    extension_type: 'H'
+
 extendable:
   - library: 'lib1.dart'
     class: ['A', 'O', 'Q', 'S', 'T', 'V']

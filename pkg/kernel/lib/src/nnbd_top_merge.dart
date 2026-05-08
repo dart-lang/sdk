@@ -10,16 +10,24 @@ import 'merge_visitor.dart';
 /// Returns the NNBD_TOP_MERGE of [a] and [b]. If [a] and [b] have no defined
 /// NNBD_TOP_MERGE `null` is returned.
 Supertype? nnbdTopMergeSupertype(
-    CoreTypes coreTypes, Supertype a, Supertype b) {
+  CoreTypes coreTypes,
+  Supertype a,
+  Supertype b,
+) {
   assert(a.classNode == b.classNode);
   if (a.typeArguments.isEmpty) {
     return a;
   }
-  List<DartType> newTypeArguments =
-      new List<DartType>.filled(a.typeArguments.length, dummyDartType);
+  List<DartType> newTypeArguments = new List<DartType>.filled(
+    a.typeArguments.length,
+    dummyDartType,
+  );
   for (int i = 0; i < a.typeArguments.length; i++) {
-    DartType? newTypeArgument =
-        nnbdTopMerge(coreTypes, a.typeArguments[i], b.typeArguments[i]);
+    DartType? newTypeArgument = nnbdTopMerge(
+      coreTypes,
+      a.typeArguments[i],
+      b.typeArguments[i],
+    );
     if (newTypeArgument == null) return null;
     newTypeArguments[i] = newTypeArgument;
   }

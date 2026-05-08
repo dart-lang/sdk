@@ -1,3 +1,8 @@
+## 15.2.0
+- Update to version `4.21` of the spec.
+- Add `Pointer` to `InstanceKind`.
+- Add `valueAsString` fields to `Instance` for `Pointer` kind.
+
 ## 15.1.0
 - Update to version `4.20` of the spec.
 - Deprecate `streamCpuSamplesWithUserTag` RPC.

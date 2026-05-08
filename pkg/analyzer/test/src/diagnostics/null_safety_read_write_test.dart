@@ -21,6 +21,7 @@ class ReadWriteTest extends PubPackageResolutionTest {
 
   test_final_definitelyAssigned_read() async {
     await assertNoErrorsInCode(r'''
+// @dart = 3.10
 void f(final x) {
   x;
 }
@@ -30,6 +31,7 @@ void f(final x) {
 
   test_final_definitelyAssigned_read_prefixNegate() async {
     await assertNoErrorsInCode(r'''
+// @dart = 3.10
 void f(final x) {
   -x;
 }
@@ -40,11 +42,12 @@ void f(final x) {
   test_final_definitelyAssigned_readWrite_compoundAssignment() async {
     await assertErrorsInCode(
       r'''
+// @dart = 3.10
 void f(final x) {
   x += 1;
 }
 ''',
-      [error(diag.assignmentToFinalLocal, 20, 1)],
+      [error(diag.assignmentToFinalLocal, 36, 1)],
     );
     _assertAssigned('x +=', assigned: true, unassigned: false);
   }
@@ -52,11 +55,12 @@ void f(final x) {
   test_final_definitelyAssigned_readWrite_postfixIncrement() async {
     await assertErrorsInCode(
       r'''
+// @dart = 3.10
 void f(final x) {
   x++;
 }
 ''',
-      [error(diag.assignmentToFinalLocal, 20, 1)],
+      [error(diag.assignmentToFinalLocal, 36, 1)],
     );
     _assertAssigned('x++', assigned: true, unassigned: false);
   }
@@ -64,11 +68,12 @@ void f(final x) {
   test_final_definitelyAssigned_readWrite_prefixIncrement() async {
     await assertErrorsInCode(
       r'''
+// @dart = 3.10
 void f(final x) {
   ++x;
 }
 ''',
-      [error(diag.assignmentToFinalLocal, 22, 1)],
+      [error(diag.assignmentToFinalLocal, 38, 1)],
     );
     _assertAssigned('x;', assigned: true, unassigned: false);
   }
@@ -76,11 +81,12 @@ void f(final x) {
   test_final_definitelyAssigned_write() async {
     await assertErrorsInCode(
       r'''
+// @dart = 3.10
 void f(final x) {
   x = 0;
 }
 ''',
-      [error(diag.assignmentToFinalLocal, 20, 1)],
+      [error(diag.assignmentToFinalLocal, 36, 1)],
     );
     _assertAssigned('x =', assigned: true, unassigned: false);
   }
@@ -88,13 +94,14 @@ void f(final x) {
   test_final_definitelyAssigned_write_forEachLoop_identifier() async {
     await assertErrorsInCode(
       r'''
+// @dart = 3.10
 void f(final x) {
   for (x in [0, 1, 2]) {
     x;
   }
 }
 ''',
-      [error(diag.assignmentToFinalLocal, 25, 1)],
+      [error(diag.assignmentToFinalLocal, 41, 1)],
     );
     _assertAssigned('x in', assigned: true, unassigned: false);
   }
@@ -1082,7 +1089,7 @@ void f<T>(bool b, T t, T t2) {
 
   test_var_definitelyAssigned_read() async {
     await assertNoErrorsInCode(r'''
-void f(var x) {
+void f(x) {
   x;
 }
 ''');
@@ -1091,7 +1098,7 @@ void f(var x) {
 
   test_var_definitelyAssigned_readWrite_compoundAssignment() async {
     await assertNoErrorsInCode(r'''
-void f(var x) {
+void f(x) {
   x += 1;
 }
 ''');
@@ -1100,7 +1107,7 @@ void f(var x) {
 
   test_var_definitelyAssigned_readWrite_postfixIncrement() async {
     await assertNoErrorsInCode(r'''
-void f(var x) {
+void f(x) {
   x++;
 }
 ''');
@@ -1109,7 +1116,7 @@ void f(var x) {
 
   test_var_definitelyAssigned_readWrite_prefixIncrement() async {
     await assertNoErrorsInCode(r'''
-void f(var x) {
+void f(x) {
   ++x;
 }
 ''');
@@ -1118,7 +1125,7 @@ void f(var x) {
 
   test_var_definitelyAssigned_write() async {
     await assertNoErrorsInCode(r'''
-void f(var x) {
+void f(x) {
   x = 0;
 }
 ''');

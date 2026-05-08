@@ -1,0 +1,11 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Mock definition of proto_library, just enough to make perfetto GN files to
+# load.
+template("proto_library") {
+  not_needed(invoker, "*")
+  source_set(target_name) {
+  }
+}

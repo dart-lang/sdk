@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/parser_test_base.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -22,13 +22,13 @@ main() {
 }
 
 @reflectiveTest
-class CompilationUnitImplTest extends ParserTestCase {
+class CompilationUnitImplTest extends ParserDiagnosticsTest {
   late final String testSource;
   late final CompilationUnitImpl testUnit;
 
   parse(String source) {
     testSource = source;
-    testUnit = parseCompilationUnit(source) as CompilationUnitImpl;
+    testUnit = parseStringWithErrors(source).unit as CompilationUnitImpl;
   }
 
   test_languageVersionComment_afterScriptTag() {
@@ -211,7 +211,7 @@ var x = a;
 }
 
 @reflectiveTest
-class ExpressionImplTest extends ParserTestCase {
+class ExpressionImplTest extends ParserDiagnosticsTest {
   late final String testSource;
   late final CompilationUnitImpl testUnit;
 
@@ -228,7 +228,7 @@ class ExpressionImplTest extends ParserTestCase {
 
   parse(String source) {
     testSource = source;
-    testUnit = parseCompilationUnit(source) as CompilationUnitImpl;
+    testUnit = parseStringWithErrors(source).unit as CompilationUnitImpl;
   }
 
   test_inConstantContext_enumConstant_true() {
@@ -424,7 +424,6 @@ class C {
     assertInContext("C()", true);
   }
 
-  @failingTest
   test_inConstantContext_instanceCreation_switch_true_language219() {
     // Expected: true
     //   Actual: <false>
@@ -601,7 +600,6 @@ f(v) {
     assertInContext("[]", true);
   }
 
-  @failingTest
   test_inConstantContext_listLiteral_switch_true_language219() {
     // Expected: <Instance of 'ExpressionImpl'>
     //   Actual: ListPatternImpl:<[]>
@@ -728,7 +726,6 @@ f(v) {
     assertInContext("{}", true);
   }
 
-  @failingTest
   test_inConstantContext_mapLiteral_switch_true_language219() {
     // Expected: <Instance of 'ExpressionImpl'>
     //   Actual: MapPatternImpl:<{}>

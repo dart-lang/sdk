@@ -291,6 +291,21 @@ const simpleTestProgram = '''
   }
 ''';
 
+/// A simple package:test script that has a multiple tests but one has
+/// `solo: true` so it's the only one run.
+const soloTestProgram = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    test('solo test', () {
+      expect(1, equals(1));
+    }, solo: true);
+    test('other test', () {
+      expect(1, equals(1));
+    });
+  }
+''';
+
 /// A simple package:test script with a single failing test.
 const simpleFailingTestProgram = '''
   import 'package:test/test.dart';
@@ -381,6 +396,16 @@ const simpleThrowingProgram = r'''
   void main(List<String> args) async {
     throw Exception('error text');
   }
+''';
+
+/// A small script that throws an exception asynchronously two levels deep
+/// from main (main->outer->inner).
+const asyncExceptionProgram = r'''
+  Future<void> main() async => await outer();
+
+  Future<void> outer() async => await inner();
+
+  Future<void> inner() async => throw UnimplementedError('NYI');
 ''';
 
 /// A simple Dart script that sends a `navigate` event to the `ToolEvent`

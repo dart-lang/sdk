@@ -12,7 +12,7 @@ import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart'
     as ast
-    show DartType, Name, VariableDeclaration;
+    show DartType, Name, TypeLiteralConstant, VariableDeclaration;
 
 /// Helper class to create IR instructions and populate [FlowGraph].
 ///
@@ -195,13 +195,19 @@ class FlowGraphBuilder {
       addConstant(ConstantValue.fromBool(value));
 
   /// Append [DirectCall] to the graph.
-  DirectCall addDirectCall(CFunction target, int inputCount, CType type) {
+  DirectCall addDirectCall(
+    CFunction target,
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
     final instr = DirectCall(
       graph,
       currentSourcePosition,
       target,
       type,
       inputCount: inputCount,
+      argumentsShape: argumentsShape,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -213,6 +219,7 @@ class FlowGraphBuilder {
   InterfaceCall addInterfaceCall(
     CFunction interfaceTarget,
     int inputCount,
+    ArgumentsShape argumentsShape,
     CType type,
   ) {
     final instr = InterfaceCall(
@@ -221,6 +228,26 @@ class FlowGraphBuilder {
       interfaceTarget,
       type,
       inputCount: inputCount,
+      argumentsShape: argumentsShape,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [ClosureCall] to the graph.
+  ClosureCall addClosureCall(
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
+    final instr = ClosureCall(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+      argumentsShape: argumentsShape,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -233,6 +260,7 @@ class FlowGraphBuilder {
     ast.Name selector,
     DynamicCallKind kind,
     int inputCount,
+    ArgumentsShape argumentsShape,
   ) {
     final instr = DynamicCall(
       graph,
@@ -240,6 +268,7 @@ class FlowGraphBuilder {
       selector,
       kind,
       inputCount: inputCount,
+      argumentsShape: argumentsShape,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -314,8 +343,8 @@ class FlowGraphBuilder {
     CField field, {
     bool checkNotInitialized = false,
   }) {
-    final object = pop();
     final value = pop();
+    final object = pop();
     final instr = StoreInstanceField(
       graph,
       currentSourcePosition,
@@ -380,12 +409,19 @@ class FlowGraphBuilder {
     endBlock();
   }
 
-  /// Append [TypeParameters] to the graph.
-  ///
-  /// Optional [receiver] input should be passed if there are class type
-  /// parameters in scope.
-  TypeParameters addTypeParameters({Definition? receiver}) {
-    final instr = TypeParameters(graph, currentSourcePosition, receiver);
+  /// Append [NullCheck] to the graph.
+  NullCheck addNullCheck() {
+    final object = pop();
+    final instr = NullCheck(graph, currentSourcePosition, object);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [TypeParameters] taking a parameter as input to the graph.
+  TypeParameters addTypeParameters(TypeParametersKind kind) {
+    final parameter = pop();
+    final instr = TypeParameters(graph, currentSourcePosition, kind, parameter);
     appendInstruction(instr);
     return instr;
   }
@@ -399,7 +435,7 @@ class FlowGraphBuilder {
   /// check at runtime.
   TypeCast addTypeCast(
     CType testedType, {
-    Definition? typeParameters,
+    List<Definition> typeParameters = const [],
     bool isChecked = true,
   }) {
     final object = pop();
@@ -408,9 +444,12 @@ class FlowGraphBuilder {
       currentSourcePosition,
       object,
       testedType,
-      typeParameters,
+      inputCount: 1 + typeParameters.length,
       isChecked: isChecked,
     );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(1 + i, typeParameters[i]);
+    }
     push(instr);
     appendInstruction(instr);
     return instr;
@@ -420,50 +459,147 @@ class FlowGraphBuilder {
   ///
   /// Optional [typeParameters] input should be passed if tested type
   /// depends on type parameters (not fully instantiated).
-  TypeTest addTypeTest(CType testedType, {Definition? typeParameters}) {
+  TypeTest addTypeTest(
+    CType testedType, {
+    List<Definition> typeParameters = const [],
+  }) {
     final object = pop();
     final instr = TypeTest(
       graph,
       currentSourcePosition,
       object,
       testedType,
-      typeParameters,
+      inputCount: 1 + typeParameters.length,
     );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(1 + i, typeParameters[i]);
+    }
     push(instr);
     appendInstruction(instr);
     return instr;
   }
 
-  /// Append [TypeArguments] to the graph.
+  /// Append either [TypeArguments] or [Constant] representing type arguments
+  /// to the graph.
   ///
   /// Optional [typeParameters] input should be passed if type arguments
   /// depend on type parameters (not fully instantiated).
-  TypeArguments addTypeArguments(
+  void addTypeArguments(
     List<ast.DartType> types, {
-    Definition? typeParameters,
+    List<Definition> typeParameters = const [],
   }) {
+    if (typeParameters.isEmpty) {
+      addConstant(ConstantValue(TypeArgumentsConstant(types)));
+      return;
+    }
     final instr = TypeArguments(
       graph,
       currentSourcePosition,
       types,
-      typeParameters,
+      inputCount: typeParameters.length,
     );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
     push(instr);
     appendInstruction(instr);
-    return instr;
+  }
+
+  /// Append [TypeLiteral] or [Constant] representing type to the graph.
+  void addTypeLiteral(
+    ast.DartType type, {
+    required List<Definition> typeParameters,
+  }) {
+    if (typeParameters.isEmpty) {
+      addConstant(ConstantValue(ast.TypeLiteralConstant(type)));
+      return;
+    }
+    final instr = TypeLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: typeParameters.length,
+    );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
+    push(instr);
+    appendInstruction(instr);
   }
 
   /// Append [AllocateObject] to the graph.
   ///
   /// Optional [typeArguments] input should be passed if allocating
   /// an instance of a generic class.
-  AllocateObject addAllocateObject(CType type, {TypeArguments? typeArguments}) {
+  AllocateObject addAllocateObject(CType type, {Definition? typeArguments}) {
     final instr = AllocateObject(
       graph,
       currentSourcePosition,
       type,
       typeArguments,
     );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateClosure] to the graph.
+  AllocateClosure addAllocateClosure(
+    ClosureFunction function,
+    CType type,
+    int inputCount,
+  ) {
+    final instr = AllocateClosure(
+      graph,
+      currentSourcePosition,
+      function,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateListLiteral] to the graph.
+  /// Takes type arguments and elements from the stack as inputs.
+  AllocateListLiteral addAllocateListLiteral(CType type, int inputCount) {
+    final instr = AllocateListLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateMapLiteral] to the graph.
+  /// Takes type arguments and key/value pairs from the stack as inputs.
+  AllocateMapLiteral addAllocateMapLiteral(CType type, int inputCount) {
+    final instr = AllocateMapLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StringInterpolation] to the graph.
+  StringInterpolation addStringInterpolation(int inputCount) {
+    final instr = StringInterpolation(
+      graph,
+      currentSourcePosition,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
     push(instr);
     appendInstruction(instr);
     return instr;
@@ -502,6 +638,15 @@ class FlowGraphBuilder {
   UnaryDoubleOp addUnaryDoubleOp(UnaryDoubleOpcode op) {
     final operand = pop();
     final instr = UnaryDoubleOp(graph, currentSourcePosition, op, operand);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [UnaryBoolOp] to the graph.
+  UnaryBoolOp addUnaryBoolOp(UnaryBoolOpcode op) {
+    final operand = pop();
+    final instr = UnaryBoolOp(graph, currentSourcePosition, op, operand);
     push(instr);
     appendInstruction(instr);
     return instr;

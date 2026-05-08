@@ -1,0 +1,7 @@
+foo1(int a) {}
+
+foo2(int b) {}
+
+foo3({required int a}) {}
+
+foo4(int b) {}

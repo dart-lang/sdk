@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -839,6 +838,27 @@ void f(int x) {
   print(1);
 }
 ''', filter: _ignoreDeadCode);
+  }
+
+  Future<void> test_ifStatement_alwaysTrue_block_indentation() async {
+    await resolveTestCode('''
+void f(int x) {
+  if (x != 0) {
+    if (x is int) {
+      0;
+    }
+    1;
+  }
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  if (x != 0) {
+    0;
+    1;
+  }
+}
+''');
   }
 
   Future<void> test_unnecessaryTypeCheck_false() async {

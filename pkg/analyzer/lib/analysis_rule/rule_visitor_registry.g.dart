@@ -20,6 +20,21 @@ abstract class RuleVisitorRegistry {
   void addAdjacentStrings(AbstractAnalysisRule rule, AstVisitor visitor);
   void addAnnotation(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  @experimental
+  void addAnonymousBlockBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
+  @experimental
+  void addAnonymousExpressionBody(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  );
+
+  @experimental
+  void addAnonymousMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  );
+
   void addArgumentList(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addAsExpression(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -42,6 +57,8 @@ abstract class RuleVisitorRegistry {
   void addBlock(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
+  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
@@ -119,11 +136,11 @@ abstract class RuleVisitorRegistry {
 
   void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor visitor);
-
-  void addEnumBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addEnumConstantArguments(AbstractAnalysisRule rule, AstVisitor visitor);
 
@@ -254,8 +271,6 @@ abstract class RuleVisitorRegistry {
 
   void addLibraryDirective(AbstractAnalysisRule rule, AstVisitor visitor);
 
-  void addLibraryIdentifier(AbstractAnalysisRule rule, AstVisitor visitor);
-
   void addListLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addListPattern(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -369,16 +384,6 @@ abstract class RuleVisitorRegistry {
   );
 
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor);
-
-  void addRepresentationConstructorName(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  );
-
-  void addRepresentationDeclaration(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  );
 
   void addRestPatternElement(AbstractAnalysisRule rule, AstVisitor visitor);
 

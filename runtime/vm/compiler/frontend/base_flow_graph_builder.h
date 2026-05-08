@@ -263,7 +263,8 @@ class BaseFlowGraphBuilder {
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreFieldGuarded(
       const Field& field,
-      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther);
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
+      bool requires_immutability_check = false);
   Fragment LoadStaticField(const Field& field, bool calls_initializer);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment ReachabilityFence();

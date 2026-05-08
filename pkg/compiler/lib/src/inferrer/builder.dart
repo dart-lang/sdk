@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     as ir
     show StaticWeakReferences;
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
@@ -17,25 +17,25 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
-import '../inferrer/abstract_value_domain.dart';
-import '../inferrer/types.dart';
 import '../ir/constants.dart';
 import '../ir/util.dart';
 import '../js_backend/field_analysis.dart';
 import '../js_model/element_map.dart';
 import '../js_model/elements.dart';
-import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/js_world.dart';
+import '../js_model/locals.dart' show JumpVisitor;
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/member_hierarchy.dart';
 import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
+import 'abstract_value_domain.dart';
 import 'engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
+import 'types.dart';
 
 /// [KernelTypeGraphBuilder] constructs a type-inference graph for a particular
 /// element.

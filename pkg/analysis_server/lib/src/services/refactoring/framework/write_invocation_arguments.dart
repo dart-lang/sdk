@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -49,8 +50,11 @@ Future<WriteArgumentsStatus> writeArguments({
               return WriteArgumentsStatusFailure();
             }
             if (update is FormalParameterUpdateExistingNamed) {
+              // If the parameter's name is private, then the argument uses the
+              // corresponding public name.
+              var name = correspondingPublicName(update.name) ?? update.name;
               newArguments.add(
-                _ArgumentAddName(name: update.name, argument: argument),
+                _ArgumentAddName(name: name, argument: argument),
               );
             } else {
               newArguments.add(_ArgumentAsIs(argument: argument));

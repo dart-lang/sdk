@@ -16,10 +16,9 @@ class PluginPackageGenerator {
   final Map<String, PluginSource>? _dependencyOverrides;
 
   PluginPackageGenerator({
-    required List<PluginConfiguration> configurations,
-    Map<String, PluginSource>? dependencyOverrides,
-  }) : _configurations = configurations,
-       _dependencyOverrides = dependencyOverrides;
+    required this._configurations,
+    this._dependencyOverrides,
+  });
 
   /// Generates the Dart entrpoint file which is to be spawned in a Dart
   /// isolate by the analysis server.
@@ -39,16 +38,18 @@ class PluginPackageGenerator {
 
     buffer.write('''
 Future<void> main(List<String> args, SendPort sendPort) async {
-  var pluginServer = PluginServer(
+  var pluginServer = PluginServer.new2(
     resourceProvider: PhysicalResourceProvider.INSTANCE,
-    plugins: [
+    plugins: {
 ''');
     // TODO(srawlins): Format with the formatter, for readability.
     for (var configuration in _configurations) {
-      buffer.writeln('      ${configuration.name}.plugin,');
+      buffer.writeln(
+        "      '${configuration.name}': ${configuration.name}.plugin,",
+      );
     }
     buffer.write('''
-    ],
+    },
   );
   await pluginServer.initialize();
   var channel = PluginIsolateChannel(sendPort);
@@ -71,7 +72,7 @@ environment:
 dependencies:
   # The version of the analysis_server_plugin package that matches the protocol
   # used by the active analysis_server.
-  analysis_server_plugin: ^0.3.0
+  analysis_server_plugin: ^0.3.8
 ''');
 
     for (var configuration in _configurations) {

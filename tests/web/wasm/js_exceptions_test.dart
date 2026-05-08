@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
-
 import 'dart:js_interop';
-import 'dart:_wasm';
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -15,10 +12,12 @@ import 'package:expect/expect.dart';
 void main() async {
   asyncStart();
 
-  defineThrowJSException();
+  defineJSFunctions();
 
   jsExceptionCatch();
   jsExceptionFinally();
+  jsExceptionGuardTypeTest();
+  jsExceptionRuntimeTypeTest();
 
   await jsExceptionCatchAsync();
   await jsExceptionFinallyAsync();
@@ -36,22 +35,54 @@ void main() async {
 external void eval(String code);
 
 @JS()
-external void throwJSException();
+external void throwString();
+
+@JS()
+external void throwError();
+
+@JS()
+external void throwObject();
+
+@JS()
+external JSAny getThrownJSObject();
 
 bool runtimeTrue() => int.parse('1') == 1;
 
-void defineThrowJSException() {
+void defineJSFunctions() {
   eval(r'''
-      globalThis.throwJSException = function() {
-        throw "Hi from JS";
+      self.thrownJSObject = undefined;
+
+      self.getThrownJSObject = function() {
+        return self.thrownJSObject;
+      }
+
+      self.throwString = function() {
+        self.thrownJSObject =  "Hi from JS";
+        throw self.thrownJSObject;
+      }
+
+      self.throwError = function() {
+        self.thrownJSObject = new Error("Hi from JS");
+        throw self.thrownJSObject;
+      }
+
+      self.throwObject = function() {
+        self.thrownJSObject = new Object();
+        throw self.thrownJSObject;
       }
     ''');
+}
+
+void throwDart() {
+  if (runtimeTrue()) {
+    throw "Hi from Dart";
+  }
 }
 
 // Catch a JS exception in `catch`.
 void jsExceptionCatch() {
   try {
-    throwJSException();
+    throwString();
   } catch (e) {
     return;
   }
@@ -62,7 +93,7 @@ void jsExceptionCatch() {
 void jsExceptionFinally() {
   if (runtimeTrue()) {
     try {
-      throwJSException();
+      throwString();
     } finally {
       return;
     }
@@ -71,7 +102,7 @@ void jsExceptionFinally() {
 }
 
 Future<void> throwJSExceptionAsync() async {
-  return throwJSException();
+  return throwString();
 }
 
 // A simple async function used to create suspension points.
@@ -102,7 +133,7 @@ Future<void> jsExceptionFinallyAsync() async {
 // Catch a JS exception thrown without `await` in `catch`.
 Future<void> jsExceptionCatchAsyncDirect() async {
   try {
-    throwJSException();
+    throwString();
   } catch (e) {
     return;
   }
@@ -113,7 +144,7 @@ Future<void> jsExceptionCatchAsyncDirect() async {
 Future<void> jsExceptionFinallyAsyncDirect() async {
   if (runtimeTrue()) {
     try {
-      throwJSException();
+      throwString();
     } finally {
       return;
     }
@@ -138,13 +169,14 @@ Future<void> jsExceptionFinallyPropagateAsync() async {
   Expect.equals(i, 2);
 }
 
-// Check that the finally blocks rethrow JS exceptions, when a function directly throws (no `await`).
+// Check that the finally blocks rethrow JS exceptions, when a function directly
+// throws (no `await`).
 Future<void> jsExceptionFinallyPropagateAsyncDirect() async {
   int i = 0;
   try {
     if (runtimeTrue()) {
       try {
-        throwJSException();
+        throwString();
       } finally {
         i += 1;
       }
@@ -161,12 +193,13 @@ Future<void> jsExceptionFinallyPropagateAsyncDirect() async {
 Future<void> jsExceptionTypeTest1() async {
   bool exceptionCaught = false;
   bool errorCaught = false;
+  bool objectCaught = false;
   try {
     await yield_();
     if (runtimeTrue()) {
       try {
         await yield_();
-        throwJSException();
+        throwString();
         await yield_();
       } on Exception catch (_) {
         await yield_();
@@ -176,42 +209,194 @@ Future<void> jsExceptionTypeTest1() async {
         await yield_();
         errorCaught = true;
         await yield_();
+      } catch (_) {
+        objectCaught = true;
+        await yield_();
       }
     }
   } catch (_) {
     await yield_();
   }
   Expect.equals(exceptionCaught, false);
-  Expect.equals(errorCaught, true);
+  Expect.equals(errorCaught, false);
+  Expect.equals(objectCaught, true);
 }
 
 // Similar to `jsExceptionTypeTest1`, but the type test should succeed in a
 // parent try-catch.
 Future<void> jsExceptionTypeTest2() async {
-  bool exceptionCaught = false;
-  bool errorCaught = false;
+  bool exceptionCaughtInner = false;
+  bool errorCaughtInner = false;
+  bool objectCaughtInner = false;
+
+  bool exceptionCaughtOuter = false;
+  bool errorCaughtOuter = false;
+  bool objectCaughtOuter = false;
   try {
     await yield_();
     if (runtimeTrue()) {
       try {
         await yield_();
-        throwJSException();
+        throwString();
         await yield_();
       } on Exception catch (_) {
         await yield_();
-        exceptionCaught = true;
+        exceptionCaughtInner = true;
         await yield_();
+        rethrow;
+      } on Error catch (_) {
+        await yield_();
+        errorCaughtInner = true;
+        await yield_();
+        rethrow;
+      } catch (_) {
+        await yield_();
+        objectCaughtInner = true;
+        await yield_();
+        rethrow;
       }
     }
   } on Exception catch (_) {
     await yield_();
-    exceptionCaught = true;
+    exceptionCaughtOuter = true;
     await yield_();
   } on Error catch (_) {
     await yield_();
-    errorCaught = true;
+    errorCaughtOuter = true;
+    await yield_();
+  } catch (_) {
+    await yield_();
+    objectCaughtOuter = true;
     await yield_();
   }
-  Expect.equals(exceptionCaught, false);
-  Expect.equals(errorCaught, true);
+  Expect.equals(exceptionCaughtInner, false);
+  Expect.equals(errorCaughtInner, false);
+  Expect.equals(objectCaughtInner, true);
+  Expect.equals(exceptionCaughtOuter, false);
+  Expect.equals(errorCaughtOuter, false);
+  Expect.equals(objectCaughtOuter, true);
+}
+
+/// Test that JS exceptions are caught correctly based on the `on` guard types.
+void jsExceptionGuardTypeTest() {
+  // Catch a JS object as `Object`.
+  {
+    var caught = false;
+    try {
+      throwObject();
+    } on Object catch (e) {
+      caught = e.isA<JSObject>();
+    }
+    Expect.equals(caught, true);
+  }
+
+  // Catch a JS object as `dynamic`.
+  {
+    var caught = false;
+    try {
+      throwObject();
+    } on dynamic catch (e) {
+      caught = e is JSObject;
+    }
+    Expect.equals(caught, true);
+  }
+
+  // Catch a JS object as `Object?`.
+  {
+    var caught = false;
+    try {
+      throwObject();
+    } on Object? catch (e) {
+      caught = e.isA<JSObject>();
+    }
+    Expect.equals(caught, true);
+  }
+
+  // Catch a JS object as JS string.
+  //
+  // We don't try to distinguish JS types when catching as they'll all be
+  // `JSValue` wrappers.
+  {
+    var caught = false;
+    try {
+      throwString();
+    } on JSObject catch (e) {
+      caught = e.isA<JSString>();
+    }
+    Expect.equals(caught, true);
+  }
+
+  // Don't catch a Dart object as JS.
+  {
+    var caughtObject = false;
+    try {
+      var caughtJSAny = false;
+      try {
+        throwDart();
+      } on JSAny {
+        caughtJSAny = true;
+      }
+      Expect.equals(caughtJSAny, false);
+    } catch (e) {
+      caughtObject = true;
+    }
+    Expect.equals(caughtObject, true);
+  }
+
+  // Same as above, but a single Dart `try` catches both JS and Dart objects.
+  {
+    var caughtObject = false;
+    var caughtJSAny = false;
+    try {
+      throwDart();
+    } on JSAny {
+      caughtJSAny = true;
+    } on Object {
+      caughtObject = true;
+    }
+    Expect.equals(caughtJSAny, false);
+    Expect.equals(caughtObject, true);
+  }
+}
+
+/// Test that JS exceptions have the right runtime types.
+void jsExceptionRuntimeTypeTest() {
+  for (final f in [
+    () => throwString(),
+    () => throwError(),
+    () => throwObject(),
+  ]) {
+    dynamic caughtObject;
+    try {
+      f();
+    } catch (e) {
+      caughtObject = e;
+    }
+    Expect.equals(caughtObject.runtimeType, JSAny);
+  }
+
+  dynamic caughtObject;
+  try {
+    throwDart();
+  } catch (e) {
+    caughtObject = e;
+  }
+  Expect.notEquals(caughtObject.runtimeType, JSAny);
+}
+
+/// Test that we wrap the right JS objects when catching JS exceptions.
+void jsExceptionIdentityTest() {
+  for (final f in [
+    () => throwString(),
+    () => throwError(),
+    () => throwObject(),
+  ]) {
+    dynamic caughtObject;
+    try {
+      f();
+    } on JSAny catch (e) {
+      caughtObject = e;
+    }
+    Expect.equals(caughtObject.strictEquals(getThrownJSObject()), true);
+  }
 }

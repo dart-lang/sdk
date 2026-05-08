@@ -5,12 +5,12 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/flags.dart';
 
-import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_factory_builder.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import 'declaration.dart';
 
 class FactoryBodyBuilderContext extends BodyBuilderContext {
@@ -28,17 +28,12 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
       );
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _declaration.getFormalParameter(index);
-  }
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _declaration.getTearOffParameter(index);
   }
 
   @override
-  TypeBuilder get returnType => _declaration.returnType;
+  TypeBuilder get returnTypeBuilder => _declaration.returnType;
 
   @override
   List<FormalParameterBuilder>? get formals => _declaration.formals;
@@ -51,17 +46,8 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    return _declaration.getFormal(name);
-  }
-
-  @override
+  // Coverage-ignore(suite): Not run.
   int get memberNameLength => _builder.name.length;
-
-  @override
-  FunctionNode get function {
-    return _declaration.function;
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -79,9 +65,6 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  bool get isSetter => false;
-
-  @override
   int get memberNameOffset => _declaration.fileOffset;
 
   @override
@@ -91,22 +74,27 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerFunctionBody(Statement body) {
-    _declaration.setBody(body);
-  }
-
-  @override
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    _declaration.setAsyncModifier(asyncModifier);
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    _declaration.registerFunctionBody(
+      body: body,
+      scope: scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
   }
 
   @override
   bool get isRedirectingFactory => _declaration.redirectionTarget != null;
 
   @override
-  DartType get returnTypeContext {
-    return _declaration.function.returnType;
-  }
+  DartType get returnTypeContext => _declaration.returnTypeContext;
 
   @override
   String get redirectingFactoryTargetName {

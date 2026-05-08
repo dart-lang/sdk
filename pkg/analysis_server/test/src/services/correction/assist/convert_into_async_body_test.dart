@@ -226,6 +226,15 @@ class C {
 ''');
   }
 
+  Future<void> test_primaryConstructor() async {
+    await resolveTestCode('''
+class C() {
+  this ^{}
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_sync() async {
     // This code is erroneous; the test ensures there is no error thrown when
     // computing assists.

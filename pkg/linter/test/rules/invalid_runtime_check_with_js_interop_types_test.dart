@@ -124,6 +124,117 @@ export 'dart:_js_annotations' show JS, staticInterop;
     ]);
   }
 
+  test_catchClause_js_type() async {
+    await assertDiagnostics(
+      r'''
+        import 'dart:js_interop';
+
+        void test() {
+          try {
+          } on JSString catch (_) {
+          }
+        }
+      ''',
+      [lint(88, 8)],
+    );
+  }
+
+  test_catchClause_js_type_nested() async {
+    await assertDiagnostics(
+      r'''
+        import 'dart:js_interop';
+
+        void test<T extends JSNumber>() {
+          try {
+          } on List<JSString> catch (_) {
+          } on T catch (_) {
+          } on List<T> catch (_) {
+          } on (List<T>,) catch (_) {
+          }
+        }
+      ''',
+      [lint(108, 14), lint(150, 1), lint(179, 7), lint(214, 10)],
+    );
+  }
+
+  test_catchClause_static_interop_type() async {
+    await assertDiagnostics(
+      r'''
+        import 'dart:js_interop';
+
+        @JS()
+        @staticInterop
+        class Foo {}
+
+        void test() {
+          try {
+          } on Foo catch (_) {
+          }
+        }
+      ''',
+      [lint(147, 3)],
+    );
+  }
+
+  test_catchClause_static_interop_type_nested() async {
+    await assertDiagnostics(
+      r'''
+        import 'dart:js_interop';
+
+        @JS()
+        @staticInterop
+        class Foo {}
+
+        void test<T extends Foo>() {
+          try {
+          } on T Function() catch (_) {
+          } on Foo Function() catch (_) {
+          } on T catch (_) {
+          } on (T Function(),) catch (_) {
+          }
+        }
+      ''',
+      [lint(162, 12), lint(202, 14), lint(244, 1), lint(273, 15)],
+    );
+  }
+
+  test_catchClause_user_interop_type() async {
+    await assertDiagnostics(
+      r'''
+        import 'dart:js_interop';
+
+        extension type JSError(JSObject _) implements JSObject {}
+
+        void test() {
+          try {
+          } on JSError catch (_) {
+          }
+        }
+      ''',
+      [lint(155, 7)],
+    );
+  }
+
+  test_catchClause_user_interop_type_nested() async {
+    await assertDiagnostics(
+      r'''
+        import 'dart:js_interop';
+
+        extension type JSError(JSObject _) implements JSObject {}
+
+        void test<T extends JSError>() {
+          try {
+          } on Map<String, T> catch (_) {
+          } on Map<String, JSError> catch (_) {
+          } on T catch (_) {
+          } on (Map<String, T>,) catch (_) {
+          }
+        }
+      ''',
+      [lint(174, 14), lint(216, 20), lint(264, 1), lint(293, 17)],
+    );
+  }
+
   test_cyclicGenericInterfaceType_as() async {
     await _testCasts(
       [_AsCast('Object', 'A<T>', lint: false)],

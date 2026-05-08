@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/uri_offset.dart';
 import '../source/source_library_builder.dart';
 
 /// Returns `true` if access to `Record` from `dart:core` is allowed.
@@ -61,4 +62,30 @@ int? tryParseRecordPositionalGetterName(String name, int positionalFieldCount) {
     }
   }
   return null;
+}
+
+/// Enum used to determine which type to use as the default type for inference
+/// of an omitted type declaration.
+///
+/// This is use for instance when a field or parameter has no type annotation
+/// and no initializer/default value, or when the initializer/default has type
+/// `Null`.
+enum InferenceDefaultType {
+  /// Use `Object?` as the inferred type.
+  NullableObject,
+
+  /// Use `dynamic` as the inferred type.
+  Dynamic,
+}
+
+/// Information about a field initialization occurring within a constructor.
+class FieldInitialization {
+  /// The uri and offset of the initialization.
+  final UriOffsetLength uriOffset;
+
+  /// Whether the initialization is through an initializing formal. Otherwise
+  /// it is through an explicit initializer.
+  final bool fromInitializingFormal;
+
+  FieldInitialization(this.uriOffset, {required this.fromInitializingFormal});
 }

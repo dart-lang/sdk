@@ -4,7 +4,7 @@ publish_to: none
 description: Generate binary Wasm modules
 
 environment:
-  sdk: ^3.5.0
+  sdk: '^3.12.0-0'
 
 resolution: workspace
 

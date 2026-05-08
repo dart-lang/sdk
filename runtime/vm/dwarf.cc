@@ -59,7 +59,7 @@ class DwarfPosition {
 
 static constexpr auto kNoDwarfPositionInfo = DwarfPosition();
 
-class InliningNode : public ZoneAllocated {
+class InliningNode : public ZoneObject {
  public:
   InliningNode(const Function& function,
                const DwarfPosition& position,

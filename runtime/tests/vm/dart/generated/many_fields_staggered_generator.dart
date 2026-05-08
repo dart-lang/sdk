@@ -7,7 +7,7 @@
 
 main() {
   const k = 64;
-  const n = (1 << 12) ~/ k;
+  const n = (1 << 11) ~/ k;
   // TODO(https://github.com/dart-lang/sdk/issues/61310): n = (1 << 16) ~/ k
 
   for (var i = 0; i < n; i++) {

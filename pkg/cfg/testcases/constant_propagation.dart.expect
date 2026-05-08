@@ -47,6 +47,42 @@ B0 = EntryBlock()
   DirectCall print(v2)
   Return(v49)
 
+--- nullCheck
+B0 = EntryBlock()
+  Constant(1)
+  Constant(2)
+  v10 = Constant(10)
+  v16 = Constant(null)
+  Constant(false)
+  Parameter(x)
+  DirectCall print(v10)
+  Return(v16)
+
+--- stringInterpolation
+B0 = EntryBlock()
+  Constant(true)
+  Constant("abc")
+  Constant(10)
+  Constant("s = ")
+  Constant(", x = ")
+  Constant("result: ")
+  v24 = Constant(null)
+  Constant("result: s = ")
+  v30 = Constant("result: s = abc, x = 10")
+  Parameter(s)
+  Parameter(x)
+  DirectCall print(v30)
+  Return(v24)
+
+--- boolNot
+B0 = EntryBlock()
+  Constant(true)
+  v13 = Constant(null)
+  v16 = Constant(false)
+  Parameter(x)
+  DirectCall print(v16)
+  Return(v13)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

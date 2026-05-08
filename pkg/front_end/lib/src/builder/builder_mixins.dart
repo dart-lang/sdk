@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/lookup_result.dart';
-import '../base/messages.dart';
 import '../base/problems.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
@@ -66,7 +66,10 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     MemberLookupResult? result = nameSpace.lookup(name);
     if (required && result == null) {
       internalProblem(
-        codeInternalProblemNotFoundIn.withArgumentsOld(name, fullNameForErrors),
+        diag.internalProblemNotFoundIn.withArguments(
+          name: name,
+          within: fullNameForErrors,
+        ),
         -1,
         null,
       );

@@ -38,8 +38,7 @@ class CodeGenerator {
         name
             .replaceAll(RegExp(r'^_+'), '')
             // Also replace any other underscores to make camelCase
-            .replaceAllMapped(
-                RegExp(r'_(.)'), (m) => m.group(1)!.toUpperCase());
+            .replaceAllMapped(RegExp(r'_(.)'), (m) => m[1]!.toUpperCase());
   }
 
   /// Re-wraps [lines] at [maxLength] to help keep comments for indented code

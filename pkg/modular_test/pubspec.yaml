@@ -7,7 +7,7 @@ description: >
  pipeline of different SDK tools.
 
 environment:
-  sdk: ^3.5.0
+  sdk: '^3.12.0-0'
 
 resolution: workspace
 

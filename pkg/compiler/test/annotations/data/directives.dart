@@ -15,11 +15,11 @@ main() {
   indexBoundsCheck();
 }
 
-/*member: typesTrust:types:trust*/
+/*member: typesTrust:downcast:trust,parameter:trust,types:trust*/
 @pragma('dart2js:types:trust')
 typesTrust() {}
 
-/*member: typesCheck:types:check*/
+/*member: typesCheck:downcast:check,parameter:check,types:check*/
 @pragma('dart2js:types:check')
 typesCheck() {}
 

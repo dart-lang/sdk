@@ -151,6 +151,51 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/bin/utils_win.h',
   'runtime/vm/compiler/backend/locations_helpers_arm.h',
   'runtime/vm/compiler/ffi/unit_test_custom_zone.cc',
+
+  // V8 sources
+  'runtime/vm/regexp/base.h',
+  'runtime/vm/regexp/char-predicates-inl.h',
+  'runtime/vm/regexp/char-predicates.cc',
+  'runtime/vm/regexp/char-predicates.h',
+  'runtime/vm/regexp/flags.h',
+  'runtime/vm/regexp/gen-regexp-special-case.cc',
+  'runtime/vm/regexp/label.h',
+  'runtime/vm/regexp/memcopy.h',
+  'runtime/vm/regexp/regexp-ast.cc',
+  'runtime/vm/regexp/regexp-ast.h',
+  'runtime/vm/regexp/regexp-bytecode-generator-inl.h',
+  'runtime/vm/regexp/regexp-bytecode-generator.cc',
+  'runtime/vm/regexp/regexp-bytecode-generator.h',
+  'runtime/vm/regexp/regexp-bytecodes-inl.h',
+  'runtime/vm/regexp/regexp-bytecodes.h',
+  'runtime/vm/regexp/regexp-compiler-tonode.cc',
+  'runtime/vm/regexp/regexp-compiler.cc',
+  'runtime/vm/regexp/regexp-compiler.h',
+  'runtime/vm/regexp/regexp-error.cc',
+  'runtime/vm/regexp/regexp-error.h',
+  'runtime/vm/regexp/regexp-flags.h',
+  'runtime/vm/regexp/regexp-interpreter.cc',
+  'runtime/vm/regexp/regexp-interpreter.h',
+  'runtime/vm/regexp/regexp-macro-assembler.cc',
+  'runtime/vm/regexp/regexp-macro-assembler.h',
+  'runtime/vm/regexp/regexp-nodes.h',
+  'runtime/vm/regexp/regexp-parser.cc',
+  'runtime/vm/regexp/regexp-parser.h',
+  'runtime/vm/regexp/regexp-test.cc',
+  'runtime/vm/regexp/regexp-utils.cc',
+  'runtime/vm/regexp/regexp-utils.h',
+  'runtime/vm/regexp/regexp.cc',
+  'runtime/vm/regexp/regexp.h',
+  'runtime/vm/regexp/small-vector.h',
+  'runtime/vm/regexp/special-case.cc',
+  'runtime/vm/regexp/special-case.h',
+  'runtime/vm/regexp/unibrow-inl.h',
+  'runtime/vm/regexp/unibrow.cc',
+  'runtime/vm/regexp/unibrow.h',
+  'runtime/vm/regexp/vector.h',
+  'runtime/vm/regexp/zone-containers.h',
+  'runtime/vm/regexp/zone-list-inl.h',
+  'runtime/vm/regexp/zone-list.h',
 ]);
 
 final defineSets = [
@@ -174,7 +219,7 @@ main(List<String> files) async {
     await Future.wait(
       files.map((String filepath) async {
         // The `runtime/.clang-tidy` file has the enabled checks in it.
-        final args = <String>['-quiet', filepath, '--']
+        final args = <String>['--allow-no-checks', '-quiet', filepath, '--']
           ..addAll(compilerFlagsForFile(filepath))
           ..addAll(defines);
         final processResult = await pool.withResource(
@@ -182,8 +227,12 @@ main(List<String> files) async {
         );
 
         final int exitCode = processResult.exitCode;
-        final String stdout = processResult.stdout.trim();
+        String stdout = processResult.stdout.trim();
         final String stderr = processResult.stderr.trim();
+
+        if (stdout == 'No checks enabled.') {
+          stdout = '';
+        }
 
         if (exitCode != 0 || stdout.isNotEmpty) {
           if (!isFirstFailure) {

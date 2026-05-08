@@ -117,6 +117,15 @@ class C {
     );
   }
 
+  test_constructor_primary_declaringParameter() async {
+    await assertDiagnostics(
+      r'''
+class C(final bool p);
+''',
+      [lint(8, 12)],
+    );
+  }
+
   test_constructorPrivate_positionalOptional() async {
     await assertNoDiagnostics(r'''
 class C {

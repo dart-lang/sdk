@@ -16,8 +16,11 @@ import 'interop_transformer.dart';
 import 'method_collector.dart';
 import 'runtime_blob.dart';
 
-JSMethods _performJSInteropTransformations(CoreTypes coreTypes,
-    ClassHierarchy classHierarchy, Set<Library> interopDependentLibraries) {
+JSMethods _performJSInteropTransformations(
+  CoreTypes coreTypes,
+  ClassHierarchy classHierarchy,
+  Set<Library> interopDependentLibraries,
+) {
   // Transform kernel and generate JS methods.
   final transformer = InteropTransformer(coreTypes, classHierarchy);
   for (final library in interopDependentLibraries) {
@@ -27,18 +30,20 @@ JSMethods _performJSInteropTransformations(CoreTypes coreTypes,
   // We want static types to help us specialize methods based on receivers.
   // Therefore, erasure must come after the lowering.
   final jsValueClass = coreTypes.index.getClass('dart:_js_helper', 'JSValue');
-  final staticInteropClassEraser = StaticInteropClassEraser(coreTypes,
-      eraseStaticInteropType: (staticInteropType) =>
-          InterfaceType(jsValueClass, staticInteropType.declaredNullability),
-      additionalCoreLibraries: {
-        '_js_helper',
-        '_js_string_convert',
-        '_js_types',
-        '_string',
-        'convert',
-        'js_interop',
-        'js_interop_unsafe',
-      });
+  final staticInteropClassEraser = StaticInteropClassEraser(
+    coreTypes,
+    eraseStaticInteropType: (staticInteropType) =>
+        InterfaceType(jsValueClass, staticInteropType.declaredNullability),
+    additionalCoreLibraries: {
+      '_js_helper',
+      '_js_string_convert',
+      '_js_types',
+      '_string',
+      'convert',
+      'js_interop',
+      'js_interop_unsafe',
+    },
+  );
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }
@@ -86,7 +91,9 @@ class RuntimeFinalizer {
   }
 
   String _generateInternalizedStrings(
-      bool requireJsBuiltin, List<String> constantStrings) {
+    bool requireJsBuiltin,
+    List<String> constantStrings,
+  ) {
     final sb = StringBuffer();
     String indent = '';
     if (constantStrings.isNotEmpty) {
@@ -99,17 +106,19 @@ class RuntimeFinalizer {
     }
     if (!requireJsBuiltin) {
       sb.writeln(
-          '$indent"": new Proxy({}, { get(_, prop) { return prop; } }),');
+        '$indent"": new Proxy({}, { get(_, prop) { return prop; } }),',
+      );
     }
     return '$sb';
   }
 
   String generate(
-      String mainModuleName,
-      Iterable<Procedure> translatedProcedures,
-      List<String> constantStrings,
-      bool requireJsBuiltin,
-      bool supportsAdditionalModuleLoading) {
+    String mainModuleName,
+    Iterable<Procedure> translatedProcedures,
+    List<String> constantStrings,
+    bool requireJsBuiltin,
+    bool supportsAdditionalModuleLoading,
+  ) {
     final jsMethods = generateJsMethods(translatedProcedures);
 
     final builtins = [
@@ -117,12 +126,15 @@ class RuntimeFinalizer {
       if (requireJsBuiltin) 'importedStringConstants: \'\'',
     ];
 
-    String internalizedStrings =
-        _generateInternalizedStrings(requireJsBuiltin, constantStrings);
+    String internalizedStrings = _generateInternalizedStrings(
+      requireJsBuiltin,
+      constantStrings,
+    );
 
     final jsStringBuiltinPolyfillImportVars = {
-      'JS_POLYFILL_IMPORT':
-          requireJsBuiltin ? '' : '"wasm:js-string": jsStringPolyfill,',
+      'JS_POLYFILL_IMPORT': requireJsBuiltin
+          ? ''
+          : '"wasm:js-string": jsStringPolyfill,',
     };
     final moduleLoadingImportVars = {
       'MODULE_LOADING_IMPORT': supportsAdditionalModuleLoading
@@ -148,29 +160,44 @@ class RuntimeFinalizer {
     });
   }
 
-  String generateDynamicSubmodule(Iterable<Procedure> translatedProcedures,
-      bool requireJsStringBuiltin, List<String> constantStrings) {
+  String generateDynamicSubmodule(
+    Iterable<Procedure> translatedProcedures,
+    bool requireJsStringBuiltin,
+    List<String> constantStrings,
+  ) {
     final jsMethods = generateJsMethods(translatedProcedures);
 
     return dynamicSubmoduleJsImportTemplate.instantiate({
       'JS_METHODS': jsMethods,
-      'IMPORTED_JS_STRINGS_IN_MJS':
-          _generateInternalizedStrings(requireJsStringBuiltin, constantStrings),
+      'IMPORTED_JS_STRINGS_IN_MJS': _generateInternalizedStrings(
+        requireJsStringBuiltin,
+        constantStrings,
+      ),
     });
   }
 }
 
-JSMethods performJSInteropTransformations(List<Library> libraries,
-    CoreTypes coreTypes, ClassHierarchy classHierarchy) {
+JSMethods performJSInteropTransformations(
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  ClassHierarchy classHierarchy,
+) {
   Set<Library> transitiveImportingJSInterop = {
     ...calculateTransitiveImportsOfJsInteropIfUsed(
-        libraries, Uri.parse("dart:_js_helper")),
+      libraries,
+      Uri.parse("dart:_js_helper"),
+    ),
     ...calculateTransitiveImportsOfJsInteropIfUsed(
-        libraries, Uri.parse("dart:js_interop")),
+      libraries,
+      Uri.parse("dart:js_interop"),
+    ),
   };
 
   return _performJSInteropTransformations(
-      coreTypes, classHierarchy, transitiveImportingJSInterop);
+    coreTypes,
+    classHierarchy,
+    transitiveImportingJSInterop,
+  );
 }
 
 // Removes indentation common among all lines of [block] (except for first one)

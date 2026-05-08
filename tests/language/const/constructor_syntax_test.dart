@@ -48,7 +48,6 @@ class C3 {
   const C3() : field = new C0()
   //           ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
-  //                 ^
   // [cfe] 'field' is a final instance variable that was initialized at the declaration.
   //                   ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT

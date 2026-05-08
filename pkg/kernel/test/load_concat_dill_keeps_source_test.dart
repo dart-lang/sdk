@@ -17,45 +17,75 @@ Uri uri2 = Uri.parse("foo://lib2.dart");
 void main() {
   Library library1 = new Library(uri1, fileUri: uri1);
   Library library2 = new Library(uri2, fileUri: uri2);
-  Procedure p1 = new Procedure(new Name("p1"), ProcedureKind.Method,
-      new FunctionNode(new ReturnStatement()),
-      fileUri: uri2);
-  Procedure p2 = new Procedure(new Name("p2"), ProcedureKind.Method,
-      new FunctionNode(new ReturnStatement()),
-      fileUri: uri1);
+  Procedure p1 = new Procedure(
+    new Name("p1"),
+    ProcedureKind.Method,
+    new FunctionNode(new ReturnStatement()),
+    fileUri: uri2,
+  );
+  Procedure p2 = new Procedure(
+    new Name("p2"),
+    ProcedureKind.Method,
+    new FunctionNode(new ReturnStatement()),
+    fileUri: uri1,
+  );
   library1.addProcedure(p1);
   library2.addProcedure(p2);
 
   Component component = new Component(libraries: [library1, library2])
     ..setMainMethodAndMode(null, false);
-  component.uriToSource[uri1] =
-      new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
-  component.uriToSource[uri2] =
-      new Source([43, 3 * 43], utf8.encode("source #2"), uri1, uri1);
+  component.uriToSource[uri1] = new Source(
+    [42, 2 * 42],
+    utf8.encode("source #1"),
+    uri1,
+    uri1,
+  );
+  component.uriToSource[uri2] = new Source(
+    [43, 3 * 43],
+    utf8.encode("source #2"),
+    uri1,
+    uri1,
+  );
   expectSource(serialize(component), true, true);
 
   Component cPartial1 = new Component(nameRoot: component.root)
     ..setMainMethodAndMode(null, false)
     ..libraries.add(library1);
-  cPartial1.uriToSource[uri1] =
-      new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
-  cPartial1.uriToSource[uri2] =
-      new Source.emptySource([43, 3 * 43], uri1, uri1);
+  cPartial1.uriToSource[uri1] = new Source(
+    [42, 2 * 42],
+    utf8.encode("source #1"),
+    uri1,
+    uri1,
+  );
+  cPartial1.uriToSource[uri2] = new Source.emptySource(
+    [43, 3 * 43],
+    uri1,
+    uri1,
+  );
   Uint8List partial1Serialized = serialize(cPartial1);
   expectSource(partial1Serialized, true, false);
 
   Component cPartial2 = new Component(nameRoot: component.root)
     ..setMainMethodAndMode(null, false)
     ..libraries.add(library2);
-  cPartial2.uriToSource[uri1] =
-      new Source.emptySource([42, 2 * 42], uri1, uri1);
-  cPartial2.uriToSource[uri2] =
-      new Source([43, 3 * 43], utf8.encode("source #2"), uri1, uri1);
+  cPartial2.uriToSource[uri1] = new Source.emptySource(
+    [42, 2 * 42],
+    uri1,
+    uri1,
+  );
+  cPartial2.uriToSource[uri2] = new Source(
+    [43, 3 * 43],
+    utf8.encode("source #2"),
+    uri1,
+    uri1,
+  );
   Uint8List partial2Serialized = serialize(cPartial2);
   expectSource(partial2Serialized, false, true);
 
-  Uint8List combined =
-      new Uint8List.fromList([...partial1Serialized, ...partial2Serialized]);
+  Uint8List combined = new Uint8List.fromList([
+    ...partial1Serialized,
+    ...partial2Serialized,
+  ]);
   expectSource(combined, true, true);
 }
 

@@ -44,9 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.body case BlockClassBody body) {
-      body.members.whereType<MethodDeclaration>().forEach(_check);
-    }
+    node.body.members.whereType<MethodDeclaration>().forEach(_check);
   }
 
   void _check(MethodDeclaration node) {

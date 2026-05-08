@@ -166,6 +166,7 @@ class B extends A {
 
   Future<void> test_final_named_withoutType() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A({required int x});
 }
@@ -179,6 +180,7 @@ class B extends A {
 
   Future<void> test_final_named_withType() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A({required int x});
 }
@@ -187,6 +189,7 @@ class B extends A {
 }
 ''');
     await assertHasAssist('''
+// @dart = 3.10
 class A {
   A({required int x});
 }
@@ -198,6 +201,7 @@ class B extends A {
 
   Future<void> test_final_positional_withoutType() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A(int x);
 }
@@ -211,6 +215,7 @@ class B extends A {
 
   Future<void> test_final_positional_withType() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A(int x);
 }
@@ -219,6 +224,7 @@ class B extends A {
 }
 ''');
     await assertHasAssist('''
+// @dart = 3.10
 class A {
   A(int x);
 }
@@ -817,6 +823,27 @@ class A {
 }
 class B extends A {
   B(super.x);
+}
+''');
+  }
+
+  Future<void> test_super_privateNamedParameter() async {
+    await resolveTestCode('''
+class A {
+  int? _x;
+  A({this._x});
+}
+class B extends A {
+  ^B({int? x}) : super(x: x);
+}
+''');
+    await assertHasAssist('''
+class A {
+  int? _x;
+  A({this._x});
+}
+class B extends A {
+  B({super.x});
 }
 ''');
   }

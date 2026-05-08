@@ -88,7 +88,7 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
 
   String? getMemberValue(MemberEntity member) {
     EnumSet<PragmaAnnotation>? pragmas =
-        _annotationData.pragmaAnnotations[member];
+        _annotationData.memberPragmaAnnotations[member];
     if (pragmas != null) {
       Features features = Features();
       for (PragmaAnnotation pragma in pragmas.iterable(

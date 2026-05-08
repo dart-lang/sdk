@@ -20,7 +20,7 @@ class Dwarf;
 class ElfWriter;
 class MachOWriter;
 
-class SharedObjectWriter : public ZoneAllocated {
+class SharedObjectWriter : public ZoneObject {
  public:
   enum class Type {
     // A snapshot that should include segment contents.

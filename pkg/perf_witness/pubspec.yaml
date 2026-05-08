@@ -6,13 +6,14 @@ publish_to: none
 resolution: workspace
 
 environment:
-  sdk: ^3.11.0-0
+  sdk: '^3.12.0-0'
 
 dependencies:
   args: any
   dart_data_home: any
   ffi: any
   json_rpc_2: any
+  meta: any
   path: any
   stream_channel: any
 
@@ -21,6 +22,7 @@ dependencies:
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
+  collection: any
   lints: any
   test: any
   vm_service_protos: any

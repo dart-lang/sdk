@@ -57,8 +57,5 @@ abstract class AnalysisContext {
   void changeFile(String path);
 
   /// Get the [AnalysisOptions] instance for the given [file].
-  ///
-  /// NOTE: this API is experimental and subject to change in a future
-  /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
   AnalysisOptions getAnalysisOptionsForFile(File file);
 }

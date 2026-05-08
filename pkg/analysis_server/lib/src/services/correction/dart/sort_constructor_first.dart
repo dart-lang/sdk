@@ -25,16 +25,12 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructor = coveringNode?.parent;
-    var clazz = constructor?.parent?.parent;
-    if (clazz is! ClassDeclaration || constructor is! ConstructorDeclaration) {
-      return;
-    }
-
-    var body = clazz.body;
-    if (body is! BlockClassBody) {
-      return;
-    }
+    // TODO(srawlins): Support PrimaryConstructorBody.
+    var constructor = coveringNode
+        ?.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor == null) return;
+    var classBody = constructor.thisOrAncestorOfType<BlockClassBody>();
+    if (classBody == null) return;
 
     await builder.addDartFileEdit(file, (builder) {
       var deletionRange = range.endEnd(
@@ -44,7 +40,7 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
 
       builder.addDeletion(deletionRange);
       builder.addSimpleInsertion(
-        body.leftBracket.end,
+        classBody.leftBracket.end,
         utils.getRangeText(deletionRange),
       );
     });

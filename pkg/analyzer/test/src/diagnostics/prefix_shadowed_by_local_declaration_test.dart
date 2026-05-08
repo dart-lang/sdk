@@ -79,4 +79,43 @@ f() {
       ],
     );
   }
+
+  test_shadowedBy_class_getter() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:core' as core;
+class A {
+  core.List foo = 0;
+  get core => 0;
+}
+''',
+      [error(diag.prefixShadowedByLocalDeclaration, 40, 4)],
+    );
+  }
+
+  test_shadowedBy_class_method() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:core' as core;
+class A {
+  core.List foo = 0;
+  void core() {}
+}
+''',
+      [error(diag.prefixShadowedByLocalDeclaration, 40, 4)],
+    );
+  }
+
+  test_shadowedBy_class_setter() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:core' as core;
+class A {
+  core.List foo = 0;
+  set core(_) {}
+}
+''',
+      [error(diag.prefixShadowedByLocalDeclaration, 40, 4)],
+    );
+  }
 }

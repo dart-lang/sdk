@@ -27,20 +27,31 @@ extension type ConstantValue(ast.Constant constant) {
   factory ConstantValue.fromString(String value) =>
       ConstantValue(ast.StringConstant(value));
 
-  int get intValue => (constant as ast.IntConstant).value;
-  double get doubleValue => (constant as ast.DoubleConstant).value;
+  int get intValue => switch (constant) {
+    ast.IntConstant(:var value) => value,
+    UnboxedIntConstant(:var value) => value,
+    _ => throw 'Unexpected int constant ${constant.runtimeType}',
+  };
+  double get doubleValue => switch (constant) {
+    ast.DoubleConstant(:var value) => value,
+    UnboxedDoubleConstant(:var value) => value,
+    _ => throw 'Unexpected double constant ${constant.runtimeType}',
+  };
   bool get boolValue => (constant as ast.BoolConstant).value;
   String get stringValue => (constant as ast.StringConstant).value;
 
-  bool get isInt => constant is ast.IntConstant;
-  bool get isDouble => constant is ast.DoubleConstant;
+  bool get isInt =>
+      constant is ast.IntConstant || constant is UnboxedIntConstant;
+  bool get isDouble =>
+      constant is ast.DoubleConstant || constant is UnboxedDoubleConstant;
   bool get isBool => constant is ast.BoolConstant;
   bool get isNull => constant is ast.NullConstant;
   bool get isString => constant is ast.StringConstant;
+  bool get isUnboxed => constant is UnboxedConstant;
 
   CType get type => switch (constant) {
-    ast.IntConstant() => const IntType(),
-    ast.DoubleConstant() => const DoubleType(),
+    ast.IntConstant() || UnboxedIntConstant() => const IntType(),
+    ast.DoubleConstant() || UnboxedDoubleConstant() => const DoubleType(),
     ast.BoolConstant() => const BoolType(),
     ast.NullConstant() => const NullType(),
     ast.StringConstant() => const StringType(),
@@ -52,13 +63,17 @@ extension type ConstantValue(ast.Constant constant) {
 
   bool get isZero => switch (constant) {
     ast.IntConstant(:var value) => value == 0,
+    UnboxedIntConstant(:var value) => value == 0,
     ast.DoubleConstant(:var value) => value == 0.0,
+    UnboxedDoubleConstant(:var value) => value == 0.0,
     _ => false,
   };
 
   bool get isNegative => switch (constant) {
     ast.IntConstant(:var value) => value < 0,
+    UnboxedIntConstant(:var value) => value < 0,
     ast.DoubleConstant(:var value) => value.isNegative,
+    UnboxedDoubleConstant(:var value) => value.isNegative,
     _ => false,
   };
 
@@ -216,6 +231,42 @@ class ConstantFolding {
         return ConstantValue.fromDouble(x.truncateToDouble());
     }
   }
+
+  ConstantValue? unaryBoolOp(UnaryBoolOpcode op, ConstantValue operand) {
+    final x = operand.boolValue;
+    switch (op) {
+      case UnaryBoolOpcode.not:
+        return ConstantValue.fromBool(!x);
+    }
+  }
+
+  String? computeToString(ConstantValue value) {
+    if (value.isString) {
+      return value.stringValue;
+    } else if (value.isInt) {
+      return value.intValue.toString();
+    } else if (value.isBool) {
+      return value.boolValue.toString();
+    } else if (value.isNull) {
+      return null.toString();
+    } else if (value.isDouble) {
+      return value.doubleValue.toString();
+    } else {
+      return null;
+    }
+  }
+
+  ConstantValue? stringInterpolation(List<ConstantValue> operands) {
+    final buf = StringBuffer();
+    for (final operand in operands) {
+      final str = computeToString(operand);
+      if (str == null) {
+        return null;
+      }
+      buf.write(str);
+    }
+    return ConstantValue.fromString(buf.toString());
+  }
 }
 
 /// Constant type arguments.
@@ -248,4 +299,101 @@ class TypeArgumentsConstant extends ast.AuxiliaryConstant {
 
   @override
   ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
+}
+
+/// Synthetic sentinel value which can be used by certain back-ends to
+/// represent the uninitialized value of a late or static field, late variable or
+/// value of an optional parameter which was not passed.
+class SentinelConstant extends ast.AuxiliaryConstant {
+  SentinelConstant();
+
+  @override
+  void visitChildren(ast.Visitor v) {}
+
+  @override
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('#sentinel');
+  }
+
+  @override
+  String toString() => toStringInternal();
+
+  @override
+  int get hashCode => 2031;
+
+  @override
+  bool operator ==(Object other) => other is SentinelConstant;
+
+  @override
+  ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
+}
+
+/// Base class for unboxed constant values.
+///
+/// Used by certain back-ends to distinguish raw unboxed values
+/// (incompatible with Dart objects) from regular constants.
+abstract base class UnboxedConstant extends ast.AuxiliaryConstant {
+  UnboxedConstant();
+}
+
+/// Unboxed int constant.
+///
+/// Used by certain back-ends to distinguish raw unboxed values
+/// (incompatible with Dart objects) from regular constants.
+final class UnboxedIntConstant extends UnboxedConstant {
+  final int value;
+  UnboxedIntConstant(this.value);
+
+  @override
+  void visitChildren(ast.Visitor v) {}
+
+  @override
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('#unboxed $value');
+  }
+
+  @override
+  String toString() => 'UnboxedIntConstant($value)';
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is UnboxedIntConstant && other.value == value;
+
+  @override
+  ast.DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.intNonNullableRawType;
+}
+
+/// Unboxed double constant.
+///
+/// Used by certain back-ends to distinguish raw unboxed values
+/// (incompatible with Dart objects) from regular constants.
+final class UnboxedDoubleConstant extends UnboxedConstant {
+  final double value;
+  UnboxedDoubleConstant(this.value);
+
+  @override
+  void visitChildren(ast.Visitor v) {}
+
+  @override
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('#unboxed $value');
+  }
+
+  @override
+  String toString() => 'UnboxedDoubleConstant($value)';
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is UnboxedDoubleConstant && identical(value, other.value);
+
+  @override
+  ast.DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.doubleNonNullableRawType;
 }

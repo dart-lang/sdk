@@ -70,10 +70,10 @@ RegExp _nameMatcher = RegExp("// Expected deobfuscated name: (.*)\n");
 Future runTest(String code) async {
   var patternMatch = _patternMatcher.firstMatch(code);
   Expect.isNotNull(patternMatch, "Could not find the error pattern.");
-  var pattern = RegExp(patternMatch!.group(1)!);
+  var pattern = RegExp(patternMatch![1]!);
   var kindMatch = _kindMatcher.firstMatch(code);
   Expect.isNotNull(kindMatch, "Could not find the expected minified kind.");
-  var kind = kindMatch!.group(1)!;
+  var kind = kindMatch![1]!;
 
   // TODO(sigmund): add support for "other" when we encode symbol information
   // directly for each field and local variable.
@@ -85,7 +85,7 @@ Future runTest(String code) async {
 
   var nameMatch = _nameMatcher.firstMatch(code);
   Expect.isNotNull(nameMatch, "Could not find the expected deobfuscated name.");
-  var expectedName = nameMatch!.group(1)!;
+  var expectedName = nameMatch![1]!;
   var test = MinifiedNameTest(pattern, kind, expectedName, code);
   print('expectations: ${pattern.pattern} $kind $expectedName');
   await checkExpectation(test, false);
@@ -114,7 +114,7 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
     'Error didn\'t match the test pattern'
     '\nerror: $error\npattern:${test.pattern}',
   );
-  var name = match!.group(1)!;
+  var name = match![1]!;
   print('   obfuscated-name: $name');
   Expect.isNotNull(name, 'Error didn\'t contain a name\nerror: $error');
 

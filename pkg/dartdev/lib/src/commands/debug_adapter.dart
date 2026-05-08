@@ -21,12 +21,12 @@ class DebugAdapterCommand extends DartdevCommand {
   static const argTest = 'test';
 
   DebugAdapterCommand({bool verbose = false})
-      : super(
-          cmdName,
-          'Start a debug adapter that conforms to the Debug Adapter Protocol.',
-          verbose,
-          hidden: true,
-        ) {
+    : super(
+        cmdName,
+        'Start a debug adapter that conforms to the Debug Adapter Protocol.',
+        verbose,
+        hidden: true,
+      ) {
     argParser
       ..addFlag(
         argIpv6,
@@ -54,7 +54,8 @@ class DebugAdapterCommand extends DartdevCommand {
       ..addFlag(
         argTest,
         defaultsTo: false,
-        help: 'Whether to use the "dart test" debug adapter to run tests'
+        help:
+            'Whether to use the "dart test" debug adapter to run tests'
             ' and emit custom events for test progress/results.',
       );
   }

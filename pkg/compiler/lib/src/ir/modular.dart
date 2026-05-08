@@ -5,10 +5,10 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import '../ir/impact_data.dart';
 import '../kernel/element_map.dart';
 import 'annotations.dart';
 import 'impact.dart';
+import 'impact_data.dart';
 import 'scope.dart';
 
 class ModularMemberData {

@@ -18,7 +18,7 @@ extension Extension on self::Class {
   get instanceProperty = self::Extension|get#instanceProperty;
   set instanceProperty = self::Extension|set#instanceProperty;
 }
-static field dynamic Extension|field;
+static field dynamic Extension|field = null;
 static extension-member method Extension|method() → dynamic {}
 static extension-member method Extension|genericMethod<T extends core::Object? = dynamic>(self::Extension|genericMethod::T% t) → dynamic {}
 static extension-member get Extension|property() → dynamic

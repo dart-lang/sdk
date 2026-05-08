@@ -1,0 +1,54 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "B"
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_factory_non_const.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "B"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_factory_non_const.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "creation"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -34,10 +34,10 @@ void g() {
     await assertErrorsInCode(
       '''
 class A<T> {
-  void m([var fn = A<T>.new]) {}
+  void m([fn = A<T>.new]) {}
 }
 ''',
-      [error(diag.constWithTypeParametersConstructorTearoff, 34, 1)],
+      [error(diag.constWithTypeParametersConstructorTearoff, 30, 1)],
     );
   }
 

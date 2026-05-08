@@ -58,6 +58,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       } else if (exp is ThisExpression) {
         _check(expression);
+      } else if (exp is TypeLiteral) {
+        var type = exp.type;
+        if (type.typeArguments == null &&
+            type.importPrefix == null &&
+            type.question == null &&
+            !type.name.lexeme.contains('\$')) {
+          _check(expression);
+        }
       }
     }
   }

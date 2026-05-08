@@ -100,10 +100,10 @@ void f(Future<void> future) {
 ''');
   }
 
-  void test_functionExpression_firstParameterIsVar() async {
+  void test_functionExpression_firstParameterIsUntyped() async {
     await assertNoErrorsInCode('''
 void f(Future<void> future) {
-  future.catchError((var a) {});
+  future.catchError((a) {});
 }
 ''');
   }
@@ -154,10 +154,10 @@ void f(Future<void> future) {
 ''');
   }
 
-  void test_functionExpression_secondParameterIsVar() async {
+  void test_functionExpression_secondParameterIsUntyped() async {
     await assertNoErrorsInCode('''
 void f(Future<void> future) {
-  future.catchError((Object a, var b) {});
+  future.catchError((Object a, b) {});
 }
 ''');
   }

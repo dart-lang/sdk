@@ -39,8 +39,10 @@ String libraryReferenceToString(Reference? reference) {
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
       if (canonicalName != null) {
-        return qualifiedCanonicalNameToString(canonicalName,
-            includeLibraryName: false);
+        return qualifiedCanonicalNameToString(
+          canonicalName,
+          includeLibraryName: false,
+        );
       } else {
         return '<unlinked-library-reference>';
       }
@@ -48,8 +50,10 @@ String libraryReferenceToString(Reference? reference) {
   }
 }
 
-String qualifiedClassNameToString(Class node,
-    {bool includeLibraryName = false}) {
+String qualifiedClassNameToString(
+  Class node, {
+  bool includeLibraryName = false,
+}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) + '::' + classNameToString(node);
@@ -58,9 +62,11 @@ String qualifiedClassNameToString(Class node,
   }
 }
 
-String qualifiedCanonicalNameToString(CanonicalName canonicalName,
-    {bool includeLibraryName = false,
-    bool includeLibraryNamesInTypes = false}) {
+String qualifiedCanonicalNameToString(
+  CanonicalName canonicalName, {
+  bool includeLibraryName = false,
+  bool includeLibraryNamesInTypes = false,
+}) {
   if (canonicalName.isRoot) {
     return '<root>';
   } else if (canonicalName.parent!.isRoot) {
@@ -71,9 +77,11 @@ String qualifiedCanonicalNameToString(CanonicalName canonicalName,
     if (!includeLibraryName) {
       return canonicalName.name;
     }
-    String parentName = qualifiedCanonicalNameToString(canonicalName.parent!,
-        includeLibraryName: includeLibraryName,
-        includeLibraryNamesInTypes: includeLibraryNamesInTypes);
+    String parentName = qualifiedCanonicalNameToString(
+      canonicalName.parent!,
+      includeLibraryName: includeLibraryName,
+      includeLibraryNamesInTypes: includeLibraryNamesInTypes,
+    );
     return '$parentName::${canonicalName.name}';
   } else {
     // Constructor, field, procedure (factory, getter, setter etc), typedef;
@@ -89,9 +97,10 @@ String qualifiedCanonicalNameToString(CanonicalName canonicalName,
     if (parentNotPrivateUri.parent!.parent!.parent?.isRoot == true) {
       // Parent is class (or extension).
       String parentName = qualifiedCanonicalNameToString(
-          parentNotPrivateUri.parent!,
-          includeLibraryName: includeLibraryName,
-          includeLibraryNamesInTypes: includeLibraryNamesInTypes);
+        parentNotPrivateUri.parent!,
+        includeLibraryName: includeLibraryName,
+        includeLibraryNamesInTypes: includeLibraryNamesInTypes,
+      );
       return "$parentName.${canonicalName.name}";
     } else {
       // Parent is library.
@@ -99,28 +108,35 @@ String qualifiedCanonicalNameToString(CanonicalName canonicalName,
         return canonicalName.name;
       }
       String parentName = qualifiedCanonicalNameToString(
-          parentNotPrivateUri.parent!,
-          includeLibraryName: includeLibraryName,
-          includeLibraryNamesInTypes: includeLibraryNamesInTypes);
+        parentNotPrivateUri.parent!,
+        includeLibraryName: includeLibraryName,
+        includeLibraryNamesInTypes: includeLibraryNamesInTypes,
+      );
       return '$parentName::${canonicalName.name}';
     }
   }
 }
 
-String qualifiedClassNameToStringByReference(Reference? reference,
-    {bool includeLibraryName = false}) {
+String qualifiedClassNameToStringByReference(
+  Reference? reference, {
+  bool includeLibraryName = false,
+}) {
   if (reference == null) {
     return '<missing-class-reference>';
   } else {
     Class? node = reference.node as Class?;
     if (node != null) {
-      return qualifiedClassNameToString(node,
-          includeLibraryName: includeLibraryName);
+      return qualifiedClassNameToString(
+        node,
+        includeLibraryName: includeLibraryName,
+      );
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
       if (canonicalName != null) {
-        return qualifiedCanonicalNameToString(canonicalName,
-            includeLibraryName: includeLibraryName);
+        return qualifiedCanonicalNameToString(
+          canonicalName,
+          includeLibraryName: includeLibraryName,
+        );
       } else {
         return '<unlinked-class-reference>';
       }
@@ -132,8 +148,10 @@ String classNameToString(Class? node) {
   return node == null ? 'null' : node.name;
 }
 
-String qualifiedExtensionNameToString(Extension node,
-    {bool includeLibraryName = false}) {
+String qualifiedExtensionNameToString(
+  Extension node, {
+  bool includeLibraryName = false,
+}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) + '::' + extensionNameToString(node);
@@ -142,20 +160,26 @@ String qualifiedExtensionNameToString(Extension node,
   }
 }
 
-String qualifiedExtensionNameToStringByReference(Reference? reference,
-    {bool includeLibraryName = false}) {
+String qualifiedExtensionNameToStringByReference(
+  Reference? reference, {
+  bool includeLibraryName = false,
+}) {
   if (reference == null) {
     return '<missing-extension-reference>';
   } else {
     Extension? node = reference.node as Extension?;
     if (node != null) {
-      return qualifiedExtensionNameToString(node,
-          includeLibraryName: includeLibraryName);
+      return qualifiedExtensionNameToString(
+        node,
+        includeLibraryName: includeLibraryName,
+      );
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
       if (canonicalName != null) {
-        return qualifiedCanonicalNameToString(canonicalName,
-            includeLibraryName: includeLibraryName);
+        return qualifiedCanonicalNameToString(
+          canonicalName,
+          includeLibraryName: includeLibraryName,
+        );
       } else {
         return '<unlinked-extension-reference>';
       }
@@ -168,8 +192,9 @@ String extensionNameToString(Extension? node) {
 }
 
 String qualifiedExtensionTypeDeclarationNameToString(
-    ExtensionTypeDeclaration node,
-    {bool includeLibraryName = false}) {
+  ExtensionTypeDeclaration node, {
+  bool includeLibraryName = false,
+}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) +
@@ -181,21 +206,26 @@ String qualifiedExtensionTypeDeclarationNameToString(
 }
 
 String qualifiedExtensionTypeDeclarationNameToStringByReference(
-    Reference? reference,
-    {bool includeLibraryName = false}) {
+  Reference? reference, {
+  bool includeLibraryName = false,
+}) {
   if (reference == null) {
     return '<missing-extension-type-declaration-reference>';
   } else {
     ExtensionTypeDeclaration? node =
         reference.node as ExtensionTypeDeclaration?;
     if (node != null) {
-      return qualifiedExtensionTypeDeclarationNameToString(node,
-          includeLibraryName: includeLibraryName);
+      return qualifiedExtensionTypeDeclarationNameToString(
+        node,
+        includeLibraryName: includeLibraryName,
+      );
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
       if (canonicalName != null) {
-        return qualifiedCanonicalNameToString(canonicalName,
-            includeLibraryName: includeLibraryName);
+        return qualifiedCanonicalNameToString(
+          canonicalName,
+          includeLibraryName: includeLibraryName,
+        );
       } else {
         return '<unlinked-extension-type-declaration-reference>';
       }
@@ -207,8 +237,10 @@ String extensionTypeDeclarationNameToString(ExtensionTypeDeclaration? node) {
   return node == null ? 'null' : node.name;
 }
 
-String qualifiedTypedefNameToString(Typedef node,
-    {bool includeLibraryName = false}) {
+String qualifiedTypedefNameToString(
+  Typedef node, {
+  bool includeLibraryName = false,
+}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) + '::' + typedefNameToString(node);
@@ -217,20 +249,26 @@ String qualifiedTypedefNameToString(Typedef node,
   }
 }
 
-String qualifiedTypedefNameToStringByReference(Reference? reference,
-    {bool includeLibraryName = false}) {
+String qualifiedTypedefNameToStringByReference(
+  Reference? reference, {
+  bool includeLibraryName = false,
+}) {
   if (reference == null) {
     return '<missing-typedef-reference>';
   } else {
     Typedef? node = reference.node as Typedef?;
     if (node != null) {
-      return qualifiedTypedefNameToString(node,
-          includeLibraryName: includeLibraryName);
+      return qualifiedTypedefNameToString(
+        node,
+        includeLibraryName: includeLibraryName,
+      );
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
       if (canonicalName != null) {
-        return qualifiedCanonicalNameToString(canonicalName,
-            includeLibraryName: includeLibraryName);
+        return qualifiedCanonicalNameToString(
+          canonicalName,
+          includeLibraryName: includeLibraryName,
+        );
       } else {
         return '<unlinked-typedef-reference>';
       }
@@ -242,17 +280,23 @@ String typedefNameToString(Typedef? node) {
   return node == null ? 'null' : node.name;
 }
 
-String qualifiedMemberNameToString(Member node,
-    {bool includeLibraryName = false}) {
+String qualifiedMemberNameToString(
+  Member node, {
+  bool includeLibraryName = false,
+}) {
   TreeNode? parent = node.parent;
   if (parent is Class) {
-    return qualifiedClassNameToString(parent,
-            includeLibraryName: includeLibraryName) +
+    return qualifiedClassNameToString(
+          parent,
+          includeLibraryName: includeLibraryName,
+        ) +
         '.' +
         memberNameToString(node);
   } else if (parent is ExtensionTypeDeclaration) {
-    return qualifiedExtensionTypeDeclarationNameToString(parent,
-            includeLibraryName: includeLibraryName) +
+    return qualifiedExtensionTypeDeclarationNameToString(
+          parent,
+          includeLibraryName: includeLibraryName,
+        ) +
         '.' +
         memberNameToString(node);
   } else if (parent is Library && includeLibraryName) {
@@ -262,20 +306,26 @@ String qualifiedMemberNameToString(Member node,
   }
 }
 
-String qualifiedMemberNameToStringByReference(Reference? reference,
-    {bool includeLibraryName = false}) {
+String qualifiedMemberNameToStringByReference(
+  Reference? reference, {
+  bool includeLibraryName = false,
+}) {
   if (reference == null) {
     return '<missing-member-reference>';
   } else {
     Member? node = reference.node as Member?;
     if (node != null) {
-      return qualifiedMemberNameToString(node,
-          includeLibraryName: includeLibraryName);
+      return qualifiedMemberNameToString(
+        node,
+        includeLibraryName: includeLibraryName,
+      );
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
       if (canonicalName != null) {
-        return qualifiedCanonicalNameToString(canonicalName,
-            includeLibraryName: includeLibraryName);
+        return qualifiedCanonicalNameToString(
+          canonicalName,
+          includeLibraryName: includeLibraryName,
+        );
       } else {
         return '<unlinked-member-reference>';
       }
@@ -287,13 +337,18 @@ String memberNameToString(Member node) {
   return node.name.text;
 }
 
-String qualifiedTypeParameterNameToString(TypeParameter node,
-    {required bool includeLibraryName, required bool recurseOnLocalFunction}) {
+String qualifiedTypeParameterNameToString(
+  TypeParameter node, {
+  required bool includeLibraryName,
+  required bool recurseOnLocalFunction,
+}) {
   GenericDeclaration? declaration = node.declaration;
   String? declarationName =
-      _qualifiedTypeParameterGenericDeclarationNameToString(declaration,
-          includeLibraryName: includeLibraryName,
-          recurseOnLocalFunction: recurseOnLocalFunction);
+      _qualifiedTypeParameterGenericDeclarationNameToString(
+        declaration,
+        includeLibraryName: includeLibraryName,
+        recurseOnLocalFunction: recurseOnLocalFunction,
+      );
   if (declarationName != null) {
     return "$declarationName.${typeParameterNameToString(node)}";
   }
@@ -302,25 +357,36 @@ String qualifiedTypeParameterNameToString(TypeParameter node,
 }
 
 String? _qualifiedTypeParameterGenericDeclarationNameToString(
-    GenericDeclaration? declaration,
-    {required bool includeLibraryName,
-    required bool recurseOnLocalFunction}) {
+  GenericDeclaration? declaration, {
+  required bool includeLibraryName,
+  required bool recurseOnLocalFunction,
+}) {
   switch (declaration) {
     case Class():
-      return qualifiedClassNameToString(declaration,
-          includeLibraryName: includeLibraryName);
+      return qualifiedClassNameToString(
+        declaration,
+        includeLibraryName: includeLibraryName,
+      );
     case Extension():
-      return qualifiedExtensionNameToString(declaration,
-          includeLibraryName: includeLibraryName);
+      return qualifiedExtensionNameToString(
+        declaration,
+        includeLibraryName: includeLibraryName,
+      );
     case ExtensionTypeDeclaration():
-      return qualifiedExtensionTypeDeclarationNameToString(declaration,
-          includeLibraryName: includeLibraryName);
+      return qualifiedExtensionTypeDeclarationNameToString(
+        declaration,
+        includeLibraryName: includeLibraryName,
+      );
     case Typedef():
-      return qualifiedTypedefNameToString(declaration,
-          includeLibraryName: includeLibraryName);
+      return qualifiedTypedefNameToString(
+        declaration,
+        includeLibraryName: includeLibraryName,
+      );
     case Procedure():
-      return qualifiedMemberNameToString(declaration,
-          includeLibraryName: includeLibraryName);
+      return qualifiedMemberNameToString(
+        declaration,
+        includeLibraryName: includeLibraryName,
+      );
     case LocalFunction():
       if (recurseOnLocalFunction &&
           declaration is FunctionDeclaration &&
@@ -331,9 +397,11 @@ String? _qualifiedTypeParameterGenericDeclarationNameToString(
         }
         if (parent is GenericDeclaration) {
           String? parentName =
-              _qualifiedTypeParameterGenericDeclarationNameToString(parent,
-                  includeLibraryName: includeLibraryName,
-                  recurseOnLocalFunction: recurseOnLocalFunction);
+              _qualifiedTypeParameterGenericDeclarationNameToString(
+                parent,
+                includeLibraryName: includeLibraryName,
+                recurseOnLocalFunction: recurseOnLocalFunction,
+              );
           return "$parentName.${declaration.variable.name}";
         }
       }
@@ -343,8 +411,10 @@ String? _qualifiedTypeParameterGenericDeclarationNameToString(
   }
 }
 
-String qualifiedStructuralParameterNameToString(StructuralParameter node,
-    {bool includeLibraryName = false}) {
+String qualifiedStructuralParameterNameToString(
+  StructuralParameter node, {
+  bool includeLibraryName = false,
+}) {
   return structuralParameterNameToString(node);
 }
 

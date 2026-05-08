@@ -7,12 +7,21 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
+
+/// The Map type representing a cache of analysis options.
+///
+/// We can canonicalize a URI if it is a 'package:' URI (as this is per
+/// [SourceFactory]), or if it is an absolute 'file:' URI, or if it is a
+/// relative 'file:' URI and we have a "containing" URI which it is
+/// relative to (via [UriCache.resolveRelative]).
+typedef OptionsCache = Map<({Uri? containingUri, Uri uri}), YamlMap>;
 
 /// Provide the options found in the analysis options file.
 class AnalysisOptionsProvider {
@@ -22,46 +31,24 @@ class AnalysisOptionsProvider {
 
   AnalysisOptionsProvider(this._sourceFactory);
 
-  /// Provides the analysis options that apply to [root].
-  ///
-  /// The analysis options come from either [file_paths.analysisOptionsYaml]
-  /// found directly in [root] or one of [root]'s ancestor directories.
-  ///
-  /// Recursively merges options referenced by any 'include' directives
-  /// and removes any 'include' directives from the resulting options map.
-  /// Returns an empty options map if the file does not exist or cannot be
-  /// parsed.
-  YamlMap getOptions(Folder root) {
-    File? optionsFile = getOptionsFile(root);
-    if (optionsFile == null) {
-      return YamlMap();
-    }
-    return getOptionsFromFile(optionsFile);
-  }
-
-  /// Returns the analysis options file from which options should be read, or
-  /// `null` if there is no analysis options file for code in the given [root].
-  ///
-  /// The given [root] directory will be searched first. If no file is found,
-  /// then enclosing directories will be searched.
-  File? getOptionsFile(Folder root) {
-    for (var current in root.withAncestors) {
-      var file = current.getChildAssumingFile(file_paths.analysisOptionsYaml);
-      if (file.exists) {
-        return file;
-      }
-    }
-    return null;
-  }
-
   /// Provides the options found in [file].
   ///
   /// Recursively merges options referenced by any 'include' directives
   /// and removes any 'include' directive from the resulting options map.
   /// Returns an empty options map if the file does not exist or cannot be
   /// parsed.
-  YamlMap getOptionsFromFile(File file) {
-    return getOptionsFromSource(FileSource(file), file.provider.pathContext);
+  ///
+  /// The [optionsCache] is used to avoid resolving URIs and reading options
+  /// files from disk. A cache should only be passed which is used during an
+  /// atomic task (like locating contexts) and which has [YamlMap] contents
+  /// derived from this [_sourceFactory].
+  YamlMap getOptionsFromFile(File file, {OptionsCache? optionsCache}) {
+    return _getOptionsFromSource(
+      FileSource(file),
+      file.provider.pathContext,
+      handled: {},
+      optionsCache: optionsCache ?? {},
+    );
   }
 
   /// Provides the options found in [source].
@@ -69,58 +56,21 @@ class AnalysisOptionsProvider {
   /// Recursively merges options referenced by any `include` directives and
   /// removes any `include` directives from the resulting options map. Returns
   /// an empty options map if the file does not exist or cannot be parsed.
-  YamlMap getOptionsFromSource(
-    Source source,
-    path.Context pathContext, {
-    Set<Source>? handled,
-  }) {
-    handled ??= {};
-
-    YamlMap options;
-    try {
-      options = getOptionsFromString(source.stringContents);
-    } on Exception {
-      return YamlMap();
-    }
-
-    var includeValue = options.valueAt(AnalysisOptionsFile.include);
-    var includes = switch (includeValue) {
-      YamlScalar(:String value) => [value],
-      YamlList() =>
-        includeValue.nodes
-            .whereType<YamlScalar>()
-            .map((e) => e.value)
-            .whereType<String>()
-            .toList(),
-      _ => <String>[],
-    };
-    var includeOptions = includes.fold(YamlMap(), (currentOptions, path) {
-      var includeSource = _sourceFactory.resolveUri(source, path);
-      if (includeSource == null || !handled!.add(includeSource)) {
-        // Return the existing options, unchanged.
-        return currentOptions;
-      }
-      var includedOptions = getOptionsFromSource(
-        includeSource,
-        pathContext,
-        handled: handled,
-      );
-      includedOptions = _rewriteRelativePaths(
-        includedOptions,
-        pathContext.dirname(includeSource.fullName),
-        pathContext,
-      );
-      return merge(currentOptions, includedOptions);
-    });
-    options = merge(includeOptions, options);
-    return options;
+  YamlMap getOptionsFromSource(Source source, path.Context pathContext) {
+    return _getOptionsFromSource(
+      source,
+      pathContext,
+      handled: {},
+      optionsCache: {},
+    );
   }
 
   /// Provide the options found in [content].
   ///
-  /// An 'include' directive, if present, will be left as-is, and the referenced
-  /// options will NOT be merged into the result. Returns an empty options map
-  /// if the content is null, or not a YAML map.
+  /// Any 'include' directives, if present, will be left intact, and the
+  /// referenced options will NOT be merged into the result. Returns an empty
+  /// options map if the content is not a YAML map, or if a [YamlException] is
+  /// thrown.
   YamlMap getOptionsFromString(String content, {Uri? sourceUrl}) {
     try {
       var doc = loadYamlNode(content, sourceUrl: sourceUrl);
@@ -141,9 +91,77 @@ class AnalysisOptionsProvider {
   ///     {'opt1': true, 'opt2': true}.
   ///   * maps are merged recursively.
   ///   * if map values cannot be merged, the overriding value is taken.
-  ///
+  @visibleForTesting
   YamlMap merge(YamlMap defaults, YamlMap overrides) =>
       Merger().mergeMap(defaults, overrides);
+
+  /// Provides the options found in [source].
+  ///
+  /// Recursively merges options referenced by any `include` directives and
+  /// removes any `include` directives from the resulting options map. Returns
+  /// an empty options map if the file does not exist or cannot be parsed.
+  YamlMap _getOptionsFromSource(
+    Source source,
+    path.Context pathContext, {
+    required Set<Source> handled,
+    required OptionsCache optionsCache,
+  }) {
+    if (optionsCache[(containingUri: null, uri: source.uri)] case var cached?) {
+      return cached;
+    }
+    YamlMap options;
+    try {
+      options = getOptionsFromString(source.stringContents);
+    } on Exception {
+      // A YAML-parsing exception is hopefully reported by the
+      // `OptionsFileValidator`.
+      return YamlMap();
+    }
+
+    var includeValue = options.valueAt(AnalysisOptionsFile.include);
+    var includes = switch (includeValue) {
+      YamlScalar(:String value) => [value],
+      YamlList() =>
+        includeValue.nodes
+            .whereType<YamlScalar>()
+            .map((e) => e.value)
+            .whereType<String>()
+            .toList(),
+      _ => <String>[],
+    };
+
+    var includeOptions = includes.fold(YamlMap(), (currentOptions, uriString) {
+      var uri = uriCache.parse(uriString);
+      YamlMap includedOptions;
+      if (optionsCache[(containingUri: source.uri, uri: uri)]
+          case var cached?) {
+        includedOptions = cached;
+      } else {
+        var includeSource = _sourceFactory.resolveUri(source, uriString);
+        if (includeSource == null || !handled.add(includeSource)) {
+          // Return the existing options, unchanged.
+          return currentOptions;
+        }
+        includedOptions = _getOptionsFromSource(
+          includeSource,
+          pathContext,
+          handled: handled,
+          optionsCache: optionsCache,
+        );
+
+        includedOptions = _rewriteRelativePaths(
+          includedOptions,
+          pathContext.dirname(includeSource.fullName),
+          pathContext,
+        );
+        optionsCache[(containingUri: source.uri, uri: uri)] = includedOptions;
+      }
+      return merge(currentOptions, includedOptions);
+    });
+    options = merge(includeOptions, options);
+    optionsCache[(containingUri: null, uri: source.uri)] = options;
+    return options;
+  }
 
   /// Walks [options] with semantic knowledge about where paths may appear in an
   /// analysis options file, rewriting relative paths (relative to [directory])

@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show isExtensionTypeThis;
-import 'package:front_end/src/api_prototype/record_use.dart' as recordUse;
 
 import 'analysis.dart';
 import 'table_selector_assigner.dart';
@@ -51,11 +50,16 @@ import '../../metadata/procedure_attributes.dart';
 class SignatureShaker {
   final TypeFlowAnalysis typeFlowAnalysis;
   final TableSelectorAssigner tableSelectorAssigner;
+  final Constant Function(Constant) treeShakeConstant;
 
   final Map<Member, _ProcedureInfo> _memberInfo = {};
   final Map<int, _ProcedureInfo> _selectorInfo = {};
 
-  SignatureShaker(this.typeFlowAnalysis, this.tableSelectorAssigner);
+  SignatureShaker(
+    this.typeFlowAnalysis,
+    this.tableSelectorAssigner,
+    this.treeShakeConstant,
+  );
 
   _ProcedureInfo? _infoForMember(Member member) {
     if (!(member is Procedure &&
@@ -219,13 +223,6 @@ class _ParameterInfo {
     if (member.isExtensionTypeMember && isExtensionTypeThis(param)) {
       isChecked = true;
     }
-
-    /// Disable signature shaking for annotated methods, to prevent removal of
-    /// parameters. The consumers of recorded_usages.json expect constant
-    /// argument values to be present for all parameters.
-    if (member is Procedure && recordUse.hasRecordUseAnnotation(member)) {
-      isChecked = true;
-    }
   }
 }
 
@@ -267,8 +264,7 @@ class _Collect extends RecursiveVisitor {
             .isMemberReferencedFromNativeCode(member) ||
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
         member.isExternal ||
-        member.name.text == '==' ||
-        recordUse.hasRecordUseAnnotation(member)) {
+        member.name.text == '==') {
       info.eligible = false;
     }
   }
@@ -399,7 +395,8 @@ class _Transform extends RecursiveVisitor {
           (variable.initializer as ConstantExpression?)?.constant ??
           NullConstant();
     }
-    eliminatedParams[variable] = value;
+
+    eliminatedParams[variable] = shaker.treeShakeConstant(value);
   }
 
   void transformMemberSignature(Member member) {
@@ -670,9 +667,8 @@ class _Transform extends RecursiveVisitor {
     }
     // 2. All named parameters that are always passed and can't be eliminated,
     //    as required positional parameters, alphabetically by name.
-    final List<NamedExpression> sortedNamed =
-        args.named.toList()
-          ..sort((var1, var2) => var1.name.compareTo(var2.name));
+    final List<NamedExpression> sortedNamed = args.named.toList()
+      ..sort((var1, var2) => var1.name.compareTo(var2.name));
     for (NamedExpression arg in sortedNamed) {
       final _ParameterInfo param = info.named[arg.name]!;
       if (param.isAlwaysPassed && !param.canBeEliminated) {

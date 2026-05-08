@@ -47,6 +47,7 @@ class ObjectPointerVisitor;
   LAZY_CORE(Class, list_class)                                                 \
   LAZY_CORE(Class, map_class)                                                  \
   LAZY_CORE(Class, set_class)                                                  \
+  LAZY_CORE(Class, bigint_impl_class)                                          \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
   LAZY_CORE(Field, enum_index_field)                                           \
@@ -207,6 +208,7 @@ class ObjectPointerVisitor;
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \
+  RW(Array, saved_unlinked_calls)                                              \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(GrowableObjectArray, ffi_callback_code)                                   \
   RW(Code, dispatch_table_null_error_stub)                                     \
@@ -302,6 +304,7 @@ class ObjectPointerVisitor;
   RW(Code, suspend_sync_star_at_yield_stub)                                    \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(GrowableObjectArray, instructions_tables)                                 \
+  RW(GrowableObjectArray, tag_table)                                           \
   RW(Array, obfuscation_map)                                                   \
   RW(Array, loading_unit_uris)                                                 \
   RW(Class, ffi_pointer_class)                                                 \

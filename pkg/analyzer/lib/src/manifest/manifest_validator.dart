@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/manifest/charcodes.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -470,17 +471,16 @@ class ManifestValidator {
     DiagnosticReporter reporter,
     XmlElement node,
     String? key,
-    DiagnosticCode diagnosticCode, [
-    List<Object>? arguments,
-  ]) {
+    LocatableDiagnostic locatableDiagnostic,
+  ) {
     var span = key == null
         ? node.sourceSpan!
         : node.attributes[key]!.sourceSpan;
-    reporter.atOffset(
-      offset: span.start.offset,
-      length: span.length,
-      diagnosticCode: diagnosticCode,
-      arguments: arguments,
+    reporter.report(
+      locatableDiagnostic.atOffset(
+        offset: span.start.offset,
+        length: span.length,
+      ),
     );
   }
 
@@ -532,8 +532,9 @@ class ManifestValidator {
           reporter,
           element,
           androidName,
-          diag.unsupportedChromeOsHardware,
-          [element.attributes[androidName]!.value],
+          diag.unsupportedChromeOsHardware.withArguments(
+            name: element.attributes[androidName]!.value,
+          ),
         );
       } else if (element.attributes[androidRequired]?.value == 'true') {
         // Since `unsupported` is the list of elements for which
@@ -545,8 +546,9 @@ class ManifestValidator {
           reporter,
           element,
           androidName,
-          diag.unsupportedChromeOsFeature,
-          [element.attributes[androidName]!.value],
+          diag.unsupportedChromeOsFeature.withArguments(
+            name: element.attributes[androidName]!.value,
+          ),
         );
       }
     }
@@ -579,8 +581,9 @@ class ManifestValidator {
             reporter,
             permission,
             androidName,
-            diag.permissionImpliesUnsupportedHardware,
-            [featureName],
+            diag.permissionImpliesUnsupportedHardware.withArguments(
+              name: featureName,
+            ),
           );
         }
       }
@@ -603,16 +606,18 @@ class ManifestValidator {
           reporter,
           feature,
           androidName,
-          diag.unsupportedChromeOsHardware,
-          [hardwareFeatureTouchscreen],
+          diag.unsupportedChromeOsHardware.withArguments(
+            name: hardwareFeatureTouchscreen,
+          ),
         );
       } else if (feature.attributes[androidRequired]?.value == 'true') {
         _reportErrorForNode(
           reporter,
           feature,
           androidName,
-          diag.unsupportedChromeOsFeature,
-          [hardwareFeatureTouchscreen],
+          diag.unsupportedChromeOsFeature.withArguments(
+            name: hardwareFeatureTouchscreen,
+          ),
         );
       }
     } else {

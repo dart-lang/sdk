@@ -1,0 +1,117 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/wildcards.dart:9:33: Error: '_' is already declared in this scope.
+// class C3(final int _, final int _); // Error
+//                                 ^
+// pkg/front_end/testcases/primary_constructors/wildcards.dart:9:20: Context: Previous declaration of '_'.
+// class C3(final int _, final int _); // Error
+//                    ^
+//
+// pkg/front_end/testcases/primary_constructors/wildcards.dart:14:11: Error: Can't access 'this' in a field initializer to read '_'.
+//   int x = _; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/wildcards.dart:16:17: Error: Can't access 'this' in a field initializer to read '_'.
+//   this : assert(_ > 0); // Error
+//                 ^
+//
+// pkg/front_end/testcases/primary_constructors/wildcards.dart:24:17: Error: Can't access 'this' in a field initializer to read '_'.
+//   this : assert(_ > 0); // Error
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  final field core::int _;
+  constructor •(final wildcard core::int _#wc0#formal) → self::C1
+    : self::C1::_ = _#wc0#formal, super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field core::int _;
+  constructor •(wildcard core::int _#wc1#formal) → self::C2
+    : self::C2::_ = _#wc1#formal, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  final field core::int _;
+  constructor •(final wildcard core::int _#wc2#formal, final wildcard core::int _#wc3#formal) → self::C3
+    : invalid-initializer "pkg/front_end/testcases/primary_constructors/wildcards.dart:9:20: Error: Can't use '_' because it is declared more than once.
+class C3(final int _, final int _); // Error
+                   ^", invalid-initializer "pkg/front_end/testcases/primary_constructors/wildcards.dart:9:33: Error: Can't use '_' because it is declared more than once.
+class C3(final int _, final int _); // Error
+                                ^"
+    ;
+}
+class C4 extends core::Object {
+  constructor •(final wildcard core::int _#wc4#formal, final wildcard core::int _#wc5#formal) → self::C4
+    : super core::Object::•()
+    ;
+}
+class C5 extends core::Object {
+  field core::int _;
+  field core::int x;
+  constructor •(wildcard core::int _#wc6#formal) → self::C5
+    : self::C5::x = invalid-expression "pkg/front_end/testcases/primary_constructors/wildcards.dart:14:11: Error: Can't access 'this' in a field initializer to read '_'.
+  int x = _; // Error
+          ^", self::C5::_ = _#wc6#formal, assert(invalid-expression "pkg/front_end/testcases/primary_constructors/wildcards.dart:16:17: Error: Can't access 'this' in a field initializer to read '_'.
+  this : assert(_ > 0); // Error
+                ^"{<invalid>}.>(0)), super core::Object::•()
+    ;
+}
+extension type ET1(core::int _) {
+  abstract extension-type-member representation-field get _() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int _) {
+  abstract extension-type-member representation-field get _() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int _) {
+  abstract extension-type-member representation-field get _() → core::int;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(wildcard core::int _#wc7#formal) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = _#wc7#formal;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int _#wc7#formal) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(_#wc7#formal);
+static extension-type-member method ET2|constructor#(final wildcard core::int _#wc8#formal) → self::ET2% /* erasure=core::int, declared=! */ {
+  lowered final self::ET2% /* erasure=core::int, declared=! */ #this = _#wc8#formal;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int _#wc8#formal) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(_#wc8#formal);
+static extension-type-member method ET3|constructor#(wildcard core::int _#wc9#formal) → self::ET3% /* erasure=core::int, declared=! */ {
+  lowered final self::ET3% /* erasure=core::int, declared=! */ #this = _#wc9#formal;
+  assert(invalid-expression "pkg/front_end/testcases/primary_constructors/wildcards.dart:24:17: Error: Can't access 'this' in a field initializer to read '_'.
+  this : assert(_ > 0); // Error
+                ^"{<invalid>}.>(0));
+  return #this;
+}
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int _#wc9#formal) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(_#wc9#formal);
+static method main() → dynamic {
+  self::C1 c1 = new self::C1::•(0);
+  self::expect(0, c1.{self::C1::_}{core::int});
+  self::C2 c2 = new self::C2::•(1);
+  self::expect(1, c2.{self::C2::_}{core::int});
+  c2.{self::C2::_} = 2;
+  self::expect(2, c2.{self::C2::_}{core::int});
+  new self::C4::•(0, 0);
+  self::ET1% /* erasure=core::int, declared=! */ et1 = self::ET1|constructor#(0);
+  self::expect(0, et1 as{Unchecked} core::int);
+  self::ET2% /* erasure=core::int, declared=! */ et2 = self::ET2|constructor#(1);
+  self::expect(1, et2 as{Unchecked} core::int);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

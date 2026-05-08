@@ -17,6 +17,7 @@ abstract class DartDevelopmentServiceOptions {
   static const cachedUserTagsOption = 'cached-user-tags';
   static const devToolsServerAddressOption = 'devtools-server-address';
   static const google3WorkspaceRootOption = 'google3-workspace-root';
+  static const appNameOption = 'app-name';
 
   static ArgParser createArgParser({
     int? usageLineLength,
@@ -84,6 +85,11 @@ abstract class DartDevelopmentServiceOptions {
         help: 'Sets the Google3 workspace root used for google3:// URI '
             'resolution.',
         hide: !verbose,
+      )
+      ..addOption(
+        appNameOption,
+        help: 'A short, user focused description of the application that DDS '
+            'will connect to.',
       );
     if (includeHelp) {
       argParser.addFlag('help', negatable: false);

@@ -18,7 +18,7 @@
 
 class Test {
   @pragma("vm:entry-point")
-  String func1(var k) {
+  String func1(k) {
     try {
       for (var i = 0; i <= 50; i++) {
         func2(i * k);
@@ -31,7 +31,7 @@ class Test {
   }
 
   @pragma("vm:entry-point")
-  int func2(var i) {
+  int func2(i) {
     var result = 0;
     for (var k = 0; k <= 10; k++) {
       result += func3(i + k);
@@ -40,7 +40,7 @@ class Test {
   }
 
   @pragma("vm:entry-point")
-  int func3(var i) {
+  int func3(i) {
     var result = 0;
     for (var l = 0; l <= 1; l++) {
       result += func4(i + l);
@@ -49,7 +49,7 @@ class Test {
   }
 
   @pragma("vm:entry-point")
-  int func4(var i) {
+  int func4(i) {
     var result = 0;
     for (var j = 0; j <= 10; j++) {
       result += func5(i + j);
@@ -58,7 +58,7 @@ class Test {
   }
 
   @pragma("vm:entry-point")
-  int func5(var i) {
+  int func5(i) {
     if (i >= 520) throw "show me inlined functions";
     return i;
   }

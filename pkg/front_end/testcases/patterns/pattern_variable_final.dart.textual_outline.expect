@@ -1,0 +1,3 @@
+// @dart = 3.10
+
+method((int, int) r, final int i) {}

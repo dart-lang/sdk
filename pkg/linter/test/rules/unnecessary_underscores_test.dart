@@ -33,11 +33,27 @@ class C {
 ''');
   }
 
+  test_commentReferencePrimaryConstructor() async {
+    await assertNoDiagnostics('''
+class C(int __) {
+  /// This is a reference to [__].
+  this;
+}
+''');
+  }
+
   test_enum_field_unused() async {
     await assertNoDiagnostics(r'''
 enum E {
   __,
 }
+''');
+  }
+
+  test_field_originPrimaryConstructor_unused() async {
+    await assertNoDiagnostics(r'''
+// ignore: unused_field_from_primary_constructor
+class C(final int __);
 ''');
   }
 
@@ -147,6 +163,13 @@ f() {
 class A {
   __() {}
 }
+''');
+  }
+
+  test_parameter_declaring_unused() async {
+    await assertNoDiagnostics(r'''
+// ignore: unused_field_from_primary_constructor
+class C(final int _, final int __);
 ''');
   }
 

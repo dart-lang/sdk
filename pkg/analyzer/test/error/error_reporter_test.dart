@@ -38,6 +38,7 @@ class ErrorReporterTest extends PubPackageResolutionTest {
 
   test_atElement_unnamed() async {
     await resolveTestCode(r'''
+// comment to prevent expected offset being 0
 extension on int {}
 ''');
     var element = findElement2.unnamedExtension();
@@ -50,7 +51,8 @@ extension on int {}
     reporter.atElement2(element, diag.castToNonType, arguments: ['A']);
 
     var diagnostic = listener.diagnostics[0];
-    expect(diagnostic.offset, -1);
+    // No name, so expect offset of declaration.
+    expect(diagnostic.offset, firstFragment.offset);
   }
 
   test_atNode_types_differentNames() async {

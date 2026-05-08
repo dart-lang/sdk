@@ -15,15 +15,15 @@ namespace dart {
 // platform/splay-tree.h). The tree itself and all its elements are allocated
 // in the Zone.
 template <typename Config>
-class ZoneSplayTree final : public SplayTree<Config, ZoneAllocated, Zone> {
+class ZoneSplayTree final : public SplayTree<Config, ZoneObject, Zone> {
  public:
   explicit ZoneSplayTree(Zone* zone)
-      : SplayTree<Config, ZoneAllocated, Zone>(ASSERT_NOTNULL(zone)) {}
+      : SplayTree<Config, ZoneObject, Zone>(ASSERT_NOTNULL(zone)) {}
   ~ZoneSplayTree() {
     // Reset the root to avoid unneeded iteration over all tree nodes
     // in the destructor.  For a zone-allocated tree, nodes will be
     // freed by the Zone.
-    SplayTree<Config, ZoneAllocated, Zone>::ResetRoot();
+    SplayTree<Config, ZoneObject, Zone>::ResetRoot();
   }
 };
 

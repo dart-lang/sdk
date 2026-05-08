@@ -46,6 +46,50 @@ class A<X> {
 ''');
   }
 
+  test_constructor_factory() async {
+    await assertDiagnostics(
+      r'''
+class A {}
+class B {
+  factory (A) => B._();
+  B._();
+}
+''',
+      [lint(32, 1)],
+    );
+  }
+
+  test_constructor_new() async {
+    await assertDiagnostics(
+      r'''
+class A {}
+class B {
+  new (A);
+}
+''',
+      [lint(28, 1)],
+    );
+  }
+
+  test_constructor_primary_declaring() async {
+    // There is no diagnostic because the name of the parameter is also the name
+    // of a field.
+    await assertNoDiagnostics(r'''
+class A {}
+class B(final A);
+''');
+  }
+
+  test_constructor_primary_requiredPositional() async {
+    await assertDiagnostics(
+      r'''
+class A {}
+class B(A);
+''',
+      [lint(19, 1)],
+    );
+  }
+
   test_extensionType() async {
     await assertDiagnostics(
       r'''
@@ -154,16 +198,6 @@ void f(T) {}
 typedef T = int;
 ''',
       [lint(7, 1)],
-    );
-  }
-
-  test_primaryConstructorParameter() async {
-    await assertDiagnostics(
-      r'''
-class A {}
-class B(A);
-''',
-      [lint(19, 1)],
     );
   }
 

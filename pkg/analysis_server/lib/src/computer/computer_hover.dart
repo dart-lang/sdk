@@ -56,6 +56,9 @@ class DartUnitHoverComputer {
         node is VariableDeclaration ||
         node is VariablePattern ||
         node is PatternFieldName ||
+        node is PrimaryConstructorBody ||
+        node is PrimaryConstructorDeclaration ||
+        node is PrimaryConstructorName ||
         node is DartPattern ||
         (node is LibraryDirective && node.name == null) ||
         (node is SimpleIdentifier && node.parent is ImportDirective) ||
@@ -139,10 +142,24 @@ class DartUnitHoverComputer {
     } else if (node is DotShorthandConstructorInvocation) {
       return (offset: node.offset, length: node.length);
     } else if (node is ConstructorDeclaration) {
-      // TODO(scheglov): support primary constructors
-      var offset = node.typeName!.offset;
-      var end = node.name?.end ?? node.typeName!.end;
-      var length = end - node.typeName!.offset;
+      var offset =
+          node.typeName?.offset ??
+          node.newKeyword?.offset ??
+          node.factoryKeyword!.offset;
+      var end =
+          node.name?.end ??
+          node.typeName?.end ??
+          node.newKeyword?.end ??
+          node.factoryKeyword!.end;
+      var length = end - offset;
+      return (offset: offset, length: length);
+    } else if (node is PrimaryConstructorDeclaration) {
+      if (node.constructorName != null) {
+        return (offset: entity.offset, length: entity.length);
+      }
+      var offset = node.typeName.offset;
+      var end = node.typeName.end;
+      var length = end - offset;
       return (offset: offset, length: length);
     } else {
       return (offset: entity.offset, length: entity.length);
@@ -161,17 +178,25 @@ class DartUnitHoverComputer {
     var analysisSession = _unit.declaredFragment?.element.session;
 
     String? libraryName, libraryPath;
+    // for 'file:' URIs, use the path after the package root
     if (uri.isScheme('file') && analysisSession != null) {
-      // for 'file:' URIs, use the path after the project root
-      var context = analysisSession.resourceProvider.pathContext;
-      var projectRootDir =
-          analysisSession.analysisContext.contextRoot.root.path;
-      var relativePath = context.relative(
-        context.fromUri(uri),
-        from: projectRootDir,
+      var pathContext = analysisSession.resourceProvider.pathContext;
+      var libraryFilePath = pathContext.fromUri(uri);
+      var contextRoot = analysisSession.analysisContext.contextRoot;
+      var workspace = contextRoot.workspace;
+
+      // Prefer using the root of the package that contains this library, since
+      // the context root could now be a Pub Workspace. If we don't find one,
+      // fall back to the context root.
+      var package = workspace.packages.packageForPath(libraryFilePath);
+      var packageRootDir = package?.rootFolder.path ?? contextRoot.root.path;
+
+      var relativePath = pathContext.relative(
+        libraryFilePath,
+        from: packageRootDir,
       );
-      if (context.style == path.Style.windows) {
-        var pathList = context.split(relativePath);
+      if (pathContext.style == path.Style.windows) {
+        var pathList = pathContext.split(relativePath);
         libraryName = pathList.join('/');
       } else {
         libraryName = relativePath;
@@ -202,7 +227,8 @@ class DartUnitHoverComputer {
       PostfixExpression() => node.operator,
       CatchClauseParameter() => node.name,
       ClassDeclaration() => node.namePart.typeName,
-      ConstructorDeclaration() => node.name ?? node.typeName!,
+      ConstructorDeclaration() =>
+        node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
       DeclaredIdentifier() => node.name,
       EnumDeclaration() => node.namePart.typeName,
       Expression() => node,
@@ -217,6 +243,10 @@ class DartUnitHoverComputer {
       NameWithTypeParameters() => node.typeName,
       NamedType() => node.name,
       PatternFieldName() => node.name,
+      PrimaryConstructorBody() =>
+        node.declaration?.constructorName ?? node.declaration?.typeName,
+      PrimaryConstructorDeclaration() => node.constructorName ?? node.typeName,
+      PrimaryConstructorName() => node.name,
       TypeAlias() => node.name,
       VariableDeclaration() => node.name,
       VariablePattern() => node.name,

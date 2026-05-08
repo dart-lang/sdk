@@ -450,9 +450,9 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
     constructorInvocation = new StaticInvocation(target as Procedure, arguments)
       ..fileOffset = tearOff.fileOffset;
   }
-  tearOff.function.body = new ReturnStatement(constructorInvocation)
-    ..fileOffset = tearOff.fileOffset
-    ..parent = tearOff.function;
+  tearOff.function.registerFunctionBody(
+    new ReturnStatement(constructorInvocation)..fileOffset = tearOff.fileOffset,
+  );
 }
 
 /// Reverse engineered typedef tear off information.

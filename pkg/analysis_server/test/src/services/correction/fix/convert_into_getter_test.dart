@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../fix/fix_processor.dart';
@@ -15,6 +14,7 @@ void main() {
     defineReflectiveTests(ExtensionInstanceFieldFixTest);
     defineReflectiveTests(ExtensionTypeInstanceFieldFixTest);
     defineReflectiveTests(ImplicitThisInInitializerFixTest);
+    defineReflectiveTests(InvalidReferenceToThisFixTest);
   });
 }
 
@@ -288,5 +288,34 @@ class A {
         return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
+  }
+}
+
+@reflectiveTest
+class InvalidReferenceToThisFixTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.convertIntoGetter;
+
+  Future<void> test_invalidReferenceToThis() async {
+    await resolveTestCode('''
+class A {
+  B b = B(this);
+}
+
+class B {
+  A a;
+  B(this.a);
+}
+''');
+    await assertHasFix('''
+class A {
+  B get b => B(this);
+}
+
+class B {
+  A a;
+  B(this.a);
+}
+''');
   }
 }

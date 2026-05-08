@@ -80,4 +80,4 @@ Evaluated: StaticTearOff @ org-dartlang-testcase:///b_lib.dart:8:7 -> StaticTear
 Evaluated: StaticTearOff @ org-dartlang-testcase:///b_lib.dart:8:7 -> StaticTearOffConstant(_defaultStringy)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///a_lib.dart:11:33 -> StaticTearOffConstant(_defaultStringy)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///a_lib.dart:15:33 -> StaticTearOffConstant(_defaultStringy)
-Extra constant evaluation: evaluated: 17, effectively constant: 4
+Extra constant evaluation: evaluated: 18, effectively constant: 4

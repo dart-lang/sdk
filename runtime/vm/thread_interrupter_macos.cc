@@ -76,6 +76,11 @@ class ThreadInterrupterMacOS {
       return;
     }
     ThreadInterruptScope signal_handler_scope;
+    // Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
+    // establishes synchronization. Also, the suspended thread might hold a
+    // TSAN-internal lock for a location the sampling thread might read, which
+    // would cause a deadlock.
+    TsanIgnoreScope tsan_ignore_scope;
     Profiler::SampleThread(thread, ProcessState(state));
   }
 

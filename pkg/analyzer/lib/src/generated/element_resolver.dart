@@ -15,6 +15,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// An object used by instances of [ResolverVisitor] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
@@ -94,16 +95,6 @@ class ElementResolver {
         _resolver,
         inferenceHelper: _resolver.inferenceHelper,
       );
-
-  /// Return `true` iff the current enclosing function is a constant constructor
-  /// declaration.
-  bool get isInConstConstructor {
-    var function = _resolver.enclosingFunction;
-    if (function is ConstructorElementImpl) {
-      return function.isConst;
-    }
-    return false;
-  }
 
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
@@ -263,16 +254,13 @@ class ElementResolver {
   void visitMethodDeclaration(MethodDeclaration node) {}
 
   /// Resolves the method invocation, [node].
-  ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
-  /// process, then returns that new node. Otherwise, returns `null`.
-  FunctionExpressionInvocationImpl? visitMethodInvocation(
+  void visitMethodInvocation(
     MethodInvocation node, {
     List<WhyNotPromotedGetter>? whyNotPromotedArguments,
     required TypeImpl contextType,
   }) {
     whyNotPromotedArguments ??= [];
-    return _methodInvocationResolver.resolve(
+    _methodInvocationResolver.resolve(
       node as MethodInvocationImpl,
       whyNotPromotedArguments,
       contextType: contextType,
@@ -344,16 +332,16 @@ class ElementResolver {
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedConstructorInInitializer,
-          arguments: [superType, name.name],
+        _diagnosticReporter.report(
+          diag.undefinedConstructorInInitializer
+              .withArguments(type: superType, constructorName: name.name)
+              .at(node),
         );
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedConstructorInInitializerDefault,
-          arguments: [superType],
+        _diagnosticReporter.report(
+          diag.undefinedConstructorInInitializerDefault
+              .withArguments(className: superType.element.name ?? '<unknown>')
+              .at(node),
         );
       }
       return;
@@ -363,10 +351,10 @@ class ElementResolver {
           !element.enclosingElement.constructors.every(
             (constructor) => constructor.isFactory,
           )) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.nonGenerativeConstructor,
-          arguments: [element],
+        _diagnosticReporter.report(
+          diag.nonGenerativeConstructor
+              .withArguments(constructor: element)
+              .at(node),
         );
       }
     }
@@ -388,7 +376,12 @@ class ElementResolver {
     var parameters = _resolveArgumentsToFunction(
       argumentList,
       element,
-      enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
+      enclosingConstructorFormalParameterList:
+          node.parent.tryCast<ConstructorDeclarationImpl>()?.parameters ??
+          node.parent
+              .tryCast<PrimaryConstructorBodyImpl>()
+              ?.declaration
+              ?.formalParameters,
     );
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
@@ -422,7 +415,7 @@ class ElementResolver {
   List<InternalFormalParameterElement?>? _resolveArgumentsToFunction(
     ArgumentList argumentList,
     ExecutableElement? executableElement, {
-    ConstructorDeclaration? enclosingConstructor,
+    FormalParameterList? enclosingConstructorFormalParameterList,
   }) {
     if (executableElement == null) {
       return null;
@@ -431,7 +424,8 @@ class ElementResolver {
       argumentList: argumentList,
       formalParameters: executableElement.formalParameters,
       diagnosticReporter: _diagnosticReporter,
-      enclosingConstructor: enclosingConstructor,
+      enclosingConstructorFormalParameterList:
+          enclosingConstructorFormalParameterList,
     );
   }
 

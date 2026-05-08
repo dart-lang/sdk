@@ -7,19 +7,15 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/regexp/regexp.h"
-#include "vm/regexp/regexp_assembler_ir.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
-static ArrayPtr Match(const String& pat, const String& str) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const RegExp& regexp =
-      RegExp::Handle(RegExpEngine::CreateRegExp(thread, pat, RegExpFlags()));
-  const Smi& idx = Object::smi_zero();
-  return IRRegExpMacroAssembler::Execute(regexp, str, idx, /*sticky=*/false,
-                                         zone);
+static ObjectPtr Match(const String& pattern, const String& subject) {
+  const RegExp& regexp = RegExp::Handle(RegExp::New(pattern, RegExpFlags()));
+  return RegExpStatics::Interpret(Thread::Current(), regexp, subject, 0,
+                                  /*sticky=*/false);
 }
 
 ISOLATE_UNIT_TEST_CASE(RegExp_OneByteString) {
@@ -30,18 +26,11 @@ ISOLATE_UNIT_TEST_CASE(RegExp_OneByteString) {
 
   const String& pat =
       String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));
-  const Array& res = Array::Handle(Match(pat, str));
+  TypedData& res = TypedData::Handle();
+  res ^= Match(pat, str);
   EXPECT_EQ(2, res.Length());
-
-  const Object& res_1 = Object::Handle(res.At(0));
-  const Object& res_2 = Object::Handle(res.At(1));
-  EXPECT(res_1.IsSmi());
-  EXPECT(res_2.IsSmi());
-
-  const Smi& smi_1 = Smi::Cast(res_1);
-  const Smi& smi_2 = Smi::Cast(res_2);
-  EXPECT_EQ(1, smi_1.Value());
-  EXPECT_EQ(3, smi_2.Value());
+  EXPECT_EQ(1, res.GetInt32(0 * sizeof(int32_t)));
+  EXPECT_EQ(3, res.GetInt32(1 * sizeof(int32_t)));
 }
 
 ISOLATE_UNIT_TEST_CASE(RegExp_TwoByteString) {
@@ -52,18 +41,11 @@ ISOLATE_UNIT_TEST_CASE(RegExp_TwoByteString) {
 
   const String& pat =
       String::Handle(Symbols::New(thread, String::Handle(String::New("bc"))));
-  const Array& res = Array::Handle(Match(pat, str));
+  TypedData& res = TypedData::Handle();
+  res ^= Match(pat, str);
   EXPECT_EQ(2, res.Length());
-
-  const Object& res_1 = Object::Handle(res.At(0));
-  const Object& res_2 = Object::Handle(res.At(1));
-  EXPECT(res_1.IsSmi());
-  EXPECT(res_2.IsSmi());
-
-  const Smi& smi_1 = Smi::Cast(res_1);
-  const Smi& smi_2 = Smi::Cast(res_2);
-  EXPECT_EQ(1, smi_1.Value());
-  EXPECT_EQ(3, smi_2.Value());
+  EXPECT_EQ(1, res.GetInt32(0 * sizeof(int32_t)));
+  EXPECT_EQ(3, res.GetInt32(1 * sizeof(int32_t)));
 }
 
 }  // namespace dart

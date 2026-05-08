@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 
 class FeedbackPage extends DiagnosticPage {
   FeedbackPage(DiagnosticsSite site)
@@ -46,7 +46,7 @@ class FeedbackPage extends DiagnosticPage {
     ul([
       "the IDE you are using and its version${ideText.isEmpty ? '' : ' ($ideText)'}",
       'the Dart SDK version (<code>${escape(sdkVersion)}</code>)',
-      'your operating system (<code>${escape(Platform.operatingSystem)}</code>)',
+      'your operating system (<code>${escape(platform.operatingSystem)}</code>)',
     ], (line) => buf.writeln(line));
 
     p('Thanks!');

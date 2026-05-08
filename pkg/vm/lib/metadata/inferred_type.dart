@@ -175,19 +175,19 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
       exactType = source.readDartType() as InterfaceType;
       concreteClassReference = exactType.classReference;
     } else {
-      concreteClassReference =
-          source.readNullableCanonicalNameReference()?.reference;
+      concreteClassReference = source
+          .readNullableCanonicalNameReference()
+          ?.reference;
     }
-    final constantValue =
-        (flags & InferredType.flagConstant) != 0
-            ? source.readConstantReference()
-            : null;
-    final closureMemberReference =
-        (flags & InferredType.flagClosure) != 0
-            ? source.readNullableCanonicalNameReference()!.reference
-            : null;
-    final closureId =
-        (flags & InferredType.flagClosure) != 0 ? source.readUInt30() : 0;
+    final constantValue = (flags & InferredType.flagConstant) != 0
+        ? source.readConstantReference()
+        : null;
+    final closureMemberReference = (flags & InferredType.flagClosure) != 0
+        ? source.readNullableCanonicalNameReference()!.reference
+        : null;
+    final closureId = (flags & InferredType.flagClosure) != 0
+        ? source.readUInt30()
+        : 0;
     return new InferredType._byReference(
       exactType,
       concreteClassReference,

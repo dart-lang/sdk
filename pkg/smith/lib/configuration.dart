@@ -885,7 +885,8 @@ enum Compiler {
   specParser._('spec_parser'),
   fasta._('fasta', defaultMode: Mode.release),
   dart2bytecode._('dart2bytecode',
-      supportedRuntimes: [Runtime.vm, Runtime.dartPrecompiled]);
+      supportedRuntimes: [Runtime.vm, Runtime.dartPrecompiled]),
+  modAot._('modaot', supportedRuntimes: [Runtime.vm]);
 
   static final List<String> names = _all.keys.toList();
 

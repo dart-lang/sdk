@@ -99,36 +99,6 @@ PrefixedIdentifier
 ''');
   }
 
-  test_class_read_typedef_functionType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef A = void Function();
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as p;
-
-void f() {
-  p.A;
-}
-''');
-
-    var node = findNode.singlePrefixedIdentifier;
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: p
-    element: <testLibraryFragment>::@prefix2::p
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: A
-    element: package:test/a.dart::@typeAlias::A
-    staticType: Type
-  element: package:test/a.dart::@typeAlias::A
-  staticType: Type
-''');
-  }
-
   test_class_readWrite_assignment() async {
     await assertNoErrorsInCode('''
 class A {
@@ -206,32 +176,6 @@ AssignmentExpression
   writeType: int
   element: <null>
   staticType: int
-''');
-  }
-
-  test_dynamic_explicitCore_withPrefix() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:core' as mycore;
-
-main() {
-  mycore.dynamic;
-}
-''');
-
-    var node = findNode.singlePrefixedIdentifier;
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: mycore
-    element: <testLibraryFragment>::@prefix2::mycore
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: dynamic
-    element: dynamic
-    staticType: Type
-  element: dynamic
-  staticType: Type
 ''');
   }
 
@@ -433,66 +377,6 @@ SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A?
-''');
-  }
-
-  test_importPrefix_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.A;
-}
-''');
-
-    var node = findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: A
-    element: package:test/a.dart::@class::A
-    staticType: Type
-  element: package:test/a.dart::@class::A
-  staticType: Type
-''');
-  }
-
-  test_importPrefix_functionTypeAlias() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef void F();
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.F;
-}
-''');
-
-    var node = findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: F
-    element: package:test/a.dart::@typeAlias::F
-    staticType: Type
-  element: package:test/a.dart::@typeAlias::F
-  staticType: Type
 ''');
   }
 
@@ -699,20 +583,14 @@ PrefixedIdentifier
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClassName_augmentationAugments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get foo;
+}
 
 augment class A {
   augment static int get foo => 0;
-}
-''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-class A {
-  static int get foo => 0;
 }
 
 void f() {
@@ -725,17 +603,90 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@class::A
     element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofClassName_augmentationAugments_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static void foo();
+}
+
+augment class A {
+  augment static void foo() {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function()
+  element: <testLibrary>::@class::A::@method::foo
+  staticType: void Function()
+''');
+  }
+
+  test_ofClassName_augmentationAugments_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static set foo(int _);
+}
+
+augment class A {
+  augment static set foo(int _) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@setter::foo
+  writeType: int
+  element: <null>
   staticType: int
 ''');
   }
@@ -1161,36 +1112,6 @@ PrefixedIdentifier
     staticType: InvalidType
   element: <null>
   staticType: InvalidType
-''');
-  }
-
-  test_read_typedef_interfaceType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef A = List<int>;
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as p;
-
-void f() {
-  p.A;
-}
-''');
-
-    var node = findNode.singlePrefixedIdentifier;
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: p
-    element: <testLibraryFragment>::@prefix2::p
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: A
-    element: package:test/a.dart::@typeAlias::A
-    staticType: Type
-  element: package:test/a.dart::@typeAlias::A
-  staticType: Type
 ''');
   }
 }

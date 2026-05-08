@@ -21,7 +21,7 @@ part of "dart:core";
 /// and its subclasses.
 @pragma('flutter:keep-to-string-in-subtypes')
 abstract interface class Exception {
-  factory Exception([var message]) => _Exception(message);
+  factory Exception([message]) => _Exception(message);
 }
 
 /// Default implementation of [Exception] which carries a message.

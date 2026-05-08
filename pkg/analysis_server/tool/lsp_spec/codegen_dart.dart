@@ -244,7 +244,7 @@ bool _isOverride(Interface interface, Field field) {
 }
 
 bool _isSimpleType(TypeBase type) {
-  const literals = ['num', 'String', 'bool', 'int'];
+  const literals = ['num', 'String', 'bool', 'int', 'double'];
   return type is TypeReference && literals.contains(type.dartType);
 }
 
@@ -255,6 +255,11 @@ bool _isSpecType(TypeBase type) {
       type != TypeReference.lspAny &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));
+}
+
+bool _isUnionType(TypeBase type) {
+  type = resolveTypeAlias(type);
+  return type is UnionType;
 }
 
 bool _isUriType(TypeBase type) {
@@ -304,8 +309,8 @@ String _memberNameForType(TypeBase type) {
 String _rewriteCommentReference(String comment) {
   var commentReferencePattern = RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
   return comment.replaceAllMapped(commentReferencePattern, (m) {
-    var description = m.group(1);
-    var reference = m.group(2);
+    var description = m[1];
+    var reference = m[2];
     if (description == reference) {
       return '[$reference]';
     } else {
@@ -1140,8 +1145,16 @@ void _writeToJsonCode(
     buffer.write(', ');
     _writeToJsonCode(buffer, type.valueType, 'value', '');
     buffer.write('))');
+  } else if (_isUnionType(type)) {
+    // We must call toJson() on EitherX classes to ensure the generated Map
+    // contains the raw value and not the EitherX. We don't need to handle
+    // LiteralUnionTypes because those are stored as a single underlying type
+    // without a wrapper class anyway.
+    buffer.write('$valueCode$nullOp.toJson()');
   } else if (_isUriType(type)) {
     buffer.write('$valueCode$nullOp.toString()');
+  } else if (type is ArrayType && _isUriType(type.elementType)) {
+    buffer.write('$valueCode$nullOp.map((uri) => uri.toString()).toList()');
   } else {
     buffer.write(valueCode);
   }
@@ -1170,6 +1183,10 @@ void _writeToJsonFieldsForResponseMessage(
     ..writeIndentedln('} else if (error != null) {')
     ..indent()
     ..writeIndentedln('''$mapName['error'] = error;''')
+    ..outdent()
+    ..writeIndentedln('} else if (result case ToJsonable result?) {')
+    ..indent()
+    ..writeIndentedln('''$mapName['result'] = result.toJson();''')
     ..outdent()
     ..writeIndentedln('} else {')
     ..indent()

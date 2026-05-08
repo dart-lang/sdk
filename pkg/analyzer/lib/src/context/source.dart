@@ -122,10 +122,7 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  Source? resolveUri(Source? containingSource, String? containedUri) {
-    if (containedUri == null) {
-      return null;
-    }
+  Source? resolveUri(Source containingSource, String containedUri) {
     if (containedUri.isEmpty) {
       return containingSource;
     }
@@ -138,9 +135,7 @@ class SourceFactoryImpl implements SourceFactory {
     } on FormatException {
       return null;
     } catch (exception, stackTrace) {
-      String containingFullName = containingSource != null
-          ? containingSource.fullName
-          : '<null>';
+      String containingFullName = containingSource.fullName;
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
         SilentException(

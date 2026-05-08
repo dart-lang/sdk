@@ -20,10 +20,9 @@ class ConstructorsOperation extends NotImportedOperation {
   /// The declaration helper to be used to create the candidate suggestions.
   final DeclarationHelper _declarationHelper;
 
-  /// Initialize a newly created operation to use the [declarationHelper] to add
+  /// Initialize a newly created operation to use the [_declarationHelper] to add
   /// the static members from a library.
-  ConstructorsOperation({required DeclarationHelper declarationHelper})
-    : _declarationHelper = declarationHelper;
+  ConstructorsOperation({required this._declarationHelper});
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(LibraryElement library) {
@@ -50,16 +49,12 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
   final bool _includeSetters;
 
   InstanceExtensionMembersOperation({
-    required DeclarationHelper declarationHelper,
-    required DartType type,
-    required Set<String> excludedGetters,
-    required bool includeMethods,
-    required bool includeSetters,
-  }) : _declarationHelper = declarationHelper,
-       _type = type,
-       _excludedGetters = excludedGetters,
-       _includeMethods = includeMethods,
-       _includeSetters = includeSetters;
+    required this._declarationHelper,
+    required this._type,
+    required this._excludedGetters,
+    required this._includeMethods,
+    required this._includeSetters,
+  });
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(LibraryElement library) {
@@ -88,12 +83,10 @@ class NotImportedCompletionPass {
 
   /// Initialize a newly created completion pass.
   NotImportedCompletionPass({
-    required CompletionState state,
-    required SuggestionCollector collector,
-    required List<NotImportedOperation> operations,
-  }) : _state = state,
-       _collector = collector,
-       _operations = operations;
+    required this._state,
+    required this._collector,
+    required this._operations,
+  });
 
   /// Compute any candidate suggestions for elements in not imported libraries.
   Future<void> computeSuggestions({
@@ -191,10 +184,9 @@ class StaticMembersOperation extends NotImportedOperation {
   /// The declaration helper to be used to create the candidate suggestions.
   final DeclarationHelper _declarationHelper;
 
-  /// Initialize a newly created operation to use the [declarationHelper] to add
+  /// Initialize a newly created operation to use the [_declarationHelper] to add
   /// the static members from a library.
-  StaticMembersOperation({required DeclarationHelper declarationHelper})
-    : _declarationHelper = declarationHelper;
+  StaticMembersOperation({required this._declarationHelper});
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(

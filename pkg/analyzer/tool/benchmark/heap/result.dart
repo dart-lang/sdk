@@ -54,7 +54,7 @@ void _writeDisplayText(
       sink.withIndent(() {
         for (var child in result.children) {
           var childBase = base
-              .ifTypeOrNull<BenchmarkResultCompound>()
+              .tryCast<BenchmarkResultCompound>()
               ?.children
               .firstWhereOrNull((e) => e.name == child.name);
           _writeDisplayText(sink, child, childBase);

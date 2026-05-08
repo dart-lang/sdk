@@ -1,0 +1,17 @@
+class C0 {
+  int a = value++;
+  int b = value++;
+  int c = value++;
+}
+
+class C1() {
+  int a = value++;
+  int b = value++;
+  int c = value++;
+}
+
+expect(expected, actual) {}
+
+int value = 0;
+
+main() {}

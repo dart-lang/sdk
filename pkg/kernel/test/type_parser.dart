@@ -41,11 +41,12 @@ class DartTypeParser {
   String? tokenText;
   final TypeEnvironment environment;
   final Map<String, /* TypeParameter | StructuralParameter */ Object>
-      localTypeParameters = <String, Object>{};
+  localTypeParameters = <String, Object>{};
 
   DartTypeParser(this.string, this.environment);
 
-  /* TreeNode? | StructuralParameter? */ Object? lookupType(String name) {
+  /* TreeNode? | StructuralParameter? */
+  Object? lookupType(String name) {
     return localTypeParameters[name] ?? environment(name);
   }
 
@@ -134,8 +135,9 @@ class DartTypeParser {
     }
   }
 
-  Nullability? parseOptionalNullability(
-      [Nullability? defaultNullability = Nullability.nonNullable]) {
+  Nullability? parseOptionalNullability([
+    Nullability? defaultNullability = Nullability.nonNullable,
+  ]) {
     int token = peekToken();
     switch (token) {
       case Token.QuestionMark:
@@ -179,7 +181,9 @@ class DartTypeParser {
               break;
           }
           TypeParameterType typeParameterType = new TypeParameterType(
-              target, nullability ?? target.computeNullabilityFromBound());
+            target,
+            nullability ?? target.computeNullabilityFromBound(),
+          );
           return promotedBound == null
               ? typeParameterType
               : new IntersectionType(typeParameterType, promotedBound);
@@ -193,7 +197,9 @@ class DartTypeParser {
           }
           StructuralParameterType typeParameterType =
               new StructuralParameterType(
-                  target, nullability ?? target.computeNullabilityFromBound());
+                target,
+                nullability ?? target.computeNullabilityFromBound(),
+              );
           return typeParameterType;
         }
         return fail("Unexpected lookup result for $name: $target");
@@ -205,8 +211,12 @@ class DartTypeParser {
         consumeString('=>');
         Nullability nullability = parseOptionalNullability()!;
         var returnType = parseType();
-        return new FunctionType(parameters, returnType, nullability,
-            namedParameters: namedParameters);
+        return new FunctionType(
+          parameters,
+          returnType,
+          nullability,
+          namedParameters: namedParameters,
+        );
 
       case Token.LeftAngle:
         var typeParameters = parseAndPushStructuralParameterList();
@@ -217,8 +227,13 @@ class DartTypeParser {
         Nullability nullability = parseOptionalNullability()!;
         var returnType = parseType();
         popStructuralParameters(typeParameters);
-        return new FunctionType(parameters, returnType, nullability,
-            typeParameters: typeParameters, namedParameters: namedParameters);
+        return new FunctionType(
+          parameters,
+          returnType,
+          nullability,
+          typeParameters: typeParameters,
+          namedParameters: namedParameters,
+        );
 
       default:
         return fail('Unexpected token: $tokenText');
@@ -332,7 +347,9 @@ class DartTypeParser {
       typeParameter.bound = parseType();
     } else {
       typeParameter.bound = new InterfaceType(
-          lookupType('Object') as Class, Nullability.nullable);
+        lookupType('Object') as Class,
+        Nullability.nullable,
+      );
     }
     return typeParameter;
   }
@@ -351,7 +368,9 @@ class DartTypeParser {
       typeParameter.bound = parseType();
     } else {
       typeParameter.bound = new InterfaceType(
-          lookupType('Object') as Class, Nullability.nullable);
+        lookupType('Object') as Class,
+        Nullability.nullable,
+      );
     }
     return typeParameter;
   }
@@ -378,8 +397,11 @@ class LazyTypeEnvironment {
     return name.length == 1
         ? typeParameters.putIfAbsent(
             name,
-            () => new TypeParameter(name,
-                new InterfaceType(lookupClass('Object'), Nullability.nullable)))
+            () => new TypeParameter(
+              name,
+              new InterfaceType(lookupClass('Object'), Nullability.nullable),
+            ),
+          )
         : lookupClass(name);
   }
 
@@ -398,9 +420,10 @@ class LazyTypeEnvironment {
   }
 
   void setupTypeParameters(String typeParametersList) {
-    for (var typeParameter
-        in new DartTypeParser('<$typeParametersList>', lookup)
-            .parseAndPushTypeParameterList()) {
+    for (var typeParameter in new DartTypeParser(
+      '<$typeParametersList>',
+      lookup,
+    ).parseAndPushTypeParameterList()) {
       typeParameters[typeParameter.name!] = typeParameter;
     }
   }

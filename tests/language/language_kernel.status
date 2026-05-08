@@ -5,7 +5,6 @@
 [ $compiler == app_jitk ]
 main/no_main_test/01: Crash
 unsorted/disassemble_test: SkipByDesign # Tested in JIT mode.
-vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
 
 [ $compiler == dartkp ]
 unsorted/disassemble_test: SkipByDesign # JIT only test
@@ -13,30 +12,15 @@ unsorted/disassemble_test: SkipByDesign # JIT only test
 [ $arch == ia32 && $mode == debug ]
 *: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 
-[ $builder_tag == obfuscated && $compiler == dartkp ]
-vm/bool_check_stack_traces_test: SkipByDesign # Looks for filenames in stacktrace output
-vm/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
-vm/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
-vm/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated name in error message
-
-[ $compiler == dartk && $mode == product && $runtime == vm ]
-vm/lazy_async_exception_stack2_test: SkipByDesign
-vm/lazy_async_exception_stack_test: SkipByDesign
-
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm ]
 const/const2_test: Crash # Flaky
 main/no_main_test/01: Skip
 mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
-vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/regress_29145_test: Skip # Issue 29145
 
 [ $compiler == dartk && $hot_reload_rollback ]
 symbol/conflict_test: Slow, Pass
-
-[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
-vm/precompiled_static_initializer_test: Slow, Pass
 
 # ==== dartkp + dart_precompiled status lines ====
 [ $compiler == dartkp && $runtime == dart_precompiled ]
@@ -54,12 +38,6 @@ mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
 optimize/deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 unsorted/hello_dart_test: Skip # Incompatible flag: --compile_all
 unsorted/invocation_mirror2_test: SkipByDesign
-vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/lazy_async_exception_stack2_test: SkipByDesign
-vm/lazy_async_exception_stack_test: SkipByDesign
-vm/reflect_core_vm_test: SkipByDesign
-vm/regress_27671_test: Skip # Unsupported
-vm/regress_29145_test: Skip # Issue 29145
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
 assert/initializer_const_error2_test/cc01: Crash

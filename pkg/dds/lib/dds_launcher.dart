@@ -45,9 +45,13 @@ import 'src/dds_impl.dart';
 /// If provided, [dartExecutable] is the path to the 'dart' executable that
 /// should be used to spawn the DDS instance. By default, `Platform.executable`
 /// is used.
+///
+/// If provided, [appName] is a short user focused description of the
+/// application, used to help identify it.
 class DartDevelopmentServiceLauncher {
   static Future<DartDevelopmentServiceLauncher> start({
     required Uri remoteVmServiceUri,
+    String? appName,
     Uri? serviceUri,
     bool enableAuthCodes = true,
     bool serveDevTools = false,
@@ -72,6 +76,8 @@ class DartDevelopmentServiceLauncher {
         '--${DartDevelopmentServiceOptions.enableServicePortFallbackFlag}',
       if (google3WorkspaceRoot != null)
         '--${DartDevelopmentServiceOptions.google3WorkspaceRootOption}=$google3WorkspaceRoot',
+      if (appName != null)
+        '--${DartDevelopmentServiceOptions.appNameOption}=$appName',
     ];
     late String executable;
     if (dartExecutable == null) {
@@ -80,7 +86,8 @@ class DartDevelopmentServiceLauncher {
       // then invoke it directly as it would avoid the additional hop
       // of going through the dart CLI process to invoke dds.
       executable = Platform.executable;
-      var sdkPath = path.absolute(path.dirname(path.dirname(executable)), 'bin');
+      var sdkPath =
+          path.absolute(path.dirname(path.dirname(executable)), 'bin');
       var snapshotsDir = path.join(sdkPath, 'snapshots');
       final type = FileSystemEntity.typeSync(snapshotsDir);
       if (type != FileSystemEntityType.directory &&
@@ -91,12 +98,12 @@ class DartDevelopmentServiceLauncher {
         sdkPath = path.absolute(path.dirname(executable));
         snapshotsDir = sdkPath;
       }
-      final dartAotRuntime = path.absolute(
-          sdkPath, Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+      final dartAotRuntime = path.absolute(sdkPath,
+          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
       final ddsAotSnapshot =
           path.absolute(snapshotsDir, 'dds_aot.dart.snapshot');
-      if (File(dartAotRuntime).existsSync()
-          && File(ddsAotSnapshot).existsSync()) {
+      if (File(dartAotRuntime).existsSync() &&
+          File(ddsAotSnapshot).existsSync()) {
         executable = dartAotRuntime;
         args = [ddsAotSnapshot, ...args];
       } else {
@@ -132,6 +139,7 @@ class DartDevelopmentServiceLauncher {
             uri: ddsUri,
             devToolsUri: devToolsUri,
             dtdUri: dtdUri,
+            appName: appName,
           ),
         );
       } else if (result
@@ -159,9 +167,14 @@ class DartDevelopmentServiceLauncher {
     required this.uri,
     required this.devToolsUri,
     required this.dtdUri,
+    required this.appName,
   }) : _ddsInstance = process;
 
   final Process _ddsInstance;
+
+  /// A short, user focused description of the application that DDS will
+  /// connect to.
+  final String? appName;
 
   /// The [Uri] VM service clients can use to communicate with this
   /// DDS instance via HTTP.

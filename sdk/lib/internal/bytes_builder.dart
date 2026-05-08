@@ -74,6 +74,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
   /// Reusable empty [Uint8List].
   ///
   /// Safe for reuse because a fixed-length empty list is immutable.
+  @pragma('vm:shared')
   static final _emptyList = Uint8List(0);
 
   /// Current count of bytes written to buffer.

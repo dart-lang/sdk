@@ -9,18 +9,19 @@ import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/lint/config.dart';
 
 /// Registry of lint rules and warning rules.
-class Registry with IterableMixin<AbstractAnalysisRule> {
+class Registry extends RegistryBase
+    with IterableMixin<AbstractAnalysisRule>, RegistryMixin {
   /// The default registry to be used by clients.
   static final Registry ruleRegistry = Registry();
 
-  /// A table mapping lower case lint rule names to rules.
-  final Map<String, AbstractAnalysisRule> _lintRules = {};
+  @override
+  final Map<String, AbstractAnalysisRule> lintRules = {};
 
-  /// A table mapping lower case warning rule names to rules.
-  final Map<String, AbstractAnalysisRule> _warningRules = {};
+  @override
+  final Map<String, AbstractAnalysisRule> warningRules = {};
 
-  /// A table mapping lower case unique names to lint codes.
-  final Map<String, DiagnosticCode> _codeMap = {};
+  @override
+  final Map<String, DiagnosticCode> codeMap = {};
 
   @override
   Iterator<AbstractAnalysisRule> get iterator => _rules.values.iterator;
@@ -31,8 +32,8 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   // TODO(srawlins): This process can result in collisions. Guard against this
   // somehow.
   Map<String, AbstractAnalysisRule> get _rules => {
-    ..._lintRules,
-    ..._warningRules,
+    ...lintRules,
+    ...warningRules,
   };
 
   /// Returns the rule with the given [name].
@@ -44,8 +45,31 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   ///
   /// The name is matched disregarding case.
   DiagnosticCode? codeForUniqueName(String uniqueName) =>
-      _codeMap[uniqueName.toLowerCase()];
+      codeMap[uniqueName.toLowerCase()];
 
+  /// Returns the rule with the given [name].
+  ///
+  /// The name is matched disregarding case.
+  AbstractAnalysisRule? getRule(String name) => _rules[name.toLowerCase()];
+
+  /// Removes the given lint [rule] from this registry.
+  void unregisterLintRule(AbstractAnalysisRule rule) {
+    lintRules.remove(rule.name.toLowerCase());
+    for (var code in rule.diagnosticCodes) {
+      codeMap.remove(code.lowerCaseUniqueName);
+    }
+  }
+
+  /// Removes the given warning [rule] from this registry.
+  void unregisterWarningRule(AbstractAnalysisRule rule) {
+    warningRules.remove(rule.name.toLowerCase());
+    for (var code in rule.diagnosticCodes) {
+      codeMap.remove(code.lowerCaseUniqueName);
+    }
+  }
+}
+
+abstract class RegistryBase {
   /// Returns a list of the enabled rules.
   ///
   /// This includes any warning rules, which are enabled by default and are not
@@ -58,54 +82,65 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   /// enables `my_rule`.
   ///
   /// Every key in [ruleConfigs] should be all lower case.
+  Iterable<AbstractAnalysisRule> enabled(Map<String, RuleConfig> ruleConfigs);
+
+  /// Registers this [rule] with the analyzer's rule registry.
+  ///
+  /// Lint rules are disabled by default and can be enabled using
+  /// the analysis options file.
+  ///
+  /// Use [registerWarningRule] for rules that are enabled by
+  /// default.
+  void registerLintRule(AbstractAnalysisRule rule);
+
+  /// Registers this [rule] with the analyzer's rule registry.
+  ///
+  /// Warning rules are enabled by default and can be disabled using
+  /// the analysis options file.
+  ///
+  /// Use [registerLintRule] for rules that are disabled by
+  /// default.
+  void registerWarningRule(AbstractAnalysisRule rule);
+}
+
+mixin RegistryMixin on RegistryBase {
+  /// A table mapping lower case unique names to lint codes.
+  Map<String, DiagnosticCode> get codeMap;
+
+  /// A table mapping lower case lint rule names to rules.
+  Map<String, AbstractAnalysisRule> get lintRules;
+
+  /// A table mapping lower case warning rule names to rules.
+  Map<String, AbstractAnalysisRule> get warningRules;
+
+  @override
   Iterable<AbstractAnalysisRule> enabled(Map<String, RuleConfig> ruleConfigs) {
     assert(ruleConfigs.keys.every((key) => key == key.toLowerCase()));
     return [
       // All warning rules that haven't explicitly been disabled.
-      ..._warningRules.values.where(
+      ...warningRules.values.where(
         (rule) => ruleConfigs[rule.name.toLowerCase()]?.isEnabled ?? true,
       ),
       // All lint rules that have explicitly been enabled.
-      ..._lintRules.values.where(
+      ...lintRules.values.where(
         (rule) => ruleConfigs[rule.name.toLowerCase()]?.isEnabled ?? false,
       ),
     ];
   }
 
-  /// Returns the rule with the given [name].
-  ///
-  /// The name is matched disregarding case.
-  AbstractAnalysisRule? getRule(String name) => _rules[name.toLowerCase()];
-
-  /// Adds the given lint [rule] to this registry.
+  @override
   void registerLintRule(AbstractAnalysisRule rule) {
-    _lintRules[rule.name.toLowerCase()] = rule;
+    lintRules[rule.name.toLowerCase()] = rule;
     for (var code in rule.diagnosticCodes) {
-      _codeMap[code.lowerCaseUniqueName] = code;
+      codeMap[code.lowerCaseUniqueName] = code;
     }
   }
 
-  /// Adds the given warning [rule] to this registry.
+  @override
   void registerWarningRule(AbstractAnalysisRule rule) {
-    _warningRules[rule.name.toLowerCase()] = rule;
+    warningRules[rule.name.toLowerCase()] = rule;
     for (var code in rule.diagnosticCodes) {
-      _codeMap[code.lowerCaseUniqueName] = code;
-    }
-  }
-
-  /// Removes the given lint [rule] from this registry.
-  void unregisterLintRule(AbstractAnalysisRule rule) {
-    _lintRules.remove(rule.name.toLowerCase());
-    for (var code in rule.diagnosticCodes) {
-      _codeMap.remove(code.lowerCaseUniqueName);
-    }
-  }
-
-  /// Removes the given warning [rule] from this registry.
-  void unregisterWarningRule(AbstractAnalysisRule rule) {
-    _warningRules.remove(rule.name.toLowerCase());
-    for (var code in rule.diagnosticCodes) {
-      _codeMap.remove(code.lowerCaseUniqueName);
+      codeMap[code.lowerCaseUniqueName] = code;
     }
   }
 }

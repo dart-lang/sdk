@@ -4,13 +4,10 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linking_node_scope.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:collection/collection.dart';
 
 class ConstructorInitializerResolver {
   final Linker _linker;
@@ -44,13 +41,26 @@ class ConstructorInitializerResolver {
       var node = _linker.getLinkingNode2(fragment);
       switch (node) {
         case ConstructorDeclarationImpl():
-          var constructorScope = LinkingNodeContext.get(node).scope;
-          var initializerScope = ConstructorInitializerScope(
-            constructorScope,
-            element,
-          );
-
+          var initializerScope = node.formalParameterInitializerScope!;
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+
+          var localElementsVisitor = ElementBindingVisitor(
+            fragment.libraryFragment,
+            null,
+          );
+          for (var initializer in node.initializers) {
+            localElementsVisitor.bindSubtree(
+              fragment as FragmentImpl,
+              initializer,
+            );
+          }
+          if (node.redirectedConstructor case var redirectedConstructor?) {
+            localElementsVisitor.bindSubtree(
+              fragment as FragmentImpl,
+              redirectedConstructor,
+            );
+          }
+
           var astResolver = AstResolver(
             _linker,
             fragment.libraryFragment,
@@ -75,27 +85,20 @@ class ConstructorInitializerResolver {
             }
           }
         case PrimaryConstructorDeclarationImpl():
-          var constructorScope = LinkingNodeContext.get(node).scope;
-          var initializerScope = ConstructorInitializerScope(
-            constructorScope,
-            element,
-          );
+          if (node.body case var body?) {
+            var initializerScope = body.formalParameterInitializerScope!;
+            var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+            var astResolver = AstResolver(
+              _linker,
+              fragment.libraryFragment,
+              initializerScope,
+              analysisOptions,
+              enclosingClassElement: interfaceElement,
+              enclosingExecutableElement: element,
+            );
 
-          var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-          var astResolver = AstResolver(
-            _linker,
-            fragment.libraryFragment,
-            initializerScope,
-            analysisOptions,
-            enclosingClassElement: interfaceElement,
-            enclosingExecutableElement: element,
-          );
-
-          var body = node.parent.classMembers
-              .whereType<PrimaryConstructorBodyImpl>()
-              .firstOrNull;
-
-          astResolver.resolvePrimaryConstructor(node, body);
+            astResolver.resolvePrimaryConstructor(node, body);
+          }
       }
     }
   }

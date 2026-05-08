@@ -1,6 +1,6 @@
 Errors: {
 }
-method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<E extends dart.core::String>(lowered #lib1::ExtensionType<#lib2::debugExpr::E>% /* erasure=#lib2::debugExpr::E, declared=! */ #this) → dynamic
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<E extends dart.core::String>(lowered #lib1::ExtensionType<#lib2::debugExpr::E>% /* erasure=#lib2::debugExpr::E, declared=! */ #this) → dynamic
   return (() → Null {
     #this{dynamic}.s;
     #this{dynamic}.s{dynamic}.codeUnitAt(0);

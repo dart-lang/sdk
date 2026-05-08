@@ -185,6 +185,6 @@ class SiteSelector {
     var analysisContext = _collection.contextFor(path);
     var analysisSession = analysisContext.currentSession;
     var result = await analysisSession.getResolvedUnit(path);
-    return result.ifTypeOrNull<ResolvedUnitResult>()?.unit;
+    return result.tryCast<ResolvedUnitResult>()?.unit;
   }
 }

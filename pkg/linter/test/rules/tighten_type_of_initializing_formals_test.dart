@@ -51,6 +51,18 @@ class A {
     );
   }
 
+  test_thisInit_asserts_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  String? p;
+  new(this.p) : assert(p != null);
+}
+''',
+      [lint(29, 6)],
+    );
+  }
+
   test_thisInit_asserts_positionalParams() async {
     await assertDiagnostics(
       r'''
@@ -77,12 +89,46 @@ class A {
     );
   }
 
+  test_thisInit_asserts_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+class A(this.p) {
+  String? p;
+  this : assert(p != null);
+}
+''',
+      [lint(8, 6)],
+    );
+  }
+
+  test_thisInit_asserts_primaryConstructor_declaring() async {
+    await assertNoDiagnostics(r'''
+class A(final String? p) {
+  this : assert(p != null);
+}
+''');
+  }
+
   test_thisInit_noAssert() async {
     await assertNoDiagnostics(r'''
 class A {
   String? p;
   A(this.p);
 }
+''');
+  }
+
+  test_thisInit_noAssert_primaryConstructor() async {
+    await assertNoDiagnostics(r'''
+class A(this.p) {
+  String? p;
+}
+''');
+  }
+
+  test_thisInit_noAssert_primaryConstructor_declaring() async {
+    await assertNoDiagnostics(r'''
+class A(final String? p);
 ''');
   }
 

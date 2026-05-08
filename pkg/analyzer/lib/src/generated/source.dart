@@ -152,48 +152,7 @@ abstract class SourceFactory {
   /// [containingSource], whether or not the resulting source exists, or `null`
   /// if either the [containedUri] is invalid or if it cannot be resolved
   /// against the [containingSource]'s URI.
-  Source? resolveUri(Source? containingSource, String? containedUri);
-}
-
-/// The enumeration `SourceKind` defines the different kinds of sources that are
-/// known to the analysis engine.
-class SourceKind implements Comparable<SourceKind> {
-  /// A source containing HTML. The HTML might or might not contain Dart
-  /// scripts.
-  static const SourceKind HTML = SourceKind('HTML', 0);
-
-  /// A Dart compilation unit that is not a part of another library. Libraries
-  /// might or might not contain any directives, including a library directive.
-  static const SourceKind LIBRARY = SourceKind('LIBRARY', 1);
-
-  /// A Dart compilation unit that is part of another library. Parts contain a
-  /// part-of directive.
-  static const SourceKind PART = SourceKind('PART', 2);
-
-  /// An unknown kind of source. Used both when it is not possible to identify
-  /// the kind of a source and also when the kind of a source is not known
-  /// without performing a computation and the client does not want to spend the
-  /// time to identify the kind.
-  static const SourceKind UNKNOWN = SourceKind('UNKNOWN', 3);
-
-  static const List<SourceKind> values = [HTML, LIBRARY, PART, UNKNOWN];
-
-  /// The name of this source kind.
-  final String name;
-
-  /// The ordinal value of the source kind.
-  final int ordinal;
-
-  const SourceKind(this.name, this.ordinal);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(SourceKind other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
+  Source? resolveUri(Source containingSource, String containedUri);
 }
 
 /// The abstract class `UriResolver` defines the behavior of objects that are

@@ -155,6 +155,12 @@ abstract final class CustomMethods {
   static const publishFlutterOutline = Method(
     'dart/textDocument/publishFlutterOutline',
   );
+  static const getFlutterWidgetPreviews = Method(
+    'dart/textDocument/getFlutterWidgetPreviews',
+  );
+  static const getWorkspaceFlutterWidgetPreviews = Method(
+    'dart/workspace/getFlutterWidgetPreviews',
+  );
   static const summary = Method('dart/textDocument/summary');
   static const super_ = Method('dart/textDocument/super');
   static const imports = Method('dart/textDocument/imports');

@@ -163,8 +163,8 @@ abstract class ObjectHandle extends BytecodeObject {
       case ObjectKind.kType:
         final Nullability nullability =
             ((flags & _TypeHandle.flagIsNullable) != 0)
-                ? Nullability.nullable
-                : Nullability.nonNullable;
+            ? Nullability.nullable
+            : Nullability.nonNullable;
         switch (TypeTag.values[(flags & _TypeHandle.tagMask) ~/ flagBit0]) {
           case TypeTag.kInvalid:
             break;
@@ -419,7 +419,8 @@ class _ClosureHandle extends ObjectHandle {
 }
 
 abstract class _TypeHandle extends ObjectHandle {
-  static const int tagMask = ObjectHandle.flagBit0 |
+  static const int tagMask =
+      ObjectHandle.flagBit0 |
       ObjectHandle.flagBit1 |
       ObjectHandle.flagBit2 |
       ObjectHandle.flagBit3;
@@ -505,7 +506,7 @@ class _NullTypeHandle extends _TypeHandle {
 
 class _NeverTypeHandle extends _TypeHandle {
   _NeverTypeHandle(Nullability nullability)
-      : super(TypeTag.kNever, nullability);
+    : super(TypeTag.kNever, nullability);
 
   @override
   void writeContents(BufferedWriter writer) {}
@@ -528,10 +529,10 @@ class _SimpleTypeHandle extends _TypeHandle {
   late _ClassHandle class_;
 
   _SimpleTypeHandle._empty(Nullability nullability)
-      : super(TypeTag.kSimpleType, nullability);
+    : super(TypeTag.kSimpleType, nullability);
 
   _SimpleTypeHandle(this.class_, Nullability nullability)
-      : super(TypeTag.kSimpleType, nullability);
+    : super(TypeTag.kSimpleType, nullability);
 
   @override
   void writeContents(BufferedWriter writer) {
@@ -570,7 +571,9 @@ class TypeParameterDeclaration {
 
   @override
   int get hashCode => _combineHashes(
-      name.hashCode, _combineHashes(bound.hashCode, defaultType.hashCode));
+    name.hashCode,
+    _combineHashes(bound.hashCode, defaultType.hashCode),
+  );
 
   @override
   bool operator ==(other) =>
@@ -588,14 +591,16 @@ class _TypeParameterHandle extends _TypeHandle {
   late int indexInParent;
 
   _TypeParameterHandle._empty(Nullability nullability)
-      : super(TypeTag.kTypeParameter, nullability);
+    : super(TypeTag.kTypeParameter, nullability);
 
   _TypeParameterHandle(this.parent, this.indexInParent, Nullability nullability)
-      : super(TypeTag.kTypeParameter, nullability) {
-    assert(parent is _ClassHandle ||
-        parent is _MemberHandle ||
-        parent is _ClosureHandle ||
-        parent == null);
+    : super(TypeTag.kTypeParameter, nullability) {
+    assert(
+      parent is _ClassHandle ||
+          parent is _MemberHandle ||
+          parent is _ClosureHandle ||
+          parent == null,
+    );
     assert(indexInParent >= 0);
   }
 
@@ -624,7 +629,9 @@ class _TypeParameterHandle extends _TypeHandle {
 
   @override
   int get hashCode => _combineHashes(
-      parent.hashCode, _combineHashes(indexInParent, nullability.index));
+    parent.hashCode,
+    _combineHashes(indexInParent, nullability.index),
+  );
 
   @override
   bool operator ==(other) =>
@@ -643,10 +650,10 @@ class _GenericTypeHandle extends _TypeHandle {
   _TypeArgumentsHandle? typeArgs;
 
   _GenericTypeHandle._empty(Nullability nullability)
-      : super(TypeTag.kGenericType, nullability);
+    : super(TypeTag.kGenericType, nullability);
 
   _GenericTypeHandle(this.class_, this.typeArgs, Nullability nullability)
-      : super(TypeTag.kGenericType, nullability);
+    : super(TypeTag.kGenericType, nullability);
 
   @override
   bool get isCacheable => typeArgs?.isCacheable ?? true;
@@ -674,7 +681,9 @@ class _GenericTypeHandle extends _TypeHandle {
 
   @override
   int get hashCode => _combineHashes(
-      class_.hashCode, _combineHashes(typeArgs.hashCode, nullability.index));
+    class_.hashCode,
+    _combineHashes(typeArgs.hashCode, nullability.index),
+  );
 
   @override
   bool operator ==(other) =>
@@ -692,8 +701,8 @@ class NameAndType {
   _TypeHandle type;
 
   NameAndType(ObjectHandle name_, ObjectHandle type_)
-      : name = name_ as _NameHandle,
-        type = type_ as _TypeHandle;
+    : name = name_ as _NameHandle,
+      type = type_ as _TypeHandle;
 
   @override
   int get hashCode => _combineHashes(name.hashCode, type.hashCode);
@@ -726,7 +735,9 @@ class ParameterFlags {
   }
 
   static int getVariableDeclarationFlags(
-      VariableDeclaration variable, bool isCode) {
+    VariableDeclaration variable,
+    bool isCode,
+  ) {
     int flags = 0;
     if (isCode) {
       if (variable.isCovariantByDeclaration) {
@@ -745,8 +756,10 @@ class ParameterFlags {
 
   // Get parameter flags for the given [function].
   // Returns null if parameters do not have any flags.
-  static List<int>? getFunctionFlags(FunctionNode function,
-      {required bool isCode}) {
+  static List<int>? getFunctionFlags(
+    FunctionNode function, {
+    required bool isCode,
+  }) {
     final paramFlags = <int>[];
     if (isCode) {
       for (var param in function.positionalParameters) {
@@ -772,7 +785,9 @@ class ParameterFlags {
   static List<int>? getFunctionTypeFlags(FunctionType functionType) {
     final namedParameters = functionType.namedParameters;
     final paramFlags = List<int>.generate(
-        namedParameters.length, (i) => getNamedTypeFlags(namedParameters[i]));
+      namedParameters.length,
+      (i) => getNamedTypeFlags(namedParameters[i]),
+    );
     return finalizeFlags(paramFlags);
   }
 }
@@ -795,18 +810,18 @@ class _FunctionTypeHandle extends _TypeHandle {
   late _TypeHandle returnType;
 
   _FunctionTypeHandle._empty(Nullability nullability)
-      : super(TypeTag.kFunctionType, nullability);
+    : super(TypeTag.kFunctionType, nullability);
 
   _FunctionTypeHandle(
-      this.numEnclosingTypeParameters,
-      this.typeParameters,
-      this.numRequiredParams,
-      this.positionalParams,
-      this.namedParams,
-      this.parameterFlags,
-      this.returnType,
-      Nullability nullability)
-      : super(TypeTag.kFunctionType, nullability) {
+    this.numEnclosingTypeParameters,
+    this.typeParameters,
+    this.numRequiredParams,
+    this.positionalParams,
+    this.namedParams,
+    this.parameterFlags,
+    this.returnType,
+    Nullability nullability,
+  ) : super(TypeTag.kFunctionType, nullability) {
     assert(numRequiredParams <= positionalParams.length + namedParams.length);
     if (numRequiredParams < positionalParams.length) {
       assert(namedParams.isEmpty);
@@ -864,8 +879,8 @@ class _FunctionTypeHandle extends _TypeHandle {
     functionTypeFlags = reader.readPackedUInt30();
     numEnclosingTypeParameters =
         ((functionTypeFlags & flagHasEnclosingTypeParameters) != 0)
-            ? reader.readPackedUInt30()
-            : 0;
+        ? reader.readPackedUInt30()
+        : 0;
     typeParameters = ((functionTypeFlags & flagHasTypeParams) != 0)
         ? TypeParametersDeclaration.read(reader)
         : null;
@@ -879,19 +894,25 @@ class _FunctionTypeHandle extends _TypeHandle {
     final bool hasNamedParams =
         (functionTypeFlags & flagHasOptionalNamedParams) != 0;
     positionalParams = new List<_TypeHandle>.generate(
-        hasNamedParams ? numRequiredParams : numParams,
-        (_) => reader.readPackedObject());
+      hasNamedParams ? numRequiredParams : numParams,
+      (_) => reader.readPackedObject(),
+    );
     if (hasNamedParams) {
       namedParams = new List<NameAndType>.generate(
-          numParams - numRequiredParams,
-          (_) => new NameAndType(
-              reader.readPackedObject(), reader.readPackedObject()));
+        numParams - numRequiredParams,
+        (_) => new NameAndType(
+          reader.readPackedObject(),
+          reader.readPackedObject(),
+        ),
+      );
     } else {
       namedParams = const <NameAndType>[];
     }
     parameterFlags = ((functionTypeFlags & flagHasParameterFlags) != 0)
         ? List<int>.generate(
-            reader.readPackedUInt30(), (_) => reader.readPackedUInt30())
+            reader.readPackedUInt30(),
+            (_) => reader.readPackedUInt30(),
+          )
         : null;
     returnType = reader.readPackedObject();
   }
@@ -1006,10 +1027,10 @@ class _RecordTypeHandle extends _TypeHandle {
   late List<NameAndType> named;
 
   _RecordTypeHandle._empty(Nullability nullability)
-      : super(TypeTag.kRecordType, nullability);
+    : super(TypeTag.kRecordType, nullability);
 
   _RecordTypeHandle(this.positional, this.named, Nullability nullability)
-      : super(TypeTag.kRecordType, nullability);
+    : super(TypeTag.kRecordType, nullability);
 
   @override
   void writeContents(BufferedWriter writer) {
@@ -1029,11 +1050,14 @@ class _RecordTypeHandle extends _TypeHandle {
     final int numPositional = reader.readPackedUInt30();
     final int numNamed = reader.readPackedUInt30();
     positional = List<_TypeHandle>.generate(
-        numPositional, (_) => reader.readPackedObject());
+      numPositional,
+      (_) => reader.readPackedObject(),
+    );
     named = List<NameAndType>.generate(
-        numNamed,
-        (_) => new NameAndType(
-            reader.readPackedObject(), reader.readPackedObject()));
+      numNamed,
+      (_) =>
+          new NameAndType(reader.readPackedObject(), reader.readPackedObject()),
+    );
   }
 
   @override
@@ -1325,10 +1349,14 @@ class _ConstObjectHandle extends ObjectHandle {
       case ConstTag.kInstance:
         type = reader.readPackedObject();
         value = Map<ObjectHandle, ObjectHandle?>.fromEntries(
-            new List<MapEntry<ObjectHandle, ObjectHandle?>>.generate(
-                reader.readPackedUInt30(),
-                (_) => new MapEntry<ObjectHandle, ObjectHandle?>(
-                    reader.readPackedObject(), reader.readPackedObject())));
+          new List<MapEntry<ObjectHandle, ObjectHandle?>>.generate(
+            reader.readPackedUInt30(),
+            (_) => new MapEntry<ObjectHandle, ObjectHandle?>(
+              reader.readPackedObject(),
+              reader.readPackedObject(),
+            ),
+          ),
+        );
         break;
       case ConstTag.kList:
       case ConstTag.kRecord:
@@ -1416,8 +1444,10 @@ class _ConstObjectHandle extends ObjectHandle {
     final entryHashes = List<int>.filled(map.length, -1);
     int i = 0;
     for (MapEntry entry in map.entries) {
-      entryHashes[i++] =
-          _combineHashes(entry.key.hashCode, entry.value.hashCode);
+      entryHashes[i++] = _combineHashes(
+        entry.key.hashCode,
+        entry.value.hashCode,
+      );
     }
     entryHashes.sort();
     return listHashCode(entryHashes);
@@ -1447,8 +1477,10 @@ class _ConstObjectHandle extends ObjectHandle {
       case ConstTag.kInstance:
         {
           final fieldValues = value as Map<ObjectHandle, ObjectHandle?>;
-          return _hashCode =
-              _combineHashes(type.hashCode, mapHashCode(fieldValues));
+          return _hashCode = _combineHashes(
+            type.hashCode,
+            mapHashCode(fieldValues),
+          );
         }
       case ConstTag.kList:
       case ConstTag.kRecord:
@@ -1571,8 +1603,9 @@ class _ArgDescHandle extends ObjectHandle {
   @override
   void readContents(BufferedReader reader) {
     numArguments = reader.readPackedUInt30();
-    numTypeArguments =
-        ((_flags & flagHasTypeArgs) != 0) ? reader.readPackedUInt30() : 0;
+    numTypeArguments = ((_flags & flagHasTypeArgs) != 0)
+        ? reader.readPackedUInt30()
+        : 0;
     argNames = ((_flags & flagHasNamedArgs) != 0)
         ? reader.readPackedList<_PublicNameHandle>()
         : const <_PublicNameHandle>[];
@@ -1587,7 +1620,9 @@ class _ArgDescHandle extends ObjectHandle {
 
   @override
   int get hashCode => _combineHashes(
-      numArguments, _combineHashes(numTypeArguments, listHashCode(argNames)));
+    numArguments,
+    _combineHashes(numTypeArguments, listHashCode(argNames)),
+  );
 
   @override
   bool operator ==(other) =>
@@ -1667,8 +1702,8 @@ class _ScriptHandle extends ObjectHandle {
     if ((_flags & flagHasSourceFile) != 0) {
       // Script handles in the object table may be read before source files,
       // so use forwarding reference here.
-      _sourceForwardReference =
-          reader.readLinkOffsetAsForwardReference<SourceFile>();
+      _sourceForwardReference = reader
+          .readLinkOffsetAsForwardReference<SourceFile>();
     }
   }
 
@@ -1735,12 +1770,16 @@ class ObjectTable implements ObjectWriter, ObjectReader {
 
   List<ObjectHandle?> getHandles(List<Node?> nodes) {
     return List<ObjectHandle?>.generate(
-        nodes.length, (int i) => getHandle(nodes[i]));
+      nodes.length,
+      (int i) => getHandle(nodes[i]),
+    );
   }
 
   List<ObjectHandle> getNonNullHandles(List<Node> nodes) {
     return List<ObjectHandle>.generate(
-        nodes.length, (int i) => getHandle(nodes[i])!);
+      nodes.length,
+      (int i) => getHandle(nodes[i])!,
+    );
   }
 
   String mangleGetterName(String name) => 'get:$name';
@@ -1790,7 +1829,9 @@ class ObjectTable implements ObjectWriter, ObjectReader {
       return const <_PublicNameHandle>[];
     }
     return List<_PublicNameHandle>.generate(
-        names.length, (int i) => getPublicNameHandle(names[i]));
+      names.length,
+      (int i) => getPublicNameHandle(names[i]),
+    );
   }
 
   ObjectHandle getConstStringHandle(String value) =>
@@ -1801,13 +1842,20 @@ class ObjectTable implements ObjectWriter, ObjectReader {
       return const <ObjectHandle>[];
     }
     return List<ObjectHandle>.generate(
-        values.length, (int i) => getConstStringHandle(values[i]));
+      values.length,
+      (int i) => getConstStringHandle(values[i]),
+    );
   }
 
-  ObjectHandle getSelectorNameHandle(Name name,
-      {bool isGetter = false, bool isSetter = false}) {
+  ObjectHandle getSelectorNameHandle(
+    Name name, {
+    bool isGetter = false,
+    bool isSetter = false,
+  }) {
     return getNameHandle(
-        name.library, mangleSelectorName(name.text, isGetter, isSetter));
+      name.library,
+      mangleSelectorName(name.text, isGetter, isSetter),
+    );
   }
 
   ObjectHandle getTopLevelClassHandle(Library library) {
@@ -1816,8 +1864,11 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     return getOrAddObject(new _ClassHandle(libraryHandle, name));
   }
 
-  ObjectHandle getMemberHandle(Member member,
-      {bool isGetter = false, bool isSetter = false}) {
+  ObjectHandle getMemberHandle(
+    Member member, {
+    bool isGetter = false,
+    bool isSetter = false,
+  }) {
     final parent = member.parent;
     _ClassHandle classHandle;
     if (parent is Class) {
@@ -1827,14 +1878,18 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     } else {
       throw "Unexpected Member's parent ${parent.runtimeType} $parent";
     }
-    final nameHandle = getNameHandle(
-            member.name.library, mangleMemberName(member, isGetter, isSetter))
-        as _NameHandle;
+    final nameHandle =
+        getNameHandle(
+              member.name.library,
+              mangleMemberName(member, isGetter, isSetter),
+            )
+            as _NameHandle;
     bool isField = member is Field && !isGetter && !isSetter;
     bool isConstructor =
         member is Constructor || (member is Procedure && member.isFactory);
     return getOrAddObject(
-        new _MemberHandle(classHandle, nameHandle, isField, isConstructor));
+      new _MemberHandle(classHandle, nameHandle, isField, isConstructor),
+    );
   }
 
   ObjectHandle? getTypeArgumentsHandle(List<DartType>? typeArgs) {
@@ -1842,25 +1897,41 @@ class ObjectTable implements ObjectWriter, ObjectReader {
       return null;
     }
     final handles = List<_TypeHandle>.generate(
-        typeArgs.length, (int i) => getHandle(typeArgs[i]) as _TypeHandle);
+      typeArgs.length,
+      (int i) => getHandle(typeArgs[i]) as _TypeHandle,
+    );
     return getOrAddObject(new _TypeArgumentsHandle(handles));
   }
 
-  ObjectHandle getArgDescHandle(int numArguments,
-      [int numTypeArguments = 0, List<String> argNames = const <String>[]]) {
-    return getOrAddObject(new _ArgDescHandle(
-        numArguments, numTypeArguments, getPublicNameHandles(argNames)));
+  ObjectHandle getArgDescHandle(
+    int numArguments, [
+    int numTypeArguments = 0,
+    List<String> argNames = const <String>[],
+  ]) {
+    return getOrAddObject(
+      new _ArgDescHandle(
+        numArguments,
+        numTypeArguments,
+        getPublicNameHandles(argNames),
+      ),
+    );
   }
 
-  ObjectHandle getArgDescHandleByArguments(Arguments args,
-      {bool hasReceiver = false, bool isFactory = false}) {
+  ObjectHandle getArgDescHandleByArguments(
+    Arguments args, {
+    bool hasReceiver = false,
+    bool isFactory = false,
+  }) {
     List<_PublicNameHandle> argNames = const <_PublicNameHandle>[];
     final namedArguments = args.named;
     if (namedArguments.isNotEmpty) {
-      argNames = List<_PublicNameHandle>.generate(namedArguments.length,
-          (int i) => getPublicNameHandle(namedArguments[i].name));
+      argNames = List<_PublicNameHandle>.generate(
+        namedArguments.length,
+        (int i) => getPublicNameHandle(namedArguments[i].name),
+      );
     }
-    final int numArguments = args.positional.length +
+    final int numArguments =
+        args.positional.length +
         args.named.length +
         (hasReceiver ? 1 : 0) +
         // VM expects that type arguments vector passed to a factory
@@ -1870,7 +1941,8 @@ class ObjectTable implements ObjectWriter, ObjectReader {
         (isFactory ? 1 : 0);
     final int numTypeArguments = isFactory ? 0 : args.types.length;
     return getOrAddObject(
-        new _ArgDescHandle(numArguments, numTypeArguments, argNames));
+      new _ArgDescHandle(numArguments, numTypeArguments, argNames),
+    );
   }
 
   ObjectHandle getScriptHandle(Uri uri, SourceFile? source) {
@@ -1884,35 +1956,48 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   }
 
   List<TypeParameterDeclaration> getTypeParameterHandles(
-      List<TypeParameter> typeParams) {
+    List<TypeParameter> typeParams,
+  ) {
     if (typeParams.isEmpty) {
       return const <TypeParameterDeclaration>[];
     }
     return List<TypeParameterDeclaration>.generate(
-        typeParams.length,
-        (int i) => TypeParameterDeclaration(
-            getPublicNameHandle(typeParams[i].name!),
-            getHandle(typeParams[i].bound)!,
-            getHandle(typeParams[i].defaultType)!));
+      typeParams.length,
+      (int i) => TypeParameterDeclaration(
+        getPublicNameHandle(typeParams[i].name!),
+        getHandle(typeParams[i].bound)!,
+        getHandle(typeParams[i].defaultType)!,
+      ),
+    );
   }
 
   List<TypeParameterDeclaration> getStructuralParameterHandles(
-      List<StructuralParameter> typeParams) {
+    List<StructuralParameter> typeParams,
+  ) {
     if (typeParams.isEmpty) {
       return const <TypeParameterDeclaration>[];
     }
     return List<TypeParameterDeclaration>.generate(
-        typeParams.length,
-        (int i) => TypeParameterDeclaration(
-            getPublicNameHandle(typeParams[i].name!),
-            getHandle(typeParams[i].bound)!,
-            getHandle(typeParams[i].defaultType)!));
+      typeParams.length,
+      (int i) => TypeParameterDeclaration(
+        getPublicNameHandle(typeParams[i].name!),
+        getHandle(typeParams[i].bound)!,
+        getHandle(typeParams[i].defaultType)!,
+      ),
+    );
   }
 
   void declareClosure(
-      FunctionNode function, Member enclosingMember, int closureIndex) {
-    final handle = getOrAddObject(new _ClosureHandle(
-        getHandle(enclosingMember) as _MemberHandle, closureIndex));
+    FunctionNode function,
+    Member enclosingMember,
+    int closureIndex,
+  ) {
+    final handle = getOrAddObject(
+      new _ClosureHandle(
+        getHandle(enclosingMember) as _MemberHandle,
+        closureIndex,
+      ),
+    );
     _nodeCache[function] = handle;
   }
 
@@ -1943,8 +2028,10 @@ class ObjectTable implements ObjectWriter, ObjectReader {
         obj.accountUsesForObjectCopies(obj._useCount - 1);
       }
     }
-    final indexTable =
-        _indexTable = List<ObjectHandle>.filled(tableSize, _InvalidHandle());
+    final indexTable = _indexTable = List<ObjectHandle>.filled(
+      tableSize,
+      _InvalidHandle(),
+    );
     int count = 0;
     indexTable[count++] = _InvalidHandle()
       .._reference = ObjectHandle._makeReference(0);
@@ -1993,8 +2080,9 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     final start = writer.offset;
     if (BytecodeSizeStatistics.objectTableStats.isEmpty) {
       for (var kind in ObjectKind.values) {
-        BytecodeSizeStatistics.objectTableStats
-            .add(new NamedEntryStatistics(objectKindToString(kind)));
+        BytecodeSizeStatistics.objectTableStats.add(
+          new NamedEntryStatistics(objectKindToString(kind)),
+        );
       }
     }
 
@@ -2036,8 +2124,10 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     final int numEntries = reader.readPackedUInt30();
     reader.readPackedUInt30(); // Contents length
 
-    final indexTable =
-        _indexTable = List<ObjectHandle>.filled(numEntries, _InvalidHandle());
+    final indexTable = _indexTable = List<ObjectHandle>.filled(
+      numEntries,
+      _InvalidHandle(),
+    );
     for (int i = 0; i < numEntries; ++i) {
       final int header = reader.readPackedUInt30();
       indexTable[i] = new ObjectHandle._read(reader, header)
@@ -2077,8 +2167,9 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
 
   @override
   ObjectHandle? visitLibrary(Library node) {
-    final uri = objectTable.getConstStringHandle(node.importUri.toString())
-        as _ConstObjectHandle;
+    final uri =
+        objectTable.getConstStringHandle(node.importUri.toString())
+            as _ConstObjectHandle;
     return objectTable.getOrAddObject(new _LibraryHandle(uri));
   }
 
@@ -2088,7 +2179,9 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
         objectTable.getHandle(node.enclosingLibrary) as _LibraryHandle;
     final name = node.name.startsWith('_')
         ? (objectTable.getOrAddObject(
-            new _PrivateNameHandle(library, node.name)) as _PrivateNameHandle)
+                new _PrivateNameHandle(library, node.name),
+              )
+              as _PrivateNameHandle)
         : objectTable.getPublicNameHandle(node.name);
     return objectTable.getOrAddObject(new _ClassHandle(library, name));
   }
@@ -2113,24 +2206,29 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
   ObjectHandle? visitInterfaceType(InterfaceType node) {
     final classHandle = objectTable.getHandle(node.classNode) as _ClassHandle;
     if (node.classNode.typeParameters.isEmpty) {
-      return objectTable
-          .getOrAddObject(new _SimpleTypeHandle(classHandle, node.nullability));
+      return objectTable.getOrAddObject(
+        new _SimpleTypeHandle(classHandle, node.nullability),
+      );
     }
 
-    final typeArgsHandle = objectTable
-        .getTypeArgumentsHandle(node.typeArguments) as _TypeArgumentsHandle?;
+    final typeArgsHandle =
+        objectTable.getTypeArgumentsHandle(node.typeArguments)
+            as _TypeArgumentsHandle?;
     return objectTable.getOrAddObject(
-        _GenericTypeHandle(classHandle, typeArgsHandle, node.nullability));
+      _GenericTypeHandle(classHandle, typeArgsHandle, node.nullability),
+    );
   }
 
   @override
   ObjectHandle? visitFutureOrType(FutureOrType node) {
     final classNode = coreTypes.deprecatedFutureOrClass;
     final classHandle = objectTable.getHandle(classNode) as _ClassHandle;
-    final typeArgsHandle = objectTable
-        .getTypeArgumentsHandle([node.typeArgument]) as _TypeArgumentsHandle?;
+    final typeArgsHandle =
+        objectTable.getTypeArgumentsHandle([node.typeArgument])
+            as _TypeArgumentsHandle?;
     final result = objectTable.getOrAddObject(
-        new _GenericTypeHandle(classHandle, typeArgsHandle, node.nullability));
+      new _GenericTypeHandle(classHandle, typeArgsHandle, node.nullability),
+    );
     return result;
   }
 
@@ -2156,8 +2254,9 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
     if (indexInParent < 0) {
       throw 'Type parameter $param is not found in its parent class $parent';
     }
-    return objectTable.getOrAddObject(new _TypeParameterHandle(
-        parentHandle, indexInParent, node.nullability));
+    return objectTable.getOrAddObject(
+      new _TypeParameterHandle(parentHandle, indexInParent, node.nullability),
+    );
   }
 
   @override
@@ -2167,8 +2266,13 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
     if (handle.nullability == node.nullability) {
       return handle;
     }
-    return objectTable.getOrAddObject(new _TypeParameterHandle(
-        handle.parent, handle.indexInParent, node.nullability));
+    return objectTable.getOrAddObject(
+      new _TypeParameterHandle(
+        handle.parent,
+        handle.indexInParent,
+        node.nullability,
+      ),
+    );
   }
 
   @override
@@ -2177,28 +2281,39 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
         objectTable.numEnclosingFunctionTypeParameters + _typeParameters.length;
     for (int i = 0; i < node.typeParameters.length; ++i) {
       _typeParameters[node.typeParameters[i]] = objectTable.getOrAddObject(
-          new _TypeParameterHandle(
-              null, numEnclosingTypeParameters + i, Nullability.nonNullable));
+        new _TypeParameterHandle(
+          null,
+          numEnclosingTypeParameters + i,
+          Nullability.nonNullable,
+        ),
+      );
     }
     final typeParameters = node.typeParameters.isNotEmpty
         ? TypeParametersDeclaration(
-            objectTable.getStructuralParameterHandles(node.typeParameters))
+            objectTable.getStructuralParameterHandles(node.typeParameters),
+          )
         : null;
 
     final positionalParams = List<_TypeHandle>.generate(
-        node.positionalParameters.length,
-        (int i) =>
-            objectTable.getHandle(node.positionalParameters[i]) as _TypeHandle);
-    final namedParams =
-        List<NameAndType>.generate(node.namedParameters.length, (int i) {
-      final param = node.namedParameters[i];
-      return NameAndType(objectTable.getPublicNameHandle(param.name),
-          objectTable.getHandle(param.type)!);
-    });
+      node.positionalParameters.length,
+      (int i) =>
+          objectTable.getHandle(node.positionalParameters[i]) as _TypeHandle,
+    );
+    final namedParams = List<NameAndType>.generate(
+      node.namedParameters.length,
+      (int i) {
+        final param = node.namedParameters[i];
+        return NameAndType(
+          objectTable.getPublicNameHandle(param.name),
+          objectTable.getHandle(param.type)!,
+        );
+      },
+    );
     final parameterFlags = ParameterFlags.getFunctionTypeFlags(node);
     final returnType = objectTable.getHandle(node.returnType) as _TypeHandle;
 
-    final result = objectTable.getOrAddObject(new _FunctionTypeHandle(
+    final result = objectTable.getOrAddObject(
+      new _FunctionTypeHandle(
         numEnclosingTypeParameters,
         typeParameters,
         node.requiredParameterCount,
@@ -2206,7 +2321,9 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
         namedParams,
         parameterFlags,
         returnType,
-        node.nullability));
+        node.nullability,
+      ),
+    );
 
     for (int i = 0; i < node.typeParameters.length; ++i) {
       _typeParameters.remove(node.typeParameters[i]);
@@ -2217,15 +2334,20 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
 
   @override
   ObjectHandle? visitRecordType(RecordType node) {
-    final positional = List<_TypeHandle>.generate(node.positional.length,
-        (int i) => objectTable.getHandle(node.positional[i]) as _TypeHandle);
+    final positional = List<_TypeHandle>.generate(
+      node.positional.length,
+      (int i) => objectTable.getHandle(node.positional[i]) as _TypeHandle,
+    );
     final named = List<NameAndType>.generate(node.named.length, (int i) {
       final namedField = node.named[i];
-      return NameAndType(objectTable.getPublicNameHandle(namedField.name),
-          objectTable.getHandle(namedField.type)!);
+      return NameAndType(
+        objectTable.getPublicNameHandle(namedField.name),
+        objectTable.getHandle(namedField.type)!,
+      );
     });
-    return objectTable
-        .getOrAddObject(_RecordTypeHandle(positional, named, node.nullability));
+    return objectTable.getOrAddObject(
+      _RecordTypeHandle(positional, named, node.nullability),
+    );
   }
 
   @override
@@ -2261,75 +2383,115 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
 
   @override
   ObjectHandle? visitSymbolConstant(SymbolConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
           ConstTag.kSymbol,
           objectTable.getNameHandle(
-              node.libraryReference?.asLibrary, node.name)));
+            node.libraryReference?.asLibrary,
+            node.name,
+          ),
+        ),
+      );
 
   @override
   ObjectHandle? visitListConstant(ListConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
           ConstTag.kList,
           objectTable.getHandles(node.entries),
-          objectTable.getHandle(node.typeArgument)));
+          objectTable.getHandle(node.typeArgument),
+        ),
+      );
 
   @override
   ObjectHandle? visitRecordConstant(RecordConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
           ConstTag.kRecord,
-          objectTable.getHandles([
-            ...node.positional,
-            ...node.named.values,
-          ]),
-          objectTable.getHandle(node.recordType)));
+          objectTable.getHandles([...node.positional, ...node.named.values]),
+          objectTable.getHandle(node.recordType),
+        ),
+      );
 
   @override
   ObjectHandle? visitMapConstant(MapConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
           ConstTag.kMap,
           [
             for (var e in node.entries) ...[
               objectTable.getHandle(e.key),
-              objectTable.getHandle(e.value)
-            ]
+              objectTable.getHandle(e.value),
+            ],
           ],
-          objectTable.getHandle(InterfaceType(coreTypes.mapClass,
-              Nullability.nonNullable, [node.keyType, node.valueType]))));
+          objectTable.getHandle(
+            InterfaceType(coreTypes.mapClass, Nullability.nonNullable, [
+              node.keyType,
+              node.valueType,
+            ]),
+          ),
+        ),
+      );
 
   @override
   ObjectHandle? visitSetConstant(SetConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
           ConstTag.kSet,
           objectTable.getHandles(node.entries),
-          objectTable.getHandle(node.typeArgument)));
+          objectTable.getHandle(node.typeArgument),
+        ),
+      );
 
   @override
   ObjectHandle? visitInstanceConstant(InstanceConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
           ConstTag.kInstance,
           node.fieldValues.map<ObjectHandle, ObjectHandle?>(
-              (Reference fieldRef, Constant value) => new MapEntry(
-                  objectTable.getHandle(fieldRef.asField)!,
-                  objectTable.getHandle(value))),
-          objectTable.getHandle(InterfaceType(
-              node.classNode, Nullability.nonNullable, node.typeArguments))));
+            (Reference fieldRef, Constant value) => new MapEntry(
+              objectTable.getHandle(fieldRef.asField)!,
+              objectTable.getHandle(value),
+            ),
+          ),
+          objectTable.getHandle(
+            InterfaceType(
+              node.classNode,
+              Nullability.nonNullable,
+              node.typeArguments,
+            ),
+          ),
+        ),
+      );
 
   @override
   ObjectHandle? visitStaticTearOffConstant(StaticTearOffConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
-          ConstTag.kTearOff, objectTable.getHandle(node.target)));
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
+          ConstTag.kTearOff,
+          objectTable.getHandle(node.target),
+        ),
+      );
 
   @override
   ObjectHandle? visitConstructorTearOffConstant(
-          ConstructorTearOffConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
-          ConstTag.kTearOff, objectTable.getHandle(node.target)));
+    ConstructorTearOffConstant node,
+  ) => objectTable.getOrAddObject(
+    new _ConstObjectHandle(
+      ConstTag.kTearOff,
+      objectTable.getHandle(node.target),
+    ),
+  );
 
   @override
   ObjectHandle? visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
-          ConstTag.kTearOff, objectTable.getHandle(node.target)));
+    RedirectingFactoryTearOffConstant node,
+  ) => objectTable.getOrAddObject(
+    new _ConstObjectHandle(
+      ConstTag.kTearOff,
+      objectTable.getHandle(node.target),
+    ),
+  );
 
   @override
   ObjectHandle? visitTypeLiteralConstant(TypeLiteralConstant node) =>
@@ -2337,10 +2499,13 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
 
   @override
   ObjectHandle? visitInstantiationConstant(InstantiationConstant node) =>
-      objectTable.getOrAddObject(new _ConstObjectHandle(
+      objectTable.getOrAddObject(
+        new _ConstObjectHandle(
           ConstTag.kTearOffInstantiation,
           objectTable.getHandle(node.tearOffConstant),
-          objectTable.getTypeArgumentsHandle(node.types)));
+          objectTable.getTypeArgumentsHandle(node.types),
+        ),
+      );
 }
 
 int _combineHashes(int hash1, int hash2) =>

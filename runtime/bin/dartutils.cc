@@ -210,22 +210,6 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
 }
 
-bool DartUtils::IsDartIOLibURL(const char* url_name) {
-  return (strcmp(url_name, kIOLibURL) == 0);
-}
-
-bool DartUtils::IsDartCLILibURL(const char* url_name) {
-  return (strcmp(url_name, kCLILibURL) == 0);
-}
-
-bool DartUtils::IsDartHttpLibURL(const char* url_name) {
-  return (strcmp(url_name, kHttpLibURL) == 0);
-}
-
-bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
-  return (strcmp(url_name, kBuiltinLibURL) == 0);
-}
-
 char* DartUtils::DirName(const char* url) {
   const char* slash = strrchr(url, File::PathSeparator()[0]);
   if (slash == nullptr) {
@@ -298,9 +282,9 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
 // TODO(iposva): Allocate from the zone instead of leaking error string
 // here. On the other hand the binary is about to exit anyway.
 #define SET_ERROR_MSG(error_msg, format, ...)                                  \
-  intptr_t len = snprintf(nullptr, 0, format, __VA_ARGS__);                    \
+  intptr_t len = snprintf(nullptr, 0, format, ##__VA_ARGS__);                  \
   char* msg = reinterpret_cast<char*>(malloc(len + 1));                        \
-  snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
+  snprintf(msg, len + 1, format, ##__VA_ARGS__);                               \
   *error_msg = msg
 
 static uint8_t* ReadFileFully(const char* filename,
@@ -499,17 +483,14 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
 }
 
 Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
-                                          Dart_Handle io_lib,
-                                          bool is_service_isolate) {
-  if (!is_service_isolate) {
-    // Setup the 'Uri.base' getter in dart:core.
-    Dart_Handle uri_base =
-        Dart_Invoke(io_lib, NewString("_getUriBaseClosure"), 0, nullptr);
-    RETURN_IF_ERROR(uri_base);
-    Dart_Handle result =
-        Dart_SetField(core_lib, NewString("_uriBaseClosure"), uri_base);
-    RETURN_IF_ERROR(result);
-  }
+                                          Dart_Handle io_lib) {
+  // Setup the 'Uri.base' getter in dart:core.
+  Dart_Handle uri_base =
+      Dart_Invoke(io_lib, NewString("_getUriBaseClosure"), 0, nullptr);
+  RETURN_IF_ERROR(uri_base);
+  Dart_Handle result =
+      Dart_SetField(core_lib, NewString("_uriBaseClosure"), uri_base);
+  RETURN_IF_ERROR(result);
   return Dart_True();
 }
 
@@ -612,7 +593,7 @@ Dart_Handle DartUtils::SetupCoreLibraries(
 
   RETURN_IF_ERROR(
       PrepareAsyncLibrary(async_lib, isolate_lib, flag_profile_microtasks));
-  RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib, is_service_isolate));
+  RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib));
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
   RETURN_IF_ERROR(PrepareCLILibrary(cli_lib));
   return result;

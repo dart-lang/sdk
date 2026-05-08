@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -36,6 +37,7 @@ import '../../source/type_parameter_factory.dart';
 import '../../type_inference/inference_results.dart';
 import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_inferrer.dart';
+import '../../util/helpers.dart';
 import '../fragment.dart';
 import '../getter/declaration.dart';
 import '../setter/declaration.dart';
@@ -65,7 +67,7 @@ abstract class FieldDeclaration {
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   });
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
@@ -97,9 +99,11 @@ abstract class FieldDeclaration {
   /// Return `true` if the declaration is late.
   bool get isLate;
 
-  /// Return `true` if the declaration is in instance field declared in an
-  /// extension type.
-  bool get isExtensionTypeDeclaredInstanceField;
+  /// Returns `true` if the field of this property is not a valid declaration.
+  ///
+  /// For instance declaring an instance field in an extension or extension type
+  /// is not allowed and cannot be encoded coherently in the AST.
+  bool get isInvalidField;
 
   /// Returns `true` if this field is declared by an enum element.
   bool get isEnumElement;
@@ -131,6 +135,19 @@ abstract class FieldDeclaration {
     Expression value, {
     required bool isSynthetic,
   });
+
+  /// Creates an [Initializer] for initializing this field with its declared
+  /// initializer value and removes the initializer expression from the field
+  /// itself.
+  ///
+  /// This is used to support access of primary constructor parameters in the
+  /// field initializers. For instance
+  ///
+  ///     class C(var int a, final int b, int c) {
+  ///       int d = a + b + c;
+  ///     }
+  ///
+  Initializer takePrimaryConstructorFieldInitializer();
 
   /// Ensures that the type of this field declaration has been computed.
   void ensureTypes(
@@ -210,8 +227,9 @@ class RegularFieldDeclaration
   bool get isEnumElement => false;
 
   @override
-  bool get isExtensionTypeDeclaredInstanceField =>
-      builder.isExtensionTypeInstanceMember;
+  bool get isInvalidField =>
+      builder.isExtensionTypeInstanceMember ||
+      builder.isExtensionInstanceMember;
 
   @override
   bool get isFinal => _fragment.modifiers.isFinal;
@@ -264,6 +282,9 @@ class RegularFieldDeclaration
   }
 
   @override
+  InferenceDefaultType get inferenceDefaultType => InferenceDefaultType.Dynamic;
+
+  @override
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
@@ -275,35 +296,12 @@ class RegularFieldDeclaration
         // Coverage-ignore(suite): Not run.
         !_fragment.modifiers.isFinal) {
       internalProblem(
-        codeInternalProblemAlreadyInitialized,
+        diag.internalProblemAlreadyInitialized,
         nameOffset,
         fileUri,
       );
     }
     _encoding.createBodies(coreTypes, initializer);
-  }
-
-  @override
-  void buildFieldInitializer({
-    required TypeInferrer typeInferrer,
-    required CoreTypes coreTypes,
-    required Uri fileUri,
-    Expression? initializer,
-  }) {
-    if (initializer != null) {
-      if (!hasBodyBeenBuilt) {
-        initializer = typeInferrer
-            .inferFieldInitializer(
-              fileUri: fileUri,
-              declaredType: fieldType,
-              initializer: initializer,
-            )
-            .expression;
-        buildBody(coreTypes, initializer);
-      }
-    } else if (!hasBodyBeenBuilt) {
-      buildBody(coreTypes, null);
-    }
   }
 
   @override
@@ -336,7 +334,7 @@ class RegularFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -354,13 +352,9 @@ class RegularFieldDeclaration
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
-    Token? token = _fragment.constInitializerToken;
+    Token? token = _fragment.takeInitializerTokenForOutline();
     if (!hasBodyBeenBuilt && token != null) {
-      if ((_fragment.modifiers.isConst ||
-          (isFinal &&
-              isClassInstanceMember &&
-              (declarationBuilder as SourceClassBuilder)
-                  .declaresConstConstructor))) {
+      if (_fragment.modifiers.isConst || forConstantConstructor) {
         if (hasInitializerBeenComputed) {
           buildBody(classHierarchy.coreTypes, cachedFieldInitializer);
         } else {
@@ -370,6 +364,7 @@ class RegularFieldDeclaration
             bodyBuilderContext: bodyBuilderContext,
             declaredFieldType: fieldType,
             token: token,
+            inferenceDefaultType: inferenceDefaultType,
           );
           buildBody(classHierarchy.coreTypes, initializer);
         }
@@ -383,6 +378,7 @@ class RegularFieldDeclaration
     required BodyBuilderContext bodyBuilderContext,
     DartType? declaredFieldType,
     required Token token,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     LookupScope scope = _fragment.enclosingScope;
     ExpressionInferenceResult expressionInferenceResult = libraryBuilder.loader
@@ -400,6 +396,7 @@ class RegularFieldDeclaration
               .dataForTesting
               // Coverage-ignore(suite): Not run.
               ?.inferenceData,
+          inferenceDefaultType: inferenceDefaultType,
         );
     if (computeSharedExpressionForTesting) {
       // Coverage-ignore-block(suite): Not run.
@@ -586,7 +583,7 @@ class RegularFieldDeclaration
     }
 
     type.registerInferredTypeListener(this);
-    Token? token = _fragment.initializerToken;
+    Token? token = _fragment.takeInitializerTokenForTopLevelInference();
     if (type is InferableTypeBuilder) {
       if (!_fragment.modifiers.hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred
@@ -655,6 +652,7 @@ class RegularFieldDeclaration
         libraryBuilder: libraryBuilder,
         bodyBuilderContext: createBodyBuilderContext(),
         token: token,
+        inferenceDefaultType: InferenceDefaultType.Dynamic,
       );
     } else {
       return (const DynamicType(), null);
@@ -785,6 +783,11 @@ class RegularFieldDeclaration
     PropertyReferences references,
   ) {
     return hasSetter ? [references.setterReference] : const [];
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    return _encoding.takePrimaryConstructorFieldInitializer();
   }
 }
 
@@ -952,8 +955,9 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
 
   Expression? get cachedFieldInitializer => _fieldInitializerCache;
 
+  InferenceDefaultType get inferenceDefaultType;
+
   @override
-  // Coverage-ignore(suite): Not run.
   void buildFieldInitializer({
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
@@ -971,6 +975,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
               fileUri: fileUri,
               declaredType: fieldType,
               initializer: initializer,
+              inferenceDefaultType: inferenceDefaultType,
             )
             .expression;
         _hasInitializerBeenComputed = true;

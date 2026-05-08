@@ -2381,7 +2381,7 @@ class LiteralNumber extends Literal {
 class ArrayInitializer extends Expression {
   final List<Expression> elements;
 
-  ArrayInitializer(this.elements) : assert(!elements.contains(null));
+  ArrayInitializer(this.elements);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayInitializer(this);

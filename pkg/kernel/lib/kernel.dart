@@ -34,15 +34,20 @@ Component loadComponentFromBytes(Uint8List bytes, [Component? component]) {
   return component;
 }
 
-Component loadComponentSourceFromBytes(Uint8List bytes,
-    [Component? component]) {
+Component loadComponentSourceFromBytes(
+  Uint8List bytes, [
+  Component? component,
+]) {
   component ??= new Component();
   new BinaryBuilder(bytes).readComponentSource(component);
   return component;
 }
 
-Future writeComponentToBinary(Component component, String path,
-    {bool includeSource = true}) {
+Future writeComponentToBinary(
+  Component component,
+  String path, {
+  bool includeSource = true,
+}) {
   IOSink sink;
   if (path == 'null' || path == 'stdout') {
     sink = stdout.nonBlocking;
@@ -52,8 +57,10 @@ Future writeComponentToBinary(Component component, String path,
 
   Future future;
   try {
-    new BinaryPrinter(sink, includeSources: includeSource)
-        .writeComponentFile(component);
+    new BinaryPrinter(
+      sink,
+      includeSources: includeSource,
+    ).writeComponentFile(component);
   } finally {
     if (sink == stdout.nonBlocking) {
       future = sink.flush();
@@ -71,11 +78,18 @@ Uint8List writeComponentToBytes(Component component) {
   return sink.builder.toBytes();
 }
 
-void writeComponentToText(Component component,
-    {String? path, bool showOffsets = false, bool showMetadata = false}) {
+void writeComponentToText(
+  Component component, {
+  String? path,
+  bool showOffsets = false,
+  bool showMetadata = false,
+}) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showOffsets: showOffsets, showMetadata: showMetadata)
-      .writeComponentFile(component);
+  new Printer(
+    buffer,
+    showOffsets: showOffsets,
+    showMetadata: showMetadata,
+  ).writeComponentFile(component);
   if (path == null) {
     print(buffer);
   } else {

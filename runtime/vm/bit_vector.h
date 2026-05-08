@@ -12,7 +12,7 @@
 namespace dart {
 
 // Bit vector implementation.
-class BitVector : public ZoneAllocated {
+class BitVector : public ZoneObject {
  public:
   // Iterator for the elements of this BitVector.
   class Iterator : public ValueObject {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -157,6 +158,20 @@ void f(int? i) {
 ''');
   }
 
+  test_getter_nonNullableTarget() async {
+    await assertDiagnostics(
+      r'''
+extension E on int? {
+  int get foo => 1;
+}
+void f(int i) {
+  i?.foo;
+}
+''',
+      [error(diag.invalidNullAwareOperator, 63, 2)],
+    );
+  }
+
   test_getter_nullAware() async {
     await assertDiagnostics(
       r'''
@@ -168,6 +183,20 @@ void f(int? i) {
 }
 ''',
       [lint(64, 2)],
+    );
+  }
+
+  test_index_nonNullableTarget() async {
+    await assertDiagnostics(
+      r'''
+extension E on int? {
+  String operator [](int i) => '';
+}
+void f(int i) {
+  i?[0];
+}
+''',
+      [error(diag.invalidNullAwareOperator, 78, 2)],
     );
   }
 
@@ -221,6 +250,20 @@ void f(int? i) {
     );
   }
 
+  test_method_nonNullableTarget() async {
+    await assertDiagnostics(
+      r'''
+extension E on int? {
+  int m() => 1;
+}
+void f(int i) {
+  i?.m();
+}
+''',
+      [error(diag.invalidNullAwareOperator, 59, 2)],
+    );
+  }
+
   test_methodCall() async {
     await assertNoDiagnostics(r'''
 extension E on int? {
@@ -255,6 +298,20 @@ void f(int? i) {
   i.foo = 1;
 }
 ''');
+  }
+
+  test_setter_nonNullableTarget() async {
+    await assertDiagnostics(
+      r'''
+extension E on int? {
+  void set foo(int v) {}
+}
+void f(int i) {
+  i?.foo = 1;
+}
+''',
+      [error(diag.invalidNullAwareOperator, 68, 2)],
+    );
   }
 
   test_setter_nullAware() async {

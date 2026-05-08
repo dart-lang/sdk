@@ -4,8 +4,6 @@
 
 // Errors with `??` and dot shorthands with static properties or enums.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 void test() {

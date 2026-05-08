@@ -89,8 +89,13 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     }
 
     // Specify where dartdoc resources are located.
-    final resourcesPath =
-        path.absolute(sdk.sdkPath, 'bin', 'resources', 'dartdoc', 'resources');
+    final resourcesPath = path.absolute(
+      sdk.sdkPath,
+      'bin',
+      'resources',
+      'dartdoc',
+      'resources',
+    );
 
     // Build remaining options.
     options.addAll([
@@ -111,9 +116,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     if (verbose) {
       log.stdout('Using the following options: $options');
     }
-    final packageConfigProvider = PhysicalPackageConfigProvider();
-    final packageBuilder = PubPackageBuilder(
-        config, pubPackageMetaProvider, packageConfigProvider);
+    final packageBuilder = PubPackageBuilder(config, pubPackageMetaProvider);
     Dartdoc.fromContext(config, packageBuilder).executeGuarded();
     return 0;
   }

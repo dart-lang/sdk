@@ -74,6 +74,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   void Function(Notification)? notificationListener;
 
+  String get dartSdkPath => sdkRoot.path;
+
   bool get retainDataForTesting => false;
 
   Folder get sdkRoot => newFolder('/sdk');

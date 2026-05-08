@@ -15,42 +15,52 @@ main() {
 
 @reflectiveTest
 class ExtensionDeclaresFieldTest extends PubPackageResolutionTest {
-  Future<void> test_multiple() async {
+  test_instanceField1_final_late_typeInt() async {
     await assertErrorsInCode(
       '''
-extension E on String {
-  String? one, two, three;
+extension E on int {
+  late final int v;
+}
+''',
+      [error(diag.extensionDeclaresInstanceField, 38, 1)],
+    );
+  }
+
+  test_instanceField1_typeIntQ() async {
+    await assertErrorsInCode(
+      '''
+extension E on int {
+  int? v;
+}
+''',
+      [error(diag.extensionDeclaresInstanceField, 28, 1)],
+    );
+  }
+
+  Future<void> test_instanceField3_typeIntQ() async {
+    await assertErrorsInCode(
+      '''
+extension E on int {
+  int? v1, v2;
 }
 ''',
       [
-        error(diag.extensionDeclaresInstanceField, 34, 3),
-        error(diag.extensionDeclaresInstanceField, 39, 3),
-        error(diag.extensionDeclaresInstanceField, 44, 5),
+        error(diag.extensionDeclaresInstanceField, 28, 2),
+        error(diag.extensionDeclaresInstanceField, 32, 2),
       ],
     );
   }
 
   Future<void> test_none() async {
     await assertNoErrorsInCode('''
-extension E on String {}
+extension E on int {}
 ''');
   }
 
-  test_one() async {
-    await assertErrorsInCode(
-      '''
-extension E on String {
-  String? s;
-}
-''',
-      [error(diag.extensionDeclaresInstanceField, 34, 1)],
-    );
-  }
-
-  Future<void> test_static() async {
+  Future<void> test_staticField1_typeInt() async {
     await assertNoErrorsInCode('''
-extension E on String {
-  static String EMPTY = '';
+extension E on int {
+  static int v = 0;
 }
 ''');
   }

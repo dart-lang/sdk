@@ -18,8 +18,8 @@ import 'package:front_end/src/builder/compilation_unit.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
 import 'package:front_end/src/builder/prefix_builder.dart';
 import 'package:front_end/src/builder/type_builder.dart';
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show Message, codeUnspecified;
+import 'package:front_end/src/codes/cfe_codes.dart' show Message;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/dill/dill_type_parameter_builder.dart';
 import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
@@ -108,7 +108,6 @@ Future<void> main() async {
       ),
       originImportUri: uri,
       indexedLibrary: null,
-      forAugmentationLibrary: false,
       augmentationRoot: null,
       resolveInLibrary: null,
       referenceIsPartOwner: null,
@@ -162,7 +161,7 @@ Future<void> main() async {
       new FunctionNode(null),
       fileUri: uri,
     );
-    Message message = codeUnspecified.withArgumentsOld("My Message.");
+    Message message = diag.unspecified.withArguments(message: "My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
     PrefixBuilder prefixBuilder = new PrefixBuilder(
@@ -208,6 +207,7 @@ Future<void> main() async {
       assignedVariables: typeInferrer.assignedVariables,
       typeEnvironment: typeInferrer.typeSchemaEnvironment,
       constantContext: ConstantContext.none,
+      internalThisVariable: null,
     );
 
     Generator generator = new ThisAccessGenerator(

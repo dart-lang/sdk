@@ -22,25 +22,31 @@ void testQualifiedCanonicalNameToString() {
   for (NamedNode namedNode in namedNodeCollector.namedNodes) {
     for (AstTextStrategy strategy in [
       const AstTextStrategy(
-          includeLibraryNamesInMembers: false,
-          includeLibraryNamesInTypes: false),
+        includeLibraryNamesInMembers: false,
+        includeLibraryNamesInTypes: false,
+      ),
       const AstTextStrategy(includeLibraryNamesInMembers: true),
       const AstTextStrategy(includeLibraryNamesInTypes: true),
       const AstTextStrategy(
-          includeLibraryNamesInMembers: true, includeLibraryNamesInTypes: true),
+        includeLibraryNamesInMembers: true,
+        includeLibraryNamesInTypes: true,
+      ),
     ]) {
       String throughNode = namedNode.toText(strategy);
       String throughReference = namedNode.reference.toText(strategy);
-      String throughCanonicalName =
-          namedNode.reference.canonicalName!.toText(strategy);
+      String throughCanonicalName = namedNode.reference.canonicalName!.toText(
+        strategy,
+      );
       if (throughNode == throughReference &&
           throughReference == throughCanonicalName) {
         continue;
       }
-      print("${namedNode.runtimeType} "
-          "(${strategy.includeLibraryNamesInMembers},"
-          "${strategy.includeLibraryNamesInTypes}): "
-          "$throughNode <--> $throughReference <--> $throughCanonicalName");
+      print(
+        "${namedNode.runtimeType} "
+        "(${strategy.includeLibraryNamesInMembers},"
+        "${strategy.includeLibraryNamesInTypes}): "
+        "$throughNode <--> $throughReference <--> $throughCanonicalName",
+      );
       foundMismatch = true;
     }
   }

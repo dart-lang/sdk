@@ -30,7 +30,6 @@ class NoLiteralBoolComparisons extends AnalysisRule {
   ) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
-    registry.addConditionalExpression(this, visitor);
   }
 }
 

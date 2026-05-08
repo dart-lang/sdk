@@ -8,39 +8,45 @@
 // SharedOptions=--enable-experiment=primary-constructors
 
 class C {
-  void method(final int x, [final int y = 1]) {}
-  //          ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-  //                        ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  void method1(final int x) {}
+  //           ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'final' here.
+
+  void method2([final int y = 1]) {}
+  //            ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'final' here.
 }
 
-enum E(var int x) {
+enum E(final int x) {
   e(1);
-  void method(final int x, {required final int y = 1}) {}
-  //          ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-  //                                 ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  void method1(final int x) {}
+  //           ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'final' here.
+
+  void method2({required final int y}) {}
+  //                     ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'final' here.
 }
 
 extension type ET(final int x) {
-  void method(final int x, {final int y = 1}) {}
-  //          ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-  //                        ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  void method1(final int x) {}
+  //           ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'final' here.
+
+  void method2({final int y = 1}) {}
+  //            ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'final' here.
 }
 
 void main() {
   [1, 4, 6, 8].forEach((final value) => print(value + 2));
-  //                    ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                    ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'final' here.
 }

@@ -8,7 +8,7 @@ import "prefixes_test1.dart";
 import "prefixes_test2.dart" as other;
 
 class LibraryPrefixes {
-  static void main(var expectEquals) {
+  static void main(expectEquals) {
     var a = Constants.PI;
     var b = other.Constants.PI;
     expectEquals(3.14, a);

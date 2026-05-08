@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class RPCResponses {
-  static const success = <String, Object?>{
-    'type': 'Success',
-  };
+  static const success = <String, Object?>{'type': 'Success'};
 
   static const collectedSentinel = <String, Object?>{
     'type': 'Sentinel',

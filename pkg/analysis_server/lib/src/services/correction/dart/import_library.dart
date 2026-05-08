@@ -74,17 +74,14 @@ class ImportLibrary extends MultiCorrectionProducer {
     if (names.isEmpty) {
       return const [];
     }
-    return [
-      for (var name in names)
-        if (await name.producers case var producers?) ...producers,
-    ];
+    return [for (var name in names) ...?(await name.producers)];
   }
 
   /// A map of all the diagnostic codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
   Map<DiagnosticCode, List<MultiProducerGenerator>> get _codesWhereThisIsValid {
     var producerGenerators = _ImportKind.values.map((key) => key.fn).toList();
-    var nonLintMultiProducers = registeredFixGenerators.nonLintMultiProducers;
+    var nonLintMultiProducers = registeredFixGenerators.warningMultiProducers;
     return {
       for (var MapEntry(:key, :value) in nonLintMultiProducers.entries)
         if (value.containsAny(producerGenerators)) key: value,
@@ -100,6 +97,18 @@ class ImportLibrary extends MultiCorrectionProducer {
       .forTopLevelVariable => _namesForTopLevelVariable(),
       .forType => _namesForType(),
     };
+  }
+
+  DartType? _getTypeForPattern(AstNode node) {
+    var parent = node.parent;
+    while (parent is DartPattern || parent?.parent is DartPattern) {
+      if (parent is ObjectPattern) {
+        return parent.type.type;
+      }
+      parent = parent?.parent;
+    }
+    // We don't know how to answer this.
+    return null;
   }
 
   Future<(_ImportLibraryCombinator?, _ImportLibraryCombinatorMultiple?)>
@@ -215,7 +224,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var producers = <ResolvedCorrectionProducer>[];
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
-    var alreadyImportedWithPrefix = <LibraryElement>{};
+    var alreadyImported = <LibraryElement>{};
     for (var importDirective
         in unitResult.unit.directives.whereType<ImportDirective>()) {
       // Prepare the element.
@@ -262,7 +271,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         );
         continue;
       } else if (combinatorProducer != null) {
-        alreadyImportedWithPrefix.add(libraryElement);
+        alreadyImported.add(libraryElement);
         producers.add(combinatorProducer);
         if (combinatorProducerMultiple != null) {
           producers.add(combinatorProducerMultiple);
@@ -280,7 +289,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       // Check the source.
-      if (alreadyImportedWithPrefix.contains(libraryElement)) {
+      if (alreadyImported.contains(libraryElement)) {
         continue;
       }
       // Check that the import doesn't end with '.template.dart'.
@@ -442,6 +451,15 @@ class ImportLibrary extends MultiCorrectionProducer {
           node.operator.type == TokenType.TILDE) {
         targetType = node.operand.staticType;
       }
+    } else if (node is PatternFieldName) {
+      memberName = node.name?.lexeme ?? '';
+      if (memberName.isEmpty) {
+        return const [];
+      }
+      targetType = _getTypeForPattern(node);
+    } else if (node is DeclaredVariablePattern) {
+      memberName = node.name.lexeme;
+      targetType = _getTypeForPattern(node);
     } else {
       return const [];
     }
@@ -766,9 +784,9 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
     this._fixKind,
     this._library,
     this._prefix, {
-    String? show,
+    this._show,
     required super.context,
-  }) : _show = show;
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -845,9 +863,9 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
     this._libraryName,
     this._combinators,
     this._updatedNames, {
-    bool removePrefix = false,
+    this._removePrefix = false,
     required super.context,
-  }) : _removePrefix = removePrefix;
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -1005,9 +1023,9 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
     this._fixKind,
     this._library,
     this._prefix, {
-    String? show,
+    this._show,
     required super.context,
-  }) : _show = show;
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -1056,9 +1074,9 @@ class _PrefixedName {
   _PrefixedName({
     required this.name,
     this.prefix,
-    required _ProducersGenerators producerGenerators,
+    required this._producerGenerators,
     this.ignorePrefix = false,
-  }) : _producerGenerators = producerGenerators;
+  });
 
   Future<List<ResolvedCorrectionProducer>>? get producers =>
       _producerGenerators(prefix, name);

@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.11.0-0
+  sdk: ^3.12.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:
@@ -28,6 +28,7 @@ workspace:
   - pkg/build_integration
   - pkg/cfg
   - pkg/compiler
+  - pkg/compiler/test/record_use/data
   - pkg/dart2bytecode
   - pkg/dart2js_info
   - pkg/dart2js_runtime_metrics
@@ -37,6 +38,8 @@ workspace:
   - pkg/dartdev
   - pkg/dart_data_home
   - pkg/dart_internal
+  - pkg/dart_runtime_service
+  - pkg/dart_runtime_service_vm
   - pkg/dart_service_protocol_shared
   - pkg/dds
   - pkg/dds_service_extensions
@@ -75,6 +78,7 @@ workspace:
   - pkg/testing
   - pkg/test_runner
   - pkg/vm
+  - pkg/vm/testcases/transformations/record_use
   - pkg/vm_service
   - pkg/vm_service_interface
   - pkg/vm_service_protos

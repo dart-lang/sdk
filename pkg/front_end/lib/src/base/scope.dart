@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -217,12 +218,12 @@ NamedBuilder computeAmbiguousDeclarationForImport(
     firstUri = secondUri;
     secondUri = uri;
   }
-  Message message = codeDuplicatedImport.withArgumentsOld(
-    name,
+  Message message = diag.duplicatedImport.withArguments(
+    name: name,
     // TODO(ahe): We should probably use a context object here
     // instead of including URIs in this message.
-    firstUri,
-    secondUri,
+    uri: firstUri,
+    uri2: secondUri,
   );
   // We report the error lazily (setting errorHasBeenReported to false) because
   // the spec 18.1 states that 'It is not an error if N is introduced by two or

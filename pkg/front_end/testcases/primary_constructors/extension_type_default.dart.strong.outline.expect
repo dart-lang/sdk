@@ -1,0 +1,55 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_default.dart:9:37: Error: The implemented interface 'A' must be a supertype of the representation type 'Object?' of extension type 'ET1'.
+//  - 'A' is from 'pkg/front_end/testcases/primary_constructors/extension_type_default.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try changing the interface type to a supertype of 'Object?' or the representation type to a subtype of 'A'.
+// extension type ET1(name) implements A {}
+//                                     ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_default.dart:15:37: Error: The representation type 'Object?' of extension type 'ET3' must be either a subtype of the representation type 'int?' of the implemented extension type 'ET2' or a subtype of 'ET2' itself.
+//  - 'Object' is from 'dart:core'.
+// Try changing the representation type to a subtype of 'int?'.
+// extension type ET3(name) implements ET2 {}
+//                                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract get name() → self::A;
+}
+extension type ET1(core::Object? name) implements self::A {
+  abstract extension-type-member representation-field get name() → core::Object?;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int? _) {
+  abstract extension-type-member representation-field get _() → core::int?;
+  get name = self::ET2|get#name;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::Object? name) implements self::ET2% /* erasure=core::int?, declared=! */ {
+  abstract extension-type-member representation-field get name() → core::Object?;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::Object? name) → self::ET1 /* erasure=core::Object? */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::Object? name) → self::ET1 /* erasure=core::Object? */
+  return self::ET1|constructor#(name);
+static extension-type-member method ET2|constructor#(wildcard core::int? _#wc0#formal) → self::ET2% /* erasure=core::int?, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int? _#wc0#formal) → self::ET2% /* erasure=core::int?, declared=! */
+  return self::ET2|constructor#(_#wc0#formal);
+static extension-type-member method ET2|get#name(lowered final self::ET2% /* erasure=core::int?, declared=! */ #this) → core::int?
+  ;
+static extension-type-member method ET3|constructor#(core::Object? name) → self::ET3% /* erasure=core::Object?, declared=! */
+  ;
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::Object? name) → self::ET3% /* erasure=core::Object?, declared=! */
+  return self::ET3|constructor#(name);

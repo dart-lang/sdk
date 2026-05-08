@@ -10,36 +10,32 @@ import 'common.dart' as common;
 /// A generator for a uber-simple web application.
 class WebGenerator extends DefaultGenerator {
   WebGenerator()
-      : super(
-          'web',
-          'Bare-bones Web App',
-          'A web app that uses only core Dart libraries.',
-          alternateId: 'web-simple',
-          categories: const ['dart', 'web'],
-        ) {
+    : super(
+        'web',
+        'Bare-bones Web App',
+        'A web app that uses only core Dart libraries.',
+        alternateId: 'web-simple',
+        categories: const ['dart', 'web'],
+      ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);
     addFile('pubspec.yaml', _pubspec);
     addFile('README.md', _readme);
     addFile('web/index.html', _index);
-    setEntrypoint(
-      addFile('web/main.dart', _main),
-    );
+    setEntrypoint(addFile('web/main.dart', _main));
     addFile('web/styles.css', _styles);
   }
 
   @override
-  String getInstallInstructions(
-    String directory, {
-    String? scriptPath,
-  }) =>
+  String getInstallInstructions(String directory, {String? scriptPath}) =>
       '  cd ${p.relative(directory)}\n'
       '  dart pub global activate webdev\n'
       '  webdev serve';
 }
 
-final String _pubspec = '''
+final String _pubspec =
+    '''
 name: __projectName__
 description: An absolute bare-bones web app.
 version: 1.0.0

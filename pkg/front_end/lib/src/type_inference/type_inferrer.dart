@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -11,11 +10,14 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/extension_scope.dart';
+import '../kernel/assigned_variables_impl.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../util/helpers.dart';
 import 'closure_context.dart';
+import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
@@ -37,16 +39,21 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
   get flowAnalysis;
 
-  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables;
+  AssignedVariablesImpl get assignedVariables;
 
-  /// Performs full type inference on the given field initializer.
+  /// Performs type inference on the given field [initializer] with the given
+  /// [declaredType], if any.
+  ///
+  /// When [declaredType] is `null` and the [initializer] has type `Null`, the
+  /// inferred field type is determined by [inferenceDefaultType].
   ExpressionInferenceResult inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
+    required InferenceDefaultType inferenceDefaultType,
   });
 
   /// Performs type inference on the given function body.
@@ -56,6 +63,8 @@ abstract class TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   });
 
@@ -106,7 +115,7 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
-  late final FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
+  late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
   flowAnalysis = new FlowAnalysis(
     operations,
     assignedVariables,
@@ -114,7 +123,7 @@ class TypeInferrerImpl implements TypeInferrer {
   );
 
   @override
-  final AssignedVariables<TreeNode, ExpressionVariable> assignedVariables;
+  final AssignedVariablesImpl assignedVariables;
 
   final InferenceDataForTesting? dataForTesting;
 
@@ -164,6 +173,13 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
       );
 
+  bool get isClosureContextLoweringEnabled => libraryBuilder
+      .loader
+      .target
+      .backendTarget
+      .flags
+      .isClosureContextLoweringEnabled;
+
   InferenceVisitorBase _createInferenceVisitor({
     required Uri fileUri,
     SourceConstructorBuilder? constructorBuilder,
@@ -186,6 +202,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
     ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -204,7 +221,10 @@ class TypeInferrerImpl implements TypeInferrer {
       // If the field has no declared type, compute the field type from the
       // inferred type.
       initializerResult = new ExpressionInferenceResult(
-        visitor.inferDeclarationType(initializerResult.inferredType),
+        visitor.inferDeclarationType(
+          initializerResult.inferredType,
+          inferenceDefaultType: inferenceDefaultType,
+        ),
         initializerResult.expression,
       );
     }
@@ -219,6 +239,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
@@ -231,10 +253,20 @@ class TypeInferrerImpl implements TypeInferrer {
       returnType,
       false,
     );
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = visitor.beginFunctionBodyInference(
+        parameters,
+        internalThisVariable: internalThisVariable,
+      );
+    }
     StatementInferenceResult result = visitor.inferStatement(
       body,
       closureContext,
     );
+    if (scopeProviderInfo != null) {
+      visitor.endFunctionBodyInference(scopeProviderInfo);
+    }
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!flowAnalysis.isReachable) {
@@ -256,6 +288,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new InferredFunctionBody(
       result.hasChanged ? result.statement : body,
       emittedValueType,
+      scopeProviderInfo,
     );
   }
 
@@ -387,7 +420,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
     this.extensionScope,
-    AssignedVariables<TreeNode, ExpressionVariable> assignedVariables,
+    AssignedVariablesImpl assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
   ) : impl = new TypeInferrerImpl(
@@ -400,11 +433,10 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       );
 
   @override
-  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
-      impl.assignedVariables;
+  AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
   get flowAnalysis => impl.flowAnalysis;
 
   @override
@@ -415,12 +447,14 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
     ExpressionInferenceResult result = impl.inferFieldInitializer(
       fileUri: fileUri,
       declaredType: declaredType,
       initializer: initializer,
+      inferenceDefaultType: inferenceDefaultType,
     );
     benchmarker.endSubdivide();
     return result;
@@ -433,6 +467,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
@@ -443,6 +479,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       asyncMarker: asyncMarker,
       body: body,
       expressionEvaluationHelper: expressionEvaluationHelper,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
     );
     benchmarker.endSubdivide();
     return result;
@@ -525,6 +563,11 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 class InferredFunctionBody {
   final Statement body;
   final DartType? emittedValueType;
+  final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredFunctionBody(this.body, this.emittedValueType);
+  InferredFunctionBody(
+    this.body,
+    this.emittedValueType,
+    this.scopeProviderInfo,
+  );
 }

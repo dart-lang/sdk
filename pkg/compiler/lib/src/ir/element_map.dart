@@ -8,6 +8,7 @@ import 'package:kernel/core_types.dart' as ir;
 
 import '../common.dart';
 import '../common/elements.dart';
+import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -75,4 +76,10 @@ abstract class IrToElementMap {
   int getHierarchyDepth(covariant ClassEntity cls);
   DartType getTypeVariableBound(covariant TypeVariableEntity typeVariable);
   List<Variance> getTypeVariableVariances(covariant ClassEntity cls);
+
+  /// Returns the library URI of the symbol if [value] represents a [Symbol].
+  Uri? getSymbolLibraryUri(ConstantValue value);
+
+  /// Registers the library URI of the symbol [value].
+  void registerSymbolLibrary(ConstantValue value, Uri libraryUri);
 }

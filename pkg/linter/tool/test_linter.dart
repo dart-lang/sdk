@@ -86,7 +86,11 @@ class TestLinter implements DiagnosticListener {
 
   void _lintPubspecSource({required String contents, String? sourcePath}) {
     var sourceUrl = sourcePath == null ? null : path.toUri(sourcePath);
-    var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
+    var spec = Pubspec.parse(
+      contents,
+      sourceUrl: sourceUrl,
+      resourceProvider: _resourceProvider,
+    );
 
     for (var rule in _rules) {
       var visitor = rule.pubspecVisitor;

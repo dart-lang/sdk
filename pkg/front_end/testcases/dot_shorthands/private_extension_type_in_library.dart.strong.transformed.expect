@@ -1,0 +1,79 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/private_extension_type_in_library.dart:24:7: Error: A value of type '_E Function(int)' can't be assigned to a variable of type '_E'.
+//   x = .new; // Error. Can't be assigned, but we're able to use the `_E` type.
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Public_E = self::_E% /* erasure=core::int, declared=! */;
+typedef Public_EConst = self::_EConst% /* erasure=core::int, declared=! */;
+extension type _E(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  static get getter = get self::_E|getter;
+  static method method = self::_E|method;
+  constructor • = self::_E|constructor#;
+  constructor tearoff • = self::_E|constructor#_#new#tearOff;
+  constructor named = self::_E|constructor#named;
+  constructor tearoff named = self::_E|constructor#_#named#tearOff;
+}
+extension type _EConst(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  constructor • = self::_EConst|constructor#;
+  constructor tearoff • = self::_EConst|constructor#_#new#tearOff;
+  constructor named = self::_EConst|constructor#named;
+  constructor tearoff named = self::_EConst|constructor#_#named#tearOff;
+}
+static final field self::_E% /* erasure=core::int, declared=! */ one = self::_E|constructor#(1);
+static const field self::_EConst% /* erasure=core::int, declared=! */ constOne = #C1;
+static extension-type-member method _E|constructor#(core::int x) → self::_E% /* erasure=core::int, declared=! */ {
+  lowered final self::_E% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _E|constructor#_#new#tearOff(core::int x) → self::_E% /* erasure=core::int, declared=! */
+  return self::_E|constructor#(x);
+static extension-type-member get _E|getter() → self::_E% /* erasure=core::int, declared=! */
+  return self::_E|constructor#(1);
+static extension-type-member method _E|method() → self::_E% /* erasure=core::int, declared=! */
+  return self::_E|constructor#(1);
+static extension-type-member method _E|constructor#named(core::int x) → self::_E% /* erasure=core::int, declared=! */ {
+  lowered final self::_E% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _E|constructor#_#named#tearOff(core::int x) → self::_E% /* erasure=core::int, declared=! */
+  return self::_E|constructor#named(x);
+static extension-type-member const method _EConst|constructor#(core::int x) → self::_EConst% /* erasure=core::int, declared=! */ {
+  lowered final self::_EConst% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _EConst|constructor#_#new#tearOff(core::int x) → self::_EConst% /* erasure=core::int, declared=! */
+  return self::_EConst|constructor#(x);
+static extension-type-member const method _EConst|constructor#named(core::int x) → self::_EConst% /* erasure=core::int, declared=! */ {
+  lowered final self::_EConst% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method _EConst|constructor#_#named#tearOff(core::int x) → self::_EConst% /* erasure=core::int, declared=! */
+  return self::_EConst|constructor#named(x);
+static method test() → void {
+  self::_E% /* erasure=core::int, declared=! */ x = self::one;
+  x = self::_E|constructor#(1);
+  x = invalid-expression "pkg/front_end/testcases/dot_shorthands/private_extension_type_in_library.dart:24:7: Error: A value of type '_E Function(int)' can't be assigned to a variable of type '_E'.
+  x = .new; // Error. Can't be assigned, but we're able to use the `_E` type.
+      ^" in #C2 as{TypeError} self::_E% /* erasure=core::int, declared=! */;
+  x = self::_E|getter;
+  x = self::_E|method();
+  x = self::_E|constructor#named(1);
+  x = self::_E|constructor#(1);
+  self::_EConst% /* erasure=core::int, declared=! */ constX = #C1;
+  constX = #C1;
+  constX = #C1;
+  constX = #C1;
+}
+
+constants  {
+  #C1 = 1
+  #C2 = static-tearoff self::_E|constructor#_#new#tearOff
+}

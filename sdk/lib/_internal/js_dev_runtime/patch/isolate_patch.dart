@@ -46,7 +46,7 @@ class Isolate {
   static Future<Isolate> spawnUri(
     Uri uri,
     List<String> args,
-    var message, {
+    message, {
     bool paused = false,
     SendPort? onExit,
     SendPort? onError,

@@ -17,12 +17,7 @@ class DevelopmentServiceCommand extends DartdevCommand {
   static const String commandDescription = "Start Dart's development service.";
 
   DevelopmentServiceCommand({bool verbose = false})
-      : super(
-          commandName,
-          commandDescription,
-          verbose,
-          hidden: !verbose,
-        ) {
+    : super(commandName, commandDescription, verbose, hidden: !verbose) {
     DartDevelopmentServiceOptions.populateArgParser(
       argParser: argParser,
       verbose: verbose,
@@ -42,8 +37,10 @@ class DevelopmentServiceCommand extends DartdevCommand {
     final args = argResults!.arguments;
 
     if (!checkArtifactExists(snapshot, logError: false)) {
-      log.stderr('Error: launching development server failed : '
-                 'Unable to find snapshot for the development server');
+      log.stderr(
+        'Error: launching development server failed : '
+        'Unable to find snapshot for the development server',
+      );
       return 255;
     }
     try {

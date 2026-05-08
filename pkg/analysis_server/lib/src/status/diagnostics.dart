@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
@@ -42,13 +41,15 @@ import 'package:analysis_server/src/status/pages/session_log_page.dart';
 import 'package:analysis_server/src/status/pages/status_page.dart';
 import 'package:analysis_server/src/status/pages/subscriptions_page.dart';
 import 'package:analysis_server/src/status/pages/timing_page.dart';
+import 'package:analysis_server/src/status/utilities/string_extensions.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:collection/collection.dart';
 
 String get sdkVersion {
-  var version = Platform.version;
+  var version = platform.version;
   if (version.contains(' ')) {
     version = version.substring(0, version.indexOf(' '));
   }
@@ -64,6 +65,16 @@ CollectedOptionsData collectOptionsData(AnalysisDriver driver) {
     }
   }
   return collectedData;
+}
+
+/// Returns an HTML '/contents' link to [filePath].
+String formatContentsLink(String filePath, String linkText) {
+  var linkUrl = '/contents?file=${Uri.encodeQueryComponent(filePath)}';
+  return '<a href="$linkUrl">$linkText</a>';
+}
+
+String formatOption(String name, Object value) {
+  return '$name: <code>$value</code><br> ';
 }
 
 ({int time, String details}) producerTimeAndDetails(
@@ -83,10 +94,6 @@ CollectedOptionsData collectOptionsData(AnalysisDriver driver) {
   }
 
   return (time: totalProducerTime, details: details.toString());
-}
-
-String writeOption(String name, Object value) {
-  return '$name: <code>$value</code><br> ';
 }
 
 class AnalyticsPage extends DiagnosticPageWithNav {
@@ -155,7 +162,7 @@ abstract class DiagnosticPage extends Page {
     buf.writeln('<div class="three-fourths column markdown-body">');
     h1(title, classes: 'page-title');
     await asyncDiv(() async {
-      p(description ?? 'Unknown Page');
+      p(description?.wordBreakOnSlashes ?? 'Unknown Page', raw: true);
       await generateContent(params);
     }, classes: 'markdown-body');
     buf.writeln('</div>');
@@ -294,7 +301,7 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     buf.writeln('<div class="four-fifths column markdown-body">');
     h1(title, classes: 'page-title');
     await asyncDiv(() async {
-      p(description ?? 'Unknown Page');
+      p(description?.wordBreakOnSlashes ?? 'Unknown Page', raw: true);
       await generateContent(params);
     }, classes: 'markdown-body');
     buf.writeln('</div>');

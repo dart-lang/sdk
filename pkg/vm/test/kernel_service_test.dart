@@ -73,12 +73,14 @@ String relativePackageConfig = "packageConfig.json";
 String absolutePackageConfig = Uri.base.resolve(relativePackageConfig).path;
 
 String nonExistentRelativePackageConfig = "nonexisting.json";
-String nonExistentAbsolutePackageConfig =
-    Uri.base.resolve(nonExistentRelativePackageConfig).path;
+String nonExistentAbsolutePackageConfig = Uri.base
+    .resolve(nonExistentRelativePackageConfig)
+    .path;
 
 String invalidRelativePackageConfig = "invalidPackageConfig.json";
-String invalidAbsolutePackageConfig =
-    Uri.base.resolve(invalidRelativePackageConfig).path;
+String invalidAbsolutePackageConfig = Uri.base
+    .resolve(invalidRelativePackageConfig)
+    .path;
 
 List fooSourceFiles = [
   Uri.base.resolve(relativeEntry).path,

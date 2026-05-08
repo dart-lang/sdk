@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 
 class Class {}
 
-void testLibraryUri(var value, Uri expectedUri) {
+void testLibraryUri(value, Uri expectedUri) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
   LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;

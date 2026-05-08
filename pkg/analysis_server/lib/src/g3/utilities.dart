@@ -13,10 +13,10 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as p;
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer_plugin/src/utilities/formatter.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -25,7 +25,7 @@ import 'package:pub_semver/pub_semver.dart';
 String format(String content, {Version? languageVersion}) {
   var code = SourceCode(content);
   var formatter = DartFormatter(
-    languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion,
+    languageVersion: languageVersion ?? defaultFormatterVersion,
   );
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);
@@ -54,12 +54,12 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
 }) {
   var source = StringSource(contents, fullName);
   var diagnosticListener = RecordingDiagnosticListener();
-  var reader = CharSequenceReader(contents);
   var featureSet = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, diagnosticListener)
+  var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
+  var scanner = Scanner(contents, diagnosticReporter)
     ..configureFeatures(
       featureSetForOverriding: FeatureSet.latestLanguageVersion(),
       featureSet: featureSet,
@@ -72,8 +72,7 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
   );
 
   var parser = p.Parser(
-    source,
-    diagnosticListener,
+    diagnosticReporter,
     featureSet: scanner.featureSet,
     lineInfo: lineInfo,
     languageVersion: languageVersion,

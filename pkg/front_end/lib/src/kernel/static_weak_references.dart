@@ -4,17 +4,10 @@
 
 /// Handling of static weak references.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../codes/cfe_codes.dart'
-    show
-        codeWeakReferenceNotStatic,
-        codeWeakReferenceNotOneArgument,
-        codeWeakReferenceReturnTypeNotNullable,
-        codeWeakReferenceMismatchReturnAndArgumentTypes,
-        codeWeakReferenceTargetNotStaticTearoff,
-        codeWeakReferenceTargetHasParameters;
 import 'constant_evaluator.dart' show ErrorReporter;
 
 /// Recognizes and validates static weak references.
@@ -60,7 +53,7 @@ class StaticWeakReferences {
     if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
       // Coverage-ignore-block(suite): Not run.
       errorReporter.report(
-        codeWeakReferenceNotOneArgument.withLocation(
+        diag.weakReferenceNotOneArgument.withLocation(
           node.location!.file,
           node.fileOffset,
           1,
@@ -81,7 +74,7 @@ class StaticWeakReferences {
               // Coverage-ignore(suite): Not run.
               function.typeParameters.isNotEmpty) {
             errorReporter.report(
-              codeWeakReferenceTargetHasParameters.withLocation(
+              diag.weakReferenceTargetHasParameters.withLocation(
                 node.location!.file,
                 node.fileOffset,
                 1,
@@ -93,7 +86,7 @@ class StaticWeakReferences {
       }
     }
     errorReporter.report(
-      codeWeakReferenceTargetNotStaticTearoff.withLocation(
+      diag.weakReferenceTargetNotStaticTearoff.withLocation(
         node.location!.file,
         node.fileOffset,
         1,
@@ -109,7 +102,7 @@ class StaticWeakReferences {
         !node.isStatic ||
         node.kind != ProcedureKind.Method) {
       errorReporter.report(
-        codeWeakReferenceNotStatic.withLocation(
+        diag.weakReferenceNotStatic.withLocation(
           node.location!.file,
           node.fileOffset,
           1,
@@ -122,7 +115,7 @@ class StaticWeakReferences {
         function.requiredParameterCount != 1 ||
         function.namedParameters.isNotEmpty) {
       errorReporter.report(
-        codeWeakReferenceNotOneArgument.withLocation(
+        diag.weakReferenceNotOneArgument.withLocation(
           node.location!.file,
           node.fileOffset,
           1,
@@ -133,7 +126,7 @@ class StaticWeakReferences {
     final DartType returnType = function.returnType;
     if (returnType.nullability != Nullability.nullable) {
       errorReporter.report(
-        codeWeakReferenceReturnTypeNotNullable.withLocation(
+        diag.weakReferenceReturnTypeNotNullable.withLocation(
           node.location!.file,
           node.fileOffset,
           1,
@@ -142,7 +135,7 @@ class StaticWeakReferences {
     }
     if (returnType != function.positionalParameters.single.type) {
       errorReporter.report(
-        codeWeakReferenceMismatchReturnAndArgumentTypes.withLocation(
+        diag.weakReferenceMismatchReturnAndArgumentTypes.withLocation(
           node.location!.file,
           node.fileOffset,
           1,

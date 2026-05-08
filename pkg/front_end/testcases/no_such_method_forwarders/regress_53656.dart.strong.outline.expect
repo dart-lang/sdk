@@ -49,4 +49,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> MapC
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> SymbolConstant(#m2)
 Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> ListConstant(const <Type>[])
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> SymbolConstant(#s)
-Extra constant evaluation: evaluated: 52, effectively constant: 12
+Extra constant evaluation: evaluated: 53, effectively constant: 12

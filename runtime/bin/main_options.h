@@ -62,7 +62,8 @@ namespace bin {
   V(profile_microtasks, profile_microtasks)                                    \
   /* The purpose of this flag is documented in */                              \
   /* pkg/dartdev/lib/src/commands/run.dart. */                                 \
-  V(resident, resident)
+  V(resident, resident)                                                        \
+  V(experimental_vm_service, experimental_vm_service)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -171,7 +172,7 @@ class Options {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Get the list of options in DART_VM_OPTIONS.
-  static char** GetEnvArguments(int* argc);
+  static char** GetEnvArguments(const char* executable_name, int* argc);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
  private:

@@ -32,6 +32,7 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+import '../../../util/diff.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
@@ -179,10 +180,10 @@ abstract class ContextResolutionTest
     var actual = buffer.toString();
 
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   void assertGnWorkspaceFor(File file) {
@@ -403,8 +404,8 @@ class _VisibleOutsideTemplate {
     }
 
     if (flutter) {
-      var uiPath = addUI().parent.path;
-      config.add(name: 'ui', rootPath: uiPath);
+      var skyEnginePath = addSkyEngine(sdkPath: sdkRoot.path).parent.path;
+      config.add(name: 'sky_engine', rootPath: skyEnginePath);
 
       var flutterPath = addFlutter().parent.path;
       config.add(name: 'flutter', rootPath: flutterPath);

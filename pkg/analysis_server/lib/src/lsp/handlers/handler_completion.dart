@@ -173,7 +173,7 @@ class CompletionHandler
       if (fileExtension == '.dart') {
         unit.ifResult((unit) {
           var performance = message.performance;
-          serverResultsFuture = performance.runAsync('request', (
+          serverResultsFuture = performance.runAsync('request[completion]', (
             performance,
           ) async {
             var thisPerformance = CompletionPerformance(

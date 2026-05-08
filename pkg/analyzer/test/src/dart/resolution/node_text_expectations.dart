@@ -208,6 +208,11 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'SearchTest',
+      methodName: 'assertSubTypesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
       methodName: 'assertUnresolvedMemberReferencesText',
       argument: _ArgumentIndex(1),
     ),
@@ -262,8 +267,8 @@ class NodeTextExpectationsCollector {
           fail('Cannot parse: $invocationTraceLine');
         }
 
-        var path = Uri.parse(locationMatch.group(1)!).toFilePath();
-        var line = int.parse(locationMatch.group(2)!);
+        var path = Uri.parse(locationMatch[1]!).toFilePath();
+        var line = int.parse(locationMatch[2]!);
         var file = _getFile(path);
 
         var invocation = file.findInvocation(invocationLine: line);

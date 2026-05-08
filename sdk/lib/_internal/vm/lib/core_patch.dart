@@ -59,7 +59,7 @@ import "dart:isolate" show Isolate, RawReceivePort;
 
 import "dart:typed_data" show Uint8List, Uint16List, Int32List;
 
-import 'dart:_vm' show FinalThreadLocal;
+import 'dart:_vm' show FinalThreadLocal, ThreadLocal;
 
 /// These are the additional parts of this patch library:
 part "array.dart";

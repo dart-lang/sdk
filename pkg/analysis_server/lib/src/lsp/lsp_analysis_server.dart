@@ -149,6 +149,7 @@ class LspAnalysisServer extends AnalysisServer {
     super.dartFixPromptManager,
     super.messageSchedulerListener,
     super.performanceLogger,
+    super.environment,
   }) : lspClientConfiguration = LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -164,6 +165,7 @@ class LspAnalysisServer extends AnalysisServer {
          httpClient,
          processRunner,
          LspNotificationManager(baseResourceProvider.pathContext),
+         usePlugins: options.usePlugins,
        ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
@@ -264,8 +266,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @visibleForTesting
   set pluginManager(PluginManager value) {
-    // we exchange the plugin manager in tests
     super.pluginManager = value;
     _pluginChangeSubscription?.cancel();
 
@@ -486,7 +488,9 @@ class LspAnalysisServer extends AnalysisServer {
           // Record performance information for the request.
           var rootPerformance = OperationPerformanceImpl('<root>');
           RequestPerformance? requestPerformance;
-          await rootPerformance.runAsync('request', (performance) async {
+          await rootPerformance.runAsync('request[${message.method}]', (
+            performance,
+          ) async {
             requestPerformance = RequestPerformance(
               operation: message.method.toString(),
               performance: performance,
@@ -1060,8 +1064,10 @@ class LspAnalysisServer extends AnalysisServer {
   /// This is used when there are no workspace folders open directly.
   Set<String> _getRootsForOpenFiles() {
     var openFiles = priorityFiles.toList();
-    var contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
-    var roots = contextLocator.locateRoots(includedPaths: openFiles);
+    var roots = locateContextRoots(
+      includedPaths: openFiles,
+      resourceProvider: resourceProvider,
+    );
 
     var results = <String>{};
     for (var file in openFiles) {

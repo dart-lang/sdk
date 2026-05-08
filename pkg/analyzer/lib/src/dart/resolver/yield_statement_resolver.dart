@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -45,7 +43,7 @@ class YieldStatementResolver {
   // TODO(scheglov): This is duplicate
   // TODO(scheglov): Also in [BoolExpressionVerifier]
   bool _checkForUseOfVoidResult(Expression expression) {
-    if (!identical(expression.staticType, VoidTypeImpl.instance)) {
+    if (expression.staticType is! VoidTypeImpl) {
       return false;
     }
 
@@ -75,7 +73,7 @@ class YieldStatementResolver {
     TypeImpl impliedReturnType;
     if (isYieldEach) {
       impliedReturnType = expressionType;
-    } else if (bodyContext.isSynchronous) {
+    } else if (bodyContext.isSync) {
       impliedReturnType = _typeProvider.iterableType(expressionType);
     } else {
       impliedReturnType = _typeProvider.streamType(expressionType);
@@ -89,16 +87,19 @@ class YieldStatementResolver {
           imposedReturnType,
           strictCasts: _resolver.analysisOptions.strictCasts,
         )) {
-          _diagnosticReporter.atNode(
-            expression,
-            diag.yieldEachOfInvalidType,
-            arguments: [impliedReturnType, imposedReturnType],
+          _diagnosticReporter.report(
+            diag.yieldEachOfInvalidType
+                .withArguments(
+                  actualType: impliedReturnType,
+                  expectedType: imposedReturnType,
+                )
+                .at(expression),
           );
           return;
         }
       } else {
         var imposedSequenceType = imposedReturnType.asInstanceOf(
-          bodyContext.isSynchronous
+          bodyContext.isSync
               ? _typeProvider.iterableElement
               : _typeProvider.streamElement,
         );
@@ -109,10 +110,13 @@ class YieldStatementResolver {
             imposedValueType,
             strictCasts: _resolver.analysisOptions.strictCasts,
           )) {
-            _diagnosticReporter.atNode(
-              expression,
-              diag.yieldOfInvalidType,
-              arguments: [expressionType, imposedValueType],
+            _diagnosticReporter.report(
+              diag.yieldOfInvalidType
+                  .withArguments(
+                    actualType: expressionType,
+                    expectedType: imposedValueType,
+                  )
+                  .at(expression),
             );
             return;
           }
@@ -125,7 +129,7 @@ class YieldStatementResolver {
       // also check that the implied return type is assignable to generic
       // Iterable/Stream.
       TypeImpl requiredReturnType;
-      if (bodyContext.isSynchronous) {
+      if (bodyContext.isSync) {
         requiredReturnType = _typeProvider.iterableDynamicType;
       } else {
         requiredReturnType = _typeProvider.streamDynamicType;
@@ -136,30 +140,15 @@ class YieldStatementResolver {
         requiredReturnType,
         strictCasts: _resolver.analysisOptions.strictCasts,
       )) {
-        _diagnosticReporter.atNode(
-          expression,
-          diag.yieldEachOfInvalidType,
-          arguments: [impliedReturnType, requiredReturnType],
+        _diagnosticReporter.report(
+          diag.yieldEachOfInvalidType
+              .withArguments(
+                actualType: impliedReturnType,
+                expectedType: requiredReturnType,
+              )
+              .at(expression),
         );
       }
-    }
-  }
-
-  TypeImpl _computeContextType(
-    BodyInferenceContext bodyContext,
-    YieldStatement node,
-  ) {
-    var elementType = bodyContext.contextType;
-    if (elementType != null) {
-      var contextType = elementType;
-      if (node.star != null) {
-        contextType = bodyContext.isSynchronous
-            ? _typeProvider.iterableType(elementType)
-            : _typeProvider.streamType(elementType);
-      }
-      return contextType;
-    } else {
-      return UnknownInferredType.instance;
     }
   }
 
@@ -167,9 +156,9 @@ class YieldStatementResolver {
     BodyInferenceContext bodyContext,
     YieldStatementImpl node,
   ) {
-    _resolver.analyzeExpression(
+    _resolver.analyzeYieldStatement(
       node.expression,
-      SharedTypeSchemaView(_computeContextType(bodyContext, node)),
+      isYieldStar: node.star != null,
     );
     _resolver.popRewrite();
 
@@ -197,11 +186,11 @@ class YieldStatementResolver {
     );
     _resolver.popRewrite();
 
-    _diagnosticReporter.atNode(
-      node,
-      node.star != null
-          ? diag.yieldEachInNonGenerator
-          : diag.yieldInNonGenerator,
+    _diagnosticReporter.report(
+      (node.star != null
+              ? diag.yieldEachInNonGenerator
+              : diag.yieldInNonGenerator)
+          .at(node),
     );
 
     _checkForUseOfVoidResult(node.expression);

@@ -28,6 +28,7 @@ class EmptyConstructorBodies extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorBody(this, visitor);
   }
 }
 
@@ -38,6 +39,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.factoryKeyword != null) return;
+    var body = node.body;
+    if (body is BlockFunctionBody) {
+      var block = body.block;
+      if (block.statements.isEmpty) {
+        if (block.endToken.precedingComments == null) {
+          rule.reportAtNode(block);
+        }
+      }
+    }
+  }
+
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     var body = node.body;
     if (body is BlockFunctionBody) {
       var block = body.block;

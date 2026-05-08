@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-set topLevel(var value) {}
+set topLevel(value) {}
 
 class Example {
-  set foo(var value) {}
+  set foo(value) {}
 }
 
 main() {

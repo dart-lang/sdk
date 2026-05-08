@@ -37,7 +37,7 @@ import 'package:no_ints/main.dart' as no_ints;
     );
   }
 
-  void test_entrypointListsPluginInstances() {
+  void test_entrypointMapPluginInstances() {
     var pluginPackageGenerator = PluginPackageGenerator(
       configurations: [
         PluginConfiguration(
@@ -53,10 +53,10 @@ import 'package:no_ints/main.dart' as no_ints;
     expect(
       pluginPackageGenerator.generateEntrypoint(),
       contains('''
-    plugins: [
-      no_bools.plugin,
-      no_ints.plugin,
-    ],
+    plugins: {
+      'no_bools': no_bools.plugin,
+      'no_ints': no_ints.plugin,
+    },
 '''),
     );
   }
@@ -159,5 +159,54 @@ environment:
   no_ints: ^1.2.0
 '''),
     );
+  }
+
+  void test_pubspecContainsVersionedHostedDependencies() {
+    var pluginPackageGenerator = PluginPackageGenerator(
+      configurations: [
+        PluginConfiguration(
+          name: 'no_bools',
+          source: VersionedPluginSource(
+            constraint: '^1.0.0',
+            hostedUrl: 'https://example.com/packages/',
+          ),
+        ),
+        PluginConfiguration(
+          name: 'no_ints',
+          source: VersionedPluginSource(
+            constraint: '^1.2.0',
+            hostedUrl: 'https://example.com/packages/',
+          ),
+        ),
+      ],
+    );
+    expect(
+      pluginPackageGenerator.generatePubspec(),
+      contains('''
+  no_bools:
+    version: ^1.0.0
+    hosted: https://example.com/packages/
+  no_ints:
+    version: ^1.2.0
+    hosted: https://example.com/packages/
+'''),
+    );
+  }
+
+  void test_useMapConstructor_version() {
+    var pluginPackageGenerator = PluginPackageGenerator(
+      configurations: [
+        PluginConfiguration(
+          name: 'no_bools',
+          source: VersionedPluginSource(constraint: '^1.0.0'),
+        ),
+        PluginConfiguration(
+          name: 'no_ints',
+          source: VersionedPluginSource(constraint: '^1.2.0'),
+        ),
+      ],
+    );
+    var pubspec = pluginPackageGenerator.generatePubspec();
+    expect(pubspec, contains('analysis_server_plugin: ^0.3.8'));
   }
 }

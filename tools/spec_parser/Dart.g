@@ -4,6 +4,15 @@
 
 // CHANGES:
 //
+// v0.60 Adjust the `static final` and `static const` variable declarations
+// to require an initializing expression.
+//
+// v0.59 Adjust augmentation and primary constructor related rules to match
+// recent updates.
+//
+// v0.58 Gather some occurrences of `AUGMENT` in a single location. Rename
+// `topLevelDefinition` to `topLevelDeclaration` (as in the specification).
+//
 // v0.57 Introduce augmentation related updates.
 //
 // v0.56 Update constructor declaration syntax to allow `constructorHead`.
@@ -292,11 +301,11 @@ libraryDeclaration
          libraryName?
          importOrExport*
          partDirective*
-         (metadata topLevelDefinition)*
+         (metadata topLevelDeclaration)*
          EOF
     ;
 
-topLevelDefinition
+topLevelDeclaration
     :    classDeclaration
     |    mixinDeclaration
     |    extensionTypeDeclaration
@@ -311,7 +320,7 @@ topLevelDefinition
     |    AUGMENT? getterSignature (functionBody | ';')
     |    AUGMENT? setterSignature (functionBody | ';')
     |    AUGMENT? functionSignature (functionBody | ';')
-    |    AUGMENT? (FINAL | CONST) type? initializedIdentifierList ';'
+    |    AUGMENT? (FINAL | CONST) type? staticFinalDeclarationList ';'
     |    AUGMENT? LATE FINAL type? initializedIdentifierList ';'
     |    AUGMENT? LATE? varOrType initializedIdentifierList ';'
     ;
@@ -452,7 +461,7 @@ memberedDeclarationBody
     ;
 
 memberDeclarations
-    :    (metadata memberDeclaration)*
+    :    (metadata AUGMENT? memberDeclaration)*
     ;
 
 classModifiers
@@ -478,8 +487,8 @@ interfaces
     ;
 
 memberDeclaration
-    :    AUGMENT? methodSignature functionBody
-    |    AUGMENT? declaration ';'
+    :    methodSignature functionBody
+    |    declaration ';'
     ;
 
 mixinApplicationClass
@@ -529,7 +538,8 @@ declaration
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
-    |    STATIC (FINAL | CONST) type? initializedIdentifierList
+    |    STATIC ABSTRACT finalVarOrType identifierList
+    |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
     |    STATIC LATE FINAL type? initializedIdentifierList
     |    STATIC LATE? varOrType initializedIdentifierList
     |    COVARIANT LATE FINAL type? identifierList
@@ -539,6 +549,14 @@ declaration
     |    constantConstructorSignature (redirection | initializers)?
     |    constructorSignature (redirection | initializers)?
     |    primaryConstructorBodySignature
+    ;
+
+staticFinalDeclarationList
+    :    staticFinalDeclaration (',' staticFinalDeclaration)*
+    ;
+
+staticFinalDeclaration
+    :    identifier '=' expression
     ;
 
 operatorSignature
@@ -702,12 +720,14 @@ mixinApplication
 
 enumType
     :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces?
-         LBRACE enumBody? RBRACE
+         enumBody
     ;
 
 enumBody
-    :    enumEntry (',' enumEntry)* ','? (';' memberDeclarations)?
-    |    ';' memberDeclarations
+    :    LBRACE
+         (enumEntry (',' enumEntry)* ','?)? (';' memberDeclarations)?
+         RBRACE
+    |    ';'
     ;
 
 enumEntry
@@ -1558,7 +1578,7 @@ partDeclaration
     :    FEFF? partHeader
          importOrExport*
          partDirective*
-         (metadata topLevelDefinition)*
+         (metadata topLevelDeclaration)*
          EOF
     ;
 

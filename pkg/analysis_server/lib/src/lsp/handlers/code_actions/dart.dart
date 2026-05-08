@@ -234,7 +234,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           correctionUtils: correctionUtils ??= CorrectionUtils(unitResult),
         );
 
-        var performanceTracker = FixPerformance();
+        var performanceTracker = FixPerformance(
+          performance as OperationPerformanceImpl?,
+        );
         var fixes = await computeFixes(
           context,
           performance: performanceTracker,

@@ -31,7 +31,6 @@ Future<int, String> foo4() async {
 int foo5() async {
   // [error column 1, length 3]
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_RETURN_TYPE
-  //^
   // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return 3;
 }

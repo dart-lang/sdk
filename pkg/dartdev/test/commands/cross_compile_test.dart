@@ -19,12 +19,17 @@ void main() {
 
   // Cross compilation is not available on 32-bit architectures.
   final hostArch = Target.current.architecture;
-  final bool isRunningOn32Bit = hostArch == Architecture.ia32 ||
+  final bool isRunningOn32Bit =
+      hostArch == Architecture.ia32 ||
       hostArch == Architecture.arm ||
       hostArch == Architecture.riscv32;
 
-  group('cross compile -', defineCrossCompileTests,
-      timeout: longTimeout, skip: isRunningOn32Bit);
+  group(
+    'cross compile -',
+    defineCrossCompileTests,
+    timeout: longTimeout,
+    skip: isRunningOn32Bit,
+  );
 }
 
 String unsupportedTargetMessage(Target target) =>
@@ -40,31 +45,34 @@ void defineCrossCompileTests() {
   String mainMessage(Target target) => 'I love ${target.os}';
 
   Future<(ProcessResult, String)> crossCompile(
-      String subcommand, Target target) async {
-    final p =
-        project(mainSrc: 'void main() {print("${mainMessage(target)}");}');
+    String subcommand,
+    Target target,
+  ) async {
+    final p = project(
+      mainSrc: 'void main() {print("${mainMessage(target)}");}',
+    );
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final filename = subcommand == CompileNativeCommand.exeCmdName
         ? 'myexe'
         : subcommand == CompileNativeCommand.aotSnapshotCmdName
-            ? 'out.so'
-            : throw ArgumentError(
-                'Unexpected subcommand $subcommand', 'subcommand');
+        ? 'out.so'
+        : throw ArgumentError(
+            'Unexpected subcommand $subcommand',
+            'subcommand',
+          );
     final outFile = path.canonicalize(path.join(p.dirPath, filename));
-    final result = await p.run(
-      [
-        'compile',
-        subcommand,
-        '-v',
-        '--target-os',
-        target.os.name,
-        '--target-arch',
-        target.architecture.name,
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
+    final result = await p.run([
+      'compile',
+      subcommand,
+      '-v',
+      '--target-os',
+      target.os.name,
+      '--target-arch',
+      target.architecture.name,
+      '-o',
+      outFile,
+      inFile,
+    ]);
 
     print('Subcommand terminated with exit code ${result.exitCode}.');
     if (result.stdout.isNotEmpty) {
@@ -80,34 +88,35 @@ void defineCrossCompileTests() {
   }
 
   TestFunction crossCompileTest(String subcommand, Target target) => () async {
-        expect(subcommand, isIn(subcommands));
-        expect(target, isIn(crossCompileTargets));
-        var (result, outFile) = await crossCompile(subcommand, target);
+    expect(subcommand, isIn(subcommands));
+    expect(target, isIn(crossCompileTargets));
+    var (result, outFile) = await crossCompile(subcommand, target);
 
-        expect(result.stdout, contains(usingTargetOSMessage(target.os)));
-        expect(
-            result.stderr, isNot(contains(unsupportedTargetMessage(target))));
-        expect(result.exitCode, 0);
-        expect(File(outFile).existsSync(), true,
-            reason: 'File not found: $outFile');
+    expect(result.stdout, contains(usingTargetOSMessage(target.os)));
+    expect(result.stderr, isNot(contains(unsupportedTargetMessage(target))));
+    expect(result.exitCode, 0);
+    expect(
+      File(outFile).existsSync(),
+      true,
+      reason: 'File not found: $outFile',
+    );
 
-        if (target != Target.current) return;
+    if (target != Target.current) return;
 
-        if (subcommand == CompileNativeCommand.exeCmdName) {
-          result = Process.runSync(outFile, const []);
-        } else {
-          expect(subcommand, CompileNativeCommand.aotSnapshotCmdName);
-          final Directory binDir = File(Platform.resolvedExecutable).parent;
-          result = Process.runSync(
-            path.join(binDir.path, 'dartaotruntime'),
-            [outFile],
-          );
-        }
+    if (subcommand == CompileNativeCommand.exeCmdName) {
+      result = Process.runSync(outFile, const []);
+    } else {
+      expect(subcommand, CompileNativeCommand.aotSnapshotCmdName);
+      final Directory binDir = File(Platform.resolvedExecutable).parent;
+      result = Process.runSync(path.join(binDir.path, 'dartaotruntime'), [
+        outFile,
+      ]);
+    }
 
-        expect(result.stdout, contains(mainMessage(target)));
-        expect(result.stderr, isEmpty);
-        expect(result.exitCode, 0);
-      };
+    expect(result.stdout, contains(mainMessage(target)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  };
 
   TestFunction crossCompileFailureTest(String subcommand, Target target) =>
       () async {
@@ -120,25 +129,34 @@ void defineCrossCompileTests() {
         expect(result.stdout, isNot(contains(usingTargetOSMessage(target.os))));
         expect(result.stderr, contains(unsupportedTargetMessage(target)));
         expect(result.exitCode, crossCompileErrorExitCode);
-        expect(File(outFile).existsSync(), false,
-            reason: 'File created despite failure: $outFile');
+        expect(
+          File(outFile).existsSync(),
+          false,
+          reason: 'File created despite failure: $outFile',
+        );
       };
 
   for (final subcommand in subcommands) {
     for (final target in crossCompileTargets) {
-      test('Compile $subcommand can cross compile to $target',
-          crossCompileTest(subcommand, target));
+      test(
+        'Compile $subcommand can cross compile to $target',
+        crossCompileTest(subcommand, target),
+      );
     }
     var targetOS = Platform.isWindows ? OS.macOS : OS.windows;
     var targetArch = Architecture.arm64;
     var target = Target.fromArchitectureAndOS(targetArch, targetOS);
-    test('Compile $subcommand fails on invalid target OS',
-        crossCompileFailureTest(subcommand, target));
+    test(
+      'Compile $subcommand fails on invalid target OS',
+      crossCompileFailureTest(subcommand, target),
+    );
 
     targetOS = OS.linux;
     targetArch = Architecture.riscv32;
     target = Target.fromArchitectureAndOS(targetArch, targetOS);
-    test('Compile $subcommand fails on invalid target architecture',
-        crossCompileFailureTest(subcommand, target));
+    test(
+      'Compile $subcommand fails on invalid target architecture',
+      crossCompileFailureTest(subcommand, target),
+    );
   }
 }

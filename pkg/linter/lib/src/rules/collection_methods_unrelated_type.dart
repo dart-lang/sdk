@@ -48,9 +48,6 @@ enum _ExpectedArgumentKind {
   /// collection type.
   assignableToCollectionTypeArgument,
 
-  /// An argument is expected to be assignable to the collection type.
-  assignableToCollection,
-
   /// An argument is expected to be assignable to `Iterable<E>` where `E` is the
   /// (only) type argument on the collection type.
   assignableToIterableOfTypeArgument,
@@ -269,17 +266,6 @@ class _Visitor extends SimpleAstVisitor<void> {
             arguments: [
               argumentType.getDisplayString(),
               typeArgument.getDisplayString(),
-            ],
-          );
-        }
-
-      case _ExpectedArgumentKind.assignableToCollection:
-        if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
-          rule.reportAtNode(
-            argument,
-            arguments: [
-              argumentType.getDisplayString(),
-              collectionType.getDisplayString(),
             ],
           );
         }

@@ -23,7 +23,10 @@ class A {
   A({x = y}) {}
 }
 ''',
-      [error(diag.nonConstantDefaultValue, 32, 1)],
+      [
+        error(diag.nonConstantDefaultValue, 32, 1),
+        error(diag.implicitThisReferenceInInitializer, 32, 1),
+      ],
     );
   }
 
@@ -35,7 +38,10 @@ class A {
   A([x = y]) {}
 }
 ''',
-      [error(diag.nonConstantDefaultValue, 32, 1)],
+      [
+        error(diag.nonConstantDefaultValue, 32, 1),
+        error(diag.implicitThisReferenceInInitializer, 32, 1),
+      ],
     );
   }
 
@@ -189,7 +195,10 @@ class A {
   m({x = y}) {}
 }
 ''',
-      [error(diag.nonConstantDefaultValue, 32, 1)],
+      [
+        error(diag.nonConstantDefaultValue, 32, 1),
+        error(diag.implicitThisReferenceInInitializer, 32, 1),
+      ],
     );
   }
 
@@ -201,7 +210,10 @@ class A {
   m([x = y]) {}
 }
 ''',
-      [error(diag.nonConstantDefaultValue, 32, 1)],
+      [
+        error(diag.nonConstantDefaultValue, 32, 1),
+        error(diag.implicitThisReferenceInInitializer, 32, 1),
+      ],
     );
   }
 

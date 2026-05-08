@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
 
@@ -15,8 +18,8 @@ import 'type_schema.dart' show UnknownType;
 
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
-abstract class ClosureContext {
-  /// Returns `true` if this is an `async` or an `async*` function.
+abstract class ClosureContext implements SharedBodyInferenceContext {
+  @override
   bool get isAsync;
 
   /// The typing expectation for the subexpression of a `return` statement
@@ -109,6 +112,12 @@ abstract class ClosureContext {
     }
   }
 
+  ClosureContext._();
+
+  @override
+  SharedTypeSchemaView get sharedYieldContext =>
+      yieldContext.wrapSharedTypeSchemaView();
+
   /// Handles an explicit return statement.
   ///
   /// If the return type is declared, the expression type is checked. If the
@@ -152,7 +161,7 @@ abstract class ClosureContext {
   });
 }
 
-class _SyncClosureContext implements ClosureContext {
+class _SyncClosureContext extends ClosureContext {
   final InferenceVisitorBase inferrer;
 
   @override
@@ -197,7 +206,7 @@ class _SyncClosureContext implements ClosureContext {
     this._returnContext,
     this._declaredReturnType,
     this._needToInferReturnType,
-  ) {
+  ) : super._() {
     if (_needToInferReturnType) {
       _returnStatements = [];
       _returnExpressionTypes = [];
@@ -220,7 +229,7 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeReturnWithoutExpressionSync,
+          message: diag.returnWithoutExpressionSync,
           fileUri: inferrer.fileUri,
           fileOffset: statement.fileOffset,
           length: noLength,
@@ -243,7 +252,7 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: statement.expression!,
-          message: codeReturnFromVoidFunction,
+          message: diag.returnFromVoidFunction,
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,
           length: noLength,
@@ -256,9 +265,9 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: statement.expression!,
-          message: codeInvalidReturn.withArgumentsOld(
-            expressionType,
-            _declaredReturnType,
+          message: diag.invalidReturn.withArguments(
+            actualType: expressionType,
+            expectedType: _declaredReturnType,
           ),
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,
@@ -273,7 +282,7 @@ class _SyncClosureContext implements ClosureContext {
           statement.expression!,
           fileOffset: statement.expression!.fileOffset,
           isVoidAllowed: true,
-          errorTemplate: codeInvalidReturn,
+          errorTemplate: diag.invalidReturn,
         );
         statement.expression = expression..parent = statement;
       }
@@ -405,7 +414,9 @@ class _SyncClosureContext implements ClosureContext {
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = fileOffset,
-          message: codeImplicitReturnNull.withArgumentsOld(returnType),
+          message: diag.implicitReturnNull.withArguments(
+            returnType: returnType,
+          ),
           fileUri: inferrer.fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -428,7 +439,7 @@ class _SyncClosureContext implements ClosureContext {
 
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
-class _AsyncClosureContext implements ClosureContext {
+class _AsyncClosureContext extends ClosureContext {
   final InferenceVisitorBase inferrer;
 
   @override
@@ -477,7 +488,7 @@ class _AsyncClosureContext implements ClosureContext {
     this._declaredReturnType,
     this._needToInferReturnType,
     this.emittedValueType,
-  ) {
+  ) : super._() {
     if (_needToInferReturnType) {
       _returnStatements = [];
       _returnExpressionTypes = [];
@@ -505,7 +516,7 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeReturnWithoutExpressionAsync,
+          message: diag.returnWithoutExpressionAsync,
           fileUri: inferrer.fileUri,
           fileOffset: statement.fileOffset,
           length: noLength,
@@ -536,9 +547,9 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeInvalidReturnAsync.withArgumentsOld(
-            expressionType,
-            returnType,
+          message: diag.invalidReturnAsync.withArguments(
+            actualType: expressionType,
+            expectedType: returnType,
           ),
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,
@@ -553,9 +564,9 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeInvalidReturnAsync.withArgumentsOld(
-            expressionType,
-            returnType,
+          message: diag.invalidReturnAsync.withArguments(
+            actualType: expressionType,
+            expectedType: returnType,
           ),
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,
@@ -576,7 +587,7 @@ class _AsyncClosureContext implements ClosureContext {
           runtimeCheckedType: inferrer.computeGreatestClosure2(_returnContext),
           declaredContextType: returnType,
           isVoidAllowed: false,
-          errorTemplate: codeInvalidReturnAsync,
+          errorTemplate: diag.invalidReturnAsync,
         )..parent = statement;
       }
     }
@@ -710,7 +721,9 @@ class _AsyncClosureContext implements ClosureContext {
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = fileOffset,
-          message: codeImplicitReturnNull.withArgumentsOld(returnType),
+          message: diag.implicitReturnNull.withArguments(
+            returnType: returnType,
+          ),
           fileUri: inferrer.fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -733,7 +746,7 @@ class _AsyncClosureContext implements ClosureContext {
 
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
-class _SyncStarClosureContext implements ClosureContext {
+class _SyncStarClosureContext extends ClosureContext {
   final InferenceVisitorBase inferrer;
 
   @override
@@ -776,7 +789,7 @@ class _SyncStarClosureContext implements ClosureContext {
     this._yieldElementContext,
     this._declaredReturnType,
     this._needToInferReturnType,
-  ) {
+  ) : super._() {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];
     } else {
@@ -895,7 +908,7 @@ class _SyncStarClosureContext implements ClosureContext {
 
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
-class _AsyncStarClosureContext implements ClosureContext {
+class _AsyncStarClosureContext extends ClosureContext {
   final InferenceVisitorBase inferrer;
 
   @override
@@ -938,7 +951,7 @@ class _AsyncStarClosureContext implements ClosureContext {
     this._yieldElementContext,
     this._declaredReturnType,
     this._needToInferReturnType,
-  ) {
+  ) : super._() {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];
     } else {

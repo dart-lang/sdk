@@ -34,7 +34,6 @@ class MyWidget with Diagnosticable {
 
   test_field_collectionOfWidgets() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   List<Widget> p = [];
@@ -86,6 +85,59 @@ class MyWidget with Diagnosticable {
 ''');
   }
 
+  test_field_originPrimaryConstructor_default_string() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/foundation.dart';
+class MyWidget([final String p = '']) with Diagnosticable {}
+''',
+      [lint(71, 1)],
+    );
+  }
+
+  test_field_originPrimaryConstructor_privateNamed_string() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
+// ignore: unused_field_from_primary_constructor
+class MyWidget({final String? _p}) with Diagnosticable {}
+''');
+  }
+
+  test_field_originPrimaryConstructor_string() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/foundation.dart';
+class MyWidget(final String p) with Diagnosticable {}
+''',
+      [lint(70, 1)],
+    );
+  }
+
+  test_field_originPrimaryConstructor_string_described() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
+class MyWidget(final String p) with Diagnosticable {
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    p;
+  }
+}
+''');
+  }
+
+  test_field_originPrimaryConstructor_string_describedInChildren() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
+class MyWidget(final String p) extends DiagnosticableTree {
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    p;
+    return [];
+  }
+}
+''');
+  }
+
   test_field_private() async {
     await assertNoDiagnostics(r'''
 import 'package:flutter/foundation.dart';
@@ -110,7 +162,6 @@ class MyWidget with Diagnosticable {
 
   test_field_widget() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   Widget? p;
@@ -132,11 +183,17 @@ class MyWidget with Diagnosticable {
 
   test_getter_widget() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   Widget? get p => null;
 }
+''');
+  }
+
+  test_nonDeclaringParameter() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
+class MyWidget(String p) with Diagnosticable {}
 ''');
   }
 

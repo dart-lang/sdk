@@ -119,10 +119,6 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         (match) => match.element is analyzer.SuperFormalParameterElement,
       );
 
-      // Implicit references to optional positional parameters.
-      if (element.isOptionalPositional) {
-        references.removeWhere((match) => match.sourceRange.length == 0);
-      }
       processor.addReferenceEdits(references);
     }
   }

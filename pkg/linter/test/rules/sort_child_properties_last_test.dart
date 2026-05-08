@@ -97,7 +97,7 @@ void f() {
 
   test_keyArgumentThenChildArgumentThenClosureArgument() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 void f() {
   RawMaterialButton(
     key: Key(''),

@@ -438,4 +438,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method.dart:69:7 -> Map
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method.dart:69:7 -> SymbolConstant(#setter=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method.dart:69:7 -> ListConstant(const <Type>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method.dart:69:7 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 283, effectively constant: 114
+Extra constant evaluation: evaluated: 285, effectively constant: 114

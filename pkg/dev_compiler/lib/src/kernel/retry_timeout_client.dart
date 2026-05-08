@@ -36,20 +36,18 @@ class RetryTimeoutClient {
   /// Creates a client wrapping [_inner] that retries HTTP requests.
   RetryTimeoutClient(
     this._inner, {
-    int retries = 3,
+    this._retries = 3,
     bool Function(HttpClientResponse)? when,
     bool Function(Object, StackTrace)? whenError,
     Duration Function(int retryCount)? delay,
     Duration Function(int retryCount)? connectionTimeout,
     Duration Function(int retryCount)? responseTimeout,
-    void Function(Uri, HttpClientResponse?, int retryCount)? onRetry,
-  }) : _retries = retries,
-       _when = when ?? _defaultWhen,
+    this._onRetry,
+  }) : _when = when ?? _defaultWhen,
        _whenError = whenError ?? _defaultWhenError,
        _delay = delay ?? _defaultDelay,
        _connectionTimeout = connectionTimeout ?? _defaultTimeout,
-       _responseTimeout = responseTimeout ?? _defaultTimeout,
-       _onRetry = onRetry {
+       _responseTimeout = responseTimeout ?? _defaultTimeout {
     RangeError.checkNotNegative(_retries, 'retries');
   }
 

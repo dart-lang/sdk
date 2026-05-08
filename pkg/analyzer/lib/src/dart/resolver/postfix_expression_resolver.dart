@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -150,16 +149,16 @@ class PostfixExpressionResolver {
     node.element = result.getter2 as MethodElement?;
     if (result.needsGetterError) {
       if (operand is SuperExpression) {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedSuperOperator,
-          arguments: [methodName, receiverType],
+        _diagnosticReporter.report(
+          diag.undefinedSuperOperator
+              .withArguments(operator: methodName, type: receiverType)
+              .at(node.operator),
         );
       } else {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedOperator,
-          arguments: [methodName, receiverType],
+        _diagnosticReporter.report(
+          diag.undefinedOperator
+              .withArguments(operator: methodName, type: receiverType)
+              .at(node.operator),
         );
       }
     }
@@ -183,22 +182,11 @@ class PostfixExpressionResolver {
       if (operand is SimpleIdentifier) {
         var element = operand.element;
         if (element is PromotableElementImpl) {
-          if (_resolver.definingLibrary.featureSet.isEnabled(
-            Feature.inference_update_4,
-          )) {
-            _resolver.flowAnalysis.flow?.postIncDec(
-              node,
-              element,
-              SharedTypeView(operatorReturnType),
-            );
-          } else {
-            _resolver.flowAnalysis.flow?.write(
-              node,
-              element,
-              SharedTypeView(operatorReturnType),
-              null,
-            );
-          }
+          _resolver.flowAnalysis.flow?.postIncDec(
+            node,
+            element,
+            SharedTypeView(operatorReturnType),
+          );
         }
       }
       node.recordStaticType(receiverType, resolver: _resolver);
@@ -232,6 +220,8 @@ class PostfixExpressionResolver {
     var type = _typeSystem.promoteToNonNull(operandType);
     node.recordStaticType(type, resolver: _resolver);
 
-    _resolver.flowAnalysis.flow?.nonNullAssert_end(operand);
+    _resolver.flowAnalysis.flow?.nonNullAssert_end(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(operand),
+    );
   }
 }

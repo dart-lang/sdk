@@ -4,8 +4,6 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import 'entity_data.dart';
-
 import '../common.dart';
 import '../common/elements.dart' show CommonElements, KElementEnvironment;
 import '../compiler.dart' show Compiler;
@@ -14,11 +12,12 @@ import '../constants/values.dart'
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/util.dart';
+import '../js_model/elements.dart' show JLocalFunction;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_world.dart' show KClosedWorld;
-import '../js_model/elements.dart' show JLocalFunction;
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact;
+import 'entity_data.dart';
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].

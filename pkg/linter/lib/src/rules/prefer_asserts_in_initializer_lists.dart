@@ -34,6 +34,7 @@ class PreferAssertsInInitializerLists extends AnalysisRule {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorBody(this, visitor);
   }
 }
 
@@ -140,10 +141,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var declaredElement = node.declaredFragment?.element;
+    _check(node.declaredFragment?.element, node.body);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    _check(node.declaration?.declaredFragment?.element, node.body);
+  }
+
+  void _check(ConstructorElement? declaredElement, FunctionBody body) {
     if (declaredElement == null || declaredElement.isFactory) return;
 
-    var body = node.body;
     if (body is BlockFunctionBody) {
       for (var statement in body.block.statements) {
         if (statement is! AssertStatement) break;

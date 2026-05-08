@@ -89,8 +89,8 @@ main() {
     });
 
     test('compile exclude sources', () async {
-      CompilerOptions optionsExcludeSources =
-          getFreshOptions()..embedSourceText = false;
+      CompilerOptions optionsExcludeSources = getFreshOptions()
+        ..embedSourceText = false;
       IncrementalCompiler compiler = new IncrementalCompiler(
         optionsExcludeSources,
         [main.uri],
@@ -120,12 +120,11 @@ main() {
 
     test('compile expressions errors are not re-reported', () async {
       var errorsReported = 0;
-      CompilerOptions optionsAcceptErrors =
-          getFreshOptions()
-            ..onDiagnostic = (CfeDiagnosticMessage message) {
-              errorsReported++;
-              message.plainTextFormatted.forEach(print);
-            };
+      CompilerOptions optionsAcceptErrors = getFreshOptions()
+        ..onDiagnostic = (CfeDiagnosticMessage message) {
+          errorsReported++;
+          message.plainTextFormatted.forEach(print);
+        };
       IncrementalCompiler compiler = new IncrementalCompiler(
         optionsAcceptErrors,
         [main.uri],
@@ -172,6 +171,168 @@ main() {
       await compiler.compile();
       expect(errorsReported, equals(0));
     });
+
+    test('compile expression applies ffi use-site transformation', () async {
+      final libUri = Uri.file('${mytest.path}/lib.dart');
+      File.fromUri(libUri).writeAsStringSync("""
+        import 'dart:ffi';
+
+        final class Coordinate extends Struct {
+          @Double()
+          external double x;
+        }
+      """);
+      main.writeAsStringSync("""
+        import 'dart:ffi';
+        import 'lib.dart';
+        main() {
+          print(sizeOf<Coordinate>());
+        }
+      """);
+
+      final compiler = new IncrementalCompiler(options, [main.uri]);
+      await compiler.compile();
+      compiler.accept();
+
+      final procedure = await compiler.compileExpression(
+        'sizeOf<Coordinate>()',
+        <String>[],
+        <String>[],
+        <String>[],
+        <String>[],
+        <String>[],
+        libUri.toString(),
+        null,
+        null,
+        -1,
+        null,
+        true,
+      );
+      expect(procedure, isNotNull);
+
+      final body = procedure!.function.body as ReturnStatement;
+      final expression = body.expression;
+      expect(expression, isA<StaticGet>());
+
+      final staticGet = expression as StaticGet;
+      expect(staticGet.target.name.text, '#sizeOf');
+      expect(staticGet.target.enclosingClass?.name, 'Coordinate');
+    });
+
+    test('compile expression reports ffi-specific errors', () async {
+      final libUri = Uri.file('${mytest.path}/lib.dart');
+      File.fromUri(libUri).writeAsStringSync("""
+        import 'dart:ffi';
+
+        final class Coordinate extends Struct {
+          @Double()
+          external double x;
+        }
+      """);
+      main.writeAsStringSync("""
+        import 'lib.dart';
+        main() {}
+      """);
+
+      final messages = <String>[];
+      int errorsReported = 0;
+      final optionsWithDiagnostics = getFreshOptions()
+        ..onDiagnostic = (CfeDiagnosticMessage message) {
+          errorsReported++;
+          final formatted = message.plainTextFormatted.join('\n');
+          messages.add(formatted);
+          print(formatted);
+        };
+
+      final compiler = new IncrementalCompiler(optionsWithDiagnostics, [
+        main.uri,
+      ]);
+      await compiler.compile();
+      compiler.accept();
+
+      final procedure = await compiler.compileExpression(
+        'Coordinate()',
+        <String>[],
+        <String>[],
+        <String>[],
+        <String>[],
+        <String>[],
+        libUri.toString(),
+        null,
+        null,
+        -1,
+        null,
+        true,
+      );
+
+      expect(procedure, isNotNull);
+      expect(errorsReported, equals(1));
+      expect(
+        messages.single,
+        contains(
+          "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor.",
+        ),
+      );
+      expect(
+        messages.single,
+        contains("Try allocating it via allocation, or load from a 'Pointer'."),
+      );
+    });
+
+    test(
+      'compile expression rejects ffi rewrites that mutate enclosing library',
+      () async {
+        final libUri = Uri.file('${mytest.path}/lib.dart');
+        File.fromUri(libUri).writeAsStringSync("""
+          import 'dart:ffi';
+
+          int plus1(int value) => value + 1;
+        """);
+        main.writeAsStringSync("""
+          import 'lib.dart';
+          main() {}
+        """);
+
+        final messages = <String>[];
+        int errorsReported = 0;
+        final optionsWithDiagnostics = getFreshOptions()
+          ..onDiagnostic = (CfeDiagnosticMessage message) {
+            errorsReported++;
+            final formatted = message.plainTextFormatted.join('\n');
+            messages.add(formatted);
+            print(formatted);
+          };
+
+        final compiler = new IncrementalCompiler(optionsWithDiagnostics, [
+          main.uri,
+        ]);
+        await compiler.compile();
+        compiler.accept();
+
+        final procedure = await compiler.compileExpression(
+          'Pointer.fromFunction<Int32 Function(Int32)>(plus1, 0)',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          libUri.toString(),
+          null,
+          null,
+          -1,
+          null,
+          true,
+        );
+
+        expect(procedure, isNotNull);
+        expect(errorsReported, equals(1));
+        expect(messages.single, contains('Pointer.fromFunction'));
+        expect(
+          messages.single,
+          contains('is not supported in expression evaluation'),
+        );
+      },
+    );
   });
 
   /// Collects coverage for "main.dart", "lib.dart", "lib1.dart" and "lib2.dart"
@@ -564,7 +725,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           await collectAndCheckCoverageData(port, true);
           if (!portLineCompleter.isCompleted) {
             portLineCompleter.complete("done");
@@ -674,7 +835,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           await collectAndCheckCoverageData(
             port,
             true,
@@ -959,7 +1120,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           Set<int> hits1 = await collectAndCheckCoverageData(
             port,
             true,
@@ -1064,7 +1225,7 @@ main() {
       );
       expect(dartVMServicePortRegExp.hasMatch(portLine), isTrue);
       final match = dartVMServicePortRegExp.firstMatch(portLine)!;
-      final port = int.parse(match.group(1)!);
+      final port = int.parse(match[1]!);
 
       var remoteVm = new RemoteVm(port);
       await remoteVm.resume();
@@ -1158,8 +1319,8 @@ main() {
 
       Uri packageEntry = Uri.parse('package:foo/foo.dart');
 
-      CompilerOptions optionsModified =
-          getFreshOptions()..packagesFileUri = packageUri;
+      CompilerOptions optionsModified = getFreshOptions()
+        ..packagesFileUri = packageUri;
       IncrementalCompiler compiler = new IncrementalCompiler(optionsModified, [
         packageEntry,
       ]);
@@ -1270,21 +1431,20 @@ main() {
       }
       compiler.accept();
       {
-        final Procedure procedure =
-            (await compiler.compileExpression(
-              'a',
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              barUri.toString(),
-              'A',
-              null,
-              -1,
-              null,
-              true,
-            ))!;
+        final Procedure procedure = (await compiler.compileExpression(
+          'a',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          barUri.toString(),
+          'A',
+          null,
+          -1,
+          null,
+          true,
+        ))!;
         // Verify that the expression only has links to the only bar we know
         // about.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
@@ -1333,21 +1493,20 @@ main() {
         expect(lrc.librariesReferenced, equals(<Library>{fooLib, barLib}));
       }
       {
-        final Procedure procedure =
-            (await compiler.compileExpression(
-              'a',
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              barUri.toString(),
-              'A',
-              null,
-              -1,
-              null,
-              true,
-            ))!;
+        final Procedure procedure = (await compiler.compileExpression(
+          'a',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          barUri.toString(),
+          'A',
+          null,
+          -1,
+          null,
+          true,
+        ))!;
         // Verify that the expression only has links to the original bar.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
         procedure.accept(lrc);
@@ -1379,12 +1538,11 @@ main() {
           }
           """);
 
-        CompilerOptions optionsModified =
-            getFreshOptions()
-              ..onDiagnostic = (CfeDiagnosticMessage message) {
-                // sometimes expected on this one.
-                print(message.ansiFormatted);
-              };
+        CompilerOptions optionsModified = getFreshOptions()
+          ..onDiagnostic = (CfeDiagnosticMessage message) {
+            // sometimes expected on this one.
+            print(message.ansiFormatted);
+          };
         IncrementalCompiler compiler = new IncrementalCompiler(
           optionsModified,
           [v1Uri],
@@ -1495,7 +1653,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           RemoteVm remoteVm = new RemoteVm(port);
 
           // Wait for the script to have loaded.
@@ -1853,8 +2011,8 @@ main() {
 
         Uri mainUri = Uri.parse("package:foo/main.dart");
 
-        CompilerOptions optionsModified =
-            getFreshOptions()..packagesFileUri = packagesFile.uri;
+        CompilerOptions optionsModified = getFreshOptions()
+          ..packagesFileUri = packagesFile.uri;
         IncrementalCompiler compiler = new IncrementalCompiler(
           optionsModified,
           [mainUri],

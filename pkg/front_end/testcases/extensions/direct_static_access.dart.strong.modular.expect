@@ -39,7 +39,7 @@ extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   method getterCallsFromInstanceContext = self::Extension|getterCallsFromInstanceContext;
   method tearoff getterCallsFromInstanceContext = self::Extension|get#getterCallsFromInstanceContext;
 }
-static field dynamic Extension|field;
+static field dynamic Extension|field = null;
 static extension-member get Extension|property() → dynamic
   return self::Class::field;
 static extension-member set Extension|property(dynamic value) → void {

@@ -39,8 +39,11 @@ class BytecodeDisassembler {
   late Map<int, String> _labels;
   late Map<int, List<String>> _markers;
 
-  String disassemble(List<int> bytecode, ExceptionsTable exceptionsTable,
-      {List<Map<int, String>>? annotations}) {
+  String disassemble(
+    List<int> bytecode,
+    ExceptionsTable exceptionsTable, {
+    List<Map<int, String>>? annotations,
+  }) {
     _init(bytecode);
     _scanForJumpTargets();
     _markTryBlocks(exceptionsTable);
@@ -100,7 +103,7 @@ class BytecodeDisassembler {
                 (_bytecode[pos + 1] +
                         (_bytecode[pos + 2] << 8) +
                         (_bytecode[pos + 3] << 16))
-                    .toSigned(24)
+                    .toSigned(24),
               ]
             : [_bytecode[pos + 1].toSigned(8)];
       case Encoding.kAE:
@@ -113,7 +116,7 @@ class BytecodeDisassembler {
           _bytecode[pos + 1],
           isWide
               ? _decodeUint32At(pos + 2).toSigned(32)
-              : _bytecode[pos + 2].toSigned(8)
+              : _bytecode[pos + 2].toSigned(8),
         ];
       case Encoding.kDF:
         return isWide
@@ -204,8 +207,11 @@ class BytecodeDisassembler {
       } else {
         out.write(', ');
       }
-      final operand =
-          _formatOperand(instr.pc, format.operands[i], instr.operands[i]);
+      final operand = _formatOperand(
+        instr.pc,
+        format.operands[i],
+        instr.operands[i],
+      );
       out.write(operand);
     }
 
@@ -227,9 +233,9 @@ class BytecodeDisassembler {
       case Operand.tgt:
         return _labels[pc + value] ?? (throw 'Label not found');
       case Operand.spe:
-        return SpecialIndex.values[value]
-            .toString()
-            .substring('SpecialIndex.'.length);
+        return SpecialIndex.values[value].toString().substring(
+          'SpecialIndex.'.length,
+        );
     }
     throw 'Unexpected operand format $fmt';
   }

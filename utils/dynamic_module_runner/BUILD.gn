@@ -17,3 +17,8 @@ aot_snapshot("dynamic_module_runner_snapshot") {
       [ "--dynamic-interface=" + rebase_path(
             "$_dart_root/utils/dynamic_module_runner/dynamic_interface.yaml") ]
 }
+
+aot_snapshot("dynamic_modules_test_suite_snapshot") {
+  main_dart = "../../pkg/dynamic_modules/test/runner/main.dart"
+  name = "dynamic_modules_test_suite"
+}

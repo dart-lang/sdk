@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
+import 'package:pub_semver/pub_semver.dart' as semver;
 
 import 'ast_model.dart';
 
@@ -75,7 +76,7 @@ String generateVisitor(
   String result = sb.toString();
   if (format) {
     result = new DartFormatter(
-      languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+      languageVersion: semver.Version(3, 12, 0),
     ).format(result);
   }
   return result;

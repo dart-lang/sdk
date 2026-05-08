@@ -78,8 +78,8 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
 
   @override
   Constant? visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      null;
+    RedirectingFactoryTearOffConstant node,
+  ) => null;
 
   @override
   Constant? visitStaticTearOffConstant(StaticTearOffConstant node) => null;
@@ -103,8 +103,11 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
     if (typeArguments == null && fieldValues == null) {
       return null;
     } else {
-      return InstanceConstant(node.classReference,
-          typeArguments ?? node.typeArguments, fieldValues ?? node.fieldValues);
+      return InstanceConstant(
+        node.classReference,
+        typeArguments ?? node.typeArguments,
+        fieldValues ?? node.fieldValues,
+      );
     }
   }
 
@@ -116,7 +119,9 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
       return null;
     } else {
       return InstantiationConstant(
-          tearOffConstant ?? node.tearOffConstant, types ?? node.types);
+        tearOffConstant ?? node.tearOffConstant,
+        types ?? node.types,
+      );
     }
   }
 
@@ -128,7 +133,9 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
       return null;
     } else {
       return ListConstant(
-          typeArgument ?? node.typeArgument, entries ?? node.entries);
+        typeArgument ?? node.typeArgument,
+        entries ?? node.entries,
+      );
     }
   }
 
@@ -142,15 +149,20 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
       Constant? key = visitConstant(entry.key);
       Constant? value = visitConstant(entry.value);
       if (key != null || value != null) {
-        (entries ??= List.of(node.entries))[i] =
-            ConstantMapEntry(key ?? entry.key, value ?? entry.value);
+        (entries ??= List.of(node.entries))[i] = ConstantMapEntry(
+          key ?? entry.key,
+          value ?? entry.value,
+        );
       }
     }
     if (keyType == null && valueType == null && entries == null) {
       return null;
     } else {
-      return MapConstant(keyType ?? node.keyType, valueType ?? node.valueType,
-          entries ?? node.entries);
+      return MapConstant(
+        keyType ?? node.keyType,
+        valueType ?? node.valueType,
+        entries ?? node.entries,
+      );
     }
   }
 
@@ -162,7 +174,9 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
       return null;
     } else {
       return SetConstant(
-          typeArgument ?? node.typeArgument, entries ?? node.entries);
+        typeArgument ?? node.typeArgument,
+        entries ?? node.entries,
+      );
     }
   }
 
@@ -186,8 +200,11 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
     if (recordType == null && positional == null && named == null) {
       return null;
     } else {
-      return RecordConstant(positional ?? node.positional, named ?? node.named,
-          recordType ?? node.recordType);
+      return RecordConstant(
+        positional ?? node.positional,
+        named ?? node.named,
+        recordType ?? node.recordType,
+      );
     }
   }
 
@@ -209,16 +226,20 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
       DartType? newDefaultType = visitDartType(parameter.defaultType);
       if (newBound != null || newDefaultType != null) {
         (parameters ??= List.of(node.parameters))[i] = new StructuralParameter(
-            parameter.name,
-            newBound ?? parameter.bound,
-            newDefaultType ?? parameter.defaultType);
+          parameter.name,
+          newBound ?? parameter.bound,
+          newDefaultType ?? parameter.defaultType,
+        );
       }
     }
     if (tearOffConstant == null && types == null && parameters == null) {
       return null;
     } else {
-      return TypedefTearOffConstant(parameters ?? node.parameters,
-          tearOffConstant ?? node.tearOffConstant, types ?? node.types);
+      return TypedefTearOffConstant(
+        parameters ?? node.parameters,
+        tearOffConstant ?? node.tearOffConstant,
+        types ?? node.types,
+      );
     }
   }
 
@@ -235,6 +256,7 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
   @override
   Constant? visitAuxiliaryConstant(AuxiliaryConstant node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary constant ${node} (${node.runtimeType}).",
+    );
   }
 }

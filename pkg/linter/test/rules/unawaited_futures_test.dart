@@ -182,6 +182,20 @@ Future<int> g() => Future.value(0);
 ''');
   }
 
+  test_functionCall_unawaited_awaitNotRequiredOnTypedef() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(C c) async {
+  c.td();
+}
+@awaitNotRequired
+typedef Td = Future<void> Function();
+abstract class C {
+  Td td = () async {};
+}
+''');
+  }
+
   test_functionCallInCascade() async {
     await assertDiagnostics(
       r'''
@@ -288,6 +302,16 @@ abstract class C {
 ''');
   }
 
+  test_instanceProperty_unawaited_awaitNotRequired_originPrimaryConstructor() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(C c) async {
+  c.p;
+}
+abstract class C(@awaitNotRequired final Future<int> p);
+''');
+  }
+
   test_instanceProperty_unawaited_awaitNotRequiredInherited() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';
@@ -313,6 +337,19 @@ void f(Future<int> p) async {
 ''',
       [lint(32, 1)],
     );
+  }
+
+  test_parameter_unawaited_awaitNotRequiredOnTypedef() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@awaitNotRequired
+typedef Td = Future<void> Function();
+
+void f(Td p) async {
+  p();
+}
+''');
   }
 
   test_prefixExpression_unawaited() async {

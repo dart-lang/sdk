@@ -13,10 +13,10 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
-import "package:front_end/src/base/messages.dart"
-    show Code, codeObjectExtends, codeObjectImplements, codeObjectMixesIn;
+import "package:front_end/src/base/messages.dart" show Code;
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
+import "package:front_end/src/codes/diagnostic.dart" as diag;
 import "package:front_end/src/kernel_generator_impl.dart";
 import "package:front_end/src/source/source_loader.dart"
     show defaultDartCoreSource;
@@ -90,15 +90,15 @@ Future<void> test() async {
     );
   }
 
-  await check("class Object extends String {", <Code>[codeObjectExtends]);
+  await check("class Object extends String {", <Code>[diag.objectExtends]);
 
   await check("class Object implements String, bool {", <Code>[
-    codeObjectImplements,
+    diag.objectImplements,
   ]);
 
   await check("class Object = Object with bool ; class Blah {", <Code>[
-    codeObjectExtends,
-    codeObjectMixesIn,
+    diag.objectExtends,
+    diag.objectMixesIn,
   ]);
 }
 

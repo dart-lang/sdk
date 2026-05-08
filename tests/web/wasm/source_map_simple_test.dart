@@ -11,22 +11,23 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
-  ('errors_patch.dart', null, null, '_throwWithCurrentStackTrace'),
+  ('errors_patch.dart', 20, 39, '_throwWithCurrentStackTrace'),
   ('source_map_simple_lib.dart', 18, 3, 'g'),
   ('source_map_simple_lib.dart', 14, 3, 'f'),
   ('source_map_simple_lib.dart', 43, 5, 'testMain'),
   ('source_map_simple_test.dart', 10, 7, 'main'),
-  null, // main tear-off, compiler generated, not mapped
-  // The rest of the stack is dependent on the compiler mode.
+  ('internal_patch.dart', 126, 13, '_invokeMainArg0'),
+  null,
+  ('internal_patch.dart', 160, 5, '_invokeMain'),
 ];
 
 /*
-at Error._throwWithCurrentStackTrace (wasm://wasm/00119ad6:wasm-function[144]:0x165f1)
-at g (wasm://wasm/00119ad6:wasm-function[1251]:0x2a8f6)
-at f (wasm://wasm/00119ad6:wasm-function[809]:0x1f441)
-at testMain (wasm://wasm/00119ad6:wasm-function[804]:0x1f0d4)
-at main (wasm://wasm/00119ad6:wasm-function[801]:0x1f031)
-at main tear-off trampoline (wasm://wasm/00119ad6:wasm-function[803]:0x1f044)
-at _invokeMain (wasm://wasm/00119ad6:wasm-function[104]:0x1555b)
-at Module.invoke (...)
+    at module0.Error._throwWithCurrentStackTrace <noInline> (wasm://wasm/module0-00110126:wasm-function[108]:0xfd1c)
+    at module0.g (wasm://wasm/module0-00110126:wasm-function[254]:0x11a8e)
+    at module0.f (wasm://wasm/module0-00110126:wasm-function[251]:0x11a64)
+    at module0.testMain (wasm://wasm/module0-00110126:wasm-function[249]:0x115d0)
+    at module0.main (wasm://wasm/module0-00110126:wasm-function[248]:0x1154b)
+    at module0._invokeMainArg0 (wasm://wasm/module0-00110126:wasm-function[247]:0x11541)
+    at module0._invokeMainInternal (wasm://wasm/module0-00110126:wasm-function[82]:0xf8b2)
+    at module0._invokeMain (wasm://wasm/module0-00110126:wasm-function[77]:0xf815)
 */

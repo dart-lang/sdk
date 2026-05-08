@@ -1188,7 +1188,7 @@ struct TableSelectorInfo {
 };
 
 // Collection of table selector information for all selectors in the program.
-class TableSelectorMetadata : public ZoneAllocated {
+class TableSelectorMetadata : public ZoneObject {
  public:
   explicit TableSelectorMetadata(intptr_t num_selectors)
       : selectors(num_selectors) {
@@ -1219,7 +1219,7 @@ class TableSelectorMetadataHelper : public MetadataHelper {
 };
 
 // Information about a function regarding unboxed parameters and return value.
-class UnboxingInfoMetadata : public ZoneAllocated {
+class UnboxingInfoMetadata : public ZoneObject {
  public:
   // Should match UnboxingKind in pkg/vm/lib/metadata/unboxing_info.dart.
   enum UnboxingKind {

@@ -147,7 +147,8 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
-    if (node.declaredFragment!.constructors.any((e) => e.isConst)) {
+    if (node.declaredFragment!.constructors.any((e) => e.isConst) &&
+        node.namePart is! PrimaryConstructorDeclaration) {
       // Instance vars marked "final" need to be included in the dependency
       // graph, since constant constructors implicitly use the values in their
       // initializers.

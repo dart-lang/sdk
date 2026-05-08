@@ -65,11 +65,7 @@ class VirtualMemory {
 #endif
   }
 
-#if defined(DART_HOST_OS_FUCHSIA)
-  static void Init(zx_handle_t vmex_resource);
-#else
   static void Init();
-#endif
   static void Cleanup();
 
   DART_FORCE_INLINE static bool ShouldDualMapExecutablePages() {

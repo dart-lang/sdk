@@ -556,7 +556,7 @@ void testGrowableListOperations(List<int?> list) {
 }
 
 class Yes {
-  operator ==(var other) => true;
+  operator ==(other) => true;
   int get hashCode => 0;
 }
 

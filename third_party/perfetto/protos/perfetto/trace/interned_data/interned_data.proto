@@ -65,6 +65,8 @@ message InternedData {
 
   // Note: field IDs up to 15 should be used for frequent data only.
 
+  // Build IDs of exectuable files.
+  repeated InternedString build_ids = 16;
   // Paths to executable files.
   repeated InternedString mapping_paths = 17;
   // Names of functions used in frames below.

@@ -8,8 +8,8 @@ library PrivateOther;
 import "private_test.dart";
 
 class LibOther3 {
-  static accessFieldA3(var a) => a.fieldA;
-  static accessFieldB3(var b) => b._fieldB;
+  static accessFieldA3(a) => a.fieldA;
+  static accessFieldB3(b) => b._fieldB;
   static int c_field1b(c) => c._field1;
   static int c_field2b(c) => c._field2;
 }

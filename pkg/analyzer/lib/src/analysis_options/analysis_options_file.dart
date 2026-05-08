@@ -62,9 +62,15 @@ final class AnalysisOptionsFile {
   static const String diagnostics = 'diagnostics';
   static const String path = 'path';
   static const String version = 'version';
+  static const String hosted = 'hosted';
 
   /// Supported 'plugins' options.
-  static const Set<String> pluginsOptions = {diagnostics, path, version};
+  static const Set<String> pluginsOptions = {
+    diagnostics,
+    path,
+    version,
+    hosted,
+  };
 
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 

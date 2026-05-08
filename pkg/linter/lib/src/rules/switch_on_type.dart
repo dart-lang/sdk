@@ -109,6 +109,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       PrefixedIdentifier(:var identifier) => identifier.staticType,
       PropertyAccess(:var propertyName) => propertyName.staticType,
       SimpleIdentifier(:var staticType) => staticType,
+      TypeLiteral(:var staticType) => staticType,
       MethodInvocation(:var methodName, :var realTarget?) =>
         methodName.element.isToStringMethod ? realTarget.staticType : null,
       _ => null,

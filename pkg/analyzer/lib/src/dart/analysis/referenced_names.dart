@@ -182,9 +182,11 @@ class _LocalNameScope {
 
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
-      parameterList.parameters
-          .map((p) => p is NormalFormalParameter ? p.name : null)
-          .forEach(add);
+      for (var p in parameterList.parameters) {
+        if (p is NormalFormalParameter) {
+          add(p.name);
+        }
+      }
     }
   }
 
@@ -331,6 +333,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    if (node.importPrefix case var prefix?) {
+      // The parser doesn't know whether the prefix is an actual import prefix
+      // or part of a qualified name (such as `const A.foo()`), so we always
+      // add it too.
+      _addIfNotShadowed(prefix.name, hasImportPrefix: false);
+    }
     _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     super.visitNamedType(node);
   }

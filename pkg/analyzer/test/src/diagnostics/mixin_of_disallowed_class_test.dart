@@ -24,6 +24,17 @@ class A extends Object with bool {}
     );
   }
 
+  test_class_bool_augment() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+
+augment class A with bool {}
+''',
+      [error(diag.mixinOfDisallowedClass, 33, 4)],
+    );
+  }
+
   test_class_double() async {
     await assertErrorsInCode(
       '''

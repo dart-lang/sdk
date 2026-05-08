@@ -72,7 +72,8 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
 }
 
 CodePtr NativeCallPattern::target() const {
-  return static_cast<CodePtr>(object_pool_.ObjectAt(target_code_pool_index_));
+  return static_cast<CodePtr>(object_pool_.ObjectAt<std::memory_order_acquire>(
+      target_code_pool_index_));
 }
 
 void NativeCallPattern::set_target(const Code& target) const {
@@ -395,7 +396,8 @@ void InstructionPattern::EncodeLoadWordFromPoolFixed(uword end,
 }
 
 CodePtr CallPattern::TargetCode() const {
-  return static_cast<CodePtr>(object_pool_.ObjectAt(target_code_pool_index_));
+  return static_cast<CodePtr>(object_pool_.ObjectAt<std::memory_order_acquire>(
+      target_code_pool_index_));
 }
 
 void CallPattern::SetTargetCode(const Code& target) const {
@@ -414,7 +416,8 @@ void ICCallPattern::SetData(const Object& data) const {
 }
 
 CodePtr ICCallPattern::TargetCode() const {
-  return static_cast<CodePtr>(object_pool_.ObjectAt(target_pool_index_));
+  return static_cast<CodePtr>(
+      object_pool_.ObjectAt<std::memory_order_acquire>(target_pool_index_));
 }
 
 void ICCallPattern::SetTargetCode(const Code& target) const {
@@ -432,7 +435,9 @@ ObjectPtr SwitchableCallPatternBase::data() const {
 }
 
 void SwitchableCallPatternBase::SetDataRelease(const Object& data) const {
-  ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
+  ASSERT(!Object::Handle(object_pool_.ObjectAt<std::memory_order_relaxed>(
+                             data_pool_index_))
+              .IsCode());
   object_pool_.SetObjectAt<std::memory_order_release>(data_pool_index_, data);
 }
 
@@ -454,11 +459,13 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
 }
 
 ObjectPtr SwitchableCallPattern::target() const {
-  return object_pool_.ObjectAt(target_pool_index_);
+  return object_pool_.ObjectAt<std::memory_order_acquire>(target_pool_index_);
 }
 
 void SwitchableCallPattern::SetTargetRelease(const Code& target) const {
-  ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
+  ASSERT(Object::Handle(object_pool_.ObjectAt<std::memory_order_relaxed>(
+                            target_pool_index_))
+             .IsCode());
   object_pool_.SetObjectAt<std::memory_order_release>(target_pool_index_,
                                                       target);
 }

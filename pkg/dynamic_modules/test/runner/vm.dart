@@ -202,6 +202,17 @@ class VmExecutor implements TargetExecutor {
       rootScheme,
       '--output',
       '$source.bytecode',
+      if (test.name.endsWith('_prefixed'))
+      // unique prefix for each module
+      ...[
+        '--prefix-library-uris',
+        name,
+      ] else
+      // the same prefix for all modules
+      ...[
+        '--prefix-library-uris',
+        'import/prefix',
+      ],
       '$rootScheme:/data/${test.name}/$source',
     ];
     await runProcess(
@@ -225,7 +236,7 @@ class VmExecutor implements TargetExecutor {
     var result = await runProcess(
       switch (mode) {
         VmMode.aot => aotRuntimeBin.toFilePath(),
-        VmMode.jit => dartBin.toFilePath(),
+        VmMode.jit => jitRuntimeBin.toFilePath(),
       },
       [
         switch (mode) {

@@ -6,9 +6,9 @@ import '../common/elements.dart' show ElementEnvironment, JCommonElements;
 import '../deferred_load/output_unit.dart' show OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
+import 'interceptor_data.dart' show InterceptorData;
 
 sealed class IsTestSpecialization {}
 

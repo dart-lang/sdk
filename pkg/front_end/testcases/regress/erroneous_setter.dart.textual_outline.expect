@@ -1,3 +1,5 @@
+// @dart = 3.10
+
 extension Foo on int {
   set foo({final newFoo}) {}
   int get foo => 42;

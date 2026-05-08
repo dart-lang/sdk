@@ -1,3 +1,150 @@
+## 3.12.0
+
+**Released on:** Unreleased
+
+### Language
+
+#### Private named parameters
+
+Dart now supports [private named parameters][]. Before 3.12, it was an error to
+have a named parameter that starts with an underscore:
+
+[private named parameters]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/2509-private-named-parameters/feature-specification.md
+
+```dart
+class Point {
+  final int _x, _y;
+  // Compile error in Dart 3.11.
+  Point({required this._x, required this._y});
+}
+```
+
+That means that when you wanted to initialize a *private* field from a named
+parameter, you had to write an explicit initializer list:
+
+```dart
+class Point {
+  final int _x, _y;
+  Point({required int x, required int y})
+    : _x = x,
+      _y = y;
+}
+```
+
+All the initializer list is doing is scraping off the `_`. In Dart 3.12, the
+language will do that for you. Now you can write:
+
+```dart
+class Point {
+  final int _x, _y; // Private fields.
+  Point({required this._x, required this._y});
+}
+```
+
+It behaves exactly like the previous example. The initialized fields are
+private, but the argument names written at the call site are public:
+
+```dart
+main() {
+  print(Point(x: 1, y: 2));
+}
+```
+
+### Libraries
+
+#### `dart:core`
+
+- The Dart VM's implementation of `RegExp` has been updated to include support
+  for modifier spans and duplicate named capture groups.
+
+#### `dart:js_interop`
+
+- **Breaking Change in extension name of `isA`**: `isA` is moved from
+  `JSAnyUtilityExtension` to `NullableObjectUtilExtension` to support
+  type-checking any `Object?`. `isA<JSObject>()` also now handles JS objects
+  with no prototypes correctly and `isA<JSAny>()` does a non-trivial check to
+  make sure the value is a JS value. See [#56905][] for more details. As
+  `JSAnyUtilityExtension` is on `JSAny?` and `NullableObjectUtilExtension` is on
+  the supertype `Object?`, this change is only breaking if users referred to the
+  extension name directly, either through applying the extension directly or
+  through using `show`/`hide` directives.
+- `isA<JSExportedDartFunction>()` now checks if the function is actually a JS
+  wrapper function that is returned from `Function.toJS` or
+  `Function.toJSCaptureThis`.
+
+- Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
+  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
+  `JSArray` and `JSString` now implement `JSIterable`.
+
+- Added extension types to provide `Iterable.toJSIterable`,
+  `JSIterable.toDartIterable`, `Iterator.toJSIterator`, and
+  `JSIterator.toDartIterator`.
+
+[#56905]: https://github.com/dart-lang/sdk/issues/56905
+[iteration protocols]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
+
+### Tools
+
+#### Analyzer
+
+- The new `simple_directive_paths` lint and its associated fix
+  flag and simplify unnecessarily complex `import` and `export` paths,
+  such as those containing redundant `./` or backtracking `../` segments.
+
+  Use `dart fix --code=simple_directive_paths` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `prefer_initializing_formals` lint rule will report named parameters
+  which could be private named parameters, if the package's Dart SDK constraint
+  is set to enable the language feature (for example, `sdk: ^3.12.0`).
+
+  Use `dart fix --code=prefer_initializing_formals` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `avoid_final_parameters` lint violations can now be fixed with `dart fix
+  --code=avoid_final_parameters` (with either `--dry-run` or `--apply`).
+- The analyzer now warns when a function which contains a parameter which is
+  annotated with `@mustBeConst` is torn off.
+- The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
+  interop types in the type in a catch clause and instructs users to use `isA`
+  for type checks instead.
+- Analyzer plugins: Initial support for 'print debugging' via new sections in
+  the "Plugins" Insights (Diagnostics) page. When a plugin is computing lint
+  and warning diagnostics, `print` calls are now redirected to the analysis
+  server, which presents the messages in the appropriate plugin's section on
+  the Plugins page.
+- Improved support for extension types in many existing lint rules.
+- Improved support for null-aware elements in existing lint rules.
+- The analysis server starts up faster with the help of improved analysis
+  options file caching. The improvement depends on the number of analysis
+  options files in the workspace, and the number of `include`d analysis options
+  files. The improvement is greater for systems with slower disk access.
+- Various other improvements to analysis performance.
+
+#### Pub
+
+- `dart pub cache repair` now by default only repairs the packages referenced
+  by the current projects pubspec.lock. For the old behavior of repairing all
+  packages use the `--all` flag.
+- `dart pub add` and `dart pub unpack` now accept `@` as an alternative to `:`
+  for seperating a package name from its version constraint.
+- Git dependencies now support LFS.
+
+#### dart2wasm
+
+- Updated deferred loading module loader API to allow batched fetching of
+  deferred modules. The embedder now takes `loadDeferredModules` instead of
+  `loadDeferredModule` where the new function should now expect an array of
+  module names rather than individual module names. All the module loading
+  functions must now also accept an `instantiator` callback to which they
+  should pass the loaded results.
+
+#### dart2js
+
+- `JSExportedDartFunction.toDart` sometimes incorrectly returned the original
+  Dart function even if the wrapper JS function was cast from a call to the
+  deprecated `allowInterop`. Instead, to be consistent with DDC and dart2wasm,
+  it now throws if the wrapper JS function wasn't a result of `Function.toJS` or
+  `Function.toJSCaptureThis`.
+
 ## 3.11.6
 
 **Released on:** 2026-05-05

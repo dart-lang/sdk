@@ -1,0 +1,28 @@
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/generated_content_check.dart';
+import 'package:analyzer_utilities/tools.dart';
+import 'package:path/path.dart';
+
+import 'ast_generator.dart';
+
+void main() async {
+  var content = GeneratedFile(
+    'analyzer/lib/src/dart/ast/ast.dart',
+    (_) async => await AstNodeImplGenerator().generate(),
+  );
+
+  await [content].check(
+    pkg_root.packageRoot,
+    join(
+      pkg_root.packageRoot,
+      'analyzer',
+      'tool',
+      'generators',
+      'ast_generator.dart',
+    ),
+  );
+}

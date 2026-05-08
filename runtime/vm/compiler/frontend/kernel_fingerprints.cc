@@ -39,7 +39,6 @@ class KernelFingerprintHelper : public KernelReaderHelper {
   void CalculateListOfDartTypesFingerprint();
   void CalculateListOfVariableDeclarationsFingerprint();
   void CalculateStringReferenceFingerprint();
-  void CalculateListOfStringsFingerprint();
   void CalculateTypeParameterFingerprint();
   void CalculateTypeParametersListFingerprint();
   void CalculateCanonicalNameFingerprint();
@@ -138,13 +137,6 @@ void KernelFingerprintHelper::CalculateStringReferenceFingerprint() {
       H.DartString(ReadStringReference()).Hash());  // read ith string index.
 }
 
-void KernelFingerprintHelper::CalculateListOfStringsFingerprint() {
-  intptr_t list_length = ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    CalculateStringReferenceFingerprint();  // read ith string index.
-  }
-}
-
 void KernelFingerprintHelper::CalculateListOfVariableDeclarationsFingerprint() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -195,6 +187,7 @@ void KernelFingerprintHelper::CalculateInitializerFingerprint() {
     case kInvalidInitializer:
       ReadPosition();                         // read position.
       CalculateStringReferenceFingerprint();  // read message
+      ReadByte();                             // read flags
       return;
     case kFieldInitializer:
       ReadPosition();  // read position.
@@ -456,11 +449,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       break;
     case kSuperPropertyGet:
       ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsGetterName().Hash());  // read name.
       CalculateGetterNameFingerprint();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
       ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsSetterName().Hash());  // read name.
       CalculateExpressionFingerprint();          // read value.
       CalculateSetterNameFingerprint();  // read interface_target_reference.
@@ -524,6 +519,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       break;
     case kSuperMethodInvocation:
       ReadPosition();                             // read position.
+      CalculateExpressionFingerprint();           // read receiver.
       BuildHash(ReadNameAsMethodName().Hash());   // read name.
       CalculateArgumentsFingerprint();            // read arguments.
       CalculateInterfaceMemberNameFingerprint();  // read target_reference.
@@ -630,6 +626,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kFunctionExpression:
       ReadPosition();                      // read position.
+      ReadUInt();                          // read id.
       CalculateFunctionNodeFingerprint();  // read function node.
       return;
     case kLet:
@@ -863,6 +860,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
     case kFunctionDeclaration:
       ReadPosition();                             // read position.
       CalculateVariableDeclarationFingerprint();  // read variable.
+      ReadUInt();                                 // read id.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
     case kForInStatement:

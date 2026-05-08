@@ -89,6 +89,7 @@ class RethrowStacktraceTest {
 
   @pragma("vm:entry-point") // Prevent obfuscation
   @pragma("vm:never-inline") // Prevent inlining
+  @pragma("wasm:never-inline")
   issue12940() {
     throw "Progy";
   }

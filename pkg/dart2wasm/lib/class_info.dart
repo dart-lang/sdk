@@ -80,25 +80,47 @@ class FieldIndex {
 
       if (actualIndex != expectedIndex) {
         throw AssertionError(
-            "$cls field $name expected index = $expectedIndex, "
-            "actual index = $actualIndex");
+          "$cls field $name expected index = $expectedIndex, "
+          "actual index = $actualIndex",
+        );
       }
     }
 
-    check(translator.asyncSuspendStateClass, "_resume",
-        FieldIndex.asyncSuspendStateResume);
-    check(translator.asyncSuspendStateClass, "_context",
-        FieldIndex.asyncSuspendStateContext);
-    check(translator.asyncSuspendStateClass, "_targetIndex",
-        FieldIndex.asyncSuspendStateTargetIndex);
-    check(translator.asyncSuspendStateClass, "_future",
-        FieldIndex.asyncSuspendStateFuture);
-    check(translator.asyncSuspendStateClass, "_currentException",
-        FieldIndex.asyncSuspendStateCurrentException);
-    check(translator.asyncSuspendStateClass, "_currentExceptionStackTrace",
-        FieldIndex.asyncSuspendStateCurrentExceptionStackTrace);
-    check(translator.asyncSuspendStateClass, "_currentReturnValue",
-        FieldIndex.asyncSuspendStateCurrentReturnValue);
+    check(
+      translator.asyncSuspendStateClass,
+      "_resume",
+      FieldIndex.asyncSuspendStateResume,
+    );
+    check(
+      translator.asyncSuspendStateClass,
+      "_context",
+      FieldIndex.asyncSuspendStateContext,
+    );
+    check(
+      translator.asyncSuspendStateClass,
+      "_targetIndex",
+      FieldIndex.asyncSuspendStateTargetIndex,
+    );
+    check(
+      translator.asyncSuspendStateClass,
+      "_future",
+      FieldIndex.asyncSuspendStateFuture,
+    );
+    check(
+      translator.asyncSuspendStateClass,
+      "_currentException",
+      FieldIndex.asyncSuspendStateCurrentException,
+    );
+    check(
+      translator.asyncSuspendStateClass,
+      "_currentExceptionStackTrace",
+      FieldIndex.asyncSuspendStateCurrentExceptionStackTrace,
+    );
+    check(
+      translator.asyncSuspendStateClass,
+      "_currentReturnValue",
+      FieldIndex.asyncSuspendStateCurrentReturnValue,
+    );
 
     check(translator.boxedBoolClass, "value", FieldIndex.boxValue);
     check(translator.boxedIntClass, "value", FieldIndex.boxValue);
@@ -108,29 +130,62 @@ class FieldIndex {
     check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.closureClass, "context", FieldIndex.closureContext);
-    check(translator.typeClass, "isDeclaredNullable",
-        FieldIndex.typeIsDeclaredNullable);
-    check(translator.interfaceTypeClass, "typeArguments",
-        FieldIndex.interfaceTypeTypeArguments);
-    check(translator.functionTypeClass, "namedParameters",
-        FieldIndex.functionTypeNamedParameters);
+    check(
+      translator.typeClass,
+      "isDeclaredNullable",
+      FieldIndex.typeIsDeclaredNullable,
+    );
+    check(
+      translator.interfaceTypeClass,
+      "typeArguments",
+      FieldIndex.interfaceTypeTypeArguments,
+    );
+    check(
+      translator.functionTypeClass,
+      "namedParameters",
+      FieldIndex.functionTypeNamedParameters,
+    );
     check(translator.recordTypeClass, "names", FieldIndex.recordTypeNames);
-    check(translator.recordTypeClass, "fieldTypes",
-        FieldIndex.recordTypeFieldTypes);
-    check(translator.suspendStateClass, "_iterator",
-        FieldIndex.suspendStateIterator);
-    check(translator.suspendStateClass, "_context",
-        FieldIndex.suspendStateContext);
-    check(translator.suspendStateClass, "_targetIndex",
-        FieldIndex.suspendStateTargetIndex);
-    check(translator.suspendStateClass, "_currentException",
-        FieldIndex.suspendStateCurrentException);
-    check(translator.suspendStateClass, "_currentExceptionStackTrace",
-        FieldIndex.suspendStateCurrentExceptionStackTrace);
-    check(translator.syncStarIteratorClass, "_current",
-        FieldIndex.syncStarIteratorCurrent);
-    check(translator.syncStarIteratorClass, "_yieldStarIterable",
-        FieldIndex.syncStarIteratorYieldStarIterable);
+    check(
+      translator.recordTypeClass,
+      "fieldTypes",
+      FieldIndex.recordTypeFieldTypes,
+    );
+    check(
+      translator.suspendStateClass,
+      "_iterator",
+      FieldIndex.suspendStateIterator,
+    );
+    check(
+      translator.suspendStateClass,
+      "_context",
+      FieldIndex.suspendStateContext,
+    );
+    check(
+      translator.suspendStateClass,
+      "_targetIndex",
+      FieldIndex.suspendStateTargetIndex,
+    );
+    check(
+      translator.suspendStateClass,
+      "_currentException",
+      FieldIndex.suspendStateCurrentException,
+    );
+    check(
+      translator.suspendStateClass,
+      "_currentExceptionStackTrace",
+      FieldIndex.suspendStateCurrentExceptionStackTrace,
+    );
+    check(
+      translator.syncStarIteratorClass,
+      "_current",
+      FieldIndex.syncStarIteratorCurrent,
+    );
+    check(
+      translator.syncStarIteratorClass,
+      "_yieldStarIterable",
+      FieldIndex.syncStarIteratorYieldStarIterable,
+    );
     check(translator.ffiPointerClass, "_address", FieldIndex.ffiPointerAddress);
   }
 }
@@ -171,16 +226,36 @@ class ClassInfo {
   final ClassInfo? superInfo;
 
   /// For every type parameter which is directly mapped to a type parameter in
-  /// the superclass, this contains the corresponding superclass type
-  /// parameter. These will reuse the corresponding type parameter field of
-  /// the superclass.
+  /// the superclass, this contains the corresponding superclass type parameter.
+  /// These will reuse the corresponding type parameter field of the superclass.
   final Map<TypeParameter, TypeParameter> typeParameterMatch;
 
   /// The Wasm type used to represent values of a Dart interface type of this
   /// class.
-  w.RefType get repr => _repr!;
+  w.RefType get repr {
+    if (_repr == null) {
+      throw 'Repr not calculated for $cls ($struct)';
+    }
+    return _repr!;
+  }
 
   w.RefType? _repr;
+
+  /// Wherther the class's Wasm struct is cyclic via non-nullable references.
+  ///
+  /// Cyclic classes cannot be instantiated.
+  ///
+  /// Cyclicness is calculated after closure infos are fully generated
+  /// (including fields), in [collect].
+  bool get isCyclic {
+    final cyclic = _cyclic;
+    if (cyclic == null) {
+      throw 'Cyclicness not calculated for $cls ($struct)';
+    }
+    return cyclic;
+  }
+
+  bool? _cyclic;
 
   /// Nullabe Wasm ref type for this class.
   final w.RefType nullableType;
@@ -192,13 +267,21 @@ class ClassInfo {
   w.RefType typeWithNullability(bool nullable) =>
       nullable ? nullableType : nonNullableType;
 
-  ClassInfo(this.cls, this._classId, this.depth, this.struct, this.superInfo,
-      {this.typeParameterMatch = const {}})
-      : nullableType = w.RefType.def(struct, nullable: true),
-        nonNullableType = w.RefType.def(struct, nullable: false);
+  ClassInfo(
+    this.cls,
+    this._classId,
+    this.depth,
+    this.struct,
+    this.superInfo, {
+    this.typeParameterMatch = const {},
+  }) : nullableType = w.RefType.def(struct, nullable: true),
+       nonNullableType = w.RefType.def(struct, nullable: false);
 
-  void _addField(w.FieldType fieldType,
-      {int? expectedIndex, String? fieldName}) {
+  void _addField(
+    w.FieldType fieldType, {
+    int? expectedIndex,
+    String? fieldName,
+  }) {
     assert(expectedIndex == null || expectedIndex == struct.fields.length);
     struct.fields.add(fieldType);
     if (fieldName != null && fieldName.isNotEmpty) {
@@ -210,14 +293,36 @@ class ClassInfo {
   // This returns the types of all the class's fields (including
   // superclass fields), except for the class id and the identity hash
   List<w.ValueType> getClassFieldTypes() => [
-        for (var fieldType in struct.fields.skip(FieldIndex.objectFieldBase))
-          fieldType.type.unpacked
-      ];
+    for (var fieldType in struct.fields.skip(FieldIndex.objectFieldBase))
+      fieldType.type.unpacked,
+  ];
 
   void forEachClassFieldIndex(void Function(int index, w.FieldType type) f) {
     for (int i = FieldIndex.objectFieldBase; i < struct.fields.length; i++) {
       f(i, struct.fields[i]);
     }
+  }
+
+  bool _calculateCyclicness(Translator translator) {
+    if (_cyclic != null) return _cyclic!;
+
+    _cyclic = true;
+
+    final structType = repr.heapType as w.StructType;
+    for (w.FieldType fieldType in structType.fields) {
+      final fieldTypeType = fieldType.type;
+      if (fieldTypeType is w.RefType && !fieldTypeType.nullable) {
+        final fieldClassInfo =
+            translator.classForHeapType[fieldTypeType.heapType];
+        if (fieldClassInfo != null) {
+          if (fieldClassInfo._calculateCyclicness(translator)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return _cyclic = false;
   }
 }
 
@@ -296,8 +401,9 @@ class ClassInfoCollector {
   /// encountered. Initialization depends on [Translator] visiting the [_Type]
   /// class first and creating a [ClassInfo] for it.
   late final w.FieldType typeType = w.FieldType(
-      translator.classInfo[translator.typeClass]!.nonNullableType,
-      mutable: false);
+    translator.classInfo[translator.typeClass]!.nonNullableType,
+    mutable: false,
+  );
 
   ClassInfoCollector(this.translator);
 
@@ -306,6 +412,7 @@ class ClassInfoCollector {
   void _createStructForClassTop() {
     final w.StructType struct = translator.typesBuilder.defineStruct("#Top");
     topInfo = ClassInfo(null, AbsoluteClassId(0), 0, struct, null);
+    topInfo._repr = w.RefType.def(struct, nullable: false);
     translator.classForHeapType[struct] = topInfo;
   }
 
@@ -317,8 +424,10 @@ class ClassInfoCollector {
     Class? superclass = cls.superclass;
     if (superclass == null) {
       ClassInfo superInfo = topInfo;
-      final w.StructType struct = translator.typesBuilder
-          .defineStruct(cls.name, superType: superInfo.struct);
+      final w.StructType struct = translator.typesBuilder.defineStruct(
+        cls.name,
+        superType: superInfo.struct,
+      );
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
       // type of Object to be Top.
@@ -333,14 +442,15 @@ class ClassInfoCollector {
       // the Top type. The implementation classes of _Type sit directly below
       // the public classes they implement. All other classes sit below their
       // superclass.
-      ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
+      ClassInfo superInfo =
+          cls == translator.coreTypes.boolClass ||
               cls == translator.coreTypes.numClass ||
               cls == translator.boxedIntClass ||
               cls == translator.boxedDoubleClass
           ? topInfo
           : cls == translator.typeClass
-              ? translator.classInfo[cls.implementedTypes.single.classNode]!
-              : translator.classInfo[superclass]!;
+          ? translator.classInfo[cls.implementedTypes.single.classNode]!
+          : translator.classInfo[superclass]!;
 
       // Figure out which type parameters can reuse a type parameter field of
       // the superclass.
@@ -361,11 +471,26 @@ class ClassInfoCollector {
           }
         }
       }
+      final hasFields = _requiresSubclassFields(
+        superInfo,
+        typeParameterMatch,
+        cls,
+      );
 
-      w.StructType struct = translator.typesBuilder
-          .defineStruct(cls.name, superType: superInfo.struct);
-      info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
-          typeParameterMatch: typeParameterMatch);
+      w.StructType struct = hasFields
+          ? translator.typesBuilder.defineStruct(
+              cls.name,
+              superType: superInfo.struct,
+            )
+          : superInfo.struct;
+      info = ClassInfo(
+        cls,
+        classId,
+        superInfo.depth + 1,
+        struct,
+        superInfo,
+        typeParameterMatch: typeParameterMatch,
+      );
       if (translator.dynamicModuleSupportEnabled &&
           cls.isDynamicSubmoduleExtendable(translator.coreTypes)) {
         // If a class is extendable in a submodule then we have to be
@@ -375,7 +500,10 @@ class ClassInfoCollector {
 
       if (translator.isDynamicSubmodule) {
         final brandIndex = translator
-            .dynamicModuleInfo!.metadata.classMetadata[cls]?.brandIndex;
+            .dynamicModuleInfo!
+            .metadata
+            .classMetadata[cls]
+            ?.brandIndex;
         if (brandIndex != null) {
           translator.typesBuilder.addBrandTypeAssignment(struct, brandIndex);
         }
@@ -393,17 +521,23 @@ class ClassInfoCollector {
     final numFields = cls.fields.length;
 
     final struct = _recordStructs.putIfAbsent(
-        numFields,
-        () => translator.typesBuilder.defineStruct(
-              'Record$numFields',
-              superType: translator.recordInfo.struct,
-            ));
+      numFields,
+      () => translator.typesBuilder.defineStruct(
+        'Record$numFields',
+        superType: translator.recordInfo.struct,
+      ),
+    );
 
     final ClassInfo superInfo = translator.recordInfo;
 
     final classId = classIds[cls]!;
-    final info =
-        ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
+    final info = ClassInfo(
+      cls,
+      classId,
+      superInfo.depth + 1,
+      struct,
+      superInfo,
+    );
 
     translator.classesSupersFirst.add(info);
     translator.classes[classId._localValue] = info;
@@ -412,46 +546,97 @@ class ClassInfoCollector {
   }
 
   void _generateFields(ClassInfo info) {
+    assert(
+      _requiresSubclassFields(
+        info.superInfo,
+        info.typeParameterMatch,
+        info.cls,
+      ),
+    );
     ClassInfo? superInfo = info.superInfo;
     if (superInfo == null) {
       // Top - add class id field
-      info._addField(w.FieldType(w.NumType.i32, mutable: false),
-          expectedIndex: FieldIndex.classId);
-    } else {
-      // Copy fields from superclass
-      int superFieldIndex = 0;
-      for (w.FieldType fieldType in superInfo.struct.fields) {
-        info._addField(fieldType,
-            fieldName: superInfo.struct.fieldNames[superFieldIndex]);
-        superFieldIndex += 1;
+      info._addField(
+        w.FieldType(w.NumType.i32, mutable: false),
+        expectedIndex: FieldIndex.classId,
+      );
+      return;
+    }
+
+    // Copy fields from superclass
+    int superFieldIndex = 0;
+    for (w.FieldType fieldType in superInfo.struct.fields) {
+      info._addField(
+        fieldType,
+        fieldName: superInfo.struct.fieldNames[superFieldIndex],
+      );
+      superFieldIndex += 1;
+    }
+
+    final cls = info.cls!;
+    if (cls == translator.coreTypes.objectClass) {
+      assert(cls.superclass == null);
+      // Object - add identity hash code field
+      info._addField(
+        w.FieldType(w.NumType.i32),
+        expectedIndex: FieldIndex.identityHash,
+      );
+
+      assert(cls.typeParameters.isEmpty);
+      assert(!cls.fields.any((field) => field.isInstanceMember));
+      return;
+    }
+
+    // Add fields for type variables
+    for (TypeParameter parameter in cls.typeParameters) {
+      TypeParameter? match = info.typeParameterMatch[parameter];
+      if (match != null) {
+        // Reuse supertype type variable
+        translator.typeParameterIndex[parameter] =
+            translator.typeParameterIndex[match]!;
+      } else {
+        translator.typeParameterIndex[parameter] = info.struct.fields.length;
+        info._addField(typeType);
       }
-      if (info.cls!.superclass == null) {
-        // Object - add identity hash code field
-        info._addField(w.FieldType(w.NumType.i32),
-            expectedIndex: FieldIndex.identityHash);
+    }
+    // Add fields for Dart instance fields
+    for (Field field in cls.fields) {
+      if (field.isInstanceMember) {
+        final w.ValueType wasmType = translator.translateTypeOfField(field);
+        translator.fieldIndex[field] = info.struct.fields.length;
+        info._addField(
+          w.FieldType(wasmType, mutable: !field.isFinal),
+          fieldName: field.name.text,
+        );
       }
-      // Add fields for type variables
-      for (TypeParameter parameter in info.cls!.typeParameters) {
-        TypeParameter? match = info.typeParameterMatch[parameter];
-        if (match != null) {
-          // Reuse supertype type variable
-          translator.typeParameterIndex[parameter] =
-              translator.typeParameterIndex[match]!;
-        } else {
-          translator.typeParameterIndex[parameter] = info.struct.fields.length;
-          info._addField(typeType);
-        }
-      }
-      // Add fields for Dart instance fields
-      for (Field field in info.cls!.fields) {
-        if (field.isInstanceMember) {
-          final w.ValueType wasmType = translator.translateTypeOfField(field);
-          translator.fieldIndex[field] = info.struct.fields.length;
-          info._addField(w.FieldType(wasmType, mutable: !field.isFinal),
-              fieldName: field.name.text);
+    }
+  }
+
+  bool _requiresSubclassFields(
+    ClassInfo? superInfo,
+    Map<TypeParameter, TypeParameter> reuseTypeParameter,
+    Class? cls,
+  ) {
+    if (superInfo == null) {
+      // Top class, requires class-id field.
+      return true;
+    }
+
+    if (cls! == translator.coreTypes.objectClass) {
+      // Object class, requires identity hash code field.
+      return true;
+    }
+
+    if (cls.typeParameters.isNotEmpty) {
+      for (final param in cls.typeParameters) {
+        if (!reuseTypeParameter.containsKey(param)) {
+          // Requires field for value of type parameter.
+          return true;
         }
       }
     }
+
+    return cls.fields.any((field) => field.isInstanceMember);
   }
 
   void _generateRecordFields(ClassInfo info) {
@@ -465,14 +650,18 @@ class ClassInfoCollector {
       // Copy fields from superclass
       int superFieldIndex = 0;
       for (w.FieldType fieldType in superInfo.struct.fields) {
-        info._addField(fieldType,
-            fieldName: superInfo.struct.fieldNames[superFieldIndex]);
+        info._addField(
+          fieldType,
+          fieldName: superInfo.struct.fieldNames[superFieldIndex],
+        );
         superFieldIndex += 1;
       }
 
       for (Field field in info.cls!.fields) {
-        info._addField(w.FieldType(translator.topType),
-            fieldName: field.name.text);
+        info._addField(
+          w.FieldType(translator.topType),
+          fieldName: field.name.text,
+        );
       }
     }
 
@@ -497,23 +686,23 @@ class ClassInfoCollector {
     // Class infos by class-id, will be populated by the calls to
     // [_createStructForClass] and [_createStructForRecordClass] below.
     translator.classes = List<ClassInfo>.filled(
-        (classIdNumbering.maxDynamicSubmoduleClassId ??
-                classIdNumbering.maxClassId) +
-            1,
-        topInfo);
+      (classIdNumbering.maxDynamicSubmoduleClassId ??
+              classIdNumbering.maxClassId) +
+          1,
+      topInfo,
+    );
 
     // Class infos in different order: Infos of super class and super interfaces
     // before own info.
     translator.classesSupersFirst = [topInfo];
 
     // Subclasses of the `_Closure` class are generated on the fly as fields
-    // with function types are encountered. Therefore, `_Closure` class must
-    // be early in the initialization order.
+    // with function types are encountered. Therefore, `_Closure` class must be
+    // early in the initialization order.
     _createStructForClass(classIds, translator.closureClass);
 
     // Similarly `_Type` is needed for type parameter fields in classes and
-    // needs to be initialized before we encounter a class with type
-    // parameters.
+    // needs to be initialized before we encounter a class with type parameters.
     _createStructForClass(classIds, translator.typeClass);
 
     // Similarly the `Record` class needs to be handled before the loop below as
@@ -557,47 +746,74 @@ class ClassInfoCollector {
           }
         }
 
-        final mainModuleConcreteRange =
-            classIdNumbering.getConcreteClassIdRangeForMainModule(cls);
+        final mainModuleConcreteRange = classIdNumbering
+            .getConcreteClassIdRangeForMainModule(cls);
         // Only non-extendable classes can get here so they should only have
         // concrete implementations in either the main module or the submodule,
         // not both.
         if (translator.isDynamicSubmodule && mainModuleConcreteRange.isEmpty) {
-          final submoduleConcreteRange =
-              classIdNumbering.getConcreteClassIdRangeForDynamicSubmodule(cls);
+          final submoduleConcreteRange = classIdNumbering
+              .getConcreteClassIdRangeForDynamicSubmodule(cls);
           addRanges(submoduleConcreteRange);
         } else {
-          assert(classIdNumbering
-              .getConcreteClassIdRangeForDynamicSubmodule(cls)
-              .isEmpty);
+          assert(
+            classIdNumbering
+                .getConcreteClassIdRangeForDynamicSubmodule(cls)
+                .isEmpty,
+          );
           addRanges(mainModuleConcreteRange);
         }
       }
       final info = translator.classInfo[cls]!;
       representation ??= info;
-
-      if (representation == topInfo) {
-        info._repr = translator.topTypeNonNullable;
-      } else {
-        info._repr = representation!.nonNullableType;
-      }
+      info._repr = representation!.nonNullableType;
     }
 
     // Now that the representation types for all classes have been computed,
     // fill in the types of the fields in the generated Wasm structs.
     for (final info in translator.classesSupersFirst) {
-      if (info.superInfo == translator.recordInfo) {
+      final superInfo = info.superInfo;
+      if (superInfo == translator.recordInfo) {
         _generateRecordFields(info);
+        continue;
+      }
+
+      if (superInfo != null && info.struct == superInfo.struct) {
+        // We re-use the wasm struct of the base class. That implies this class
+        // has no instance fields and we can re-use (if any) type parameter
+        // slots from base classes.
+        final cls = info.cls!;
+        assert(!cls.fields.any((field) => field.isInstanceMember));
+        for (final param in cls.typeParameters) {
+          final match = info.typeParameterMatch[param];
+          translator.typeParameterIndex[param] =
+              translator.typeParameterIndex[match]!;
+        }
       } else {
         _generateFields(info);
+        // If this struct had the same number of fields as the base struct, we'd
+        // re-use the wasm struct of the base class. So this struct must have
+        // more fields.
+        assert(
+          superInfo == null ||
+              superInfo.struct.fields.length < info.struct.fields.length,
+        );
       }
     }
 
+    // Use `classesSupersFirst` here instead of `classes` to visit anonymous
+    // mixin application classes as well.
+    for (final info in translator.classesSupersFirst) {
+      info._calculateCyclicness(translator);
+    }
+
     // Validate that all internally used fields have the expected indices.
-    assert((() {
-      FieldIndex.validate(translator);
-      return true;
-    })());
+    assert(
+      (() {
+        FieldIndex.validate(translator);
+        return true;
+      })(),
+    );
   }
 }
 
@@ -619,18 +835,19 @@ class ClassIdNumbering {
   int get firstDynamicSubmoduleClassId => maxClassId + 1;
 
   ClassIdNumbering._(
-      this.translator,
-      this._subclasses,
-      this._implementors,
-      this._concreteSubclassIdRange,
-      this._concreteSubclassIdRangeForDynamicSubmodule,
-      this._masqueraded,
-      this.dfsOrder,
-      this.classIds,
-      this.maxConcreteClassId,
-      this.maxClassId,
-      this.maxDynamicSubmoduleConcreteClassId,
-      this.maxDynamicSubmoduleClassId);
+    this.translator,
+    this._subclasses,
+    this._implementors,
+    this._concreteSubclassIdRange,
+    this._concreteSubclassIdRangeForDynamicSubmodule,
+    this._masqueraded,
+    this.dfsOrder,
+    this.classIds,
+    this.maxConcreteClassId,
+    this.maxClassId,
+    this.maxDynamicSubmoduleConcreteClassId,
+    this.maxDynamicSubmoduleClassId,
+  );
 
   final Map<Class, Set<Class>> _transitiveImplementors = {};
   Set<Class> _getTransitiveImplementors(Class klass) {
@@ -665,15 +882,19 @@ class ClassIdNumbering {
   final Map<Class, List<Range>> _concreteClassIdRanges = {};
   List<Range> getConcreteClassIdRangeForMainModule(Class klass) {
     return _getConcreteClassIdRange(
-        klass, _concreteClassIdRanges, _concreteSubclassIdRange);
+      klass,
+      _concreteClassIdRanges,
+      _concreteSubclassIdRange,
+    );
   }
 
   final Map<Class, List<Range>> _concreteClassIdRangesForDynamicSubmodule = {};
   List<Range> getConcreteClassIdRangeForDynamicSubmodule(Class klass) {
     return _getConcreteClassIdRange(
-        klass,
-        _concreteClassIdRangesForDynamicSubmodule,
-        _concreteSubclassIdRangeForDynamicSubmodule);
+      klass,
+      _concreteClassIdRangesForDynamicSubmodule,
+      _concreteSubclassIdRangeForDynamicSubmodule,
+    );
   }
 
   /// In case the [klass] is from a dynamic module the returned class id
@@ -690,8 +911,11 @@ class ClassIdNumbering {
         : getConcreteClassIdRangeForDynamicSubmodule(klass);
   }
 
-  List<Range> _getConcreteClassIdRange(Class klass,
-      Map<Class, List<Range>> cache, Map<Class, List<Range>> subclasses) {
+  List<Range> _getConcreteClassIdRange(
+    Class klass,
+    Map<Class, List<Range>> cache,
+    Map<Class, List<Range>> subclasses,
+  ) {
     var ranges = cache[klass];
     if (ranges != null) return ranges;
 
@@ -724,7 +948,10 @@ class ClassIdNumbering {
   })();
 
   static ClassIdNumbering _number(
-      Translator translator, Set<Class> masqueraded, int firstClassId) {
+    Translator translator,
+    Set<Class> masqueraded,
+    int firstClassId,
+  ) {
     // Make graph from class to its subclasses.
     late final Class root;
     int? savedMaxConcreteClassId;
@@ -818,7 +1045,10 @@ class ClassIdNumbering {
 
     // Traverse class inheritence graph in depth-first pre-order.
     void dfs(
-        Class root, int Function(Class) pre, void Function(Class, int) post) {
+      Class root,
+      int Function(Class) pre,
+      void Function(Class, int) post,
+    ) {
       final classId = pre(root);
       final children = subclasses[root];
       if (children != null) {
@@ -831,7 +1061,7 @@ class ClassIdNumbering {
 
     // Make a list of the depth-first pre-order traversal.
     final dfsOrder = [
-      ...?translator.dynamicModuleInfo?.metadata.dfsOrderClassIds
+      ...?translator.dynamicModuleInfo?.metadata.dfsOrderClassIds,
     ];
     final inDfsOrder = {...dfsOrder};
 
@@ -876,55 +1106,62 @@ class ClassIdNumbering {
         ? concreteSubclassRangesForDynamicSubmodule
         : concreteSubclassRanges;
 
-    dfs(root, (Class cls) {
-      if (!inDfsOrder.contains(cls)) {
-        dfsOrder.add(cls);
-      }
-      if (classIds.containsKey(cls)) return nextConcreteClassId;
-      if (cls.isAnonymousMixin) {
-        classIds[cls] = AbsoluteClassId(anonymousMixinClassId);
-        return nextConcreteClassId;
-      }
-      if (cls.isAbstract) {
-        var classId = classIds[cls];
-        if (classId == null) {
-          classIds[cls] = AbsoluteClassId(nextAbstractClassId++);
+    dfs(
+      root,
+      (Class cls) {
+        if (!inDfsOrder.contains(cls)) {
+          dfsOrder.add(cls);
         }
-        return nextConcreteClassId;
-      }
+        if (classIds.containsKey(cls)) return nextConcreteClassId;
+        if (cls.isAnonymousMixin) {
+          classIds[cls] = AbsoluteClassId(anonymousMixinClassId);
+          return nextConcreteClassId;
+        }
+        if (cls.isAbstract) {
+          var classId = classIds[cls];
+          if (classId == null) {
+            classIds[cls] = AbsoluteClassId(nextAbstractClassId++);
+          }
+          return nextConcreteClassId;
+        }
 
-      assert(classIds[cls] == null);
-      final classId = nextConcreteClassId++;
-      classIds[cls] = savedMaxClassId != null
-          ? RelativeClassId(classId)
-          : AbsoluteClassId(classId);
-      return nextConcreteClassId - 1;
-    }, (Class cls, int firstClassId) {
-      final range = Range(firstClassId, nextConcreteClassId - 1);
-      if (!range.isEmpty) {
-        (subclassesRangesToBuild[cls] ??= []).add(range);
-      }
-    });
+        assert(classIds[cls] == null);
+        final classId = nextConcreteClassId++;
+        classIds[cls] = savedMaxClassId != null
+            ? RelativeClassId(classId)
+            : AbsoluteClassId(classId);
+        return nextConcreteClassId - 1;
+      },
+      (Class cls, int firstClassId) {
+        final range = Range(firstClassId, nextConcreteClassId - 1);
+        if (!range.isEmpty) {
+          (subclassesRangesToBuild[cls] ??= []).add(range);
+        }
+      },
+    );
 
-    assert(dfsOrder.length ==
-        (concreteClassCount +
-            abstractClassCount +
-            anonymousMixinClassCount +
-            alreadyAssignedCount));
+    assert(
+      dfsOrder.length ==
+          (concreteClassCount +
+              abstractClassCount +
+              anonymousMixinClassCount +
+              alreadyAssignedCount),
+    );
 
     return ClassIdNumbering._(
-        translator,
-        subclasses,
-        implementors,
-        concreteSubclassRanges,
-        concreteSubclassRangesForDynamicSubmodule,
-        masqueraded,
-        dfsOrder,
-        classIds,
-        savedMaxConcreteClassId ?? nextConcreteClassId - 1,
-        savedMaxClassId ?? nextAbstractClassId - 1,
-        savedMaxConcreteClassId == null ? null : nextConcreteClassId - 1,
-        savedMaxClassId == null ? null : nextAbstractClassId - 1);
+      translator,
+      subclasses,
+      implementors,
+      concreteSubclassRanges,
+      concreteSubclassRangesForDynamicSubmodule,
+      masqueraded,
+      dfsOrder,
+      classIds,
+      savedMaxConcreteClassId ?? nextConcreteClassId - 1,
+      savedMaxClassId ?? nextAbstractClassId - 1,
+      savedMaxConcreteClassId == null ? null : nextConcreteClassId - 1,
+      savedMaxClassId == null ? null : nextAbstractClassId - 1,
+    );
   }
 
   List<Range> getConcreteSubclassRanges(Class klass) =>
@@ -964,9 +1201,7 @@ class Range {
   final int end;
 
   Range._(this.start, this.end) : assert(start <= end);
-  const Range.empty()
-      : start = 0,
-        end = -1;
+  const Range.empty() : start = 0, end = -1;
   factory Range(int start, int end) {
     if (end < start) return Range.empty();
     return Range._(start, end);

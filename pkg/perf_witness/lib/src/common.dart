@@ -9,8 +9,8 @@ import 'package:dart_data_home/dart_data_home.dart';
 import 'package:path/path.dart' as p;
 
 final String? _controlSocketsDirectory = () {
-  final dir = getDartDataHome('perf');
   try {
+    final dir = getDartDataHome('perf');
     // Ensure that directory exists.
     io.Directory(dir).createSync(recursive: true);
     return dir;
@@ -45,12 +45,16 @@ List<({int pid, String socketPath})> getAllControlSockets() {
   }
 }
 
-final String? controlSocketPath = () {
-  final dirPath = _controlSocketsDirectory;
+String? controlSocketPathForPid(int pid, {String? controlSocketDirectory}) {
+  final dirPath = controlSocketDirectory ?? _controlSocketsDirectory;
   if (dirPath == null) {
     return null;
   }
-  return p.join(dirPath, '${io.pid}');
+  return p.join(dirPath, '$pid');
+}
+
+final String? controlSocketPath = () {
+  return controlSocketPathForPid(io.pid);
 }();
 
 final String? recorderSocketPath = () {
@@ -98,7 +102,8 @@ Future<void> waitForUserToQuit({bool waitForQKeyPress = false}) async {
       }
     });
   } else {
+    final signalFired = io.ProcessSignal.sigint.watch().first;
     print('Press Ctrl-C to exit');
-    await io.ProcessSignal.sigint.watch().first;
+    await signalFired;
   }
 }

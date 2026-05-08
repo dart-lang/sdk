@@ -13,14 +13,14 @@ import 'package:expect/expect.dart';
 class A {
   var foo;
 
-  external A(var foo);
+  external A(foo);
 }
 
 @JS()
 class B {
   var foo;
 
-  external B(var foo);
+  external B(foo);
 }
 
 @JS()

@@ -79,9 +79,9 @@ void f() {
 }
 ''');
     await assertFixPriorityOrder([
+      DartFixKind.importLibraryPrefix,
       DartFixKind.importLibrarySdkPrefixed,
       DartFixKind.importLibrarySdkPrefixedShow,
-      DartFixKind.importLibraryPrefix,
     ]);
   }
 

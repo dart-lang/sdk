@@ -8,34 +8,30 @@ import 'common.dart' as common;
 /// A generator for a hello world command-line application.
 class ConsoleGenerator extends DefaultGenerator {
   ConsoleGenerator()
-      : super(
-          'console',
-          'Console Application',
-          'A command-line application.',
-          alternateId: 'console-full',
-          categories: const ['dart', 'console'],
-        ) {
+    : super(
+        'console',
+        'Console Application',
+        'A command-line application.',
+        alternateId: 'console-full',
+        categories: const ['dart', 'console'],
+      ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);
     addFile('pubspec.yaml', _pubspec);
     addFile('README.md', _readme);
-    setEntrypoint(
-      addFile('bin/__projectName__.dart', _mainDart),
-    );
+    setEntrypoint(addFile('bin/__projectName__.dart', _mainDart));
     addFile('lib/__projectName__.dart', _libDart);
     addFile('test/__projectName___test.dart', _testDart);
   }
 
   @override
-  String getInstallInstructions(
-    String directory, {
-    String? scriptPath,
-  }) =>
+  String getInstallInstructions(String directory, {String? scriptPath}) =>
       super.getInstallInstructions(directory);
 }
 
-final String _pubspec = '''
+final String _pubspec =
+    '''
 name: __projectName__
 description: A sample command-line application.
 version: 1.0.0

@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parent = node.parent;
       if (parent is IfStatement && node == parent.thenStatement) {
         var condition = parent.expression;
-        if (condition is SimpleIdentifier && isKDebugMode(condition.element)) {
+        if (condition is SimpleIdentifier && condition.element.isKDebugMode) {
           return true;
         }
       } else if (parent is FunctionBody) {

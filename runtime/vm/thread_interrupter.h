@@ -22,10 +22,17 @@ struct InterruptedThreadState {
 
 class ThreadInterrupter : public AllStatic {
  public:
-  static void Init(intptr_t period);
+  // Initialize thread interrupter state on VM startup.
+  static void Init();
 
-  static void Startup();
+  // Cleanup thread interrupter state on VM shutdown.
   static void Cleanup();
+
+  // Startup underlying thread.
+  static void Startup();
+
+  // Shutdown the underlying thread.
+  static void Shutdown();
 
   // Delay between interrupts.
   //
@@ -38,13 +45,6 @@ class ThreadInterrupter : public AllStatic {
 
   // Interrupt a thread.
   static void InterruptThread(OSThread* thread);
-
-  // Prepare current thread for handling interrupts. Returns
-  // opaque pointer to the allocated state (if any).
-  static void* PrepareCurrentThread();
-
-  // Cleanup any state which was created by |PrepareCurrentThread|.
-  static void CleanupCurrentThreadState(void* state);
 
  private:
   static constexpr intptr_t kMaxThreads = 4096;

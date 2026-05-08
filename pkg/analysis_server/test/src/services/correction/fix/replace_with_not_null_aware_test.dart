@@ -11,6 +11,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithNotNullAwareBulkTest);
+    defineReflectiveTests(ReplaceWithNotNullAwareLintTest);
     defineReflectiveTests(ReplaceWithNotNullAwareTest);
   });
 }
@@ -57,6 +58,54 @@ class A {
   A get b => this;
   A get c => this;
   A get d => this;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ReplaceWithNotNullAwareLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.replaceWithNotNullAware;
+
+  @override
+  String get lintCode =>
+      LintNames.unnecessary_null_aware_operator_on_extension_on_nullable;
+
+  Future<void> test_getter_extension() async {
+    await resolveTestCode('''
+extension on String? {
+  int get foo => 0;
+}
+void f(String? s) {
+  s?.foo;
+}
+''');
+    await assertHasFix('''
+extension on String? {
+  int get foo => 0;
+}
+void f(String? s) {
+  s.foo;
+}
+''');
+  }
+
+  Future<void> test_getter_extensionOverride() async {
+    await resolveTestCode('''
+extension E on String? {
+  int get foo => 0;
+}
+void f(String? s) {
+  E(s)?.foo;
+}
+''');
+    await assertHasFix('''
+extension E on String? {
+  int get foo => 0;
+}
+void f(String? s) {
+  E(s).foo;
 }
 ''');
   }

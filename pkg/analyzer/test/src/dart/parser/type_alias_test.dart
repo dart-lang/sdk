@@ -19,7 +19,7 @@ class TypeAliasParserTest extends ParserDiagnosticsTest {
     var parseResult = parseStringWithErrors(r'''
 augment typedef void A();
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([error(diag.typedefAugmentation, 0, 7)]);
 
     var node = parseResult.findNode.singleFunctionTypeAlias;
     assertParsedNodeText(node, r'''
@@ -40,7 +40,7 @@ FunctionTypeAlias
     var parseResult = parseStringWithErrors(r'''
 augment typedef A = int;
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([error(diag.typedefAugmentation, 0, 7)]);
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''

@@ -5,6 +5,7 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -38,7 +39,7 @@ class UnnecessaryFinal extends MultiAnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry
       ..addFormalParameterList(this, visitor)
       ..addForStatement(this, visitor)
@@ -50,7 +51,9 @@ class UnnecessaryFinal extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  final RuleContext context;
+
+  _Visitor(this.rule, this.context);
 
   (Token?, AstNode?) getParameterDetails(FormalParameter node) {
     var parameter = node is DefaultFormalParameter ? node.parameter : node;
@@ -77,13 +80,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var node in parameterList.parameters) {
-      if (node.isFinal) {
-        var (keyword, type) = getParameterDetails(node);
-        if (keyword == null) continue;
+      if (!node.isFinal) continue;
+      // No 'final' keyword on a parameter is unnecessary, when primary
+      // constructors is enabled.
+      if (context.isFeatureEnabled(Feature.primary_constructors)) continue;
 
-        var diagnosticCode = getDiagnosticCode(type);
-        rule.reportAtToken(keyword, diagnosticCode: diagnosticCode);
-      }
+      var (keyword, type) = getParameterDetails(node);
+      if (keyword == null) continue;
+
+      var diagnosticCode = getDiagnosticCode(type);
+      rule.reportAtToken(keyword, diagnosticCode: diagnosticCode);
     }
   }
 

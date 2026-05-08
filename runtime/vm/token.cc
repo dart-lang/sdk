@@ -18,11 +18,6 @@ const char* const Token::tok_str_[] = {DART_TOKEN_LIST(TOKEN_STRING)
                                            DART_KEYWORD_LIST(TOKEN_STRING)};
 #undef TOKEN_STRING
 
-#define TOKEN_PRECEDENCE(t, s, p, a) p,
-const uint8_t Token::precedence_[] = {DART_TOKEN_LIST(TOKEN_PRECEDENCE)
-                                          DART_KEYWORD_LIST(TOKEN_PRECEDENCE)};
-#undef TOKEN_PRECEDENCE
-
 #define TOKEN_ATTRIBUTE(t, s, p, a) a,
 const Token::Attribute Token::attributes_[] = {
     DART_TOKEN_LIST(TOKEN_ATTRIBUTE) DART_KEYWORD_LIST(TOKEN_ATTRIBUTE)};

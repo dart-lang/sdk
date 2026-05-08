@@ -178,9 +178,9 @@ class ElementBuilder {
       case FieldFragmentImpl():
         return fragment.element;
       case GetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
       case SetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
     }
     return null;
   }
@@ -962,9 +962,9 @@ class ElementBuilder {
       case TopLevelVariableFragmentImpl():
         return fragment.element;
       case GetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
       case SetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
     }
     return null;
   }
@@ -1171,11 +1171,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       // Build fields for all enum constants.
-      var constants = node.body.constants;
       var valuesElements = <SimpleIdentifierImpl>[];
       var valuesNames = <String>{};
-      for (var i = 0; i < constants.length; ++i) {
-        var constant = constants[i];
+      for (var constant in node.body.constants) {
         var nameToken = constant.name;
         var name = nameToken.lexeme;
         var field = FieldFragmentImpl(name: _getFragmentName(nameToken))
@@ -1208,13 +1206,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
                   )
                 : null,
           ),
-          argumentList: constantArguments != null
-              ? constantArguments.argumentList
-              : ArgumentListImpl(
-                  leftParenthesis: Tokens.openParenthesis(),
-                  arguments: [],
-                  rightParenthesis: Tokens.closeParenthesis(),
-                ),
+          argumentList:
+              constantArguments?.argumentList ??
+              ArgumentListImpl(
+                leftParenthesis: Tokens.openParenthesis(),
+                arguments: [],
+                rightParenthesis: Tokens.closeParenthesis(),
+              ),
           typeArguments: null,
         );
 
@@ -1310,7 +1308,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       );
 
       node.namePart.accept(this);
-      node.body.members.accept(this);
+      for (var member in node.body.members) {
+        member.accept(this);
+      }
     });
 
     fragment.typeParameters = holder.typeParameters;
@@ -1346,7 +1346,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
-      node.body.members.accept(this);
+      for (var member in node.body.members) {
+        member.accept(this);
+      }
     });
     fragment.typeParameters = holder.typeParameters;
 
@@ -1751,7 +1753,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
-      node.body.members.accept(this);
+      node.body.accept(this);
     });
     fragment.typeParameters = holder.typeParameters;
 
@@ -1810,7 +1812,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isOriginDeclaration = true;
     fragment.isConst =
         node.constKeyword != null || parent is EnumDeclarationImpl;
-    fragment.isDeclaring = true;
     fragment.isPrimary = true;
     fragment.typeName = node.typeName.lexeme;
 
@@ -1847,7 +1848,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     for (var (i, formalParameter) in formalParameters.indexed) {
       var isExtensionTypeRepresentation =
           i == 0 && isFirstFormalExtensionTypeRepresentation;
-      if (formalParameter.hasFinalOrVarKeyword ||
+      if (formalParameter.finalOrVarKeyword != null ||
           isExtensionTypeRepresentation) {
         var name = _getFragmentName(formalParameter.name);
         var fieldFragment = FieldFragmentImpl(name: name);
@@ -2146,21 +2147,8 @@ class _EnclosingContext {
 }
 
 extension _FormalParameterImplExtension on FormalParameterImpl {
-  bool get hasFinalOrVarKeyword {
-    switch (this) {
-      case DefaultFormalParameterImpl self:
-        return self.parameter.hasFinalOrVarKeyword;
-      case FunctionTypedFormalParameterImpl self:
-        return self.finalKeyword != null || self.varKeyword != null;
-      case SimpleFormalParameterImpl self:
-        return self.finalKeyword != null || self.varKeyword != null;
-      default:
-        return false;
-    }
-  }
-
   FormalParameterImpl get selfOrParentDefault {
-    return parent.ifTypeOrNull<DefaultFormalParameterImpl>() ?? this;
+    return parent.tryCast<DefaultFormalParameterImpl>() ?? this;
   }
 }
 

@@ -216,7 +216,10 @@ class PackageConfigWorkspace extends SimpleWorkspace {
         .getFolder(root)
         .getChildAssumingFile(file_paths.pubspecYaml);
     if (pubspecFile.exists) {
-      var pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
+      var pubspec = Pubspec.parse(
+        pubspecFile.readAsStringSync(),
+        resourceProvider: provider,
+      );
       if (pubspec.workspace != null) {
         _isPubWorkspace = true;
       }
@@ -448,7 +451,10 @@ class PubPackage extends WorkspacePackageImpl {
     File pubspecFile,
   ) {
     var pubspecContent = pubspecFile.readAsStringSync();
-    var pubspec = Pubspec.parse(pubspecContent);
+    var pubspec = Pubspec.parse(
+      pubspecContent,
+      resourceProvider: pubspecFile.provider,
+    );
     var packageName = pubspec.name?.value.text;
     return PubPackage._(
       root,

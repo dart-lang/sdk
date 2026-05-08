@@ -1,0 +1,3 @@
+extension type Foo._(Duration _) implements Duration {
+  external int bar;
+}

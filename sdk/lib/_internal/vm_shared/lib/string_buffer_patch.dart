@@ -123,7 +123,8 @@ class StringBuffer {
   @patch
   void clear() {
     _parts = null;
-    _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude = 0;
+    _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude =
+        _partsCompactionIndex = _partsCodeUnitsSinceCompaction = 0;
   }
 
   /** Returns the contents of buffer as a string. */
@@ -175,6 +176,7 @@ class StringBuffer {
     } else {
       localParts.add(str);
       int partsSinceCompaction = localParts.length - _partsCompactionIndex;
+      assert(partsSinceCompaction > 0);
       if (partsSinceCompaction == _PARTS_TO_COMPACT) {
         _compact();
       }

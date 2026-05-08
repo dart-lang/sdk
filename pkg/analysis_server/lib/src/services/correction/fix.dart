@@ -551,6 +551,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert to an initializing formal parameter',
   );
+  static const convertToInitializingFormalMulti = FixKind(
+    'dart.fix.convert.toInitializingFormal.multi',
+    DartFixKindPriority.standard,
+    'Convert to initializing formal parameters everywhere in file',
+  );
   static const convertToIntLiteral = FixKind(
     'dart.fix.convert.toIntLiteral',
     DartFixKindPriority.standard,
@@ -905,12 +910,12 @@ abstract final class DartFixKind {
   );
   static const importLibraryCombinator = FixKind(
     'dart.fix.import.libraryCombinator',
-    DartFixKindPriority.standard + 6,
+    DartFixKindPriority.standard + 8,
     "Import '{0}' from {1}",
   );
   static const importLibraryCombinatorMultiple = FixKind(
     'dart.fix.import.libraryCombinatorMultiple',
-    DartFixKindPriority.standard + 6,
+    DartFixKindPriority.standard + 8,
     "Import '{0}' and {1} other{2} from {3}",
   );
   static const importLibraryHide = FixKind(
@@ -920,7 +925,7 @@ abstract final class DartFixKind {
   );
   static const importLibraryPrefix = FixKind(
     'dart.fix.import.libraryPrefix',
-    DartFixKindPriority.standard + 6,
+    DartFixKindPriority.standard + 8,
     "Use imported library '{0}' with prefix '{1}'",
   );
 
@@ -1408,6 +1413,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.extends.clause.multi',
     DartFixKindPriority.inFile,
     "Remove invalid 'extends' clauses everywhere in file",
+  );
+  static const removeKeyword = FixKind(
+    'dart.fix.remove.keyword',
+    DartFixKindPriority.standard,
+    "Remove '{0}'",
+  );
+  static const removeKeywordMulti = FixKind(
+    'dart.fix.remove.keyword.multi',
+    DartFixKindPriority.inFile,
+    "Remove '{0}' everywhere in file",
   );
   static const removeLexeme = FixKind(
     'dart.fix.remove.lexeme',
@@ -2176,6 +2191,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Replace with Unicode escape',
   );
+  static const replaceWithIs = FixKind(
+    'dart.fix.replace.withIs',
+    DartFixKindPriority.standard,
+    "Replace '{0}' with 'is{1}'",
+  );
   static const replaceWithVar = FixKind(
     'dart.fix.replace.withVar',
     DartFixKindPriority.standard,
@@ -2195,6 +2215,16 @@ abstract final class DartFixKind {
     'dart.fix.replace.withWildcard.multi',
     DartFixKindPriority.standard,
     "Replace with '_' everywhere in file",
+  );
+  static const simplifyDirectivePath = FixKind(
+    'dart.fix.simplify.directivePath',
+    DartFixKindPriority.standard,
+    'Simplify the directive path',
+  );
+  static const simplifyDirectivePathMulti = FixKind(
+    'dart.fix.simplify.directivePath.multi',
+    DartFixKindPriority.inFile,
+    'Simplify the directive paths everywhere in file',
   );
   static const sortChildPropertyLast = FixKind(
     'dart.fix.sort.childPropertyLast',

@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart' as ir;
+
 // TODO(joshualitt): Merge the contents of element_map_impl.dart into this file.
 export 'element_map_impl.dart';
-import 'package:kernel/ast.dart' as ir;
 
 /// Kinds of foreign functions.
 enum ForeignKind {

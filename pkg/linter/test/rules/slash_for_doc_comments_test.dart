@@ -164,6 +164,18 @@ mixin M {}
 ''');
   }
 
+  test_primaryConstructorBody() async {
+    await assertDiagnostics(
+      r'''
+class C() {
+  /** C */
+  this;
+}
+''',
+      [lint(14, 8)],
+    );
+  }
+
   test_threeSlashes_class() async {
     await assertNoDiagnostics(r'''
 /// OK

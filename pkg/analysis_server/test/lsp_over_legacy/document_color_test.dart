@@ -34,10 +34,11 @@ const red = [!Colors.red!];
     var results = await getDocumentColors(testFileUri);
     var result = results.single;
 
-    expect(result.color.alpha, 1);
-    expect(result.color.red, 1);
-    expect(result.color.green, 0);
-    expect(result.color.blue, 0);
+    // Material red primary value is 0xFFF44336.
+    expect(result.color.alpha, equals(1));
+    expect(result.color.red, inInclusiveRange(0xF3 / 0xFF, 0xF5 / 0xFF));
+    expect(result.color.green, inInclusiveRange(0x42 / 0xFF, 0x44 / 0xFF));
+    expect(result.color.blue, inInclusiveRange(0x35 / 0xFF, 0x37 / 0xFF));
     expect(result.range, code.range.range);
   }
 
@@ -60,9 +61,9 @@ const red = [!Colors.red!];
     expect(
       colors.map((c) => c.label),
       containsAll([
-        'Color.fromARGB(255, 255, 0, 0)',
-        'Color.fromRGBO(255, 0, 0, 1.0)',
-        'Color(0xFFFF0000)',
+        'Color.fromARGB(255, 244, 67, 54)',
+        'Color.fromRGBO(244, 67, 54, 1.0)',
+        'Color(0xFFF44336)',
       ]),
     );
   }

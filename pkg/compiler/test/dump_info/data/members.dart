@@ -375,6 +375,7 @@ final constList = const [const A()];
  holding=[
   {"id":"field/memory:sdk/tests/web/native/main.dart::C.y"},
   {"id":"function/dart:_internal::printToConsole"},
+  {"id":"function/dart:_internal::printToZone"},
   {"id":"function/dart:_js_helper::S"},
   {"id":"function/dart:_js_primitives::printString"},
   {"id":"function/dart:_rti::findType"},

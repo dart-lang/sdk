@@ -178,14 +178,13 @@ class LanguageVersionTokenImpl extends CommentTokenImpl
     int tokenStart,
     this.major,
     this.minor, {
-    bool canonicalize = false,
+    super.canonicalize = false,
   }) : super.fromSubstring(
          TokenType.SINGLE_LINE_COMMENT,
          string,
          start,
          end,
          tokenStart,
-         canonicalize: canonicalize,
        );
 
   LanguageVersionTokenImpl.fromUtf8Bytes(

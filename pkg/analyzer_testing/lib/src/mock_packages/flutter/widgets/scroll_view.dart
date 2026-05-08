@@ -7,6 +7,12 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final widgetsScrollViewLibrary = MockLibraryUnit(
   'lib/src/widgets/scroll_view.dart',
   r'''
+import 'package:flutter/rendering.dart';
+
+import 'basic.dart';
+import 'framework.dart';
+import 'sliver.dart';
+
 abstract class ScrollView extends StatelessWidget {
   const ScrollView({
     super.key,

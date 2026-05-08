@@ -57,7 +57,7 @@ io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass
 
-[ $system == android || $system == linux ]
+[ $sanitizer != none || $system == android || $system == linux ]
 file_system_watcher_isolate_exit_leak_test: SkipByDesign # Linux uses GC not NativeFinalizer for cleaning up FSW resources
 
 [ $hot_reload || $hot_reload_rollback ]

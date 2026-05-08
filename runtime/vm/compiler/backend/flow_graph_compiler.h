@@ -66,7 +66,7 @@ class NoTemporaryAllocator : public TemporaryRegisterAllocator {
 
 // Used for describing a deoptimization point after call (lazy deoptimization).
 // For deoptimization before instruction use class CompilerDeoptInfoWithStub.
-class CompilerDeoptInfo : public ZoneAllocated {
+class CompilerDeoptInfo : public ZoneObject {
  public:
   CompilerDeoptInfo(intptr_t deopt_id,
                     ICData::DeoptReasonId reason,
@@ -142,7 +142,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfoWithStub);
 };
 
-class SlowPathCode : public ZoneAllocated {
+class SlowPathCode : public ZoneObject {
  public:
   explicit SlowPathCode(Instruction* instruction)
       : instruction_(instruction), entry_label_(), exit_label_() {}
@@ -359,8 +359,8 @@ class FieldAccessErrorSlowPath : public ThrowErrorSlowPathCode {
 class CheckedStoreIntoSharedSlowPath
     : public TemplateSlowPathCode<StoreStaticFieldInstr> {
  public:
-  explicit CheckedStoreIntoSharedSlowPath(StoreStaticFieldInstr* instruction,
-                                          Register value)
+  CheckedStoreIntoSharedSlowPath(StoreStaticFieldInstr* instruction,
+                                 Register value)
       : TemplateSlowPathCode(instruction), value_(value) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
@@ -375,11 +375,25 @@ class CheckedStoreIntoSharedSlowPath
   Register value() const { return value_; }
 };
 
+class EnsureDeeplyImmutableSlowPath : public TemplateSlowPathCode<Instruction> {
+ public:
+  EnsureDeeplyImmutableSlowPath(CheckFieldImmutabilityInstr* instruction,
+                                Register value)
+      : TemplateSlowPathCode(instruction), value_(value) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  Register value_;
+
+  Register value() const { return value_; }
+};
+
 enum class TypeTestOutcome { kConclusive, kNotConclusive };
 
 class FlowGraphCompiler : public ValueObject {
  private:
-  class BlockInfo : public ZoneAllocated {
+  class BlockInfo : public ZoneObject {
    public:
     BlockInfo()
         : block_label_(),
@@ -1176,7 +1190,7 @@ class FlowGraphCompiler : public ValueObject {
   bool CanPcRelativeCall(const AbstractType& target) const;
 
   // This struct contains either function or code, the other one being nullptr.
-  class StaticCallsStruct : public ZoneAllocated {
+  class StaticCallsStruct : public ZoneObject {
    public:
     Code::CallKind call_kind;
     Code::CallEntryPoint entry_point;

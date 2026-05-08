@@ -52,7 +52,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       // Null spread
       return evaluator.createEvaluationErrorConstant(
         spreadExpression,
-        codeConstEvalNullValue,
+        diag.constEvalNullValue,
       );
     } else {
       // Fully evaluated spread
@@ -81,7 +81,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
         // Not list or set in spread
         return evaluator.createEvaluationErrorConstant(
           spreadExpression,
-          codeConstEvalNotListOrSetInSpread,
+          diag.constEvalNotListOrSetInSpread,
         );
       }
       for (Constant entry in entries) {
@@ -185,12 +185,14 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
           context,
-          codeConstEvalElementNotPrimitiveEquality.withArgumentsOld(constant),
+          diag.constEvalElementNotPrimitiveEquality.withArguments(
+            element: constant,
+          ),
         );
       } else {
         return evaluator.createEvaluationErrorConstant(
           context,
-          codeConstEvalElementImplementsEqual.withArgumentsOld(constant),
+          diag.constEvalElementImplementsEqual.withArguments(element: constant),
         );
       }
     }
@@ -198,7 +200,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     if (!unseen) {
       return evaluator.createEvaluationErrorConstant(
         context,
-        codeConstEvalDuplicateElement.withArgumentsOld(constant),
+        diag.constEvalDuplicateElement.withArguments(element: constant),
       );
     }
 
@@ -301,7 +303,7 @@ class MapConstantBuilder {
       // Null spread
       return evaluator.createEvaluationErrorConstant(
         spreadExpression,
-        codeConstEvalNullValue,
+        diag.constEvalNullValue,
       );
     } else {
       // Fully evaluated spread
@@ -329,7 +331,7 @@ class MapConstantBuilder {
         // Not map in spread
         return evaluator.createEvaluationErrorConstant(
           spreadExpression,
-          codeConstEvalNotMapInSpread,
+          diag.constEvalNotMapInSpread,
         );
       }
     }
@@ -358,13 +360,13 @@ class MapConstantBuilder {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
           keyContext,
-          codeConstEvalKeyNotPrimitiveEquality.withArgumentsOld(key),
+          diag.constEvalKeyNotPrimitiveEquality.withArguments(key: key),
         );
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(
           keyContext,
-          codeConstEvalKeyImplementsEqual.withArgumentsOld(key),
+          diag.constEvalKeyImplementsEqual.withArguments(key: key),
         );
       }
     }
@@ -372,7 +374,7 @@ class MapConstantBuilder {
     if (!unseenKey) {
       return evaluator.createEvaluationErrorConstant(
         keyContext,
-        codeConstEvalDuplicateKey.withArgumentsOld(key),
+        diag.constEvalDuplicateKey.withArguments(key: key),
       );
     }
 

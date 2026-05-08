@@ -10,7 +10,7 @@ library;
 // enum const E7({int? a, required int b, int c = 42]) {
 //                                                  ^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_declaring_parameters.dart:7:14: Error: Constructor is marked 'const' so all fields must be final.
+// pkg/front_end/testcases/primary_constructors/enum_primary_declaring_parameters.dart:7:14: Error: Enum constructors are constant so all fields must be final.
 // enum const E2(var int i) { x(0) } // Error
 //              ^
 // pkg/front_end/testcases/primary_constructors/enum_primary_declaring_parameters.dart:7:23: Context: Field isn't final, but constructor is 'const'.
@@ -23,7 +23,7 @@ import "dart:core" as core;
 class E1 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E1 x = #C3;
   static const field core::List<self::E1> values = #C4;
-  const constructor •(core::int #index, core::String #name, core::int a) → self::E1
+  const constructor •(core::int #index, core::String #name, final core::int a) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -82,7 +82,7 @@ class E6 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E6 y = #C24;
   enum-element static const field self::E6 z = #C25;
   static const field core::List<self::E6> values = #C26;
-  const constructor •(core::int #index, core::String #name, core::int a, [core::int? b = #C9, core::int c = #C11]) → self::E6
+  const constructor •(core::int #index, core::String #name, final core::int a, [final core::int? b = #C9, final core::int c = #C11]) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -93,7 +93,7 @@ class E7 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E7 y = #C28;
   enum-element static const field self::E7 z = #C29;
   static const field core::List<self::E7> values = #C30;
-  const constructor •(core::int #index, core::String #name, {core::int? a = #C9, required core::int b, core::int c = #C11}) → self::E7
+  const constructor •(core::int #index, core::String #name, {final core::int? a = #C9, required final core::int b, final core::int c = #C11}) → self::E7
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

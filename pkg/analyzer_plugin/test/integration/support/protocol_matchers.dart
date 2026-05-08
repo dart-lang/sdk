@@ -827,6 +827,21 @@ final Matcher isPluginDetails = LazyMatcher(
   }),
 );
 
+/// PluginPrint
+///
+///     {
+///       "pluginName": String
+///       "message": String
+///       "timestamp": int
+///     }
+final Matcher isPluginPrint = LazyMatcher(
+  () => MatchesJsonObject('PluginPrint', {
+    'pluginName': isString,
+    'message': isString,
+    'timestamp': isInt,
+  }),
+);
+
 /// Position
 ///
 ///     {
@@ -1594,6 +1609,16 @@ final Matcher isPluginErrorParams = LazyMatcher(
     'message': isString,
     'stackTrace': isString,
   }),
+);
+
+/// plugin.print params
+///
+///     {
+///       "pluginPrint": PluginPrint
+///     }
+final Matcher isPluginPrintParams = LazyMatcher(
+  () =>
+      MatchesJsonObject('plugin.print params', {'pluginPrint': isPluginPrint}),
 );
 
 /// plugin.shutdown params

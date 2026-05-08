@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
@@ -31,14 +32,11 @@ class AstResolver {
   late final _resolutionVisitor = ResolutionVisitor(
     libraryFragment: _libraryFragment,
     nameScope: _nameScope,
+    docImportLibraries: const [],
     diagnosticListener: _diagnosticListener,
     strictInference: analysisOptions.strictInference,
     strictCasts: analysisOptions.strictCasts,
     dataForTesting: null,
-  );
-  late final _scopeResolverVisitor = ScopeResolverVisitor(
-    DiagnosticReporter(_diagnosticListener, _libraryFragment.source),
-    nameScope: _nameScope,
   );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
   late final _flowAnalysis = FlowAnalysisHelper(
@@ -73,8 +71,11 @@ class AstResolver {
   }) : _featureSet = _libraryFragment.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
+    ElementBindingVisitor(
+      _libraryFragment,
+      null,
+    ).bindSubtree(_libraryFragment, node);
     node.accept(_resolutionVisitor);
-    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(node, null);
     node.accept(_resolverVisitor);
@@ -83,6 +84,8 @@ class AstResolver {
   }
 
   void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
+    var element = node.declaredFragment!.element;
+
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
@@ -93,25 +96,37 @@ class AstResolver {
 
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
-    accept(_scopeResolverVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: accept);
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      element.formalParameters,
+      visit: accept,
+    );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }
 
+  /// If resolving the initializer of a non-late instance field, there
+  /// might be [inScopePrimaryConstructorParameters].
   void resolveExpression(
     ExpressionImpl Function() getNode, {
     TypeImpl contextType = UnknownInferredType.instance,
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
   }) {
     ExpressionImpl node = getNode();
+    ElementBindingVisitor(
+      _libraryFragment,
+      null,
+    ).bindSubtree(_libraryFragment, node);
     node.accept(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();
-    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
+    _flowAnalysis.bodyOrInitializer_enter(
+      node.parent as AstNodeImpl,
+      inScopePrimaryConstructorParameters,
+    );
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
@@ -120,19 +135,25 @@ class AstResolver {
 
   void resolvePrimaryConstructor(
     PrimaryConstructorDeclarationImpl node,
-    PrimaryConstructorBodyImpl? body,
+    PrimaryConstructorBodyImpl body,
   ) {
+    var element = node.declaredFragment!.element;
+
     void accept(AstVisitor<Object?> visitor) {
-      body?.initializers.accept(visitor);
+      body.initializers.accept(visitor);
+    }
+
+    var bindingVisitor = ElementBindingVisitor(_libraryFragment, null);
+    for (var initializer in body.initializers) {
+      bindingVisitor.bindSubtree(node.declaredFragment!, initializer);
     }
 
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
-    accept(_scopeResolverVisitor);
 
     _flowAnalysis.bodyOrInitializer_enter(
       node,
-      node.formalParameters,
+      element.formalParameters,
       visit: accept,
     );
     accept(_resolverVisitor);

@@ -6,7 +6,7 @@ final int nonConstTopLevel = 0;
 
 class Class {
   static final int nonConstField = 1;
-  void test(final int nonConstParameter) {
+  void test(int nonConstParameter) {
     final int nonConstLocal = 2;
 
     const _ = {if (false) nonConstTopLevel};

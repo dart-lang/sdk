@@ -39,9 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (!isWidgetType(node.staticType)) {
-      return;
-    }
+    if (!node.staticType.isWidgetType) return;
 
     var arguments = node.argumentList.arguments;
     if (arguments.length < 2 ||
@@ -68,11 +66,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   static bool isChildArg(Expression e) {
-    if (e is NamedExpression) {
-      var name = e.name.label.name;
-      return (name == 'child' || name == 'children') &&
-          isWidgetProperty(e.staticType);
-    }
-    return false;
+    if (e is! NamedExpression) return false;
+
+    var name = e.name.label.name;
+    return (name == 'child' || name == 'children') &&
+        e.staticType.isWidgetProperty;
   }
 }

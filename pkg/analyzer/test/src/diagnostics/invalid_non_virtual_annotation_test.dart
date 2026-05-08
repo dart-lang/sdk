@@ -21,6 +21,25 @@ class InvalidNonVirtualAnnotationTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_instanceField() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+abstract class C {
+  @nonVirtual
+  int m = 7;
+}
+''');
+  }
+
+  test_instanceField_originPrimaryConstructor() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+abstract class C(@nonVirtual final int m);
+''');
+  }
+
   test_instanceMethod() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -57,6 +76,17 @@ extension type E(int i) {
 }
 ''',
       [error(diag.invalidNonVirtualAnnotation, 63, 10)],
+    );
+  }
+
+  test_parameter_onPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+abstract class C(@nonVirtual int m);
+''',
+      [error(diag.invalidAnnotationTarget, 52, 10)],
     );
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // OtherResources=regress_7191_script.dart
+// Environment=TSAN_OPTIONS=report_thread_leaks=0
 
 // Regression test for http://dartbug.com/7191.
 

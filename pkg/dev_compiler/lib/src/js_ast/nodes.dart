@@ -1797,8 +1797,7 @@ class ObjectInitializer extends Expression {
   final bool _multiline;
 
   /// Constructs a new object-initializer containing the given [properties].
-  ObjectInitializer(this.properties, {bool multiline = false})
-    : _multiline = multiline;
+  ObjectInitializer(this.properties, {this._multiline = false});
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitObjectInitializer(this);

@@ -68,4 +68,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///mixin_nsm.dart:18:8 -> MapConst
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///mixin_nsm.dart:21:7 -> SymbolConstant(#method1)
 Evaluated: ListLiteral @ org-dartlang-testcase:///mixin_nsm.dart:21:7 -> ListConstant(const <Type>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///mixin_nsm.dart:21:7 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 44, effectively constant: 12
+Extra constant evaluation: evaluated: 46, effectively constant: 12

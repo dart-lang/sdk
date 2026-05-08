@@ -151,4 +151,90 @@ suggestions
     kind: constructorInvocation
 ''');
   }
+
+  Future<void> test_constructor_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  C.named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_replace_parentheses_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .n^()
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  C.named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_invalid_type() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  const _C();
+}
+
+void foo(_C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(const .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_invalid_type_typedef() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  const _C();
+}
+
+typedef C = _C;
+
+void foo(C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(const .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
 }

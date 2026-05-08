@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
 import '../base/compiler_context.dart';
-import '../base/messages.dart'
-    show noLength, codeExpectedAfterButGot, ProblemReporting;
+import '../base/messages.dart' show noLength, ProblemReporting;
 import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
@@ -272,7 +272,7 @@ class ForElement extends ControlFlowElement
     implements ForElementBase {
   // May be empty, but not null.
   @override
-  final List<VariableInitialization> variableInitializations;
+  final List<VariableInitializationBase> variableInitializations;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -386,10 +386,8 @@ class ForElement extends ControlFlowElement
 
 /// A 'for-in' element in a list or set literal.
 class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
-  ExpressionVariable expressionVariable;
-  // Coverage-ignore(suite): Not run.
   // Has no initializer.
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
+  VariableDeclaration variable;
   Expression iterable;
   Expression? syntheticAssignment; // May be null.
   Statement? expressionEffects; // May be null.
@@ -397,8 +395,14 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
+  /// Variable [Scope] of this [ForInElement].
+  ///
+  /// Since [ForInElement] is desugared, its [scope] is passed on to other
+  /// [ScopeProvider] nodes in the output.
+  Scope? scope;
+
   ForInElement(
-    this.expressionVariable,
+    this.variable,
     this.iterable,
     this.syntheticAssignment,
     this.expressionEffects,
@@ -406,7 +410,7 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
     this.problem, {
     this.isAsync = false,
   }) {
-    expressionVariable.parent = this;
+    variable.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
     expressionEffects?.parent = this;
@@ -425,7 +429,7 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   @override
   // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
-    expressionVariable.accept(v);
+    variable.accept(v);
     iterable.accept(v);
     syntheticAssignment?.accept(v);
     expressionEffects?.accept(v);
@@ -436,8 +440,8 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   @override
   // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
-    expressionVariable = v.transform(expressionVariable);
-    expressionVariable.parent = this;
+    variable = v.transform(variable);
+    variable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -459,8 +463,8 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   @override
   // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
-    expressionVariable = v.transform(expressionVariable);
-    expressionVariable.parent = this;
+    variable = v.transform(variable);
+    variable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -490,7 +494,7 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
     }
     if (bodyEntry == null) return null;
     ForInMapEntry result = new ForInMapEntry(
-      expressionVariable,
+      variable,
       iterable,
       syntheticAssignment,
       expressionEffects,
@@ -606,7 +610,7 @@ class IfCaseElement extends ControlFlowElementImpl
 }
 
 abstract interface class ForElementBase implements AuxiliaryExpression {
-  List<VariableInitialization> get variableInitializations;
+  List<VariableInitializationBase> get variableInitializations;
 
   List<VariableDeclaration> get variables;
 
@@ -625,7 +629,7 @@ class PatternForElement extends ControlFlowElementImpl
 
   // May be empty, but not null.
   @override
-  final List<VariableInitialization> variableInitializations;
+  final List<VariableInitializationBase> variableInitializations;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -643,7 +647,7 @@ class PatternForElement extends ControlFlowElementImpl
   PatternForElement({
     required this.patternVariableDeclaration,
     required this.intermediateVariables,
-    required List<VariableInitialization> variables,
+    required List<VariableInitializationBase> variables,
     required this.condition,
     required this.updates,
     required this.body,
@@ -913,7 +917,7 @@ class IfMapEntry extends TreeNode
 }
 
 abstract interface class ForMapEntryBase implements TreeNode, MapLiteralEntry {
-  List<VariableInitialization> get variableInitializations;
+  List<VariableInitializationBase> get variableInitializations;
 
   List<VariableDeclaration> get variables;
 
@@ -930,7 +934,7 @@ class ForMapEntry extends TreeNode
     implements ForMapEntryBase, ControlFlowMapEntry {
   // May be empty, but not null.
   @override
-  final List<VariableInitialization> variableInitializations;
+  final List<VariableInitializationBase> variableInitializations;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1028,7 +1032,7 @@ class PatternForMapEntry extends TreeNode
   List<VariableDeclaration> intermediateVariables;
 
   @override
-  final List<VariableInitialization> variableInitializations;
+  final List<VariableInitializationBase> variableInitializations;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1046,7 +1050,7 @@ class PatternForMapEntry extends TreeNode
   PatternForMapEntry({
     required this.patternVariableDeclaration,
     required this.intermediateVariables,
-    required List<VariableInitialization> variables,
+    required List<VariableInitializationBase> variables,
     required this.condition,
     required this.updates,
     required this.body,
@@ -1086,10 +1090,8 @@ class PatternForMapEntry extends TreeNode
 class ForInMapEntry extends TreeNode
     with ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
-  ExpressionVariable expressionVariable;
-  // Coverage-ignore(suite): Not run.
   // Has no initializer.
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
+  VariableDeclaration variable;
   Expression iterable;
   Expression? syntheticAssignment; // May be null.
   Statement? expressionEffects; // May be null.
@@ -1097,8 +1099,14 @@ class ForInMapEntry extends TreeNode
   Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
+  /// Variable [Scope] of this [ForInMapEntry].
+  ///
+  /// Since [ForInMapEntry] is desugared, its [scope] is passed on to other
+  /// [ScopeProvider] nodes in the output.
+  Scope? scope;
+
   ForInMapEntry(
-    this.expressionVariable,
+    this.variable,
     this.iterable,
     this.syntheticAssignment,
     this.expressionEffects,
@@ -1106,7 +1114,7 @@ class ForInMapEntry extends TreeNode
     this.problem, {
     required this.isAsync,
   }) {
-    expressionVariable.parent = this;
+    variable.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
     expressionEffects?.parent = this;
@@ -1125,7 +1133,7 @@ class ForInMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
-    expressionVariable.accept(v);
+    variable.accept(v);
     iterable.accept(v);
     syntheticAssignment?.accept(v);
     expressionEffects?.accept(v);
@@ -1136,8 +1144,8 @@ class ForInMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
-    expressionVariable = v.transform(expressionVariable);
-    expressionVariable.parent = this;
+    variable = v.transform(variable);
+    variable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -1159,8 +1167,8 @@ class ForInMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
-    expressionVariable = v.transform(expressionVariable);
-    expressionVariable.parent = this;
+    variable = v.transform(variable);
+    variable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -1384,7 +1392,7 @@ MapLiteralEntry convertToMapEntry(
 
       case ForInElement():
         ForInMapEntry result = new ForInMapEntry(
-          element.expressionVariable,
+          element.variable,
           element.iterable,
           element.syntheticAssignment,
           element.expressionEffects,
@@ -1422,7 +1430,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
   return new MapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeExpectedAfterButGot.withArgumentsOld(':'),
+      message: diag.expectedAfterButGot.withArguments(expected: ':'),
       fileUri: fileUri,
       fileOffset: element.fileOffset,
       // TODO(danrubel): what is the length of the expression?

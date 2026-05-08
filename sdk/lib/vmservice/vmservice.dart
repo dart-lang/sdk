@@ -290,7 +290,7 @@ class VMService extends MessageRouter {
     clients.remove(client);
     for (final streamId in client.streams) {
       if (!_isAnyClientSubscribed(streamId)) {
-        _vmCancelStream(streamId);
+        vmCancelStream(streamId);
       }
     }
     for (final pair in client.createdServiceIdZones) {
@@ -444,7 +444,7 @@ class VMService extends MessageRouter {
     await VMServiceEmbedderHooks.cleanup!();
     await clearState();
     // Notify the VM that we have exited.
-    _onExit();
+    onExit();
   }
 
   void messageHandler(message) {
@@ -497,7 +497,7 @@ class VMService extends MessageRouter {
     if (instance == null) {
       instance = VMService._internal();
       VMService._instance = instance;
-      _onStart();
+      onStart();
     }
     return instance;
   }
@@ -533,7 +533,7 @@ class VMService extends MessageRouter {
     if (!_isAnyClientSubscribed(streamId)) {
       final includePrivates = message.params['_includePrivateMembers'] == true;
       if (!serviceStreams.contains(streamId) &&
-          !_vmListenStream(streamId, includePrivates)) {
+          !vmListenStream(streamId, includePrivates)) {
         return encodeRpcError(
           message,
           kInvalidParams,
@@ -569,7 +569,7 @@ class VMService extends MessageRouter {
     client.streams.remove(streamId);
     if (!serviceStreams.contains(streamId) &&
         !_isAnyClientSubscribed(streamId)) {
-      _vmCancelStream(streamId);
+      vmCancelStream(streamId);
     }
 
     return encodeSuccess(message);
@@ -807,24 +807,19 @@ void _registerIsolate(int port_id, SendPort sp, String name) =>
 
 /// Notify the VM that the service is running.
 @pragma("vm:external-name", "VMService_OnStart")
-external void _onStart();
+external void onStart();
 
 /// Notify the VM that the service is no longer running.
 @pragma("vm:external-name", "VMService_OnExit")
-external void _onExit();
-
-/// Notify the VM that the server's address has changed.
-void onServerAddressChange(String? address) {
-  _onServerAddressChange(address);
-}
+external void onExit();
 
 @pragma("vm:external-name", "VMService_OnServerAddressChange")
-external void _onServerAddressChange(String? address);
+external void onServerAddressChange(String? address);
 
 /// Subscribe to a service stream.
 @pragma("vm:external-name", "VMService_ListenStream")
-external bool _vmListenStream(String streamId, bool include_privates);
+external bool vmListenStream(String streamId, bool include_privates);
 
 /// Cancel a subscription to a service stream.
 @pragma("vm:external-name", "VMService_CancelStream")
-external void _vmCancelStream(String streamId);
+external void vmCancelStream(String streamId);

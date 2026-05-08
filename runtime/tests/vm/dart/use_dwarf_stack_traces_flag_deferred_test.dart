@@ -539,11 +539,11 @@ Map<int, Iterable<int>> parseUsingAddressRegExp(
   for (final line in lines) {
     var match = re.firstMatch(line);
     if (match != null) {
-      final address = int.parse(match.group(1)!, radix: 16);
+      final address = int.parse(match[1]!, radix: 16);
       var unitId = rootLoadingUnitId;
       match = _unitRE.firstMatch(line);
       if (match != null) {
-        unitId = int.parse(match.group(1)!);
+        unitId = int.parse(match[1]!);
       }
       result[unitId] ??= <int>[];
       result[unitId]!.add(address);

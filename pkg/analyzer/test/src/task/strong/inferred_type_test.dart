@@ -2608,7 +2608,7 @@ main() {
           1,
           contextMessages: [message(testFile, 12, 1)],
         ),
-        error(diag.wrongNumberOfTypeArgumentsMethod, 91, 5),
+        error(diag.wrongNumberOfTypeArgumentsElement, 91, 5),
       ],
     );
   }

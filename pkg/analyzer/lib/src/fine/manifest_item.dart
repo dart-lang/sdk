@@ -183,7 +183,6 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     return context.withFormalParameters(element.formalParameters, () {
       return super.match(context, element) &&
           flags.isConst == element.isConst &&
-          flags.isDeclaring == element.isDeclaring &&
           flags.isFactory == element.isFactory &&
           flags.isOriginDeclaration == element.isOriginDeclaration &&
           flags.isOriginImplicitDefault == element.isOriginImplicitDefault &&
@@ -502,14 +501,16 @@ class FieldItem extends VariableItem<FieldElementImpl> {
     required EncodeContext context,
     required FieldElementImpl element,
   }) {
-    return FieldItem(
-      id: id,
-      flags: _FieldItemFlags.encode(element),
-      metadata: ManifestMetadata.encode(context, element.metadata),
-      type: element.type.encode(context),
-      constInitializer: element.constantInitializer?.encode(context),
-      typeInferenceError: element.typeInferenceError,
-    );
+    return context.withPrimaryInitializerScope(element, () {
+      return FieldItem(
+        id: id,
+        flags: _FieldItemFlags.encode(element),
+        metadata: ManifestMetadata.encode(context, element.metadata),
+        type: element.type.encode(context),
+        constInitializer: element.constantInitializer?.encode(context),
+        typeInferenceError: element.typeInferenceError,
+      );
+    });
   }
 
   factory FieldItem.read(BinaryReader reader) {
@@ -528,21 +529,23 @@ class FieldItem extends VariableItem<FieldElementImpl> {
 
   @override
   bool match(MatchContext context, FieldElementImpl element) {
-    return super.match(context, element) &&
-        flags.hasEnclosingTypeParameterReference ==
-            element.hasEnclosingTypeParameterReference &&
-        flags.isAbstract == element.isAbstract &&
-        flags.isCovariant == element.isCovariant &&
-        flags.isEnumConstant == element.isEnumConstant &&
-        flags.isExternal == element.isExternal &&
-        flags.isOriginDeclaration == element.isOriginDeclaration &&
-        flags.isOriginDeclaringFormalParameter ==
-            element.isOriginDeclaringFormalParameter &&
-        flags.isOriginEnumValues == element.isOriginEnumValues &&
-        flags.isOriginExtensionTypeRecoveryRepresentation ==
-            element.isOriginExtensionTypeRecoveryRepresentation &&
-        flags.isOriginGetterSetter == element.isOriginGetterSetter &&
-        flags.isPromotable == element.isPromotable;
+    return context.withPrimaryInitializerScope(element, () {
+      return super.match(context, element) &&
+          flags.hasEnclosingTypeParameterReference ==
+              element.hasEnclosingTypeParameterReference &&
+          flags.isAbstract == element.isAbstract &&
+          flags.isCovariant == element.isCovariant &&
+          flags.isEnumConstant == element.isEnumConstant &&
+          flags.isExternal == element.isExternal &&
+          flags.isOriginDeclaration == element.isOriginDeclaration &&
+          flags.isOriginDeclaringFormalParameter ==
+              element.isOriginDeclaringFormalParameter &&
+          flags.isOriginEnumValues == element.isOriginEnumValues &&
+          flags.isOriginExtensionTypeRecoveryRepresentation ==
+              element.isOriginExtensionTypeRecoveryRepresentation &&
+          flags.isOriginGetterSetter == element.isOriginGetterSetter &&
+          flags.isPromotable == element.isPromotable;
+    });
   }
 
   static Map<LookupName, FieldItem> readMap(BinaryReader reader) {
@@ -1079,10 +1082,7 @@ sealed class ManifestItem<E extends ElementImpl> {
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
-    return
-    // ignore: deprecated_member_use_from_same_package
-    flags.isSynthetic == element.isSynthetic &&
-        metadata.match(context, element.effectiveMetadata);
+    return metadata.match(context, element.effectiveMetadata);
   }
 
   @mustCallSuper
@@ -1647,7 +1647,6 @@ enum _ClassItemFlag {
 
 enum _ConstructorItemFlag {
   isConst,
-  isDeclaring,
   isFactory,
   isOriginDeclaration,
   isOriginImplicitDefault,
@@ -1689,7 +1688,7 @@ enum _InstanceItemFlag { isSimplyBounded }
 
 enum _InterfaceItemFlag { reserved }
 
-enum _ManifestItemFlag { isSynthetic }
+enum _ManifestItemFlag { isPlaceholder }
 
 enum _MethodItemFlag {
   isOperatorEqualWithParameterTypeFromObject,
@@ -1810,9 +1809,6 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isConst) {
       bits |= _maskFor(_ConstructorItemFlag.isConst);
     }
-    if (element.isDeclaring) {
-      bits |= _maskFor(_ConstructorItemFlag.isDeclaring);
-    }
     if (element.isFactory) {
       bits |= _maskFor(_ConstructorItemFlag.isFactory);
     }
@@ -1837,10 +1833,6 @@ extension type _ConstructorItemFlags._(int _bits)
 
   bool get isConst {
     return _has(_ConstructorItemFlag.isConst);
-  }
-
-  bool get isDeclaring {
-    return _has(_ConstructorItemFlag.isDeclaring);
   }
 
   bool get isFactory {
@@ -2167,12 +2159,9 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(0);
   }
 
+  // ignore: avoid_unused_constructor_parameters
   factory _ManifestItemFlags.encode(ElementImpl element) {
     var bits = 0;
-    // ignore: deprecated_member_use_from_same_package
-    if (element.isSynthetic) {
-      bits |= _maskFor(_ManifestItemFlag.isSynthetic);
-    }
     return _ManifestItemFlags._(bits);
   }
 
@@ -2180,8 +2169,8 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(reader.readUint30());
   }
 
-  bool get isSynthetic {
-    return _has(_ManifestItemFlag.isSynthetic);
+  bool get isPlaceholder {
+    return _has(_ManifestItemFlag.isPlaceholder);
   }
 
   void write(BinaryWriter writer) {

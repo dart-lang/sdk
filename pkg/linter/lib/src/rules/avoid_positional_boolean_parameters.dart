@@ -36,8 +36,9 @@ class AvoidPositionalBooleanParameters extends AnalysisRule {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
     registry.addGenericFunctionType(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -94,6 +95,17 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.hasInheritedMethod &&
         !_isOverridingMember(declaredElement)) {
       checkParams(node.parameters?.parameters);
+    }
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    // Don't lint augmentations.
+    if (node.isAugmentation) return;
+
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null && !declaredElement.isPrivate) {
+      checkParams(node.formalParameters.parameters);
     }
   }
 

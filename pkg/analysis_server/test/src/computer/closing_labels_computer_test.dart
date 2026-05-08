@@ -72,7 +72,7 @@ List<ClosingLabel> compute() {
     await _compareLabels(content, []);
   }
 
-  Future<void> test_constConstructor() async {
+  Future<void> test_constructor_const() async {
     var content = '''
 void myMethod() {
   return /*[0*/new Wrapper(
@@ -87,7 +87,7 @@ void myMethod() {
     await _compareLabels(content, ['Wrapper', 'Class']);
   }
 
-  Future<void> test_constNamedConstructor() async {
+  Future<void> test_constructor_named() async {
     var content = '''
 void myMethod() {
   return /*[0*/new Wrapper(
@@ -100,6 +100,40 @@ void myMethod() {
 ''';
 
     await _compareLabels(content, ['Wrapper', 'Class.fromThing']);
+  }
+
+  Future<void> test_constructor_primary() async {
+    var content = '''
+class Point(var int x, var int y);
+
+void myMethod() {
+  return /*[0*/new Wrapper(
+    /*[1*/Point(
+      1,
+      2,
+    )/*1]*/
+  )/*0]*/;
+}
+''';
+
+    await _compareLabels(content, ['Wrapper', 'Point']);
+  }
+
+  Future<void> test_constructor_primary_named() async {
+    var content = '''
+class Point.foo(var int x, var int y);
+
+void myMethod() {
+  return /*[0*/new Wrapper(
+    /*[1*/Point.foo(
+      1,
+      2,
+     )/*1]*/
+  )/*0]*/;
+}
+''';
+
+    await _compareLabels(content, ['Wrapper', 'Point.foo']);
   }
 
   Future<void> test_knownBadCode1() async {

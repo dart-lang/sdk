@@ -65,9 +65,6 @@ class OS {
   // the platform doesn't care. Guaranteed to be a power of two.
   static intptr_t ActivationFrameAlignment();
 
-  // Returns number of available processor cores.
-  static int NumberOfAvailableProcessors();
-
   // Returns the current resident set size in bytes, or 0 if it could not be
   // determined.
   static uintptr_t CurrentRSS();

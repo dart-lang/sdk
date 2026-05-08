@@ -30,6 +30,11 @@ void main() {
   // DRY_RUN: 12, Runtime check between 'JSObject' and 'Window' involves a
   // runtime check between a JS interop value and an unrelated JS interop type
   JSObject() is Window;
+  // DRY_RUN: 17, Catch clause with type 'JSObject' checks whether the caught
+  // value is a JS interop type, which might not be platform-consistent.
+  try {} on JSObject catch (e) {
+    print(e);
+  }
   // Users are allowed to ignore lints still.
   // ignore: invalid_runtime_check_with_js_interop_types
   dartInt as JSString;

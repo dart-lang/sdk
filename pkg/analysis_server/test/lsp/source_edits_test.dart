@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../abstract_single_unit.dart';
+import '../utils/lsp_protocol_extensions.dart';
 import 'request_helpers_mixin.dart';
 
 void main() {
@@ -703,18 +704,6 @@ extension on TextEdit {
         ? 'Delete ${range.toText()}'
         : 'Replace ${range.toText()} with ${jsonEncode(newText)}';
   }
-}
-
-/// Helpers for building simple text representations of edits to verify that
-/// minimal diffs were produced.
-extension on Range {
-  String toText() => '${start.toText()}-${end.toText()}';
-}
-
-/// Helpers for building simple text representations of edits to verify that
-/// minimal diffs were produced.
-extension on Position {
-  String toText() => '${line + 1}:${character + 1}';
 }
 
 /// Helpers for building simple text representations of edits to verify that

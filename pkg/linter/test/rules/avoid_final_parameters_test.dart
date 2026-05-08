@@ -25,8 +25,6 @@ class AvoidFinalParametersPrePrimaryConstructorsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_final_parameters;
 
-  // TODO(srawlins): Test function-typed parameter like `void f(final p())`.
-
   test_constructorFieldFormal_final() async {
     await assertDiagnostics(
       r'''
@@ -39,7 +37,7 @@ class C {
         // TODO(srawlins): Do not report this lint rule here, as it is redundant
         // with the Warning.
         error(diag.unnecessaryFinal, 23, 5),
-        lint(23, 12),
+        lint(23, 5),
       ],
     );
   }
@@ -60,7 +58,7 @@ class C {
   C(final int p);
 }
 ''',
-      [lint(14, 11)],
+      [lint(14, 5)],
     );
   }
 
@@ -72,18 +70,213 @@ class C {
 ''');
   }
 
+  test_enum_constructor_final() async {
+    await assertDiagnostics(
+      r'''
+enum E {
+  a(1);
+  const E(final int p);
+}
+''',
+      [lint(27, 5)],
+    );
+  }
+
+  test_enum_constructor_noFinal() async {
+    await assertNoDiagnostics(r'''
+enum E {
+  a(1);
+  const E(int p);
+}
+''');
+  }
+
+  test_enum_method_final() async {
+    await assertDiagnostics(
+      r'''
+enum E {
+  a;
+  void f(final p) {}
+}
+''',
+      [lint(23, 5)],
+    );
+  }
+
+  test_enum_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+enum E {
+  a;
+  void f(int p) {}
+}
+''');
+  }
+
+  test_extension_method_final() async {
+    await assertDiagnostics(
+      r'''
+extension E on int {
+  void f(final p) {}
+}
+''',
+      [lint(30, 5)],
+    );
+  }
+
+  test_extension_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+extension E on int {
+  void f(int p) {}
+}
+''');
+  }
+
+  test_extensionType_method_final() async {
+    await assertDiagnostics(
+      r'''
+extension type E(int i) {
+  void f(final p) {}
+}
+''',
+      [lint(35, 5)],
+    );
+  }
+
+  test_extensionType_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+extension type E(int i) {
+  void f(int p) {}
+}
+''');
+  }
+
   test_functionExpression_final() async {
     await assertDiagnostics(
       r'''
 var f = (final int value) {};
 ''',
-      [lint(9, 15)],
+      [lint(9, 5)],
     );
   }
 
   test_functionExpression_noFinal() async {
     await assertNoDiagnostics(r'''
 var f = (int value) {};
+''');
+  }
+
+  test_functionTyped_fieldFormal_final() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  final void Function(int) f;
+  C(void this.f(final p));
+}
+''',
+      [lint(56, 5)],
+    );
+  }
+
+  test_functionTyped_fieldFormal_noFinal() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final void Function(int) f;
+  C(void this.f(int p));
+}
+''');
+  }
+
+  test_functionTyped_final() async {
+    // No lint because a warning already exists for this case.
+    await assertDiagnostics(
+      r'''
+void f(final p()) {}
+''',
+      [error(diag.functionTypedParameterVar, 7, 5)],
+    );
+  }
+
+  test_functionTyped_noFinal() async {
+    await assertNoDiagnostics(r'''
+void f(int p()) {}
+''');
+  }
+
+  test_functionTyped_parameter_final() async {
+    await assertDiagnostics(
+      r'''
+void f(void g(final p)) {}
+''',
+      [lint(14, 5)],
+    );
+  }
+
+  test_functionTyped_parameter_noFinal() async {
+    await assertNoDiagnostics(r'''
+void f(void g(int p)) {}
+''');
+  }
+
+  test_functionTyped_superFormal_final() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(void f(int p));
+}
+class B extends A {
+  B(void super.f(final p));
+}
+''',
+      [lint(69, 5)],
+    );
+  }
+
+  test_functionTyped_superFormal_noFinal() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(void f(int p));
+}
+class B extends A {
+  B(void super.f(int p));
+}
+''');
+  }
+
+  test_localFunction_final() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  void g(final p) {}
+}
+''',
+      [lint(20, 5)],
+    );
+  }
+
+  test_localFunction_noFinal() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  void g(int p) {}
+}
+''');
+  }
+
+  test_mixin_method_final() async {
+    await assertDiagnostics(
+      r'''
+mixin M {
+  void f(final p) {}
+}
+''',
+      [lint(19, 5)],
+    );
+  }
+
+  test_mixin_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+mixin M {
+  void f(int p) {}
+}
 ''');
   }
 
@@ -94,7 +287,7 @@ class C {
   int operator +(final int other) => 0;
 }
 ''',
-      [lint(27, 15)],
+      [lint(27, 5)],
     );
   }
 
@@ -111,7 +304,7 @@ class C {
       r'''
 void f({final int? p}) {}
 ''',
-      [lint(8, 12)],
+      [lint(8, 5)],
     );
   }
 
@@ -126,7 +319,7 @@ void f({int? p}) {}
       r'''
 void f([final int? p]) {}
 ''',
-      [lint(8, 12)],
+      [lint(8, 5)],
     );
   }
 
@@ -141,7 +334,7 @@ void f([int? p]) {}
       r'''
 void f([final int p = 0]) {}
 ''',
-      [lint(8, 15)],
+      [lint(8, 5)],
     );
   }
 
@@ -156,7 +349,7 @@ void f([int p = 0]) {}
       r'''
 void f({required final int? p}) {}
 ''',
-      [lint(8, 21)],
+      [lint(17, 5)],
     );
   }
 
@@ -171,7 +364,7 @@ void f({required int p}) {}
       r'''
 void f(final int p) {}
 ''',
-      [lint(7, 11)],
+      [lint(7, 5)],
     );
   }
 
@@ -188,7 +381,7 @@ void f(int p) {}
       r'''
 void f(final int _) {}
 ''',
-      [lint(7, 11)],
+      [lint(7, 5)],
     );
   }
 
@@ -197,7 +390,7 @@ void f(final int _) {}
       r'''
 set f(final int value) {}
 ''',
-      [lint(6, 15)],
+      [lint(6, 5)],
     );
   }
 
@@ -207,7 +400,7 @@ set f(int value) {}
 ''');
   }
 
-  test_super() async {
+  test_super_final() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -224,10 +417,58 @@ class B extends A {
         // with the Hint.
         error(diag.unnecessaryFinal, 83, 5),
         error(diag.unnecessaryFinal, 98, 5),
-        lint(83, 13),
-        lint(98, 13),
+        lint(83, 5),
+        lint(98, 5),
       ],
     );
+  }
+
+  test_super_noFinal() async {
+    await assertNoDiagnostics(r'''
+class A {
+  String? a;
+  String? b;
+  A(this.a, this.b);
+}
+class B extends A {
+  B(super.a, super.b);
+}
+''');
+  }
+
+  test_typedef_final() async {
+    await assertDiagnostics(
+      r'''
+typedef String Type(final value);
+''',
+      [lint(20, 5)],
+    );
+  }
+
+  test_typedef_genericFunctionType_final() async {
+    await assertDiagnostics(
+      r'''
+typedef F = void Function(final x);
+''',
+      [
+        // No lint reported to avoid redundancy with
+        // `functionTypedParameterVar`.
+        error(diag.functionTypedParameterVar, 26, 5),
+        error(diag.undefinedClass, 32, 1),
+      ],
+    );
+  }
+
+  test_typedef_genericFunctionType_noFinal() async {
+    await assertNoDiagnostics(r'''
+typedef F = void Function(int x);
+''');
+  }
+
+  test_typedef_noFinal() async {
+    await assertNoDiagnostics(r'''
+typedef String Type(int value);
+''');
   }
 }
 
@@ -239,11 +480,14 @@ class AvoidFinalParametersTest extends LintRuleTest {
   // With primary constructors, this lint is disabled.
   // No need to repeat all the tests; one will do.
   test_constructorSimple_final() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   // Would be flagged.
   C(final int p);
 }
-''');
+''',
+      [error(diag.extraneousModifier, 37, 5)],
+    );
   }
 }

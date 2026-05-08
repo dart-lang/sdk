@@ -599,6 +599,28 @@ class X implements B<bool> {
 ''');
   }
 
+  Future<void> test_method_inClassWithEmptyBody() async {
+    await resolveTestCode('''
+abstract class A {
+  void foo();
+}
+
+class B implements A;
+''');
+    await assertHasFix('''
+abstract class A {
+  void foo();
+}
+
+class B implements A {
+  @override
+  void foo() {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
   Future<void> test_method_inEnum() async {
     await resolveTestCode('''
 abstract class A {
@@ -623,6 +645,35 @@ enum E implements A {
   }
 }
 ''');
+  }
+
+  Future<void> test_method_inEnumWithEmptyBody() async {
+    await resolveTestCode('''
+abstract class A {
+  void foo();
+}
+
+enum E implements A;
+''');
+    await assertHasFix(
+      '''
+abstract class A {
+  void foo();
+}
+
+enum E implements A {
+  @override
+  void foo() {
+    // TODO: implement foo
+  }
+}
+''',
+      filter: (error) {
+        // Filter to ignore enum_without_constants
+        return error.diagnosticCode ==
+            diag.nonAbstractClassInheritsAbstractMemberOne;
+      },
+    );
   }
 
   Future<void> test_method_inEnumWithMembers() async {

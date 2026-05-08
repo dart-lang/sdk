@@ -30,15 +30,14 @@ final class Utf8Codec extends Encoding {
 
   /// Instantiates a new [Utf8Codec].
   ///
-  /// The optional [allowMalformed] argument defines how [decoder] (and [decode])
+  /// The optional [_allowMalformed] argument defines how [decoder] (and [decode])
   /// deal with invalid or unterminated character sequences.
   ///
   /// If it is `true` (and not overridden at the method invocation) [decode] and
   /// the [decoder] replace invalid (or unterminated) octet
   /// sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
   /// they throw a [FormatException].
-  const Utf8Codec({bool allowMalformed = false})
-    : _allowMalformed = allowMalformed;
+  const Utf8Codec({this._allowMalformed = false});
 
   /// The name of this codec is "utf-8".
   String get name => "utf-8";
@@ -329,14 +328,13 @@ final class Utf8Decoder extends Converter<List<int>, String> {
 
   /// Instantiates a new [Utf8Decoder].
   ///
-  /// The optional [allowMalformed] argument defines how [convert] deals
+  /// The optional [_allowMalformed] argument defines how [convert] deals
   /// with invalid or unterminated character sequences.
   ///
   /// If it is `true`, [convert] replaces invalid (or unterminated) character
   /// sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
   /// it throws a [FormatException].
-  const Utf8Decoder({bool allowMalformed = false})
-    : _allowMalformed = allowMalformed;
+  const Utf8Decoder({this._allowMalformed = false});
 
   /// Converts the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
   /// corresponding string.

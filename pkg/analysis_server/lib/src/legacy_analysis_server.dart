@@ -19,8 +19,7 @@ import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
-import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart'
-    hide Occurrences;
+import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_hover.dart';
@@ -180,6 +179,8 @@ class AnalysisServerOptions {
 
   /// Whether to enable fine-grained dependencies.
   bool withFineDependencies = false;
+
+  bool usePlugins = true;
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that
@@ -401,6 +402,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     super.pluginManager,
     super.messageSchedulerListener,
     PerformanceLogger? performanceLogger,
+    super.environment,
   }) : lspClientConfiguration = lsp.LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -416,6 +418,7 @@ class LegacyAnalysisServer extends AnalysisServer {
          httpClient,
          processRunner,
          NotificationManager(channel, baseResourceProvider.pathContext),
+         usePlugins: options.usePlugins,
        ) {
     var contextManagerCallbacks = ServerContextManagerCallbacks(
       this,
@@ -458,9 +461,9 @@ class LegacyAnalysisServer extends AnalysisServer {
       pluginStatusAnalyzing,
     ) {
       if (!pluginManager.initializedCompleter.isCompleted) {
-        // Without `this.`, some portion of the analyzer believes we are accessing
-        // the super parameter, instead of the field in the super class.
-        // See https://github.com/dart-lang/sdk/issues/59996.
+        // Without `this.`, some portion of the analyzer believes we are
+        // accessing the super parameter, instead of the field in the super
+        // class.  See https://github.com/dart-lang/sdk/issues/59996.
         // ignore: unnecessary_this
         this.pluginManager.initializedCompleter.complete();
       } else {

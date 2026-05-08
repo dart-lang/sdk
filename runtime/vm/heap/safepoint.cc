@@ -30,36 +30,6 @@ SafepointOperationScope::~SafepointOperationScope() {
   handler->ResumeThreads(T, level_);
 }
 
-ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
-    Thread* T,
-    SafepointLevel level)
-    : ThreadStackResource(T), level_(level) {
-  ASSERT(T != nullptr);
-  IsolateGroup* IG = T->isolate_group();
-  ASSERT(IG != nullptr);
-
-  T->IncrementForceGrowthScopeDepth();
-
-  auto handler = IG->safepoint_handler();
-  handler->SafepointThreads(T, level_);
-}
-
-ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
-  Thread* T = thread();
-  ASSERT(T != nullptr);
-  IsolateGroup* IG = T->isolate_group();
-  ASSERT(IG != nullptr);
-
-  auto handler = IG->safepoint_handler();
-  handler->ResumeThreads(T, level_);
-
-  T->DecrementForceGrowthScopeDepth();
-  if (!T->force_growth()) {
-    // Check if we passed the growth limit during the scope.
-    T->heap()->CheckCatchUp(T);
-  }
-}
-
 SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)
     : isolate_group_(isolate_group), tasks_() {
   handlers_[SafepointLevel::kGC] =

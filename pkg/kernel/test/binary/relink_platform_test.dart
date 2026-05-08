@@ -28,16 +28,20 @@ void readAndRelink(File dill) {
   try {
     // Loading a component it should be self-contained.
     Component component1 = new Component();
-    new BinaryBuilder(bytes,
-            alwaysCreateNewNamedNodes: true, disableLazyReading: true)
-        .readComponent(component1);
+    new BinaryBuilder(
+      bytes,
+      alwaysCreateNewNamedNodes: true,
+      disableLazyReading: true,
+    ).readComponent(component1);
     checkReachable(component1);
 
     // Loading a component it should be self-contained.
     Component component2 = new Component(nameRoot: component1.root);
-    new BinaryBuilder(bytes,
-            alwaysCreateNewNamedNodes: true, disableLazyReading: true)
-        .readComponent(component2);
+    new BinaryBuilder(
+      bytes,
+      alwaysCreateNewNamedNodes: true,
+      disableLazyReading: true,
+    ).readComponent(component2);
     checkReachable(component2);
 
     // Now that we read "component 2" on top of "component 1" the 1-version is
@@ -77,11 +81,16 @@ void readAndRelink(File dill) {
 
 void checkReachable(Component component) {
   expectReachable(
-      findAllReferencedLibraries(component.libraries), component.libraries);
+    findAllReferencedLibraries(component.libraries),
+    component.libraries,
+  );
   expectReachable(
-      findAllReferencedLibraries(component.libraries,
-          collectViaReferencesToo: true),
-      component.libraries);
+    findAllReferencedLibraries(
+      component.libraries,
+      collectViaReferencesToo: true,
+    ),
+    component.libraries,
+  );
   if (duplicateLibrariesReachable(component.libraries)) {
     throw "Didn't expect duplicates libraries!";
   }

@@ -45,7 +45,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
       if (time.contains('.')) {
         time = time.substring(0, time.indexOf('.'));
       }
-      buf.writeln(writeOption('Uptime', time));
+      buf.writeln(formatOption('Uptime', time));
 
       buf.write('</div>');
     }
@@ -60,7 +60,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
           performanceAfterStartup.startTime -
           server.performanceDuringStartup.startTime;
       buf.writeln(
-        writeOption('Initial analysis time', printMilliseconds(startupTime)),
+        formatOption('Initial analysis time', printMilliseconds(startupTime)),
       );
     }
 

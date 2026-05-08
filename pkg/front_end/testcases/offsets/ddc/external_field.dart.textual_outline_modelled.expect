@@ -1,0 +1,6 @@
+import 'dart:js_interop';
+
+extension type Foo._(JSObject _) implements JSObject {
+  @JS('foo')
+  external bool? bar;
+}

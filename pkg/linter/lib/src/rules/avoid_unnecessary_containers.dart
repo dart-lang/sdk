@@ -40,9 +40,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (!isWidgetType(node.staticType)) {
-      return;
-    }
+    if (!node.staticType.isWidgetType) return;
+
     var parent = node.parent;
     if (parent is NamedExpression && parent.name.label.name == 'child') {
       var args = parent.thisOrAncestorOfType<ArgumentList>();
@@ -50,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var parentCreation = parent
             .thisOrAncestorOfType<InstanceCreationExpression>();
         if (parentCreation != null) {
-          if (isExactWidgetTypeContainer(parentCreation.staticType)) {
+          if (parentCreation.isWidgetTypeContainer) {
             rule.reportAtNode(parentCreation.constructorName);
           }
         }

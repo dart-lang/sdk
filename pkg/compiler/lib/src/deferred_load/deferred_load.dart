@@ -288,7 +288,7 @@ import 'algorithm_state.dart';
 import 'entity_data.dart';
 import 'import_set.dart';
 import 'output_unit.dart';
-import 'program_split_constraints/builder.dart' as psc show Builder;
+import 'program_split_constraints/builder.dart' as psc show Dart2JsBuilder;
 
 class DeferredLoadTaskMetrics implements Metrics {
   @override
@@ -567,7 +567,7 @@ class DeferredLoadTask extends CompilerTask {
       // If program split constraints are provided, then parse and interpret
       // them now.
       if (compiler.programSplitConstraintsData != null) {
-        var builder = psc.Builder(compiler.programSplitConstraintsData!);
+        var builder = psc.Dart2JsBuilder(compiler.programSplitConstraintsData!);
         var transitions = builder.build(_allDeferredImports);
         importSetsLattice.buildInitialSets(transitions.singletonTransitions);
         importSetsLattice.buildSetTransitions(transitions.setTransitions);

@@ -24,11 +24,13 @@ class LibraryIndex {
 
   /// Indexes the libraries with the URIs given in [libraryUris].
   LibraryIndex(Component component, Iterable<String> libraryUris)
-      : this.fromLibraries(component.libraries, libraryUris);
+    : this.fromLibraries(component.libraries, libraryUris);
 
   /// Indexes the libraries with the URIs given in [libraryUris].
   LibraryIndex.fromLibraries(
-      Iterable<Library> libraries, Iterable<String> libraryUris) {
+    Iterable<Library> libraries,
+    Iterable<String> libraryUris,
+  ) {
     Set<String> libraryUriSet = libraryUris.toSet();
     for (Library library in libraries) {
       String uri = '${library.importUri}';
@@ -92,8 +94,17 @@ class LibraryIndex {
   ///
   /// An error is thrown if the extension type is not found.
   ExtensionTypeDeclaration getExtensionType(
-      String library, String extensionTypeName) {
+    String library,
+    String extensionTypeName,
+  ) {
     return _getLibraryIndex(library).getExtensionType(extensionTypeName);
+  }
+
+  /// Returns the extension with the given name in the given library.
+  ///
+  /// An error is thrown if the extension is not found.
+  Extension getExtension(String library, String extensionName) {
+    return _getLibraryIndex(library).getExtension(extensionName);
   }
 
   /// Returns the member with the given name, in the given container
@@ -114,17 +125,26 @@ class LibraryIndex {
   }
 
   Constructor getConstructor(
-      String library, String containerName, String memberName) {
+    String library,
+    String containerName,
+    String memberName,
+  ) {
     return _getLibraryIndex(library).getConstructor(containerName, memberName);
   }
 
   Procedure getProcedure(
-      String library, String containerName, String memberName) {
+    String library,
+    String containerName,
+    String memberName,
+  ) {
     return _getLibraryIndex(library).getProcedure(containerName, memberName);
   }
 
   Procedure? tryGetProcedure(
-      String library, String containerName, String memberName) {
+    String library,
+    String containerName,
+    String memberName,
+  ) {
     return _getLibraryIndex(library).tryGetProcedure(containerName, memberName);
   }
 
@@ -173,11 +193,15 @@ class _ContainerTable {
           in library.extensionTypeDeclarations) {
         _containers![extensionTypeDeclaration.name] =
             new _MemberTable.fromExtensionTypeDeclaration(
-                this, extensionTypeDeclaration);
+              this,
+              extensionTypeDeclaration,
+            );
       }
       for (Extension extension_ in library.extensions) {
-        _containers![extension_.name] =
-            new _MemberTable.fromExtension(this, extension_);
+        _containers![extension_.name] = new _MemberTable.fromExtension(
+          this,
+          extension_,
+        );
       }
       for (Reference reference in library.additionalExports) {
         NamedNode? node = reference.node;
@@ -218,6 +242,10 @@ class _ContainerTable {
     return _getContainerIndex(name).extensionTypeDeclaration!;
   }
 
+  Extension getExtension(String name) {
+    return _getContainerIndex(name).extension_!;
+  }
+
   Member getMember(String className, String memberName) {
     return _getContainerIndex(className).getMember(memberName);
   }
@@ -252,19 +280,20 @@ class _MemberTable {
   Library get library => parent.library;
 
   _MemberTable.fromClass(this.parent, this.class_)
-      : extensionTypeDeclaration = null,
-        extension_ = null;
+    : extensionTypeDeclaration = null,
+      extension_ = null;
   _MemberTable.fromExtensionTypeDeclaration(
-      this.parent, this.extensionTypeDeclaration)
-      : class_ = null,
-        extension_ = null;
+    this.parent,
+    this.extensionTypeDeclaration,
+  ) : class_ = null,
+      extension_ = null;
   _MemberTable.fromExtension(this.parent, this.extension_)
-      : class_ = null,
-        extensionTypeDeclaration = null;
+    : class_ = null,
+      extensionTypeDeclaration = null;
   _MemberTable.topLevel(this.parent)
-      : class_ = null,
-        extensionTypeDeclaration = null,
-        extension_ = null;
+    : class_ = null,
+      extensionTypeDeclaration = null,
+      extension_ = null;
 
   Map<String, Member> get members {
     if (_members == null) {
@@ -275,8 +304,9 @@ class _MemberTable {
         class_!.constructors.forEach(_addClassMember);
       } else if (extensionTypeDeclaration != null) {
         // Note that this doesn't include `ExtensionTypeDeclaration.procedures`.
-        extensionTypeDeclaration!.memberDescriptors
-            .forEach(_addExtensionTypeMember);
+        extensionTypeDeclaration!.memberDescriptors.forEach(
+          _addExtensionTypeMember,
+        );
       } else if (extension_ != null) {
         extension_!.memberDescriptors.forEach(_addExtensionMember);
       } else {
@@ -317,8 +347,9 @@ class _MemberTable {
   }
 
   String _getDisambiguatedExtensionName(
-      ExtensionMemberDescriptor extensionMember,
-      {required bool forTearOff}) {
+    ExtensionMemberDescriptor extensionMember, {
+    required bool forTearOff,
+  }) {
     if (forTearOff) {
       return LibraryIndex.tearoffPrefix + extensionMember.name.text;
     }
@@ -335,15 +366,20 @@ class _MemberTable {
   }
 
   void _addExtensionMember(ExtensionMemberDescriptor extensionMember) {
-    _addReference(extensionMember.memberReference,
-        _getDisambiguatedExtensionName(extensionMember, forTearOff: false));
-    _addReference(extensionMember.tearOffReference,
-        _getDisambiguatedExtensionName(extensionMember, forTearOff: true));
+    _addReference(
+      extensionMember.memberReference,
+      _getDisambiguatedExtensionName(extensionMember, forTearOff: false),
+    );
+    _addReference(
+      extensionMember.tearOffReference,
+      _getDisambiguatedExtensionName(extensionMember, forTearOff: true),
+    );
   }
 
   String _getDisambiguatedExtensionTypeName(
-      ExtensionTypeMemberDescriptor extensionTypeMember,
-      {required bool forTearOff}) {
+    ExtensionTypeMemberDescriptor extensionTypeMember, {
+    required bool forTearOff,
+  }) {
     if (forTearOff) {
       return LibraryIndex.tearoffPrefix + extensionTypeMember.name.text;
     }
@@ -363,15 +399,19 @@ class _MemberTable {
   }
 
   void _addExtensionTypeMember(
-      ExtensionTypeMemberDescriptor extensionTypeMember) {
+    ExtensionTypeMemberDescriptor extensionTypeMember,
+  ) {
     _addReference(
-        extensionTypeMember.memberReference,
-        _getDisambiguatedExtensionTypeName(extensionTypeMember,
-            forTearOff: false));
+      extensionTypeMember.memberReference,
+      _getDisambiguatedExtensionTypeName(
+        extensionTypeMember,
+        forTearOff: false,
+      ),
+    );
     _addReference(
-        extensionTypeMember.tearOffReference,
-        _getDisambiguatedExtensionTypeName(extensionTypeMember,
-            forTearOff: true));
+      extensionTypeMember.tearOffReference,
+      _getDisambiguatedExtensionTypeName(extensionTypeMember, forTearOff: true),
+    );
   }
 
   String get containerName {
@@ -390,7 +430,8 @@ class _MemberTable {
   Member getMember(String name) {
     Member? member = members[name];
     if (member == null) {
-      String message = "A member with disambiguated name '$name' was not found "
+      String message =
+          "A member with disambiguated name '$name' was not found "
           "in $containerName: ${members.keys}";
       String getter = LibraryIndex.getterPrefix + name;
       String setter = LibraryIndex.setterPrefix + name;

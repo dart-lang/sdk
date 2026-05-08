@@ -115,7 +115,8 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   MemberKind get memberKind => MemberKind.Factory;
 
   @override
-  bool get shouldBuild => true;
+  // Coverage-ignore(suite): Not run.
+  bool get shouldFinishFunction => true;
 
   @override
   List<TypeParameter>? get thisTypeParameters => null;

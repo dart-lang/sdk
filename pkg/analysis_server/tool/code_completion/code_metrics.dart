@@ -4,7 +4,6 @@
 
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -298,7 +297,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'withClause': node.withClause,
       'implementsClause': node.implementsClause,
       'nativeClause': node.nativeClause,
-      'members': node.members2,
+      'members': node.body.members,
     });
     super.visitClassDeclaration(node);
   }
@@ -431,7 +430,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitDottedName(DottedName node) {
-    _visitChildren(node, {'components': node.components});
+    _visitChildren(node, {});
     super.visitDottedName(node);
   }
 
@@ -825,12 +824,6 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'name': node.name,
     });
     super.visitLibraryDirective(node);
-  }
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    _visitChildren(node, {'components': node.components});
-    super.visitLibraryIdentifier(node);
   }
 
   @override

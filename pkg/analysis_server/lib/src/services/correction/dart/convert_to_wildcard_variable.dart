@@ -59,12 +59,10 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
       return;
     }
 
-    List<AstNode>? references;
     var root = node.thisOrAncestorOfType<Block>();
-    if (root != null) {
-      references = findLocalElementReferences(root, element);
-    }
-    if (references == null) return;
+    if (root == null) return;
+
+    var references = findLocalElementReferences(root, element);
 
     // Only assigned variable patterns can be safely converted to wildcards.
     if (references.any((r) => r is! AssignedVariablePattern)) return;

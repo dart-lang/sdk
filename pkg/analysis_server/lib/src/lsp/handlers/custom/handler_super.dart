@@ -55,6 +55,22 @@ class SuperHandler
         return success(null);
       }
 
+      // For PrimaryConstructorDeclarations, ElementLocator will return the
+      // class element (unless we're on a constructor name), but we want to
+      // treat a position within parameters as the constructor element, not the
+      // class element.
+      //
+      //   class Fo^o() extends X {}       // navigate to super class
+      //   class Foo(^) extends X {}       // navigate to super constructor
+      //   class Foo.na^med() extends X {} // navigate to super constructor
+      if (node is PrimaryConstructorDeclaration &&
+          element is ClassElement &&
+          offset > node.typeName.end) {
+        if (element.primaryConstructor case var constructor?) {
+          element = constructor;
+        }
+      }
+
       var targetFragment = _SuperComputer().computeSuper(element);
       var location = fragmentToLocation(uriConverter, targetFragment);
       return success(location);
@@ -71,7 +87,10 @@ class SuperHandler
       // This says if the variable is a field or null if it isn't.
       testNode = list.parent;
     }
-    return testNode is ClassDeclaration || testNode is ClassMember;
+
+    return testNode is ClassDeclaration ||
+        testNode is ClassMember ||
+        testNode is PrimaryConstructorDeclaration;
   }
 }
 

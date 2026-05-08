@@ -213,6 +213,12 @@ class _Collector {
     }
 
     if (node is TypeLiteral) {
+      var type = node.type;
+      var element = type.element;
+      if (element is TypeParameterElement &&
+          !featureSet.isEnabled(Feature.constructor_tearoffs)) {
+        nodes.add(node);
+      }
       _typeArgumentList(node.type.typeArguments);
       return;
     }
@@ -245,6 +251,15 @@ class _Collector {
       if (enclosing is ConstructorElement &&
           isConstConstructorElement(enclosing)) {
         if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
+          return;
+        }
+        var fieldElement = node
+            .thisOrAncestorOfType<VariableDeclaration>()
+            ?.declaredFragment
+            ?.element;
+        if (fieldElement is FieldElement &&
+            !fieldElement.isStatic &&
+            !fieldElement.isLate) {
           return;
         }
       }
@@ -314,6 +329,11 @@ class _Collector {
       if (element is GetterElement) {
         var variable = element.variable;
         if (!variable.isConst) {
+          nodes.add(node.propertyName);
+        }
+        return;
+      } else if (element is MethodElement) {
+        if (!element.isStatic) {
           nodes.add(node.propertyName);
         }
         return;

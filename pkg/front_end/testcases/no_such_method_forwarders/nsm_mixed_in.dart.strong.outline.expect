@@ -30,4 +30,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> Sy
 Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> ListConstant(const <Type>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_mixed_in.dart:15:8 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 10, effectively constant: 4
+Extra constant evaluation: evaluated: 11, effectively constant: 4

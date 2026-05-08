@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -22,7 +23,7 @@ class OmitObviousLocalVariableTypes extends AnalysisRule {
     : super(
         name: LintNames.omit_obvious_local_variable_types,
         description: _desc,
-        state: const RuleState.experimental(),
+        state: RuleState.stable(since: Version(3, 11, 0)),
       );
 
   @override

@@ -5,6 +5,8 @@
 #ifndef RUNTIME_BIN_ERROR_EXIT_H_
 #define RUNTIME_BIN_ERROR_EXIT_H_
 
+#include "platform/globals.h"
+
 namespace dart {
 namespace bin {
 
@@ -17,6 +19,7 @@ constexpr int kCompilationErrorExitCode = 254;
 // Exit code indicating an unhandled error that is not a compilation error.
 constexpr int kErrorExitCode = 255;
 
+DART_NORETURN
 void ErrorExit(int exit_code, const char* format, ...);
 
 }  // namespace bin

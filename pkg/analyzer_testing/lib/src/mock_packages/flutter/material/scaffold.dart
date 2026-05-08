@@ -7,6 +7,8 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final materialScaffoldLibrary = MockLibraryUnit(
   'lib/src/material/scaffold.dart',
   r'''
+import 'dart:ui';
+
 import 'package:flutter/widgets.dart';
 
 class Scaffold extends StatefulWidget {

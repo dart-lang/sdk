@@ -28,6 +28,7 @@ void main() {
         [p.dir],
         commandName: 'testing',
         argResults: null,
+        usePlugins: false,
         suppressAnalytics: true,
       );
       await server.start();
@@ -41,6 +42,7 @@ void main() {
         [p.dir],
         commandName: 'testing',
         argResults: null,
+        usePlugins: false,
         suppressAnalytics: true,
       );
       await server.start();

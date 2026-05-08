@@ -138,35 +138,25 @@ class _CreateClass extends ResolvedCorrectionProducer {
 
   _CreateClass.lowercase({
     required super.context,
-    required ArgumentList? arguments,
-    required bool requiresConstConstructor,
-    required AstNode targetNode,
-    required Element? prefixElement,
-    required String className,
+    required this._arguments,
+    required this._requiresConstConstructor,
+    required this._targetNode,
+    required this._prefixElement,
+    required this._className,
     required bool withKeyword,
-  }) : _className = className,
-       _prefixElement = prefixElement,
-       _targetNode = targetNode,
-       _requiresConstConstructor = requiresConstConstructor,
-       _arguments = arguments,
-       fixKind = withKeyword
+  }) : fixKind = withKeyword
            ? DartFixKind.createClassLowercaseWith
            : DartFixKind.createClassLowercase;
 
   _CreateClass.uppercase({
     required super.context,
-    required ArgumentList? arguments,
-    required bool requiresConstConstructor,
-    required AstNode targetNode,
-    required Element? prefixElement,
-    required String className,
+    required this._arguments,
+    required this._requiresConstConstructor,
+    required this._targetNode,
+    required this._prefixElement,
+    required this._className,
     required bool withKeyword,
-  }) : _className = className,
-       _prefixElement = prefixElement,
-       _targetNode = targetNode,
-       _requiresConstConstructor = requiresConstConstructor,
-       _arguments = arguments,
-       fixKind = withKeyword
+  }) : fixKind = withKeyword
            ? DartFixKind.createClassUppercaseWith
            : DartFixKind.createClassUppercase;
 

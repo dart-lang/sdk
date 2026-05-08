@@ -29,7 +29,7 @@ class C with Error {}
 //    ^
 // [cfe] Can't use 'Error' as a mixin because it has constructors.
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN_DECLARES_GENERATIVE_CONSTRUCTOR
 
 /// Test mixing in things from the non-SDK libraries.
 

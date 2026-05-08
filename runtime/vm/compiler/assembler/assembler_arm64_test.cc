@@ -322,6 +322,8 @@ ASSEMBLER_TEST_GENERATE(AddExtReg, assembler) {
   __ movz(R1, Immediate(0xffff), 0);
   __ movk(R1, Immediate(0xffff), 1);     // R1 <- -1 (32-bit)
   __ add(R0, R0, Operand(R1, SXTW, 0));  // R0 <- R0 + (sign extended R1)
+  __ mov(R2, ZR);
+  __ add(CSP, CSP, Operand(R2, UXTX, 0));
   __ ret();
 }
 
@@ -333,6 +335,8 @@ ASSEMBLER_TEST_RUN(AddExtReg, test) {
       "movz r1, #0xffff\n"
       "movk r1, #0xffff lsl 16\n"
       "add r0, r0, r1 sxtw\n"
+      "mov r2, zr\n"
+      "add csp, csp, r2 uxtx 0\n"
       "ret\n");
 }
 
@@ -1125,7 +1129,7 @@ ASSEMBLER_TEST_RUN(Semaphore32, test) {
   typedef intptr_t (*Semaphore32)() DART_UNUSED;
   // Lower word has been atomically switched from 40 to 42k, whereas upper word
   // is unchanged at 40.
-  EXPECT_EQ(42 + (DART_INT64_C(40) << 32),
+  EXPECT_EQ(42 + (static_cast<int64_t>(40) << 32),
             EXECUTE_TEST_CODE_INT64(Semaphore32, test->entry()));
   EXPECT_DISASSEMBLY(
       "mov sp, csp\n"
@@ -1167,7 +1171,7 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
   typedef intptr_t (*FailedSemaphore32)() DART_UNUSED;
   // Lower word has had the failure code (1) added to it.  Upper word is
   // unchanged at 40.
-  EXPECT_EQ(41 + (DART_INT64_C(40) << 32),
+  EXPECT_EQ(41 + (static_cast<int64_t>(40) << 32),
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
   EXPECT_DISASSEMBLY(
       "mov sp, csp\n"

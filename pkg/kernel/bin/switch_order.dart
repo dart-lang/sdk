@@ -23,8 +23,9 @@ void main(List<String> args) {
     List<int> bytes = new File(arg).readAsBytesSync();
     try {
       Component p = new Component();
-      WrappedBinaryBuilder wrappedBinaryBuilder =
-          new WrappedBinaryBuilder(bytes)..readComponent(p);
+      WrappedBinaryBuilder wrappedBinaryBuilder = new WrappedBinaryBuilder(
+        bytes,
+      )..readComponent(p);
       expressionAverages.add(average(wrappedBinaryBuilder.expressionTypes));
       initializerAverages.add(average(wrappedBinaryBuilder.initializerTypes));
       statementAverages.add(average(wrappedBinaryBuilder.statementTypes));
@@ -35,9 +36,11 @@ void main(List<String> args) {
       sumInto(sum, wrappedBinaryBuilder.statementTypes);
       sumInto(sum, wrappedBinaryBuilder.typeTypes);
     } catch (e) {
-      print("Error when reading '$arg'. Dill file expected.\n"
-          "Got error: '$e'.\n\n"
-          "Skipping.");
+      print(
+        "Error when reading '$arg'. Dill file expected.\n"
+        "Got error: '$e'.\n\n"
+        "Skipping.",
+      );
       continue;
     }
   }
@@ -52,7 +55,10 @@ void main(List<String> args) {
 }
 
 void printSummary(
-    String headline, List<List<double>> data, List<int> totalRead) {
+  String headline,
+  List<List<double>> data,
+  List<int> totalRead,
+) {
   if (data.isEmpty) {
     print("$headline: No data.");
     return;
@@ -82,18 +88,24 @@ void printSummary(
     String? tagName = getNameOfTag(i);
     String tagNameExtra = tagName == null ? "" : " ($tagName) ";
     if (minPercentages[i] != maxPercentages[i]) {
-      printMe.add(new SortableDataString(
+      printMe.add(
+        new SortableDataString(
           average,
           "$i$tagNameExtra: ${formatPercent(average)} ("
           "${formatPercent(minPercentages[i])} - "
           "${formatPercent(maxPercentages[i])}) ("
-          "${totalRead[i]} totally recorded)."));
+          "${totalRead[i]} totally recorded).",
+        ),
+      );
     } else {
-      printMe.add(new SortableDataString(
+      printMe.add(
+        new SortableDataString(
           average,
           "$i$tagNameExtra: "
           "${formatPercent(average)} ("
-          "${totalRead[i]} totally recorded)."));
+          "${totalRead[i]} totally recorded).",
+        ),
+      );
     }
   }
   printMe.sort();
@@ -146,10 +158,12 @@ class WrappedBinaryBuilder extends BinaryBuilder {
   List<int> typeTypes = List<int>.filled(255, 0);
 
   WrappedBinaryBuilder(var _bytes)
-      : super(_bytes,
-            disableLazyReading: true,
-            disableLazyClassReading: true,
-            useGrowableLists: false);
+    : super(
+        _bytes,
+        disableLazyReading: true,
+        disableLazyClassReading: true,
+        useGrowableLists: false,
+      );
 
   @override
   Expression readExpression() {

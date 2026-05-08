@@ -9,8 +9,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/analyzer_message_constant_style.dart';
-import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';

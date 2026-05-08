@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartdev/src/commands/build.dart';
@@ -12,6 +13,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 import 'package:pub_formats/pub_formats.dart';
+import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 
@@ -27,11 +29,20 @@ executables.
 
 If the same package has been previously installed, it will be overwritten.
 
-You can specify three different values for the <package> argument:
-1. A package name. This will install the package from pub.dev. (hosted)
-   The [version-constraint] argument can only be passed to 'hosted'.
-2. A git url. This will install the package from a git repository. (git)
-3. A path on your machine. This will install the package from that path. (path)''';
+You can specify a package to install from pub.dev, a git repository, or a
+local path using the `<package>[@<descriptor>]` syntax.
+
+The `@<descriptor>` can be a version constraint (for hosted packages) or a
+pub descriptor (consistent with pubspec.yaml).
+
+Examples:
+  dart install <pkg>
+  dart install <pkg>@^3.0.0
+  dart install '<pkg>@{hosted: https://pub.dev, version: ^3.0.0}'
+  dart install '<pkg>@{git: {url: https://github.com/<owner>/<repo>, path: <path>}}'
+  dart install '<pkg>@{path: /path/to/<pkg>}'
+
+See https://dart.dev/to/package-descriptors for more details.''';
   static const int genericErrorExitCode = 255;
 
   static const gitRefOption = 'git-ref';
@@ -40,24 +51,28 @@ You can specify three different values for the <package> argument:
   @override
   String get invocation {
     final superNoArguments = super.invocation.replaceAll(' [arguments]', '');
-    return '$superNoArguments <package> [version-constraint]';
+    return '$superNoArguments <package>[@<descriptor>]';
   }
 
   @override
   CommandCategory get commandCategory => CommandCategory.global;
 
   InstallCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose) {
+    : super(cmdName, cmdDescription, verbose) {
     argParser.addOption(
       gitPathOption,
-      help: 'Path of git package in repository. '
+      help:
+          'Path of git package in repository. '
           'Only applies when using a git url for <package>.',
+      hide: true,
     );
 
     argParser.addOption(
       gitRefOption,
-      help: 'Git branch or commit to be retrieved. '
+      help:
+          'Git branch or commit to be retrieved. '
           'Only applies when using a git url for <package>.',
+      hide: true,
     );
 
     argParser.addFlag(
@@ -69,8 +84,10 @@ You can specify three different values for the <package> argument:
     argParser.addOption(
       'hosted-url',
       abbr: 'u',
-      help: 'A custom pub server URL for the package. '
+      help:
+          'A custom pub server URL for the package. '
           'Only applies when using a package name for <package>.',
+      hide: true,
     );
   }
 
@@ -92,72 +109,99 @@ You can specify three different values for the <package> argument:
       return arg;
     }
 
-    final argument = readArg('No package source given.');
-    final sourceKind = _soureKindFromArgument(argument);
-
+    final firstArgument = readArg('Specify a package to install.');
     final gitPath = argResults.option(gitPathOption);
     var gitRef = argResults.option(gitRefOption);
-    if (sourceKind != RemoteSourceKind.git &&
-        (gitPath != null || gitRef != null)) {
-      usageException(
-        'Options `--$gitPathOption` and `--$gitRefOption` '
-        'can only be used with a git source.',
-      );
-    }
 
-    final hostedUrl = argResults.option('hosted-url');
-    if (sourceKind != RemoteSourceKind.hosted && hostedUrl != null) {
-      usageException(
-        'Option `--hosted-url` can only be used with a hosted source.',
-      );
-    }
+    final atIndex = firstArgument.indexOf('@');
+    if (firstArgument.startsWith('git@') || atIndex == -1) {
+      final sourceKind = _sourceKindFromArgument(firstArgument);
+      final versionConstraint = sourceKind == RemoteSourceKind.hosted
+          ? (args.isEmpty ? 'any' : readArg())
+          : null;
 
-    String? versionConstraint;
-    switch (sourceKind) {
-      case RemoteSourceKind.git:
-      case RemoteSourceKind.path:
-        break;
-      case RemoteSourceKind.hosted:
-        versionConstraint = args.isEmpty ? 'any' : readArg();
-    }
-    if (args.isNotEmpty) {
-      usageException(
-        'Too many arguments, did not expect "${args.join(' ')}"',
+      if (sourceKind != RemoteSourceKind.git &&
+          (gitPath != null || gitRef != null)) {
+        usageException(
+          'Options `--$gitPathOption` and `--$gitRefOption` '
+          'can only be used with a git source.',
+        );
+      }
+
+      final hostedUrl = argResults.option('hosted-url');
+      if (sourceKind != RemoteSourceKind.hosted && hostedUrl != null) {
+        usageException(
+          'Option `--hosted-url` can only be used with a hosted source.',
+        );
+      }
+
+      if (args.isNotEmpty) {
+        usageException(
+          'Too many arguments, did not expect "${args.join(' ')}"',
+        );
+      }
+      return NonDescriptorInstallCommandParsedArguments(
+        source: firstArgument,
+        sourceKind: sourceKind,
+        versionConstraint: versionConstraint,
+        gitPath: gitPath,
+        gitRef: gitRef,
+        hostedUrl: hostedUrl,
+        overwrite: overwrite,
+      );
+    } else {
+      if (gitPath != null || gitRef != null) {
+        usageException(
+          'Options `--$gitPathOption` and `--$gitRefOption` '
+          'cannot be used with the @ descriptor syntax.',
+        );
+      }
+      final Object? descriptor;
+      final packageName = firstArgument.substring(0, atIndex);
+      final descriptorString = firstArgument.substring(atIndex + 1);
+      try {
+        descriptor = loadYaml(descriptorString);
+      } on FormatException catch (e) {
+        usageException(
+          'Could not parse (what comes after @) "$descriptorString": $e',
+        );
+      }
+      return DescriptorInstallCommandParsedArguments(
+        packageName: packageName,
+        descriptor: descriptor,
+        overwrite: overwrite,
       );
     }
-    return InstallCommandParsedArguments(
-      source: argument,
-      sourceKind: sourceKind,
-      versionConstraint: versionConstraint,
-      gitPath: gitPath,
-      gitRef: gitRef,
-      hostedUrl: hostedUrl,
-      overwrite: overwrite,
-    );
   }
 
   Future<String> _findPackageName(
     InstallCommandParsedArguments parsedArgs,
   ) async {
-    switch (parsedArgs.sourceKind) {
-      case RemoteSourceKind.git:
-        return await getPackageNameFromGitRepo(
-          parsedArgs.source,
-          ref: parsedArgs.gitRef,
-          path: parsedArgs.gitPath,
-          relativeTo: Directory.current.path,
-          tagPattern: null,
-        );
-      case RemoteSourceKind.hosted:
-        return parsedArgs.source;
-      case RemoteSourceKind.path:
-        final pubspecFile = File.fromUri(
-            Directory(parsedArgs.source).absolute.uri.resolve('pubspec.yaml'));
-        if (!await pubspecFile.exists()) {
-          usageException('No pubspec found in ${pubspecFile.path}.');
+    switch (parsedArgs) {
+      case DescriptorInstallCommandParsedArguments _:
+        return parsedArgs.packageName;
+      case NonDescriptorInstallCommandParsedArguments _:
+        switch (parsedArgs.sourceKind) {
+          case RemoteSourceKind.git:
+            return await getPackageNameFromGitRepo(
+              parsedArgs.source,
+              ref: parsedArgs.gitRef,
+              path: parsedArgs.gitPath,
+              relativeTo: Directory.current.path,
+              tagPattern: null,
+            );
+          case RemoteSourceKind.hosted:
+            return parsedArgs.source;
+          case RemoteSourceKind.path:
+            final pubspecFile = File.fromUri(
+              Directory(parsedArgs.source).absolute.uri.resolve('pubspec.yaml'),
+            );
+            if (!await pubspecFile.exists()) {
+              usageException('No pubspec found in ${pubspecFile.path}.');
+            }
+            final pubspecYaml = PubspecYamlFile.loadSync(pubspecFile);
+            return pubspecYaml.name;
         }
-        final pubspecYaml = PubspecYamlFile.loadSync(pubspecFile);
-        return pubspecYaml.name;
     }
   }
 
@@ -175,36 +219,38 @@ You can specify three different values for the <package> argument:
     required String packageName,
     required Directory helperPackageDir,
   }) {
-    final tempPubspec =
-        File.fromUri(helperPackageDir.uri.resolve('pubspec.yaml'));
-    final helperPackagePubspec = PubspecYamlFileSyntax(
-      name: _helperPackageName,
-      environment: EnvironmentSyntax(
-        sdk: '^${Platform.version.split(' ').first}',
-      ),
-      dependencies: {
-        packageName: switch (parsedArgs.sourceKind) {
-          RemoteSourceKind.git => GitDependencySourceSyntax(
-              git: GitSyntax(
-                url: parsedArgs.source,
-                path$: parsedArgs.gitPath,
-                ref: parsedArgs.gitRef,
-              ),
-            ),
-          RemoteSourceKind.hosted => HostedDependencySourceSyntax(
-              hosted: parsedArgs.hostedUrl,
-              version: parsedArgs.versionConstraint!,
-            ),
-          RemoteSourceKind.path =>
-            // Re-resolve dependencies for path activate, behave like it would work
-            // for users of the package if the activate via hosted or git.
-            PathDependencySourceSyntax(
-              path$: Directory(parsedArgs.source).absolute.path,
-            ),
-        }
-      },
+    final tempPubspec = File.fromUri(
+      helperPackageDir.uri.resolve('pubspec.yaml'),
     );
-    helperPackagePubspec.writeSync(tempPubspec);
+    final descriptor = switch (parsedArgs) {
+      DescriptorInstallCommandParsedArguments _ => parsedArgs.descriptor,
+      NonDescriptorInstallCommandParsedArguments _ =>
+        switch (parsedArgs.sourceKind) {
+          RemoteSourceKind.git => {
+            'git': {
+              'url': parsedArgs.source,
+              if (parsedArgs.gitPath != null) 'path': parsedArgs.gitPath!,
+              if (parsedArgs.gitRef != null) 'ref': parsedArgs.gitRef!,
+            },
+          },
+          RemoteSourceKind.hosted => {
+            'hosted': ?parsedArgs.hostedUrl,
+            'version': parsedArgs.versionConstraint!,
+          },
+          RemoteSourceKind.path => {
+            'path': Directory(parsedArgs.source).absolute.path,
+          },
+        },
+    };
+
+    final helperPackagePubspec = <String, Object?>{
+      'name': _helperPackageName,
+      'environment': {'sdk': '^${Platform.version.split(' ').first}'},
+      'dependencies': {packageName: descriptor},
+    };
+    tempPubspec.writeAsStringSync(
+      JsonEncoder.withIndent('  ').convert(helperPackagePubspec),
+    );
   }
 
   static const _helperPackageName = 'dart_install_helper_package';
@@ -227,10 +273,12 @@ You can specify three different values for the <package> argument:
 
     final errors = pubspecSyntax.validateExecutables();
     if (errors.isNotEmpty) {
-      installException([
-        'The pubspec.yaml contains the following errors:',
-        ...errors
-      ].join('\n'));
+      installException(
+        [
+          'The pubspec.yaml contains the following errors:',
+          ...errors,
+        ].join('\n'),
+      );
     }
     // This is a map of strings to string. Each key is the name of the command
     // that will be placed on the user's PATH. The value is the name of the
@@ -243,16 +291,18 @@ You can specify three different values for the <package> argument:
     }
     if (executablesSyntax.isEmpty) {
       installException(
-          'The pubspec.yaml executables section contained no executables.');
+        'The pubspec.yaml executables section contained no executables.',
+      );
     }
 
     return [
       for (final executable in executablesSyntax.entries)
         (
           name: executable.key,
-          sourceEntryPoint: sourcePackageRootDirectory.uri
-              .resolve('bin/${executable.value ?? executable.key}.dart')
-        )
+          sourceEntryPoint: sourcePackageRootDirectory.uri.resolve(
+            'bin/${executable.value ?? executable.key}.dart',
+          ),
+        ),
     ];
   }
 
@@ -262,8 +312,9 @@ You can specify three different values for the <package> argument:
     File helperPackageConfigFile,
     File sourcePackagePubspecFile,
     bool verbose,
-    String verbosity,
-  ) async {
+    String verbosity, {
+    bool progressUpdatesOnStderr = false,
+  }) async {
     // TODO(https://github.com/dart-lang/native/issues/2465): Add a test for
     // user-defines in the source package pubspec.
     final buildResult = await BuildCliSubcommand.doBuild(
@@ -276,6 +327,7 @@ You can specify three different values for the <package> argument:
       dataAssetsExperimentEnabled: false,
       verbose: verbose,
       verbosity: verbosity,
+      progressUpdatesOnStderr: progressUpdatesOnStderr,
     );
     if (buildResult != 0) {
       installException('Build failed.', exitCode: buildResult);
@@ -283,8 +335,9 @@ You can specify three different values for the <package> argument:
   }
 
   void _uniinstallAllPackageVersions(String packageName) {
-    final bundles =
-        DartInstallDirectory().allAppBundlesSync(packageName: packageName);
+    final bundles = DartInstallDirectory().allAppBundlesSync(
+      packageName: packageName,
+    );
 
     try {
       for (final bundle in bundles) {
@@ -300,54 +353,44 @@ You can specify three different values for the <package> argument:
     } on PathAccessException {
       installException('Deletion failed. The application might be in use.');
     } on PathNotFoundException {
-      print('Bundle not found when uninstalling. '
-          'Earlier installation may have failed.');
+      print(
+        'Bundle not found when uninstalling. '
+        'Earlier installation may have failed.',
+      );
       // Continue installing
     }
   }
 
   static AppBundleDirectory selectAppBundleDirectory(
-    InstallCommandParsedArguments parsedArgs,
     String packageName,
     Directory helperPackageDir,
     File helperPackageLockFile,
   ) {
-    final AppBundleDirectory outputDir;
-    switch (parsedArgs.sourceKind) {
-      case RemoteSourceKind.git:
-        final resolvedGitRef = parsedArgs.gitRef ??
-            GitPackageDescriptionSyntax.fromJson(
-              PubspecLockFile.loadSync(helperPackageLockFile)
-                  .packages![packageName]!
-                  .description
-                  .json,
-            ).resolvedRef;
-        outputDir = DartInstallDirectory().gitAppBundle(
-          packageName,
-          resolvedGitRef,
-        );
-      case RemoteSourceKind.hosted:
-        final packageGraphJson = PackageGraphFile.loadSync(File.fromUri(
-          helperPackageDir.uri.resolve('.dart_tool/package_graph.json'),
-        ));
-        final resolvedVersion = packageGraphJson.packages
-            .firstWhere((e) => e.name == packageName)
-            .version;
-        outputDir = DartInstallDirectory().hostedAppBundle(
-          packageName,
-          resolvedVersion,
-        );
-      case RemoteSourceKind.path:
-        outputDir = DartInstallDirectory().localAppBundle(packageName);
+    final lockFile = PubspecLockFile.loadSync(helperPackageLockFile);
+    final resolvedPackage = lockFile.packages![packageName]!;
+    final source = resolvedPackage.source;
+
+    if (source == PackageSourceSyntax.git) {
+      final resolvedGitRef = GitPackageDescriptionSyntax.fromJson(
+        resolvedPackage.description.json,
+      ).resolvedRef;
+      return DartInstallDirectory().gitAppBundle(packageName, resolvedGitRef);
+    } else if (source == PackageSourceSyntax.path$) {
+      return DartInstallDirectory().localAppBundle(packageName);
+    } else {
+      return DartInstallDirectory().hostedAppBundle(
+        packageName,
+        resolvedPackage.version,
+      );
     }
-    return outputDir;
   }
 
   static Future<void> createAppBundleDirectory(
-      AppBundleDirectory appBundleDirectory,
-      Directory buildDirectory,
-      File helperPackageLockFile,
-      File sourcePackagePubspecFile) async {
+    AppBundleDirectory appBundleDirectory,
+    Directory buildDirectory,
+    File helperPackageLockFile,
+    File sourcePackagePubspecFile,
+  ) async {
     if (appBundleDirectory.directory.existsSync()) {
       try {
         appBundleDirectory.directory.deleteSync(recursive: true);
@@ -359,10 +402,13 @@ You can specify three different values for the <package> argument:
       }
     }
     appBundleDirectory.directory.createSync(recursive: true);
-    final bundleDirectory =
-        Directory.fromUri(buildDirectory.uri.resolve('bundle/'));
+    final bundleDirectory = Directory.fromUri(
+      buildDirectory.uri.resolve('bundle/'),
+    );
     await _renameSafe(
-        bundleDirectory, appBundleDirectory.directory.uri.resolve('bundle/'));
+      bundleDirectory,
+      appBundleDirectory.directory.uri.resolve('bundle/'),
+    );
     await helperPackageLockFile.copy(appBundleDirectory.pubspecLock.path);
     await sourcePackagePubspecFile.copy(appBundleDirectory.pubspec.path);
   }
@@ -390,24 +436,27 @@ You can specify three different values for the <package> argument:
       } else if (child is Directory) {
         await _renameSafeCopyAndDelete(child, Uri.parse('$newChildPath/'));
       } else {
-        await Link.fromUri(newChildPath)
-            .create(await (child as Link).resolveSymbolicLinks());
+        await Link.fromUri(
+          newChildPath,
+        ).create(await (child as Link).resolveSymbolicLinks());
       }
       await child.delete(recursive: false);
     }
   }
 
   void _installExecutablesOnPath(
-      DartBuildExecutables executables,
-      AppBundleDirectory appBundleDirectory,
-      String packageName,
-      InstallCommandParsedArguments parsedArgs) {
+    DartBuildExecutables executables,
+    AppBundleDirectory appBundleDirectory,
+    String packageName,
+    InstallCommandParsedArguments parsedArgs,
+  ) {
     final errors = <String>[];
     for (final executable in executables) {
       final executableName = executable.name;
       final executableFile = appBundleDirectory.executable(executableName);
-      final executableOnPath =
-          DartInstallDirectory().bin.executable(executableName);
+      final executableOnPath = DartInstallDirectory().bin.executable(
+        executableName,
+      );
       var createLink = true;
 
       if (executableOnPath.existsSync()) {
@@ -467,14 +516,10 @@ You can specify three different values for the <package> argument:
       //
       // The "command" builtin is more reliable than the "which" executable. See
       // http://unix.stackexchange.com/questions/85249/why-not-use-which-what-to-use-then
-      final result = Process.runSync(
-        'command',
-        [
-          '-v',
-          installed,
-        ],
-        runInShell: true,
-      );
+      final result = Process.runSync('command', [
+        '-v',
+        installed,
+      ], runInShell: true);
       if (result.exitCode == 0) return;
 
       var binDir = binDirPath;
@@ -506,8 +551,9 @@ You can specify three different values for the <package> argument:
     final packageName = await _findPackageName(parsedArgs);
     return await inTempDir((tempDirectory) async {
       try {
-        final helperPackageDirectory =
-            Directory.fromUri(tempDirectory.uri.resolve('helperPackage/'));
+        final helperPackageDirectory = Directory.fromUri(
+          tempDirectory.uri.resolve('helperPackage/'),
+        );
         helperPackageDirectory.createSync();
         createHelperPackagePubspec(
           helperPackageDir: helperPackageDirectory,
@@ -516,29 +562,33 @@ You can specify three different values for the <package> argument:
         );
         await resolveHelperPackage(helperPackageDirectory);
 
-        final helperPackageLockFile =
-            File.fromUri(helperPackageDirectory.uri.resolve('pubspec.lock'));
-        final helperPackageConfigFile = File.fromUri(helperPackageDirectory.uri
-            .resolve('.dart_tool/package_config.json'));
+        final helperPackageLockFile = File.fromUri(
+          helperPackageDirectory.uri.resolve('pubspec.lock'),
+        );
+        final helperPackageConfigFile = File.fromUri(
+          helperPackageDirectory.uri.resolve('.dart_tool/package_config.json'),
+        );
 
-        final sourcePackageRootDirectory = Directory(Uri.parse(
-          PackageConfigFile.loadSync(helperPackageConfigFile)
-              .packages
-              .firstWhere((e) => e.name == packageName)
-              .rootUri,
-        ).toFilePath())
-            .ensureEndWithSeparator;
+        final sourcePackageRootDirectory = Directory(
+          Uri.parse(
+            PackageConfigFile.loadSync(
+              helperPackageConfigFile,
+            ).packages.firstWhere((e) => e.name == packageName).rootUri,
+          ).toFilePath(),
+        ).ensureEndWithSeparator;
 
         final sourcePackagePubspecFile = File.fromUri(
-            sourcePackageRootDirectory.uri.resolve('pubspec.yaml'));
+          sourcePackageRootDirectory.uri.resolve('pubspec.yaml'),
+        );
 
         final executables = loadDeclaredExecutables(
           sourcePackagePubspecFile,
           sourcePackageRootDirectory,
         );
 
-        final buildDirectory =
-            Directory.fromUri(tempDirectory.uri.resolve('build/'));
+        final buildDirectory = Directory.fromUri(
+          tempDirectory.uri.resolve('build/'),
+        );
 
         await doBuild(
           executables,
@@ -552,7 +602,6 @@ You can specify three different values for the <package> argument:
         _uniinstallAllPackageVersions(packageName);
 
         AppBundleDirectory appBundleDirectory = selectAppBundleDirectory(
-          parsedArgs,
           packageName,
           helperPackageDirectory,
           helperPackageLockFile,
@@ -587,7 +636,8 @@ You can specify three different values for the <package> argument:
       throw InstallException(message, exitCode: exitCode);
 
   static Future<T> inTempDir<T>(
-      Future<T> Function(Directory tempDirectory) fun) async {
+    Future<T> Function(Directory tempDirectory) fun,
+  ) async {
     final tempDir = await Directory.systemTemp.createTemp();
     // Deal with Windows temp folder aliases.
     final tempDirResolved = Directory.fromUri(
@@ -609,7 +659,25 @@ You can specify three different values for the <package> argument:
   }
 }
 
-final class InstallCommandParsedArguments {
+sealed class InstallCommandParsedArguments {
+  final bool overwrite;
+  InstallCommandParsedArguments({required this.overwrite});
+}
+
+class DescriptorInstallCommandParsedArguments
+    extends InstallCommandParsedArguments {
+  final String packageName;
+  final Object? descriptor;
+
+  DescriptorInstallCommandParsedArguments({
+    required this.packageName,
+    required this.descriptor,
+    required super.overwrite,
+  });
+}
+
+class NonDescriptorInstallCommandParsedArguments
+    extends InstallCommandParsedArguments {
   /// Package name, git url, or file path, depending on [sourceKind].
   final String source;
   final RemoteSourceKind sourceKind;
@@ -617,26 +685,21 @@ final class InstallCommandParsedArguments {
   final String? gitPath;
   final String? gitRef;
   final String? hostedUrl;
-  final bool overwrite;
 
-  InstallCommandParsedArguments({
+  NonDescriptorInstallCommandParsedArguments({
     required this.source,
     required this.sourceKind,
     required this.versionConstraint,
     required this.gitPath,
     required this.gitRef,
     required this.hostedUrl,
-    required this.overwrite,
+    required super.overwrite,
   });
 }
 
-enum RemoteSourceKind {
-  git,
-  hosted,
-  path;
-}
+enum RemoteSourceKind { git, hosted, path }
 
-RemoteSourceKind _soureKindFromArgument(String argument) {
+RemoteSourceKind _sourceKindFromArgument(String argument) {
   if (_packageNameRegExp.hasMatch(argument)) {
     return RemoteSourceKind.hosted;
   }
@@ -701,10 +764,10 @@ class GitSshUrl {
     }
 
     return GitSshUrl(
-      user: match.group(1)!,
-      host: match.group(2)!,
-      owner: match.group(3)!,
-      repository: match.group(4)!,
+      user: match[1]!,
+      host: match[2]!,
+      owner: match[3]!,
+      repository: match[4]!,
       fullUrl: url,
     );
   }
@@ -720,10 +783,7 @@ class InstallException implements Exception {
   final String message;
   final int? exitCode;
 
-  InstallException(
-    this.message, {
-    this.exitCode,
-  });
+  InstallException(this.message, {this.exitCode});
 
   @override
   String toString() => message;

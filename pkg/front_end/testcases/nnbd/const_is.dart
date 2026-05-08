@@ -102,16 +102,16 @@ class C implements B {}
 class D implements C {}
 
 typedef B func(Object o);
-typedef B t1(int i, B b, Map<int, num> m, var x,
-    {required var ox,
+typedef B t1(int i, B b, Map<int, num> m, x,
+    {required ox,
     required B ob,
     required List<num> ol,
     required bool obool});
 
-B f1(int i, B b, Map<int, num> m, var x,
+B f1(int i, B b, Map<int, num> m, x,
         {required extraParam,
         required bool obool,
-        required var ox,
+        required ox,
         required D ob,
         required List<num>? ol}) =>
     new B();
@@ -121,22 +121,22 @@ D f2(int i, D b, Map<int, int> m, func x,
         required List<int> ol,
         required bool obool}) =>
     new D();
-C f3(num i, A b, Map<Object, Object> m, var x,
-        {required var ox,
+C f3(num i, A b, Map<Object, Object> m, x,
+        {required ox,
         required extraParam,
         required A2 ob,
         required List ol,
         required Object obool}) =>
     new C();
-C f4(num i, A b, Map<Object, Object> m, var x,
-        {required var ox,
+C f4(num i, A b, Map<Object, Object> m, x,
+        {required ox,
         required A2 ob,
         required List ol,
         required bool obool,
         required A xx,
         required B yy}) =>
     new C();
-C f5(int i, A b, Map<Object, Object> m, var x,
+C f5(int i, A b, Map<Object, Object> m, x,
         {required ox, required B ob, required List ol, required obool}) =>
     new C();
 

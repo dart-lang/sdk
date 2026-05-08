@@ -1,5 +1,6 @@
 import 'main_lib1.dart';
 import 'main_lib2.dart';
+import 'main_lib4.dart';
 
 class C6Ext extends C6 {
   C6Ext({super.param});
@@ -42,3 +43,5 @@ dynamic x;
 void main() {}
 
 void test() {}
+
+void testCanBeUsedAsType(Object? o) {}

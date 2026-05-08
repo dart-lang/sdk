@@ -1,0 +1,13 @@
+assertCaptured1(int aAssertCaptured1) {}
+
+assertCaptured2(int aAssertCaptured2) {}
+
+directCaptured(int aCaptured) {}
+
+directOverridingAssertCaptured1(int aDirectOverridingAssertCaptured1) {}
+
+directOverridingAssertCaptured2(int aDirectOverridingAssertCaptured2) {}
+
+directOverridingAssertCaptured3(int aDirectOverridingAssertCaptured3) {}
+
+notCaptured(int aNotCaptured) {}

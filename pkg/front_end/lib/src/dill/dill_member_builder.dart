@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart'
     show
         Constructor,
         Field,
-        FunctionNode,
         Member,
         Name,
         Procedure,
@@ -20,6 +19,7 @@ import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
+import '../builder/function_signature.dart';
 import '../builder/member_builder.dart';
 import '../builder/method_builder.dart';
 import '../builder/property_builder.dart';
@@ -325,7 +325,8 @@ class DillFactoryBuilder extends _DillProcedureBuilder
   Reference get invokeTargetReference => _procedure.reference;
 
   @override
-  FunctionNode get function => _procedure.function;
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_procedure.function);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -335,43 +336,44 @@ class DillFactoryBuilder extends _DillProcedureBuilder
 class DillConstructorBuilder extends DillMemberBuilder
     with DillConstructorBuilderMixin
     implements ConstructorBuilder {
-  final Constructor constructor;
+  final Constructor _constructor;
   final Procedure? _constructorTearOff;
 
   DillConstructorBuilder(
-    this.constructor,
+    this._constructor,
     this._constructorTearOff,
     super.libraryBuilder,
     ClassBuilder super.declarationBuilder,
   );
 
   @override
-  FunctionNode get function => constructor.function;
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
 
   @override
-  Constructor get member => constructor;
+  Constructor get member => _constructor;
 
   @override
-  Member get readTarget => _constructorTearOff ?? constructor;
+  Member get readTarget => _constructorTearOff ?? _constructor;
 
   @override
   // Coverage-ignore(suite): Not run.
   Reference get readTargetReference =>
-      (_constructorTearOff ?? constructor).reference;
+      (_constructorTearOff ?? _constructor).reference;
 
   @override
-  Constructor get invokeTarget => constructor;
+  Constructor get invokeTarget => _constructor;
 
   @override
-  Reference get invokeTargetReference => constructor.reference;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isConst => constructor.isConst;
+  Reference get invokeTargetReference => _constructor.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [constructor.reference];
+  bool get isConst => _constructor.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [_constructor.reference];
 }
 
 class DillClassMember extends BuilderClassMember {

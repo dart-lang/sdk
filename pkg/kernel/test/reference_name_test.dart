@@ -6,8 +6,10 @@ import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/equivalence.dart';
 
-void testReferenceNames(Map<ReferenceNameKind, List<ReferenceNameObject>> map1,
-    Map<ReferenceNameKind, List<ReferenceNameObject>> map2) {
+void testReferenceNames(
+  Map<ReferenceNameKind, List<ReferenceNameObject>> map1,
+  Map<ReferenceNameKind, List<ReferenceNameObject>> map2,
+) {
   Expect.setEquals(map1.keys, map2.keys);
   map1.forEach((ReferenceNameKind kind1, List<ReferenceNameObject> list1) {
     map1.forEach((ReferenceNameKind kind2, List<ReferenceNameObject> list2) {
@@ -19,16 +21,18 @@ void testReferenceNames(Map<ReferenceNameKind, List<ReferenceNameObject>> map1,
           Object object2 = list2[index2].object;
           if (kind1 == kind2 && index1 == index2) {
             Expect.equals(
-                name1,
-                name2,
-                "Expected $name1 for ${object1} (${object1.runtimeType}) and "
-                "$name2 for $object2 (${object2.runtimeType}) to be equal.");
+              name1,
+              name2,
+              "Expected $name1 for ${object1} (${object1.runtimeType}) and "
+              "$name2 for $object2 (${object2.runtimeType}) to be equal.",
+            );
           } else {
             Expect.notEquals(
-                name1,
-                name2,
-                "Expected $name1 for ${object1} (${object1.runtimeType}) and "
-                "$name2 for $object2 (${object2.runtimeType}) to be unequal.");
+              name1,
+              name2,
+              "Expected $name1 for ${object1} (${object1.runtimeType}) and "
+              "$name2 for $object2 (${object2.runtimeType}) to be unequal.",
+            );
           }
         }
       }
@@ -69,79 +73,163 @@ Component createComponent() {
   Library library2 = new Library(Uri.parse('test:library2'), fileUri: dummyUri);
   component.libraries.add(library2);
 
-  library1.addProcedure(new Procedure(
-      new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
-      fileUri: dummyUri));
-  library1.addProcedure(new Procedure(
-      new Name('bar'), ProcedureKind.Operator, new FunctionNode(null),
-      fileUri: dummyUri));
-  library1.addProcedure(new Procedure(
-      new Name('baz'), ProcedureKind.Factory, new FunctionNode(null),
-      fileUri: dummyUri));
-  library1.addProcedure(new Procedure(
-      new Name('boz'), ProcedureKind.Getter, new FunctionNode(null),
-      fileUri: dummyUri));
+  library1.addProcedure(
+    new Procedure(
+      new Name('foo'),
+      ProcedureKind.Method,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
+  library1.addProcedure(
+    new Procedure(
+      new Name('bar'),
+      ProcedureKind.Operator,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
+  library1.addProcedure(
+    new Procedure(
+      new Name('baz'),
+      ProcedureKind.Factory,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
+  library1.addProcedure(
+    new Procedure(
+      new Name('boz'),
+      ProcedureKind.Getter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
   // The setter should be distinct from the getter even when they have the same
   // name.
-  library1.addProcedure(new Procedure(
-      new Name('boz'), ProcedureKind.Setter, new FunctionNode(null),
-      fileUri: dummyUri));
+  library1.addProcedure(
+    new Procedure(
+      new Name('boz'),
+      ProcedureKind.Setter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
 
-  library1.addProcedure(new Procedure(
-      new Name('_boz', library2), ProcedureKind.Getter, new FunctionNode(null),
-      fileUri: dummyUri));
+  library1.addProcedure(
+    new Procedure(
+      new Name('_boz', library2),
+      ProcedureKind.Getter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
   // The setter should be distinct from the getter even when they have the same
   // name.
-  library1.addProcedure(new Procedure(
-      new Name('_boz', library2), ProcedureKind.Setter, new FunctionNode(null),
-      fileUri: dummyUri));
+  library1.addProcedure(
+    new Procedure(
+      new Name('_boz', library2),
+      ProcedureKind.Setter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
 
   library1.addField(
-      new Field.immutable(new Name('_foo', library1), fileUri: dummyUri));
+    new Field.immutable(new Name('_foo', library1), fileUri: dummyUri),
+  );
   library1.addField(
-      new Field.mutable(new Name('_bar', library2), fileUri: dummyUri));
+    new Field.mutable(new Name('_bar', library2), fileUri: dummyUri),
+  );
 
   Class class1 = new Class(name: 'Foo', fileUri: dummyUri);
   library2.addClass(class1);
   Class class2 = new Class(name: 'Bar', fileUri: dummyUri);
   library2.addClass(class2);
 
-  class2.addConstructor(new Constructor(new FunctionNode(null),
-      name: new Name(''), fileUri: dummyUri));
-  class2.addConstructor(new Constructor(new FunctionNode(null),
-      name: new Name('_', library1), fileUri: dummyUri));
+  class2.addConstructor(
+    new Constructor(
+      new FunctionNode(null),
+      name: new Name(''),
+      fileUri: dummyUri,
+    ),
+  );
+  class2.addConstructor(
+    new Constructor(
+      new FunctionNode(null),
+      name: new Name('_', library1),
+      fileUri: dummyUri,
+    ),
+  );
 
-  class2.addProcedure(new Procedure(
-      new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
-      fileUri: dummyUri));
-  class2.addProcedure(new Procedure(
-      new Name('bar'), ProcedureKind.Operator, new FunctionNode(null),
-      fileUri: dummyUri));
-  class2.addProcedure(new Procedure(
-      new Name('baz'), ProcedureKind.Factory, new FunctionNode(null),
-      fileUri: dummyUri));
-  class2.addProcedure(new Procedure(
-      new Name('boz'), ProcedureKind.Getter, new FunctionNode(null),
-      fileUri: dummyUri));
+  class2.addProcedure(
+    new Procedure(
+      new Name('foo'),
+      ProcedureKind.Method,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
+  class2.addProcedure(
+    new Procedure(
+      new Name('bar'),
+      ProcedureKind.Operator,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
+  class2.addProcedure(
+    new Procedure(
+      new Name('baz'),
+      ProcedureKind.Factory,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
+  class2.addProcedure(
+    new Procedure(
+      new Name('boz'),
+      ProcedureKind.Getter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
   // The setter should be distinct from the getter even when they have the same
   // name.
-  class2.addProcedure(new Procedure(
-      new Name('boz'), ProcedureKind.Setter, new FunctionNode(null),
-      fileUri: dummyUri));
+  class2.addProcedure(
+    new Procedure(
+      new Name('boz'),
+      ProcedureKind.Setter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
 
-  class2.addProcedure(new Procedure(
-      new Name('_boz', library2), ProcedureKind.Getter, new FunctionNode(null),
-      fileUri: dummyUri));
+  class2.addProcedure(
+    new Procedure(
+      new Name('_boz', library2),
+      ProcedureKind.Getter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
   // The setter should be distinct from the getter even when they have the same
   // name.
-  class2.addProcedure(new Procedure(
-      new Name('_boz', library2), ProcedureKind.Setter, new FunctionNode(null),
-      fileUri: dummyUri));
+  class2.addProcedure(
+    new Procedure(
+      new Name('_boz', library2),
+      ProcedureKind.Setter,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    ),
+  );
 
   class2.addField(
-      new Field.immutable(new Name('_foo', library1), fileUri: dummyUri));
+    new Field.immutable(new Name('_foo', library1), fileUri: dummyUri),
+  );
   class2.addField(
-      new Field.mutable(new Name('_bar', library2), fileUri: dummyUri));
+    new Field.mutable(new Name('_bar', library2), fileUri: dummyUri),
+  );
 
   library1.addExtension(new Extension(name: 'Baz', fileUri: dummyUri));
 
@@ -153,43 +241,52 @@ Component createComponent() {
 void sortReferenceNames(Map<ReferenceNameKind, List<ReferenceNameObject>> map) {
   map.forEach((key, value) {
     value.sort(
-        (n1, n2) => n1.referenceName.name!.compareTo(n2.referenceName.name!));
+      (n1, n2) => n1.referenceName.name!.compareTo(n2.referenceName.name!),
+    );
   });
 }
 
 Map<ReferenceNameKind, List<ReferenceNameObject>>
-    computeReferenceNamesFromComponent(Component component) {
+computeReferenceNamesFromComponent(Component component) {
   Map<ReferenceNameKind, List<ReferenceNameObject>> map = {};
   void add(ReferenceNameKind kind, ReferenceNameObject object) {
     (map[kind] ??= []).add(object);
   }
 
   for (Library library in component.libraries) {
-    add(ReferenceNameKind.Library,
-        new ReferenceNameObject(ReferenceName.fromNamedNode(library), library));
+    add(
+      ReferenceNameKind.Library,
+      new ReferenceNameObject(ReferenceName.fromNamedNode(library), library),
+    );
     for (Typedef typedef in library.typedefs) {
       add(
-          ReferenceNameKind.Typedef,
-          new ReferenceNameObject(
-              ReferenceName.fromNamedNode(typedef), typedef));
+        ReferenceNameKind.Typedef,
+        new ReferenceNameObject(ReferenceName.fromNamedNode(typedef), typedef),
+      );
     }
     for (Field field in library.fields) {
       add(
-          ReferenceNameKind.Field,
-          new ReferenceNameObject(
-              ReferenceName.fromNamedNode(field, ReferenceNameKind.Field),
-              field));
+        ReferenceNameKind.Field,
+        new ReferenceNameObject(
+          ReferenceName.fromNamedNode(field, ReferenceNameKind.Field),
+          field,
+        ),
+      );
       add(
-          ReferenceNameKind.Getter,
-          new ReferenceNameObject(
-              ReferenceName.fromNamedNode(field, ReferenceNameKind.Getter),
-              field));
+        ReferenceNameKind.Getter,
+        new ReferenceNameObject(
+          ReferenceName.fromNamedNode(field, ReferenceNameKind.Getter),
+          field,
+        ),
+      );
       if (field.hasSetter) {
         add(
-            ReferenceNameKind.Setter,
-            new ReferenceNameObject(
-                ReferenceName.fromNamedNode(field, ReferenceNameKind.Setter),
-                field));
+          ReferenceNameKind.Setter,
+          new ReferenceNameObject(
+            ReferenceName.fromNamedNode(field, ReferenceNameKind.Setter),
+            field,
+          ),
+        );
       }
     }
     for (Procedure procedure in library.procedures) {
@@ -202,19 +299,27 @@ Map<ReferenceNameKind, List<ReferenceNameObject>>
         kind = ReferenceNameKind.Function;
       }
       add(
-          kind,
-          new ReferenceNameObject(
-              ReferenceName.fromNamedNode(procedure), procedure));
+        kind,
+        new ReferenceNameObject(
+          ReferenceName.fromNamedNode(procedure),
+          procedure,
+        ),
+      );
     }
     for (Class cls in library.classes) {
-      add(ReferenceNameKind.Declaration,
-          new ReferenceNameObject(ReferenceName.fromNamedNode(cls), cls));
+      add(
+        ReferenceNameKind.Declaration,
+        new ReferenceNameObject(ReferenceName.fromNamedNode(cls), cls),
+      );
 
       for (Constructor constructor in cls.constructors) {
         add(
-            ReferenceNameKind.Function,
-            new ReferenceNameObject(
-                ReferenceName.fromNamedNode(constructor), constructor));
+          ReferenceNameKind.Function,
+          new ReferenceNameObject(
+            ReferenceName.fromNamedNode(constructor),
+            constructor,
+          ),
+        );
       }
       for (Procedure procedure in cls.procedures) {
         ReferenceNameKind kind;
@@ -226,32 +331,44 @@ Map<ReferenceNameKind, List<ReferenceNameObject>>
           kind = ReferenceNameKind.Function;
         }
         add(
-            kind,
-            new ReferenceNameObject(
-                ReferenceName.fromNamedNode(procedure), procedure));
+          kind,
+          new ReferenceNameObject(
+            ReferenceName.fromNamedNode(procedure),
+            procedure,
+          ),
+        );
       }
       for (Field field in cls.fields) {
-        add(ReferenceNameKind.Field,
-            new ReferenceNameObject(ReferenceName.fromNamedNode(field), field));
         add(
-            ReferenceNameKind.Getter,
-            new ReferenceNameObject(
-                ReferenceName.fromNamedNode(field, ReferenceNameKind.Getter),
-                field));
+          ReferenceNameKind.Field,
+          new ReferenceNameObject(ReferenceName.fromNamedNode(field), field),
+        );
+        add(
+          ReferenceNameKind.Getter,
+          new ReferenceNameObject(
+            ReferenceName.fromNamedNode(field, ReferenceNameKind.Getter),
+            field,
+          ),
+        );
         if (field.hasSetter) {
           add(
-              ReferenceNameKind.Setter,
-              new ReferenceNameObject(
-                  ReferenceName.fromNamedNode(field, ReferenceNameKind.Setter),
-                  field));
+            ReferenceNameKind.Setter,
+            new ReferenceNameObject(
+              ReferenceName.fromNamedNode(field, ReferenceNameKind.Setter),
+              field,
+            ),
+          );
         }
       }
     }
     for (Extension extension in library.extensions) {
       add(
-          ReferenceNameKind.Declaration,
-          new ReferenceNameObject(
-              ReferenceName.fromNamedNode(extension), extension));
+        ReferenceNameKind.Declaration,
+        new ReferenceNameObject(
+          ReferenceName.fromNamedNode(extension),
+          extension,
+        ),
+      );
     }
   }
   sortReferenceNames(map);
@@ -259,13 +376,17 @@ Map<ReferenceNameKind, List<ReferenceNameObject>>
 }
 
 Map<ReferenceNameKind, List<ReferenceNameObject>>
-    computeReferenceNamesFromCanonicalName(CanonicalName root) {
+computeReferenceNamesFromCanonicalName(CanonicalName root) {
   Map<ReferenceNameKind, List<ReferenceNameObject>> map = {};
 
   void visit(CanonicalName canonicalName, ReferenceNameKind kind) {
     void addObject() {
-      (map[kind] ??= []).add(new ReferenceNameObject(
-          ReferenceName.fromCanonicalName(canonicalName), canonicalName));
+      (map[kind] ??= []).add(
+        new ReferenceNameObject(
+          ReferenceName.fromCanonicalName(canonicalName),
+          canonicalName,
+        ),
+      );
     }
 
     switch (kind) {

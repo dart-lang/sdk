@@ -1,0 +1,3 @@
+--target=dart2js
+--no-defines
+--enable-experiment=primary-constructors

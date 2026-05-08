@@ -238,7 +238,10 @@ extension on Iterable<Undef2> { void foo() {} }
                 "'extension on Iterable<InvalidType> "
                 "(where <unnamed extension> is defined in ${testFile.path})',",
           ],
-          contextMessages: [message(testFile, -1, 0), message(testFile, -1, 0)],
+          contextMessages: [
+            message(testFile, 75, 0),
+            message(testFile, 123, 0),
+          ],
         ),
         error(diag.nonTypeAsTypeArgument, 97, 6),
         error(diag.nonTypeAsTypeArgument, 145, 6),

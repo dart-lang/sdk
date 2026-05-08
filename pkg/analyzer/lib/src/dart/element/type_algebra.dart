@@ -94,25 +94,6 @@ FunctionTypeImpl replaceTypeParameters(
   );
 }
 
-/// Returns a type where all occurrences of the given type parameters have been
-/// replaced with the corresponding types.
-///
-/// This will copy only the sub-terms of [type] that contain substituted
-/// variables; all other [DartType] objects will be reused.
-///
-/// In particular, if no type parameters were substituted, this is guaranteed
-/// to return the [type] instance (not a copy), so the caller may use
-/// [identical] to efficiently check if a distinct type was created.
-DartType substitute(
-  DartType type,
-  Map<TypeParameterElement, DartType> substitution,
-) {
-  if (substitution.isEmpty) {
-    return type;
-  }
-  return Substitution.fromMap(substitution).substituteType(type);
-}
-
 ///  1. Substituting T=X! into T! yields X!
 ///  3. Substituting T=X? into T! yields X?
 ///  7. Substituting T=X! into T? yields X?
@@ -433,11 +414,12 @@ abstract class _TypeSubstitutor
 
     // Invert the variance when translating parameters.
     inner.invertVariance();
-
-    var parameters = type.formalParameters.map((parameter) {
+    var formalParameters = type.formalParameters;
+    var parameters = List.generate(formalParameters.length, (index) {
+      var parameter = formalParameters[index];
       var type = parameter.type.accept(inner);
       return parameter.copyWith(type: type);
-    }).toFixedList();
+    }, growable: false);
 
     inner.invertVariance();
 
@@ -612,10 +594,15 @@ abstract class _TypeSubstitutor
     return InstantiatedTypeAliasElementImpl(
       element: alias.element,
       typeArguments: _mapList(alias.typeArguments),
+      nullabilitySuffix: alias.nullabilitySuffix,
     );
   }
 
   List<TypeImpl> _mapList(List<TypeImpl> types) {
-    return types.map((e) => e.accept(this)).toFixedList();
+    return List.generate(
+      types.length,
+      (index) => types[index].accept(this),
+      growable: false,
+    );
   }
 }

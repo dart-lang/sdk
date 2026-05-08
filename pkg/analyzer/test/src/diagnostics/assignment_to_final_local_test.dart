@@ -73,10 +73,11 @@ f() {
   test_parameter() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.10
 f(final x) {
   x = 1;
 }''',
-      [error(diag.assignmentToFinalLocal, 15, 1)],
+      [error(diag.assignmentToFinalLocal, 31, 1)],
     );
   }
 

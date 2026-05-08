@@ -498,14 +498,14 @@ GuardedPattern
   test_switch_constPattern_parameter() async {
     await assertErrorsInCode(
       r'''
-void f(var e, int a) {
+void f(e, int a) {
   switch (e) {
     case const (3 + a):
       break;
   }
 }
 ''',
-      [error(diag.constantPatternWithNonConstantExpression, 58, 1)],
+      [error(diag.constantPatternWithNonConstantExpression, 54, 1)],
     );
   }
 

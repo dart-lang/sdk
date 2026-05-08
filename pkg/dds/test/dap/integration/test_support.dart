@@ -123,7 +123,7 @@ Future<Uri> waitForStdoutVmServiceBanner(Process process) {
     (line) {
       final match = vmServiceBannerPattern.firstMatch(line);
       if (match != null) {
-        vmServiceUriCompleter.complete(Uri.parse(match.group(1)!));
+        vmServiceUriCompleter.complete(Uri.parse(match[1]!));
         vmServiceBannerSub.cancel();
       }
     },

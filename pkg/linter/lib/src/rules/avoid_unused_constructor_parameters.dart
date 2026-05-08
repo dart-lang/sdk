@@ -34,15 +34,16 @@ class AvoidUnusedConstructorParameters extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
 class _ConstructorVisitor extends RecursiveAstVisitor<void> {
-  final ConstructorDeclaration element;
+  final FormalParameterList parameterList;
   final Set<FormalParameter> unusedParameters;
 
-  _ConstructorVisitor(this.element)
-    : unusedParameters = element.parameters.parameters.where((p) {
+  _ConstructorVisitor(this.parameterList)
+    : unusedParameters = parameterList.parameters.where((p) {
         var element = p.declaredFragment?.element;
         return element != null &&
             element is! FieldFormalParameterElement &&
@@ -70,10 +71,33 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.redirectedConstructor != null) return;
     if (node.externalKeyword != null) return;
 
-    var constructorVisitor = _ConstructorVisitor(node);
-    node.body.visitChildren(constructorVisitor);
-    for (var i in node.initializers) {
-      i.visitChildren(constructorVisitor);
+    _checkConstructorParameters(
+      parameterList: node.parameters,
+      initializers: node.initializers,
+      body: node.body,
+    );
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _checkConstructorParameters(
+      parameterList: node.formalParameters,
+      initializers: node.body?.initializers,
+      body: node.body?.body,
+    );
+  }
+
+  void _checkConstructorParameters({
+    required FormalParameterList parameterList,
+    required List<ConstructorInitializer>? initializers,
+    required FunctionBody? body,
+  }) {
+    var constructorVisitor = _ConstructorVisitor(parameterList);
+    body?.visitChildren(constructorVisitor);
+    if (initializers != null) {
+      for (var i in initializers) {
+        i.visitChildren(constructorVisitor);
+      }
     }
 
     for (var parameter in constructorVisitor.unusedParameters) {

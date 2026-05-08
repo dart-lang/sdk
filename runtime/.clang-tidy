@@ -1,1 +1,2 @@
 Checks: -*,readability-implicit-bool-conversion,bugprone-argument-comment
+ExcludeHeaderFilterRegex: "third_party.boringssl.src.include.openssl.err\\.h" # breaks readability-implicit-bool-conversion

@@ -24,7 +24,8 @@ void main(List<String> args) {
     print("Warning: ${args[1]} is an existing dir.");
   } else if (!dir.parent.existsSync()) {
     print(
-        "Warning: ${dir.parent} is not an existing dir, but will be created.");
+      "Warning: ${dir.parent} is not an existing dir, but will be created.",
+    );
     dir.createSync(recursive: true);
   } else {
     dir.createSync();
@@ -47,7 +48,8 @@ void main(List<String> args) {
   Set<MapEntry<Uri, Source>> nonPackageUris = {};
   int writes = 0;
   for (MapEntry<Uri, Source> sourceEntry in component.uriToSource.entries) {
-    Uri uri = sourceEntry.value.importUri ??
+    Uri uri =
+        sourceEntry.value.importUri ??
         sourceEntry.value.fileUri ??
         sourceEntry.key;
     Uri fileUri = sourceEntry.key;
@@ -138,7 +140,7 @@ void main(List<String> args) {
       "name": package.key,
       "rootUri": "../${package.key}",
       "packageUri": "lib/",
-      "languageVersion": version.toText()
+      "languageVersion": version.toText(),
     });
   }
   File.fromUri(dir.uri.resolve(".dart_tool/package_config.json"))

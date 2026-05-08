@@ -12,29 +12,25 @@ import '../utils.dart' as utils;
 void main() {
   utils.ensureRunFromSdkBinDart();
 
-  group(
-    'tooling-daemon',
-    () {
-      final dartToolingDaemonRegExp = RegExp(
-        r'The Dart Tooling Daemon is listening on ws://(127.0.0.1:.*)',
-      );
-      Process? process;
+  group('tooling-daemon', () {
+    final dartToolingDaemonRegExp = RegExp(
+      r'The Dart Tooling Daemon is listening on ws://(127.0.0.1:.*)',
+    );
+    Process? process;
 
-      tearDown(() {
-        process?.kill();
-        process = null;
-      });
+    tearDown(() {
+      process?.kill();
+      process = null;
+    });
 
-      test('starts up', () async {
-        final project = utils.project();
-        process = await project.start(['tooling-daemon']);
-        final stdout = process!.stdout
-            .transform<String>(utf8.decoder)
-            .transform<String>(const LineSplitter());
+    test('starts up', () async {
+      final project = utils.project();
+      process = await project.start(['tooling-daemon']);
+      final stdout = process!.stdout
+          .transform<String>(utf8.decoder)
+          .transform<String>(const LineSplitter());
 
-        expect(await stdout.first, contains(dartToolingDaemonRegExp));
-      });
-    },
-    timeout: utils.longTimeout,
-  );
+      expect(await stdout.first, contains(dartToolingDaemonRegExp));
+    });
+  }, timeout: utils.longTimeout);
 }

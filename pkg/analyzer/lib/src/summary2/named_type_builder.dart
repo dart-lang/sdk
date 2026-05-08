@@ -64,7 +64,11 @@ class NamedTypeBuilder extends TypeBuilder {
     List<TypeImpl> arguments;
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      arguments = argumentList.arguments.map((n) => n.typeOrThrow).toList();
+      var argumentsList = argumentList.arguments;
+      arguments = List.generate(
+        argumentsList.length,
+        (index) => argumentsList[index].typeOrThrow,
+      );
     } else {
       arguments = <TypeImpl>[];
     }
@@ -126,8 +130,10 @@ class NamedTypeBuilder extends TypeBuilder {
         element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else {
+    } else if (element is DynamicElementImpl) {
       _type = _dynamicType;
+    } else {
+      _type = InvalidTypeImpl.instance;
     }
 
     node?.type = _type;

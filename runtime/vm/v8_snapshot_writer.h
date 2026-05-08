@@ -27,7 +27,7 @@ enum class IdSpace : uint8_t {
   // Change ObjectId::kIdSpaceBits to use last entry if more are added.
 };
 
-class V8SnapshotProfileWriter : public ZoneAllocated {
+class V8SnapshotProfileWriter : public ZoneObject {
  public:
   struct ObjectId {
     ObjectId() : ObjectId(IdSpace::kInvalid, -1) {}

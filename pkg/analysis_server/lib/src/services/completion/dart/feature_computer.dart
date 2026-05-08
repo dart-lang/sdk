@@ -854,6 +854,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       } else {
         return expression.staticType;
       }
+    } else if (node.parent case CaseClause(:IfStatement parent)) {
+      return parent.expression.staticType;
     }
     return null;
   }
@@ -949,6 +951,16 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   @override
+  DartType? visitLogicalAndPattern(LogicalAndPattern node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitLogicalOrPattern(LogicalOrPattern node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType? visitMapLiteralEntry(MapLiteralEntry node) {
     var literal = node.thisOrAncestorOfType<SetOrMapLiteral>();
     var literalType = literal?.staticType;
@@ -977,7 +989,7 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitMapPatternEntry(MapPatternEntry node) {
-    var pattern = node.parent.ifTypeOrNull<MapPattern>();
+    var pattern = node.parent.tryCast<MapPattern>();
     var type = pattern?.requiredType;
     if (type is InterfaceType && type.isDartCoreMap) {
       var typeArguments = type.typeArguments;
@@ -1014,6 +1026,18 @@ parent3: ${node.parent?.parent?.parent}
     var type = _visitParent(node);
 
     // `RecordType := (^)` without any fields.
+    if (type is RecordType) {
+      return type.positionalFields.firstOrNull?.type;
+    }
+
+    return type;
+  }
+
+  @override
+  DartType? visitParenthesizedPattern(ParenthesizedPattern node) {
+    var type = _visitParent(node);
+
+    // `(int) r = (^)` without any fields.
     if (type is RecordType) {
       return type.positionalFields.firstOrNull?.type;
     }

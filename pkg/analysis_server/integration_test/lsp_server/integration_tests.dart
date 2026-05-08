@@ -32,7 +32,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   final List<String> vmArgs = [];
   LspServerClient? client;
   InstrumentationService? instrumentationService;
-  final Map<num, Completer<ResponseMessage>> _completers = {};
+  final Map<Either2<int, String>, Completer<ResponseMessage>> _completers = {};
   String dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
 
   @override
@@ -121,10 +121,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
     var completer = Completer<ResponseMessage>();
-    var id = request.id.map(
-      (number) => number,
-      (string) => throw 'String IDs not supported in tests',
-    );
+    var id = request.id;
     _completers[id] = completer;
 
     channel.sendRequest(request);
@@ -153,11 +150,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     await client.start(dartSdkPath: dartSdkPath, vmArgs: vmArgs);
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
-        var id = message.id!.map(
-          (number) => number,
-          (string) => throw 'String IDs not supported in tests',
-        );
-
+        var id = message.id;
         var completer = _completers[id];
         if (completer == null) {
           throw 'Response with ID $id was unexpected';

@@ -170,9 +170,27 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitNullAssertPattern(NullAssertPattern node) {
     var expectedType = node.matchedValueType;
-    if (expectedType != null && context.typeSystem.isNullable(expectedType)) {
-      rule.reportAtToken(node.operator);
+    if (expectedType == null || !context.typeSystem.isNullable(expectedType)) {
+      return;
     }
+    // In declaration, for-each, and matching (switch case) contexts, the `!`
+    // determines the static type of pattern-bound variables. Removing it would
+    // widen their types to nullable, which changes program semantics (e.g.,
+    // `final (X(n: v!)) = x` declares `v` as non-null; without `!`, `v`
+    // would be nullable, which may make downstream uses of `v` ill-typed).
+    var parent = node.parent;
+    while (parent != null) {
+      if (parent is PatternVariableDeclaration ||
+          parent is ForEachPartsWithPattern ||
+          parent is GuardedPattern) {
+        return;
+      }
+      if (parent is PatternAssignment) {
+        break;
+      }
+      parent = parent.parent;
+    }
+    rule.reportAtToken(node.operator);
   }
 
   @override

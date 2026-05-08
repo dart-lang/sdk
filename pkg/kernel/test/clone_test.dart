@@ -17,8 +17,11 @@ void main() {
 
 void testBodyCloning() {
   // TODO(johnniwinther): Add a test for cloning in context.
-  NodeCreator creator =
-      new NodeCreator(initializers: [], members: [], nodes: inBodyNodeKinds);
+  NodeCreator creator = new NodeCreator(
+    initializers: [],
+    members: [],
+    nodes: inBodyNodeKinds,
+  );
   List<TreeNode> nodes = creator.generateBodies();
 
   CoverageVisitor coverageVisitor = new CoverageVisitor();
@@ -26,21 +29,28 @@ void testBodyCloning() {
     node.accept(coverageVisitor);
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     TreeNode clone = cloner.clone(node);
-    EquivalenceResult result = checkEquivalence(node, clone,
-        strategy: const NoFileOffsetEquivalenceStrategy());
+    EquivalenceResult result = checkEquivalence(
+      node,
+      clone,
+      strategy: const NoFileOffsetEquivalenceStrategy(),
+    );
     if (!result.isEquivalent) {
       print(result);
     }
     Expect.isTrue(result.isEquivalent, "$node");
   }
   Expect.isEmpty(
-      creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
-      'Nodes not covered in testing.');
+    creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
+    'Nodes not covered in testing.',
+  );
 }
 
 void testBodyCloningInContext() {
-  NodeCreator creator =
-      new NodeCreator(initializers: [], members: [], nodes: inBodyNodeKinds);
+  NodeCreator creator = new NodeCreator(
+    initializers: [],
+    members: [],
+    nodes: inBodyNodeKinds,
+  );
   List<Statement> nodes = creator.generateBodies();
 
   CoverageVisitor coverageVisitor = new CoverageVisitor();
@@ -48,8 +58,12 @@ void testBodyCloningInContext() {
     node.accept(coverageVisitor);
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     // Set up context for [statement].
-    new Procedure(Name('foo'), ProcedureKind.Method, FunctionNode(node),
-        fileUri: dummyUri);
+    new Procedure(
+      Name('foo'),
+      ProcedureKind.Method,
+      FunctionNode(node),
+      fileUri: dummyUri,
+    );
     TreeNode clone = cloner.cloneInContext(node);
     EquivalenceResult result = checkEquivalence(node, clone);
     if (!result.isEquivalent) {
@@ -58,8 +72,9 @@ void testBodyCloningInContext() {
     Expect.isTrue(result.isEquivalent, "$node");
   }
   Expect.isEmpty(
-      creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
-      'Nodes not covered in testing.');
+    creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
+    'Nodes not covered in testing.',
+  );
 }
 
 void testMemberCloning() {
@@ -69,15 +84,19 @@ void testMemberCloning() {
   CoverageVisitor coverageVisitor = new CoverageVisitor();
 
   void testMembers<M extends Member>(
-      Iterable<M> members,
-      M Function(CloneVisitorWithMembers, M) cloneFunction,
-      String Function(M) toStringFunction) {
+    Iterable<M> members,
+    M Function(CloneVisitorWithMembers, M) cloneFunction,
+    String Function(M) toStringFunction,
+  ) {
     for (M member in members) {
       member.accept(coverageVisitor);
       CloneVisitorWithMembers cloner = new CloneVisitorWithMembers();
       M clone = cloneFunction(cloner, member);
-      EquivalenceResult result = checkEquivalence(member, clone,
-          strategy: const MemberEquivalenceStrategy());
+      EquivalenceResult result = checkEquivalence(
+        member,
+        clone,
+        strategy: const MemberEquivalenceStrategy(),
+      );
       if (!result.isEquivalent) {
         print(result);
       }
@@ -87,27 +106,33 @@ void testMemberCloning() {
 
   void testProcedures(Iterable<Procedure> procedures) {
     testMembers<Procedure>(
-        procedures,
-        (cloner, procedure) => cloner.cloneProcedure(procedure, null),
-        (procedure) => "${procedure.runtimeType}(${procedure.name}):"
-            "${procedure.function.body}");
+      procedures,
+      (cloner, procedure) => cloner.cloneProcedure(procedure, null),
+      (procedure) =>
+          "${procedure.runtimeType}(${procedure.name}):"
+          "${procedure.function.body}",
+    );
   }
 
   void testFields(Iterable<Field> fields) {
     testMembers<Field>(
-        fields,
-        (cloner, field) => cloner.cloneField(field, null, null, null),
-        (field) => "${field.runtimeType}(${field.name}):"
-            "${field.initializer}");
+      fields,
+      (cloner, field) => cloner.cloneField(field, null, null, null),
+      (field) =>
+          "${field.runtimeType}(${field.name}):"
+          "${field.initializer}",
+    );
   }
 
   void testConstructors(Iterable<Constructor> constructors) {
     testMembers<Constructor>(
-        constructors,
-        (cloner, constructor) => cloner.cloneConstructor(constructor, null),
-        (constructor) => "${constructor.runtimeType}(${constructor.name}):"
-            "${constructor.initializers}:"
-            "${constructor.function.body}");
+      constructors,
+      (cloner, constructor) => cloner.cloneConstructor(constructor, null),
+      (constructor) =>
+          "${constructor.runtimeType}(${constructor.name}):"
+          "${constructor.initializers}:"
+          "${constructor.function.body}",
+    );
   }
 
   for (Library library in component.libraries) {
@@ -120,8 +145,9 @@ void testMemberCloning() {
     }
   }
   Expect.isEmpty(
-      creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
-      'Nodes not covered in testing.');
+    creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
+    'Nodes not covered in testing.',
+  );
 }
 
 class NoFileOffsetEquivalenceStrategy extends EquivalenceStrategy {
@@ -129,7 +155,10 @@ class NoFileOffsetEquivalenceStrategy extends EquivalenceStrategy {
 
   @override
   bool checkTreeNode_fileOffset(
-      EquivalenceVisitor visitor, TreeNode node, TreeNode other) {
+    EquivalenceVisitor visitor,
+    TreeNode node,
+    TreeNode other,
+  ) {
     if (other.fileOffset == TreeNode.noOffset) return true;
     return super.checkTreeNode_fileOffset(visitor, node, other);
   }
@@ -138,8 +167,13 @@ class NoFileOffsetEquivalenceStrategy extends EquivalenceStrategy {
 class MemberEquivalenceStrategy extends EquivalenceStrategy {
   const MemberEquivalenceStrategy();
 
-  void assumeClonedReferences(EquivalenceVisitor visitor, Member member1,
-      Reference? reference1, Member member2, Reference? reference2) {
+  void assumeClonedReferences(
+    EquivalenceVisitor visitor,
+    Member member1,
+    Reference? reference1,
+    Member member2,
+    Reference? reference2,
+  ) {
     if (reference1 != null && reference2 != null) {
       ReferenceName referenceName1 = ReferenceName.fromNamedNode(member1);
       ReferenceName referenceName2 = ReferenceName.fromNamedNode(member2);
@@ -155,20 +189,36 @@ class MemberEquivalenceStrategy extends EquivalenceStrategy {
 
   @override
   bool checkProcedure(
-      EquivalenceVisitor visitor, Procedure? node, Object? other) {
+    EquivalenceVisitor visitor,
+    Procedure? node,
+    Object? other,
+  ) {
     if (node is Procedure && other is Procedure) {
       assumeClonedReferences(
-          visitor, node, node.reference, other, other.reference);
+        visitor,
+        node,
+        node.reference,
+        other,
+        other.reference,
+      );
     }
     return super.checkProcedure(visitor, node, other);
   }
 
   @override
   bool checkConstructor(
-      EquivalenceVisitor visitor, Constructor? node, Object? other) {
+    EquivalenceVisitor visitor,
+    Constructor? node,
+    Object? other,
+  ) {
     if (node is Constructor && other is Constructor) {
       assumeClonedReferences(
-          visitor, node, node.reference, other, other.reference);
+        visitor,
+        node,
+        node.reference,
+        other,
+        other.reference,
+      );
     }
     return super.checkConstructor(visitor, node, other);
   }
@@ -177,11 +227,26 @@ class MemberEquivalenceStrategy extends EquivalenceStrategy {
   bool checkField(EquivalenceVisitor visitor, Field? node, Object? other) {
     if (node is Field && other is Field) {
       assumeClonedReferences(
-          visitor, node, node.fieldReference, other, other.fieldReference);
+        visitor,
+        node,
+        node.fieldReference,
+        other,
+        other.fieldReference,
+      );
       assumeClonedReferences(
-          visitor, node, node.getterReference, other, other.getterReference);
+        visitor,
+        node,
+        node.getterReference,
+        other,
+        other.getterReference,
+      );
       assumeClonedReferences(
-          visitor, node, node.setterReference, other, other.setterReference);
+        visitor,
+        node,
+        node.setterReference,
+        other,
+        other.setterReference,
+      );
     }
     return super.checkField(visitor, node, other);
   }

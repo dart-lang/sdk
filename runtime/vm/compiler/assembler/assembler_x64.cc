@@ -1063,6 +1063,28 @@ void Assembler::btq(Register base, int bit) {
   EmitUint8(bit);
 }
 
+void Assembler::btrq(const Address& base, int bit) {
+  ASSERT(bit >= 0 && bit < 64);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(base);
+  EmitOperandREX(4, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xBA);
+  EmitOperand(6, operand);
+  EmitUint8(bit);
+}
+
+void Assembler::btsq(const Address& base, int bit) {
+  ASSERT(bit >= 0 && bit < 64);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(base);
+  EmitOperandREX(4, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xBA);
+  EmitOperand(5, operand);
+  EmitUint8(bit);
+}
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);
@@ -1278,25 +1300,17 @@ void Assembler::AddImmediate(Register reg,
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
-    if (value == 1) {
+    if (imm.is_int32() || (width == kFourBytes && imm.is_uint32())) {
       if (width == kFourBytes) {
-        incl(reg);
+        addl(reg, imm);
       } else {
-        incq(reg);
+        addq(reg, imm);
       }
     } else {
-      if (imm.is_int32() || (width == kFourBytes && imm.is_uint32())) {
-        if (width == kFourBytes) {
-          addl(reg, imm);
-        } else {
-          addq(reg, imm);
-        }
-      } else {
-        ASSERT(reg != TMP);
-        ASSERT(width == kEightBytes);
-        LoadImmediate(TMP, imm);
-        addq(reg, TMP);
-      }
+      ASSERT(reg != TMP);
+      ASSERT(width == kEightBytes);
+      LoadImmediate(TMP, imm);
+      addq(reg, TMP);
     }
   } else {
     SubImmediate(reg, Immediate(-value), width);
@@ -1326,15 +1340,11 @@ void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
-    if (value == 1) {
-      incq(address);
+    if (imm.is_int32()) {
+      addq(address, imm);
     } else {
-      if (imm.is_int32()) {
-        addq(address, imm);
-      } else {
-        LoadImmediate(TMP, imm);
-        addq(address, TMP);
-      }
+      LoadImmediate(TMP, imm);
+      addq(address, TMP);
     }
   } else {
     SubImmediate(address, Immediate(-value));
@@ -1351,25 +1361,17 @@ void Assembler::SubImmediate(Register reg,
   }
   if ((value > 0) || (value == kMinInt64) ||
       (value == kMinInt32 && width == kFourBytes)) {
-    if (value == 1) {
+    if (imm.is_int32()) {
       if (width == kFourBytes) {
-        decl(reg);
+        subl(reg, imm);
       } else {
-        decq(reg);
+        subq(reg, imm);
       }
     } else {
-      if (imm.is_int32()) {
-        if (width == kFourBytes) {
-          subl(reg, imm);
-        } else {
-          subq(reg, imm);
-        }
-      } else {
-        ASSERT(reg != TMP);
-        ASSERT(width == kEightBytes);
-        LoadImmediate(TMP, imm);
-        subq(reg, TMP);
-      }
+      ASSERT(reg != TMP);
+      ASSERT(width == kEightBytes);
+      LoadImmediate(TMP, imm);
+      subq(reg, TMP);
     }
   } else {
     AddImmediate(reg, Immediate(-value), width);
@@ -1382,15 +1384,11 @@ void Assembler::SubImmediate(const Address& address, const Immediate& imm) {
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
-    if (value == 1) {
-      decq(address);
+    if (imm.is_int32()) {
+      subq(address, imm);
     } else {
-      if (imm.is_int32()) {
-        subq(address, imm);
-      } else {
-        LoadImmediate(TMP, imm);
-        subq(address, TMP);
-      }
+      LoadImmediate(TMP, imm);
+      subq(address, TMP);
     }
   } else {
     AddImmediate(address, Immediate(-value));
@@ -1917,7 +1915,7 @@ void Assembler::CompareWords(Register reg1,
                              Label* equals) {
   Label loop;
   Bind(&loop);
-  decq(count);
+  subq(count, Immediate(1));
   j(LESS, equals, Assembler::kNearJump);
   COMPILE_ASSERT(target::kWordSize == 8);
   movq(temp, FieldAddress(reg1, count, TIMES_8, offset));
@@ -2022,6 +2020,27 @@ void Assembler::PopRegisters(const RegisterSet& register_set) {
     ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
     AddImmediate(RSP, Immediate(offset));
   }
+}
+
+void Assembler::PushRegistersAligned(const RegisterSet& register_set,
+                                     intptr_t space) {
+  PushRegisters(register_set);
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    subq(RSP, Immediate(aligned_space));
+  }
+}
+void Assembler::PopRegistersAligned(const RegisterSet& register_set,
+                                    intptr_t space) {
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    addq(RSP, Immediate(aligned_space));
+  }
+  PopRegisters(register_set);
 }
 
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
@@ -2457,7 +2476,7 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
   // return (hash == 0) ? 1 : hash;
   Label done;
   j(NOT_ZERO, &done, kNearJump);
-  incl(dst);
+  addl(dst, Immediate(1));
   Bind(&done);
 }
 

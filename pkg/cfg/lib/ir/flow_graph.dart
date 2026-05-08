@@ -18,6 +18,7 @@ class FlowGraph extends Uint32Arena {
   final CFunction function;
 
   /// Local variables used in this graph.
+  /// The first [function.numberOfParameters] variables represent function parameters.
   final List<LocalVariable> localVariables = [];
 
   /// All instructions used in this graph.

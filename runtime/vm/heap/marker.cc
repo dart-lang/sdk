@@ -138,7 +138,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
             // New-space objects still in a TLAB are deferred. This allows the
             // compiler to remove write barriers for freshly allocated objects.
             tlab_deferred_work_list_.Push(obj);
-            if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+            if (page_space_->pause_concurrent_marking()) [[unlikely]] {
               YieldConcurrentMarking();
             }
             continue;
@@ -181,7 +181,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
           marked_bytes_ += size;
         }
 
-        if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+        if (page_space_->pause_concurrent_marking()) [[unlikely]] {
           YieldConcurrentMarking();
         }
       }
@@ -229,7 +229,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       }
 
       if (((i + 1) % kCardsPerInterruptCheck) == 0) {
-        if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+        if (page_space_->pause_concurrent_marking()) [[unlikely]] {
           YieldConcurrentMarking();
         }
       }
@@ -666,7 +666,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
     // was allocated after the concurrent marker started. It can read either a
     // zero or the header of an object allocated black, both of which appear
     // marked.
-    uword tags = obj->untag()->tags_ignore_race();
+    // No ASAN/MSAN: expensive without offering much insight for GC bugs.
+    uword tags = obj->untag()->tags_no_sanitize();
     if (UntaggedObject::IsMarked(tags)) {
       return UntaggedObject::IsEvacuationCandidate(tags);
     }
@@ -674,7 +675,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     intptr_t class_id = UntaggedObject::ClassIdTag::decode(tags);
     ASSERT(class_id != kFreeListElement);
 
-    if (UNLIKELY(class_id == kInstructionsCid)) {
+    if (class_id == kInstructionsCid) [[unlikely]] {
       // If this is the concurrent marker, this object may be non-writable due
       // to W^X (--write-protect-code).
       deferred_work_list_.Push(obj);

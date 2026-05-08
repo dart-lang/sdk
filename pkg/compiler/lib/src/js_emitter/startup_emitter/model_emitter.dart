@@ -6,8 +6,9 @@ library;
 
 import 'dart:convert' show JsonEncoder;
 
+// ignore: implementation_imports
+import 'package:js_ast/src/precedence.dart' as js_precedence;
 import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
-
 import 'package:js_runtime/synced/embedded_names.dart'
     show
         CACHED_GLOBAL_THIS,
@@ -30,7 +31,6 @@ import 'package:js_runtime/synced/embedded_names.dart'
         STARTUP_METRICS,
         TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP;
-
 import 'package:js_shared/synced/embedded_names.dart'
     show
         ARRAY_RTI_PROPERTY,
@@ -38,11 +38,7 @@ import 'package:js_shared/synced/embedded_names.dart'
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
         TYPES;
-
 import 'package:js_shared/variance.dart';
-
-// ignore: implementation_imports
-import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../../../compiler_api.dart' as api;
 import '../../common.dart';
@@ -61,15 +57,6 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js/js_source_mapping.dart';
 import '../../js/size_estimator.dart';
-import '../../js_backend/js_backend.dart'
-    show Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/js_interop_analysis.dart' as js_interop_analysis;
-import '../../js_backend/runtime_types.dart';
-import '../../js_backend/runtime_types_codegen.dart';
-import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
-import '../../js_backend/runtime_types_new.dart'
-    show RecipeEncoderImpl, Ruleset, RulesetEncoder;
-import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_backend/deferred_holder_expression.dart'
     show
         DeferredHolderExpressionFinalizer,
@@ -78,25 +65,34 @@ import '../../js_backend/deferred_holder_expression.dart'
         DeferredHolderResource,
         DeferredHolderResourceKind,
         mainResourceName;
-import '../../js_backend/type_reference.dart'
-    show
-        TypeReferenceFinalizer,
-        TypeReferenceFinalizerImpl,
-        TypeReferenceResource;
+import '../../js_backend/js_backend.dart'
+    show Namer, ConstantEmitter, StringBackedName;
+import '../../js_backend/js_interop_analysis.dart' as js_interop_analysis;
+import '../../js_backend/runtime_types.dart';
+import '../../js_backend/runtime_types_codegen.dart';
+import '../../js_backend/runtime_types_new.dart'
+    show RecipeEncoderImpl, Ruleset, RulesetEncoder;
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_backend/string_reference.dart'
     show
         StringReferenceFinalizer,
         StringReferenceFinalizerImpl,
         StringReferenceResource;
+import '../../js_backend/type_reference.dart'
+    show
+        TypeReferenceFinalizer,
+        TypeReferenceFinalizerImpl,
+        TypeReferenceResource;
 import '../../js_model/js_world.dart';
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
-import '../js_emitter.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
+import '../js_emitter.dart';
 import '../model.dart';
-import '../resource_info_emitter.dart' show ResourceInfoCollector;
+import '../record_use_emitter.dart' show RecordUseCollector;
 import 'fragment_merger.dart';
 
 part 'fragment_emitter.dart';
@@ -113,7 +109,9 @@ class ModelEmitter {
   final DiagnosticReporter _reporter;
   final api.CompilerOutput _outputProvider;
   final DumpInfoJsAstRegistry _dumpInfoRegistry;
-  final ResourceInfoCollector _resourceInfoCollector = ResourceInfoCollector();
+  late final RecordUseCollector _recordUseCollector = RecordUseCollector(
+    _closedWorld,
+  );
   final Namer _namer;
   final CompilerTask _task;
   final Emitter _emitter;
@@ -391,8 +389,11 @@ class ModelEmitter {
       writeDeferredMap();
     }
 
-    if (_options.writeResources) {
-      writeResourceIdentifiers();
+    if (_options.writeRecordedUses) {
+      Map<OutputUnit, String> outputUnitToName = _createOutputUnitToName(
+        program,
+      );
+      writeRecordedUses(outputUnitToName);
     }
 
     // Return the total program size.
@@ -498,7 +499,7 @@ var $startupMetricsGlobal =
       _options,
       _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
       monitor: _dumpInfoRegistry,
-      annotationMonitor: _resourceInfoCollector.monitorFor(
+      annotationMonitor: _recordUseCollector.monitorFor(
         _options.outputUri?.pathSegments.last ?? 'out',
       ),
     );
@@ -678,7 +679,7 @@ var $startupMetricsGlobal =
       _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
       monitor: _dumpInfoRegistry,
       listeners: [hasher],
-      annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName),
+      annotationMonitor: _recordUseCollector.monitorFor(outputFileName),
     );
     _task.measureSubtask('emit buffers', () {
       output.addBuffer(buffer);
@@ -746,18 +747,32 @@ var $startupMetricsGlobal =
       ..close();
   }
 
-  /// Writes out all the referenced resource identifiers as a JSON file.
-  void writeResourceIdentifiers() {
+  Map<OutputUnit, String> _createOutputUnitToName(Program program) {
+    Map<OutputUnit, String> outputUnitToName = {};
+    outputUnitToName[program.mainFragment.outputUnit] =
+        _options.outputUri?.pathSegments.last ?? 'out';
+    finalizedFragmentsToLoad.forEach((loadId, fragments) {
+      for (var finalizedFragment in fragments) {
+        // Each FinalizedFragment has a list of CodeFragments,
+        // and each CodeFragment is associated with a set of OutputUnits.
+        for (var codeFragment in finalizedFragment.codeFragments) {
+          for (var outputUnit in codeFragment.outputUnits) {
+            outputUnitToName[outputUnit] = finalizedFragment.outputFileName;
+          }
+        }
+      }
+    });
+    return outputUnitToName;
+  }
+
+  /// Writes all recorded uses as a JSON file.
+  void writeRecordedUses(Map<OutputUnit, String> outputUnitToName) {
     _outputProvider.createOutputSink(
         '',
         'resources.json',
-        api.OutputType.resourceIdentifiers,
+        api.OutputType.recordedUses,
       )
-      ..add(
-        JsonEncoder.withIndent(
-          '  ',
-        ).convert(_resourceInfoCollector.finish(_options.environment)),
-      )
+      ..add(JsonEncoder.withIndent('  ').convert(_recordUseCollector.finish()))
       ..close();
   }
 }

@@ -5,8 +5,6 @@
 // Erroneous ways to use shorthands for simple identifiers and const simple
 // identifiers.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 void main() {

@@ -1,4 +1,40 @@
-## 0.14.0-dev
+## 0.14.8-dev
+
+- Require version `12.1.0-dev` of the `analyzer` package.
+
+## 0.14.7
+
+- Require version `12.0.0` of the `analyzer` package.
+
+## 0.14.6-dev
+
+- Require version `11.1.0-dev` of the `analyzer` package.
+
+## 0.14.5
+
+- Require version `^11.0.0-0` of the `analyzer` package.
+
+## 0.14.4-dev
+
+- Require version `10.3.0-dev` of the `analyzer` package.
+
+## 0.14.4
+
+- Require version `10.2.0` of the `analyzer` package.
+
+## 0.14.3
+
+- Require version `10.1.0` of the `analyzer` package.
+
+## 0.14.2
+
+- Require version `10.0.2` of the `analyzer` package.
+
+## 0.14.1
+
+- Require version `10.0.1` of the `analyzer` package.
+
+## 0.14.0
 
 - Require version `10.0.0` of the `analyzer` package.
 - `AssistContributorMixin` is now a mixin.

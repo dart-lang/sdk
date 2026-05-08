@@ -53,10 +53,14 @@ const char* TokenPosition::ToCString() const {
   }
   ASSERT(IsReal() || IsSynthetic());
   ZoneTextBuffer buffer(Thread::Current()->zone());
+  int32_t encoded_value = value_;
   if (IsSynthetic()) {
     buffer.AddString("syn:");
+    // Use the decoded value for printing, so it can be more easily
+    // correlated with real token positions encoding the same source offset.
+    encoded_value = ConvertSynthetic(value_);
   }
-  buffer.Printf("%" Pd32 "", value_);
+  buffer.Printf("%" Pd32 "", encoded_value);
   return buffer.buffer();
 }
 

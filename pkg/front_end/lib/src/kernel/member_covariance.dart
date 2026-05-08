@@ -264,7 +264,6 @@ class Covariance {
     if (_typeParameters == null) {
       typeParameters = other._typeParameters;
     } else if (other._typeParameters == null) {
-      // Coverage-ignore-block(suite): Not run.
       typeParameters = _typeParameters;
     } else {
       typeParameters = new List<bool>.filled(

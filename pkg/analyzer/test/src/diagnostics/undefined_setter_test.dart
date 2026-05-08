@@ -88,13 +88,13 @@ class A {}
 class B extends A {
   set b(x) {}
 }
-f(var a) {
+f(a) {
   if (a is A) {
     a.b = 0;
   }
 }
 ''',
-      [error(diag.undefinedSetter, 80, 1)],
+      [error(diag.undefinedSetter, 76, 1)],
     );
   }
 
@@ -102,13 +102,13 @@ f(var a) {
     await assertErrorsInCode(
       r'''
 class A {}
-f(var a) {
+f(a) {
   if(a is A) {
     a.m = 0;
   }
 }
 ''',
-      [error(diag.undefinedSetter, 43, 1)],
+      [error(diag.undefinedSetter, 39, 1)],
     );
   }
 
@@ -238,11 +238,11 @@ class S {
   static set s(int i) {}
 }
 class C extends S {}
-f(var p) {
+f(p) {
   f(C.s = 1);
 }''',
       [
-        error(diag.undefinedSetter, 75, 1, messageContains: ["type 'C'"]),
+        error(diag.undefinedSetter, 71, 1, messageContains: ["type 'C'"]),
       ],
     );
   }

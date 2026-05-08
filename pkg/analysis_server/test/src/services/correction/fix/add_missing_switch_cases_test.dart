@@ -7,7 +7,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -467,6 +466,42 @@ import 'package:other/exposed.dart';
 int f(A a) => switch (a) {
   // TODO: Handle this case.
   C() => throw UnimplementedError(),
+  // TODO: Handle this case.
+  _ => throw UnimplementedError(),
+};
+''');
+  }
+
+  Future<void> test_sealed_impl_requestedTwice() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class A {}
+sealed class B implements A {}
+final class CImpl extends B implements C {}
+''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show A, B;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: otherRoot.path),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
+};
+''');
+    await assertHasFixWithoutApplying();
+    await assertHasFix('''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
   // TODO: Handle this case.
   _ => throw UnimplementedError(),
 };
@@ -1037,6 +1072,50 @@ int g(E e) {
     case E.first:
     case E.second:
       return 0;
+    default:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_sealed_impl() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class A {}
+sealed class B implements A {}
+abstract final class C implements B {}
+final class CImpl extends B implements C {}
+''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show A, B, C;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: otherRoot.path),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+void f(A a) {
+  switch (a) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'package:other/exposed.dart';
+
+void f(A a) {
+  switch (a) {
+    case C():
+      // TODO: Handle this case.
+      throw UnimplementedError();
     default:
       // TODO: Handle this case.
       throw UnimplementedError();

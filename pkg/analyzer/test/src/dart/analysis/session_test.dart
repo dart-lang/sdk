@@ -326,6 +326,106 @@ class B {}
     expect(node.length, 10);
   }
 
+  test_getParsedLibrary_getElementDeclaration_constructor_factory() async {
+    newFile(testFile.path, r'''
+class A {}
+class B {
+  factory () => B._();
+  B._();
+}
+''');
+
+    var session = contextFor(testFile).currentSession;
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
+
+    var element = libraryResult.element.getClass('B')!.constructors.first;
+    var declaration = parsedLibrary.getFragmentDeclaration(
+      element.firstFragment,
+    )!;
+    var node = declaration.node as ConstructorDeclaration;
+    expect(node.typeName, isNull);
+    expect(node.factoryKeyword, isNotNull);
+    expect(node.newKeyword, isNull);
+    expect(node.offset, 23);
+    expect(node.length, 20);
+  }
+
+  test_getParsedLibrary_getElementDeclaration_constructor_new() async {
+    newFile(testFile.path, r'''
+class A {}
+class B {
+  new ();
+}
+''');
+
+    var session = contextFor(testFile).currentSession;
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
+
+    var element = libraryResult.element.getClass('B')!.constructors.first;
+    var declaration = parsedLibrary.getFragmentDeclaration(
+      element.firstFragment,
+    )!;
+    var node = declaration.node as ConstructorDeclaration;
+    expect(node.typeName, isNull);
+    expect(node.factoryKeyword, isNull);
+    expect(node.newKeyword, isNotNull);
+    expect(node.offset, 23);
+    expect(node.length, 7);
+  }
+
+  test_getParsedLibrary_getElementDeclaration_constructor_primary() async {
+    newFile(testFile.path, r'''
+class A {}
+class B() {}
+''');
+
+    var session = contextFor(testFile).currentSession;
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
+
+    var element = libraryResult.element.getClass('B')!.constructors.first;
+    var declaration = parsedLibrary.getFragmentDeclaration(
+      element.firstFragment,
+    )!;
+    var node = declaration.node as PrimaryConstructorDeclaration;
+    expect(node.constructorName, isNull);
+    expect(node.typeName.lexeme, 'B');
+    expect(node.offset, 17);
+    expect(node.length, 3);
+  }
+
+  test_getParsedLibrary_getElementDeclaration_constructor_secondary() async {
+    newFile(testFile.path, r'''
+class A {}
+class B {
+  B();
+}
+''');
+
+    var session = contextFor(testFile).currentSession;
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
+
+    var element = libraryResult.element.getClass('B')!.constructors.first;
+    var declaration = parsedLibrary.getFragmentDeclaration(
+      element.firstFragment,
+    )!;
+    var node = declaration.node as ConstructorDeclaration;
+    expect(node.typeName!.token.lexeme, 'B');
+    expect(node.offset, 23);
+    expect(node.length, 4);
+  }
+
   test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
     newFile(testFile.path, '');
 

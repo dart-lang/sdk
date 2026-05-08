@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+mixin class M1 extends core::Object {
+  constructor •() → self::M1
+    ;
+}
+mixin class M2 extends core::Object {
+  field core::int v;
+  constructor •() → self::M2
+    ;
+}

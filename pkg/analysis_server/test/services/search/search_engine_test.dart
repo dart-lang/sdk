@@ -544,7 +544,7 @@ class B extends A {
       matches,
       unorderedEquals([
         predicate((SearchMatch m) {
-          return m.kind == MatchKind.REFERENCE &&
+          return m.kind == MatchKind.REFERENCE_BY_NAMED_ARGUMENT &&
               identical(
                 m.element,
                 findElement2.unnamedConstructor('B').superFormalParameter('a'),
@@ -612,7 +612,7 @@ void g() {
       matches,
       unorderedEquals([
         predicate((SearchMatch m) {
-          return m.kind == MatchKind.REFERENCE &&
+          return m.kind == MatchKind.REFERENCE_BY_NAMED_ARGUMENT &&
               identical(m.element, findElement2.topFunction('g')) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == 'test'.length;

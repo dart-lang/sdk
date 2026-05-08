@@ -53,6 +53,18 @@ class B implements A {
 ''');
   }
 
+  test_class_static() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  @override
+  static int get foo => 0;
+}
+''',
+      [error(diag.overrideOnNonOverridingGetter, 39, 3)],
+    );
+  }
+
   test_enum() async {
     await assertErrorsInCode(
       r'''
@@ -115,6 +127,16 @@ mixin M {
 }
 ''',
       [error(diag.overrideOnNonOverridingGetter, 32, 3)],
+    );
+  }
+
+  test_topLevel() async {
+    await assertErrorsInCode(
+      r'''
+@override
+int get foo => 1;
+''',
+      [error(diag.overrideOnNonOverridingGetter, 18, 3)],
     );
   }
 }

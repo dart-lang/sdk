@@ -43,11 +43,17 @@ class PluginData {
     // Record a data point for each context root with _no_ configured new
     // plugins.
     for (var contextRootPath in pluginManager.contextRootsWithNoPlugins) {
-      // Plugin analytics are keyed to safe plugin IDs, which are derived from
-      // the context root path.
-      var pluginEntrypointPath = pluginManager.pluginStateFolderPath(
-        contextRootPath,
-      );
+      String pluginEntrypointPath;
+      try {
+        // Plugin analytics are keyed to safe plugin IDs, which are derived from
+        // the context root path.
+        pluginEntrypointPath = pluginManager.pluginStateFolderPath(
+          contextRootPath,
+        );
+      } on PluginException {
+        // No valid state location on this file system; don't log this data.
+        continue;
+      }
       var safePluginId = pluginEntrypointPath.asSafePluginId;
       counts.putIfAbsent(
         safePluginId,

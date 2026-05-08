@@ -19,12 +19,11 @@ import '../js_model/js_strategy.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
+import 'js_emitter.dart';
+import 'model.dart';
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 import 'startup_emitter/fragment_merger.dart';
-
-import 'js_emitter.dart';
-import 'model.dart';
 
 /// Generates the code for all used classes in the program. Static fields (even
 /// in classes) are ignored, since they can be treated as non-class elements.

@@ -167,6 +167,14 @@ abstract class C {
 ''');
   }
 
+  test_twoMembers_oneField_originPrimaryConstructor() async {
+    await assertNoDiagnostics(r'''
+abstract class C(final int x) {
+  int f();
+}
+''');
+  }
+
   test_twoMembers_oneGetter() async {
     await assertNoDiagnostics(r'''
 abstract class C {

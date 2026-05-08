@@ -18,7 +18,7 @@ final _environmentRegExp =
 final _packagesRegExp = RegExp(r"^[ \t]*// Packages=(.*)", multiLine: true);
 final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z0-9,-]+)$");
 final _localFileRegExp = RegExp(
-    r"""^[ \t]*(?:import(?: augment)?|part)\s*"""
+    r"""^[ \t]*(?:import|part)\s*"""
     r"""['"](?!package:|dart:)(.*?)['"]\s*"""
     r"""(?:(?:deferred\s+)?as\s+\w+\s*)?"""
     r"""(?:(?:show|hide)\s+\w+\s*(?:,\s*\w+\s*))*;""",

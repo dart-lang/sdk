@@ -30,7 +30,7 @@ For more information about the server's capabilities and configuration, see:
   https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server''';
 
   LanguageServerCommand({bool verbose = false})
-      : super(commandName, commandDescription, verbose, hidden: !verbose);
+    : super(commandName, commandDescription, verbose, hidden: !verbose);
 
   @override
   ArgParser createArgParser() {
@@ -38,10 +38,12 @@ For more information about the server's capabilities and configuration, see:
       usageLineLength: dartdevUsageLineLength,
       includeHelpFlag: false,
       defaultToLsp: true,
-    )..addFlag(useAotSnapshotFlag,
-        help: 'Use the AOT analysis server snapshot',
-        defaultsTo: true,
-        hide: true);
+    )..addFlag(
+      useAotSnapshotFlag,
+      help: 'Use the AOT analysis server snapshot',
+      defaultsTo: true,
+      hide: true,
+    );
   }
 
   @override
@@ -70,11 +72,7 @@ For more information about the server's capabilities and configuration, see:
         script = sdk.analysisServerSnapshot;
         useExec = true;
       }
-      VmInteropHandler.run(
-        script,
-        args,
-        useExecProcess: useExec,
-      );
+      VmInteropHandler.run(script, args, useExecProcess: useExec);
       return 0;
     } catch (e, st) {
       log.stderr('Error: launching language analysis server failed');

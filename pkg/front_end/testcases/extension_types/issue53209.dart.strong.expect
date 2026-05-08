@@ -18,7 +18,7 @@ library;
 //   factory E.redirTooMany3(int foo, [dynamic bar]) = E; // Error.
 //                                                     ^
 //
-// pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {Object bar})'.
+// pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {required Object bar})'.
 //  - 'Object' is from 'dart:core'.
 //   factory E.redirTooMany4(int foo, {required Object bar}) = E; // Error.
 //                                                             ^
@@ -111,12 +111,12 @@ static extension-type-member synthetic method E|constructor#_#redirTooMany3#tear
   factory E.redirTooMany3(int foo, [dynamic bar]) = E; // Error.
                                                     ^";
 static extension-type-member method E|constructor#redirTooMany4(core::int foo, {required core::Object bar}) → self::E% /* erasure=core::int, declared=! */
-  return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {Object bar})'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {required Object bar})'.
  - 'Object' is from 'dart:core'.
   factory E.redirTooMany4(int foo, {required Object bar}) = E; // Error.
                                                             ^";
 static extension-type-member synthetic method E|constructor#_#redirTooMany4#tearOff(core::int foo, {required core::Object bar}) → self::E% /* erasure=core::int, declared=! */
-  return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {Object bar})'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {required Object bar})'.
  - 'Object' is from 'dart:core'.
   factory E.redirTooMany4(int foo, {required Object bar}) = E; // Error.
                                                             ^";

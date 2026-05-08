@@ -9,6 +9,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../diagnostic.dart' as diag;
 import '../util/obvious_types.dart';
@@ -21,7 +22,7 @@ class OmitObviousPropertyTypes extends AnalysisRule {
     : super(
         name: 'omit_obvious_property_types',
         description: _desc,
-        state: const RuleState.experimental(),
+        state: RuleState.stable(since: Version(3, 11, 0)),
       );
 
   @override

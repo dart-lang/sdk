@@ -18,7 +18,7 @@ final tests = <VMTest>[
       fail('Subscribed to stream twice');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kStreamAlreadySubscribed.code);
-      expect(e.message, 'Stream already subscribed');
+      expect(e.message, contains('Stream already subscribed'));
     }
   },
   // Check double cancellation fails.
@@ -29,7 +29,7 @@ final tests = <VMTest>[
       fail('Double cancellation of stream successful');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kStreamNotSubscribed.code);
-      expect(e.message, 'Stream not subscribed');
+      expect(e.message, contains('Stream not subscribed'));
     }
   },
 ];

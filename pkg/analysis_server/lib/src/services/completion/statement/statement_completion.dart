@@ -650,7 +650,7 @@ class StatementCompletionProcessor {
             // emptyCondition, emptyInitializersEmptyCondition
             replacementLength = match.end - match.start;
             sb = SourceBuilder(file, forParts.leftSeparator.offset);
-            sb.append('; ${match.group(1) ?? ''}; )');
+            sb.append('; ${match[1] ?? ''}; )');
             var suffix = text.substring(match.end);
             if (suffix.trim().isNotEmpty) {
               sb.append(' ');

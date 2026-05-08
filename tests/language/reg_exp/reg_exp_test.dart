@@ -10,9 +10,9 @@ void main() {
   String str = "Parse my string";
   List<Match> matches = exp.allMatches(str).toList();
   Expect.equals(3, matches.length);
-  Expect.equals("Parse", matches[0].group(0));
-  Expect.equals("my", matches[1].group(0));
-  Expect.equals("string", matches[2].group(0));
+  Expect.equals("Parse", matches[0][0]);
+  Expect.equals("my", matches[1][0]);
+  Expect.equals("string", matches[2][0]);
 
   // Check that allMatches progresses correctly for empty matches, and that
   // it includes the empty match at the end position.

@@ -1,0 +1,41 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+final class C extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=dart._internal::Symbol]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::Symbol s;
+
+  [@vm.unreachable.metadata=]
+  const constructor •(core::Symbol s) → self::C
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C1
+static method staticMethod([@vm.inferred-arg-type.metadata=dart._internal::Symbol] core::Symbol s) → void {}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  const self::C c1 = #C3;
+  core::print(#C3);
+  self::staticMethod(#C4);
+  const self::C c2 = #C6;
+  core::print(#C6);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = #publicSymbol
+  #C3 = self::C {s:#C2}
+  #C4 = #anotherSymbol
+  #C5 = ##lib::_privateSymbol
+  #C6 = self::C {s:#C5}
+}

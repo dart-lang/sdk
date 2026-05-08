@@ -4,13 +4,12 @@ description: VM specific Dart code and helper scripts
 publish_to: none
 
 environment:
-  sdk: ^3.7.0
+  sdk: '^3.12.0-0'
 
 resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  _fe_analyzer_shared: any
   args: any
   build_integration: any
   collection: any

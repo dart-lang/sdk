@@ -38,7 +38,7 @@ class MultipleThisError extends core::Object {
   constructor •(wildcard core::int _#wc2#formal, wildcard core::int _#wc3#formal) → self::MultipleThisError
     : self::MultipleThisError::_ = _#wc2#formal, invalid-initializer "pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:20:34: Error: '_' was already initialized by this constructor.
   MultipleThisError(this._, this._); // Error. Multiple `this._`.
-                                 ^", super core::Object::•()
+                                 ^"
     ;
 }
 class B extends core::Object {

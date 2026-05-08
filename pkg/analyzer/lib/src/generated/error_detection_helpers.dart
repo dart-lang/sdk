@@ -194,18 +194,24 @@ mixin ErrorDetectionHelpers {
     if (isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
-      diagnosticReporter.atNode(
-        expression,
-        diag.constFieldInitializerNotAssignable,
-        arguments: [staticType, fieldType],
-        contextMessages: messages,
+      diagnosticReporter.report(
+        diag.constFieldInitializerNotAssignable
+            .withArguments(
+              initializerExpressionType: staticType,
+              fieldType: fieldType,
+            )
+            .withContextMessages(messages)
+            .at(expression),
       );
     } else {
-      diagnosticReporter.atNode(
-        expression,
-        diag.fieldInitializerNotAssignable,
-        arguments: [staticType, fieldType],
-        contextMessages: messages,
+      diagnosticReporter.report(
+        diag.fieldInitializerNotAssignable
+            .withArguments(
+              initializerExpressionType: staticType,
+              fieldType: fieldType,
+            )
+            .withContextMessages(messages)
+            .at(expression),
       );
     }
 
@@ -239,7 +245,7 @@ mixin ErrorDetectionHelpers {
   ///
   /// See [diag.useOfVoidResult].
   bool checkForUseOfVoidResult(Expression expression) {
-    if (!identical(expression.staticType, VoidTypeImpl.instance)) {
+    if (expression.staticType is! VoidTypeImpl) {
       return false;
     }
 
@@ -336,7 +342,7 @@ mixin ErrorDetectionHelpers {
               MethodElement.CALL_METHOD_NAME,
             ),
           )
-          .ifTypeOrNull();
+          .tryCast();
     } else {
       return null;
     }

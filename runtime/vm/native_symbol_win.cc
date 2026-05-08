@@ -92,22 +92,48 @@ void NativeSymbolResolver::FreeSymbolName(const char* name) {
   free(const_cast<char*>(name));
 }
 
+struct Context {
+  uword pc;
+  uword dso_base;
+  const char* dso_name;
+  bool success;
+};
+
+BOOL CALLBACK EnumerateModulesCallback(PCSTR ModuleName,
+                                       DWORD64 ModuleBase,
+                                       ULONG ModuleSize,
+                                       PVOID UserContext) {
+  Context* context = reinterpret_cast<Context*>(UserContext);
+  if ((ModuleBase <= context->pc) && (context->pc < ModuleBase + ModuleSize)) {
+    context->dso_base = ModuleBase;
+    context->dso_name = Utils::StrDup(ModuleName);
+    context->success = true;
+    return FALSE;  // stop enumeration
+  }
+  return TRUE;  // continue enumeration
+}
+
 bool NativeSymbolResolver::LookupSharedObject(uword pc,
                                               uword* dso_base,
                                               const char** dso_name) {
 #ifdef DART_TARGET_OS_WINDOWS_UWP
   return false;
 #else
-  IMAGEHLP_MODULE64 info = {};
-  info.SizeOfStruct = sizeof(info);
-  if (!SymGetModuleInfo64(GetCurrentProcess(), pc, &info)) {
+  Context context;
+  context.pc = pc;
+  context.success = false;
+  if (!EnumerateLoadedModulesEx(GetCurrentProcess(), EnumerateModulesCallback,
+                                &context)) {
+    return false;
+  }
+  if (!context.success) {
     return false;
   }
   if (dso_base != nullptr) {
-    *dso_base = info.BaseOfImage;
+    *dso_base = context.dso_base;
   }
   if (dso_name != nullptr) {
-    *dso_name = Utils::StrDup(info.ImageName);
+    *dso_name = context.dso_name;
   }
   return true;
 #endif  // ifdef DART_TARGET_OS_WINDOWS_UWP

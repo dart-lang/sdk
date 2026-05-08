@@ -144,7 +144,7 @@ class ClassIndex {
   DISALLOW_COPY_AND_ASSIGN(ClassIndex);
 };
 
-struct UriToSourceTableEntry : public ZoneAllocated {
+struct UriToSourceTableEntry : public ZoneObject {
   UriToSourceTableEntry() {}
 
   const String* uri = nullptr;
@@ -211,6 +211,7 @@ class KernelLoader : public ValueObject {
   // Get closure Function from cache or create it if it is not created yet.
   // [func_decl_offset] is an offset FunctionExpression or FunctionDeclaration.
   static FunctionPtr GetClosureFunction(Thread* thread,
+                                        intptr_t local_function_id,
                                         intptr_t func_decl_offset,
                                         const Function& member_function,
                                         const Function& parent_function,
@@ -246,8 +247,6 @@ class KernelLoader : public ValueObject {
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
                                   const LibraryIndex& library_index);
-
-  bool IsClassName(NameIndex name, const String& library, const String& klass);
 
   void ReadVMAnnotations(const Library& library,
                          intptr_t annotation_count,
@@ -340,7 +339,8 @@ class KernelLoader : public ValueObject {
   // Generates field getter and setter functions.
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
-                              FieldHelper* field_helper);
+                              FieldHelper* field_helper,
+                              uint32_t pragma_bits);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);

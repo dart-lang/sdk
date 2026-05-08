@@ -36,7 +36,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   /// All the diagnostic codes that this fix can be applied to.
   List<DiagnosticCode> get _codesWhereThisIsValid {
     var producerGenerators = [AddMissingRequiredArgument.new];
-    var nonLintProducers = registeredFixGenerators.nonLintProducers;
+    var nonLintProducers = registeredFixGenerators.warningProducers;
     return [
       for (var MapEntry(:key, :value) in nonLintProducers.entries)
         if (value.containsAny(producerGenerators)) key,

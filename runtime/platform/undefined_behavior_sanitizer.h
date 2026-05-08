@@ -5,18 +5,12 @@
 #ifndef RUNTIME_PLATFORM_UNDEFINED_BEHAVIOR_SANITIZER_H_
 #define RUNTIME_PLATFORM_UNDEFINED_BEHAVIOR_SANITIZER_H_
 
-#if __SANITIZE_UNDEFINED__
-#define USING_UNDEFINED_BEHAVIOR_SANITIZER
-#elif defined(__has_feature)
-#if __has_feature(undefined_behavior_sanitizer)
-#define USING_UNDEFINED_BEHAVIOR_SANITIZER
-#endif
-#endif
-
-#if defined(USING_UNDEFINED_BEHAVIOR_SANITIZER)
-#define NO_SANITIZE_UNDEFINED(check) __attribute__((no_sanitize(check)))
+#ifdef __clang__
+#define NO_SANITIZE_UNDEFINED(check) [[clang::no_sanitize(check)]]
+#define NO_SANITIZE_UNDEFINED_FUNCTION NO_SANITIZE_UNDEFINED("function")
 #else
-#define NO_SANITIZE_UNDEFINED(check)
+#define NO_SANITIZE_UNDEFINED(check) [[gnu::no_sanitize(check)]]
+#define NO_SANITIZE_UNDEFINED_FUNCTION
 #endif
 
 #endif  // RUNTIME_PLATFORM_UNDEFINED_BEHAVIOR_SANITIZER_H_

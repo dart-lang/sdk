@@ -6,7 +6,7 @@
 // functionFilter=mod.*Use
 // functionFilter=MyConstClass
 // functionFilter=shared-const
-// tableFilter=static[0-9]+
+// tableFilter=cross-module-funcs
 // globalFilter=MyConstClass
 // globalFilter=shared-const
 // type=MyConstClass

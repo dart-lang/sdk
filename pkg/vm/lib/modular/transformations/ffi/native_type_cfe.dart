@@ -841,15 +841,13 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   @override
   Constant generateConstant(FfiTransformer transformer) =>
       InstanceConstant(transformer.ffiInlineArrayClass.reference, [], {
-        transformer
-            .ffiInlineArrayElementTypeField
-            .fieldReference: singleElementType.generateConstant(transformer),
+        transformer.ffiInlineArrayElementTypeField.fieldReference:
+            singleElementType.generateConstant(transformer),
         transformer.ffiInlineArrayLengthField.fieldReference: IntConstant(
           dimensionsFlattened,
         ),
-        transformer
-            .ffiInlineArrayVariableLengthField
-            .fieldReference: BoolConstant(variableLength),
+        transformer.ffiInlineArrayVariableLengthField.fieldReference:
+            BoolConstant(variableLength),
       });
 
   /// Sample output for `Array<Int8>`:

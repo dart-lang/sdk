@@ -33,7 +33,39 @@ class Function {}
     );
   }
 
-  test_enum() async {
+  test_class_inout() async {
+    await assertErrorsInCode(
+      '''
+class inout {}
+''',
+      [error(diag.builtInIdentifierAsTypeName, 6, 5)],
+    );
+  }
+
+  test_class_inout_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+class inout {}
+''');
+  }
+
+  test_class_out() async {
+    await assertErrorsInCode(
+      '''
+class out {}
+''',
+      [error(diag.builtInIdentifierAsTypeName, 6, 3)],
+    );
+  }
+
+  test_class_out_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+class out {}
+''');
+  }
+
+  test_enum_as() async {
     await assertErrorsInCode(
       '''
 enum as {
@@ -42,6 +74,38 @@ enum as {
 ''',
       [error(diag.builtInIdentifierAsTypeName, 5, 2)],
     );
+  }
+
+  test_enum_inout() async {
+    await assertErrorsInCode(
+      '''
+enum inout {v}
+''',
+      [error(diag.builtInIdentifierAsTypeName, 5, 5)],
+    );
+  }
+
+  test_enum_inout_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+enum inout {v}
+''');
+  }
+
+  test_enum_out() async {
+    await assertErrorsInCode(
+      '''
+enum out {v}
+''',
+      [error(diag.builtInIdentifierAsTypeName, 5, 3)],
+    );
+  }
+
+  test_enum_out_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+enum out {v}
+''');
   }
 
   test_mixin_as() async {
@@ -62,6 +126,22 @@ mixin Function {}
     );
   }
 
+  test_mixin_inout() async {
+    await assertErrorsInCode(
+      '''
+mixin inout {}
+''',
+      [error(diag.builtInIdentifierAsTypeName, 6, 5)],
+    );
+  }
+
+  test_mixin_inout_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+mixin inout {}
+''');
+  }
+
   test_mixin_OK_on() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -75,6 +155,22 @@ mixin M2 implements on {}
 class B = A with on;
 class C = B with M;
 class D = Object with M2;
+''');
+  }
+
+  test_mixin_out() async {
+    await assertErrorsInCode(
+      '''
+mixin out {}
+''',
+      [error(diag.builtInIdentifierAsTypeName, 6, 3)],
+    );
+  }
+
+  test_mixin_out_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+mixin out {}
 ''');
   }
 }

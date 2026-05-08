@@ -14,14 +14,8 @@ import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer using `///` for doc comments.';
 
-bool isJavaStyle(Comment comment) {
-  var tokens = comment.tokens;
-  if (tokens.isEmpty) {
-    return false;
-  }
-  //Should be only one
-  return comment.tokens.first.lexeme.startsWith('/**');
-}
+bool isJavaStyle(Comment comment) =>
+    comment.tokens.isNotEmpty && comment.tokens.first.lexeme.startsWith('/**');
 
 class SlashForDocComments extends AnalysisRule {
   SlashForDocComments()
@@ -53,6 +47,7 @@ class SlashForDocComments extends AnalysisRule {
     registry.addGenericTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
     registry.addMixinDeclaration(this, visitor);
+    registry.addPrimaryConstructorBody(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
   }
 }
@@ -141,6 +136,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    checkComment(node.documentationComment);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     checkComment(node.documentationComment);
   }
 

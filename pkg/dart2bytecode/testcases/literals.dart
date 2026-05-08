@@ -2,12 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum A {
-  elem1,
-  elem2,
-  elem3,
-  elem4,
-}
+enum A { elem1, elem2, elem3, elem4 }
 
 class B {
   final int i;
@@ -16,9 +11,7 @@ class B {
 
 class C extends B {
   final int j;
-  const C(int a, int b, int c)
-      : j = a + b,
-        super(c * 5);
+  const C(int a, int b, int c) : j = a + b, super(c * 5);
 }
 
 class D {
@@ -48,7 +41,8 @@ void testConstants2() {
   print(const [42, 'foo', int]);
   print(const <String, A>{'E2': A.elem2, 'E4': A.elem4});
   print(
-      const D(const C(4, 5, 6), const {'foo': 42, 'bar': const B(c2.length)}));
+    const D(const C(4, 5, 6), const {'foo': 42, 'bar': const B(c2.length)}),
+  );
 }
 
 void testListLiteral(int a) {

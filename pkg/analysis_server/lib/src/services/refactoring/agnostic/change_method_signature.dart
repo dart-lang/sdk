@@ -12,10 +12,12 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -63,11 +65,48 @@ sealed class Available extends Availability {
 
   Available({required this.refactoringContext});
 
-  bool get hasPositionalParameters;
+  /// Whether there are any positional parameters and, if so, if all of them
+  /// can be converted to named parameters.
+  ///
+  /// Even if a parameter is positional, it may not be convertible if it has a
+  /// private name and isn't in a context where it could become a private named
+  /// parameter. If that case, this returns `false`.
+  bool get hasPositionalParametersToConvertToNamed {
+    var supportsPrivateNamedParameters = refactoringContext
+        .resolvedLibraryResult
+        .element
+        .featureSet
+        .isEnabled(Feature.private_named_parameters);
+
+    var hasPositional = false;
+    for (var parameter in _formalParameters) {
+      if (parameter.isNamed) continue;
+
+      hasPositional = true;
+
+      // If the parameter has a private name, we must be able to convert it to
+      // a private named parameter.
+      if (Identifier.isPrivateName(parameter.name!)) {
+        if (!supportsPrivateNamedParameters) {
+          return false;
+        }
+
+        // TODO(rnystrom): Check for primary constructor declaring parameter
+        // here once those are implemented.
+        if (parameter is! FieldFormalParameterElement) {
+          return false;
+        }
+      }
+    }
+
+    return hasPositional;
+  }
 
   bool get hasSelectedFormalParametersToConvertToNamed => false;
 
   bool get hasSelectedFormalParametersToMoveLeft => false;
+
+  List<FormalParameterElement> get _formalParameters;
 }
 
 /// The supertype return types from [computeSourceChange].
@@ -295,38 +334,43 @@ class _AvailabilityAnalyzer {
     required bool anyLocation,
     required List<FormalParameter> selected,
   }) {
-    bool hasGoodLocation(Token? name) {
-      return anyLocation || refactoringContext.selectionIsInToken(name);
+    bool hasGoodLocation(SourceRange range) {
+      return anyLocation || range.covers(refactoringContext.selectionRange);
     }
 
-    _Declaration? buildDeclaration(Declaration node) {
-      var element = node.declaredFragment?.element;
-      if (element is ExecutableElement) {
-        return _Declaration(element: element, node: node, selected: selected);
-      }
-      return null;
+    _Declaration? buildDeclaration(ExecutableElement? element, AstNode node) {
+      if (element == null) return null;
+
+      return _Declaration(element: element, node: node, selected: selected);
     }
 
     node = node?.declaration;
     switch (node) {
-      case ConstructorDeclaration():
+      case PrimaryConstructorDeclaration():
         var nameRange = range.startEnd(
-          // TODO(scheglov): support primary constructors
-          node.typeName!,
-          // TODO(scheglov): support primary constructors
-          node.name ?? node.typeName!,
+          node.typeName,
+          node.constructorName ?? node.typeName,
         );
-        var selectionRange = refactoringContext.selectionRange;
-        if (anyLocation || nameRange.covers(selectionRange)) {
-          return buildDeclaration(node);
+        if (hasGoodLocation(nameRange)) {
+          return buildDeclaration(node.declaredFragment?.element, node);
+        }
+      case ConstructorDeclaration():
+        var typeNameOrKeyword =
+            node.typeName ?? node.newKeyword ?? node.factoryKeyword!;
+        var nameRange = range.startEnd(
+          typeNameOrKeyword,
+          node.name ?? typeNameOrKeyword,
+        );
+        if (hasGoodLocation(nameRange)) {
+          return buildDeclaration(node.declaredFragment?.element, node);
         }
       case FunctionDeclaration():
-        if (hasGoodLocation(node.name)) {
-          return buildDeclaration(node);
+        if (hasGoodLocation(node.name.sourceRange)) {
+          return buildDeclaration(node.declaredFragment?.element, node);
         }
       case MethodDeclaration():
-        if (hasGoodLocation(node.name)) {
-          return buildDeclaration(node);
+        if (hasGoodLocation(node.name.sourceRange)) {
+          return buildDeclaration(node.declaredFragment?.element, node);
         }
     }
 
@@ -409,11 +453,6 @@ final class _AvailableWithDeclaration extends Available {
   });
 
   @override
-  bool get hasPositionalParameters {
-    return declaration.element.formalParameters.any((e) => e.isPositional);
-  }
-
-  @override
   bool get hasSelectedFormalParametersToConvertToNamed {
     var selected = declaration.selected;
     if (selected.isEmpty) {
@@ -437,6 +476,26 @@ final class _AvailableWithDeclaration extends Available {
     for (var other in others) {
       if (other.isOptionalPositional) {
         return false;
+      }
+    }
+
+    var supportsPrivateNamedParameters = refactoringContext
+        .resolvedLibraryResult
+        .element
+        .featureSet
+        .isEnabled(Feature.private_named_parameters);
+
+    for (var parameter in selected) {
+      var name = parameter.name?.lexeme;
+      if (name == null) return false;
+
+      // If the parameter has a private name, make sure it can be a private
+      // named parameter.
+      if (Identifier.isPrivateName(name)) {
+        if (!supportsPrivateNamedParameters) return false;
+        // TODO(rnystrom): Check for primary constructor declaring parameter
+        // here once those are implemented.
+        if (parameter is! FieldFormalParameter) return false;
       }
     }
 
@@ -472,6 +531,10 @@ final class _AvailableWithDeclaration extends Available {
 
     return true;
   }
+
+  @override
+  List<FormalParameterElement> get _formalParameters =>
+      declaration.element.formalParameters;
 }
 
 final class _AvailableWithExecutableElement extends Available {
@@ -483,9 +546,8 @@ final class _AvailableWithExecutableElement extends Available {
   });
 
   @override
-  bool get hasPositionalParameters {
-    return element.formalParameters.any((e) => e.isPositional);
-  }
+  List<FormalParameterElement> get _formalParameters =>
+      element.formalParameters;
 }
 
 /// The target method declaration.
@@ -854,27 +916,19 @@ class _SignatureUpdater {
       }
 
       var notDefault = existing.notDefault;
-      switch (notDefault) {
-        case NormalFormalParameter():
-          switch (update.kind) {
-            case FormalParameterKind.requiredPositional:
-              var text = withoutRequired(
-                notDefault,
-                withSuper: update.withSuper,
-              );
-              requiredPositionalWrites.add(text);
-            case FormalParameterKind.optionalPositional:
-              var text = withoutRequired(existing, withSuper: update.withSuper);
-              optionalPositionalWrites.add(text);
-            case FormalParameterKind.requiredNamed:
-              var text = withRequired(existing, withSuper: update.withSuper);
-              namedWrites.add(text);
-            case FormalParameterKind.optionalNamed:
-              var text = withoutRequired(existing, withSuper: update.withSuper);
-              namedWrites.add(text);
-          }
-        default:
-          return ChangeStatusFailure();
+      switch (update.kind) {
+        case FormalParameterKind.requiredPositional:
+          var text = withoutRequired(notDefault, withSuper: update.withSuper);
+          requiredPositionalWrites.add(text);
+        case FormalParameterKind.optionalPositional:
+          var text = withoutRequired(existing, withSuper: update.withSuper);
+          optionalPositionalWrites.add(text);
+        case FormalParameterKind.requiredNamed:
+          var text = withRequired(existing, withSuper: update.withSuper);
+          namedWrites.add(text);
+        case FormalParameterKind.optionalNamed:
+          var text = withoutRequired(existing, withSuper: update.withSuper);
+          namedWrites.add(text);
       }
     }
 
@@ -1239,29 +1293,34 @@ class _SignatureUpdater {
 }
 
 extension on AstNode {
+  /// Gets the AstNode that represents the declaration for this node.
+  ///
+  /// This is usually a [Declaration] but could be a
+  /// [PrimaryConstructorDeclaration].
   AstNode? get declaration {
     var self = this;
-    if (self is FunctionExpression) {
-      var functionDeclaration = self.parent;
-      if (functionDeclaration is FunctionDeclaration) {
-        return functionDeclaration;
-      }
+    var parent = self.parent;
+
+    if (self is PrimaryConstructorName &&
+        parent is PrimaryConstructorDeclaration) {
+      return parent;
     }
 
-    if (self is SimpleIdentifier) {
-      var constructorDeclaration = self.parent;
-      if (constructorDeclaration is ConstructorDeclaration) {
-        // TODO(scheglov): support primary constructors
-        if (constructorDeclaration.typeName! == self) {
-          return constructorDeclaration;
-        }
-      }
+    if (self is FunctionExpression && parent is FunctionDeclaration) {
+      return parent;
+    }
+
+    if (self is SimpleIdentifier &&
+        parent is ConstructorDeclaration &&
+        parent.typeName == self) {
+      return parent;
     }
 
     switch (self) {
       case ConstructorDeclaration():
       case FunctionDeclaration():
       case MethodDeclaration():
+      case PrimaryConstructorDeclaration():
         return self;
     }
 
@@ -1277,6 +1336,8 @@ extension on AstNode {
         return self.functionExpression.parameters;
       case MethodDeclaration():
         return self.parameters;
+      case PrimaryConstructorDeclaration():
+        return self.formalParameters;
     }
     return null;
   }

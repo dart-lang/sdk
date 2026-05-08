@@ -65,6 +65,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     this.shouldLogRequests,
     this._enableServicePortFallback,
     this.uriConverter,
+    this.appName,
   ) {
     _clientManager = ClientManager(this);
     _expressionEvaluator = ExpressionEvaluator(this);
@@ -281,6 +282,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       await dtdClient.registerVmService(
         uri: wsUri!.toString(),
         secret: hostedDtd.secret!,
+        name: appName,
       );
       // Immediately close this client after registering the VM service. The
       // VM service will be automatically unregistered from DTD when the VM
@@ -561,6 +563,9 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   final Completer _done = Completer<void>();
   bool _initializationComplete = false;
   bool _shuttingDown = false;
+
+  @override
+  final String? appName;
 
   UriConverter? uriConverter;
   PackageUriConverter get packageUriConverter => _packageUriConverter;

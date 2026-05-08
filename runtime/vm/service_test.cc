@@ -454,11 +454,21 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   EXPECT(!class_a.IsNull());
   const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
   EXPECT(!function_c.IsNull());
-  const Code& code_c = Code::Handle(function_c.CurrentCode());
-  EXPECT(!code_c.IsNull());
-
-  const LocalVarDescriptors& descriptors =
-      LocalVarDescriptors::Handle(code_c.GetLocalVarDescriptors());
+  LocalVarDescriptors& descriptors = LocalVarDescriptors::Handle();
+  if (function_c.IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES)
+    const Bytecode& bytecode_c = Bytecode::Handle(function_c.GetBytecode());
+    EXPECT(!bytecode_c.IsNull());
+    descriptors = bytecode_c.var_descriptors();
+#else
+    UNREACHABLE();
+#endif
+  } else {
+    const Code& code_c = Code::Handle(function_c.CurrentCode());
+    EXPECT(!code_c.IsNull());
+    descriptors = code_c.GetLocalVarDescriptors();
+  }
+  EXPECT(!descriptors.IsNull());
   // Generate an ID for this object.
   ServiceIdZone& default_id_zone = isolate->EnsureDefaultServiceIdZone();
   const char* id = default_id_zone.GetServiceId(descriptors);
@@ -685,15 +695,8 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
 // TODO(zra): Remove when tests are ready to enable.
 #if !defined(TARGET_ARCH_ARM64)
 
-static void EnableProfiler() {
-  if (!FLAG_profiler) {
-    FLAG_profiler = true;
-    Profiler::Init();
-  }
-}
-
 ISOLATE_UNIT_TEST_CASE(Service_Profile) {
-  EnableProfiler();
+  Dart_StartProfiling();
   const char* kScript =
       "@pragma('vm:entry-point', 'set')\n"
       "var port;\n"  // Set to our mock port by C++.

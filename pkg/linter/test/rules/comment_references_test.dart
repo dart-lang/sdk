@@ -164,6 +164,33 @@ class A {
 ''');
   }
 
+  test_parameter_constructor_privateNamed_invalid() async {
+    // See https://github.com/dart-lang/sdk/issues/62768#issuecomment-3963248264
+    // for context on why a lint is expected here.
+    await assertDiagnostics(
+      r'''
+class A {
+  final int _x;
+
+  /// [x]
+  A({required this._x});
+}
+''',
+      [lint(34, 1)],
+    );
+  }
+
+  test_parameter_constructor_privateNamed_valid() async {
+    await assertNoDiagnostics(r'''
+class A {
+  final int _x;
+
+  /// [_x]
+  A({required this._x});
+}
+''');
+  }
+
   test_parameter_constructor_super() async {
     await assertNoDiagnostics(r'''
 class A {

@@ -16,9 +16,8 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import 'model.dart';
-
 import 'js_emitter.dart' show CodeEmitterTask, Emitter;
+import 'model.dart';
 
 // Generator of stubs required for Instantiation classes.
 class InstantiationStubGenerator {

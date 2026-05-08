@@ -24,8 +24,10 @@ void main() {
         expect(process.elapsedTime, isNotEmpty);
         if (!(process.commandLine.startsWith('dart') ||
             process.commandLine.contains('snapshot'))) {
-          print("Expected ${process.commandLine} to start with 'dart' or"
-              " contain 'snapshot'.");
+          print(
+            "Expected ${process.commandLine} to start with 'dart' or"
+            " contain 'snapshot'.",
+          );
           expect(true, false);
         }
       }
@@ -34,7 +36,8 @@ void main() {
     test('parseMacos', () {
       // Regression test for https://github.com/dart-lang/sdk/issues/51385.
 
-      const line = '35472   0,0    20:41:58 <path>/dart --disable-dart-dev '
+      const line =
+          '35472   0,0    20:41:58 <path>/dart --disable-dart-dev '
           '/Users/foo/flutter_tools.snapshot daemon';
 
       var result = ProcessInfo.parseMacos(line);

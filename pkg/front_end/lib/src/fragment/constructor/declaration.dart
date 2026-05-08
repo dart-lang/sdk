@@ -3,21 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-import 'package:front_end/src/base/lookup_result.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/extension_scope.dart';
-import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
+import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
 import '../../base/name_space.dart';
 import '../../base/scope.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
+import '../../builder/function_signature.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -51,13 +51,20 @@ abstract class ConstructorDeclaration {
 
   List<MetadataBuilder>? get metadata;
 
-  FunctionNode get function;
+  FunctionSignature get signature;
 
   bool get hasParameters;
 
   List<Initializer> get initializers;
 
   void registerInitializers(List<Initializer> initializers);
+
+  bool get isPrimaryConstructor;
+
+  /// If this constructor is a primary constructor, returns the parameters
+  /// available in the initializer scope. Otherwise returns `null`.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters;
 
   void createEncoding({
     required ProblemReporting problemReporting,
@@ -146,31 +153,13 @@ mixin _ConstructorDeclarationMixin
 
   List<SourceNominalParameterBuilder>? get _typeParameters;
 
-  @override
-  bool get hasParameters => formals != null;
+  bool get _isPrimaryConstructor;
+
+  late final List<FormalParameterBuilder>? _initializerScopeParameters =
+      _computeInitializerScopeParameters();
 
   @override
-  FormalParameterBuilder? getFormal(Identifier identifier) {
-    if (formals != null) {
-      List<FormalParameterBuilder> formals = this.formals!;
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder formal = formals[i];
-        if (formal.isWildcard &&
-            identifier.name == '_' &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-        if (formal.name == identifier.name &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-      }
-      // Coverage-ignore(suite): Not run.
-      // If we have any formals we should find the one we're looking for.
-      assert(false, "$identifier not found in $formals");
-    }
-    return null;
-  }
+  bool get hasParameters => formals != null;
 
   @override
   LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
@@ -191,18 +180,45 @@ mixin _ConstructorDeclarationMixin
 
     if (formals == null) return parent;
     Map<String, VariableBuilder> local = {};
-    for (FormalParameterBuilder formal in formals!) {
-      // Wildcard initializing formal parameters do not introduce a local
-      // variable in the initializer list.
-      if (formal.isWildcard) continue;
-
-      local[formal.name] = formal.forFormalParameterInitializerScope();
+    for (FormalParameterBuilder formal in _initializerScopeParameters!) {
+      local[formal.name] = formal;
     }
     return parent.createNestedFixedScope(
       kind: LocalScopeKind.initializers,
       local: local,
     );
   }
+
+  List<FormalParameterBuilder>? _computeInitializerScopeParameters() {
+    if (formals == null) return null;
+    List<FormalParameterBuilder> list = [];
+    for (FormalParameterBuilder formal in formals!) {
+      // Wildcard initializing formal parameters do not introduce a local
+      // variable in the initializer list.
+      if (formal.isWildcard) continue;
+
+      list.add(formal);
+    }
+    return list;
+  }
+
+  @override
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    assert(
+      isPrimaryConstructor,
+      "Unexpected call to "
+      "$runtimeType.primaryConstructorInitializerScopeParameters "
+      "on non-primary constructor.",
+    );
+    if (isPrimaryConstructor) {
+      return _initializerScopeParameters;
+    }
+    return null;
+  }
+
+  @override
+  bool get isPrimaryConstructor => false;
 
   @override
   void inferFormalTypes(
@@ -300,10 +316,10 @@ mixin _ConstructorDeclarationMixin
     }
 
     Member superTarget;
-    FunctionNode? superConstructorFunction;
+    FunctionSignature? superConstructorSignature;
     if (superTargetBuilder != null) {
       superTarget = superTargetBuilder.invokeTarget;
-      superConstructorFunction = superTargetBuilder.function;
+      superConstructorSignature = superTargetBuilder.signature;
     } else {
       assert(
         libraryBuilder.loader.assertProblemReportedElsewhere(
@@ -317,22 +333,10 @@ mixin _ConstructorDeclarationMixin
     }
     SourceClassBuilder classBuilder = declarationBuilder as SourceClassBuilder;
 
-    List<DartType?> positionalSuperFormalType = [];
-    List<bool> positionalSuperFormalHasInitializer = [];
-    Map<String, DartType?> namedSuperFormalType = {};
-    Map<String, bool> namedSuperFormalHasInitializer = {};
-
-    for (VariableDeclaration formal
-        in superConstructorFunction.positionalParameters) {
-      positionalSuperFormalType.add(formal.type);
-      positionalSuperFormalHasInitializer.add(formal.hasDeclaredInitializer);
-    }
-    for (VariableDeclaration formal
-        in superConstructorFunction.namedParameters) {
-      namedSuperFormalType[formal.name!] = formal.type;
-      namedSuperFormalHasInitializer[formal.name!] =
-          formal.hasDeclaredInitializer;
-    }
+    List<ParameterInfo> positionalSuperInfo =
+        superConstructorSignature.positionalParameters;
+    Map<String, ParameterInfo> namedSuperInfo =
+        superConstructorSignature.namedParameters;
 
     int superInitializingFormalIndex = -1;
     List<int?>? positionalSuperParameters;
@@ -358,20 +362,15 @@ mixin _ConstructorDeclarationMixin
 
         DartType? correspondingSuperFormalType;
         if (formal.isPositional) {
-          assert(
-            positionalSuperFormalHasInitializer.length ==
-                positionalSuperFormalType.length,
-          );
-          if (superInitializingFormalIndex <
-              positionalSuperFormalHasInitializer.length) {
+          if (superInitializingFormalIndex < positionalSuperInfo.length) {
+            ParameterInfo parameterInfo =
+                positionalSuperInfo[superInitializingFormalIndex];
             if (formal.isOptional) {
               formal.hasDeclaredInitializer =
                   hasImmediatelyDeclaredInitializer ||
-                  positionalSuperFormalHasInitializer[ // force line break
-                  superInitializingFormalIndex];
+                  parameterInfo.hasDeclaredInitializer;
             }
-            correspondingSuperFormalType =
-                positionalSuperFormalType[superInitializingFormalIndex];
+            correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer &&
                 !formal.isRequiredPositional) {
               (positionalSuperParameters ??= <int?>[]).add(formalIndex);
@@ -390,13 +389,14 @@ mixin _ConstructorDeclarationMixin
             );
           }
         } else {
-          if (namedSuperFormalHasInitializer[formal.name] != null) {
+          ParameterInfo? parameterInfo = namedSuperInfo[formal.name];
+          if (parameterInfo != null) {
             if (formal.isOptional) {
               formal.hasDeclaredInitializer =
                   hasImmediatelyDeclaredInitializer ||
-                  namedSuperFormalHasInitializer[formal.name]!;
+                  parameterInfo.hasDeclaredInitializer;
             }
-            correspondingSuperFormalType = namedSuperFormalType[formal.name];
+            correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
               (namedSuperParameters ??= <String>[]).add(formal.name);
             }
@@ -412,7 +412,7 @@ mixin _ConstructorDeclarationMixin
           }
           formal.type.registerInferredType(type ?? const DynamicType());
         }
-        formal.variable!.hasDeclaredInitializer = formal.hasDeclaredInitializer;
+        formal.variable.hasDeclaredInitializer = formal.hasDeclaredInitializer;
       }
     }
 
@@ -476,6 +476,11 @@ mixin _ConstructorDeclarationMixin
       superTarget = lastInitializer.target;
     } else if (lastInitializer is InternalSuperInitializer) {
       superTarget = lastInitializer.target;
+    } else if (lastInitializer is InvalidInitializer &&
+        // Coverage-ignore(suite): Not run.
+        lastInitializer.isSuperInitializer) {
+      // Erroneous super initializer.
+      return null;
     } else {
       MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
         "",
@@ -527,6 +532,8 @@ mixin _ConstructorDeclarationMixin
     DeclarationBuilder declarationBuilder,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
+    if (!_hasSuperInitializingFormals) return;
+
     if (_beginInitializers != null && initializers.isNotEmpty) {
       // If the initializers aren't built yet, we can't compute the super
       // target. The synthetic initializers should be excluded, since they can
@@ -593,6 +600,7 @@ mixin _ConstructorDeclarationMixin
         fileUri: fileUri,
         beginInitializers: _beginInitializers!,
         isConst: isConst,
+        forPrimaryConstructor: _isPrimaryConstructor,
       );
     }
   }
@@ -718,7 +726,7 @@ mixin _ConstructorEncodingMixin
       formals?.any((formal) => formal.isSuperInitializingFormal) ?? false;
 
   @override
-  FunctionNode get function => _encoding.function;
+  FunctionSignature get signature => _encoding.signature;
 
   @override
   List<Initializer> get initializers => _encoding.initializers;
@@ -734,11 +742,6 @@ mixin _ConstructorEncodingMixin
   @override
   void prependInitializer(Initializer initializer) {
     _encoding.prependInitializer(initializer);
-  }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _encoding.getFormalParameter(index);
   }
 
   @override
@@ -758,8 +761,8 @@ mixin _ConstructorEncodingMixin
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  void registerFunctionBody(Statement value) {
-    _encoding.registerFunctionBody(value);
+  void registerFunctionBody(Statement? body, Scope? scope) {
+    _encoding.registerFunctionBody(body: body, scope: scope);
   }
 
   @override
@@ -851,7 +854,7 @@ mixin _RegularConstructorDeclarationMixin
 
   @override
   void onInferredType(DartType type) {
-    function.returnType = type;
+    _encoding.registerInferredReturnType(type);
   }
 
   void _registerInferable(Inferable inferable) {
@@ -985,7 +988,7 @@ class RegularConstructorDeclaration
       fileOffset: _fragment.fullNameOffset,
       endOffset: _fragment.endOffset,
       isSynthetic: false,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       formalsOffset: _fragment.formalsOffset,
       isConst: _fragment.modifiers.isConst,
       returnType: returnType,
@@ -1037,6 +1040,9 @@ class RegularConstructorDeclaration
       typeParameterScope: _fragment.typeParameterScope,
     );
   }
+
+  @override
+  bool get _isPrimaryConstructor => false;
 }
 
 class DefaultEnumConstructorDeclaration
@@ -1190,6 +1196,9 @@ class DefaultEnumConstructorDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   String? get _nativeMethodName => null;
+
+  @override
+  bool get _isPrimaryConstructor => false;
 }
 
 class PrimaryConstructorDeclaration
@@ -1199,6 +1208,7 @@ class PrimaryConstructorDeclaration
         ConstructorFragmentDeclaration,
         InferredTypeListener {
   final PrimaryConstructorFragment _fragment;
+  final PrimaryConstructorBodyFragment? _bodyFragment;
 
   late final List<FormalParameterBuilder>? _formals;
 
@@ -1211,10 +1221,13 @@ class PrimaryConstructorDeclaration
   @override
   Token? _beginInitializers;
 
-  PrimaryConstructorDeclaration(this._fragment)
+  PrimaryConstructorDeclaration(this._fragment, this._bodyFragment)
     : _beginInitializers = _fragment.beginInitializers {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isPrimaryConstructor => true;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1234,6 +1247,12 @@ class PrimaryConstructorDeclaration
     required ConstructorEncodingStrategy encodingStrategy,
   }) {
     _fragment.builder = constructorBuilder;
+    _bodyFragment?.builder = constructorBuilder;
+    _bodyFragment?.registerPrimaryConstructorFragment(
+      problemReporting,
+      _fragment,
+    );
+    _fragment.primaryConstructorBodyFragment = _bodyFragment;
     _typeParameters = encodingStrategy.createTypeParameters(
       declarationBuilder: declarationBuilder,
       declarationTypeParameterFragments:
@@ -1304,7 +1323,7 @@ class PrimaryConstructorDeclaration
 
   @override
   void onInferredType(DartType type) {
-    function.returnType = type;
+    _encoding.registerInferredReturnType(type);
   }
 
   void _registerInferable(Inferable inferable) {
@@ -1364,7 +1383,7 @@ class PrimaryConstructorDeclaration
       formalsOffset: _fragment.formalsOffset,
       // TODO(johnniwinther): Provide `endOffset`.
       endOffset: _fragment.formalsOffset,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       isConst: _fragment.modifiers.isConst,
       isSynthetic: false,
       returnType: returnType,
@@ -1384,7 +1403,20 @@ class PrimaryConstructorDeclaration
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
-    // There is no metadata on a primary constructor.
+    if (_bodyFragment case var bodyFragment?) {
+      for (Annotatable annotatable in annotatables) {
+        MetadataBuilder.buildAnnotations(
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: bodyFragment.metadata,
+          annotationsFileUri: bodyFragment.fileUri,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          extensionScope: bodyFragment.enclosingCompilationUnit.extensionScope,
+          scope: bodyFragment.enclosingScope,
+        );
+      }
+    }
   }
 
   @override
@@ -1411,6 +1443,9 @@ class PrimaryConstructorDeclaration
 
   @override
   Uri get fileUri => _fragment.fileUri;
+
+  @override
+  bool get _isPrimaryConstructor => true;
 }
 
 /// Interface for using a [ConstructorFragment] or [PrimaryConstructorFragment]
@@ -1426,9 +1461,7 @@ abstract class ConstructorFragmentDeclaration {
     SourceConstructorBuilder constructorBuilder,
   );
 
-  FunctionNode get function;
-
-  void registerFunctionBody(Statement value);
+  void registerFunctionBody(Statement? body, Scope? scope);
 
   void registerNoBodyConstructor();
 
@@ -1438,18 +1471,9 @@ abstract class ConstructorFragmentDeclaration {
 
   void becomeNative(SourceLoader loader);
 
-  /// Returns the [VariableDeclaration] for the [index]th formal parameter
-  /// declared in the constructor.
-  ///
-  /// The synthetic parameters of enum constructor are *not* included, so index
-  /// 0 zero of an enum constructor is the first user defined parameter.
-  VariableDeclaration getFormalParameter(int index);
-
   /// Returns the [VariableDeclaration] for the tear off, if any, of the
   /// [index]th formal parameter declared in the constructor.
   VariableDeclaration? getTearOffParameter(int index);
-
-  FormalParameterBuilder? getFormal(Identifier identifier);
 
   LocalScope computeFormalParameterScope(LookupScope parent);
 
@@ -1475,14 +1499,30 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   }
 
   @override
+  bool get isPrimaryConstructor => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    assert(
+      false,
+      "Unexpected call to "
+      "$runtimeType.initializerScopeParameters "
+      "on non-primary constructor.",
+    );
+    return null;
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   Uri get fileUri => _constructor.fileUri;
 
   @override
-  FunctionNode get function => _constructor.function;
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasParameters =>
       _constructor.function.positionalParameters.isNotEmpty ||
       _constructor.function.namedParameters.isNotEmpty;
@@ -1497,7 +1537,7 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
         initializer is! AuxiliaryInitializer,
         "Unexpected auxiliary initializer $initializer.",
       );
-      if (initializer is RedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }

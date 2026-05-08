@@ -466,8 +466,8 @@ Map<String, num> _benchmark(
       line = line.substring(0, pos);
     }
     for (RegExpMatch match in _extractPerfNumbers.allMatches(line)) {
-      String stringValue = match.group(1)!.trim();
-      String caption = match.group(2)!.trim();
+      String stringValue = match[1]!.trim();
+      String caption = match[2]!.trim();
       stringValue = stringValue.replaceAll(",", "");
       num value;
       if (stringValue.contains(".")) {

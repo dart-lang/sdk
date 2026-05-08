@@ -51,15 +51,15 @@ extension type EIAliasNullable(self::A? _) {
   constructor • = self::EIAliasNullable|constructor#;
   constructor tearoff • = self::EIAliasNullable|constructor#_#new#tearOff;
 }
-static extension-type-member method EINullable|constructor#(core::int? _) → self::EINullable% /* erasure=core::int?, declared=! */ {
-  lowered final self::EINullable% /* erasure=core::int?, declared=! */ #this = _;
+static extension-type-member method EINullable|constructor#(wildcard core::int? _#wc0#formal) → self::EINullable% /* erasure=core::int?, declared=! */ {
+  lowered final self::EINullable% /* erasure=core::int?, declared=! */ #this = _#wc0#formal;
   return #this;
 }
-static extension-type-member synthetic method EINullable|constructor#_#new#tearOff(core::int? _) → self::EINullable% /* erasure=core::int?, declared=! */
-  return self::EINullable|constructor#(_);
-static extension-type-member method EIAliasNullable|constructor#(self::A? _) → self::EIAliasNullable% /* erasure=self::A?, declared=! */ {
-  lowered final self::EIAliasNullable% /* erasure=self::A?, declared=! */ #this = _;
+static extension-type-member synthetic method EINullable|constructor#_#new#tearOff(core::int? _#wc0#formal) → self::EINullable% /* erasure=core::int?, declared=! */
+  return self::EINullable|constructor#(_#wc0#formal);
+static extension-type-member method EIAliasNullable|constructor#(wildcard self::A? _#wc1#formal) → self::EIAliasNullable% /* erasure=self::A?, declared=! */ {
+  lowered final self::EIAliasNullable% /* erasure=self::A?, declared=! */ #this = _#wc1#formal;
   return #this;
 }
-static extension-type-member synthetic method EIAliasNullable|constructor#_#new#tearOff(self::A? _) → self::EIAliasNullable% /* erasure=self::A?, declared=! */
-  return self::EIAliasNullable|constructor#(_);
+static extension-type-member synthetic method EIAliasNullable|constructor#_#new#tearOff(self::A? _#wc1#formal) → self::EIAliasNullable% /* erasure=self::A?, declared=! */
+  return self::EIAliasNullable|constructor#(_#wc1#formal);

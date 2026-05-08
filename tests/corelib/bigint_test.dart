@@ -175,6 +175,8 @@ testModPow() {
           "f5ef640b1f37966f855f8314c97c8ef7a136e54565e95bfe253e579753f5a14c2a01"
           "6c1",
           radix: 16));
+  // Regression test for https://github.com/dart-lang/sdk/issues/62572.
+  test(BigInt.one, BigInt.from(0x80), (BigInt.one << 160) | BigInt.one, BigInt.one);
 }
 
 testModInverse() {

@@ -6,9 +6,12 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -30,6 +33,7 @@ class OverriddenFields extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -44,19 +48,42 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
 
     for (var variable in node.fields.variables) {
-      var parent = variable.declaredFragment?.element.enclosingElement;
-      if (parent is InterfaceElement) {
-        var overriddenMember = parent.getInheritedConcreteMember(
-          Name(parent.library.uri, variable.name.lexeme),
-        );
-        if (overriddenMember is GetterElement &&
-            overriddenMember.isOriginVariable) {
-          var definingInterface = overriddenMember.enclosingElement;
-          rule.reportAtToken(
-            variable.name,
-            arguments: [definingInterface.displayName],
-          );
+      if (variable.declaredFragment?.element case FieldElement element) {
+        _checkField(element, variable.name);
+      }
+    }
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    for (var parameter in node.formalParameters.parameters) {
+      var baseParameter = parameter.notDefault;
+      if (baseParameter is! FieldFormalParameter) {
+        var element = parameter.declaredFragment?.element;
+        if (element is FieldFormalParameterElement) {
+          var fieldElement = element.field;
+          var name = parameter.name;
+          if (fieldElement != null && name != null) {
+            _checkField(fieldElement, name);
+          }
         }
+      }
+    }
+  }
+
+  void _checkField(FieldElement element, Token nameToken) {
+    var parent = element.enclosingElement;
+    if (parent is InterfaceElement) {
+      var overriddenMember = parent.getInheritedConcreteMember(
+        Name(parent.library.uri, nameToken.lexeme),
+      );
+      if (overriddenMember is GetterElement &&
+          overriddenMember.isOriginVariable) {
+        var definingInterface = overriddenMember.enclosingElement;
+        rule.reportAtToken(
+          nameToken,
+          arguments: [definingInterface.displayName],
+        );
       }
     }
   }

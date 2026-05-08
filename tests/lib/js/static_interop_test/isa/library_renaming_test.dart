@@ -11,7 +11,7 @@ import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
 
-import 'functional_test.dart' as functional_test;
+import 'isa_test.dart' as isa_test;
 
 extension type Date._(JSObject _) implements JSObject {
   external Date();
@@ -23,20 +23,20 @@ extension type RenamedDate._(JSObject _) implements JSObject {
 }
 
 void main() {
-  functional_test.eval('''
+  isa_test.eval('''
     globalThis.library1 = {};
     globalThis.library1.library2 = {};
     globalThis.library1.library2.Date = function Date() {}
   ''');
 
   final date = Date();
-  final unscopedDate = functional_test.Date();
+  final unscopedDate = isa_test.Date();
   Expect.isTrue(date.isA<Date>());
   Expect.isTrue(date.isA<Date?>());
   Expect.isFalse(unscopedDate.isA<Date>());
   Expect.isFalse(unscopedDate.isA<Date?>());
-  Expect.isFalse(date.isA<functional_test.Date>());
-  Expect.isFalse(date.isA<functional_test.Date?>());
+  Expect.isFalse(date.isA<isa_test.Date>());
+  Expect.isFalse(date.isA<isa_test.Date?>());
   Expect.isTrue(date.isA<JSObject>());
   Expect.isTrue(date.isA<JSObject?>());
 
@@ -49,6 +49,6 @@ void main() {
   Expect.isTrue(renamedDate.isA<Date?>());
   Expect.isFalse(unscopedDate.isA<RenamedDate>());
   Expect.isFalse(unscopedDate.isA<RenamedDate?>());
-  Expect.isFalse(renamedDate.isA<functional_test.Date>());
-  Expect.isFalse(renamedDate.isA<functional_test.Date?>());
+  Expect.isFalse(renamedDate.isA<isa_test.Date>());
+  Expect.isFalse(renamedDate.isA<isa_test.Date?>());
 }

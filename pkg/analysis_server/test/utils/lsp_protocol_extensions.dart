@@ -38,6 +38,10 @@ extension CodeActionExtensions on CodeAction {
   }
 }
 
+extension PositionExtension on Position {
+  String toText() => '${line + 1}:${character + 1}';
+}
+
 extension RangeExtension on Range {
   /// Checks whether the range covers [position] (inclusive).
   bool containsPosition(Position position) {
@@ -63,4 +67,6 @@ extension RangeExtension on Range {
 
     return true;
   }
+
+  String toText() => '${start.toText()}-${end.toText()}';
 }

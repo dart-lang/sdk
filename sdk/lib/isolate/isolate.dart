@@ -546,7 +546,7 @@ final class Isolate {
   external static Future<Isolate> spawnUri(
     Uri uri,
     List<String> args,
-    var message, {
+    message, {
     bool paused = false,
     SendPort? onExit,
     SendPort? onError,
@@ -906,7 +906,7 @@ abstract interface class SendPort implements Capability {
 
   /// Tests whether [other] is a [SendPort] pointing to the same
   /// [ReceivePort] as this one.
-  bool operator ==(var other);
+  bool operator ==(other);
 
   /// A hash code for this send port that is consistent with the == operator.
   int get hashCode;
@@ -955,7 +955,7 @@ abstract interface class ReceivePort implements Stream<dynamic> {
   /// The [onDone] handler will be called when the stream closes.
   /// The stream closes when [close] is called.
   StreamSubscription<dynamic> listen(
-    void onData(var message)?, {
+    void onData(message)?, {
     Function? onError,
     void onDone()?,
     bool? cancelOnError,

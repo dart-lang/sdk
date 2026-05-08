@@ -182,11 +182,10 @@ class CheckNameResponse {
               ref.startPosition,
             );
             if (identifier != null) {
-              var lineInfo = canRename.lineInfo;
               replaceInfo.add(
                 ReplaceInfo(
                   '{$newName.${identifier.name}}',
-                  lineInfo.getLocation(identifier.offset),
+                  identifier.startPosition,
                   identifier.length,
                 ),
               );
@@ -338,19 +337,42 @@ class CheckNameResponse {
   /// If the reference at [loc] is before an interpolated [SimpleIdentifier] in
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
-  Future<SimpleIdentifier?> _getInterpolationIdentifier(
-    String path,
-    CharacterLocation loc,
-  ) async {
+  Future<({CharacterLocation startPosition, int length, String name})?>
+  _getInterpolationIdentifier(String path, CharacterLocation loc) async {
     var resolvedUnit = await canRename._fileResolver.resolve(path: path);
     var lineInfo = resolvedUnit.lineInfo;
-    var node = resolvedUnit.unit.nodeCovering(
-      offset: lineInfo.getOffsetOfLine(loc.lineNumber - 1) + loc.columnNumber,
-    );
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is InterpolationExpression && parent.rightBracket == null) {
-        return node;
+    var lineOffset = lineInfo.getOffsetOfLine(loc.lineNumber - 1);
+    var baseOffset = lineOffset + loc.columnNumber - 1;
+    for (var delta = -2; delta <= 2; delta++) {
+      var candidateOffset = baseOffset + delta;
+      if (candidateOffset < lineOffset) {
+        continue;
+      }
+      var node = resolvedUnit.unit.nodeCovering(offset: candidateOffset);
+      if (node is SimpleIdentifier) {
+        var parent = node.parent;
+        if (parent is InterpolationExpression && parent.rightBracket == null) {
+          return (
+            startPosition: lineInfo.getLocation(node.offset),
+            length: node.length,
+            name: node.name,
+          );
+        }
+      }
+      if (node is NamedType) {
+        var parent = node.parent;
+        if (parent is TypeLiteral) {
+          var expression = parent.parent;
+          if (expression is InterpolationExpression &&
+              expression.rightBracket == null) {
+            var token = node.name;
+            return (
+              startPosition: lineInfo.getLocation(token.offset),
+              length: token.length,
+              name: token.lexeme,
+            );
+          }
+        }
       }
     }
     return null;

@@ -87,8 +87,13 @@ class InlineExpander {
       Expression originalArgument = originalArguments[j];
       String parameterString = 'x$j';
       DartType type = originalArgument.getStaticType(_staticTypeContext);
-      dartPositionalParameters.add(VariableDeclaration(parameterString,
-          type: _toExternalType(type), isSynthesized: true));
+      dartPositionalParameters.add(
+        VariableDeclaration(
+          parameterString,
+          type: _toExternalType(type),
+          isSynthesized: true,
+        ),
+      );
       if (originalArgument is! VariableGet) {
         allArgumentsAreGet = false;
       }
@@ -99,12 +104,16 @@ class InlineExpander {
     if (templateArgument is StringLiteral) {
       codeTemplate = templateArgument.value;
     } else {
-      assert(templateArgument is ConstantExpression,
-          "Code template must be a StringLiteral or a ConstantExpression");
+      assert(
+        templateArgument is ConstantExpression,
+        "Code template must be a StringLiteral or a ConstantExpression",
+      );
       templateArgument as ConstantExpression;
       Constant constant = templateArgument.constant;
-      assert(constant is StringConstant,
-          "Constant code template must be a StringConstant");
+      assert(
+        constant is StringConstant,
+        "Constant code template must be a StringConstant",
+      );
       constant as StringConstant;
       codeTemplate = constant.value;
     }
@@ -119,14 +128,17 @@ class InlineExpander {
       result = InvalidExpression("Unreachable");
     } else {
       dartProcedure = _methodCollector.addInteropProcedure(
-          '|$jsMethodName',
-          _inlineJSImportName,
-          FunctionNode(null,
-              positionalParameters: dartPositionalParameters,
-              returnType: arguments.types.single),
-          _util.inlineJSTarget.fileUri,
-          AnnotationType.import,
-          isExternal: true);
+        '|$jsMethodName',
+        _inlineJSImportName,
+        FunctionNode(
+          null,
+          positionalParameters: dartPositionalParameters,
+          returnType: arguments.types.single,
+        ),
+        _util.inlineJSTarget.fileUri,
+        AnnotationType.import,
+        isExternal: true,
+      );
       result = StaticInvocation(dartProcedure, Arguments(originalArguments));
     }
     _methodCollector.addMethod(dartProcedure, jsMethodName, codeTemplate);

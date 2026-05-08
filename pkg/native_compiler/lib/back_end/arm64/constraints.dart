@@ -1,0 +1,403 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/types.dart';
+import 'package:native_compiler/back_end/arm64/assembler.dart';
+import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
+import 'package:native_compiler/back_end/constraints.dart';
+import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/runtime/type_utils.dart';
+
+/// Defines arm64 register allocation contraints for
+/// inputs/outputs/temporaries of the IR instructions.
+final class Arm64Constraints extends Constraints {
+  // TODO: enable returning unboxed FP values on FP register.
+  static const bool returnFPValuesOnFPRegister = false;
+
+  late final volatileRegisters = <Constraint>[
+    ...getAllocatableRegisters(),
+    ...getAllocatableFPRegisters(),
+  ];
+
+  late final volatileRegistersExceptReturnReg = volatileRegisters
+      .where((r) => r != returnReg)
+      .toList();
+  late final volatileRegistersExceptFPReturnReg = volatileRegisters
+      .where((r) => r != returnFPReg)
+      .toList();
+
+  List<Constraint?>? _parameters;
+
+  Arm64Constraints();
+
+  @override
+  int getNumberOfRegisters() => numberOfRegisters;
+
+  @override
+  List<Register> getAllocatableRegisters() => allocatableRegisters;
+
+  @override
+  int getNumberOfFPRegisters() => numberOfFPRegisters;
+
+  @override
+  List<FPRegister> getAllocatableFPRegisters() => allocatableFPRegisters;
+
+  // TODO: pass arguments on registers
+  // TODO: add callee-save registers
+  InstructionConstraints callConstraints(CallInstruction instr) {
+    final resultReg = (returnFPValuesOnFPRegister && instr.type is DoubleType)
+        ? returnFPReg
+        : returnReg;
+    return InstructionConstraints(
+      resultReg,
+      List<Constraint?>.generate(
+        instr.inputCount,
+        (int i) => anyLocationOrImmediate(instr.inputDefAt(i)),
+      ),
+      (resultReg == returnFPReg)
+          ? volatileRegistersExceptFPReturnReg
+          : volatileRegistersExceptReturnReg,
+    );
+  }
+
+  // TODO: pass arguments on registers
+  Constraint parameterConstraint(Parameter instr) {
+    final paramIndex = instr.variable.index;
+    final function = instr.graph.function;
+    final numParams = function.numberOfParameters;
+    assert(0 <= paramIndex && paramIndex < numParams);
+    Constraint? paramConstraint = _parameters?[paramIndex];
+    if (paramConstraint != null) {
+      return paramConstraint;
+    }
+    if (function.hasOptionalPositionalParameters ||
+        function.hasNamedParameters) {
+      if (paramIndex < argumentRegisters.length) {
+        paramConstraint = argumentRegisters[paramIndex];
+      } else {
+        paramConstraint = ParameterStackLocation(
+          paramIndex - argumentRegisters.length,
+          registerClass(instr),
+        );
+      }
+    } else {
+      paramConstraint = ParameterStackLocation(
+        paramIndex,
+        registerClass(instr),
+      );
+    }
+    final parameters = (_parameters ??= List<Constraint?>.filled(
+      numParams,
+      null,
+    ));
+    parameters[paramIndex] = paramConstraint;
+    return paramConstraint;
+  }
+
+  @override
+  InstructionConstraints? visitBranch(Branch instr) =>
+      const InstructionConstraints(null, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitCompareAndBranch(CompareAndBranch instr) =>
+      InstructionConstraints(
+        null,
+        instr.op.isDoubleComparison
+            ? const [anyFpuRegister, anyFpuRegister]
+            : [anyCpuRegister, anyRegisterOrImmediate(instr.right)],
+      );
+
+  @override
+  InstructionConstraints? visitComparison(Comparison instr) =>
+      InstructionConstraints(
+        anyCpuRegister,
+        instr.op.isDoubleComparison
+            ? const [anyFpuRegister, anyFpuRegister]
+            : [anyCpuRegister, anyRegisterOrImmediate(instr.right)],
+      );
+
+  @override
+  InstructionConstraints? visitReturn(Return instr) =>
+      InstructionConstraints(null, [
+        (returnFPValuesOnFPRegister &&
+                instr.graph.function.returnType is DoubleType)
+            ? returnFPReg
+            : returnReg,
+      ]);
+
+  @override
+  InstructionConstraints? visitDirectCall(DirectCall instr) =>
+      callConstraints(instr);
+
+  @override
+  InstructionConstraints? visitInterfaceCall(InterfaceCall instr) =>
+      callConstraints(instr);
+
+  @override
+  InstructionConstraints? visitClosureCall(ClosureCall instr) =>
+      callConstraints(instr);
+
+  @override
+  InstructionConstraints? visitDynamicCall(DynamicCall instr) =>
+      callConstraints(instr);
+
+  @override
+  InstructionConstraints? visitParameter(Parameter instr) =>
+      InstructionConstraints(
+        instr.isFunctionParameter
+            ? parameterConstraint(instr)
+            : anyLocation(instr),
+        const [],
+      );
+
+  @override
+  InstructionConstraints? visitLoadLocal(LoadLocal instr) =>
+      throw 'Unexpected LoadLocal';
+
+  @override
+  InstructionConstraints? visitStoreLocal(StoreLocal instr) =>
+      throw 'Unexpected StoreLocal';
+
+  @override
+  InstructionConstraints? visitLoadInstanceField(LoadInstanceField instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitStoreInstanceField(StoreInstanceField instr) =>
+      const InstructionConstraints(
+        null,
+        [anyCpuRegister, anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitLoadStaticField(LoadStaticField instr) =>
+      (instr.checkInitialized && hasNonTrivialInitializer(instr.field.astField))
+      ? InstructionConstraints(
+          returnReg,
+          const [],
+          volatileRegistersExceptReturnReg,
+        )
+      : const InstructionConstraints(anyCpuRegister, [], [
+          anyCpuRegister,
+          anyCpuRegister,
+        ]);
+
+  @override
+  InstructionConstraints? visitStoreStaticField(StoreStaticField instr) =>
+      const InstructionConstraints(
+        null,
+        [anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitThrow(Throw instr) => InstructionConstraints(
+    null,
+    [anyCpuRegister, if (instr.inputCount == 2) anyCpuRegister],
+  );
+
+  @override
+  InstructionConstraints? visitNullCheck(NullCheck instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitTypeCast(TypeCast instr) {
+    final callsTypeTestingStub =
+        instr.isChecked &&
+        switch (instr.testedType) {
+          ObjectType() ||
+          NullType() ||
+          IntType() ||
+          DoubleType() ||
+          BoolType() ||
+          StringType() => false,
+          _ => true,
+        };
+    if (callsTypeTestingStub) {
+      return InstructionConstraints(
+        TypeTestingStub.instanceReg,
+        [
+          TypeTestingStub.instanceReg,
+          if (instr.inputCount > 1) ...const [
+            TypeTestingStub.instantiatorTypeArgumentsReg,
+            TypeTestingStub.functionTypeArgumentsReg,
+          ],
+        ],
+        const [
+          TypeTestingStub.dstTypeReg,
+          TypeTestingStub.subtypeTestCacheReg,
+          TypeTestingStub.scratchReg,
+        ],
+      );
+    }
+    return InstructionConstraints(anyCpuRegister, [
+      anyCpuRegister,
+      if (instr.inputCount > 1) ...[
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+        anyRegisterOrImmediate(instr.inputDefAt(2)),
+      ],
+    ]);
+  }
+
+  @override
+  InstructionConstraints? visitTypeTest(TypeTest instr) {
+    final callsSubtypeTestCacheStub = switch (instr.testedType) {
+      ObjectType() ||
+      NullType() ||
+      IntType() ||
+      DoubleType() ||
+      BoolType() ||
+      StringType() => false,
+      _ => true,
+    };
+    if (callsSubtypeTestCacheStub) {
+      return InstructionConstraints(
+        TypeTestingStub.subtypeTestCacheResultReg,
+        [
+          TypeTestingStub.instanceReg,
+          if (instr.inputCount > 1) ...const [
+            TypeTestingStub.instantiatorTypeArgumentsReg,
+            TypeTestingStub.functionTypeArgumentsReg,
+          ],
+        ],
+        const [
+          TypeTestingStub.dstTypeReg,
+          TypeTestingStub.subtypeTestCacheReg,
+          TypeTestingStub.scratchReg,
+        ],
+      );
+    }
+    return InstructionConstraints(anyCpuRegister, [
+      anyCpuRegister,
+      if (instr.inputCount > 1) ...[
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+        anyRegisterOrImmediate(instr.inputDefAt(2)),
+      ],
+    ]);
+  }
+
+  @override
+  InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
+      InstructionConstraints(anyCpuRegister, [
+        anyRegisterOrImmediate(instr.inputDefAt(0)),
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
+
+  @override
+  InstructionConstraints? visitTypeLiteral(TypeLiteral instr) =>
+      InstructionConstraints(anyCpuRegister, [
+        anyRegisterOrImmediate(instr.inputDefAt(0)),
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
+
+  @override
+  InstructionConstraints? visitAllocateObject(AllocateObject instr) =>
+      InstructionConstraints(
+        AllocationStub.resultReg,
+        [if (instr.hasTypeArguments) AllocationStub.typeArgumentsReg],
+        [
+          if (!instr.hasTypeArguments) AllocationStub.typeArgumentsReg,
+          AllocationStub.tagsReg,
+          AllocationStub.scratch1Reg,
+          AllocationStub.scratch2Reg,
+        ],
+      );
+
+  @override
+  InstructionConstraints? visitAllocateClosure(AllocateClosure instr) =>
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
+
+  @override
+  InstructionConstraints? visitAllocateList(AllocateList instr) =>
+      InstructionConstraints(
+        anyCpuRegister,
+        [anyRegisterOrImmediate(instr.length)],
+        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitSetListElement(SetListElement instr) =>
+      InstructionConstraints(
+        null,
+        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+        const [anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitBoxInt(BoxInt instr) =>
+      const InstructionConstraints(
+        anyCpuRegister,
+        [anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitBoxDouble(BoxDouble instr) =>
+      const InstructionConstraints(
+        anyCpuRegister,
+        [anyFpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitUnboxInt(UnboxInt instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitUnboxDouble(UnboxDouble instr) =>
+      const InstructionConstraints(anyFpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitBinaryIntOp(BinaryIntOp instr) =>
+      InstructionConstraints(anyCpuRegister, [
+        anyCpuRegister,
+        anyRegisterOrImmediate(instr.right),
+      ]);
+
+  @override
+  InstructionConstraints? visitUnaryIntOp(UnaryIntOp instr) =>
+      switch (instr.op) {
+        UnaryIntOpcode.toDouble => const InstructionConstraints(
+          anyFpuRegister,
+          [anyCpuRegister],
+        ),
+        _ => const InstructionConstraints(anyCpuRegister, [anyCpuRegister]),
+      };
+
+  @override
+  InstructionConstraints? visitBinaryDoubleOp(BinaryDoubleOp instr) =>
+      switch (instr.op) {
+        BinaryDoubleOpcode.truncatingDiv => const InstructionConstraints(
+          anyCpuRegister,
+          [anyFpuRegister, anyFpuRegister],
+        ),
+        _ => const InstructionConstraints(anyFpuRegister, [
+          anyFpuRegister,
+          anyFpuRegister,
+        ]),
+      };
+
+  @override
+  InstructionConstraints? visitUnaryDoubleOp(UnaryDoubleOp instr) =>
+      switch (instr.op) {
+        UnaryDoubleOpcode.round ||
+        UnaryDoubleOpcode.floor ||
+        UnaryDoubleOpcode.ceil ||
+        UnaryDoubleOpcode.truncate => const InstructionConstraints(
+          anyCpuRegister,
+          [anyFpuRegister],
+        ),
+        _ => const InstructionConstraints(anyFpuRegister, [anyFpuRegister]),
+      };
+
+  @override
+  InstructionConstraints? visitUnaryBoolOp(UnaryBoolOp instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+}

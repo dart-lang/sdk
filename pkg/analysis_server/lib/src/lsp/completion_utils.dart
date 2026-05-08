@@ -102,7 +102,9 @@ Future<TypeImportData?> createTypedSuggestionData(
   DartCompletionRequest request,
 ) async {
   // No keyword or type annotation means that we don't need to do anything.
-  if (!suggestion.addTypeAnnotation && suggestion.keyword == null) {
+  if (!suggestion.addTypeAnnotation &&
+      suggestion.keyword == null &&
+      !suggestion.addTypeName) {
     return null;
   }
   var typeImports = <Uri>{};
@@ -118,6 +120,10 @@ Future<TypeImportData?> createTypedSuggestionData(
       if (suggestion.addTypeAnnotation) {
         builder.writeType(suggestion.type, shouldWriteDynamic: true);
         builder.write(' ');
+      }
+      if (suggestion.addTypeName && suggestion.containingType != null) {
+        builder.writeType(suggestion.containingType);
+        if (suggestion.completion.isNotEmpty) builder.write('.');
       }
       if (suggestion is SetStateMethodSuggestion &&
           (suggestion.addTypeAnnotation || suggestion.keyword != null)) {
@@ -364,7 +370,7 @@ lsp.CompletionItem? toLspCompletionItem(
   if (labelMatch != null) {
     cleanedDoc = null;
     labelDetails = (
-      detail: labelMatch.group(1)!,
+      detail: labelMatch[1]!,
       truncatedParams: labelDetails.truncatedParams,
       truncatedSignature: labelDetails.truncatedSignature,
       autoImportUri: labelDetails.autoImportUri,
@@ -628,7 +634,7 @@ CompletionDetail _getCompletionDetail(
     if (returnType == null &&
         element.kind == ElementKind.SETTER &&
         parameters != null) {
-      returnType = completionSetterTypePattern.firstMatch(parameters)?.group(1);
+      returnType = completionSetterTypePattern.firstMatch(parameters)?[1];
       parameters = null;
     }
   } else if (suggestion is FunctionCall) {

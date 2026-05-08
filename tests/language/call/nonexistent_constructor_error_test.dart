@@ -12,7 +12,7 @@ foo() {
 }
 
 class A {
-  A.foo(var x) {}
+  A.foo(x) {}
 }
 
 main() {

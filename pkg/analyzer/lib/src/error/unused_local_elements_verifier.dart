@@ -9,18 +9,17 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart'
-    show JoinPatternVariableElementImpl, MetadataImpl;
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show SubstitutedExecutableElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -32,8 +31,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   InterfaceElement? _enclosingClass;
   ExecutableElement? _enclosingExec;
 
-  /// Non-null when the visitor is inside an [IsExpression]'s type.
-  IsExpression? _enclosingIsExpression;
+  /// Whether the visitor is inside an [IsExpression]'s type.
+  bool _insideIsExpression = false;
 
   /// Non-null when the visitor is inside a [VariableDeclarationList]'s type.
   VariableDeclarationList? _enclosingVariableDeclaration;
@@ -132,6 +131,28 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    usedElements.addElement(node.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    usedElements.addElement(node.memberName.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    usedElements.addElement(node.propertyName.element?.enclosingElement);
+    super.visitDotShorthandPropertyAccess(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     usedElements.addElement(node.constructorElement?.baseElement);
 
@@ -198,13 +219,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    var enclosingIsExpressionOld = _enclosingIsExpression;
+    var insideIsExpressionOld = _insideIsExpression;
     node.expression.accept(this);
     try {
-      _enclosingIsExpression = node;
+      _insideIsExpression = true;
       node.type.accept(this);
     } finally {
-      _enclosingIsExpression = enclosingIsExpressionOld;
+      _insideIsExpression = insideIsExpressionOld;
     }
   }
 
@@ -232,7 +253,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _useIdentifierElement(node.element, parent: node);
+    _useIdentifierElement(node.element);
     super.visitNamedType(node);
   }
 
@@ -269,7 +290,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (_inCommentReference(node)) {
+    if (node.inCommentReference) {
       return;
     }
     var element = node.writeOrReadElement;
@@ -277,7 +298,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
     }
-    var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable;
+    var variable = element.tryCast<PropertyAccessorElement>()?.variable;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
         isIdentifierRead &&
@@ -294,9 +315,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     } else {
       var parent = node.parent!;
-      _useIdentifierElement(node.readElement, parent: parent);
-      _useIdentifierElement(node.writeElement, parent: parent);
-      _useIdentifierElement(node.element, parent: parent);
+      _useIdentifierElement(node.readElement);
+      _useIdentifierElement(node.writeElement);
+      _useIdentifierElement(node.element);
       var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
@@ -378,7 +399,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   /// Marks the [element] as used in the library.
-  void _useIdentifierElement(Element? element, {required AstNode parent}) {
+  void _useIdentifierElement(Element? element) {
     if (element == null) {
       return;
     }
@@ -394,29 +415,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
-    // TODO(scheglov): Do we need 'parent' at all?
-    if (parent is NamedType) {
-      if (element is InterfaceElement) {
-        var enclosingVariableDeclaration = _enclosingVariableDeclaration;
-        if (enclosingVariableDeclaration != null) {
-          // If it's a field's type, it still counts as used.
-          if (enclosingVariableDeclaration.parent is! FieldDeclaration) {
-            return;
-          }
-        } else if (_enclosingIsExpression != null) {
-          // An interface type found in an `is` expression is not used.
-          return;
-        }
-      }
+    if (element is! TypeAliasElement && _insideIsExpression) {
+      // An interface type found in an `is` expression is not used.
+      return;
     }
-    // OK
     usedElements.addElement(element);
-  }
-
-  /// Returns whether [identifier] is found in a [CommentReference].
-  static bool _inCommentReference(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
-    return parent is CommentReference || parent?.parent is CommentReference;
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.
@@ -503,8 +506,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// [diag.unusedField],
 /// [diag.unusedLocalVariable], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
-  /// The error listener to which errors will be reported.
-  final DiagnosticListener _diagnosticListener;
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
@@ -521,7 +523,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(
-    this._diagnosticListener,
+    this._diagnosticReporter,
     this._usedElements,
     LibraryElement library,
   ) : _libraryUri = library.uri,
@@ -614,9 +616,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     for (var fragment in node.parameterFragments) {
       var element = fragment!.element;
       if (!_isUsedElement(element)) {
-        _reportDiagnosticForElement(diag.unusedElementParameter, element, [
-          element.displayName,
-        ]);
+        _reportDiagnosticForElement(
+          diag.unusedElementParameter.withArguments(name: element.displayName),
+          element,
+        );
       }
     }
     super.visitFormalParameterList(node);
@@ -704,9 +707,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         }
       }
       for (var element in elementsToReport) {
-        _reportDiagnosticForElement(diag.unusedLocalVariable, element, [
-          element.displayName,
-        ]);
+        _reportDiagnosticForElement(
+          diag.unusedLocalVariable.withArguments(name: element.displayName),
+          element,
+        );
       }
     } finally {
       _patternVariableElements = outerPatternVariableElements;
@@ -714,30 +718,39 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    // Do not report a field declared in a primary constructor which is declared
-    // in an extension type, since it cannot be removed, and renaming it to be
-    // public is not an improvement.
-    if (node.parent is! ExtensionTypeDeclaration) {
-      for (var parameter in node.formalParameters.parameters) {
-        var fragment = parameter.declaredFragment;
-        var element = fragment!.element;
-        if (element is! FieldFormalParameterElement) continue;
-        var field = element.field;
-        if (field == null) continue;
-        if (!_isReadMember(field)) {
-          var keyword = switch (parameter.notDefault) {
-            SimpleFormalParameter p => p.keyword!.lexeme,
-            _ => '',
-          };
-          _reportDiagnosticForElement(
-            diag.unusedFieldFromPrimaryConstructor,
-            element,
-            [field.displayName, keyword],
-          );
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    switch (node.parent) {
+      case ClassDeclarationImpl():
+      case EnumDeclarationImpl():
+        for (var parameter in node.formalParameters.parameters) {
+          var element = parameter.declaredFragment!.element;
+          if (element is FieldFormalParameterElementImpl &&
+              element.isDeclaring) {
+            var field = element.field;
+            if (field != null && !_isReadMember(field)) {
+              var keyword = parameter.finalOrVarKeyword!.lexeme;
+              _diagnosticReporter.report(
+                diag.unusedFieldFromPrimaryConstructor
+                    .withArguments(
+                      fieldName: field.displayName,
+                      keyword: keyword,
+                    )
+                    .at(parameter.name!),
+              );
+            }
+          }
         }
-      }
+      case ExtensionTypeDeclarationImpl():
+        // Do not report a field declared in a primary constructor which is
+        // declared in an extension type, since it cannot be removed, and
+        // renaming it to be public is not an improvement.
+        break;
+      default:
+        throw UnimplementedError('${node.parent.runtimeType}');
     }
+
     super.visitPrimaryConstructorDeclaration(node);
   }
 
@@ -1031,22 +1044,18 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _reportDiagnosticForElement(
-    DiagnosticCode code,
+    LocatableDiagnostic locatableDiagnostic,
     Element? element,
-    List<Object> arguments,
   ) {
     if (element != null) {
       var fragment = element.firstFragment;
-      _diagnosticListener.onDiagnostic(
-        Diagnostic.tmp(
-          source: fragment.libraryFragment!.source,
+      _diagnosticReporter.report(
+        locatableDiagnostic.atOffset(
           offset:
               fragment.nameOffset ??
               fragment.enclosingFragment?.nameOffset ??
               0,
           length: fragment.name?.length ?? 0,
-          diagnosticCode: code,
-          arguments: arguments,
         ),
       );
     }
@@ -1054,9 +1063,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitClassElement(InterfaceElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
@@ -1067,32 +1077,38 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     // purpose, the constructor is "used."
     if (element.enclosingElement.constructors.length > 1 &&
         !_isUsedMember(element)) {
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitFieldElement(FieldElement element) {
     if (!_isReadMember(element)) {
-      _reportDiagnosticForElement(diag.unusedField, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedField.withArguments(fieldName: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitLocalFunctionElement(LocalFunctionElement element) {
     if (!_isUsedElement(element)) {
       if (_wildCardVariablesEnabled && _isNamedWildcard(element)) return;
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element) && !_isNamedWildcard(element)) {
-      DiagnosticCode code;
+      DiagnosticWithArguments<
+        LocatableDiagnostic Function({required String name})
+      >
+      code;
       if (_usedElements.isCatchException(element)) {
         code = diag.unusedCatchClause;
       } else if (_usedElements.isCatchStackTrace(element)) {
@@ -1100,47 +1116,55 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       } else {
         code = diag.unusedLocalVariable;
       }
-      _reportDiagnosticForElement(code, element, [element.displayName]);
+      _reportDiagnosticForElement(
+        code.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitTopLevelFunctionElement(TopLevelFunctionElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
   void _visitTypeAliasElement(TypeAliasElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(diag.unusedElement, element, [
-        element.displayName,
-      ]);
+      _reportDiagnosticForElement(
+        diag.unusedElement.withArguments(name: element.displayName),
+        element,
+      );
     }
   }
 
@@ -1209,6 +1233,12 @@ class UsedLocalElements {
       elements.add(element.baseElement);
     } else if (element != null) {
       elements.add(element);
+      var enclosingElement = element.enclosingElement;
+      if (element is ConstructorElementImpl &&
+          enclosingElement is ClassElementImpl &&
+          enclosingElement.isMixinApplication) {
+        addElement(element.superConstructor);
+      }
     }
   }
 

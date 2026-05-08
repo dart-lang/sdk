@@ -4,8 +4,6 @@
 
 // Errors with `??` and dot shorthands with static members.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 extension type IfNullExt<T extends num>(T x) implements num {

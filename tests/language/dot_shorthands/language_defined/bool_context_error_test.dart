@@ -6,8 +6,6 @@
 // (`if`, `||`, `while`), using a dot shorthand will match members in the
 // `bool` class.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 extension type const Bool(bool _) implements bool {

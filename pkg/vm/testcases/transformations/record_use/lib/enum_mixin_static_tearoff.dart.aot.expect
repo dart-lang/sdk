@@ -1,0 +1,34 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class MyEnum extends core::_Enum /*isEnum*/  {
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C1
+  static method staticMethod() → void {}
+}
+abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C1
+  static method staticMethod() → void {}
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final () → void f1 = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList] core::_GrowableList::_literal1<() → void>(#C2).{core::List::[]}(0){(core::int) → () → void};
+  core::print(f1);
+  final () → void f2 = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList] core::_GrowableList::_literal1<() → void>(#C3).{core::List::[]}(0){(core::int) → () → void};
+  core::print(f2);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = static-tearoff self::MyEnum::staticMethod
+  #C3 = static-tearoff self::MyMixin::staticMethod
+}

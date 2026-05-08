@@ -17,7 +17,7 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
   /// the visitor.  If not set, an exception is thrown then an unhandled
   /// implementer of [DartType] is encountered.
   final DartTypeVisitor1AuxiliaryFunction<DartType, CoreTypes>?
-      unhandledTypeHandler;
+  unhandledTypeHandler;
 
   const FutureValueTypeVisitor({this.unhandledTypeHandler});
 
@@ -28,7 +28,8 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
   DartType visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
     if (unhandledTypeHandler == null) {
       throw new UnsupportedError(
-          "Unsupported auxiliary type $node (${node.runtimeType}).");
+        "Unsupported auxiliary type $node (${node.runtimeType}).",
+      );
     } else {
       return unhandledTypeHandler!(node, coreTypes, visit);
     }
@@ -125,17 +126,23 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
 
   @override
   DartType visitFunctionTypeParameterType(
-      FunctionTypeParameterType node, CoreTypes arg) {
+    FunctionTypeParameterType node,
+    CoreTypes arg,
+  ) {
     // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 
   @override
   DartType visitClassTypeParameterType(
-      ClassTypeParameterType node, CoreTypes arg) {
+    ClassTypeParameterType node,
+    CoreTypes arg,
+  ) {
     // TODO(cstefantsova): Implement visitClassTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 }

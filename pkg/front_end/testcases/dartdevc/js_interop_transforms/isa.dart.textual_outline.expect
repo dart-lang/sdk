@@ -13,6 +13,6 @@ extension type CustomTypedArray(JSTypedArray _) implements JSObject {}
 @JS('RenamedJSArray')
 extension type CustomJSArray(JSArray _) implements JSObject {}
 
-void test(JSAny any) {}
+void test(JSAny any, JSAny? nullableAny, Object obj, Object? nullableObj) {}
 
 void main() {}

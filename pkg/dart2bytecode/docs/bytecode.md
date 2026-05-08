@@ -557,7 +557,7 @@ type FunctionDeclaration {
                 isAsync, isAsyncStar, isSyncStar,
                 isNoSuchMethodForwarder, isExternal, isNative,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript, isExtensionTypeMember);
+                hasCustomScript, isExtensionTypeMember, isInvisible);
 
   PackedObject name;
 
@@ -647,7 +647,7 @@ type ClosureDeclaration {
   UInt flags = (hasOptionalPositionalParams, hasOptionalNamedParams,
                 hasTypeParams, hasSourcePositions,
                 isAsync, isAsyncStar, isSyncStar, isDebuggable,
-                hasParameterFlags, hasAnnotations, hasPragma)
+                hasParameterFlags, hasAnnotations, hasPragma, isInvisible)
 
   // Member or Closure.
   PackedObject parent;
@@ -681,7 +681,10 @@ type ClosureDeclaration {
 
 type ClosureCode {
   UInt flags = (hasExceptionsTable, hasSourcePositions, hasLocalVariables,
-                capturesOnlyFinalNotLateVars)
+                capturesOnlyFinalNotLateVars, hasLocalFunctionId)
+
+  if hasLocalFunctionId
+    UInt localFunctionId;
 
   UInt bytecodeSizeInBytes;
   Byte[bytecodeSizeInBytes] bytecodes;
@@ -1422,8 +1425,7 @@ SP[0] = SP[-1] <op> SP[0] ? true : false
 
 Allocate closure object for closure function ConstantPool[D].
 
-#### DebugCheck
+#### Nop
 
-No-op. Provides a point where debugger can stop executing code when single stepping
-or when it hits a breakpoint.
-
+No-op. Provides a unique PC offset to ensure an emitted source position is not
+overwritten by a different source position emitted by the next instruction.

@@ -10,6 +10,7 @@ group("dds_aot") {
   public_deps = [
     ":dds_aot_product_snapshot",
     ":dds_aot_snapshot",
+    "../dtd:dtd_aot_snapshot",
   ]
 }
 
@@ -32,7 +33,10 @@ aot_snapshot("dds_aot_product_snapshot") {
 }
 
 group("dds") {
-  public_deps = [ ":copy_dds_snapshot" ]
+  public_deps = [
+    ":copy_dds_snapshot",
+    "../dtd",
+  ]
 }
 
 copy("copy_dds_snapshot") {

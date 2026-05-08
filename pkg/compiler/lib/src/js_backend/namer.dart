@@ -7,17 +7,16 @@ library;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $g, $s, $z;
-
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart';
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/elements.dart' show JElementEnvironment;
 import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show debugMode;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
@@ -25,7 +24,6 @@ import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js_ast;
-import '../js_backend/field_analysis.dart';
 import '../js_model/closure.dart';
 import '../js_model/elements.dart' show JField, JGeneratorBody;
 import '../js_model/js_world.dart';
@@ -33,6 +31,7 @@ import '../universe/call_structure.dart';
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/util.dart';
 import 'deferred_holder_expression.dart';
+import 'field_analysis.dart';
 import 'native_data.dart';
 
 part 'field_naming_mixin.dart';

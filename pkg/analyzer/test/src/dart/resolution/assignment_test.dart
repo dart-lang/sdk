@@ -4851,11 +4851,12 @@ AssignmentExpression
   test_simpleIdentifier_parameterFinal_simple() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.10
 void f(final int x) {
   x = 2;
 }
 ''',
-      [error(diag.assignmentToFinalLocal, 24, 1)],
+      [error(diag.assignmentToFinalLocal, 40, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');

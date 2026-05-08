@@ -8,19 +8,20 @@
 #include "vm/globals.h"
 #if defined(DART_DYNAMIC_MODULES)
 
+#include "platform/utils.h"
+#include "vm/class_table.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
+#include "vm/heap/spaces.h"
+#include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/tagged_pointer.h"
+#include "vm/thread.h"
+#include "vm/visitor.h"
 
 namespace dart {
 
-class Array;
-class Code;
 class InterpreterSetjmpBuffer;
-class Isolate;
-class ObjectPointerVisitor;
-class Thread;
 
 class LookupCache : public ValueObject {
  public:
@@ -250,6 +251,33 @@ class Interpreter {
 
   ObjectPtr Run(Thread* thread, ObjectPtr* sp, bool rethrow_exception);
 
+  DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
+                                            intptr_t class_id,
+                                            intptr_t instance_size,
+                                            ObjectPtr* result) {
+    ASSERT(instance_size > 0);
+    ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+    ASSERT(Heap::IsAllocatableInNewSpace(instance_size));
+
+#if !defined(PRODUCT)
+    auto* const class_table = thread->isolate_group()->class_table();
+    if (class_table->ShouldTraceAllocationFor(class_id)) [[unlikely]] {
+      // Fall back to the runtime for profiled allocation of classes.
+      return false;
+    }
+#endif  // !defined(PRODUCT)
+
+    const uword top = thread->top();
+    const intptr_t remaining = thread->end() - top;
+    if (remaining >= instance_size) [[likely]] {
+      thread->set_top(top + instance_size);
+      Object::InitializeHeader(top, class_id, instance_size);
+      *result = UntaggedObject::FromAddr(top);
+      return true;
+    }
+    return false;
+  }
+
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.
   bool IsTracingExecution() const;
@@ -260,6 +288,15 @@ class Interpreter {
   bool IsWritingTraceFile() const;
   void FlushTraceBuffer();
   void WriteInstructionToTrace(const KBCInstr* pc);
+
+  // Prints at most the requested number of interpreted stack frames
+  // up to the most recent entry frame.
+  //
+  // If [depth] is non-positive, prints all interpreted stack frames
+  // up to the most recent entry frame.
+  void PrintStackFrames(const ObjectPtr* FP,
+                        const ObjectPtr* SP,
+                        intptr_t depth = 0);
 
   void* trace_file_;
   uint64_t trace_file_bytes_written_;

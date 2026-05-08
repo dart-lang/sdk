@@ -394,7 +394,7 @@ void main() {
   Expect.listEquals(
     regexp59
         .allMatches('Y aaa X Match1 Y aaa Y Match2 Z')
-        .map((m) => m.group(0))
+        .map((m) => m[0])
         .toList(),
     ['X Match1 Y', 'Y Match2 Z'],
   );

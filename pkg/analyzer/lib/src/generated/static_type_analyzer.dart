@@ -58,16 +58,6 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_getType(node.type), resolver: _resolver);
   }
 
-  /// The Dart Language Specification, 16.29 (Await Expressions):
-  ///
-  ///   The static type of [the expression "await e"] is flatten(T) where T is
-  ///   the static type of e.
-  void visitAwaitExpression(covariant AwaitExpressionImpl node) {
-    var resultType = node.expression.typeOrThrow;
-    resultType = _typeSystem.flatten(resultType);
-    node.recordStaticType(resultType, resolver: _resolver);
-  }
-
   /// The Dart Language Specification, 12.4: <blockquote>The static type of a boolean literal is
   /// bool.</blockquote>
   void visitBooleanLiteral(covariant BooleanLiteralImpl node) {
@@ -255,10 +245,12 @@ class StaticTypeAnalyzer {
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(
+    _resolver.flowAnalysis.flow?.storeExpressionInfo(
       node,
-      SharedTypeView(thisType ?? _dynamicType),
-      isSuper: true,
+      _resolver.flowAnalysis.flow?.thisOrSuper(
+        SharedTypeView(thisType ?? _dynamicType),
+        isSuper: true,
+      ),
     );
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
@@ -278,10 +270,12 @@ class StaticTypeAnalyzer {
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(
+    _resolver.flowAnalysis.flow?.storeExpressionInfo(
       node,
-      SharedTypeView(thisType ?? _dynamicType),
-      isSuper: false,
+      _resolver.flowAnalysis.flow?.thisOrSuper(
+        SharedTypeView(thisType ?? _dynamicType),
+        isSuper: false,
+      ),
     );
     if (thisType == null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been

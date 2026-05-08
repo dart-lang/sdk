@@ -107,7 +107,8 @@ a Dart team lead, the cherry-pick author will submit it to the commit queue. The
 tryjobs will compare the test results with the previous commit on the
 beta/stable branch and fail if any regressions are introduced. If any
 regressions must be introduced, or the try builders don't work on the older
-beta/stable code, then bypass the commit queue by force submitting.
+beta/stable code, then bypass the commit queue by force submitting (`... ->
+Submit` in Gerrit).
 
 ## Cherry-picking a commit in a dependency
 

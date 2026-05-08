@@ -2171,11 +2171,7 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
   if (!IsSafeSmi(constant)) return false;
   const int64_t index = target::SmiValue(constant);
   const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
-  if (!Utils::IsInt(32, offset)) {
-    return false;
-  }
-  return Address::CanHoldOffset(static_cast<int32_t>(offset), Address::Offset,
-                                Address::OperandSizeFor(cid));
+  return Utils::IsInt(32, offset);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,
@@ -2185,8 +2181,6 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t index) const {
   const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
   ASSERT(Utils::IsInt(32, offset));
-  const OperandSize size = Address::OperandSizeFor(cid);
-  ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(array, static_cast<int32_t>(offset));
 }
 
@@ -2410,6 +2404,27 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
     }
   }
   ASSERT(vprev == kNoVRegister);
+}
+
+void Assembler::PushRegistersAligned(const RegisterSet& register_set,
+                                     intptr_t space) {
+  PushRegisters(register_set);
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    sub(SP, SP, Operand(aligned_space));
+  }
+}
+void Assembler::PopRegistersAligned(const RegisterSet& register_set,
+                                    intptr_t space) {
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    add(SP, SP, Operand(aligned_space));
+  }
+  PopRegisters(register_set);
 }
 
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {

@@ -76,19 +76,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Handled by an analyzer warning.
     if (element.metadata.hasLiteral) return;
 
-    var enclosingElement = element.enclosingElement;
-    if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
+    var interfaceElement = element.enclosingElement;
+    if (interfaceElement is ClassElement && interfaceElement.isDartCoreObject) {
       // Skip lint for `new Object()`, because it can be used for ID creation.
       return;
     }
 
-    if (enclosingElement.typeParameters.isNotEmpty &&
+    if (interfaceElement.typeParameters.isNotEmpty &&
         node.constructorName.type.typeArguments == null) {
       var approximateContextType = node.approximateContextType;
-      var contextTypeAsInstanceOfEnclosing = approximateContextType
-          ?.asInstanceOf(enclosingElement);
-      if (contextTypeAsInstanceOfEnclosing != null) {
-        if (contextTypeAsInstanceOfEnclosing.typeArguments.any(
+      var contextTypeAsInstanceOfInterfaceElement = approximateContextType
+          ?.asInstanceOf(interfaceElement);
+      if (contextTypeAsInstanceOfInterfaceElement != null) {
+        if (contextTypeAsInstanceOfInterfaceElement.typeArguments.any(
           (e) => e is TypeParameterType,
         )) {
           // The context type has type parameters, which may be substituted via

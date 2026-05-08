@@ -238,9 +238,8 @@ checkerForAbsentPresent(String test) {
       Expect.fail("No 'absent:' or 'present:' directives in '$test'");
     }
     for (Match match in matches) {
-      String? directive = match.group(1);
-      Pattern pattern = match.groups([2, 3, 4]).where((s) => s != null).single!;
-      if (match.group(4) != null) pattern = RegExp(pattern as String);
+      String? directive = match[1];
+      Pattern pattern = match[2] ?? match[3] ?? RegExp(match[4]!);
       if (directive == 'present') {
         Expect.isTrue(
           generated.contains(pattern),

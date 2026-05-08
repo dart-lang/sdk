@@ -53,7 +53,6 @@ class Object {
   }
 
   @patch
-  @pragma("wasm:entry-point")
   dynamic noSuchMethod(Invocation invocation) {
     throw NoSuchMethodError.withInvocation(this, invocation);
   }
@@ -64,7 +63,16 @@ class Object {
 
   // Used for `null.noSuchMethod` tear-offs.
   @pragma("wasm:entry-point")
-  static dynamic _nullNoSuchMethod(Invocation invocation) {
+  static dynamic _invokeNoSuchMethod(Object? receiver, Invocation invocation) {
+    if (receiver != null) {
+      return receiver.noSuchMethod(invocation);
+    }
+    return _invokeNullNoSuchMethod(invocation);
+  }
+
+  // Used for `null.noSuchMethod` tear-offs.
+  @pragma("wasm:entry-point")
+  static Never _invokeNullNoSuchMethod(Invocation invocation) {
     throw NoSuchMethodError.withInvocation(null, invocation);
   }
 }

@@ -4,16 +4,9 @@
 
 library _fe_analyzer_shared.stack_listener;
 
-import '../messages/codes.dart'
-    show
-        Code,
-        LocatedMessage,
-        Message,
-        codeBuiltInIdentifierInDeclaration,
-        codeCatchSyntaxExtraParameters,
-        codeNativeClauseShouldBeAnnotation,
-        codeInternalProblemStackNotEmpty,
-        codeInternalProblemUnhandled;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
+import '../messages/codes.dart' show Code, LocatedMessage, Message;
 
 import '../scanner/scanner.dart' show Token;
 
@@ -169,7 +162,10 @@ abstract class StackListener extends Listener with StackChecker {
   void push(Object? node) {
     if (node == null) {
       internalProblem(
-        codeInternalProblemUnhandled.withArgumentsOld("null", "push"),
+        diag.internalProblemUnhandled.withArguments(
+          what: "null",
+          where: "push",
+        ),
         /* charOffset = */ -1,
         uri,
       );
@@ -212,7 +208,10 @@ abstract class StackListener extends Listener with StackChecker {
   void logEvent(String name) {
     printEvent(name);
     internalProblem(
-      codeInternalProblemUnhandled.withArgumentsOld(name, "$runtimeType"),
+      diag.internalProblemUnhandled.withArguments(
+        what: name,
+        where: "$runtimeType",
+      ),
       /* charOffset = */ -1,
       uri,
     );
@@ -232,9 +231,9 @@ abstract class StackListener extends Listener with StackChecker {
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
       internalProblem(
-        codeInternalProblemStackNotEmpty.withArgumentsOld(
-          "${runtimeType}",
-          stack.values.join("\n  "),
+        diag.internalProblemStackNotEmpty.withArguments(
+          typeName: "${runtimeType}",
+          stackContents: stack.values.join("\n  "),
         ),
         charOffset,
         uri,
@@ -402,9 +401,9 @@ abstract class StackListener extends Listener with StackChecker {
       push(unescapeString(token.lexeme, token, this));
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArgumentsOld(
-          "string interpolation",
-          "endLiteralString",
+        diag.internalProblemUnhandled.withArguments(
+          what: "string interpolation",
+          where: "endLiteralString",
         ),
         endToken.charOffset,
         uri,
@@ -457,14 +456,14 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   bool isIgnoredError(Code code, Token token) {
-    if (code == codeNativeClauseShouldBeAnnotation) {
+    if (code == diag.nativeClauseShouldBeAnnotation) {
       // TODO(danrubel): Ignore this error until we deprecate `native`
       // support.
       return true;
-    } else if (code == codeCatchSyntaxExtraParameters) {
+    } else if (code == diag.catchSyntaxExtraParameters) {
       // Ignored. This error is handled by the BodyBuilder.
       return true;
-    } else if (code == codeBuiltInIdentifierInDeclaration) {
+    } else if (code == diag.builtInIdentifierInDeclaration) {
       if (isDartLibrary) return true;
       return false;
     } else {
@@ -499,6 +498,9 @@ abstract class Stack {
   /// Pops [count] elements from the stack and puts it into [list].
   /// Returns `null` if a [ParserRecovery] value is found, or [list] otherwise.
   List<T>? popNonNullableList<T>(int count, List<T> list);
+
+  /// Pops [count] elements from the stack and puts it into the returned list.
+  List<T> popNonNullableNewList<T>(int count);
 
   void push(Object value);
 
@@ -630,6 +632,22 @@ class StackImpl implements Stack {
   }
 
   @override
+  List<T> popNonNullableNewList<T>(int count) {
+    assert(arrayLength >= count);
+    final List<Object?> array = this.array;
+    final int length = arrayLength;
+    final int startIndex = length - count;
+    List<T> result = new List.generate(count, ((index) {
+      int arrayIndex = startIndex + index;
+      final Object? value = array[arrayIndex];
+      array[arrayIndex] = null;
+      return value as T;
+    }));
+    arrayLength -= count;
+    return result;
+  }
+
+  @override
   List<Object?> get values {
     final int length = arrayLength;
     final List<Object?> list = new List<Object?>.filled(
@@ -703,6 +721,14 @@ class DebugStack implements Stack {
   @override
   List<T>? popNonNullableList<T>(int count, List<T> list) {
     List<T>? result = realStack.popNonNullableList(count, list);
+    latestStacktraces.length = count;
+    stackTraceStack.popList(count, latestStacktraces, /* nullValue = */ null);
+    return result;
+  }
+
+  @override
+  List<T> popNonNullableNewList<T>(int count) {
+    List<T> result = realStack.popNonNullableNewList(count);
     latestStacktraces.length = count;
     stackTraceStack.popList(count, latestStacktraces, /* nullValue = */ null);
     return result;

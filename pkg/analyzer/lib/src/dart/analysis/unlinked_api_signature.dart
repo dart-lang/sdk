@@ -41,9 +41,9 @@ class _UnitApiSignatureComputer {
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclarationImpl) {
         _addClass(declaration);
-      } else if (declaration is EnumDeclaration) {
+      } else if (declaration is EnumDeclarationImpl) {
         _addEnum(declaration);
-      } else if (declaration is ExtensionDeclaration) {
+      } else if (declaration is ExtensionDeclarationImpl) {
         _addExtension(declaration);
       } else if (declaration is FunctionDeclaration) {
         var functionExpression = declaration.functionExpression;
@@ -52,7 +52,7 @@ class _UnitApiSignatureComputer {
           functionExpression.parameters?.endToken ?? declaration.name,
         );
         _addFunctionBodyModifiers(functionExpression.body);
-      } else if (declaration is MixinDeclaration) {
+      } else if (declaration is MixinDeclarationImpl) {
         _addMixin(declaration);
       } else if (declaration is TopLevelVariableDeclaration) {
         _topLevelVariableDeclaration(declaration);
@@ -94,7 +94,7 @@ class _UnitApiSignatureComputer {
     _addNode(node.redirectedConstructor);
   }
 
-  void _addEnum(EnumDeclaration node) {
+  void _addEnum(EnumDeclarationImpl node) {
     var members = node.body.members;
 
     // If not enhanced, include the whole node.
@@ -108,7 +108,7 @@ class _UnitApiSignatureComputer {
     _addClassMembers(members, true);
   }
 
-  void _addExtension(ExtensionDeclaration node) {
+  void _addExtension(ExtensionDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
     _addClassMembers(node.body.members, false);
   }
@@ -147,7 +147,7 @@ class _UnitApiSignatureComputer {
     signature.addBool(node.invokesSuperSelf);
   }
 
-  void _addMixin(MixinDeclaration node) {
+  void _addMixin(MixinDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
     _addClassMembers(node.body.members, false);
     signature.addStringList(node.superInvokedNames);

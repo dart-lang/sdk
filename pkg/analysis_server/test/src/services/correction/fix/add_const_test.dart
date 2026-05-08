@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -577,7 +576,56 @@ class AddConst_PreferConstConstructorsInImmutablesTest
     writeTestPackageConfig(meta: true);
   }
 
-  Future<void> test_default() async {
+  Future<void> test_named() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  A.named();
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  const A.named();
+}
+''');
+  }
+
+  Future<void> test_primary() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A();
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class const A();
+''');
+  }
+
+  Future<void> test_primaryNamed() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A.named();
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class const A.named();
+''');
+  }
+
+  Future<void> test_unnamed() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
@@ -596,7 +644,7 @@ class A {
 ''');
   }
 
-  Future<void> test_default_withComment() async {
+  Future<void> test_unnamed_withComment() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
