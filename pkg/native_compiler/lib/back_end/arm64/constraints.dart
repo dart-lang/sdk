@@ -296,10 +296,17 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyRegisterOrImmediate(instr.inputDefAt(0)),
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
-      ]);
+      const InstructionConstraints(
+        InstantiateTypeArgumentsStub.resultTypeArgumentsReg,
+        [
+          InstantiateTypeArgumentsStub.instantiatorTypeArgumentsReg,
+          InstantiateTypeArgumentsStub.functionTypeArgumentsReg,
+        ],
+        [
+          InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
+          InstantiateTypeArgumentsStub.scratchReg,
+        ],
+      );
 
   @override
   InstructionConstraints? visitTypeLiteral(TypeLiteral instr) =>

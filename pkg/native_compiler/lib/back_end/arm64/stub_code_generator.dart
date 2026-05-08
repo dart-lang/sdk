@@ -118,6 +118,14 @@ final class TypeTestingStub {
   static const Register subtypeTestCacheResultReg = R7;
 }
 
+final class InstantiateTypeArgumentsStub {
+  static const Register uninstantiatedTypeArgumentsReg = R3;
+  static const Register instantiatorTypeArgumentsReg = R2;
+  static const Register functionTypeArgumentsReg = R1;
+  static const Register resultTypeArgumentsReg = R0;
+  static const Register scratchReg = R8;
+}
+
 final class InitSuspendableFunctionStub {
   static const Register typeArgsReg = R0;
 }

@@ -1493,6 +1493,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(StubCode::Subtype3TestCache());
   AddBaseObject(StubCode::Subtype4TestCache());
   AddBaseObject(StubCode::Subtype6TestCache());
+  AddBaseObject(StubCode::InstantiateTypeArguments());
   AddBaseObject(Code::Handle(zone(), object_store->init_async_stub()));
   AddBaseObject(Code::Handle(zone(), object_store->init_async_star_stub()));
   AddBaseObject(Code::Handle(zone(), object_store->init_sync_star_stub()));

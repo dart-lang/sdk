@@ -1169,7 +1169,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitTypeArguments(TypeArguments instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeArguments');
+    _asm.loadConstant(
+      InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
+      ConstantValue(TypeArgumentsConstant(instr.types)),
+    );
+    _asm.callVmStub(StubCode.InstantiateTypeArguments);
   }
 
   @override

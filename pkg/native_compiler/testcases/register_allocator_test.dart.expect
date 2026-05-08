@@ -245,8 +245,10 @@ B20 = TargetBlock() idom:B15
   Goto(B25)
 B25 = JoinBlock(B20, B14) idom:B0
   ParallelMove output(stack[0] -> R0)
-  v79 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R0 <- (R0)
-  v28 = TypeArguments(v79, v12, <AsBroadcastStream.T%>)   # RA: R1 <- (R0, -)
+  v79 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R0)
+  ParallelMove input(vloc:R2 -> R2, NullConstant(null) -> R1)
+  v28 = TypeArguments(v79, v12, <AsBroadcastStream.T%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
   v29 = AllocateObject StreamSubscription<AsBroadcastStream.T%>(v28)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0, stack[3] -> R1)
@@ -510,14 +512,18 @@ B0 = EntryBlock() dominates:(B11, B10)
   ParallelMove output(R7 -> vloc:R7)
   Branch(v9, true: B10, false: B11)   # RA: (R7)
 B10 = TargetBlock() idom:B0
-  v15 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R0 <- (-, R5)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R5 -> R1)
+  v15 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R0)
   v17 = TypeCast(v2, v8, v1, Map<SplayTreeMap.from.K%, SplayTreeMap.from.V%>, unchecked)   # RA: R1 <- (R6, -, R5)
   v20 = DirectCall SplayTreeMap.of(v15, v17, v3, v4)   # RA: R0 <- (R0, R1, R9, R10) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove input(vloc:R0 -> R0)
   Return(v20)   # RA: (R0)
 B11 = TargetBlock() idom:B0
-  v22 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R1 <- (-, R5)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R5 -> R1)
+  v22 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
   v23 = AllocateObject SplayTreeMap<SplayTreeMap.from.K%, SplayTreeMap.from.V%>(v22)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
@@ -546,9 +552,10 @@ B0 = EntryBlock()
   Parameter(other)   # RA: R1 <- ()
   v3 = Parameter(compare)   # RA: R2 <- ()
   v4 = Parameter(isValidKey)   # RA: R3 <- ()
-  ParallelMove output(R3 -> vloc:R3, R2 -> vloc:R2, R0 -> vloc:R0)
-  v8 = TypeArguments(v7, v1, <SplayTreeMap.of.K%, SplayTreeMap.of.V%>)   # RA: R1 <- (-, R0)
-  ParallelMove output(R2 -> R5, R3 -> R6)
+  ParallelMove output(R3 -> vloc:R6, R2 -> vloc:R5, R0 -> vloc:R1)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R1 -> R1)
+  v8 = TypeArguments(v7, v1, <SplayTreeMap.of.K%, SplayTreeMap.of.V%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
   v9 = AllocateObject SplayTreeMap<SplayTreeMap.of.K%, SplayTreeMap.of.V%>(v8)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)

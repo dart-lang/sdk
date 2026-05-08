@@ -168,6 +168,7 @@ class SnapshotSerializer {
     addBaseObject(StubCode.Subtype3TestCache);
     addBaseObject(StubCode.Subtype4TestCache);
     addBaseObject(StubCode.Subtype6TestCache);
+    addBaseObject(StubCode.InstantiateTypeArguments);
     addBaseObject(StubCode.InitAsync);
     addBaseObject(StubCode.InitAsyncStar);
     addBaseObject(StubCode.InitSyncStar);
