@@ -144,7 +144,7 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
     blockCount++;
     expect(
       block,
-      const TypeMatcher<FunctionNode>().having(
+      const TypeMatcher<Block>().having(
         (c) => c.fileOffset,
         '${block.toText(astTextStrategyForTesting)} : fileOffset',
         isNot(equals(-1)),
