@@ -2089,6 +2089,18 @@ BitVector* FlowGraph::FindLoopBlocks(BlockEntryInstr* m,
         stack.Add(q);
       }
     }
+    if (auto catch_entry = p->AsCatchBlockEntry()) {
+      // Blocks from the try body are implicit predecessors of a catch block.
+      const intptr_t try_index = catch_entry->catch_try_index();
+      for (auto block : reverse_postorder()) {
+        if (block->try_index() == try_index) {
+          if (!loop_blocks->Contains(block->preorder_number())) {
+            loop_blocks->Add(block->preorder_number());
+            stack.Add(block);
+          }
+        }
+      }
+    }
   }
   return loop_blocks;
 }
