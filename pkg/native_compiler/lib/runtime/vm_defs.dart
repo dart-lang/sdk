@@ -15,6 +15,12 @@ int log2objectAlignment(int log2wordSize) => log2wordSize + 1;
 /// This bit is 0 for bool 'true', 1 for bool 'false'.
 int boolValueBitPosition(int log2wordSize) => log2objectAlignment(log2wordSize);
 
+/// Offset of bool 'true' object from 'null' object.
+int trueOffsetFromNull(int wordSize) => objectAlignment(wordSize) * 2;
+
+/// Offset of bool 'false' object from 'null' object.
+int falseOffsetFromNull(int wordSize) => objectAlignment(wordSize) * 3;
+
 /// The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
 int smiBits(int compressedWordSize) => (compressedWordSize * 8) - 2;
 

@@ -482,7 +482,38 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitComparison(Comparison instr) {
-    _asm.unimplemented('Unimplemented: code generation for Comparison');
+    final left = inputReg(instr, 0);
+    final right = instr.right;
+    final result = outputReg(instr);
+    switch (instr.op) {
+      case ComparisonOpcode.equal:
+      case ComparisonOpcode.notEqual:
+      case ComparisonOpcode.intEqual:
+      case ComparisonOpcode.intNotEqual:
+      case ComparisonOpcode.intLess:
+      case ComparisonOpcode.intLessOrEqual:
+      case ComparisonOpcode.intGreater:
+      case ComparisonOpcode.intGreaterOrEqual:
+        final (operand, negated) = _generateAddSubRightOperand(instr, right);
+        if (negated) {
+          _asm.cmn(left, operand);
+        } else {
+          _asm.cmp(left, operand);
+        }
+        break;
+      case ComparisonOpcode.intTestIsZero:
+      case ComparisonOpcode.intTestIsNotZero:
+        final operand = _generateLogicalRightOperand(instr, right);
+        _asm.tst(left, operand);
+        break;
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for Comparison ${instr.op}',
+        );
+    }
+    _asm.loadConstant(result, ConstantValue.fromBool(true));
+    _asm.loadConstant(tempReg, ConstantValue.fromBool(false));
+    _asm.csel(result, result, tempReg, instr.op.conditionCode);
   }
 
   @override

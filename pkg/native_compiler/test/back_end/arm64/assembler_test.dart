@@ -205,11 +205,17 @@ void main() {
       asm.loadConstant(R1, ConstantValue(UnboxedIntConstant(42)));
       asm.loadConstant(R2, ConstantValue.fromInt(42));
       asm.loadConstant(R3, ConstantValue.fromInt(0x7fffffff_ffffffff));
+      asm.loadConstant(R4, ConstantValue.fromNull());
+      asm.loadConstant(R5, ConstantValue.fromBool(true));
+      asm.loadConstant(R6, ConstantValue.fromBool(false));
       expectDisassembly(
         'ldr r0, [pp, #${objectPoolBase}]\n'
         'movz r1, #0x2a\n'
         'movz r2, #0x54\n'
-        'ldr r3, [pp, #${objectPoolBase + 8}]\n',
+        'ldr r3, [pp, #${objectPoolBase + 8}]\n'
+        'mov r4, null\n'
+        'add r5, null, #0x${trueOffsetFromNull(wordSize).toRadixString(16)}\n'
+        'add r6, null, #0x${falseOffsetFromNull(wordSize).toRadixString(16)}\n',
       );
     });
     test('loadImmediate', () {
@@ -682,6 +688,86 @@ void main() {
       });
       expectThrows(() {
         asm.mul(R1, R2, SP);
+      });
+    });
+
+    test('csel', () {
+      asm.csel(R0, R1, R2, .greater);
+      asm.csel(R1, ZR, R0, .unsignedLessOrEqual);
+      asm.csel(R1, R1, R3, .notEqual, .s32);
+      expectDisassembly(
+        'csel r0, r1, r2, gt\n'
+        'csel r1, zr, r0, ls\n'
+        'cselw r1, r1, r3, ne\n',
+      );
+      expectThrows(() {
+        asm.csel(SP, R1, R2, .greater);
+      });
+      expectThrows(() {
+        asm.csel(R0, SP, R2, .greater);
+      });
+      expectThrows(() {
+        asm.csel(R0, R1, SP, .greater);
+      });
+    });
+
+    test('csinc', () {
+      asm.csinc(R0, R1, R2, .less);
+      asm.csinc(R1, ZR, R0, .noOverflow);
+      asm.csinc(R1, R1, R3, .unsignedGreater, .s32);
+      expectDisassembly(
+        'csinc r0, r1, r2, lt\n'
+        'csinc r1, zr, r0, vc\n'
+        'csincw r1, r1, r3, hi\n',
+      );
+      expectThrows(() {
+        asm.csinc(SP, R1, R2, .less);
+      });
+      expectThrows(() {
+        asm.csinc(R0, SP, R2, .less);
+      });
+      expectThrows(() {
+        asm.csinc(R0, R1, SP, .less);
+      });
+    });
+
+    test('csinv', () {
+      asm.csinv(R5, R6, R7, .negative);
+      asm.csinv(R1, ZR, R0, .equal);
+      asm.csinv(R1, R1, R3, .lessOrEqual, .s32);
+      expectDisassembly(
+        'csinv r5, r6, r7, mi\n'
+        'csinv r1, zr, r0, eq\n'
+        'csinvw r1, r1, r3, le\n',
+      );
+      expectThrows(() {
+        asm.csinv(SP, R1, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csinv(R0, SP, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csinv(R0, R1, SP, .negative);
+      });
+    });
+
+    test('csneg', () {
+      asm.csneg(R5, R6, R7, .greaterOrEqual);
+      asm.csneg(R1, ZR, R0, .unsignedLess);
+      asm.csneg(R1, R1, R3, .positiveOrZero, .s32);
+      expectDisassembly(
+        'csneg r5, r6, r7, ge\n'
+        'csneg r1, zr, r0, cc\n'
+        'csnegw r1, r1, r3, pl\n',
+      );
+      expectThrows(() {
+        asm.csneg(SP, R1, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csneg(R0, SP, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csneg(R0, R1, SP, .negative);
       });
     });
 

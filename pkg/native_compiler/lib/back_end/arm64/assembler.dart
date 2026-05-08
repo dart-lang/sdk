@@ -566,6 +566,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       } else {
         loadFromPool(reg, value as Object);
       }
+    } else if (value.isNull) {
+      mov(reg, nullReg);
+    } else if (value.isBool) {
+      addImmediate(
+        reg,
+        nullReg,
+        value.boolValue
+            ? trueOffsetFromNull(wordSize)
+            : falseOffsetFromNull(wordSize),
+      );
     } else {
       loadFromPool(reg, value as Object);
     }
@@ -1086,6 +1096,86 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           rn.encodingRn() |
           rm.encodingRm() |
           ra.encodingRa() |
+          (sz.is64 ? B31 : 0),
+    );
+  }
+
+  void csel(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(B23 | B25 | B27 | B28, rd, rn, rm, condition, sz);
+  }
+
+  void csinc(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(
+      B10 | B23 | B25 | B27 | B28,
+      rd,
+      rn,
+      rm,
+      condition,
+      sz,
+    );
+  }
+
+  void csinv(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(
+      B23 | B25 | B27 | B28 | B30,
+      rd,
+      rn,
+      rm,
+      condition,
+      sz,
+    );
+  }
+
+  void csneg(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(
+      B10 | B23 | B25 | B27 | B28 | B30,
+      rd,
+      rn,
+      rm,
+      condition,
+      sz,
+    );
+  }
+
+  void _emitConditionalSelect(
+    int opcode,
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64);
+    emit(
+      opcode |
+          rd.encodingRd() |
+          rn.encodingRn() |
+          rm.encodingRm() |
+          (condition.encoding << 12) |
           (sz.is64 ? B31 : 0),
     );
   }
