@@ -87,23 +87,43 @@ final class AllocationStub extends Arm64StubCodeGenerator {
 }
 
 final class WriteBarrierStub extends Arm64StubCodeGenerator {
-  final Register objectReg;
-  final Register valueReg;
+  static const Register objectReg = R1;
+  static const Register valueReg = R0;
+  static const Register slotReg = R25;
+
+  final Register _objectReg;
+  final Register _valueReg;
 
   WriteBarrierStub(
     super.vmOffsets,
     super.objectLayout,
-    this.objectReg,
-    this.valueReg,
+    this._objectReg,
+    this._valueReg,
   );
 
   @override
   void _generate() {
-    enterStubFrame();
+    _asm.push(LR);
+    _asm.pushPair(objectReg, valueReg);
 
-    _asm.unimplemented('WriteBarrierStub');
+    if (_objectReg != objectReg) {
+      _asm.mov(objectReg, _objectReg);
+    }
+    if (_valueReg != valueReg) {
+      _asm.mov(valueReg, _valueReg);
+    }
 
-    leaveStubFrame();
+    _asm.ldr(
+      tempReg,
+      _asm.address(
+        threadReg,
+        _asm.vmOffsets.Thread_write_barrier_entry_point_offset,
+      ),
+    );
+    _asm.blr(tempReg);
+
+    _asm.popPair(objectReg, valueReg);
+    _asm.pop(LR);
     _asm.ret();
   }
 }
