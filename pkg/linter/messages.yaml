@@ -5239,6 +5239,18 @@ LinterLintCode:
         Point(this.x, this.y);
       }
       ```
+  emptyContainerBodies:
+    type: lint
+    parameters:
+      String containerKind: The kind of the container, such as 'class' or 'enum'.
+    problemMessage: "Empty #containerKind bodies should be written using a ';' rather than '{}'."
+    correctionMessage: "Try replacing the #containerKind body with ';'."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Use `;` instead of `{}` for empty container (class, enum, etc.) bodies.
   emptyStatements:
     type: lint
     parameters: none

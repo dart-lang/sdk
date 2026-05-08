@@ -1290,6 +1290,22 @@ emptyConstructorBodies = LinterLintWithoutArguments(
   expectedTypes: [],
 );
 
+/// Parameters:
+/// String containerKind: The kind of the container, such as 'class' or
+///                       'enum'.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String containerKind})
+>
+emptyContainerBodies = LinterLintTemplate(
+  name: 'empty_container_bodies',
+  problemMessage:
+      "Empty {0} bodies should be written using a ';' rather than '{}'.",
+  correctionMessage: "Try replacing the {0} body with ';'.",
+  uniqueName: 'empty_container_bodies',
+  withArguments: _withArgumentsEmptyContainerBodies,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const LinterLintWithoutArguments emptyStatements = LinterLintWithoutArguments(
   name: 'empty_statements',
@@ -4127,6 +4143,12 @@ LocatableDiagnostic _withArgumentsDirectivesOrderingPackageBeforeRelative({
   return LocatableDiagnosticImpl(diag.directivesOrderingPackageBeforeRelative, [
     p0,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsEmptyContainerBodies({
+  required String containerKind,
+}) {
+  return LocatableDiagnosticImpl(diag.emptyContainerBodies, [containerKind]);
 }
 
 LocatableDiagnostic _withArgumentsExhaustiveCases({required Object p0}) {

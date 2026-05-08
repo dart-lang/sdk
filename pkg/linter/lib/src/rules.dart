@@ -82,6 +82,7 @@ import 'rules/do_not_use_environment.dart';
 import 'rules/document_ignores.dart';
 import 'rules/empty_catches.dart';
 import 'rules/empty_constructor_bodies.dart';
+import 'rules/empty_container_bodies.dart';
 import 'rules/empty_statements.dart';
 import 'rules/enable_null_safety.dart';
 import 'rules/eol_at_end_of_file.dart';
@@ -345,6 +346,7 @@ void registerLintRules() {
     ..registerLintRule(DoNotUseEnvironment())
     ..registerLintRule(EmptyCatches())
     ..registerLintRule(EmptyConstructorBodies())
+    ..registerLintRule(EmptyContainerBodies())
     ..registerLintRule(EmptyStatements())
     ..registerLintRule(enableNullSafety)
     ..registerLintRule(EolAtEndOfFile())

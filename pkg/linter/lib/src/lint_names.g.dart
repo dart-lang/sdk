@@ -229,6 +229,8 @@ abstract final class LintNames {
 
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
 
+  static const String empty_container_bodies = 'empty_container_bodies';
+
   static const String empty_statements = 'empty_statements';
 
   static const String enable_null_safety = 'enable_null_safety';

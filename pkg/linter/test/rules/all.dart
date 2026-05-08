@@ -114,6 +114,7 @@ import 'do_not_use_environment_test.dart' as do_not_use_environment;
 import 'document_ignores_test.dart' as document_ignores;
 import 'empty_catches_test.dart' as empty_catches;
 import 'empty_constructor_bodies_test.dart' as empty_constructor_bodies;
+import 'empty_container_bodies_test.dart' as empty_container_bodies;
 import 'empty_statements_test.dart' as empty_statements;
 import 'eol_at_end_of_file_test.dart' as eol_at_end_of_file;
 import 'erase_dart_type_extension_types_test.dart'
@@ -417,6 +418,7 @@ void main() {
   document_ignores.main();
   empty_catches.main();
   empty_constructor_bodies.main();
+  empty_container_bodies.main();
   empty_statements.main();
   eol_at_end_of_file.main();
   erase_dart_type_extension_types.main();

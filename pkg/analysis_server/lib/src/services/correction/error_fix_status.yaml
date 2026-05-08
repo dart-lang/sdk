@@ -2128,6 +2128,8 @@ empty_catches:
   status: hasFix
 empty_constructor_bodies:
   status: hasFix
+empty_container_bodies:
+  status: needsFix
 empty_statements:
   status: hasFix
 eol_at_end_of_file:
