@@ -239,7 +239,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
       argumentsDescriptorReg,
       argumentsDescriptorReg,
       Immediate(
-        vmOffsets.ArgumentsDescriptor_first_named_entry_offset +
+        vmOffsets.ArgumentsDescriptor_first_named_entry_offset -
+            heapObjectTag +
             vmOffsets.ArgumentsDescriptor_position_offset,
       ),
     );
