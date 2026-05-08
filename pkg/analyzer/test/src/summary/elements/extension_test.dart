@@ -112,7 +112,6 @@ extension A on int {}
 augment class A {}
 
 augment class A {}
-
 ''');
 
     configuration.withConstructors = false;
@@ -378,7 +377,9 @@ extension E on int {
   test_extension_metadata() async {
     var library = await buildLibrary(r'''
 const a = null;
+
 class A {}
+
 @a
 @Object()
 extension E on A {}
@@ -390,14 +391,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class A (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:50) (firstTokenOffset:27) (offset:50)
+        #F3 extension E (nameOffset:52) (firstTokenOffset:29) (offset:52)
           element: <testLibrary>::@extension::E
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -603,6 +604,7 @@ library
   test_extension_onDeclaration_class() async {
     var library = await buildLibrary(r'''
 class A {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -619,7 +621,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F3 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
   classes
     isSimplyBounded class A
@@ -662,7 +664,8 @@ library
 
   test_extension_onDeclaration_enum() async {
     var library = await buildLibrary(r'''
-enum A { foo; }
+enum A { foo }
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -763,6 +766,7 @@ library
   test_extension_onDeclaration_extensionType() async {
     var library = await buildLibrary(r'''
 extension type A(Object? it) {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -772,7 +776,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:42) (firstTokenOffset:32) (offset:42)
+        #F1 extension E (nameOffset:43) (firstTokenOffset:33) (offset:43)
           element: <testLibrary>::@extension::E
       extensionTypes
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
@@ -832,6 +836,7 @@ library
   test_extension_onDeclaration_futureOr() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
+
 extension E on FutureOr<int> {}
 ''');
     checkElementText(library, r'''
@@ -843,7 +848,7 @@ library
       libraryImports
         dart:async
       extensions
-        #F1 extension E (nameOffset:31) (firstTokenOffset:21) (offset:31)
+        #F1 extension E (nameOffset:32) (firstTokenOffset:22) (offset:32)
           element: <testLibrary>::@extension::E
   extensions
     extension E
@@ -857,6 +862,7 @@ library
   test_extension_onDeclaration_mixin() async {
     var library = await buildLibrary(r'''
 mixin A {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -866,7 +872,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F1 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
       mixins
         #F2 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -933,6 +939,7 @@ library
   test_extension_onDeclaration_typedef() async {
     var library = await buildLibrary(r'''
 typedef A = int;
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -942,7 +949,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:27) (firstTokenOffset:17) (offset:27)
+        #F1 extension E (nameOffset:28) (firstTokenOffset:18) (offset:28)
           element: <testLibrary>::@extension::E
       typeAliases
         #F2 A (nameOffset:8) (firstTokenOffset:0) (offset:8)

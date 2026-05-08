@@ -980,7 +980,9 @@ library
   test_genericFunction_typeArgument_ofSuperclass_ofClassAlias() async {
     var library = await buildLibrary(r'''
 class A<T> {}
+
 mixin M {}
+
 class B = A<void Function()> with M;
 ''');
     checkElementText(library, r'''
@@ -999,14 +1001,14 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 isMixinApplication class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
+        #F4 isMixinApplication class B (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F6 mixin M (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A

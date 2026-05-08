@@ -309,6 +309,7 @@ extension B on int {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 extension Z on int {}
 ''');
 
@@ -347,6 +348,7 @@ package:test/aa.dart
   test_scope_accessibleExtensions_unnamed() async {
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 extension on int {}
 ''');
 
@@ -1316,6 +1318,7 @@ class B {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class Z {}
 ''');
 
@@ -1362,6 +1365,7 @@ set _foo(int _) {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class _Z {}
 ''');
 

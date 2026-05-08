@@ -1611,6 +1611,7 @@ library
   test_function_async() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
+
 Future f() async {}
 ''');
     checkElementText(library, r'''
@@ -1622,7 +1623,7 @@ library
       libraryImports
         dart:async
       functions
-        #F1 isAsynchronous isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:28) (firstTokenOffset:21) (offset:28)
+        #F1 isAsynchronous isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -1635,6 +1636,7 @@ library
   test_function_asyncStar() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
+
 Stream f() async* {}
 ''');
     checkElementText(library, r'''
@@ -1646,7 +1648,7 @@ library
       libraryImports
         dart:async
       functions
-        #F1 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration isStatic f (nameOffset:28) (firstTokenOffset:21) (offset:28)
+        #F1 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -1753,6 +1755,7 @@ augment void foo() {}
     var library = await buildLibrary(r'''
 part 'a1.dart';
 part 'a2.dart';
+
 void foo() {}
 ''');
 
@@ -1773,7 +1776,7 @@ library
           partKeywordOffset: 16
           unit: #F2
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:32) (offset:37)
+        #F3 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:33) (offset:38)
           element: <testLibrary>::@function::foo
           nextFragment: #F4
     #F1 package:test/a1.dart
@@ -2461,7 +2464,10 @@ library
   }
 
   test_function_entry_point_in_export() async {
-    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+library a;
+main() {}
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -2477,7 +2483,10 @@ library
   }
 
   test_function_entry_point_in_export_hidden() async {
-    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+library a;
+main() {}
+''');
     var library = await buildLibrary(r'''
 export "a.dart" hide main;
 ''');
@@ -2495,9 +2504,14 @@ library
   }
 
   test_function_entry_point_in_part() async {
-    newFile('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+main() {}
+''');
     var library = await buildLibrary(r'''
-library my.lib; part "a.dart";
+library my.lib;
+
+part "a.dart";
 ''');
     checkElementText(library, r'''
 library
@@ -2510,7 +2524,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -3281,7 +3295,8 @@ library
 
   test_functions() async {
     var library = await buildLibrary(r'''
-f() {} g() {}
+f() {}
+g() {}
 ''');
     checkElementText(library, r'''
 library
@@ -3308,7 +3323,7 @@ library
 
   test_getter_missingName() async {
     var library = await buildLibrary(r'''
-get () => 0;
+get() => 0;
 ''');
     checkElementText(library, r'''
 library
@@ -3357,7 +3372,11 @@ library
 
   test_main_class_alias() async {
     var library = await buildLibrary(r'''
-class main = C with D; class C {} class D {}
+class main = C with D;
+
+class C {}
+
+class D {}
 ''');
     checkElementText(library, r'''
 library
@@ -3372,16 +3391,16 @@ library
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::main::@constructor::new
               typeName: main
-        #F3 class C (nameOffset:29) (firstTokenOffset:23) (offset:29)
+        #F3 class C (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::C
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F5 class D (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F5 class D (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::D
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -3421,10 +3440,11 @@ library
   }
 
   test_main_class_alias_via_export() async {
-    newFile(
-      '$testPackageLibPath/a.dart',
-      'class main = C with D; class C {} class D {}',
-    );
+    newFile('$testPackageLibPath/a.dart', r'''
+class main = C with D;
+class C {}
+class D {}
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -3440,7 +3460,9 @@ library
   }
 
   test_main_class_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'class main {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+class main {}
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -3487,7 +3509,9 @@ library
   }
 
   test_main_getter_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'get main => null;');
+    newFile('$testPackageLibPath/a.dart', r'''
+get main => null;
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -3524,7 +3548,9 @@ library
   }
 
   test_main_typedef_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'typedef main();');
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef main();
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -3588,7 +3614,9 @@ library
   }
 
   test_main_variable_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'var main;');
+    newFile('$testPackageLibPath/a.dart', r'''
+var main;
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -3605,7 +3633,7 @@ library
 
   test_setter_missingName() async {
     var library = await buildLibrary(r'''
-set (int _) {}
+set(int _) {}
 ''');
     checkElementText(library, r'''
 library
@@ -3617,7 +3645,7 @@ library
         #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic set (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::set
           formalParameters
-            #F2 requiredPositional isOriginDeclaration _ (nameOffset:9) (firstTokenOffset:5) (offset:9)
+            #F2 requiredPositional isOriginDeclaration _ (nameOffset:8) (firstTokenOffset:4) (offset:8)
               element: <testLibrary>::@function::set::@formalParameter::_
   functions
     isOriginDeclaration isStatic set

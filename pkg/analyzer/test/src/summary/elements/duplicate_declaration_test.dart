@@ -411,9 +411,12 @@ library
   test_duplicateDeclaration_classTypeAlias() async {
     var library = await buildLibrary(r'''
 class A {}
+
 class B {}
+
 class X = A with M;
 class X = B with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -429,26 +432,26 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 isMixinApplication class X (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F5 isMixinApplication class X (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::X
           constructors
-            #F6 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F6 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
-        #F7 isMixinApplication class X (nameOffset:48) (firstTokenOffset:42) (offset:48)
+        #F7 isMixinApplication class X (nameOffset:50) (firstTokenOffset:44) (offset:50)
           element: <testLibrary>::@class::X#1
           constructors
-            #F8 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F8 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::X#1::@constructor::new
               typeName: X
       mixins
-        #F9 mixin M (nameOffset:68) (firstTokenOffset:62) (offset:68)
+        #F9 mixin M (nameOffset:71) (firstTokenOffset:65) (offset:71)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -512,8 +515,9 @@ library
 
   test_duplicateDeclaration_enum() async {
     var library = await buildLibrary(r'''
-enum E {a, b}
-enum E {c, d, e}
+enum E { a, b }
+
+enum E { c, d, e }
 ''');
 
     checkElementText(library, r'''
@@ -526,7 +530,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -540,7 +544,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -575,16 +579,16 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F6 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@enum::E::@getter::b
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-        #F9 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F9 enum E (nameOffset:22) (firstTokenOffset:17) (offset:22)
           element: <testLibrary>::@enum::E#1
           fields
-            #F10 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F10 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E#1::@field::c
               initializer: expression_3
                 InstanceCreationExpression
@@ -598,7 +602,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F11 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic d (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F11 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic d (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E#1::@field::d
               initializer: expression_4
                 InstanceCreationExpression
@@ -612,7 +616,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F12 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F12 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@enum::E#1::@field::e
               initializer: expression_5
                 InstanceCreationExpression
@@ -626,7 +630,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F13 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F13 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E#1::@field::values
               initializer: expression_6
                 ListLiteral
@@ -647,17 +651,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F14 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F14 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E#1::@constructor::new
               typeName: E
           getters
-            #F15 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F15 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E#1::@getter::c
-            #F16 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F16 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E#1::@getter::d
-            #F17 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F17 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E#1::@getter::e
-            #F18 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F18 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E#1::@getter::values
   enums
     isSimplyBounded enum E
@@ -779,9 +783,11 @@ library
   test_duplicateDeclaration_extension() async {
     var library = await buildLibrary(r'''
 extension E on int {}
+
 extension E on int {
   static var x;
 }
+
 extension E on int {
   static var y = 0;
 }
@@ -796,33 +802,33 @@ library
       extensions
         #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
-        #F2 extension E (nameOffset:32) (firstTokenOffset:22) (offset:32)
+        #F2 extension E (nameOffset:33) (firstTokenOffset:23) (offset:33)
           element: <testLibrary>::@extension::E#1
           fields
-            #F3 hasImplicitType isOriginDeclaration isStatic x (nameOffset:56) (firstTokenOffset:56) (offset:56)
+            #F3 hasImplicitType isOriginDeclaration isStatic x (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@extension::E#1::@field::x
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@extension::E#1::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+            #F5 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@extension::E#1::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: <testLibrary>::@extension::E#1::@setter::x::@formalParameter::value
-        #F7 extension E (nameOffset:71) (firstTokenOffset:61) (offset:71)
+        #F7 extension E (nameOffset:73) (firstTokenOffset:63) (offset:73)
           element: <testLibrary>::@extension::E#2
           fields
-            #F8 hasImplicitType hasInitializer isOriginDeclaration isStatic y (nameOffset:95) (firstTokenOffset:95) (offset:95)
+            #F8 hasImplicitType hasInitializer isOriginDeclaration isStatic y (nameOffset:97) (firstTokenOffset:97) (offset:97)
               element: <testLibrary>::@extension::E#2::@field::y
           getters
-            #F9 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+            #F9 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:97)
               element: <testLibrary>::@extension::E#2::@getter::y
           setters
-            #F10 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+            #F10 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:97)
               element: <testLibrary>::@extension::E#2::@setter::y
               formalParameters
-                #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+                #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:97)
                   element: <testLibrary>::@extension::E#2::@setter::y::@formalParameter::value
   extensions
     extension E
@@ -892,6 +898,7 @@ library
   test_duplicateDeclaration_extensionType() async {
     var library = await buildLibrary(r'''
 extension type E(int it) {}
+
 extension type E(double it) {}
 ''');
 
@@ -918,21 +925,21 @@ library
           getters
             #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::E::@getter::it
-        #F6 extension type E (nameOffset:43) (firstTokenOffset:28) (offset:43)
+        #F6 extension type E (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@extensionType::E#1
           fields
-            #F7 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F7 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@extensionType::E#1::@field::it
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
+            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@extensionType::E#1::@constructor::new
               typeName: E
-              typeNameOffset: 43
+              typeNameOffset: 44
               formalParameters
-                #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:52) (firstTokenOffset:45) (offset:52)
+                #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:53) (firstTokenOffset:46) (offset:53)
                   element: <testLibrary>::@extensionType::E#1::@constructor::new::@formalParameter::it
           getters
-            #F10 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F10 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@extensionType::E#1::@getter::it
   extensionTypes
     isSimplyBounded extension type E
@@ -1122,9 +1129,11 @@ library
   test_duplicateDeclaration_mixin() async {
     var library = await buildLibrary(r'''
 mixin A {}
+
 mixin A {
   var x;
 }
+
 mixin A {
   var y = 0;
 }
@@ -1139,33 +1148,33 @@ library
       mixins
         #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
-        #F2 mixin A (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F2 mixin A (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@mixin::A#1
           fields
-            #F3 hasImplicitType isOriginDeclaration x (nameOffset:27) (firstTokenOffset:27) (offset:27)
+            #F3 hasImplicitType isOriginDeclaration x (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@mixin::A#1::@field::x
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@mixin::A#1::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@mixin::A#1::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
                   element: <testLibrary>::@mixin::A#1::@setter::x::@formalParameter::value
-        #F7 mixin A (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F7 mixin A (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@mixin::A#2
           fields
-            #F8 hasImplicitType hasInitializer isOriginDeclaration y (nameOffset:48) (firstTokenOffset:48) (offset:48)
+            #F8 hasImplicitType hasInitializer isOriginDeclaration y (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@mixin::A#2::@field::y
           getters
-            #F9 isCompleteDeclaration isOriginVariable y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F9 isCompleteDeclaration isOriginVariable y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@mixin::A#2::@getter::y
           setters
-            #F10 isCompleteDeclaration isOriginVariable y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F10 isCompleteDeclaration isOriginVariable y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@mixin::A#2::@setter::y
               formalParameters
-                #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+                #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
                   element: <testLibrary>::@mixin::A#2::@setter::y::@formalParameter::value
   mixins
     isSimplyBounded mixin A

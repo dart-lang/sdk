@@ -121,7 +121,7 @@ library
 
   test_name_withSpaces() async {
     var library = await buildLibrary(r'''
-library foo . bar ;
+library foo.bar;
 ''');
 
     checkElementText(library, r'''

@@ -219,6 +219,7 @@ library
   test_getter_asyncStar() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
+
 Stream<int> get foo async* {}
 ''');
     checkElementText(library, r'''
@@ -230,10 +231,10 @@ library
       libraryImports
         dart:async
       topLevelVariables
-        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@topLevelVariable::foo
       getters
-        #F2 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:21) (offset:37)
+        #F2 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:22) (offset:38)
           element: <testLibrary>::@getter::foo
   topLevelVariables
     isOriginGetterSetter isStatic foo
@@ -1066,7 +1067,13 @@ library
 
   test_getter_inferred_type_nonStatic_implicit_return() async {
     var library = await buildLibrary(r'''
-class C extends D { get f => null; } abstract class D { int get f; }
+class C extends D {
+  get f => null;
+}
+
+abstract class D {
+  int get f;
+}
 ''');
     checkElementText(library, r'''
 library
@@ -1085,19 +1092,19 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:26) (firstTokenOffset:22) (offset:26)
               element: <testLibrary>::@class::C::@getter::f
-        #F5 isAbstract class D (nameOffset:52) (firstTokenOffset:37) (offset:52)
+        #F5 isAbstract class D (nameOffset:55) (firstTokenOffset:40) (offset:55)
           element: <testLibrary>::@class::D
           fields
-            #F6 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F6 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::D::@field::f
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F8 isAbstract isOriginDeclaration f (nameOffset:64) (firstTokenOffset:56) (offset:64)
+            #F8 isAbstract isOriginDeclaration f (nameOffset:69) (firstTokenOffset:61) (offset:69)
               element: <testLibrary>::@class::D::@getter::f
   classes
     isSimplyBounded class C
@@ -1176,7 +1183,8 @@ library
 
   test_getters() async {
     var library = await buildLibrary(r'''
-int get x => null; get y => null;
+int get x => null;
+get y => null;
 ''');
     checkElementText(library, r'''
 library
@@ -1221,7 +1229,8 @@ library
 
   test_implicitTopLevelVariable_getterFirst() async {
     var library = await buildLibrary(r'''
-int get x => 0; void set x(int value) {}
+int get x => 0;
+void set x(int value) {}
 ''');
 
     checkElementText(library, r'''
@@ -1270,7 +1279,8 @@ library
 
   test_implicitTopLevelVariable_setterFirst() async {
     var library = await buildLibrary(r'''
-void set x(int value) {} int get x => 0;
+void set x(int value) {}
+int get x => 0;
 ''');
     checkElementText(library, r'''
 library
@@ -1549,6 +1559,7 @@ const a3 = 3;
 
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 @a1
 set foo(int _) {}
 @a2
@@ -1567,53 +1578,53 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@topLevelVariable::foo
       setters
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
+        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:18) (offset:26)
           element: <testLibrary>::@setter::foo
           metadata
             Annotation
-              atSign: @ @17
+              atSign: @ @18
               name: SimpleIdentifier
-                token: a1 @18
+                token: a1 @19
                 element: package:test/a.dart::@getter::a1
                 staticType: null
               element: package:test/a.dart::@getter::a1
           formalParameters
-            #F3 requiredPositional isOriginDeclaration _ (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:34) (firstTokenOffset:30) (offset:34)
               element: <testLibrary>::@setter::foo::@formalParameter::_
               nextFragment: #F4
           nextFragment: #F5
-        #F5 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:55) (firstTokenOffset:39) (offset:55)
+        #F5 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:56) (firstTokenOffset:40) (offset:56)
           element: <testLibrary>::@setter::foo
           metadata
             Annotation
-              atSign: @ @39
+              atSign: @ @40
               name: SimpleIdentifier
-                token: a2 @40
+                token: a2 @41
                 element: package:test/a.dart::@getter::a2
                 staticType: null
               element: package:test/a.dart::@getter::a2
           formalParameters
-            #F4 requiredPositional isOriginDeclaration _ (nameOffset:63) (firstTokenOffset:59) (offset:63)
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@setter::foo::@formalParameter::_
               previousFragment: #F3
               nextFragment: #F6
           previousFragment: #F2
           nextFragment: #F7
-        #F7 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:85) (firstTokenOffset:69) (offset:85)
+        #F7 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:86) (firstTokenOffset:70) (offset:86)
           element: <testLibrary>::@setter::foo
           metadata
             Annotation
-              atSign: @ @69
+              atSign: @ @70
               name: SimpleIdentifier
-                token: a3 @70
+                token: a3 @71
                 element: package:test/a.dart::@getter::a3
                 staticType: null
               element: package:test/a.dart::@getter::a3
           formalParameters
-            #F6 requiredPositional isOriginDeclaration _ (nameOffset:93) (firstTokenOffset:89) (offset:93)
+            #F6 requiredPositional isOriginDeclaration _ (nameOffset:94) (firstTokenOffset:90) (offset:94)
               element: <testLibrary>::@setter::foo::@formalParameter::_
               previousFragment: #F4
           previousFragment: #F5
@@ -1629,23 +1640,23 @@ library
       firstFragment: #F2
       metadata
         Annotation
-          atSign: @ @17
+          atSign: @ @18
           name: SimpleIdentifier
-            token: a1 @18
+            token: a1 @19
             element: package:test/a.dart::@getter::a1
             staticType: null
           element: package:test/a.dart::@getter::a1
         Annotation
-          atSign: @ @39
+          atSign: @ @40
           name: SimpleIdentifier
-            token: a2 @40
+            token: a2 @41
             element: package:test/a.dart::@getter::a2
             staticType: null
           element: package:test/a.dart::@getter::a2
         Annotation
-          atSign: @ @69
+          atSign: @ @70
           name: SimpleIdentifier
-            token: a3 @70
+            token: a3 @71
             element: package:test/a.dart::@getter::a3
             staticType: null
           element: package:test/a.dart::@getter::a3
@@ -1837,6 +1848,7 @@ library
   test_setter_augmentation_sameName_class() async {
     var library = await buildLibrary(r'''
 class A {}
+
 augment set A(int _) {}
 ''');
 
@@ -1855,13 +1867,13 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       topLevelVariables
-        #F3 isOriginGetterSetter isStatic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F3 isOriginGetterSetter isStatic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@topLevelVariable::A
       setters
-        #F4 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic A (nameOffset:23) (firstTokenOffset:11) (offset:23)
+        #F4 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic A (nameOffset:24) (firstTokenOffset:12) (offset:24)
           element: <testLibrary>::@setter::A
           formalParameters
-            #F5 requiredPositional isOriginDeclaration _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
+            #F5 requiredPositional isOriginDeclaration _ (nameOffset:30) (firstTokenOffset:26) (offset:30)
               element: <testLibrary>::@setter::A::@formalParameter::_
   classes
     isSimplyBounded class A
@@ -2382,7 +2394,8 @@ library
 
   test_setters() async {
     var library = await buildLibrary(r'''
-void set x(int value) {} set y(value) {}
+void set x(int value) {}
+set y(value) {}
 ''');
     checkElementText(library, r'''
 library
@@ -3888,13 +3901,15 @@ library
   }
 
   test_variable_getterInLib_setterInPart() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
 void set x(int _) {}
 ''');
     var library = await buildLibrary(r'''
 library my.lib;
+
 part 'a.dart';
+
 int get x => 42;
 ''');
     checkElementText(library, r'''
@@ -3908,13 +3923,13 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
       topLevelVariables
-        #F2 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+        #F2 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:39) (firstTokenOffset:31) (offset:39)
+        #F3 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:41) (firstTokenOffset:33) (offset:41)
           element: <testLibrary>::@getter::x
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -3953,13 +3968,15 @@ library
   }
 
   test_variable_getterInPart_setterInLib() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
 int get x => 42;
 ''');
     var library = await buildLibrary(r'''
 library my.lib;
+
 part 'a.dart';
+
 void set x(int _) {}
 ''');
     checkElementText(library, r'''
@@ -3973,16 +3990,16 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
       topLevelVariables
         #F2 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
       setters
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:40) (firstTokenOffset:31) (offset:40)
+        #F3 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:42) (firstTokenOffset:33) (offset:42)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 requiredPositional isOriginDeclaration _ (nameOffset:46) (firstTokenOffset:42) (offset:46)
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:48) (firstTokenOffset:44) (offset:48)
               element: <testLibrary>::@setter::x::@formalParameter::_
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -4018,13 +4035,19 @@ library
   }
 
   test_variable_getterInPart_setterInPart() async {
-    newFile('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
-    newFile(
-      '$testPackageLibPath/b.dart',
-      'part of my.lib; void set x(int _) {}',
-    );
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+int get x => 42;
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of my.lib;
+void set x(int _) {}
+''');
     var library = await buildLibrary(r'''
-library my.lib; part "a.dart"; part "b.dart";
+library my.lib;
+
+part "a.dart";
+part "b.dart";
 ''');
     checkElementText(library, r'''
 library
@@ -4037,11 +4060,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
         part_1
           uri: package:test/b.dart
-          partKeywordOffset: 31
+          partKeywordOffset: 32
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -4313,9 +4336,11 @@ library
   test_variable_initializer_staticMethod_ofExtension() async {
     var library = await buildLibrary(r'''
 class A {}
+
 extension E on A {
   static int f() => 0;
 }
+
 var x = E.f();
 ''');
     checkElementText(library, r'''
@@ -4332,22 +4357,22 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F3 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:43) (firstTokenOffset:32) (offset:43)
+            #F4 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:44) (firstTokenOffset:33) (offset:44)
               element: <testLibrary>::@extension::E::@method::f
       topLevelVariables
-        #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:59) (firstTokenOffset:59) (offset:59)
+        #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:61) (firstTokenOffset:61) (offset:61)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F6 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+        #F6 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
           element: <testLibrary>::@getter::x
       setters
-        #F7 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+        #F7 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@setter::x::@formalParameter::value
   classes
     isSimplyBounded class A
@@ -4685,9 +4710,13 @@ library
   }
 
   test_variable_propagatedType_final_dep_inLib() async {
-    newFile('$testPackageLibPath/a.dart', 'final a = 1;');
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 1;
+''');
     var library = await buildLibrary(r'''
-import "a.dart"; final b = a / 2;
+import "a.dart";
+
+final b = a / 2;
 ''');
     checkElementText(library, r'''
 library
@@ -4698,10 +4727,10 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::b
   topLevelVariables
     hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer b
@@ -4719,9 +4748,16 @@ library
   }
 
   test_variable_propagatedType_final_dep_inPart() async {
-    newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
+    newFile('$testPackageLibPath/a.dart', r'''
+part of lib;
+final a = 1;
+''');
     var library = await buildLibrary(r'''
-library lib; part "a.dart"; final b = a / 2;
+library lib;
+
+part "a.dart";
+
+final b = a / 2;
 ''');
     checkElementText(library, r'''
 library
@@ -4734,13 +4770,13 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 13
+          partKeywordOffset: 14
           unit: #F1
       topLevelVariables
-        #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b (nameOffset:34) (firstTokenOffset:34) (offset:34)
+        #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F3 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+        #F3 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::b
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -4810,10 +4846,17 @@ library
 
   test_variable_propagatedType_implicit_dep() async {
     // The propagated type is defined in a library that is not imported.
-    newFile('$testPackageLibPath/a.dart', 'class C {}');
-    newFile('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+import "a.dart";
+C f() => null;
+''');
     var library = await buildLibrary(r'''
-import "b.dart"; final x = f();
+import "b.dart";
+
+final x = f();
 ''');
     checkElementText(library, r'''
 library
@@ -4824,10 +4867,10 @@ library
       libraryImports
         package:test/b.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::x
   topLevelVariables
     hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
@@ -4845,13 +4888,19 @@ library
   }
 
   test_variable_setterInPart_getterInPart() async {
-    newFile(
-      '$testPackageLibPath/a.dart',
-      'part of my.lib; void set x(int _) {}',
-    );
-    newFile('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+void set x(int _) {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of my.lib;
+int get x => 42;
+''');
     var library = await buildLibrary(r'''
-library my.lib; part "a.dart"; part "b.dart";
+library my.lib;
+
+part "a.dart";
+part "b.dart";
 ''');
     checkElementText(library, r'''
 library
@@ -4864,11 +4913,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
         part_1
           uri: package:test/b.dart
-          partKeywordOffset: 31
+          partKeywordOffset: 32
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5162,6 +5211,7 @@ library
 class A<T> {
   const A();
 }
+
 const A<int> a = A();
 ''');
     checkElementText(library, r'''
@@ -5182,24 +5232,24 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:41) (firstTokenOffset:41) (offset:41)
+        #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
-                  name: A @45
+                  name: A @46
                   element: <testLibrary>::@class::A
                   type: A<int>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
-                leftParenthesis: ( @46
-                rightParenthesis: ) @47
+                leftParenthesis: ( @47
+                rightParenthesis: ) @48
               staticType: A<int>
       getters
-        #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+        #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::a
   classes
     isSimplyBounded class A
@@ -5232,7 +5282,8 @@ library
 
   test_variables() async {
     var library = await buildLibrary(r'''
-int i; int j;
+int i;
+int j;
 ''');
     checkElementText(library, r'''
 library

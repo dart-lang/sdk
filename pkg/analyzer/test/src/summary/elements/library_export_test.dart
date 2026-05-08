@@ -18,7 +18,9 @@ main() {
 
 abstract class LibraryExportElementTest extends ElementsBaseTest {
   test_export_class() async {
-    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {}
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -65,13 +67,19 @@ library
 
   test_export_configurations_useDefault() async {
     declaredVariables = {'dart.library.io': 'false'};
-    newFile('$testPackageLibPath/foo.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+class A {}
+''');
     var library = await buildLibrary(r'''
 export 'foo.dart'
-  if (dart.library.io) 'foo_io.dart'
-  if (dart.library.html) 'foo_html.dart';
+    if (dart.library.io) 'foo_io.dart'
+    if (dart.library.html) 'foo_html.dart';
 ''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -94,13 +102,19 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     };
-    newFile('$testPackageLibPath/foo.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+class A {}
+''');
     var library = await buildLibrary(r'''
 export 'foo.dart'
-  if (dart.library.io) 'foo_io.dart'
-  if (dart.library.html) 'foo_html.dart';
+    if (dart.library.io) 'foo_io.dart'
+    if (dart.library.html) 'foo_html.dart';
 ''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -123,13 +137,19 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    newFile('$testPackageLibPath/foo.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+class A {}
+''');
     var library = await buildLibrary(r'''
 export 'foo.dart'
-  if (dart.library.io) 'foo_io.dart'
-  if (dart.library.html) 'foo_html.dart';
+    if (dart.library.io) 'foo_io.dart'
+    if (dart.library.html) 'foo_html.dart';
 ''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -155,6 +175,7 @@ class A {}
 
     var library = await buildLibrary(r'''
 export 'a.dart';
+
 class X {}
 ''');
     configuration.withExportScope = true;
@@ -167,10 +188,10 @@ library
       libraryExports
         package:test/a.dart
       classes
-        #F1 class X (nameOffset:23) (firstTokenOffset:17) (offset:23)
+        #F1 class X (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::X
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
@@ -191,7 +212,9 @@ library
   }
 
   test_export_function() async {
-    newFile('$testPackageLibPath/a.dart', 'f() {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+f() {}
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -212,7 +235,9 @@ library
   }
 
   test_export_getter() async {
-    newFile('$testPackageLibPath/a.dart', 'get f() => null;');
+    newFile('$testPackageLibPath/a.dart', r'''
+get f() => null;
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -304,6 +329,7 @@ class C {}
     var library = await buildLibrary(r'''
 export 'b.dart';
 export 'c.dart';
+
 class X {}
 ''');
 
@@ -318,10 +344,10 @@ library
         package:test/b.dart
         package:test/c.dart
       classes
-        #F1 class X (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F1 class X (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::X
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
@@ -346,7 +372,9 @@ library
   }
 
   test_export_setter() async {
-    newFile('$testPackageLibPath/a.dart', 'void set f(value) {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+void set f(value) {}
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -397,7 +425,7 @@ library
   }
 
   test_export_show_getter_setter() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', r'''
 get f => null;
 void set f(value) {}
 ''');
@@ -425,7 +453,9 @@ library
   }
 
   test_export_typedef() async {
-    newFile('$testPackageLibPath/a.dart', 'typedef F();');
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef F();
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -462,7 +492,9 @@ library
   }
 
   test_export_variable() async {
-    newFile('$testPackageLibPath/a.dart', 'var x;');
+    newFile('$testPackageLibPath/a.dart', r'''
+var x;
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -485,7 +517,9 @@ library
   }
 
   test_export_variable_const() async {
-    newFile('$testPackageLibPath/a.dart', 'const x = 0;');
+    newFile('$testPackageLibPath/a.dart', r'''
+const x = 0;
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -506,7 +540,9 @@ library
   }
 
   test_export_variable_final() async {
-    newFile('$testPackageLibPath/a.dart', 'final x = 0;');
+    newFile('$testPackageLibPath/a.dart', r'''
+final x = 0;
+''');
     var library = await buildLibrary(r'''
 export "a.dart";
 ''');
@@ -528,9 +564,15 @@ library
 
   test_exportImport_configurations_useDefault() async {
     declaredVariables = {'dart.library.io': 'false'};
-    newFile('$testPackageLibPath/foo.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+class A {}
+''');
     newFile('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -538,6 +580,7 @@ export 'foo.dart'
 ''');
     var library = await buildLibrary(r'''
 import 'bar.dart';
+
 class B extends A {}
 ''');
     checkElementText(library, r'''
@@ -549,10 +592,10 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::B
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -578,9 +621,15 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'false',
     };
-    newFile('$testPackageLibPath/foo.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+class A {}
+''');
     newFile('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -588,6 +637,7 @@ export 'foo.dart'
 ''');
     var library = await buildLibrary(r'''
 import 'bar.dart';
+
 class B extends A {}
 ''');
     checkElementText(library, r'''
@@ -599,10 +649,10 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::B
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -628,9 +678,15 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    newFile('$testPackageLibPath/foo.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
-    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+class A {}
+''');
     newFile('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -638,6 +694,7 @@ export 'foo.dart'
 ''');
     var library = await buildLibrary(r'''
 import 'bar.dart';
+
 class B extends A {}
 ''');
     checkElementText(library, r'''
@@ -649,10 +706,10 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::B
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -674,10 +731,15 @@ library
   }
 
   test_exports() async {
-    newFile('$testPackageLibPath/a.dart', 'library a;');
-    newFile('$testPackageLibPath/b.dart', 'library b;');
+    newFile('$testPackageLibPath/a.dart', r'''
+library a;
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library b;
+''');
     var library = await buildLibrary(r'''
-export "a.dart"; export "b.dart";
+export "a.dart";
+export "b.dart";
 ''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -704,6 +766,7 @@ class B {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class A {}
 ''');
 
@@ -834,6 +897,7 @@ export 'c.dart';
     var library = await buildLibrary(r'''
 part 'd.dart';
 part 'e.dart';
+
 class X {}
 ''');
 
@@ -855,10 +919,10 @@ library
           partKeywordOffset: 15
           unit: #F2
       classes
-        #F3 class X (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F3 class X (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::X
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/d.dart
@@ -913,6 +977,7 @@ export 'a.dart' hide A2, A4;
 
     var library = await buildLibrary(r'''
 part 'b.dart';
+
 class X {}
 ''');
 
@@ -930,10 +995,10 @@ library
           partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F2 class X (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::X
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/b.dart
@@ -977,6 +1042,7 @@ export 'a.dart' show A1, A3;
 
     var library = await buildLibrary(r'''
 part 'b.dart';
+
 class X {}
 ''');
 
@@ -994,10 +1060,10 @@ library
           partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F2 class X (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::X
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/b.dart
@@ -1037,6 +1103,7 @@ mixin B {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 mixin A {}
 ''');
 
@@ -1139,6 +1206,7 @@ class B {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class C {}
 ''');
 
@@ -1156,10 +1224,10 @@ library
           partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class C (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F2 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::C
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
     #F1 package:test/a.dart
@@ -1245,6 +1313,7 @@ export 'b.dart';
 
     var library = await buildLibrary(r'''
 part 'c.dart';
+
 class X {}
 ''');
 
@@ -1262,10 +1331,10 @@ library
           partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F2 class X (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::X
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/c.dart

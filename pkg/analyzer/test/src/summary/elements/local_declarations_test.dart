@@ -152,9 +152,12 @@ library
     var library = await buildLibrary(r'''
 class C {
   C() {
-    aaa: while (true) {}
-    bbb: switch (42) {
-      ccc: case 0:
+    aaa:
+    while (true) {}
+    bbb:
+    switch (42) {
+      ccc:
+      case 0:
         break;
     }
   }
@@ -189,9 +192,12 @@ library
     var library = await buildLibrary(r'''
 class C {
   m() {
-    aaa: while (true) {}
-    bbb: switch (42) {
-      ccc: case 0:
+    aaa:
+    while (true) {}
+    bbb:
+    switch (42) {
+      ccc:
+      case 0:
         break;
     }
   }
@@ -232,9 +238,12 @@ library
   test_localLabels_inTopLevelFunction() async {
     var library = await buildLibrary(r'''
 main() {
-  aaa: while (true) {}
-  bbb: switch (42) {
-    ccc: case 0:
+  aaa:
+  while (true) {}
+  bbb:
+  switch (42) {
+    ccc:
+    case 0:
       break;
   }
 }
