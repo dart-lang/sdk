@@ -57,11 +57,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   );
 
   late final _emptyList = ConstantValue(
-    ast.InstanceConstant(
-      GlobalContext.instance.coreTypes.listClass.reference,
-      const <ast.DartType>[const ast.DynamicType()],
-      const {},
-    ),
+    ast.ListConstant(const ast.DynamicType(), const []),
   );
 
   @override
