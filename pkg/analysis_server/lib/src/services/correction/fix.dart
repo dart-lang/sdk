@@ -383,6 +383,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert classes to enums in file',
   );
+  static const convertDefaultToPrimaryConstructor = FixKind(
+    'dart.fix.convert.defaultToPrimaryConstructor',
+    DartFixKindPriority.standard,
+    'Convert the default constructor to a primary constructor',
+  );
+  static const convertDefaultToPrimaryConstructorMulti = FixKind(
+    'dart.fix.convert.defaultToPrimaryConstructor.multi',
+    DartFixKindPriority.standard,
+    'Convert default constructor to primary constructor everywhere in file',
+  );
   static const convertFlutterChild = FixKind(
     'dart.fix.flutter.convert.childToChildren',
     DartFixKindPriority.standard,
@@ -667,6 +677,16 @@ abstract final class DartFixKind {
     'dart.fix.convert.toPackageImport.multi',
     DartFixKindPriority.inFile,
     "Convert to 'package:' imports everywhere in file",
+  );
+  static const convertToPrimaryConstructor = FixKind(
+    'dart.fix.convert.toPrimaryConstructor',
+    DartFixKindPriority.standard,
+    'Convert to a primary constructor',
+  );
+  static const convertToPrimaryConstructorMulti = FixKind(
+    'dart.fix.convert.toPrimaryConstructor.multi',
+    DartFixKindPriority.standard,
+    'Convert to primary constructors everywhere in file',
   );
   static const convertToRawString = FixKind(
     'dart.fix.convert.toRawString',

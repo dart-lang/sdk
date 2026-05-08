@@ -48,6 +48,7 @@ import 'package:analysis_server/src/services/correction/dart/change_type_annotat
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_enum.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_default_to_primary_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
@@ -80,6 +81,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_primary_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
@@ -488,6 +490,10 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.useKeyInWidgetConstructors: [AddKeyToConstructors.new],
   diag.useNamedConstants: [ReplaceWithNamedConstant.new],
   diag.useNullAwareElements: [ConvertNullCheckToNullAwareElementOrEntry.new],
+  diag.usePrimaryConstructors: [
+    ConvertDefaultToPrimaryConstructor.new,
+    ConvertToPrimaryConstructor.new,
+  ],
   diag.useRawStrings: [ConvertToRawString.new],
   diag.useRethrowWhenPossible: [UseRethrow.new],
   diag.useStringInPartOfDirectives: [ReplaceWithPartOrUriEmpty.new],

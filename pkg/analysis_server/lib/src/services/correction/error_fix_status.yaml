@@ -1691,7 +1691,7 @@ use_of_private_parameter_name:
 use_of_void_result:
   status: noFix
 use_primary_constructors:
-  status: needsFix
+  status: hasFix
 values_declaration_in_enum:
   status: noFix
   since: 2.17

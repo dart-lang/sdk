@@ -61,6 +61,8 @@ import 'change_to_static_access_test.dart' as change_to_static_access;
 import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
 import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
+import 'convert_default_to_primary_constructor_test.dart'
+    as convert_default_to_primary_constructor;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
@@ -108,6 +110,8 @@ import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
+import 'convert_to_primary_constructor_test.dart'
+    as convert_to_primary_constructor;
 import 'convert_to_raw_string_test.dart' as convert_to_raw_string;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
@@ -381,6 +385,7 @@ void main() {
     change_type_annotation.main();
     convert_class_to_enum.main();
     convert_documentation_into_line.main();
+    convert_default_to_primary_constructor.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
     convert_for_each_to_for_loop.main();
@@ -415,6 +420,7 @@ void main() {
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
+    convert_to_primary_constructor.main();
     convert_to_raw_string.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
