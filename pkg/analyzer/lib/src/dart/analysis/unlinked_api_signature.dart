@@ -45,13 +45,13 @@ class _UnitApiSignatureComputer {
         _addEnum(declaration);
       } else if (declaration is ExtensionDeclarationImpl) {
         _addExtension(declaration);
-      } else if (declaration is FunctionDeclaration) {
+      } else if (declaration is FunctionDeclarationImpl) {
         var functionExpression = declaration.functionExpression;
         _addTokens(
           declaration.beginToken,
           functionExpression.parameters?.endToken ?? declaration.name,
         );
-        signature.addBool(functionExpression.body is EmptyFunctionBody);
+        signature.addBool(declaration.isCompleteDeclaration);
         _addFunctionBodyModifiers(functionExpression.body);
       } else if (declaration is MixinDeclarationImpl) {
         _addMixin(declaration);
@@ -74,11 +74,11 @@ class _UnitApiSignatureComputer {
   void _addClassMembers(List<ClassMember> members, bool hasConstConstructor) {
     signature.addInt(members.length);
     for (var member in members) {
-      if (member is ConstructorDeclaration) {
+      if (member is ConstructorDeclarationImpl) {
         _addConstructorDeclaration(member);
       } else if (member is FieldDeclaration) {
         _addFieldDeclaration(member, hasConstConstructor);
-      } else if (member is MethodDeclaration) {
+      } else if (member is MethodDeclarationImpl) {
         _addMethodDeclaration(member);
       } else if (member is PrimaryConstructorBody) {
         _addPrimaryConstructorBody(member);
@@ -88,12 +88,12 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addConstructorDeclaration(ConstructorDeclaration node) {
+  void _addConstructorDeclaration(ConstructorDeclarationImpl node) {
     signature.addInt(_kindConstructorDeclaration);
     _addTokens(node.beginToken, node.parameters.endToken);
     _addNodeList(node.initializers);
     _addNode(node.redirectedConstructor);
-    signature.addBool(node.body is EmptyFunctionBody);
+    signature.addBool(node.isCompleteDeclaration);
   }
 
   void _addEnum(EnumDeclarationImpl node) {
@@ -141,10 +141,10 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addMethodDeclaration(MethodDeclaration node) {
+  void _addMethodDeclaration(MethodDeclarationImpl node) {
     signature.addInt(_kindMethodDeclaration);
     _addTokens(node.beginToken, node.parameters?.endToken ?? node.name);
-    signature.addBool(node.body is EmptyFunctionBody);
+    signature.addBool(node.isCompleteDeclaration);
     _addFunctionBodyModifiers(node.body);
     signature.addBool(node.invokesSuperSelf);
   }

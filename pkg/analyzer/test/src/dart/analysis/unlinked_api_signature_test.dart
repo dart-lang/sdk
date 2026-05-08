@@ -87,6 +87,21 @@ class C {
     );
   }
 
+  test_class_constructor_block_to_external() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  C() {}
+}
+''',
+      r'''
+class C {
+  external C();
+}
+''',
+    );
+  }
+
   test_class_constructor_empty_to_block() {
     _assertNotSameSignature(
       r'''
@@ -112,6 +127,21 @@ class C {
       r'''
 class C {
   C();
+}
+''',
+    );
+  }
+
+  test_class_constructor_external_to_block() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  external C();
+}
+''',
+      r'''
+class C {
+  C() {}
 }
 ''',
     );
@@ -918,6 +948,17 @@ void foo() => 0;
     );
   }
 
+  test_classLike_method_external_to_block() {
+    _assertNotSameSignature_classLike(
+      r'''
+external void foo();
+''',
+      r'''
+void foo() {}
+''',
+    );
+  }
+
   test_classLike_method_getter_body_block_to_empty() {
     _assertNotSameSignature_classLike(
       r'''
@@ -1487,6 +1528,17 @@ int foo() => 2;
     );
   }
 
+  test_executable_body_block_to_external() {
+    _assertNotSameSignature_executable(
+      r'''
+void foo() {}
+''',
+      r'''
+external void foo();
+''',
+    );
+  }
+
   test_executable_body_block_to_native() {
     _assertNotSameSignature_executable(
       r'''
@@ -1531,6 +1583,17 @@ int foo() => 0;
 ''',
       r'''
 int foo() native;
+''',
+    );
+  }
+
+  test_executable_body_external_to_block() {
+    _assertNotSameSignature_executable(
+      r'''
+external void foo();
+''',
+      r'''
+void foo() {}
 ''',
     );
   }

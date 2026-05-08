@@ -1724,8 +1724,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isAsynchronous = body.isAsynchronous;
     executableFragment.isExternal = node.externalKeyword != null;
     executableFragment.isGenerator = body.isGenerator;
-    executableFragment.isCompleteDeclaration =
-        executableFragment.isExternal || body is! EmptyFunctionBody;
+    executableFragment.isCompleteDeclaration = node.isCompleteDeclaration;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -1867,8 +1866,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isExternal =
         node.externalKeyword != null || node.body is NativeFunctionBody;
     executableFragment.isGenerator = node.body.isGenerator;
-    executableFragment.isCompleteDeclaration =
-        executableFragment.isExternal || node.body is! EmptyFunctionBody;
+    executableFragment.isCompleteDeclaration = node.isCompleteDeclaration;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -2291,27 +2289,6 @@ class _EnclosingContext {
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {
     typeParameters.add(fragment);
-  }
-}
-
-extension _ConstructorDeclarationImplExtension on ConstructorDeclarationImpl {
-  bool get isCompleteDeclaration {
-    if (externalKeyword != null) {
-      return true;
-    }
-
-    if (body is! EmptyFunctionBody) {
-      return true;
-    }
-
-    if (redirectedConstructor != null || initializers.isNotEmpty) {
-      return true;
-    }
-
-    return parameters.parameters.any((parameter) {
-      return parameter is FieldFormalParameterImpl ||
-          parameter is SuperFormalParameterImpl;
-    });
   }
 }
 

@@ -7076,6 +7076,16 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     return parameters.beginToken;
   }
 
+  bool get isCompleteDeclaration {
+    if (externalKeyword != null) return true;
+    if (body is! EmptyFunctionBody) return true;
+    if (redirectedConstructor != null || initializers.isNotEmpty) return true;
+    return parameters.parameters.any((parameter) {
+      return parameter is FieldFormalParameterImpl ||
+          parameter is SuperFormalParameterImpl;
+    });
+  }
+
   bool get isGenerative {
     return factoryKeyword == null;
   }
@@ -15278,6 +15288,11 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     _functionExpression = _becomeParentOf(functionExpression);
   }
 
+  bool get isCompleteDeclaration {
+    return externalKeyword != null ||
+        functionExpression.body is! EmptyFunctionBody;
+  }
+
   @override
   bool get isGetter => propertyKeyword?.keyword == Keyword.GET;
 
@@ -22027,6 +22042,10 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     var body = this.body;
     return externalKeyword == null &&
         (body is EmptyFunctionBodyImpl && !body.semicolon.isSynthetic);
+  }
+
+  bool get isCompleteDeclaration {
+    return externalKeyword != null || body is! EmptyFunctionBody;
   }
 
   @override
