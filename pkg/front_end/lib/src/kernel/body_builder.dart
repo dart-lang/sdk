@@ -189,8 +189,6 @@ class BodyBuilderImpl extends StackListenerImpl
 
   final LocalScope enclosingScope;
 
-  final bool enableNative;
-
   // TODO(ahe): Consider renaming [uri] to 'partUri'.
   @override
   final Uri uri;
@@ -372,9 +370,6 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.extensionScope,
     required ThisVariable? internalThisVariable,
   }) : _context = context,
-       enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
-         libraryBuilder.importUri,
-       ),
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
        _labelScopes = new LocalStack([new LabelScopeImpl()]),
