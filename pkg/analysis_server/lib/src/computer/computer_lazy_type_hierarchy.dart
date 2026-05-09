@@ -117,10 +117,7 @@ class DartLazyTypeHierarchyComputer {
       }
     }
 
-    var matches = await searchEngine.searchSubtypes(
-      target,
-      SearchEngineCache(),
-    );
+    var matches = await searchEngine.searchSubtypes(target);
     var seenElements = <Element>{};
     return matches
         .where((match) => seenElements.add(match.element))

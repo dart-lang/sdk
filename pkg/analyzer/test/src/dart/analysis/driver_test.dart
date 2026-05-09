@@ -2066,8 +2066,8 @@ void f() {
 [future] getIndex A1
   strings
     --nullString--
+    /home/test/lib/a.dart
     foo
-    package:test/a.dart
 ''');
   }
 
@@ -99923,8 +99923,8 @@ void f() {
 [future] getIndex T1
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
 
     modifyFile2(a, r'''
@@ -99958,8 +99958,8 @@ double get a => 0;
 [future] getIndex T2
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
   }
 
@@ -99998,8 +99998,8 @@ void f() {
 [future] getIndex T1
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
 
     modifyFile2(a, r'''
@@ -100020,8 +100020,8 @@ int get b => 0;
 [future] getIndex T2
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
   }
 
@@ -100148,8 +100148,8 @@ final x = a;
 [future] getIndex T1
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''',
       updatedA: r'''
 int get a => 0;
@@ -100180,8 +100180,8 @@ int get b => 0;
 [future] getIndex T2
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''',
     );
   }
