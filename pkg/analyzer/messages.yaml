@@ -1876,6 +1876,15 @@ CompileTimeErrorCode:
     problemMessage: "Mixin application classes can't be augmented."
     correctionMessage: Try removing the 'augment' keyword, or making the target a normal class.
     hasPublishedDocs: false
+  augmentationReturnTypeMismatch:
+    type: compileTimeError
+    parameters:
+      Type expectedType: the return type of the declaration
+      Type actualType: the return type of the augmentation
+    experiment: augmentations
+    problemMessage: "The augmentation's return type '#actualType' must be the same as the introductory declaration's return type '#expectedType'."
+    correctionMessage: Try changing the augmentation's return type to match the declaration.
+    hasPublishedDocs: false
   augmentedExpressionIsNotSetter:
     type: compileTimeError
     parameters: none

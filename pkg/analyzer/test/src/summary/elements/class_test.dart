@@ -33153,6 +33153,61 @@ library
 ''');
   }
 
+  test_getter_augmentation_chain_returnType_int_String() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo => 0;
+}
+
+augment class A {
+  augment String get foo => '';
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F5
+        #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          getters
+            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:72) (firstTokenOffset:53) (offset:72)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F4
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_getter_augmentation_chain_twoInSameDeclaration() async {
     var library = await buildLibrary(r'''
 class A {
@@ -38874,6 +38929,51 @@ library
         isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F4
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_returnType_void_int() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo() {}
+}
+
+augment class A {
+  augment int foo() => 0;
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:61) (firstTokenOffset:49) (offset:61)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
           returnType: void
 ''');
   }

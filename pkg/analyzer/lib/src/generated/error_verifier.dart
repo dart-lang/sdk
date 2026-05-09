@@ -1136,6 +1136,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       nameOrKeywordToken: node.name,
       typeParameterList: node.functionExpression.typeParameters,
     );
+    _checkForAugmentationReturnTypeMismatch(
+      fragment: fragment,
+      returnTypeNode: node.returnType,
+    );
 
     if (element.enclosingElement is! LibraryElement) {
       _hiddenElements!.declare(element);
@@ -1381,6 +1385,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       firstTypeParameters: element.firstFragment.typeParameters,
       nameOrKeywordToken: node.name,
       typeParameterList: node.typeParameters,
+    );
+    _checkForAugmentationReturnTypeMismatch(
+      fragment: fragment,
+      returnTypeNode: node.returnType,
     );
 
     _withEnclosingExecutable(
@@ -2552,6 +2560,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         break;
       }
+    }
+  }
+
+  void _checkForAugmentationReturnTypeMismatch({
+    required ExecutableFragmentImpl fragment,
+    required TypeAnnotation? returnTypeNode,
+  }) {
+    if (!fragment.isAugmentation) {
+      return;
+    }
+
+    if (returnTypeNode == null) {
+      return;
+    }
+
+    var expectedType = fragment.element.returnType;
+    var actualType = returnTypeNode.typeOrThrow;
+    if (!typeSystem.isEqualTo(actualType, expectedType)) {
+      diagnosticReporter.report(
+        diag.augmentationReturnTypeMismatch
+            .withArguments(expectedType: expectedType, actualType: actualType)
+            .at(returnTypeNode),
+      );
     }
   }
 

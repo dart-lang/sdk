@@ -1863,6 +1863,34 @@ library
 ''');
   }
 
+  test_function_augmentation_chain_returnType_void_int() async {
+    var library = await buildLibrary(r'''
+void foo() {}
+augment int foo() => 0;
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:14) (offset:26)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      returnType: void
+''');
+  }
+
   test_function_augmentation_chain_typeParameters_count_111() async {
     var library = await buildLibrary(r'''
 void foo<T>() {}
