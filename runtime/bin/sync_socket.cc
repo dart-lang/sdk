@@ -137,7 +137,15 @@ void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
   result = Dart_TypedDataAcquireData(buffer_obj, &type,
                                      reinterpret_cast<void**>(&buffer), &len);
   DART_CHECK_ERROR(result);
-  ASSERT((offset + length) <= len);
+  // Range-check at runtime, not just via ASSERT: an ASSERT-only check is
+  // stripped from product builds and would let a bad (offset, length) pair
+  // cause an OOB read of process heap into the socket.
+  if (offset < 0 || length < 0 || offset > len || length > len - offset) {
+    Dart_TypedDataReleaseData(buffer_obj);
+    Dart_SetReturnValue(args,
+                        DartUtils::NewDartArgumentError("Invalid range"));
+    return;
+  }
   buffer += offset;
   intptr_t bytes_written =
       SynchronousSocket::Write(socket->fd(), buffer, length);
