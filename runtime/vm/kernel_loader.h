@@ -270,9 +270,19 @@ class KernelLoader : public ValueObject {
 
   intptr_t library_offset(intptr_t index) {
     kernel::Reader reader(program_->binary());
-    return reader.ReadFromIndexNoReset(reader.size(),
-                                       KernelFixedFieldsAfterLibraries,
-                                       program_->library_count() + 1, index);
+    intptr_t offset = reader.ReadFromIndexNoReset(
+        reader.size(), KernelFixedFieldsAfterLibraries,
+        program_->library_count() + 1, index);
+    // The offset comes straight from the kernel file's library-offset
+    // table and is then handed to `Reader::set_offset` by every caller.
+    // Validate it here so the entire library-loading path can rely on
+    // the invariant `0 <= offset <= reader.size()`.
+    if (offset < 0 || offset > reader.size()) {
+      FATAL("library_offset[%" Pd "] out of range: "
+            "%" Pd " (binary size=%" Pd ")",
+            index, offset, reader.size());
+    }
+    return offset;
   }
 
   NameIndex library_canonical_name(intptr_t index) {

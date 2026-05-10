@@ -392,9 +392,21 @@ class Reader : public ValueObject {
 
   intptr_t ReadListLength() { return ReadUInt(); }
 
-  uint8_t ReadByte() { return raw_buffer_[offset_++]; }
+  uint8_t ReadByte() {
+    if (offset_ < 0 || offset_ >= size_) {
+      FATAL("kernel::Reader::ReadByte out of range: "
+            "offset=%" Pd " size=%" Pd, offset_, size_);
+    }
+    return raw_buffer_[offset_++];
+  }
 
-  uint8_t PeekByte() { return raw_buffer_[offset_]; }
+  uint8_t PeekByte() {
+    if (offset_ < 0 || offset_ >= size_) {
+      FATAL("kernel::Reader::PeekByte out of range: "
+            "offset=%" Pd " size=%" Pd, offset_, size_);
+    }
+    return raw_buffer_[offset_];
+  }
 
   void ReadBytes(uint8_t* buffer, uint8_t size) {
     for (int i = 0; i < size; i++) {
@@ -483,7 +495,15 @@ class Reader : public ValueObject {
 
   intptr_t offset() const { return offset_; }
   void set_offset(intptr_t offset) {
-    ASSERT(offset < size_);
+    // Offsets in the kernel binary are read straight from attacker-controlled
+    // bytes (e.g. `library_offset` table entries, `string_table_offset`).
+    // An ASSERT-only check is stripped from product builds and would let
+    // bad offsets reach `ReadByte`/`ReadUInt32`, producing OOB reads of
+    // memory outside the typed-data buffer. Validate at runtime.
+    if (offset < 0 || offset > size_) {
+      FATAL("kernel::Reader::set_offset out of range: "
+            "%" Pd " (size=%" Pd ")", offset, size_);
+    }
     offset_ = offset;
   }
   intptr_t size() const { return size_; }
@@ -493,7 +513,11 @@ class Reader : public ValueObject {
   }
 
   const uint8_t* BufferAt(intptr_t offset) {
-    ASSERT((offset >= 0) && (offset < size_));
+    // Same caveat as set_offset: callers may pass attacker-controlled values.
+    if (offset < 0 || offset >= size_) {
+      FATAL("kernel::Reader::BufferAt out of range: "
+            "%" Pd " (size=%" Pd ")", offset, size_);
+    }
     return &raw_buffer_[offset];
   }
 
