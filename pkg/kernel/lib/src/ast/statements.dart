@@ -1326,6 +1326,7 @@ class Catch extends TreeNode implements ScopeProvider {
       printer.writeVariableInitialization(
         exception!,
         includeModifiersAndType: false,
+        includeInitializer: false,
       );
       if (stackTrace != null) {
         printer.write(', ');
