@@ -13,7 +13,10 @@ Future<void> main() async {
   final got = Completer<List<int>>();
 
   server.listen((sock) {
-    got.complete(sock.expand((v) => v).toList());
+    sock.expand((v) => v).toList().then((data) {
+      sock.destroy();
+      if (!got.isCompleted) got.complete(data);
+    });
   });
 
   final c = RawSynchronousSocket.connectSync(
