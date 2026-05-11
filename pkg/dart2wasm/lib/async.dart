@@ -106,7 +106,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
             translator.topType,
           ],
         ),
-        "${function.functionName} inner",
+        "$functionName inner",
       );
 }
 
@@ -116,20 +116,16 @@ class AsyncProcedureCodeGenerator
     with AsyncCodeGeneratorMixin {
   AsyncProcedureCodeGenerator(
     super.translator,
-    super.function,
     super.enclosingMember,
+    super.signature,
+    super.functionName,
   );
 }
 
 /// Generates code for async closures.
 class AsyncLambdaCodeGenerator extends LambdaStateMachineEntryCodeGenerator
     with AsyncCodeGeneratorMixin {
-  AsyncLambdaCodeGenerator(
-    super.translator,
-    super.enclosingMember,
-    super.lambda,
-    super.closures,
-  );
+  AsyncLambdaCodeGenerator(super.translator, super.lambda);
 }
 
 class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {

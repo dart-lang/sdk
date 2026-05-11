@@ -203,24 +203,19 @@ class FunctionCollector {
     });
   }
 
-  w.BaseFunction getLambdaFunction(
-    Lambda lambda,
-    Member enclosingMember,
-    Closures enclosingMemberClosures,
-  ) {
+  w.BaseFunction getLambdaFunction(Lambda lambda) {
     return _lambdas.putIfAbsent(lambda, () {
-      translator.compilationQueue.add(
-        CompilationTask(
-          lambda.function,
-          getLambdaCodeGenerator(
-            translator,
-            lambda,
-            enclosingMember,
-            enclosingMemberClosures,
-          ),
-        ),
+      final module = translator.moduleForReference(
+        lambda.enclosingMember.reference,
       );
-      return lambda.function;
+      final function = module.functions.define(
+        getLambdaFunctionType(lambda),
+        getLambdaFunctionName(lambda),
+      );
+      translator.compilationQueue.add(
+        CompilationTask(function, getLambdaCodeGenerator(translator, lambda)),
+      );
+      return function;
     });
   }
 
@@ -235,6 +230,23 @@ class FunctionCollector {
     if (existingFunction != null) return existingFunction.type;
 
     return _getFunctionType(target);
+  }
+
+  w.FunctionType getLambdaFunctionType(Lambda lambda) {
+    final node = lambda.functionNode;
+    final inputs = <w.ValueType>[
+      closureContextFieldType,
+      ...List.filled(
+        node.typeParameters.length,
+        translator.types.nonNullableTypeType,
+      ),
+      for (final param in node.positionalParameters)
+        translator.translateType(param.type),
+      for (final param in node.namedParameters)
+        translator.translateType(param.type),
+    ];
+    final outputs = [translator.translateType(node.returnType)];
+    return translator.typesBuilder.defineFunction(inputs, outputs);
   }
 
   w.FunctionType _getFunctionType(Reference target) {
@@ -326,6 +338,18 @@ class FunctionCollector {
     } else {
       return '$memberName$inlinePostfix';
     }
+  }
+
+  String getLambdaFunctionName(Lambda lambda) {
+    final location = lambda.functionNode.location;
+    final member = lambda.enclosingMember;
+    final lambdaNode = lambda.functionNode.parent;
+    if (lambdaNode is FunctionDeclaration) {
+      final functionNodeName = lambdaNode.variable.name;
+      return "$member closure $functionNodeName at $location";
+    }
+    assert(lambdaNode is FunctionExpression);
+    return "$member closure at $location";
   }
 
   String getDynamicForwarderName(Reference target, CallShape shape) {

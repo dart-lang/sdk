@@ -2495,7 +2495,7 @@ abstract class AstCodeGenerator
     Lambda lambda = closures.lambdas[functionNode]!;
     ClosureImplementation closure = translator.getClosure(
       functionNode,
-      lambda.function,
+      lambda.callTarget,
       b.moduleBuilder,
       ParameterInfo.fromLocalFunction(functionNode),
       "closure wrapper at ${functionNode.location}",
@@ -2595,12 +2595,12 @@ abstract class AstCodeGenerator
   ) {
     final closureStruct = representation.closureStruct;
     final closureStructRef = w.RefType.def(closureStruct, nullable: false);
-    final signature = closureTarget.signature;
+    final callTarget = closureTarget.callTarget;
+    assert(callTarget is AstCallTarget || callTarget is LambdaCallTarget);
+    final signature = callTarget.signature;
     final paramInfo = closureTarget.paramInfo;
-    final member = closureTarget.member;
-    final lambdaFunction = closureTarget.lambdaFunction;
 
-    if (lambdaFunction == null) {
+    if (callTarget is AstCallTarget) {
       if (paramInfo.takesContextOrReceiver) {
         translateExpression(node.receiver, closureStructRef);
         b.struct_get(closureStruct, FieldIndex.closureContext);
@@ -2609,21 +2609,15 @@ abstract class AstCodeGenerator
       } else {
         _visitArguments(node.arguments, signature, paramInfo, 0);
       }
-      return translator.outputOrVoid(
-        call(
-          translator.getFunctionEntry(member.reference, uncheckedEntry: false),
-        ),
-      );
-    } else {
-      assert(paramInfo.takesContextOrReceiver);
-      translateExpression(node.receiver, closureStructRef);
-      b.struct_get(closureStruct, FieldIndex.closureContext);
-      translator.convertType(b, closureContextFieldType, signature.inputs[0]);
-      _visitArguments(node.arguments, signature, paramInfo, 1);
-      return translator.outputOrVoid(
-        translator.callFunction(lambdaFunction, b),
-      );
+      return translator.outputOrVoid(translator.callTarget(callTarget, b));
     }
+
+    assert(paramInfo.takesContextOrReceiver);
+    translateExpression(node.receiver, closureStructRef);
+    b.struct_get(closureStruct, FieldIndex.closureContext);
+    translator.convertType(b, closureContextFieldType, signature.inputs[0]);
+    _visitArguments(node.arguments, signature, paramInfo, 1);
+    return translator.outputOrVoid(translator.callTarget(callTarget, b));
   }
 
   w.ValueType _generateClosureInvocation(
@@ -2691,13 +2685,12 @@ abstract class AstCodeGenerator
     Arguments arguments = node.arguments;
     _visitArguments(
       arguments,
-      lambda.function.type,
+      lambda.callTarget.signature,
       ParameterInfo.fromLocalFunction(decl.function),
       1,
     );
     b.comment("Local call of ${decl.variable.name}");
-    translator.callFunction(lambda.function, b);
-    return translator.outputOrVoid(lambda.function.type.outputs);
+    return translator.outputOrVoid(translator.callTarget(lambda.callTarget, b));
   }
 
   @override
@@ -3427,26 +3420,28 @@ CodeGenerator getMemberCodeGenerator(
   if (asyncMarker == AsyncMarker.SyncStar) {
     return SyncStarProcedureCodeGenerator(
       translator,
-      functionBuilder,
       procedure,
+      functionBuilder.type,
+      functionBuilder.name,
     );
   }
   assert(asyncMarker == AsyncMarker.Async);
-  return AsyncProcedureCodeGenerator(translator, functionBuilder, procedure);
+  return AsyncProcedureCodeGenerator(
+    translator,
+    procedure,
+    functionBuilder.type,
+    functionBuilder.name,
+  );
 }
 
-CodeGenerator getLambdaCodeGenerator(
-  Translator translator,
-  Lambda lambda,
-  Member enclosingMember,
-  Closures enclosingMemberClosures,
-) {
+CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda) {
+  final enclosingMember = lambda.enclosingMember;
   final enclosingClass = enclosingMember.enclosingClass;
   if (enclosingClass != null &&
       translator.classInfo[enclosingClass]!.isCyclic) {
     return UnreachableCodeGenerator(
       translator,
-      lambda.function.type,
+      lambda.callTarget.signature,
       enclosingMember,
     );
   }
@@ -3454,28 +3449,13 @@ CodeGenerator getLambdaCodeGenerator(
   final asyncMarker = lambda.functionNode.asyncMarker;
 
   if (asyncMarker == AsyncMarker.Async) {
-    return AsyncLambdaCodeGenerator(
-      translator,
-      enclosingMember,
-      lambda,
-      enclosingMemberClosures,
-    );
+    return AsyncLambdaCodeGenerator(translator, lambda);
   }
   if (asyncMarker == AsyncMarker.SyncStar) {
-    return SyncStarLambdaCodeGenerator(
-      translator,
-      enclosingMember,
-      lambda,
-      enclosingMemberClosures,
-    );
+    return SyncStarLambdaCodeGenerator(translator, lambda);
   }
   assert(asyncMarker == AsyncMarker.Sync);
-  return SynchronousLambdaCodeGenerator(
-    translator,
-    enclosingMember,
-    lambda,
-    enclosingMemberClosures,
-  );
+  return SynchronousLambdaCodeGenerator(translator, lambda);
 }
 
 /// Returns a [CodeGenerator] for the given member iff that member can be
@@ -5004,18 +4984,13 @@ class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
 
 class SynchronousLambdaCodeGenerator extends AstCodeGenerator {
   final Lambda lambda;
-  final Closures enclosingMemberClosures;
 
-  SynchronousLambdaCodeGenerator(
-    Translator translator,
-    Member enclosingMember,
-    this.lambda,
-    this.enclosingMemberClosures,
-  ) : super(translator, lambda.function.type, enclosingMember);
+  SynchronousLambdaCodeGenerator(Translator translator, this.lambda)
+    : super(translator, lambda.callTarget.signature, lambda.enclosingMember);
 
   @override
   void generateInternal() {
-    closures = enclosingMemberClosures;
+    closures = lambda.enclosingMemberClosures;
 
     setSourceMapSource(lambda.functionNodeSource);
 
@@ -6165,6 +6140,21 @@ class AstCallTarget extends CallTarget {
 
   @override
   w.BaseFunction get function => _translator.functions.getFunction(_reference);
+}
+
+class LambdaCallTarget extends CallTarget {
+  final Translator _translator;
+  final Lambda _lambda;
+
+  LambdaCallTarget(super.signature, this._translator, this._lambda);
+
+  @override
+  late final String name = _translator.functions.getLambdaFunctionName(_lambda);
+
+  @override
+  late final w.BaseFunction function = _translator.functions.getLambdaFunction(
+    _lambda,
+  );
 }
 
 /// Whether a `catch` guard has the right type to catch JS exceptions.

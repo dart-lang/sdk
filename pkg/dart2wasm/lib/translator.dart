@@ -757,8 +757,13 @@ class Translator with KernelNodes {
   List<w.ValueType> callReference(
     Reference reference,
     w.InstructionsBuilder b,
-  ) {
-    final callTarget = directCallTarget(reference);
+  ) => callTarget(directCallTarget(reference), b, reference);
+
+  List<w.ValueType> callTarget(
+    CallTarget callTarget,
+    w.InstructionsBuilder b, [
+    Reference? reference,
+  ]) {
     late final List<w.ValueType> outputs;
     if (callTarget.supportsInlining) {
       final decision = callTarget.shouldInline;
@@ -1217,10 +1222,9 @@ class Translator with KernelNodes {
         member.reference,
         uncheckedEntry: false,
       );
-      w.BaseFunction target = functions.getFunction(reference);
       return getClosure(
         member.function,
-        target,
+        directCallTarget(reference),
         closureModule,
         paramInfoForDirectCall(reference),
         "$member tear-off",
@@ -1262,7 +1266,7 @@ class Translator with KernelNodes {
 
   ClosureImplementation getClosure(
     FunctionNode functionNode,
-    w.BaseFunction target,
+    CallTarget target,
     w.ModuleBuilder closureModule,
     ParameterInfo paramInfo,
     String name,
@@ -1296,7 +1300,7 @@ class Translator with KernelNodes {
     assert(positionalCount <= paramInfo.positional.length);
     assert(names.length <= paramInfo.named.length);
     assert(
-      target.type.inputs.length ==
+      target.signature.inputs.length ==
           (paramInfo.takesContextOrReceiver ? 1 : 0) +
               paramInfo.typeParamCount +
               paramInfo.positional.length +
@@ -1897,42 +1901,34 @@ class Translator with KernelNodes {
       );
 
       return SingleClosureTarget._(
-        member,
+        directCallTarget(entryReference),
         paramInfoForDirectCall(entryReference),
-        signatureForDirectCall(entryReference),
-        null,
-      );
-    } else {
-      // A closure in the member is called.
-      final Closures enclosingMemberClosures = getClosures(
-        member,
-        findCaptures: true,
-      );
-      final Lambda lambda = enclosingMemberClosures.lambdas.values.firstWhere(
-        (lambda) => lambda.index == closureId - 1,
-      );
-      final FunctionType lambdaDartType = lambda.functionNode
-          .computeFunctionType(Nullability.nonNullable);
-      final w.BaseFunction lambdaFunction = functions.getLambdaFunction(
-        lambda,
-        member,
-        enclosingMemberClosures,
-      );
-
-      if (!typeEnvironment.isSubtypeOf(
-        lambdaDartType,
-        node.receiver.getStaticType(typeContext),
-      )) {
-        return null;
-      }
-
-      return SingleClosureTarget._(
-        member,
-        ParameterInfo.fromLocalFunction(lambda.functionNode),
-        lambdaFunction.type,
-        lambdaFunction,
       );
     }
+
+    // A closure in the member is called.
+    final Closures enclosingMemberClosures = getClosures(
+      member,
+      findCaptures: true,
+    );
+    final Lambda lambda = enclosingMemberClosures.lambdas.values.firstWhere(
+      (lambda) => lambda.index == closureId - 1,
+    );
+    final FunctionType lambdaDartType = lambda.functionNode.computeFunctionType(
+      Nullability.nonNullable,
+    );
+
+    if (!typeEnvironment.isSubtypeOf(
+      lambdaDartType,
+      node.receiver.getStaticType(typeContext),
+    )) {
+      return null;
+    }
+
+    return SingleClosureTarget._(
+      lambda.callTarget,
+      ParameterInfo.fromLocalFunction(lambda.functionNode),
+    );
   }
 
   bool canSkipImplicitCheck(VariableDeclaration node) {
@@ -2645,7 +2641,7 @@ class AstCompilationTask extends CompilationTask {
 class _ClosureTrampolineGenerator implements CodeGenerator {
   final Translator translator;
   final w.FunctionBuilder trampoline;
-  final w.BaseFunction target;
+  final CallTarget target;
   final int typeCount;
   final int posArgCount;
   final List<String> argNames;
@@ -2676,7 +2672,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       translator.convertType(
         b,
         receiver.type,
-        target.type.inputs[targetIndex++],
+        target.signature.inputs[targetIndex++],
       );
     }
     int argIndex = 1;
@@ -2688,12 +2684,16 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       if (i < posArgCount) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(
+          b,
+          arg.type,
+          target.signature.inputs[targetIndex++],
+        );
       } else {
         translator.constants.instantiateConstant(
           b,
           paramInfo.positional[i]!,
-          target.type.inputs[targetIndex++],
+          target.signature.inputs[targetIndex++],
         );
       }
     }
@@ -2703,25 +2703,27 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       if (argNameIndex < argNames.length && argNames[argNameIndex] == argName) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(
+          b,
+          arg.type,
+          target.signature.inputs[targetIndex++],
+        );
         argNameIndex++;
       } else {
         translator.constants.instantiateConstant(
           b,
           paramInfo.named[argName]!,
-          target.type.inputs[targetIndex++],
+          target.signature.inputs[targetIndex++],
         );
       }
     }
     assert(argIndex == trampoline.type.inputs.length);
-    assert(targetIndex == target.type.inputs.length);
+    assert(targetIndex == target.signature.inputs.length);
     assert(argNameIndex == argNames.length);
-
-    translator.callFunction(target, b);
 
     translator.convertType(
       b,
-      translator.outputOrVoid(target.type.outputs),
+      translator.callTarget(target, b).single,
       translator.outputOrVoid(trampoline.type.outputs),
     );
     b.end();
@@ -2733,7 +2735,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
 class _ClosureDynamicEntryGenerator implements CodeGenerator {
   final Translator translator;
   final FunctionNode functionNode;
-  final w.BaseFunction target;
+  final CallTarget target;
   final ParameterInfo paramInfo;
   final String name;
   final w.FunctionBuilder function;
@@ -2773,7 +2775,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     // of type arguments in the list, but optional positional and named
     // parameters may be missing.
 
-    final targetInputs = target.type.inputs;
+    final targetInputs = target.signature.inputs;
     int inputIdx = 0;
 
     // Push context or receiver
@@ -2876,7 +2878,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.convertType(
           b,
           translator.nullableObjectArrayType.elementType.type.unpacked,
-          target.type.inputs[inputIdx],
+          target.signature.inputs[inputIdx],
         );
       } else {
         // Parameter may not be passed.
@@ -2910,11 +2912,9 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       inputIdx += 1;
     }
 
-    translator.callFunction(target, b);
-
     translator.convertType(
       b,
-      translator.outputOrVoid(target.type.outputs),
+      translator.callTarget(target, b).single,
       translator.outputOrVoid(function.type.outputs),
     );
 
@@ -3925,26 +3925,11 @@ class WasmTagImporter extends _WasmImporter<w.Tag> {
 }
 
 class SingleClosureTarget {
-  /// When `lambdaFunction` is null, the member being directly called. Otherwise
-  /// the enclosing member of the closure being called.
-  final Member member;
+  final CallTarget callTarget;
 
   /// [ParameterInfo] specifying how to compile arguments to the closure or
   /// member.
   final ParameterInfo paramInfo;
 
-  /// Wasm function type that goes along with the [paramInfo] for compiling
-  /// arguments.
-  final w.FunctionType signature;
-
-  /// If the callee is a local function or function expression (intead of a
-  /// member), this Wasm function for it.
-  final w.BaseFunction? lambdaFunction;
-
-  SingleClosureTarget._(
-    this.member,
-    this.paramInfo,
-    this.signature,
-    this.lambdaFunction,
-  );
+  SingleClosureTarget._(this.callTarget, this.paramInfo);
 }

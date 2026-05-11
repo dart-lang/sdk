@@ -75,7 +75,7 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
             w.NumType.i32,
           ],
         ),
-        "${function.functionName} inner",
+        "$functionName inner",
       );
 }
 
@@ -85,7 +85,8 @@ class SyncStarProcedureCodeGenerator
     with SyncStarCodeGeneratorMixin {
   SyncStarProcedureCodeGenerator(
     super.translator,
-    super.function,
+    super.signature,
+    super.functionName,
     super.enclosingMember,
   );
 }
@@ -93,12 +94,7 @@ class SyncStarProcedureCodeGenerator
 /// Generates code for sync* closures.
 class SyncStarLambdaCodeGenerator extends LambdaStateMachineEntryCodeGenerator
     with SyncStarCodeGeneratorMixin {
-  SyncStarLambdaCodeGenerator(
-    super.translator,
-    super.enclosingMember,
-    super.lambda,
-    super.closures,
-  );
+  SyncStarLambdaCodeGenerator(super.translator, super.lambda);
 }
 
 /// A specialized code generator for generating code for `sync*` functions.

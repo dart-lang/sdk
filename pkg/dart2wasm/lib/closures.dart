@@ -1309,22 +1309,22 @@ class ClosureRepresentationCluster {
 /// A local function or function expression.
 class Lambda {
   final FunctionNode functionNode;
-
-  // Note: creating a `Lambda` does not add this function to the compilation
-  // queue. Make sure to get it with `Functions.getLambdaFunction` to add it
-  // to the compilation queue.
-  final w.FunctionBuilder function;
-
   final Source functionNodeSource;
 
-  /// Index of the function within the enclosing member, based on pre-order
+  final Member enclosingMember;
+  final Closures enclosingMemberClosures;
+
+  /// Index of the function within the [enclosingMember], based on pre-order
   /// traversal of the member body.
   final int index;
 
+  late final LambdaCallTarget callTarget;
+
   Lambda._(
     this.functionNode,
-    this.function,
     this.functionNodeSource,
+    this.enclosingMember,
+    this.enclosingMemberClosures,
     this.index,
   );
 }
@@ -1723,37 +1723,20 @@ class _CaptureFinder extends RecursiveVisitor {
     super.visitTypeParameterType(node);
   }
 
-  void _visitLambda(FunctionNode node, [VariableDeclaration? variable]) {
-    final module = translator.moduleForReference(member.reference);
-    List<w.ValueType> inputs = [
-      closureContextFieldType,
-      ...List.filled(node.typeParameters.length, closures.typeType),
-      for (VariableDeclaration param in node.positionalParameters)
-        translator.translateType(param.type),
-      for (VariableDeclaration param in node.namedParameters)
-        translator.translateType(param.type),
-    ];
-    List<w.ValueType> outputs = [translator.translateType(node.returnType)];
-    w.FunctionType type = translator.typesBuilder.defineFunction(
-      inputs,
-      outputs,
-    );
-    final String? functionNodeName = variable?.name;
-    final String functionName;
-    if (functionNodeName == null) {
-      functionName = "$member closure at ${node.location}";
-    } else {
-      functionName = "$member closure $functionNodeName at ${node.location}";
-    }
-    final function = module.functions.define(type, functionName);
+  void _visitLambda(FunctionNode node) {
     final lambda = Lambda._(
       node,
-      function,
       _currentSource,
+      member,
+      closures,
       closures.lambdas.length,
     );
+    lambda.callTarget = LambdaCallTarget(
+      translator.functions.getLambdaFunctionType(lambda),
+      translator,
+      lambda,
+    );
     closures.lambdas[node] = lambda;
-    translator.functions.getLambdaFunction(lambda, member, closures);
 
     functionIsSyncStarOrAsync.add(
       node.asyncMarker == AsyncMarker.SyncStar ||
@@ -1772,7 +1755,7 @@ class _CaptureFinder extends RecursiveVisitor {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // Variable is in outer scope
     node.variable.accept(this);
-    _visitLambda(node.function, node.variable);
+    _visitLambda(node.function);
   }
 }
 
