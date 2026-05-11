@@ -1637,11 +1637,11 @@ mixin DelegatingVariableMixin on InternalVariableMixin
 
   @override
   // Coverage-ignore(suite): Not run.
-  VariableInitializationBase? get variableInitialization =>
+  VariableDeclaration? get variableInitialization =>
       astVariable.variableInitialization;
 
   @override
-  void set variableInitialization(VariableInitializationBase? value) {
+  void set variableInitialization(VariableDeclaration? value) {
     astVariable.variableInitialization = value;
   }
 

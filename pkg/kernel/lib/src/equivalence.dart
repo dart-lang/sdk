@@ -1316,6 +1316,9 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     if (a is LabeledStatement) {
       return b is LabeledStatement;
     }
+    if (a is VariableStatement) {
+      return b is VariableStatement && a.name == b.name;
+    }
     if (a is StructuralParameter) {
       return b is StructuralParameter && a.name == b.name;
     }
@@ -5890,6 +5893,9 @@ class EquivalenceStrategy {
     if (identical(node, other)) return true;
     if (node is! VariableStatement) return false;
     if (other is! VariableStatement) return false;
+    if (!visitor.checkDeclarations(node, other, '')) {
+      return false;
+    }
     visitor.pushNodeState(node, other);
     bool result = true;
     if (!checkVariableStatement_fileEqualsOffset(visitor, node, other)) {

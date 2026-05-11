@@ -3338,7 +3338,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
-      VariableInitializationBase node = peek() as VariableInitializationBase;
+      VariableDeclaration node = peek() as VariableDeclaration;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
 
@@ -3397,7 +3397,7 @@ class BodyBuilderImpl extends StackListenerImpl
       name = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    VariableInitializationBase variableInitialization;
+    VariableDeclaration variableInitialization;
     InternalVariable internalVariable;
     if (isClosureContextLoweringEnabled) {
       internalVariable = new InternalLocalVariable(
@@ -3412,7 +3412,7 @@ class BodyBuilderImpl extends StackListenerImpl
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
       );
-      variableInitialization = new VariableInitializationBase(
+      variableInitialization = new VariableInitialization(
         variable: internalVariable.asExpressionVariable,
         initializer: initializer,
         hasDeclaredInitializer: initializer != null,
@@ -3521,8 +3521,7 @@ class BodyBuilderImpl extends StackListenerImpl
       push(node);
       return;
     }
-    VariableInitializationBase variableInitialization =
-        node as VariableInitializationBase;
+    VariableDeclaration variableInitialization = node as VariableDeclaration;
     variableInitialization.fileOffset = nameToken.charOffset;
     push(variableInitialization);
 
@@ -3578,8 +3577,7 @@ class BodyBuilderImpl extends StackListenerImpl
         push(node);
         return;
       }
-      VariableInitializationBase variableInitialization =
-          node as VariableInitializationBase;
+      VariableDeclaration variableInitialization = node as VariableDeclaration;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
           variableInitialization.addAnnotation(annotations[i]);
@@ -3723,11 +3721,11 @@ class BodyBuilderImpl extends StackListenerImpl
     if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
-    if (variableOrExpression is VariableInitializationBase) {
+    if (variableOrExpression is VariableDeclaration) {
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
       variableOrExpression.isLate = false;
-      return <VariableDeclaration>[variableOrExpression as VariableDeclaration];
+      return <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is Expression) {
       VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
         variableOrExpression,

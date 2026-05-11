@@ -553,11 +553,11 @@ class _ScopeBuilder extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableInitialization(VariableInitializationBase node) {
+  void visitVariableInitialization(VariableInitialization node) {
     _handleVariableInitialization(node);
   }
 
-  void _handleVariableInitialization(VariableInitializationBase node) {
+  void _handleVariableInitialization(VariableDeclaration node) {
     _declareVariable(node.variable);
     node.visitChildren(this);
   }
@@ -1097,11 +1097,11 @@ class _Allocator extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableInitialization(VariableInitializationBase node) {
+  void visitVariableInitialization(VariableInitialization node) {
     _handleVariableInitialization(node);
   }
 
-  void _handleVariableInitialization(VariableInitializationBase node) {
+  void _handleVariableInitialization(VariableDeclaration node) {
     _allocateVariable(node.variable);
     node.visitChildren(this);
   }

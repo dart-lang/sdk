@@ -4860,10 +4860,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     finallyBlocks.remove(node);
   }
 
-  bool _skipVariableInitialization(
-    VariableInitializationBase v,
-    bool isCaptured,
-  ) {
+  bool _skipVariableInitialization(VariableDeclaration v, bool isCaptured) {
     // We can skip variable initialization if the variable is supposed to be
     // initialized to null and it's captured. This is because all the slots in
     // the capture context are implicitly initialized to null.
@@ -4886,11 +4883,11 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableInitialization(VariableInitializationBase node) {
+  void visitVariableInitialization(VariableInitialization node) {
     _handleVariableInitialization(node);
   }
 
-  void _handleVariableInitialization(VariableInitializationBase node) {
+  void _handleVariableInitialization(VariableDeclaration node) {
     if (!node.isConst) {
       final bool isCaptured = locals.isCaptured(node.variable);
       final initializer = node.initializer;

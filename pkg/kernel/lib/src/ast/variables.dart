@@ -28,7 +28,7 @@ sealed class VariableBase extends TreeNode implements Annotatable {
 abstract interface class IVariable implements TreeNode {
   abstract DartType type;
   abstract String? cosmeticName;
-  abstract VariableInitializationBase? variableInitialization;
+  abstract VariableDeclaration? variableInitialization;
   abstract Expression? initializer;
   abstract bool isFinal;
   abstract bool isConst;
@@ -73,14 +73,14 @@ abstract interface class IVariable implements TreeNode {
 
 /// The root of the sealed hierarchy of non-type variables.
 sealed class VariableDeclaration extends VariableBase
-    implements IVariable, Statement, VariableInitializationBase {
+    implements IVariable, Statement, ContextConsumer {
   /// Static type of the variable.
   @override
   abstract DartType type;
 
   /// Initialization node for the variable, if available.
   @override
-  abstract VariableInitializationBase? variableInitialization;
+  abstract VariableDeclaration? variableInitialization;
 
   /// Derived from [variableInitialization], if available.
   @override
@@ -186,8 +186,7 @@ sealed class VariableDeclaration extends VariableBase
   @override
   VariableDeclaration get asExpressionVariable => this;
 
-  @override
-  String? get name;
+  abstract String? name;
 }
 
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
@@ -202,7 +201,7 @@ class LocalVariable extends VariableDeclaration {
   DartType type;
 
   @override
-  VariableInitializationBase? variableInitialization;
+  VariableDeclaration? variableInitialization;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -532,12 +531,12 @@ class CatchVariable extends VariableDeclaration {
   }
 
   @override
-  VariableInitializationBase? get variableInitialization {
+  VariableDeclaration? get variableInitialization {
     throw new UnsupportedError("${this.runtimeType}.variableInitialization");
   }
 
   @override
-  void set variableInitialization(VariableInitializationBase? value) {
+  void set variableInitialization(VariableDeclaration? value) {
     throw new UnsupportedError("${this.runtimeType}.variableInitialization=");
   }
 
@@ -836,10 +835,10 @@ sealed class FunctionParameter extends VariableDeclaration {
 
   /// Function parameters don't have initializers, only default values.
   @override
-  VariableInitializationBase? get variableInitialization => null;
+  VariableDeclaration? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableInitializationBase? value) {}
+  void set variableInitialization(VariableDeclaration? value) {}
 
   @override
   Expression? get initializer => defaultValue;
@@ -1292,10 +1291,10 @@ class ThisVariable extends VariableDeclaration {
   void set cosmeticName(String? value) {}
 
   @override
-  VariableInitializationBase? get variableInitialization => null;
+  VariableDeclaration? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableInitializationBase? value) {}
+  void set variableInitialization(VariableDeclaration? value) {}
 
   @override
   DartType type;
@@ -1573,7 +1572,7 @@ class SyntheticVariable extends VariableDeclaration {
   DartType type;
 
   @override
-  VariableInitializationBase? variableInitialization;
+  VariableDeclaration? variableInitialization;
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override

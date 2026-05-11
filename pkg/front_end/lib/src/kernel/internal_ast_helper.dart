@@ -281,7 +281,7 @@ MapLiteralEntry createIfCaseMapEntry(
 
 ForElement createForElement(
   int fileOffset,
-  List<VariableInitializationBase> variables,
+  List<VariableDeclaration> variables,
   Expression? condition,
   List<Expression> updates,
   Expression body,
@@ -294,7 +294,7 @@ PatternForElement createPatternForElement(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
-  required List<VariableInitializationBase> variables,
+  required List<VariableDeclaration> variables,
   required Expression? condition,
   required List<Expression> updates,
   required Expression body,

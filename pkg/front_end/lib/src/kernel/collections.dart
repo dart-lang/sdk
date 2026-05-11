@@ -221,7 +221,7 @@ class ForElement extends ControlFlowElement
     implements ForElementBase {
   // May be empty, but not null.
   @override
-  final List<VariableInitializationBase> variableInitializations;
+  final List<VariableDeclaration> variableInitializations;
 
   @override
   List<VariableDeclaration> get variables => variableInitializations.cast();
@@ -461,7 +461,7 @@ class IfCaseElement extends ControlFlowElementImpl
 }
 
 abstract interface class ForElementBase implements AuxiliaryExpression {
-  List<VariableInitializationBase> get variableInitializations;
+  List<VariableDeclaration> get variableInitializations;
 
   List<VariableDeclaration> get variables;
 
@@ -480,7 +480,7 @@ class PatternForElement extends ControlFlowElementImpl
 
   // May be empty, but not null.
   @override
-  final List<VariableInitializationBase> variableInitializations;
+  final List<VariableDeclaration> variableInitializations;
 
   @override
   List<VariableDeclaration> get variables => variableInitializations.cast();
@@ -497,7 +497,7 @@ class PatternForElement extends ControlFlowElementImpl
   PatternForElement({
     required this.patternVariableDeclaration,
     required this.intermediateVariables,
-    required List<VariableInitializationBase> variables,
+    required List<VariableDeclaration> variables,
     required this.condition,
     required this.updates,
     required this.body,

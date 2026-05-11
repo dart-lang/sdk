@@ -4403,14 +4403,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes,
   ) {
     // TODO(johnniwinther): Use _visitStatements instead.
-    List<VariableInitializationBase>? variables;
+    List<VariableDeclaration>? variables;
     for (
       int index = 0;
       index < element.variableInitializations.length;
       index++
     ) {
-      VariableInitializationBase variable =
-          element.variableInitializations[index];
+      VariableDeclaration variable = element.variableInitializations[index];
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult initializerResult = inferExpression(
@@ -16758,7 +16757,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult visitVariableInitialization(
-    VariableInitializationBase node,
+    VariableInitialization node,
   ) {
     InternalVariable nodeVariable = node.variable as InternalVariable;
     StatementInferenceResult statementInferenceResult =
@@ -16774,7 +16773,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult _inferInternalExpressionVariableDeclaration(
-    VariableInitializationBase node,
+    VariableDeclaration node,
     InternalVariable nodeVariable,
   ) {
     DartType declaredType = nodeVariable.isImplicitlyTyped

@@ -243,7 +243,7 @@ class NameSystem {
 }
 
 abstract class Annotator {
-  String annotateVariable(Printer printer, VariableInitializationBase node);
+  String annotateVariable(Printer printer, VariableDeclaration node);
   String annotateReturn(Printer printer, FunctionNode node);
   String annotateField(Printer printer, Field node);
 }
@@ -1249,7 +1249,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void writeExpressionVariable(VariableDeclaration node) {
-    if (node is LegacyVariableDeclaration && node is! FunctionParameter) {
+    // TODO(cstefantsova): Printer of the new variables is broken.
+    if (node is VariableStatement && node is! FunctionParameter) {
       writeVariableDeclaration(node);
     } else {
       if (showOffsets) writeWord("[${node.fileOffset}]");
@@ -1266,7 +1267,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
           writeWord('this-variable');
         case SyntheticVariable():
           writeWord('synthetic-variable');
-        case LegacyVariableDeclaration():
+        case VariableStatement():
           writeWord('variable-declaration');
         case CatchVariable():
           writeWord('catch-variable');
@@ -2603,7 +2604,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       ensureSpace();
     }
     writeSymbol('(');
-    if (node.variable case LegacyVariableDeclaration variable) {
+    if (node.variable case VariableStatement variable) {
       writeVariableDeclaration(variable, useVarKeyword: true);
     } else {
       writeExpressionVariable(node.variable);
@@ -2757,7 +2758,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitVariableInitialization(VariableInitializationBase node) {
+  void visitVariableInitialization(VariableInitialization node) {
     writeIndentation();
     writeVariableInitialization(node);
     _writeContexts(node);
@@ -2825,8 +2826,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  void writeVariableInitialization(VariableInitializationBase node) {
-    if (node is VariableDeclaration) {
+  void writeVariableInitialization(VariableDeclaration node) {
+    if (node is VariableStatement) {
       writeVariableDeclaration(node);
     } else {
       if (showOffsets) writeWord("[${node.fileOffset}]");
