@@ -135,9 +135,8 @@ void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
   Dart_TypedData_Type type;
   uint8_t* buffer = nullptr;
   intptr_t buffer_length;
-  result = Dart_TypedDataAcquireData(buffer_obj, &type,
-                                     reinterpret_cast<void**>(&buffer),
-                                     &buffer_length);
+  result = Dart_TypedDataAcquireData(
+      buffer_obj, &type, reinterpret_cast<void**>(&buffer), &buffer_length);
   DART_CHECK_ERROR(result);
 
   const intptr_t end = start + bytes;
