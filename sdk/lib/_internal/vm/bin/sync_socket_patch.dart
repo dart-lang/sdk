@@ -300,14 +300,7 @@ base class _NativeSynchronousSocket
       start,
       end,
     );
-    // The native side expects (offset, length): `length` is the number of
-    // bytes to write, not the end index. The previous expression
-    // `end - (start - bufferAndStart.start)` simplifies to `end` (an index)
-    // when `bufferAndStart.start == start` — the common Uint8List path —
-    // which caused `SynchronousSocket_WriteList` to send `end` bytes from
-    // `buffer + start`, leaking up to `start` extra bytes (and reading
-    // `start + end - buffer.length` past the buffer when `start + end >
-    // buffer.length`).
+
     var result = _nativeWrite(
       bufferAndStart.buffer,
       bufferAndStart.start,
