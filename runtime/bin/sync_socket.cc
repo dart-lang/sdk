@@ -129,26 +129,28 @@ void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
                                   "First parameter must be a List<int>"));
     return;
   }
-  intptr_t offset = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
-  intptr_t length = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  
+  intptr_t start = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t bytes = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   Dart_TypedData_Type type;
   uint8_t* buffer = nullptr;
-  intptr_t len;
+  intptr_t buffer_length;
   result = Dart_TypedDataAcquireData(buffer_obj, &type,
-                                     reinterpret_cast<void**>(&buffer), &len);
+                                     reinterpret_cast<void**>(&buffer),
+                                     &buffer_length);
   DART_CHECK_ERROR(result);
-  // Range-check at runtime, not just via ASSERT: an ASSERT-only check is
-  // stripped from product builds and would let a bad (offset, length) pair
-  // cause an OOB read of process heap into the socket.
-  if (offset < 0 || length < 0 || offset > len || length > len - offset) {
+  
+  const intptr_t end = start + bytes;
+  if (!(0 <= start && start <= end && end <= buffer_length)) {
     Dart_TypedDataReleaseData(buffer_obj);
-    Dart_SetReturnValue(args,
-                        DartUtils::NewDartArgumentError("Invalid range"));
+    Dart_SetReturnValue(args, Dart_NewApiError("Invalid range"));
     return;
   }
-  buffer += offset;
+  
+  buffer += start;
   intptr_t bytes_written =
-      SynchronousSocket::Write(socket->fd(), buffer, length);
+      SynchronousSocket::Write(socket->fd(), buffer, bytes);
+  
   Dart_TypedDataReleaseData(buffer_obj);
   if (bytes_written >= 0) {
     Dart_SetIntegerReturnValue(args, bytes_written);
