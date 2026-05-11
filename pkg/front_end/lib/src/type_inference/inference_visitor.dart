@@ -1275,8 +1275,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     registerIfUnreachableForTesting(node);
     List<Statement>? result = _visitStatements<Statement>(node.statements);
     StatementInferenceResult statementInferenceResult;
+    Block replacement = node;
     if (result != null) {
-      Block block = new Block(result)..fileOffset = node.fileOffset;
+      Block block = replacement = extern.createBlock(
+        result,
+        fileOffset: node.fileOffset,
+        fileEndOffset: node.fileEndOffset,
+      );
       libraryBuilder.loader.dataForTesting
       // Coverage-ignore(suite): Not run.
       ?.registerAlias(node, block);
@@ -1286,7 +1291,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope?..parent = node;
+      replacement.scope = scopeProviderInfo.scope?..parent = replacement;
     }
     return statementInferenceResult;
   }

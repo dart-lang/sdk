@@ -315,10 +315,14 @@ BreakStatement createBreakStatement(
 }
 
 /// Creates a block containing the [statements].
-Block createBlock(List<Statement> statements, {required int fileOffset}) {
+Block createBlock(
+  List<Statement> statements, {
+  required int fileOffset,
+  int? fileEndOffset,
+}) {
   return new Block(statements)
     ..fileOffset = fileOffset
-    ..fileEndOffset = fileOffset;
+    ..fileEndOffset = fileEndOffset ?? fileOffset;
 }
 
 /// Creates an [Arguments] object for the [positional] and [named] arguments,
