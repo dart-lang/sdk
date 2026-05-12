@@ -155,7 +155,7 @@ class Deserializer : public ThreadStackResource {
                const uint8_t* instructions_buffer);
   ~Deserializer();
 
-  ApiErrorPtr VerifyVersionAndFeatures();
+  char* VerifyVersionAndFeatures();
 
   ObjectPtr Allocate(intptr_t size);
   static void InitializeHeader(ObjectPtr raw,
@@ -1338,14 +1338,15 @@ Deserializer::~Deserializer() {
   delete[] clusters_;
 }
 
-ApiErrorPtr Deserializer::VerifyVersionAndFeatures() {
+char* Deserializer::VerifyVersionAndFeatures() {
   stream_.SetPosition(Snapshot::kHeaderSize);
 
   const intptr_t format_version = stream_.ReadUnsigned();
   if (format_version != ModuleSnapshot::kFormatVersion) {
-    return ApiError::New(String::Handle(String::NewFormatted(
-        "Invalid module snapshot format version %" Pd " (expected %" Pd ")",
-        format_version, ModuleSnapshot::kFormatVersion)));
+    return OS::SCreate(nullptr,
+                       "Invalid module snapshot format version %" Pd
+                       " (expected %" Pd ")",
+                       format_version, ModuleSnapshot::kFormatVersion);
   }
 
   const char* features =
@@ -1353,19 +1354,18 @@ ApiErrorPtr Deserializer::VerifyVersionAndFeatures() {
   const intptr_t features_length =
       Utils::StrNLen(features, stream_.PendingBytes());
   if (features_length == stream_.PendingBytes()) {
-    return ApiError::New(
-        String::Handle(String::New("The features string in the module snapshot "
-                                   "was not zero-terminated.")));
+    return Utils::StrDup(
+        "The features string in the module snapshot was not zero-terminated.");
   }
   stream_.Advance(features_length + 1);
 
   const char* expected_features = kHostArchitectureName;
   if (strcmp(expected_features, features) != 0) {
-    return ApiError::New(String::Handle(String::NewFormatted(
-        "Invalid module snapshot configuration '%s' (expected '%s')", features,
-        expected_features)));
+    return OS::SCreate(
+        nullptr, "Invalid module snapshot configuration '%s' (expected '%s')",
+        features, expected_features);
   }
-  return ApiError::null();
+  return nullptr;
 }
 
 DeserializationCluster* Deserializer::ReadCluster() {
@@ -1581,22 +1581,22 @@ void Deserializer::Deserialize() {
   }
 }
 
-ApiErrorPtr ReadModuleSnapshot(Thread* thread,
-                               const Snapshot* snapshot,
-                               const uint8_t* instructions_buffer) {
+char* ReadModuleSnapshot(Thread* thread,
+                         const Snapshot* snapshot,
+                         const uint8_t* instructions_buffer) {
   ASSERT(snapshot->kind() == Snapshot::kModule);
 
   Deserializer deserializer(thread, snapshot->Addr(), snapshot->length(),
                             instructions_buffer);
 
-  ApiErrorPtr api_error = deserializer.VerifyVersionAndFeatures();
-  if (api_error != ApiError::null()) {
-    return api_error;
+  char* error = deserializer.VerifyVersionAndFeatures();
+  if (error != nullptr) {
+    return error;
   }
 
   deserializer.Deserialize();
 
-  return ApiError::null();
+  return nullptr;
 }
 
 }  // namespace module_snapshot

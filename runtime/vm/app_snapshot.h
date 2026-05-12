@@ -167,14 +167,15 @@ class FullSnapshotReader {
                      Thread* thread);
   ~FullSnapshotReader() {}
 
-  ApiErrorPtr ReadVMSnapshot();
-  ApiErrorPtr ReadProgramSnapshot();
-  ApiErrorPtr ReadUnitSnapshot(const LoadingUnit& unit);
+  // On success, returns nullptr. On failure, returns an error message that the
+  // caller must free.
+  char* ReadVMSnapshot();
+  char* ReadProgramSnapshot();
+  char* ReadUnitSnapshot(const LoadingUnit& unit);
 
  private:
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
-  ApiErrorPtr ConvertToApiError(char* message);
   void InitializeBSS();
 
   Snapshot::Kind kind_;

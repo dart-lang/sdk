@@ -16,9 +16,11 @@
 namespace dart {
 namespace module_snapshot {
 
-ApiErrorPtr ReadModuleSnapshot(Thread* thread,
-                               const Snapshot* snapshot,
-                               const uint8_t* instructions_buffer);
+// On success, returns nullptr. On failure, returns an error message that the
+// caller must free.
+char* ReadModuleSnapshot(Thread* thread,
+                         const Snapshot* snapshot,
+                         const uint8_t* instructions_buffer);
 
 }  // namespace module_snapshot
 }  // namespace dart

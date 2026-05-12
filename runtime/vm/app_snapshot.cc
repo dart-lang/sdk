@@ -685,9 +685,9 @@ class Deserializer : public ThreadStackResource {
 
   // Verifies the image alignment.
   //
-  // Returns ApiError::null() on success and an ApiError with an an appropriate
-  // message otherwise.
-  ApiErrorPtr VerifyImageAlignment();
+  // On success, returns nullptr. On failure, returns an error message that the
+  // caller must free.
+  char* VerifyImageAlignment();
 
   ObjectPtr Allocate(intptr_t size);
   static void InitializeHeader(ObjectPtr raw, intptr_t cid, intptr_t size) {
@@ -9720,11 +9720,11 @@ void Deserializer::ReadDispatchTable(
 #endif
 }
 
-ApiErrorPtr Deserializer::VerifyImageAlignment() {
+char* Deserializer::VerifyImageAlignment() {
   if (image_reader_ != nullptr) {
     return image_reader_->VerifyAlignment();
   }
-  return ApiError::null();
+  return nullptr;
 }
 
 void SnapshotHeaderReader::SetCoverageFromSnapshotFeatures(
@@ -9844,17 +9844,6 @@ char* SnapshotHeaderReader::ReadFeatures(const char** features,
 
 char* SnapshotHeaderReader::BuildError(const char* message) {
   return Utils::StrDup(message);
-}
-
-ApiErrorPtr FullSnapshotReader::ConvertToApiError(char* message) {
-  // This can also fail while bringing up the VM isolate, so make sure to
-  // allocate the error message in old space.
-  const String& msg = String::Handle(String::New(message, Heap::kOld));
-
-  // The [message] was constructed with [BuildError] and needs to be freed.
-  free(message);
-
-  return ApiError::New(msg, Heap::kOld);
 }
 
 void Deserializer::ReadInstructions(CodePtr code, bool deferred) {
@@ -10384,14 +10373,14 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
   return nullptr;
 }
 
-ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
+char* FullSnapshotReader::ReadVMSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
 
   intptr_t offset = 0;
   char* error = header_reader.VerifyVersionAndFeatures(
       /*isolate_group=*/nullptr, &offset);
   if (error != nullptr) {
-    return ConvertToApiError(error);
+    return error;
   }
 
   // Even though there's no concurrent threads we have to guard agains, some
@@ -10402,9 +10391,9 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, /*is_non_root_unit=*/false,
                             offset);
-  ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
-  if (api_error != ApiError::null()) {
-    return api_error;
+  error = deserializer.VerifyImageAlignment();
+  if (error != nullptr) {
+    return error;
   }
 
   if (Snapshot::IncludesCode(kind_)) {
@@ -10428,17 +10417,17 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-  return ApiError::null();
+  return nullptr;
 }
 
-ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
+char* FullSnapshotReader::ReadProgramSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
   header_reader.SetCoverageFromSnapshotFeatures(thread_->isolate_group());
   intptr_t offset = 0;
   char* error =
       header_reader.VerifyVersionAndFeatures(thread_->isolate_group(), &offset);
   if (error != nullptr) {
-    return ConvertToApiError(error);
+    return error;
   }
 
   // Even though there's no concurrent threads we have to guard agains, some
@@ -10449,9 +10438,9 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, /*is_non_root_unit=*/false,
                             offset);
-  ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
-  if (api_error != ApiError::null()) {
-    return api_error;
+  error = deserializer.VerifyImageAlignment();
+  if (error != nullptr) {
+    return error;
   }
 
   if (Snapshot::IncludesCode(kind_)) {
@@ -10482,24 +10471,24 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
 
   InitializeBSS();
 
-  return ApiError::null();
+  return nullptr;
 }
 
-ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
+char* FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
   intptr_t offset = 0;
   char* error =
       header_reader.VerifyVersionAndFeatures(thread_->isolate_group(), &offset);
   if (error != nullptr) {
-    return ConvertToApiError(error);
+    return error;
   }
 
   Deserializer deserializer(
       thread_, kind_, buffer_, size_, data_image_, instructions_image_,
       /*is_non_root_unit=*/unit.id() != LoadingUnit::kRootId, offset);
-  ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
-  if (api_error != ApiError::null()) {
-    return api_error;
+  error = deserializer.VerifyImageAlignment();
+  if (error != nullptr) {
+    return nullptr;
   }
   {
     Array& units =
@@ -10507,9 +10496,9 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
     uint32_t main_program_hash = Smi::Value(Smi::RawCast(units.At(0)));
     uint32_t unit_program_hash = deserializer.Read<uint32_t>();
     if (main_program_hash != unit_program_hash) {
-      return ApiError::New(String::Handle(
-          String::New("Deferred loading unit is from a different "
-                      "program than the main loading unit")));
+      return Utils::StrDup(
+          "Deferred loading unit is from a different "
+          "program than the main loading unit");
     }
   }
 
@@ -10528,7 +10517,7 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
 
   InitializeBSS();
 
-  return ApiError::null();
+  return nullptr;
 }
 
 void FullSnapshotReader::InitializeBSS() {

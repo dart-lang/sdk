@@ -1220,24 +1220,27 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
     T->EnterApiScope();
-    auto& error_obj = Error::Handle(Z);
+    char* error_str = nullptr;
     if (is_new_group) {
-      error_obj = Dart::InitializeIsolateGroup(
+      error_str = Dart::InitializeIsolateGroup(
           T, source->snapshot_data, source->snapshot_instructions,
           source->kernel_buffer, source->kernel_buffer_size);
     }
-    if (error_obj.IsNull()) {
-      error_obj = Dart::InitializeIsolate(T, is_new_group, isolate_data);
-    }
-    if (error_obj.IsNull()) {
+    if (error_str == nullptr) {
+      const Error& error_obj = Error::Handle(
+          Z, Dart::InitializeIsolate(T, is_new_group, isolate_data));
+      if (error_obj.IsNull()) {
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
-      if (FLAG_check_function_fingerprints && !FLAG_precompiled_mode) {
-        Library::CheckFunctionFingerprints();
-      }
+        if (FLAG_check_function_fingerprints && !FLAG_precompiled_mode) {
+          Library::CheckFunctionFingerprints();
+        }
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
-      success = true;
+        success = true;
+      } else if (error != nullptr) {
+        *error = Utils::StrDup(error_obj.ToErrorCString());
+      }
     } else if (error != nullptr) {
-      *error = Utils::StrDup(error_obj.ToErrorCString());
+      *error = error_str;
     }
     // We exit the API scope entered above.
     T->ExitApiScope();
@@ -5663,10 +5666,12 @@ Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
     return Api::NewError("Invalid snapshot kind");
   }
 
-  const Error& error = Error::Handle(
-      module_snapshot::ReadModuleSnapshot(T, snapshot, snapshot_instructions));
-  if (!error.IsNull()) {
-    return Api::NewHandle(T, error.ptr());
+  char* error =
+      module_snapshot::ReadModuleSnapshot(T, snapshot, snapshot_instructions);
+  if (error != nullptr) {
+    const String& message = String::Handle(String::New(error));
+    free(error);
+    return Api::NewHandle(T, ApiError::New(message));
   }
 
   return Api::Success();
@@ -6113,9 +6118,11 @@ static Dart_Handle DeferredLoadComplete(intptr_t loading_unit_id,
     }
 
     FullSnapshotReader reader(snapshot, snapshot_instructions, T);
-    const Error& error = Error::Handle(reader.ReadUnitSnapshot(unit));
-    if (!error.IsNull()) {
-      return Api::NewHandle(T, error.ptr());
+    char* error = reader.ReadUnitSnapshot(unit);
+    if (error != nullptr) {
+      const String& message = String::Handle(Z, String::New(error));
+      free(error);
+      return Api::NewHandle(T, ApiError::New(message));
     }
 
     return Api::NewHandle(T, unit.CompleteLoad(String::Handle(), false));
