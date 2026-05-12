@@ -23,7 +23,6 @@ import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<InternalExecutableElement>>();
@@ -233,7 +232,12 @@ class _ClassVerifier {
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
-      _reportInconsistentInheritance(classNameToken, conflict);
+      var errorToken = switch (conflict) {
+        GetterMethodConflict() =>
+          _declaredMemberName(conflict.name) ?? classNameToken,
+        _ => classNameToken,
+      };
+      _reportInconsistentInheritance(errorToken, conflict);
     }
 
     if (element.supertype != null) {
@@ -298,7 +302,7 @@ class _ClassVerifier {
         _checkDeclaredMember(
           member.name,
           libraryUri,
-          member.declaredFragment!.asElement2,
+          member.declaredFragment!.element,
           methodParameterNodes: member.parameters?.parameters,
         );
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
@@ -747,6 +751,30 @@ class _ClassVerifier {
     return true;
   }
 
+  /// Returns the name token for a member declared in this class or mixin that
+  /// matches [name], so getter/method inheritance conflicts can be reported at
+  /// the overriding declaration instead of the class or mixin name.
+  Token? _declaredMemberName(Name name) {
+    for (var member in members) {
+      if (member is FieldDeclarationImpl) {
+        for (var field in member.fields.variables) {
+          var fieldFragment = field.declaredFragment as FieldFragmentImpl;
+          var fieldElement = fieldFragment.element;
+          if (fieldElement.getter?.lookupName == name.name) {
+            return field.name;
+          }
+        }
+      } else if (member is MethodDeclarationImpl) {
+        var methodFragment = member.declaredFragment!;
+        var methodElement = methodFragment.element;
+        if (methodElement.lookupName == name.name) {
+          return member.name;
+        }
+      }
+    }
+    return null;
+  }
+
   /// If [name] is not implemented in the extended concrete class, the
   /// issue should be fixed there, and then [classElement] will not have it too.
   bool _isNotImplementedInConcreteSuperClass(Name name) {
@@ -806,7 +834,7 @@ class _ClassVerifier {
     return false;
   }
 
-  void _reportInconsistentInheritance(Token token, Conflict conflict) {
+  void _reportInconsistentInheritance(Token errorToken, Conflict conflict) {
     var name = conflict.name;
 
     if (conflict is GetterMethodConflict) {
@@ -821,7 +849,7 @@ class _ClassVerifier {
               getterInterface: conflict.getter.enclosingElement!.name!,
               methodInterface: conflict.method.enclosingElement!.name!,
             )
-            .at(token),
+            .at(errorToken),
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates
@@ -835,7 +863,7 @@ class _ClassVerifier {
       reporter.report(
         diag.inconsistentInheritance
             .withArguments(name: name.name, inheritedSignatures: candidatesStr)
-            .at(token),
+            .at(errorToken),
       );
     } else {
       throw StateError('${conflict.runtimeType}');
