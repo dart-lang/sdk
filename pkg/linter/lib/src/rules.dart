@@ -94,6 +94,7 @@ import 'rules/hash_and_equals.dart';
 import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
 import 'rules/implicit_reopen.dart';
+import 'rules/initialize_in_field_declaration.dart';
 import 'rules/invalid_case_patterns.dart';
 import 'rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'rules/invariant_booleans.dart';
@@ -358,6 +359,7 @@ void registerLintRules() {
     ..registerLintRule(ImplementationImports())
     ..registerLintRule(ImplicitCallTearoffs())
     ..registerLintRule(ImplicitReopen())
+    ..registerLintRule(InitializeInFieldDeclaration())
     ..registerLintRule(InvalidCasePatterns())
     ..registerLintRule(invariantBooleans)
     ..registerLintRule(iterableContainsUnrelatedType)

@@ -126,6 +126,8 @@ import 'hash_and_equals_test.dart' as hash_and_equals;
 import 'implementation_imports_test.dart' as implementation_imports;
 import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
 import 'implicit_reopen_test.dart' as implicit_reopen;
+import 'initialize_in_field_declaration_test.dart'
+    as initialize_in_field_declaration;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
 import 'invalid_runtime_check_with_js_interop_types_test.dart'
     as invalid_runtime_check_with_js_interop_types;
@@ -429,6 +431,7 @@ void main() {
   implementation_imports.main();
   implicit_call_tearoffs.main();
   implicit_reopen.main();
+  initialize_in_field_declaration.main();
   invalid_case_patterns.main();
   invalid_runtime_check_with_js_interop_types.main();
   join_return_with_assignment.main();

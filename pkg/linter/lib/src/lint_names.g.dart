@@ -254,6 +254,9 @@ abstract final class LintNames {
 
   static const String implicit_reopen = 'implicit_reopen';
 
+  static const String initialize_in_field_declaration =
+      'initialize_in_field_declaration';
+
   static const String invalid_case_patterns = 'invalid_case_patterns';
 
   static const String invalid_runtime_check_with_js_interop_types =

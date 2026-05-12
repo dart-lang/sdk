@@ -5865,6 +5865,17 @@ LinterLintCode:
       @reopen
       class C extends I {}
       ```
+  initializeInFieldDeclaration:
+    type: lint
+    parameters: none
+    problemMessage: "Field should be initialized in the field declaration."
+    correctionMessage: "Try initializing the field where it's declared."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Initialize fields where they're declared when possible.
   invalidCasePatterns:
     type: lint
     parameters: none

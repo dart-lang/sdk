@@ -1455,6 +1455,16 @@ implicitReopen = LinterLintTemplate(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments initializeInFieldDeclaration =
+    LinterLintWithoutArguments(
+      name: 'initialize_in_field_declaration',
+      problemMessage: "Field should be initialized in the field declaration.",
+      correctionMessage: "Try initializing the field where it's declared.",
+      uniqueName: 'initialize_in_field_declaration',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments invalidCasePatterns =
     LinterLintWithoutArguments(
       name: 'invalid_case_patterns',
