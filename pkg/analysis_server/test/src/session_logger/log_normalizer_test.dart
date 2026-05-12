@@ -146,9 +146,9 @@ class LogNormalizerTest {
       expect(
         output,
         allOf(
-          contains('{{folder-1}}'),
-          contains('{{folder-2}}'),
-          contains('{{folder-3}}'),
+          contains('{{folder-1:filePath}}'),
+          contains('{{folder-2:filePath}}'),
+          contains('{{folder-3:filePath}}'),
         ),
       );
 
