@@ -1528,16 +1528,8 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
         type =
             Class::Cast(parent).TypeParameterAt(index_in_parent, nullability);
       } else if (parent.IsFunction()) {
-        if (Function::Cast(parent).IsFactory()) {
-          // For factory constructors VM uses type parameters of a class
-          // instead of constructor's type parameters.
-          parent = Function::Cast(parent).Owner();
-          type =
-              Class::Cast(parent).TypeParameterAt(index_in_parent, nullability);
-        } else {
-          type = Function::Cast(parent).TypeParameterAt(index_in_parent,
-                                                        nullability);
-        }
+        type = Function::Cast(parent).TypeParameterAt(index_in_parent,
+                                                      nullability);
       } else if (parent.IsNull()) {
         ASSERT(!enclosing_function_types_.is_empty());
         for (intptr_t i = enclosing_function_types_.length() - 1; i >= 0; --i) {
@@ -2124,7 +2116,6 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     intptr_t flags = reader_.ReadUInt();
 
     const bool is_static = (flags & kIsStaticFlag) != 0;
-    const bool is_factory = (flags & kIsFactoryFlag) != 0;
     const bool is_native = (flags & kIsNativeFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
     const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
@@ -2204,7 +2195,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       ReadTypeParametersDeclaration(Class::Handle(Z), signature);
     }
 
-    const intptr_t num_implicit_params = (!is_static || is_factory) ? 1 : 0;
+    const intptr_t num_implicit_params = (!is_static) ? 1 : 0;
     const intptr_t num_params = num_implicit_params + reader_.ReadUInt();
     const bool has_optional_named_params =
         ((flags & kHasOptionalNamedParamsFlag) != 0);
@@ -2240,11 +2231,6 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       signature.SetParameterTypeAt(param_index, type);
       NOT_IN_PRECOMPILED(
           function.SetParameterNameAt(param_index, Symbols::This()));
-      ++param_index;
-    } else if (is_factory) {
-      signature.SetParameterTypeAt(param_index, AbstractType::dynamic_type());
-      NOT_IN_PRECOMPILED(function.SetParameterNameAt(
-          param_index, Symbols::TypeArgumentsParameter()));
       ++param_index;
     }
 

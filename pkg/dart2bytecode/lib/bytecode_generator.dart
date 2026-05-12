@@ -949,9 +949,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void _genExternalCall(Member node) {
     final function = node.function!;
 
-    if (locals.hasFactoryTypeArgsVar) {
-      asm.emitPush(locals.getVarIndexInFrame(locals.factoryTypeArgsVar));
-    } else if (locals.hasFunctionTypeArgsVar) {
+    if (locals.hasFunctionTypeArgsVar) {
       asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
     }
     if (locals.hasReceiver) {
@@ -1483,23 +1481,19 @@ class BytecodeGenerator extends RecursiveVisitor {
     Member target,
     Arguments args, {
     bool hasReceiver = false,
-    bool isFactory = false,
     bool isUnchecked = false,
     TreeNode? node,
   }) {
     final argDesc = objectTable.getArgDescHandleByArguments(
       args,
       hasReceiver: hasReceiver,
-      isFactory: isFactory,
     );
 
     int totalArgCount = args.positional.length + args.named.length;
     if (hasReceiver) {
       totalArgCount++;
     }
-    if (args.types.isNotEmpty || isFactory) {
-      // VM needs type arguments for every invocation of a factory constructor.
-      // TODO(alexmarkov): Clean this up.
+    if (args.types.isNotEmpty) {
       totalArgCount++;
     }
 
@@ -1573,17 +1567,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _genPushInstantiatorTypeArguments() {
     if (instantiatorTypeArguments != null) {
-      if (locals.hasFactoryTypeArgsVar) {
-        assert(
-          enclosingMember is Procedure &&
-              (enclosingMember as Procedure).isFactory,
-        );
-        _genLoadVar(locals.factoryTypeArgsVar);
-      } else {
-        _genPushReceiver();
-        final int cpIndex = cp.addTypeArgumentsField(enclosingClass!);
-        asm.emitLoadTypeArgumentsField(cpIndex);
-      }
+      _genPushReceiver();
+      final int cpIndex = cp.addTypeArgumentsField(enclosingClass!);
+      asm.emitLoadTypeArgumentsField(cpIndex);
     } else {
       asm.emitPushNull();
     }
@@ -1844,22 +1830,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     isClosure = false;
     hasErrors = false;
     staticTypeContext.enterMember(node);
-    final isFactory = node is Procedure && node.isFactory;
-    if (node.isInstanceMember || node is Constructor || isFactory) {
+    if (node.isInstanceMember || node is Constructor) {
       if (enclosingClass!.typeParameters.isNotEmpty) {
-        final classTypeParameters = this.classTypeParameters =
-            new Set<TypeParameter>.from(enclosingClass.typeParameters);
-        // Treat type arguments of factory constructors as class
-        // type parameters.
-        if (isFactory) {
-          classTypeParameters.addAll(node.function.typeParameters);
-        }
+        this.classTypeParameters = new Set<TypeParameter>.from(
+          enclosingClass.typeParameters,
+        );
       }
       if (hasInstantiatorTypeArguments(enclosingClass)) {
         final typeParameters = getTypeParameterTypes(
-          isFactory
-              ? node.function.typeParameters
-              : enclosingClass.typeParameters,
+          enclosingClass.typeParameters,
         );
         instantiatorTypeArguments = flattenInstantiatorTypeArguments(
           enclosingClass,
@@ -2196,8 +2175,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     if (locals.hasFunctionTypeArgsVar && function!.typeParameters.isNotEmpty) {
-      assert(!(node is Procedure && node.isFactory));
-
       Label done = new Label();
 
       if (isClosure) {
@@ -2353,9 +2330,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (locals.hasCapturedParameters) {
       // Copy captured parameters to their respective locations in the context.
       if (!isClosure) {
-        if (locals.hasFactoryTypeArgsVar) {
-          _copyParamIfCaptured(locals.factoryTypeArgsVar);
-        }
         if (locals.hasCapturedReceiverVar) {
           _genPushContextForVariable(locals.capturedReceiverVar);
           asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));
@@ -3385,11 +3359,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
 
-    // _GrowableList._literal is a factory constructor.
-    // Type arguments passed to a factory constructor are counted as a normal
-    // argument and not counted in number of type arguments.
     assert(growableListLiteral.isFactory);
-    _genDirectCall(growableListLiteral, objectTable.getArgDescHandle(2), 2);
+    _genDirectCall(growableListLiteral, objectTable.getArgDescHandle(1, 1), 2);
   }
 
   @override
@@ -3451,11 +3422,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
 
-    // Map._fromLiteral is a factory constructor.
-    // Type arguments passed to a factory constructor are counted as a normal
-    // argument and not counted in number of type arguments.
     assert(mapFromLiteral.isFactory);
-    _genDirectCall(mapFromLiteral, objectTable.getArgDescHandle(2), 2);
+    _genDirectCall(mapFromLiteral, objectTable.getArgDescHandle(1, 2), 2);
   }
 
   void _genMethodInvocationUsingSpecializedBytecode(
@@ -4025,28 +3993,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       _generateFfiCall(args.positional.single);
       return;
     }
-    if (target.isFactory) {
-      final constructedClass = target.enclosingClass!;
-      if (hasInstantiatorTypeArguments(constructedClass)) {
-        _genTypeArguments(args.types, instantiatingClass: constructedClass);
-      } else {
-        assert(args.types.isEmpty);
-        // VM needs type arguments for every invocation of a factory
-        // constructor. TODO(alexmarkov): Clean this up.
-        asm.emitPushNull();
-      }
-      args = new Arguments(
-        node.arguments.positional,
-        named: node.arguments.named,
-      )..parent = node;
-    }
     _genArguments(null, args);
-    _genDirectCallWithArgs(
-      target,
-      args,
-      isFactory: target.isFactory,
-      node: node,
-    );
+    _genDirectCallWithArgs(target, args, node: node);
     if (target == debugger) {
       // The debugger needs a pause for the current source position right after
       // stepping out from the debugger function.

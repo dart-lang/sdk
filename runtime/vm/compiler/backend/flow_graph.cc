@@ -1477,8 +1477,7 @@ intptr_t FlowGraph::ComputeLocationsOfFixedParameters(
     compiler::ParameterInfoArray* parameter_info /* = nullptr */) {
   return compiler::ComputeCallingConvention(
       zone, function, function.num_fixed_parameters(),
-      [&](intptr_t i) {
-        const intptr_t index = (function.IsFactory() ? (i - 1) : i);
+      [&](intptr_t index) {
         return index >= 0 ? ParameterRepresentationAt(function, index)
                           : kTagged;
       },

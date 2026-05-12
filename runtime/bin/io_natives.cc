@@ -173,7 +173,7 @@ namespace bin {
   V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
   V(Socket_HasPendingWrite, 1)                                                 \
-  V(SocketControlMessage_fromHandles, 2)                                       \
+  V(SocketControlMessage_fromHandles, 1)                                       \
   V(SocketControlMessageImpl_extractHandles, 1)                                \
   V(Stdin_ReadByte, 1)                                                         \
   V(Stdin_GetEchoMode, 1)                                                      \

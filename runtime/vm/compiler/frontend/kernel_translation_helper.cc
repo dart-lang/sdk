@@ -3204,9 +3204,7 @@ TypedDataViewPtr KernelReaderHelper::GetConstantCoverageFor(intptr_t index) {
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
   ASSERT(member != nullptr);
-  if (member->IsFactory()) {
-    return klass->NumTypeParameters();
-  } else if (member->IsMethodExtractor()) {
+  if (member->IsMethodExtractor()) {
     Function& extracted =
         Function::Handle(zone, member->extracted_method_closure());
     return extracted.NumTypeParameters();
@@ -3601,35 +3599,8 @@ void TypeTranslator::BuildTypeParameterType() {
     parameter_index -= class_type_parameter_count;
 
     if (active_class_->HasMember()) {
-      if (active_class_->MemberIsFactoryProcedure()) {
-        //
-        // WARNING: This is a little hackish:
-        //
-        // We have a static factory constructor. The kernel IR gives the factory
-        // constructor function its own type parameters (which are equal in name
-        // and number to the ones of the enclosing class). I.e.,
-        //
-        //   class A<T> {
-        //     factory A.x() { return new B<T>(); }
-        //   }
-        //
-        //  is basically translated to this:
-        //
-        //   class A<T> {
-        //     static A.x<T'>() { return new B<T'>(); }
-        //   }
-        //
-        if (class_type_parameter_count > parameter_index) {
-          result_ = active_class_->klass->TypeParameterAt(parameter_index,
-                                                          nullability);
-          return;
-        }
-        parameter_index -= class_type_parameter_count;
-      }
-      // Factory function should not be considered as procedure.
       const intptr_t procedure_type_parameter_count =
-          (active_class_->MemberIsProcedure() &&
-           !active_class_->MemberIsFactoryProcedure())
+          active_class_->MemberIsProcedure()
               ? active_class_->MemberTypeParameterCount(Z)
               : 0;
       if (procedure_type_parameter_count > 0) {
@@ -3937,26 +3908,20 @@ void TypeTranslator::SetupFunctionParameters(
     bool is_closure,
     FunctionNodeHelper* function_node_helper) {
   ASSERT(!(is_method && is_closure));
-  bool is_factory = function.IsFactory();
-  intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
+  intptr_t extra_parameters = (is_method || is_closure) ? 1 : 0;
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   ASSERT(!signature.IsNull());
-  intptr_t type_parameter_count = 0;
-  if (!is_factory) {
-    type_parameter_count = helper_->ReadListLength();
-    LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
-                               signature, type_parameter_count);
-    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
-  }
+  intptr_t type_parameter_count = helper_->ReadListLength();
+  LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
+                             signature, type_parameter_count);
+  function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
 
   ActiveTypeParametersScope scope(active_class_, function, &signature, Z);
 
-  if (!is_factory) {
-    LoadAndSetupBounds(active_class_, function, Class::Handle(Z), signature,
-                       type_parameter_count);
-    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
-  }
+  LoadAndSetupBounds(active_class_, function, Class::Handle(Z), signature,
+                     type_parameter_count);
+  function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
@@ -3996,13 +3961,9 @@ void TypeTranslator::SetupFunctionParameters(
       signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
       function.SetParameterNameAt(pos, Symbols::ClosureParameter());
       pos++;
-    } else if (is_factory) {
-      signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-      function.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
-      pos++;
     }
   } else {
-    ASSERT(!is_method && !is_closure && !is_factory);
+    ASSERT(!is_method && !is_closure);
   }
 
   const Library& lib = Library::Handle(Z, active_class_->klass->library());

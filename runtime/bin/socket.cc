@@ -1525,8 +1525,7 @@ void FUNCTION_NAME(SocketControlMessage_fromHandles)(
                       DartUtils::NewDartUnsupportedError(
                           "This is not supported on this operating system"));
 #else
-  ASSERT(Dart_IsNull(Dart_GetNativeArgument(args, 0)));
-  Dart_Handle handles_dart = Dart_GetNativeArgument(args, 1);
+  Dart_Handle handles_dart = Dart_GetNativeArgument(args, 0);
   if (Dart_IsNull(handles_dart)) {
     Dart_ThrowException(
         DartUtils::NewDartArgumentError("handles list can't be null"));

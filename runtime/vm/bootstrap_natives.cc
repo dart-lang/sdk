@@ -59,8 +59,11 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     const struct NativeEntries* entry = &(BootStrapEntries[i]);
-    if ((strcmp(function_name, entry->name_) == 0) &&
-        (entry->argument_count_ == argument_count)) {
+    if (strcmp(function_name, entry->name_) == 0) {
+      if (entry->argument_count_ != argument_count) {
+        FATAL("Wrong number of arguments of %s (expected %d, actual %d)",
+              function_name, argument_count, entry->argument_count_);
+      }
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }

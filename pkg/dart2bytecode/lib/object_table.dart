@@ -1920,7 +1920,6 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   ObjectHandle getArgDescHandleByArguments(
     Arguments args, {
     bool hasReceiver = false,
-    bool isFactory = false,
   }) {
     List<_PublicNameHandle> argNames = const <_PublicNameHandle>[];
     final namedArguments = args.named;
@@ -1931,15 +1930,8 @@ class ObjectTable implements ObjectWriter, ObjectReader {
       );
     }
     final int numArguments =
-        args.positional.length +
-        args.named.length +
-        (hasReceiver ? 1 : 0) +
-        // VM expects that type arguments vector passed to a factory
-        // constructor is counted in numArguments, and not counted in
-        // numTypeArgs.
-        // TODO(alexmarkov): Clean this up.
-        (isFactory ? 1 : 0);
-    final int numTypeArguments = isFactory ? 0 : args.types.length;
+        args.positional.length + args.named.length + (hasReceiver ? 1 : 0);
+    final int numTypeArguments = args.types.length;
     return getOrAddObject(
       new _ArgDescHandle(numArguments, numTypeArguments, argNames),
     );

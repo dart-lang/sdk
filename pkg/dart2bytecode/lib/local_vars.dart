@@ -120,12 +120,6 @@ class LocalVariables {
 
   bool get hasFunctionTypeArgsVar => _currentFrame.functionTypeArgsVar != null;
 
-  VariableDeclaration get factoryTypeArgsVar =>
-      _currentFrame.factoryTypeArgsVar ??
-      (throw 'FactoryTypeArgs variable is not declared in ${_currentFrame.function}');
-
-  bool get hasFactoryTypeArgsVar => _currentFrame.factoryTypeArgsVar != null;
-
   VariableDeclaration get receiverVar =>
       _currentFrame.receiverVar ??
       (throw 'Receiver variable is not declared in ${_currentFrame.function}');
@@ -243,7 +237,6 @@ class Frame {
   VariableDeclaration? receiverVar;
   VariableDeclaration? capturedReceiverVar;
   VariableDeclaration? functionTypeArgsVar;
-  VariableDeclaration? factoryTypeArgsVar;
   VariableDeclaration? closureVar;
   VariableDeclaration? contextVar;
   VariableDeclaration? scratchVar;
@@ -364,29 +357,15 @@ class _ScopeBuilder extends RecursiveVisitor {
         }
       }
 
-      if (node is Procedure && node.isFactory) {
-        assert(_currentFrame.parent == null);
-        _currentFrame.numTypeArguments = 0;
-        final factoryTypeArgsVar = _currentFrame.factoryTypeArgsVar =
-            VariableDeclaration(':type_arguments');
-        _declareVariable(factoryTypeArgsVar);
-      } else {
-        _currentFrame.numTypeArguments =
-            (_currentFrame.parent?.numTypeArguments ?? 0) +
-            function.typeParameters.length;
+      _currentFrame.numTypeArguments =
+          (_currentFrame.parent?.numTypeArguments ?? 0) +
+          function.typeParameters.length;
 
-        if (_currentFrame.numTypeArguments > 0) {
-          final functionTypeArgsVar = _currentFrame.functionTypeArgsVar =
-              VariableDeclaration(':function_type_arguments_var')
-                ..fileOffset = function.fileOffset;
-          _declareVariable(functionTypeArgsVar);
-        }
-
-        final parentFactoryTypeArgsVar =
-            _currentFrame.parent?.factoryTypeArgsVar;
-        if (parentFactoryTypeArgsVar != null) {
-          _currentFrame.factoryTypeArgsVar = parentFactoryTypeArgsVar;
-        }
+      if (_currentFrame.numTypeArguments > 0) {
+        final functionTypeArgsVar = _currentFrame.functionTypeArgsVar =
+            VariableDeclaration(':function_type_arguments_var')
+              ..fileOffset = function.fileOffset;
+        _declareVariable(functionTypeArgsVar);
       }
 
       if (_hasReceiverParameter(node)) {
@@ -625,8 +604,6 @@ class _ScopeBuilder extends RecursiveVisitor {
     var parent = node.parameter.declaration;
     if (parent is Class) {
       _useThis();
-    } else if (parent is Procedure && parent.isFactory) {
-      _useVariable(_currentFrame.factoryTypeArgsVar!);
     }
     node.visitChildren(this);
   }
@@ -946,7 +923,6 @@ class _Allocator extends RecursiveVisitor {
   }
 
   void _allocateParameters(TreeNode node, FunctionNode function) {
-    final bool isFactory = node is Procedure && node.isFactory;
     final bool hasReceiver = _hasReceiverParameter(node);
     final bool hasClosureArg =
         node is FunctionDeclaration || node is FunctionExpression;
@@ -954,7 +930,6 @@ class _Allocator extends RecursiveVisitor {
     _currentFrame.numParameters =
         function.positionalParameters.length +
         function.namedParameters.length +
-        (isFactory ? 1 : 0) +
         (hasReceiver ? 1 : 0) +
         (hasClosureArg ? 1 : 0);
 
@@ -964,15 +939,11 @@ class _Allocator extends RecursiveVisitor {
         function.namedParameters.isNotEmpty;
 
     _currentFrame.hasCapturedParameters =
-        (isFactory && locals.isCaptured(_currentFrame.factoryTypeArgsVar!)) ||
         (hasReceiver && _currentFrame.capturedReceiverVar != null) ||
         function.positionalParameters.any(locals.isCaptured) ||
         function.namedParameters.any(locals.isCaptured);
 
     int count = 0;
-    if (isFactory) {
-      _allocateParameter(_currentFrame.factoryTypeArgsVar!, count++);
-    }
     if (hasReceiver) {
       assert(!locals.isCaptured(_currentFrame.receiverVar!));
       _allocateParameter(_currentFrame.receiverVar!, count++);
