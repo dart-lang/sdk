@@ -5878,7 +5878,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     NodeList<FormalParameter> formalParameters = parameterList.parameters;
     for (FormalParameter formalParameter in formalParameters) {
-      if (formalParameter.isOptional) {
+      if (!formalParameter.isRequiredPositional) {
         diagnosticReporter.report(
           diag.optionalParameterInOperator.at(formalParameter),
         );
