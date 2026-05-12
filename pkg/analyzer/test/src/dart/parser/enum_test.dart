@@ -409,6 +409,32 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_augment_factory_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {
+  v;
+  augment factory E() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  augmentKeyword: augment
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: E
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
   test_constructor_typeName_factory_named() {
     var parseResult = parseStringWithErrors(r'''
 enum E {
@@ -581,9 +607,7 @@ EnumDeclaration
 // @dart = 3.10
 enum E;
 ''');
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabled, 22, 1),
-    ]);
+    parseResult.assertErrors([error(diag.experimentNotEnabled, 22, 1)]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''

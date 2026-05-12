@@ -5148,6 +5148,157 @@ library
 ''');
   }
 
+  test_constructor_secondary_augmentation_chain_isCompleteDeclaration_factory() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  factory A();
+}
+
+augment extension type A(int it) {
+  augment factory A() => A(0);
+}
+
+augment extension type A(int it) {
+  augment factory A();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          nextFragment: #F2
+          fields
+            #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@field::it
+              nextFragment: #F4
+          constructors
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            #F7 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:37)
+              element: <testLibrary>::@extensionType::A::@constructor::new#1
+              factoryKeywordOffset: 29
+              typeName: A
+              typeNameOffset: 37
+              formalParameters
+                #F8 requiredPositional isFinal isOriginOtherFragmentOfEnclosing this.it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
+                  nextFragment: #F9
+              nextFragment: #F10
+          getters
+            #F11 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@getter::it
+        #F2 isAugmentation extension type A (nameOffset:68) (firstTokenOffset:45) (offset:68)
+          element: <testLibrary>::@extensionType::A
+          previousFragment: #F1
+          nextFragment: #F12
+          fields
+            #F4 isAugmentation isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+              element: <testLibrary>::@extensionType::A::@field::it
+              previousFragment: #F3
+              nextFragment: #F13
+          constructors
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:68) (offset:68)
+              element: <testLibrary>::@extensionType::A::@constructor::new#1
+              typeName: A
+              typeNameOffset: 68
+              formalParameters
+                #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:74) (firstTokenOffset:70) (offset:74)
+                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
+                  previousFragment: #F8
+                  nextFragment: #F14
+              nextFragment: #F15
+              previousFragment: #F7
+            #F15 isAugmentation isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:82) (offset:98)
+              element: <testLibrary>::@extensionType::A::@constructor::new#1
+              factoryKeywordOffset: 90
+              typeName: A
+              typeNameOffset: 98
+              formalParameters
+                #F14 requiredPositional isFinal isOriginOtherFragmentOfEnclosing this.it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
+                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
+                  previousFragment: #F9
+                  nextFragment: #F16
+              nextFragment: #F17
+              previousFragment: #F10
+        #F12 isAugmentation extension type A (nameOffset:137) (firstTokenOffset:114) (offset:137)
+          element: <testLibrary>::@extensionType::A
+          previousFragment: #F2
+          fields
+            #F13 isAugmentation isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
+              element: <testLibrary>::@extensionType::A::@field::it
+              previousFragment: #F4
+          constructors
+            #F17 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
+              element: <testLibrary>::@extensionType::A::@constructor::new#1
+              typeName: A
+              typeNameOffset: 137
+              formalParameters
+                #F16 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:143) (firstTokenOffset:139) (offset:143)
+                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
+                  previousFragment: #F14
+                  nextFragment: #F18
+              nextFragment: #F19
+              previousFragment: #F15
+            #F19 isAugmentation isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:151) (offset:167)
+              element: <testLibrary>::@extensionType::A::@constructor::new#1
+              factoryKeywordOffset: 159
+              typeName: A
+              typeNameOffset: 167
+              formalParameters
+                #F18 requiredPositional isFinal isOriginOtherFragmentOfEnclosing this.it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:167)
+                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
+                  previousFragment: #F16
+              previousFragment: #F17
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+      constructors
+        isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional isDeclaring isFinal this.it
+              firstFragment: #F6
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+        isExtensionTypeMember isFactory isOriginDeclaration new
+          reference: <testLibrary>::@extensionType::A::@constructor::new#1
+          firstFragment: #F7
+          formalParameters
+            #E1 requiredPositional isFinal this.it
+              firstFragment: #F8
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F11
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
   test_constructor_secondary_factory() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {

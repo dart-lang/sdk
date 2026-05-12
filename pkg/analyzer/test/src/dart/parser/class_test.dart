@@ -656,6 +656,31 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_augment_factory_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment factory A() {}
+}
+''');
+    parseResult.assertExpectedDiagnostics();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  augmentKeyword: augment
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
   test_constructor_typeName_augment_named() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {

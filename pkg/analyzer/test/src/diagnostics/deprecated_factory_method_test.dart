@@ -58,11 +58,14 @@ class C {
   }
 
   test_withModifier_augment_after() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   augment factory() => throw 0;
 }
-''');
+''',
+      [error(diag.augmentationWithoutDeclaration, 12, 7)],
+    );
   }
 
   test_withModifier_augment_before() async {
@@ -89,7 +92,10 @@ class C {
 ''',
       // TODO(brianwilkerson): The `conflictingModifiers` diagnostic should not
       //  be produced here.
-      [error(diag.conflictingModifiers, 20, 8)],
+      [
+        error(diag.augmentationWithoutDeclaration, 12, 7),
+        error(diag.conflictingModifiers, 20, 8),
+      ],
     );
   }
 

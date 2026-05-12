@@ -542,6 +542,7 @@ abstract class Listener implements UnescapeErrorListener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {}

@@ -1941,6 +1941,7 @@ class TestParser extends Parser {
     Token token,
     DeclarationKind kind,
     Token beforeStart,
+    Token? augmentToken,
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
@@ -1951,6 +1952,7 @@ class TestParser extends Parser {
       '$token, '
       '$kind, '
       '$beforeStart, '
+      '$augmentToken, '
       '$externalToken, '
       '$staticOrCovariant, '
       '$varFinalOrConst, '
@@ -1961,6 +1963,7 @@ class TestParser extends Parser {
       token,
       kind,
       beforeStart,
+      augmentToken,
       externalToken,
       staticOrCovariant,
       varFinalOrConst,

@@ -17770,11 +17770,11 @@ library
   test_constructor_secondary_augmentation_chain_isCompleteDeclaration_factory() async {
     var library = await buildLibrary(r'''
 class A {
-  factory A() => throw 0;
+  factory A();
 }
 
 augment class A {
-  augment factory A() {}
+  augment factory A() => throw 0;
 }
 
 augment class A {
@@ -17792,30 +17792,34 @@ library
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
-            #F3 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
+            #F3 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@constructor::new
               factoryKeywordOffset: 12
               typeName: A
               typeNameOffset: 20
-        #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F4
+          nextFragment: #F5
           constructors
-            #F5 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:67) (offset:75)
-              element: <testLibrary>::@class::A::@constructor::new#1
-              factoryKeywordOffset: 67
+            #F4 isAugmentation isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:48) (offset:64)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 56
               typeName: A
-              typeNameOffset: 75
-        #F4 isAugmentation class A (nameOffset:99) (firstTokenOffset:85) (offset:99)
+              typeNameOffset: 64
+              nextFragment: #F6
+              previousFragment: #F3
+        #F5 isAugmentation class A (nameOffset:97) (firstTokenOffset:83) (offset:97)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           constructors
-            #F6 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:113) (offset:121)
-              element: <testLibrary>::@class::A::@constructor::new#2
-              factoryKeywordOffset: 113
+            #F6 isAugmentation isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:103) (offset:119)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 111
               typeName: A
-              typeNameOffset: 121
+              typeNameOffset: 119
+              previousFragment: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -17824,12 +17828,6 @@ library
         isFactory isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-        isFactory isOriginDeclaration new
-          reference: <testLibrary>::@class::A::@constructor::new#1
-          firstFragment: #F5
-        isFactory isOriginDeclaration new
-          reference: <testLibrary>::@class::A::@constructor::new#2
-          firstFragment: #F6
 ''');
   }
 

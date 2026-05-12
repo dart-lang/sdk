@@ -975,16 +975,19 @@ class ParserTestListener implements Listener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
     seen(lastConsumed);
+    seen(augmentToken);
     seen(externalToken);
     seen(constToken);
     doPrint(
       'beginFactory('
       '$declarationKind, '
       '$lastConsumed, '
+      '$augmentToken, '
       '$externalToken, '
       '$constToken)',
     );

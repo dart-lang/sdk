@@ -392,11 +392,13 @@ class AstBuilder extends StackListener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
     push(
       _Modifiers()
+        ..augmentKeyword = augmentToken
         ..externalKeyword = externalToken
         ..finalConstOrVarKeyword = constToken,
     );
