@@ -100,6 +100,19 @@ class FunctionExpressionInvocationResolver {
     );
     var callElement = result.getter2;
 
+    if (result.recordField != null) {
+      _diagnosticReporter.report(
+        diag.invocationOfNonFunctionExpression.at(function),
+      );
+      _unresolved(
+        node,
+        InvalidTypeImpl.instance,
+        whyNotPromotedArguments,
+        contextType: contextType,
+      );
+      return;
+    }
+
     if (callElement == null) {
       if (result.needsGetterError) {
         _diagnosticReporter.report(
