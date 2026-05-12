@@ -203,6 +203,7 @@ import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
+import 'remove_empty_container_body_test.dart' as remove_empty_container_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_extends_clause_test.dart' as remove_extends_clause;
@@ -504,6 +505,7 @@ void main() {
     remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();
+    remove_empty_container_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
     remove_extends_clause.main();

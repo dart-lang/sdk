@@ -1416,6 +1416,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove empty constructor bodies in file',
   );
+  static const removeEmptyContainerBody = FixKind(
+    'dart.fix.remove.emptyContainerBody',
+    DartFixKindPriority.standard,
+    'Remove empty {0} body',
+  );
+  static const removeEmptyContainerBodyMulti = FixKind(
+    'dart.fix.remove.emptyContainerBody.multi',
+    DartFixKindPriority.inFile,
+    'Remove empty class and enum bodies in file',
+  );
   static const removeEmptyElse = FixKind(
     'dart.fix.remove.emptyElse',
     DartFixKindPriority.standard,

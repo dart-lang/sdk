@@ -154,6 +154,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_deprecated_n
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_container_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_extends_clause.dart';
@@ -331,6 +332,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.discardedFutures: [AddAsync.discardedFutures, WrapInUnawaited.new],
   diag.emptyCatches: [RemoveEmptyCatch.new],
   diag.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
+  diag.emptyContainerBodies: [RemoveEmptyContainerBody.new],
   diag.emptyStatements: [RemoveEmptyStatement.new, ReplaceWithBrackets.new],
   diag.eolAtEndOfFile: [AddEolAtEndOfFile.new],
   diag.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
