@@ -3838,6 +3838,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return true;
     }
 
+    // The element value is implicitly assigned to the loop variable. If the
+    // element type is `void`, the value can only be discarded into a `void`
+    // loop variable.
+    if (sequenceElementType is VoidType && variableType is! VoidType) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.iterable));
+      return false;
+    }
+
     if (!typeSystem.isAssignableTo(
       sequenceElementType,
       variableType,
