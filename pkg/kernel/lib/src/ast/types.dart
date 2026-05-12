@@ -2446,6 +2446,9 @@ class TypeVariable extends VariableBase {
   @override
   String? cosmeticName;
 
+  @override
+  late VariableContext context;
+
   /// Function type parameter this [TypeVariable] is associated with.
   final TypeParameter parameter;
 

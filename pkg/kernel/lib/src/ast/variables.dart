@@ -6,7 +6,7 @@ part of '../../ast.dart';
 
 /// Generalized notion of a variable.
 sealed class VariableBase extends TreeNode implements Annotatable {
-  VariableContext get context => parent as VariableContext;
+  abstract VariableContext context;
 
   /// The cosmetic name of the variable from the source code, if exists.
   String? get cosmeticName;
@@ -30,6 +30,7 @@ abstract interface class IVariable implements TreeNode {
   abstract String? cosmeticName;
   abstract VariableDeclaration? variableInitialization;
   abstract Expression? initializer;
+  abstract VariableContext context;
   abstract bool isFinal;
   abstract bool isConst;
   abstract bool isLate;
@@ -68,7 +69,7 @@ abstract interface class IVariable implements TreeNode {
   bool get hasIsWildcard;
   bool get hasIsSuperInitializingFormal;
   bool get hasIsErroneouslyInitialized;
-  VariableDeclaration get asExpressionVariable;
+  VariableDeclaration get asVariableDeclaration;
 }
 
 /// The root of the sealed hierarchy of non-type variables.
@@ -184,7 +185,7 @@ sealed class VariableDeclaration extends VariableBase
   bool get isAssignable;
 
   @override
-  VariableDeclaration get asExpressionVariable => this;
+  VariableDeclaration get asVariableDeclaration => this;
 
   abstract String? name;
 }
@@ -205,6 +206,9 @@ class LocalVariable extends VariableDeclaration {
 
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  late VariableContext context;
 
   LocalVariable({
     this.cosmeticName,
@@ -511,6 +515,9 @@ class CatchVariable extends VariableDeclaration {
 
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  late VariableContext context;
 
   CatchVariable({
     required String name,
@@ -1012,6 +1019,9 @@ class PositionalParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  @override
+  late VariableContext context;
+
   PositionalParameter({
     this.cosmeticName,
     required this.type,
@@ -1028,13 +1038,13 @@ class PositionalParameter extends FunctionParameter {
   });
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1156,6 +1166,9 @@ class NamedParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  @override
+  late VariableContext context;
+
   NamedParameter({
     required this.parameterName,
     required this.type,
@@ -1172,13 +1185,13 @@ class NamedParameter extends FunctionParameter {
   });
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1302,6 +1315,9 @@ class ThisVariable extends VariableDeclaration {
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  late VariableContext context;
 
   ThisVariable({required this.type}) : super.empty();
 
@@ -1577,6 +1593,9 @@ class SyntheticVariable extends VariableDeclaration {
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  late VariableContext context;
 
   SyntheticVariable({this.cosmeticName, required this.type}) : super.empty();
 
@@ -1854,7 +1873,7 @@ class VariableContext extends TreeNode {
   VariableContext({required this.captureKind, required this.variables});
 
   void addVariable(VariableBase variable) {
-    variable.parent = this;
+    variable.context = this;
     variables.add(variable);
   }
 

@@ -6060,6 +6060,9 @@ class EquivalenceStrategy {
     if (!checkLocalVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkLocalVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkLocalVariable_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6095,6 +6098,9 @@ class EquivalenceStrategy {
     if (!checkCatchVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkCatchVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkCatchVariable_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6128,6 +6134,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkPositionalParameter_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_binaryOffsetNoTag(visitor, node, other)) {
@@ -6168,6 +6177,9 @@ class EquivalenceStrategy {
     if (!checkNamedParameter_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkNamedParameter_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkNamedParameter_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6201,6 +6213,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkThisVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkThisVariable_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkThisVariable_binaryOffsetNoTag(visitor, node, other)) {
@@ -6241,6 +6256,9 @@ class EquivalenceStrategy {
     if (!checkSyntheticVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkSyntheticVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSyntheticVariable_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6268,6 +6286,9 @@ class EquivalenceStrategy {
     visitor.pushNodeState(node, other);
     bool result = true;
     if (!checkTypeVariable_cosmeticName(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkTypeVariable_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkTypeVariable_parameter(visitor, node, other)) {
@@ -13513,6 +13534,14 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkLocalVariable_context(
+    EquivalenceVisitor visitor,
+    LocalVariable node,
+    LocalVariable other,
+  ) {
+    return visitor.checkNodes(node.context, other.context, 'context');
+  }
+
   bool checkLocalVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     LocalVariable node,
@@ -13618,6 +13647,14 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkCatchVariable_context(
+    EquivalenceVisitor visitor,
+    CatchVariable node,
+    CatchVariable other,
+  ) {
+    return visitor.checkNodes(node.context, other.context, 'context');
+  }
+
   bool checkCatchVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     CatchVariable node,
@@ -13689,6 +13726,14 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
+  }
+
+  bool checkPositionalParameter_context(
+    EquivalenceVisitor visitor,
+    PositionalParameter node,
+    PositionalParameter other,
+  ) {
+    return visitor.checkNodes(node.context, other.context, 'context');
   }
 
   bool checkPositionalParameter_binaryOffsetNoTag(
@@ -13800,6 +13845,14 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkNamedParameter_context(
+    EquivalenceVisitor visitor,
+    NamedParameter node,
+    NamedParameter other,
+  ) {
+    return visitor.checkNodes(node.context, other.context, 'context');
+  }
+
   bool checkNamedParameter_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     NamedParameter node,
@@ -13867,6 +13920,14 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
+  }
+
+  bool checkThisVariable_context(
+    EquivalenceVisitor visitor,
+    ThisVariable node,
+    ThisVariable other,
+  ) {
+    return visitor.checkNodes(node.context, other.context, 'context');
   }
 
   bool checkThisVariable_binaryOffsetNoTag(
@@ -13954,6 +14015,14 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkSyntheticVariable_context(
+    EquivalenceVisitor visitor,
+    SyntheticVariable node,
+    SyntheticVariable other,
+  ) {
+    return visitor.checkNodes(node.context, other.context, 'context');
+  }
+
   bool checkSyntheticVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     SyntheticVariable node,
@@ -14004,6 +14073,14 @@ class EquivalenceStrategy {
       other.cosmeticName,
       'cosmeticName',
     );
+  }
+
+  bool checkTypeVariable_context(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    return visitor.checkNodes(node.context, other.context, 'context');
   }
 
   bool checkTypeVariable_parameter(

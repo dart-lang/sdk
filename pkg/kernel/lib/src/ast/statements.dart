@@ -1593,13 +1593,13 @@ class VariableStatement extends Statement
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1890,28 +1890,33 @@ class VariableStatement extends Statement
 
   @override
   VariableDeclaration? get variableInitialization {
-    throw new UnsupportedError("${this.runtimeType}");
+    throw new UnsupportedError("${this.runtimeType}.variableInitialization");
   }
 
   @override
   void set variableInitialization(VariableDeclaration? value) {
-    throw new UnsupportedError("${this.runtimeType}");
+    throw new UnsupportedError("${this.runtimeType}.variableInitialization=");
   }
 
   @override
   VariableContext get context {
-    throw new UnsupportedError("${this.runtimeType}");
+    throw new UnsupportedError("${this.runtimeType}.context");
   }
 
   @override
-  VariableDeclaration get asExpressionVariable => this;
+  void set context(VariableContext value) {
+    throw new UnsupportedError("${this.runtimeType}.context=");
+  }
+
+  @override
+  VariableDeclaration get asVariableDeclaration => this;
 
   @override
   VariableDeclaration get variable => this;
 
   @override
   void set variable(VariableDeclaration value) {
-    throw new UnsupportedError("${this.runtimeType}");
+    throw new UnsupportedError("${this.runtimeType}.variable=");
   }
 
   @override
@@ -2274,78 +2279,117 @@ class VariableInitialization extends Statement implements VariableDeclaration {
   }
 
   @override
-  VariableContext get context => variable.context;
-
-  @override
-  VariableDeclaration get asExpressionVariable => variable;
+  VariableDeclaration get asVariableDeclaration => variable;
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasHasDeclaredInitializer => throw UnimplementedError();
+  VariableContext get context {
+    throw UnsupportedError("${runtimeType}.context");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsConst => throw UnimplementedError();
+  void set context(VariableContext value) {
+    throw UnsupportedError("${runtimeType}.context=");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsCovariantByClass => throw UnimplementedError();
+  bool get hasHasDeclaredInitializer {
+    throw UnsupportedError("${runtimeType}.hasHasDeclaredInitializer");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsCovariantByDeclaration => throw UnimplementedError();
+  bool get hasIsConst {
+    throw new UnsupportedError("${runtimeType}.hasIsConst");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsErroneouslyInitialized => throw UnimplementedError();
+  bool get hasIsCovariantByClass {
+    throw new UnsupportedError("${runtimeType}.hasIsCovariantByClass");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsFinal => throw UnimplementedError();
+  bool get hasIsCovariantByDeclaration {
+    throw new UnsupportedError("${runtimeType}.hasIsCovariantByDeclaration");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsHoisted => throw UnimplementedError();
+  bool get hasIsErroneouslyInitialized {
+    throw new UnsupportedError("${runtimeType}.hasIsErroneouslyInitialized");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsInitializingFormal => throw UnimplementedError();
+  bool get hasIsFinal {
+    throw new UnsupportedError("${runtimeType}.hasIsFinal");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsLate => throw UnimplementedError();
+  bool get hasIsHoisted {
+    throw new UnsupportedError("${runtimeType}.hasIsHoisted");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsLowered => throw UnimplementedError();
+  bool get hasIsInitializingFormal {
+    throw new UnsupportedError("${runtimeType}.hasIsInitializingFormal");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsRequired => throw UnimplementedError();
+  bool get hasIsLate {
+    throw new UnsupportedError("${runtimeType}.hasIsLate");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsSuperInitializingFormal => throw UnimplementedError();
+  bool get hasIsLowered {
+    throw new UnsupportedError("${runtimeType}.hasIsLowered");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsSynthesized => throw UnimplementedError();
+  bool get hasIsRequired {
+    throw new UnsupportedError("${runtimeType}.hasIsRequired");
+  }
 
   @override
   // TODO(62620): Remove the method when the [VariableInitialization] stops
   // implementing [VariableDeclaration].
-  bool get hasIsWildcard => throw UnimplementedError();
+  bool get hasIsSuperInitializingFormal {
+    throw new UnsupportedError("${runtimeType}.hasIsSuperInitializingFormal");
+  }
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsSynthesized {
+    throw new UnsupportedError("${runtimeType}.hasIsSynthesized");
+  }
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsWildcard {
+    throw new UnsupportedError("${runtimeType}.hasIsWildcard");
+  }
 }

@@ -1165,13 +1165,13 @@ class InternalPositionalParameter extends TreeNode
   });
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1268,13 +1268,13 @@ class InternalNamedParameter extends TreeNode
   });
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1718,6 +1718,7 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept1<R, A>(StatementVisitor1<R, A> v, A arg) {
     return astVariable.accept1(v, arg);
   }
@@ -1729,8 +1730,14 @@ mixin DelegatingVariableMixin on InternalVariableMixin
     astVariable.cosmeticName = value;
   }
 
-  VariableContext get context {
-    throw new UnsupportedError("${this.runtimeType}");
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableContext get context => astVariable.context;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set context(VariableContext value) {
+    astVariable.context = value;
   }
 
   @override
@@ -1937,7 +1944,7 @@ mixin InternalVariableMixin on TreeNode implements InternalVariable {
   String? lateName;
 
   @override
-  VariableDeclaration get asExpressionVariable => this as VariableDeclaration;
+  VariableDeclaration get asVariableDeclaration => this as VariableDeclaration;
 }
 
 /// Front end specific implementation of [LoadLibrary].

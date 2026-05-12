@@ -1181,11 +1181,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitLocalVariable(LocalVariable node) {
-    declareVariable(node);
-  }
-
-  @override
   void visitVariableGet(VariableGet node) {
     // TODO(cstefantsova): Support new variable model.
     if (_isNewModelVariable(node.variable)) {

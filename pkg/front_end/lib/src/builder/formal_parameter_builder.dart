@@ -292,11 +292,11 @@ class FormalParameterBuilder extends NamedBuilderImpl
         )..fileOffset = fileOffset;
       }
     }
-    return _variable!.asExpressionVariable;
+    return _variable!.asVariableDeclaration;
   }
 
   @override
-  VariableDeclaration get variable => _variable!.asExpressionVariable;
+  VariableDeclaration get variable => _variable!.asVariableDeclaration;
 
   @override
   void onInferredType(DartType type) {
@@ -592,7 +592,7 @@ class CatchParameterBuilder extends NamedBuilderImpl
   String get fullNameForErrors => name;
 
   @override
-  VariableDeclaration get variable => _variable!.asExpressionVariable;
+  VariableDeclaration get variable => _variable!.asVariableDeclaration;
 
   @override
   VariableDeclaration build(SourceLibraryBuilder library) {
@@ -630,7 +630,7 @@ class CatchParameterBuilder extends NamedBuilderImpl
         )..fileOffset = fileOffset;
       }
     }
-    return _variable!.asExpressionVariable;
+    return _variable!.asVariableDeclaration;
   }
 
   @override

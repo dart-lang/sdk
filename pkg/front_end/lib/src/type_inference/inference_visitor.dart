@@ -13242,6 +13242,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           exceptionCatchVariable,
           captureKind: _captureKindForVariable(exceptionCatchVariable),
         );
+        node.exception = exceptionCatchVariable;
       }
       if (node.stackTrace case CatchVariable stackTraceCatchVariable?) {
         // TODO(62401): Remove the casts when the flow analysis uses
@@ -13253,6 +13254,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           stackTraceCatchVariable,
           captureKind: _captureKindForVariable(stackTraceCatchVariable),
         );
+        node.stackTrace = stackTraceCatchVariable;
       }
     }
     StatementInferenceResult bodyResult = inferStatement(node.body);

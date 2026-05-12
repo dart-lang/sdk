@@ -3413,7 +3413,7 @@ class BodyBuilderImpl extends StackListenerImpl
         isImplicitlyTyped: currentLocalVariableType == null,
       );
       variableInitialization = new VariableInitialization(
-        variable: internalVariable.asExpressionVariable,
+        variable: internalVariable.asVariableDeclaration,
         initializer: initializer,
         hasDeclaredInitializer: initializer != null,
       );
