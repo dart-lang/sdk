@@ -263,16 +263,24 @@ class DynamicDispatchTable {
 
       start = pos.start;
       int end = start + 1;
+      final targetModuleBuilder = translator.moduleForReference(entry.target);
       while (end < _table.length) {
         final newEntry = _table[end];
         if (newEntry == null) break;
         final distance = end - start;
         if ((entry.classId + distance) != newEntry.classId) break;
+        final newTargetModuleBuilder = translator.moduleForReference(
+          newEntry.target,
+        );
+        // If the next target is in a different module, then it must be set in a
+        // different stride.
+        if (targetModuleBuilder != translator.mainModule &&
+            targetModuleBuilder != newTargetModuleBuilder) {
+          break;
+        }
         end++;
       }
       final strideWidth = end - start;
-
-      final targetModuleBuilder = translator.moduleForReference(entry.target);
 
       // The dynamic selector is invoked and the class has a target, we have to
       // write the class id - to make it match at runtime.
