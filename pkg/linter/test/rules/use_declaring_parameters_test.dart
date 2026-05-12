@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -40,9 +39,35 @@ class C(int i) {
 ''');
   }
 
-  test_fieldFormalParameter() async {
+  test_differentType_requiredPositional() async {
     await assertNoDiagnostics(r'''
-class C(this.i) {
+class C(int? i) {
+  int x;
+
+  this : x = i ?? 0;
+}
+''');
+  }
+
+  test_fieldFormalParameter_differentType() async {
+    await assertNoDiagnostics(r'''
+class C(int this.i) {
+  num i;
+}
+''');
+  }
+
+  test_fieldFormalParameter_noType() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(this.[!i!]) {
+  int i;
+}
+''');
+  }
+
+  test_fieldFormalParameter_sameType() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(int this.[!i!]) {
   int i;
 }
 ''');

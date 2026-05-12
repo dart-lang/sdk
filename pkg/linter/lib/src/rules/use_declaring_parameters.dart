@@ -42,16 +42,30 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     var body = node.body;
-    if (body == null) {
-      // This lint only flags non-declaring parameters that are assigned to a
-      // field, and that can't happen if there is no body.
-      return;
-    }
     for (var parameter in node.formalParameters.parameters) {
-      if (parameter is! FieldFormalParameter &&
-          parameter is! SuperFormalParameter &&
+      if (parameter is FieldFormalParameter) {
+        _checkFieldFormalParameter(parameter);
+      } else if (parameter is! SuperFormalParameter &&
           parameter.constFinalOrVarKeyword == null) {
-        _checkNonDeclaringParameter(parameter, body);
+        if (body != null) {
+          // If there is no body, then the parameter isn't used to initialize
+          // a field, so it can't be a declaring parameter.
+          _checkNonDeclaringParameter(parameter, body);
+        }
+      }
+    }
+  }
+
+  /// Checks whether the given field formal [parameter] should be a declaring
+  /// parameter.
+  void _checkFieldFormalParameter(FieldFormalParameter parameter) {
+    var parameterHasNoType = parameter.type == null;
+    var parameterElement = parameter.declaredFragment?.element;
+    if (parameterElement is FieldFormalParameterElement) {
+      var field = parameterElement.field;
+      if (field != null &&
+          (parameterHasNoType || field.type == parameterElement.type)) {
+        rule.reportAtToken(parameter.name);
       }
     }
   }
@@ -71,7 +85,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var name = parameter.name;
     if (name != null) {
-      rule.reportAtToken(name);
+      var parameterElement = parameter.declaredFragment?.element;
+      if (parameterElement != null &&
+          assignedField.type == parameterElement.type) {
+        rule.reportAtToken(name);
+      }
     }
   }
 

@@ -83,6 +83,8 @@ import 'convert_to_boolean_expression_test.dart'
 import 'convert_to_cascade_test.dart' as convert_to_cascade;
 import 'convert_to_constant_pattern_test.dart' as convert_to_constant_pattern;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'convert_to_declaring_parameter_test.dart'
+    as convert_to_declaring_parameter;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_flutter_style_todo_test.dart'
@@ -402,6 +404,7 @@ void main() {
     convert_to_cascade.main();
     convert_to_constant_pattern.main();
     convert_to_contains.main();
+    convert_to_declaring_parameter.main();
     convert_to_double_quoted_string.main();
     convert_to_flutter_style_todo.main();
     convert_to_for_element.main();

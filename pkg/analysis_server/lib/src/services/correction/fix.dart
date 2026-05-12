@@ -493,6 +493,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Convert to using 'contains' everywhere in file",
   );
+  static const convertToDeclaringParameter = FixKind(
+    'dart.fix.convert.toDeclaringParameter',
+    DartFixKindPriority.standard,
+    'Convert to a declaring parameter',
+  );
+  static const convertToDeclaringParameterMulti = FixKind(
+    'dart.fix.convert.toDeclaringParameter.multi',
+    DartFixKindPriority.standard,
+    'Convert to declaring parameters everywhere in file',
+  );
   static const convertToDoubleQuotedString = FixKind(
     'dart.fix.convert.toDoubleQuotedString',
     DartFixKindPriority.standard,

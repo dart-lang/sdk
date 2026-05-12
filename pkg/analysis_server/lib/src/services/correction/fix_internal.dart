@@ -64,6 +64,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_declaring_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_flutter_style_todo.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_for_each.dart';
@@ -482,6 +483,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unreachableFromMain: [RemoveUnusedElement.new],
   diag.unrelatedTypeEqualityChecksInExpression: [ReplaceWithIs.new],
   diag.useColoredBox: [ReplaceContainerWithColoredBox.new],
+  diag.useDeclaringParameters: [ConvertToDeclaringParameter.new],
   diag.useDecoratedBox: [ReplaceWithDecoratedBox.new],
   diag.useEnums: [ConvertClassToEnum.new],
   diag.useFullHexValuesForFlutterColors: [ReplaceWithEightDigitHex.new],
