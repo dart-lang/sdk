@@ -1893,7 +1893,8 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
       if (!isProductMode)
-        '--bytecode-options=source-positions,embed-source-text',
+        '--bytecode-options=source-positions,embed-source-text'
+            '${_isAot ? '' : ',record-coverage'}',
     ];
 
     return CompilationCommand(

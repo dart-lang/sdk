@@ -15,6 +15,7 @@ class BytecodeOptions {
     'closure-context-lowering':
         'Use the closure context lowering in Kernel AST instead of computing it',
     'embed-source-text': 'Embed the source text of scripts',
+    'record-coverage': 'Emit instructions and metadata for recording coverage',
   };
 
   bool enableAsserts;
@@ -27,6 +28,7 @@ class BytecodeOptions {
   bool showBytecodeSizeStatistics;
   bool isClosureContextLoweringEnabled;
   bool embedSourceText;
+  bool recordCoverage;
 
   BytecodeOptions({
     this.enableAsserts = false,
@@ -39,6 +41,7 @@ class BytecodeOptions {
     this.showBytecodeSizeStatistics = false,
     this.isClosureContextLoweringEnabled = false,
     this.embedSourceText = false,
+    this.recordCoverage = false,
   }) {}
 
   void parseCommandLineFlags(List<String>? flags) {
@@ -70,6 +73,9 @@ class BytecodeOptions {
           break;
         case 'embed-source-text':
           embedSourceText = true;
+          break;
+        case 'record-coverage':
+          recordCoverage = true;
           break;
         default:
           throw 'Unexpected bytecode flag $flag';
