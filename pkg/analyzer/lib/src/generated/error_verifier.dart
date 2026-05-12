@@ -5664,11 +5664,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (fieldDeclaration != null) {
       if (!fieldDeclaration.isStatic) {
-        var variableList = fieldDeclaration.fields;
-        if (!variableList.isFinal) {
-          diagnosticReporter.report(
-            diag.nonFinalFieldInEnum.at(variableList.variables.first.name),
-          );
+        // External fields do not add stored state to the enum instance.
+        if (fieldDeclaration.externalKeyword == null) {
+          var variableList = fieldDeclaration.fields;
+          if (!variableList.isFinal) {
+            diagnosticReporter.report(
+              diag.nonFinalFieldInEnum.at(variableList.variables.first.name),
+            );
+          }
         }
       }
     } else if (primaryConstructor != null) {
