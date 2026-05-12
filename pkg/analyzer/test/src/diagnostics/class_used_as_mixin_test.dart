@@ -26,6 +26,27 @@ class Bar with Comparable<int> {
     );
   }
 
+  test_coreLib_dartCoreEnum() async {
+    await assertErrorsInCode(
+      r'''
+abstract class A with Enum {}
+abstract class B = Object with Enum;
+''',
+      [
+        error(diag.classUsedAsMixin, 22, 4),
+        error(diag.classUsedAsMixin, 61, 4),
+      ],
+    );
+  }
+
+  test_coreLib_dartCoreEnum_language219() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.19
+abstract class A with Enum {}
+abstract class B = Object with Enum;
+''');
+  }
+
   test_coreLib_language219() async {
     await assertNoErrorsInCode(r'''
 // @dart = 2.19

@@ -2259,7 +2259,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       DartType mixinType = mixinName.typeOrThrow;
       if (mixinType is InterfaceType) {
         mixinTypeIndex++;
-        if (_checkForExtendsOrImplementsDisallowedClass(mixinName)) {
+        if (_checkForExtendsOrImplementsDisallowedClass(mixinName) &&
+            !mixinType.isDartCoreEnum) {
           problemReported = true;
         } else {
           var mixinElement = mixinType.element;
