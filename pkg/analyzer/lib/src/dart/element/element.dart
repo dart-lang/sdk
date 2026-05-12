@@ -521,8 +521,11 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         .where((constructor) => constructor.isGenerative)
         .toList(growable: false);
 
-    bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element.fields.any((e) => e.isOriginDeclaration);
+    bool typeHasInstanceVariables(InterfaceTypeImpl type) {
+      return type.element.fields.any(
+        (field) => field.isInstanceField && field.isOriginDeclaration,
+      );
+    }
 
     _constructors = superConstructors.map((superConstructor) {
       var constructorFragment = ConstructorFragmentImpl(

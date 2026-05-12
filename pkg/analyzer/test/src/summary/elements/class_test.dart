@@ -8362,6 +8362,246 @@ library
 ''');
   }
 
+  test_classAlias_with_const_constructors_mixinInstanceField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Base {
+  const Base();
+  const Base.named();
+}
+''');
+    var library = await buildLibrary(r'''
+import "a.dart";
+
+mixin class M {
+  int x = 0;
+}
+
+class MixinApp = Base with M;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      classes
+        #F1 isMixinClass class M (nameOffset:30) (firstTokenOffset:18) (offset:30)
+          element: <testLibrary>::@class::M
+          fields
+            #F2 hasInitializer isOriginDeclaration x (nameOffset:40) (firstTokenOffset:40) (offset:40)
+              element: <testLibrary>::@class::M::@field::x
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::M::@constructor::new
+              typeName: M
+          getters
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@class::M::@getter::x
+          setters
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@class::M::@setter::x
+              formalParameters
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                  element: <testLibrary>::@class::M::@setter::x::@formalParameter::value
+        #F7 isMixinApplication class MixinApp (nameOffset:56) (firstTokenOffset:50) (offset:56)
+          element: <testLibrary>::@class::MixinApp
+          constructors
+            #F8 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@class::MixinApp::@constructor::new
+              typeName: MixinApp
+            #F9 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@class::MixinApp::@constructor::named
+              typeName: MixinApp
+  classes
+    hasNonFinalField isMixinClass isSimplyBounded class M
+      reference: <testLibrary>::@class::M
+      firstFragment: #F1
+      fields
+        hasInitializer isOriginDeclaration x
+          reference: <testLibrary>::@class::M::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::M::@getter::x
+          setter: <testLibrary>::@class::M::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::M::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginVariable x
+          reference: <testLibrary>::@class::M::@getter::x
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::M::@field::x
+      setters
+        isOriginVariable x
+          reference: <testLibrary>::@class::M::@setter::x
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F6
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::M::@field::x
+    hasNonFinalField isMixinApplication isSimplyBounded class MixinApp
+      reference: <testLibrary>::@class::MixinApp
+      firstFragment: #F7
+      supertype: Base
+      mixins
+        M
+      constructors
+        isOriginMixinApplication new
+          reference: <testLibrary>::@class::MixinApp::@constructor::new
+          firstFragment: #F8
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::new
+          superConstructor: package:test/a.dart::@class::Base::@constructor::new
+        isOriginMixinApplication named
+          reference: <testLibrary>::@class::MixinApp::@constructor::named
+          firstFragment: #F9
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::named
+          superConstructor: package:test/a.dart::@class::Base::@constructor::named
+''');
+  }
+
+  test_classAlias_with_const_constructors_mixinStaticField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Base {
+  const Base();
+  const Base.named();
+}
+''');
+    var library = await buildLibrary(r'''
+import "a.dart";
+
+mixin class M {
+  static int x = 0;
+}
+
+class MixinApp = Base with M;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      classes
+        #F1 isMixinClass class M (nameOffset:30) (firstTokenOffset:18) (offset:30)
+          element: <testLibrary>::@class::M
+          fields
+            #F2 hasInitializer isOriginDeclaration isStatic x (nameOffset:47) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@class::M::@field::x
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::M::@constructor::new
+              typeName: M
+          getters
+            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@class::M::@getter::x
+          setters
+            #F5 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@class::M::@setter::x
+              formalParameters
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+                  element: <testLibrary>::@class::M::@setter::x::@formalParameter::value
+        #F7 isMixinApplication class MixinApp (nameOffset:63) (firstTokenOffset:57) (offset:63)
+          element: <testLibrary>::@class::MixinApp
+          constructors
+            #F8 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@class::MixinApp::@constructor::new
+              typeName: MixinApp
+            #F9 isConst isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@class::MixinApp::@constructor::named
+              typeName: MixinApp
+  classes
+    isMixinClass isSimplyBounded class M
+      reference: <testLibrary>::@class::M
+      firstFragment: #F1
+      fields
+        hasInitializer isOriginDeclaration isStatic x
+          reference: <testLibrary>::@class::M::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::M::@getter::x
+          setter: <testLibrary>::@class::M::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::M::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginVariable isStatic x
+          reference: <testLibrary>::@class::M::@getter::x
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::M::@field::x
+      setters
+        isOriginVariable isStatic x
+          reference: <testLibrary>::@class::M::@setter::x
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F6
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::M::@field::x
+    isMixinApplication isSimplyBounded class MixinApp
+      reference: <testLibrary>::@class::MixinApp
+      firstFragment: #F7
+      supertype: Base
+      mixins
+        M
+      constructors
+        isConst isOriginMixinApplication new
+          reference: <testLibrary>::@class::MixinApp::@constructor::new
+          firstFragment: #F8
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::new
+          superConstructor: package:test/a.dart::@class::Base::@constructor::new
+        isConst isOriginMixinApplication named
+          reference: <testLibrary>::@class::MixinApp::@constructor::named
+          firstFragment: #F9
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::named
+          superConstructor: package:test/a.dart::@class::Base::@constructor::named
+''');
+  }
+
   test_classAlias_with_forwarding_constructors() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class Base {
