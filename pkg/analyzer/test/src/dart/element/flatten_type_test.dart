@@ -14,6 +14,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlattenTypeTest);
     defineReflectiveTests(FutureTypeTest);
+    defineReflectiveTests(UnionFreeTypeTest);
   });
 }
 
@@ -201,5 +202,38 @@ class FutureTypeTest extends AbstractTypeSystemTest {
     } else {
       expect(result.getDisplayString(), expected);
     }
+  }
+}
+
+@reflectiveTest
+class UnionFreeTypeTest extends AbstractTypeSystemTest {
+  test_future_notStripped() {
+    _check(parseType('Future<int>?'), 'Future<int>');
+  }
+
+  test_futureOr() {
+    _check(parseType('FutureOr<int>'), 'int');
+  }
+
+  test_futureOr_nestedNullable() {
+    _check(parseType('FutureOr<FutureOr<int?>?>?'), 'int');
+  }
+
+  test_nullable() {
+    _check(parseType('int?'), 'int');
+  }
+
+  test_plain() {
+    _check(parseType('int'), 'int');
+  }
+
+  test_unknownInferredType() {
+    var type = UnknownInferredType.instance;
+    expect(typeSystem.unionFreeType(type), same(type));
+  }
+
+  void _check(TypeImpl T, String expected) {
+    var result = typeSystem.unionFreeType(T);
+    expect(result.getDisplayString(), expected);
   }
 }

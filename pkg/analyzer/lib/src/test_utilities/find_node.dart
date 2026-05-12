@@ -215,6 +215,8 @@ class FindNode {
 
   WithClause get singleWithClause => _single();
 
+  YieldStatement get singleYieldStatement => _single();
+
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
   }

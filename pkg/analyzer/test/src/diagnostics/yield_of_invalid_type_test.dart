@@ -114,6 +114,25 @@ Stream<int> f() async* {
     );
   }
 
+  test_none_asyncStar_to_futureOrNullableStream() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:async';
+
+FutureOr<Stream<int>?> f() async* {
+  yield 3.14;
+  yield '2';
+  yield Future<int>.value(0);
+}
+''',
+      [
+        error(diag.yieldOfInvalidType, 66, 4),
+        error(diag.yieldOfInvalidType, 80, 3),
+        error(diag.yieldOfInvalidType, 93, 20),
+      ],
+    );
+  }
+
   test_none_syncStar_dynamic_to_iterableInt() async {
     await assertNoErrorsInCode('''
 Iterable<int> f(dynamic a) sync* {
@@ -199,6 +218,25 @@ f() sync* {
   yield 0;
 }
 ''');
+  }
+
+  test_none_syncStar_to_futureOrNullableIterable() async {
+    await assertErrorsInCode(
+      '''
+import 'dart:async';
+
+FutureOr<Iterable<int>?> f() sync* {
+  yield 3.14;
+  yield '2';
+  yield Future<int>.value(0);
+}
+''',
+      [
+        error(diag.yieldOfInvalidType, 67, 4),
+        error(diag.yieldOfInvalidType, 81, 3),
+        error(diag.yieldOfInvalidType, 94, 20),
+      ],
+    );
   }
 
   test_star_asyncStar_dynamic_to_dynamic() async {

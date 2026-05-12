@@ -81,6 +81,7 @@ class YieldStatementResolver {
 
     var imposedReturnType = bodyContext.imposedType;
     if (imposedReturnType != null) {
+      imposedReturnType = _typeSystem.unionFreeType(imposedReturnType);
       if (isYieldEach) {
         if (!_typeSystem.isAssignableTo(
           impliedReturnType,
