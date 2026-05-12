@@ -256,6 +256,46 @@ abstract final class int extends num {
   /// ```
   int get bitLength;
 
+  /// The number of trailing (least significant) zero bits in the binary
+  /// representation of this integer.
+  ///
+  /// On JavaScript platforms, only the least significant 32 bits are used.
+  /// On native platforms, the 64-bit signed integer is used directly.
+  ///
+  /// The trailing zero-bit count is the position of the least significant
+  /// 1-bit in the binary representation of the integer. If the integer is
+  /// zero, the value is the size of integer that the platform uses for bit
+  /// operations (64-bit on native, 32-bit on the web).
+  /// ```dart
+  /// 1.trailingZeroBitCount;  // 0
+  /// 2.trailingZeroBitCount;  // 1
+  /// 8.trailingZeroBitCount;  // 3
+  /// 0.trailingZeroBitCount;  // 64 on native, 32 on the web
+  /// ```
+  @Since("3.13")
+  int get trailingZeroBitCount;
+
+  /// The number of `1` bits in the binary representation of this integer.
+  ///
+  /// On JavaScript platforms, only the least significant 32 bits are used.
+  /// On native platforms, the 64-bit signed integer is used directly.
+  ///
+  /// The one-bit count is the number of `1` digits in the binary
+  /// representation of that integer. A negative integer has one-digits up to
+  /// the size of integer that the platform uses for bit operations (64-bit
+  /// on native, 32-bit on the web).
+  /// The value of `n.oneBitCount + (~n).oneBitCount` is always the size the
+  /// platform uses for bit operations (on the web, at least if the value
+  /// starts out as a 32-bit integer).
+  /// ```dart
+  /// 0.oneBitCount;    // 0
+  /// 1.oneBitCount;    // 1
+  /// 7.oneBitCount;    // 3
+  /// (-1).oneBitCount; // 64 on native, 32 on the web
+  /// ```
+  @Since("3.13")
+  int get oneBitCount;
+
   /// Returns the least significant [width] bits of this integer as a
   /// non-negative number (i.e. unsigned representation).  The returned value has
   /// zeros in all bit positions higher than [width].

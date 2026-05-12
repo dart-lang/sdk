@@ -74,6 +74,14 @@ To learn more about the feature, check out the
 - Added `List.unmodifiableOf` with better typing than `List.unmodifiable`.
 - Added `Map.unmodifiableOf` with better typing than `Map.unmodifiable`.
 
+#### `dart:core`
+
+- Added two getters on `int` for efficient bit-counting:
+  `trailingZeroBitCount` (ctz) and `oneBitCount` (popcount). On native
+  platforms they operate on the full 64-bit two's-complement
+  representation; on the web they operate on the least-significant 32
+  bits. See [#52673](https://github.com/dart-lang/sdk/issues/52673).
+
 #### `dart:io`
 
 - The cookie-date parser now uses the correct algorithm again.

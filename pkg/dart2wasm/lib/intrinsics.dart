@@ -629,6 +629,21 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
+    // int.trailingZeroBitCount
+    if (cls == translator.coreTypes.intClass &&
+        name == 'trailingZeroBitCount') {
+      codeGen.translateExpression(receiver, w.NumType.i64);
+      b.i64_ctz();
+      return w.NumType.i64;
+    }
+
+    // int.oneBitCount
+    if (cls == translator.coreTypes.intClass && name == 'oneBitCount') {
+      codeGen.translateExpression(receiver, w.NumType.i64);
+      b.i64_popcnt();
+      return w.NumType.i64;
+    }
+
     return null;
   }
 

@@ -547,6 +547,24 @@ final class JSInt extends JSNumber implements int, TrustedGetRuntimeType {
     return JS('JSUInt31', 'Math.clz32(#)', uint32);
   }
 
+  int get trailingZeroBitCount {
+    int v = JS<int>('int', '# | 0', this);
+    if (v == 0) return 32;
+    return JS<int>('JSUInt31', '31 - Math.clz32(# & -#)', v, v);
+  }
+
+  int get oneBitCount {
+    // The number of bits set in the least significant 32 bits of `this`,
+    // also known as the "Hamming weight". See:
+    // https://en.wikipedia.org/wiki/Hamming_weight for an explanation of the
+    // following algorithm.
+    int v = JS<int>('int', '# | 0', this);
+    v -= (v >>> 1) & 0x5555_5555;
+    v = (v & 0x3333_3333) + ((v >>> 2) & 0x3333_3333);
+    v = (v + (v >>> 4)) & 0x0f0f_0f0f;
+    return JS<int>('JSUInt31', '(Math.imul(#, 0x01010101) >>> 24)', v);
+  }
+
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
     if (e is! int) {
