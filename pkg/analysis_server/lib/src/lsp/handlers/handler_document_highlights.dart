@@ -51,8 +51,13 @@ class DocumentHighlightsHandler
       // the editor falling back to a text search.
       var highlights = matchingTokens
           .map(
-            (token) => DocumentHighlight(
-              range: toRange(unit.lineInfo, token.offset, token.length),
+            (item) => DocumentHighlight(
+              range: toRange(
+                unit.lineInfo,
+                item.token.offset,
+                item.token.length,
+              ),
+              kind: item.kind,
             ),
           )
           .toList();
