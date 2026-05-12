@@ -72,6 +72,8 @@ const char* kKernelInvalidBinaryFormatVersion =
     ")";
 const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
+const char* kKernelInvalidLibraryCount =
+    "Invalid kernel binary: library_count is out of range";
 const char* kKernelInvalidSdkHash = "Invalid SDK hash";
 
 const int kSdkHashSizeInBytes = 10;
@@ -159,6 +161,24 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   // Read backwards at the end.
   program->library_count_ = reader->ReadSingleFieldFromIndexNoReset(
       reader->size_, KernelFixedFieldsAfterLibraries);
+  // Validate library_count_ so the next ReadSingleFieldFromIndexNoReset
+  // call does not compute an out-of-bounds offset. That helper sets
+  // offset_ = size_ - KernelNumberOfFixedFields(library_count_) * 4
+  //        = size_ - (library_count_ + 12) * 4
+  // and then dereferences raw_buffer_ + offset_ in ReadUInt32At. For
+  // offset_ >= 0 we need (library_count_ + 12) * 4 <= size_. We
+  // compute in intptr_t here to avoid the int-arithmetic overflow
+  // possible inside KernelNumberOfFixedFields when library_count_ is
+  // close to INT_MAX.
+  const intptr_t kFixedFieldsCount = KernelFixedFieldsBeforeLibraries + 1 +
+                                     KernelFixedFieldsAfterLibraries;
+  if (program->library_count_ < 0 ||
+      program->library_count_ > (reader->size_ / 4) - kFixedFieldsCount) {
+    if (error != nullptr) {
+      *error = kKernelInvalidLibraryCount;
+    }
+    return nullptr;
+  }
   program->source_table_offset_ = reader->ReadSingleFieldFromIndexNoReset(
       reader->size_, KernelNumberOfFixedFields(program->library_count_));
   program->constant_table_offset_ = reader->ReadUInt32();
