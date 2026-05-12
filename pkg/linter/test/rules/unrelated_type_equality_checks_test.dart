@@ -46,29 +46,37 @@ void f(dynamic x) {
 ''');
   }
 
-  test_extension_types() async {
+  test_extensionTypes_same() async {
+    await assertNoDiagnostics(r'''
+void m(A a, B b) {
+  if (a == b) {}
+}
+extension type A(String value) {}
+extension type B(String value) {}
+''');
+  }
+
+  test_extensionTypes_sameRepresentationType() async {
+    await assertNoDiagnostics(r'''
+void m(A a, B b) {
+  if (a == b) {}
+}
+extension type A(String value) {}
+extension type B(String value) {}
+''');
+  }
+
+  test_extensionTypes_unrelatedRepresentationType() async {
     await assertDiagnostics(
       r'''
 void m(A a, B b) {
   if (a == b) {}
 }
 extension type A(String value) {}
-extension type B(String value) {}
+extension type B(int value) {}
 ''',
       [lint(27, 2)],
     );
-  }
-
-  test_extension_types_ok() async {
-    await assertNoDiagnostics(r'''
-void m(A a1, A a2, B b) {
-  if (a1 == a2) {}
-  if (a1 == b) {}
-  if (b == a1) {}
-}
-extension type A(String value) {}
-extension type B(String value) implements A {}
-''');
   }
 
   test_fixnum_int32_leftSide() async {

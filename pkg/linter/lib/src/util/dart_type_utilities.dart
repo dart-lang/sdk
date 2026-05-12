@@ -162,15 +162,20 @@ bool canonicalElementsFromIdentifiersAreEqual(
 // TODO(srawlins): typedefs and functions in general.
 bool typesAreUnrelated(
   TypeSystem typeSystem,
-  DartType? leftType,
-  DartType? rightType,
+  DartType leftType,
+  DartType rightType,
 ) {
+  // This is harmless.
+  // ignore: parameter_assignments
+  leftType = leftType.extensionTypeErasure;
+  // This is harmless.
+  // ignore: parameter_assignments
+  rightType = rightType.extensionTypeErasure;
+
   // If we don't have enough information, or can't really compare the types,
   // return false as they _might_ be related.
-  if (leftType == null ||
-      leftType.isBottom ||
+  if (leftType.isBottom ||
       leftType is DynamicType ||
-      rightType == null ||
       rightType.isBottom ||
       rightType is DynamicType) {
     return false;
@@ -189,11 +194,11 @@ bool typesAreUnrelated(
     );
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
-    return typesAreUnrelated(
-      typeSystem,
-      promotedLeftType.element.bound,
-      promotedRightType.element.bound,
-    );
+    var leftBound = promotedLeftType.element.bound;
+    if (leftBound == null) return false;
+    var rightBound = promotedRightType.element.bound;
+    if (rightBound == null) return false;
+    return typesAreUnrelated(typeSystem, leftBound, rightBound);
   } else if (promotedLeftType is FunctionType) {
     if (_isTypeUnrelatedToFunctionType(promotedRightType)) return true;
   } else if (promotedRightType is FunctionType) {
