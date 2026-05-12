@@ -65,11 +65,29 @@ class CompilerPhaseInputOutputManager {
     ).readComponent(component);
   }
 
+  final Set<String> _createdDirectories = {};
+
+  void _createDirIfNecessary(String filePath) {
+    final dirPath = path.dirname(filePath);
+    // Exit early if we've already created/checked this directory. For I/O heavy
+    // compilations (e.g. deferred loading with many modules), this can avoid
+    // a lot of redundant directory checks.
+    if (_createdDirectories.contains(dirPath)) return;
+    final Directory dir = Directory(dirPath);
+    // Do this synchronously to make sure it happens before subsequent async
+    // operations.
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+    _createdDirectories.add(dirPath);
+  }
+
   Future<void> writeComponent(
     Component component,
     String path, {
     bool includeSource = true,
   }) {
+    _createDirIfNecessary(path);
     return writeComponentToBinary(
       component,
       path,
@@ -78,37 +96,38 @@ class CompilerPhaseInputOutputManager {
   }
 
   void writeComponentAsText(Component component, String path) {
+    _createDirIfNecessary(path);
     writeComponentToText(component, path: path, showMetadata: true);
   }
 
   Future<void> writeWasmModule(Uint8List wasmModule, String moduleName) {
     final wasmFileName = _moduleNameToWasmFile(options.outputFile, moduleName);
-    final Directory dir = Directory(path.dirname(wasmFileName));
-    // Do this synchronously to make sure it happens before subsequent async
-    // operations.
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-    }
-
+    _createDirIfNecessary(wasmFileName);
     return File(wasmFileName).writeAsBytes(wasmModule);
   }
 
   Future<void> writeWasmSourceMap(String sourceMap, String moduleName) {
-    return File(
-      _moduleNameToSourceMapFile(options.outputFile, moduleName),
-    ).writeAsString(sourceMap);
+    final sourceMapFileName = _moduleNameToSourceMapFile(
+      options.outputFile,
+      moduleName,
+    );
+    _createDirIfNecessary(sourceMapFileName);
+    return File(sourceMapFileName).writeAsString(sourceMap);
   }
 
   Future<void> writeJsRuntime(String jsRuntime) {
-    return File(
-      path.setExtension(options.outputFile, '.mjs'),
-    ).writeAsString(jsRuntime);
+    final jsRuntimeFileName = path.setExtension(options.outputFile, '.mjs');
+    _createDirIfNecessary(jsRuntimeFileName);
+    return File(jsRuntimeFileName).writeAsString(jsRuntime);
   }
 
   Future<void> writeSupportJs(String supportJs) {
-    return File(
-      path.setExtension(options.outputFile, '.support.js'),
-    ).writeAsString(supportJs);
+    final supportJsFileName = path.setExtension(
+      options.outputFile,
+      '.support.js',
+    );
+    _createDirIfNecessary(supportJsFileName);
+    return File(supportJsFileName).writeAsString(supportJs);
   }
 
   Future<void> runWasmOpt(
