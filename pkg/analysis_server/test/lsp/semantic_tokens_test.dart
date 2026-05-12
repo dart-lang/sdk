@@ -278,7 +278,7 @@ part 'main_augmentation.dart';
 
 class A {
   void f() {}
-  String get g => '';
+  String get g;
 }
 ''';
 
@@ -286,9 +286,7 @@ class A {
 part of 'main.dart';
 
 augment class A {
-  augment void f() {
-    0;
-  }
+  augment void f();
   augment get g => 'augmented';
 }
 ''';
@@ -318,7 +316,6 @@ augment class A {
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance,
       ]),
-      _Token("''", SemanticTokenTypes.string),
     ]);
 
     // Augmentation.
@@ -338,7 +335,6 @@ augment class A {
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance,
       ]),
-      _Token('0', SemanticTokenTypes.number),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('get', SemanticTokenTypes.keyword),
       _Token('g', SemanticTokenTypes.property, [

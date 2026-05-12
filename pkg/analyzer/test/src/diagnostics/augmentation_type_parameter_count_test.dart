@@ -970,7 +970,7 @@ MixinDeclaration
     await assertErrorsInCode(
       r'''
 void f() {}
-augment void f<T>() {}
+augment void f<T>();
 ''',
       [error(diag.augmentationTypeParameterCount, 27, 1)],
     );
@@ -995,10 +995,8 @@ FunctionDeclaration
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+    body: EmptyFunctionBody
+      semicolon: ;
     declaredFragment: <testLibraryFragment> f@25
       element: <testLibrary>::@function::f
         type: void Function<T>()
@@ -1012,7 +1010,7 @@ FunctionDeclaration
   test_topLevelFunction_1_1() async {
     await assertNoErrorsInCode(r'''
 void f<T>() {}
-augment void f<T>() {}
+augment void f<T>();
 ''');
     var node = findNode.functionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
@@ -1035,10 +1033,8 @@ FunctionDeclaration
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+    body: EmptyFunctionBody
+      semicolon: ;
     declaredFragment: <testLibraryFragment> f@28
       element: <testLibrary>::@function::f
         type: void Function<T>()
@@ -1053,7 +1049,7 @@ FunctionDeclaration
     await assertErrorsInCode(
       r'''
 void f<T>() {}
-augment void f<T, U>() {}
+augment void f<T, U>();
 ''',
       [error(diag.augmentationTypeParameterCount, 33, 1)],
     );
@@ -1082,10 +1078,8 @@ FunctionDeclaration
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+    body: EmptyFunctionBody
+      semicolon: ;
     declaredFragment: <testLibraryFragment> f@28
       element: <testLibrary>::@function::f
         type: void Function<T, U>()

@@ -300,7 +300,7 @@ void Ff() { }
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
-augment void Ff() { }
+augment void Ff();
 ''');
   }
 
@@ -314,7 +314,7 @@ void f({String? Ss}) { }
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
-augment void f({String? Ss}) { }
+augment void f({String? Ss});
 ''');
   }
 
@@ -329,7 +329,7 @@ void f(String? Ss, [int? Xx]) { }
       r'''
 part of 'a.dart';
 
-augment void f(String? Ss, [int? Xx]) { }
+augment void f(String? Ss, [int? Xx]);
 ''',
       [lint(42, 2), lint(52, 2)],
     );
@@ -348,7 +348,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment int get Gg => 2;
+  augment int get Gg;
 }
 ''');
   }
@@ -366,7 +366,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void Mm() { }
+  augment void Mm();
 }
 ''');
   }
@@ -384,7 +384,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void m({String? Ss}) { }
+  augment void m({String? Ss});
 }
 ''');
   }
@@ -403,7 +403,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void m(String? Ss, [int? Xx]) { }
+  augment void m(String? Ss, [int? Xx]);
 }
 ''',
       [lint(62, 2), lint(72, 2)],

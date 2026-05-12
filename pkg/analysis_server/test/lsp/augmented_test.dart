@@ -125,7 +125,7 @@ class A {
 }
 
 augment class A {
-  augment String get foo => '^';
+  augment String get fo^o;
 }
 ''');
   }
@@ -137,7 +137,7 @@ class A {
 }
 
 augment class A {
-  augment String get fo^o => '';
+  augment String get fo^o;
 }
 ''');
   }
@@ -157,13 +157,11 @@ class A {
 }
 
 augment class A {
-  augment void [!foo!]() {}
+  augment void [!foo!]();
 }
 
 augment class A {
-  augment void foo() {
-    ^
-  }
+  augment void fo^o();
 }
 ''');
   }
@@ -175,9 +173,7 @@ class A {
 }
 
 augment class A {
-  augment void foo() {
-    ^
-  }
+  augment void fo^o();
 }
 ''');
   }
@@ -189,11 +185,11 @@ class A {
 }
 
 augment class A {
-  augment void [!foo!]() {}
+  augment void [!foo!]();
 }
 
 augment class A {
-  augment void fo^o() {}
+  augment void fo^o();
 }
 ''');
   }
@@ -205,7 +201,7 @@ class A {
 }
 
 augment class A {
-  augment void f^oo() {}
+  augment void f^oo();
 }
 ''');
   }
@@ -217,9 +213,7 @@ class A {
 }
 
 augment class A {
-  augment set foo(String value) {
-    ^
-  }
+  augment set fo^o(String value);
 }
 ''');
   }
@@ -231,7 +225,7 @@ class A {
 }
 
 augment class A {
-  augment set fo^o(String value) {}
+  augment set fo^o(String value);
 }
 ''');
   }

@@ -159,7 +159,7 @@ class A {
 ''');
     setAugmentationContent(r'''
 augment class A {
-  augment String get [!g!] => '';
+  augment String get [!g!];
 }
 ''');
 
@@ -175,7 +175,7 @@ class A {
 ''');
     setAugmentationContent(r'''
 augment class A {
-  augment void [!m!]() {}
+  augment void [!m!]();
 }
 ''');
 
@@ -191,7 +191,7 @@ class A {
 ''');
     setAugmentationContent(r'''
 augment class A {
-  augment set [!g!](String value) {}
+  augment set [!g!](String value);
 }
 ''');
 
@@ -236,7 +236,7 @@ augment enum A {
 void [!f!]() {}
 ''');
     setAugmentationContent(r'''
-augment void [!f!]() {}
+augment void [!f!]();
 ''');
 
     await initialize();

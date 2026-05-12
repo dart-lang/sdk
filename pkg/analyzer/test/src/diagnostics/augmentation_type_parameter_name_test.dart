@@ -94,7 +94,7 @@ augment mixin A<U> {}
     await assertErrorsInCode(
       r'''
 void foo<T>() {}
-augment void foo<U>() {}
+augment void foo<U>();
 ''',
       [error(diag.augmentationTypeParameterName, 34, 1)],
     );

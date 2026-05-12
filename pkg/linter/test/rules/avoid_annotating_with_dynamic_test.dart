@@ -55,7 +55,7 @@ void f(dynamic o) { }
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 
-void f(int i) {}
+void f(int i);
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
@@ -84,7 +84,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void f(dynamic o) { }
+  augment void f(dynamic o);
 }
 ''');
 
@@ -102,7 +102,7 @@ void f(dynamic o) { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment void f(dynamic o) { }
+augment void f(dynamic o);
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(23, 9)]);
@@ -119,8 +119,8 @@ void f(dynamic o) { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment void f(dynamic o) { }
-augment void f(dynamic o) { }
+augment void f(dynamic o);
+augment void f(dynamic o);
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(23, 9)]);

@@ -251,7 +251,7 @@ augment mixin A<T extends num> {}
     await assertErrorsInCode(
       r'''
 void foo<T>() {}
-augment void foo<T extends num>() {}
+augment void foo<T extends num>();
 ''',
       [error(diag.augmentationTypeParameterBound, 44, 3)],
     );
@@ -261,7 +261,7 @@ augment void foo<T extends num>() {}
     await assertErrorsInCode(
       r'''
 void foo<T extends num>() {}
-augment void foo<T extends int>() {}
+augment void foo<T extends int>();
 ''',
       [error(diag.augmentationTypeParameterBound, 56, 3)],
     );
@@ -270,7 +270,7 @@ augment void foo<T extends int>() {}
   test_topLevelFunction_num_nothing() async {
     await assertNoErrorsInCode(r'''
 void foo<T extends num>() {}
-augment void foo<T>() {}
+augment void foo<T>();
 ''');
   }
 
@@ -279,7 +279,7 @@ augment void foo<T>() {}
 typedef N = num;
 
 void foo<T extends num>() {}
-augment void foo<T extends N>() {}
+augment void foo<T extends N>();
 ''');
   }
 
@@ -289,7 +289,7 @@ import 'dart:core';
 import 'dart:core' as core;
 
 void foo<T extends num>() {}
-augment void foo<T extends core.num>() {}
+augment void foo<T extends core.num>();
 ''');
   }
 }

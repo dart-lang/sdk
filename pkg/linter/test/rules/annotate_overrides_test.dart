@@ -86,7 +86,7 @@ class B extends A {
 part of 'a.dart';
 
 augment class B {
-  augment void a() {}
+  augment void a();
 }
 ''');
   }

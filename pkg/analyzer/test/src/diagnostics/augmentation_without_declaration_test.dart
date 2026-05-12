@@ -257,7 +257,7 @@ class A {
 }
 
 augment class A {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
@@ -826,7 +826,7 @@ mixin A {
 }
 
 augment mixin A {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
@@ -857,7 +857,7 @@ augment void foo() {}
     await assertNoErrorsInCode(r'''
 void foo() {}
 
-augment void foo() {}
+augment void foo();
 ''');
   }
 

@@ -53,7 +53,7 @@ void f(bool b) { }
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
-augment void f(bool b) { }
+augment void f(bool b);
 ''');
   }
 
@@ -70,7 +70,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void f(bool b) { }
+  augment void f(bool b);
 }
 ''');
   }
