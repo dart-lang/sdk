@@ -29,6 +29,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
@@ -460,6 +461,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       constructorBuilder,
       constructorDeclaration,
       _constructor,
+      new _RegularConstructorContext(constructorBuilder),
     );
   }
 
@@ -799,6 +801,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       constructorBuilder,
       constructorDeclaration,
       _constructor,
+      new _ExtensionTypeConstructorContext(constructorBuilder, thisVariable!),
     );
   }
 
@@ -1346,5 +1349,40 @@ class ExtensionTypeConstructorEncodingStrategy
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
     return new ExtensionTypeConstructorEncoding(isExternal: isExternal);
+  }
+}
+
+class _RegularConstructorContext implements ConstructorContext {
+  final SourceConstructorBuilder _builder;
+
+  _RegularConstructorContext(this._builder);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  FunctionSignature get signature => _builder.signature;
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    return _builder.substituteFieldType(fieldType);
+  }
+
+  @override
+  VariableDeclaration? get thisVariable => null;
+}
+
+class _ExtensionTypeConstructorContext implements ConstructorContext {
+  final SourceConstructorBuilder _builder;
+
+  @override
+  final VariableDeclaration thisVariable;
+
+  _ExtensionTypeConstructorContext(this._builder, this.thisVariable);
+
+  @override
+  FunctionSignature get signature => _builder.signature;
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    return _builder.substituteFieldType(fieldType);
   }
 }

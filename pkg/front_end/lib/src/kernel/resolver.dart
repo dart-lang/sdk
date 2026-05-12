@@ -1004,6 +1004,7 @@ class Resolver {
           scopeProviderInfo: null,
           contextAllocationStrategy:
               InferenceVisitorBase.createContextAllocationStrategy(),
+          constructorContext: null,
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -1485,6 +1486,7 @@ class Resolver {
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
         contextAllocationStrategy: contextAllocationStrategy,
+        constructorContext: bodyBuilderContext.constructorContext,
       );
       body = inferredFunctionBody.body;
       scopeProviderInfo = inferredFunctionBody.scopeProviderInfo;

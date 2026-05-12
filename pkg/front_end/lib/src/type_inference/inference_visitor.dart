@@ -17,7 +17,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/stack_checker.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/non_null.dart';
@@ -31,6 +30,7 @@ import '../base/problems.dart'
     show internalProblem, unhandled, unimplemented, unsupported;
 import '../base/uri_offset.dart';
 import '../builder/library_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_library_builder.dart';
 import '../kernel/collections.dart'
     show
@@ -52,14 +52,13 @@ import '../kernel/collections.dart'
         PatternForMapEntry,
         SpreadElement,
         SpreadMapEntry;
-import '../kernel/external_ast_helper.dart';
 import '../kernel/external_ast_helper.dart' as extern;
+import '../kernel/external_ast_helper.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../source/check_helper.dart';
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 import 'body_inference_context.dart';
@@ -71,6 +70,7 @@ import 'shared_type_analyzer.dart';
 import 'stack_values.dart';
 import 'type_constraint_gatherer.dart';
 import 'type_inference_engine.dart';
+import 'type_inferrer.dart';
 import 'type_schema.dart' show UnknownType, isKnown;
 
 abstract class InferenceVisitor {
@@ -166,7 +166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   final TypeAnalyzerOptions typeAnalyzerOptions;
 
-  final SourceConstructorBuilder? _constructorBuilder;
+  final ConstructorContext? _constructorContext;
 
   @override
   late final SharedTypeAnalyzerErrors errors = new SharedTypeAnalyzerErrors(
@@ -196,7 +196,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InferenceVisitorImpl(
     super.inferrer,
     super.fileUri,
-    this._constructorBuilder,
+    this._constructorContext,
     this.operations,
     this.typeAnalyzerOptions,
     super.expressionEvaluationHelper, {
@@ -3221,7 +3221,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult visitFieldInitializer(FieldInitializer node) {
     DartType fieldType = node.field.type;
-    fieldType = _constructorBuilder!.substituteFieldType(fieldType);
+    fieldType = _constructorContext!.substituteFieldType(fieldType);
     ExpressionInferenceResult initializerResult = inferExpression(
       node.value,
       fieldType,
@@ -12273,7 +12273,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ensureMemberType(node.target);
     List<TypeParameter> constructorTypeParameters =
-        _constructorBuilder!.signature.typeParameters;
+        _constructorContext!.signature.typeParameters;
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor so we synthesize them for calling
     // [inferInvocation].
@@ -12332,7 +12332,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExtensionTypeRepresentationFieldInitializer node,
   ) {
     DartType fieldType = node.field.getterType;
-    fieldType = _constructorBuilder!.substituteFieldType(fieldType);
+    fieldType = _constructorContext!.substituteFieldType(fieldType);
     ExpressionInferenceResult initializerResult = inferExpression(
       node.value,
       fieldType,
@@ -12360,7 +12360,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     DartType typeContext = bodyContext.returnContext;
     DartType inferredType;
-    if (node.expression != null) {
+    VariableDeclaration? thisVariable = _constructorContext?.thisVariable;
+    if (bodyContext.isRoot && thisVariable != null) {
+      // The constructor is lowered with an explicit variable for `this`. This
+      // means that `return;` should be encoded as `return #this;` where `#this`
+      // is the [thisVariable].
+      node.expression = extern.createVariableGet(
+        thisVariable,
+        fileOffset: node.fileOffset,
+      )..parent = node;
+      inferredType = thisVariable.type;
+    } else if (node.expression != null) {
       ExpressionInferenceResult expressionResult = inferExpression(
         node.expression!,
         typeContext,

@@ -10,11 +10,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/extension_scope.dart';
+import '../builder/function_signature.dart';
 import '../kernel/assigned_variables_impl.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../kernel/internal_ast_helper.dart' as intern;
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../util/helpers.dart';
@@ -70,13 +70,14 @@ abstract class TypeInferrer {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required ConstructorContext? constructorContext,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   });
 
   /// Performs type inference on the given constructor initializer.
   InferredConstructorInitializer inferInitializer({
     required Uri fileUri,
-    required SourceConstructorBuilder constructorBuilder,
+    required ConstructorContext constructorContext,
     required Initializer initializer,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
@@ -191,7 +192,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   InferenceVisitorBase _createInferenceVisitor({
     required Uri fileUri,
-    SourceConstructorBuilder? constructorBuilder,
+    ConstructorContext? constructorContext,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
     required ContextAllocationStrategy contextAllocationStrategy,
   }) {
@@ -200,7 +201,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new InferenceVisitorImpl(
       this,
       fileUri,
-      constructorBuilder,
+      constructorContext,
       operations,
       typeAnalyzerOptions,
       expressionEvaluationHelper,
@@ -268,10 +269,12 @@ class TypeInferrerImpl implements TypeInferrer {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required ConstructorContext? constructorContext,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
+      constructorContext: constructorContext,
       expressionEvaluationHelper: expressionEvaluationHelper,
       contextAllocationStrategy: contextAllocationStrategy,
     );
@@ -279,7 +282,8 @@ class TypeInferrerImpl implements TypeInferrer {
       visitor,
       asyncModifier.kind,
       returnType,
-      false,
+      needToInferReturnType: false,
+      isRoot: true,
     );
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = visitor.beginFunctionBodyInference(
@@ -411,7 +415,7 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   InferredConstructorInitializer inferInitializer({
     required Uri fileUri,
-    required SourceConstructorBuilder constructorBuilder,
+    required ConstructorContext constructorContext,
     required Initializer initializer,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
@@ -426,7 +430,7 @@ class TypeInferrerImpl implements TypeInferrer {
     // checks).
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
-      constructorBuilder: constructorBuilder,
+      constructorContext: constructorContext,
       contextAllocationStrategy: contextAllocationStrategy,
     );
     if (isClosureContextLoweringEnabled) {
@@ -556,6 +560,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required ConstructorContext? constructorContext,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
@@ -570,6 +575,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       internalThisVariable: internalThisVariable,
       scopeProviderInfo: scopeProviderInfo,
       contextAllocationStrategy: contextAllocationStrategy,
+      constructorContext: constructorContext,
     );
     benchmarker.endSubdivide();
     return result;
@@ -578,7 +584,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   @override
   InferredConstructorInitializer inferInitializer({
     required Uri fileUri,
-    required SourceConstructorBuilder constructorBuilder,
+    required ConstructorContext constructorContext,
     required Initializer initializer,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
@@ -588,7 +594,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
     InferredConstructorInitializer result = impl.inferInitializer(
       fileUri: fileUri,
-      constructorBuilder: constructorBuilder,
+      constructorContext: constructorContext,
       initializer: initializer,
       parameters: parameters,
       internalThisVariable: internalThisVariable,
@@ -687,4 +693,21 @@ class InferredConstructorInitializer {
     this.initializerInferenceResult,
     this.scopeProviderInfo,
   );
+}
+
+/// Contextual information used to infer constructor initializers and body.
+abstract class ConstructorContext {
+  /// Computes the type of a field with the declared [fieldType] as used in
+  /// the context of this constructor.
+  ///
+  /// This is used for lowered constructors where the declared field type uses
+  /// type parameters declared in the declaration which must be replace with the
+  /// type parameters on the lowered procedure.
+  DartType substituteFieldType(DartType fieldType);
+
+  /// The signature of the constructor.
+  FunctionSignature get signature;
+
+  /// The variable used for `this`, if any.
+  VariableDeclaration? get thisVariable;
 }

@@ -26,8 +26,15 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   final Member _member;
 
-  ConstructorBodyBuilderContext(this._builder, this._declaration, this._member)
-    : super(
+  @override
+  final ConstructorContext constructorContext;
+
+  ConstructorBodyBuilderContext(
+    this._builder,
+    this._declaration,
+    this._member,
+    this.constructorContext,
+  ) : super(
         _builder.libraryBuilder,
         _builder.declarationBuilder,
         isDeclarationInstanceMember: false,
@@ -110,7 +117,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }) {
     return typeInferrer.inferInitializer(
       fileUri: fileUri,
-      constructorBuilder: _builder,
+      constructorContext: constructorContext,
       initializer: initializer,
       parameters: parameters,
       internalThisVariable: internalThisVariable,

@@ -2442,7 +2442,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       this,
       function.asyncMarker,
       returnContext,
-      needToSetReturnType,
+      needToInferReturnType: needToSetReturnType,
+      isRoot: false,
     );
     StatementInferenceResult bodyResult = visitor.inferStatement(
       function.body!,

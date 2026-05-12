@@ -27,7 +27,7 @@ import '../source/source_type_alias_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/type_inferrer.dart'
-    show InferredConstructorInitializer, TypeInferrer;
+    show InferredConstructorInitializer, TypeInferrer, ConstructorContext;
 import '../util/helpers.dart';
 import 'internal_ast.dart';
 
@@ -154,6 +154,10 @@ abstract class BodyBuilderContext {
   /// Returns `true` if the member whose body is being built is a non-factory
   /// constructor declaration.
   bool get isConstructor => false;
+
+  /// Returns the [ConstructorContext] used for inferring constructor
+  /// initializers and body.
+  ConstructorContext? get constructorContext => null;
 
   // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a non-factory
