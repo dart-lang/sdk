@@ -2,83 +2,77 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalLocalTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AssignmentToFinalLocalTest extends PubPackageResolutionTest {
   test_localVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x = 1;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   test_localVariable_forEach() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final i;
   for (i in [1, 2, 3]) {
+//     ^
+// [diag.assignmentToFinalLocal] The final variable 'i' can only be set once.
     print(i);
   }
 }
-''',
-      [error(diag.assignmentToFinalLocal, 24, 1)],
-    );
+''');
   }
 
   test_localVariable_inForEach() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
   for (x in <int>[1, 2]) {
+//     ^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
     print(x);
   }
-}''',
-      [error(diag.assignmentToFinalLocal, 28, 1)],
-    );
+}''');
   }
 
   test_localVariable_plusEq() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x += 1;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   test_parameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 f(final x) {
   x = 1;
-}''',
-      [error(diag.assignmentToFinalLocal, 31, 1)],
-    );
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   /// See `10.6.1 Generative Constructors`.
@@ -92,129 +86,114 @@ f(final x) {
   /// Note that it says 'final local variable', regardless whether the instance
   /// variable is final.
   test_parameter_fieldFormal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   final Object y;
   A(this.x) : y = (() {
     x = 0;
+//  ^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
   });
 }
-''',
-      [error(diag.assignmentToFinalLocal, 65, 1)],
-    );
+''');
   }
 
   test_parameter_superFormal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
 class B extends A {
   var x;
   B(super.a) : x = (() { a = 0; });
+//                       ^
+// [diag.assignmentToFinalLocal] The final variable 'a' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 78, 1)],
-    );
+''');
   }
 
   test_patternVariable_final() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final (a) = 0;
   a = 1;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'a' can only be set once.
   a;
 }
-''',
-      [error(diag.assignmentToFinalLocal, 30, 1)],
-    );
+''');
   }
 
   test_postfixMinusMinus() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x--;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   test_postfixPlusPlus() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x++;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   test_prefixMinusMinus() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   --x;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 25, 1),
-      ],
-    );
+//  ^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   test_prefixPlusPlus() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   ++x;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 25, 1),
-      ],
-    );
+//  ^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   test_suffixMinusMinus() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x--;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 
   test_suffixPlusPlus() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x++;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToFinalLocal, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
   }
 }

@@ -2,45 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BodyMightCompleteNormallyNullableTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class BodyMightCompleteNormallyNullableTest extends PubPackageResolutionTest {
   test_function_async_block_futureOrIntQuestion() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 FutureOr<int?> f(Future f) async {}
-''',
-      [error(diag.bodyMightCompleteNormallyNullable, 36, 1)],
-    );
+//             ^
+// [diag.bodyMightCompleteNormallyNullable] This function has a nullable return type of 'FutureOr<int?>', but ends without returning a value.
+''');
   }
 
   test_function_async_block_futureOrVoid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 FutureOr<void> f(Future f) async {}
 ''');
   }
 
   test_function_async_block_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 void f(Future f) async {}
 ''');
   }
 
   test_function_switchStatement_exhaustive_extensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b }
 
 extension type EE(E it) {}
@@ -57,22 +57,21 @@ int f(EE e) {
   }
 
   test_function_sync_block_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f() {}
 ''');
   }
 
   test_function_sync_block_intQuestion() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int? f() {}
-''',
-      [error(diag.bodyMightCompleteNormallyNullable, 5, 1)],
-    );
+//   ^
+// [diag.bodyMightCompleteNormallyNullable] This function has a nullable return type of 'int?', but ends without returning a value.
+''');
   }
 
   test_function_sync_block_intQuestion_definiteReturn() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 int? f() {
   return null;
 }
@@ -80,13 +79,13 @@ int? f() {
   }
 
   test_function_sync_block_Null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Null f() {}
 ''');
   }
 
   test_function_sync_block_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {}
 ''');
   }

@@ -2,83 +2,77 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToConstTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AssignmentToConstTest extends PubPackageResolutionTest {
   test_instanceVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const v = 0;
 }
 f() {
   A.v = 1;
-}''',
-      [error(diag.assignmentToConst, 44, 1)],
-    );
+//  ^
+// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
+}''');
   }
 
   test_instanceVariable_plusEq() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const v = 0;
 }
 f() {
   A.v += 1;
-}''',
-      [error(diag.assignmentToConst, 44, 1)],
-    );
+//  ^
+// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
+}''');
   }
 
   test_localVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   const x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x = 1;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToConst, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
+}''');
   }
 
   test_localVariable_inForEach() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   const x = 0;
   for (x in <int>[1, 2]) {
+//     ^
+// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
     print(x);
   }
-}''',
-      [error(diag.assignmentToConst, 28, 1)],
-    );
+}''');
   }
 
   test_localVariable_plusEq() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   const x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x += 1;
-}''',
-      [
-        error(diag.unusedLocalVariable, 14, 1),
-        error(diag.assignmentToConst, 23, 1),
-      ],
-    );
+//^
+// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
+}''');
   }
 }

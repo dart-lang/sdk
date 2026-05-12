@@ -2,45 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AugmentationTypeParameterBoundTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AugmentationTypeParameterBoundTest extends PubPackageResolutionTest {
   test_class_method_nothing_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo<T>() {}
   augment void foo<T extends num>();
+//                           ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
 }
-''',
-      [error(diag.augmentationTypeParameterBound, 58, 3)],
-    );
+''');
   }
 
   test_class_method_num_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo<T extends num>() {}
   augment void foo<T extends int>();
+//                           ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
 }
-''',
-      [error(diag.augmentationTypeParameterBound, 70, 3)],
-    );
+''');
   }
 
   test_class_method_num_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo<T extends num>() {}
   augment void foo<T>();
@@ -49,41 +48,39 @@ class A {
   }
 
   test_class_nothing_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 augment class A<T extends num> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 40, 3)],
-    );
+//                        ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_class_num_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T extends num> {}
 augment class A<T extends int> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 52, 3)],
-    );
+//                        ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_class_num_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T extends num> {}
 augment class A<T> {}
 ''');
   }
 
   test_class_num_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T extends num> {}
 augment class A<T extends num> {}
 ''');
   }
 
   test_class_num_num_viaTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef N = num;
 
 class A<T extends num> {}
@@ -92,7 +89,7 @@ augment class A<T extends N> {}
   }
 
   test_class_num_num_withImportPrefix() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
 import 'dart:core' as core;
 
@@ -102,180 +99,169 @@ augment class A<T extends core.num> {}
   }
 
   test_class_num_Object() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T extends num> {}
 augment class A<T extends Object> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 52, 6)],
-    );
+//                        ^^^^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_enum_nothing_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T> {v}
 augment enum A<T extends num> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 39, 3)],
-    );
+//                       ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_enum_num_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T extends num> {v}
 augment enum A<T extends int> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 51, 3)],
-    );
+//                       ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_enum_num_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T extends num> {v}
 augment enum A<T> {}
 ''');
   }
 
   test_enum_num_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T extends num> {v}
 augment enum A<T extends num> {}
 ''');
   }
 
   test_extension_nothing_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T> on int {}
 augment extension A<T extends num> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 55, 3)],
-    );
+//                            ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_extension_num_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T extends num> on int {}
 augment extension A<T extends int> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 67, 3)],
-    );
+//                            ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_extension_num_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T extends num> on int {}
 augment extension A<T> {}
 ''');
   }
 
   test_extension_num_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T extends num> on int {}
 augment extension A<T extends num> {}
 ''');
   }
 
   test_extensionType_nothing_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
 augment extension type A<T extends num>(int it) {}
-''',
-      [error(diag.augmentationTypeParameterBound, 66, 3)],
-    );
+//                                 ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_extensionType_num_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
 augment extension type A<T extends int>(int it) {}
-''',
-      [error(diag.augmentationTypeParameterBound, 78, 3)],
-    );
+//                                 ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_extensionType_num_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
 augment extension type A<T>(int it) {}
 ''');
   }
 
   test_extensionType_num_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
 augment extension type A<T extends num>(int it) {}
 ''');
   }
 
   test_mixin_nothing_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T> {}
 augment mixin A<T extends num> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 40, 3)],
-    );
+//                        ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_mixin_num_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T extends num> {}
 augment mixin A<T extends int> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 52, 3)],
-    );
+//                        ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_mixin_num_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T extends num> {}
 augment mixin A<T> {}
 ''');
   }
 
   test_mixin_num_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T extends num> {}
 augment mixin A<T extends num> {}
 ''');
   }
 
   test_topLevelFunction_nothing_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>() {}
 augment void foo<T extends num>();
-''',
-      [error(diag.augmentationTypeParameterBound, 44, 3)],
-    );
+//                         ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_topLevelFunction_num_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T extends num>() {}
 augment void foo<T extends int>();
-''',
-      [error(diag.augmentationTypeParameterBound, 56, 3)],
-    );
+//                         ^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
   }
 
   test_topLevelFunction_num_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T extends num>() {}
 augment void foo<T>();
 ''');
   }
 
   test_topLevelFunction_num_num_viaTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef N = num;
 
 void foo<T extends num>() {}
@@ -284,7 +270,7 @@ augment void foo<T extends N>();
   }
 
   test_topLevelFunction_num_num_withImportPrefix() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
 import 'dart:core' as core;
 

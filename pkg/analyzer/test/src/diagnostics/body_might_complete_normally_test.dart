@@ -6,11 +6,13 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BodyMayCompleteNormallyTest);
     defineReflectiveTests(BodyMayCompleteNormallyTest_Language219);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -32,7 +34,7 @@ mixin BodyMayCompleteNormallyTestCases on PubPackageResolutionTest {
   bool get _arePatternsEnabled;
 
   test_enum_method_nonNullable_blockBody_switchStatement_notNullable_exhaustive() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a;
 
@@ -74,74 +76,69 @@ enum E {
   }
 
   test_factoryConstructor_named_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A.named() {}
+//        ^^^^^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'A', is a potentially non-nullable type.
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 20, 7)],
-    );
+''');
   }
 
   test_factoryConstructor_unnamed_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() {}
+//        ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'A', is a potentially non-nullable type.
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 20, 1)],
-    );
+''');
   }
 
   test_function_future_int_blockBody_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<int> foo() async {}
-''',
-      [error(diag.bodyMightCompleteNormally, 12, 3)],
-    );
+//          ^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'FutureOr<int>', is a potentially non-nullable type.
+''');
   }
 
   test_function_future_void_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<void> foo() {}
-''',
-      [error(diag.bodyMightCompleteNormally, 13, 3)],
-    );
+//           ^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'Future<void>', is a potentially non-nullable type.
+''');
   }
 
   test_function_future_void_blockBody_async() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<void> foo() async {}
 ''');
   }
 
   test_function_nonNullable_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int foo() {}
-''',
-      [error(diag.bodyMightCompleteNormally, 4, 3)],
-    );
+//  ^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'int', is a potentially non-nullable type.
+''');
   }
 
   test_function_nonNullable_blockBody_generator_async() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Stream<int> foo() async* {}
 ''');
   }
 
   test_function_nonNullable_blockBody_generator_sync() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Iterable<int> foo() sync* {}
 ''');
   }
 
   test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum Foo { a, b }
 
 int f(Foo foo) {
@@ -156,7 +153,7 @@ int f(Foo foo) {
   }
 
   test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive_enhanced() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a;
 
@@ -176,7 +173,7 @@ int f(E e) {
   test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive_parenthesis() async {
     // TODO(johnniwinther): Re-enable this test for the patterns feature.
     if (_arePatternsEnabled) return;
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum Foo { a, b }
 
 int f(Foo foo) {
@@ -239,7 +236,7 @@ int f(E e) {
   }
 
   test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_default() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum Foo { a, b }
 
 int f(Foo? foo) {
@@ -256,7 +253,7 @@ int f(Foo? foo) {
   }
 
   test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_null() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum Foo { a, b }
 
 int f(Foo? foo) {
@@ -297,7 +294,7 @@ int f(Foo? foo) {
   }
 
   test_function_nullable_blockBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int foo() {
   return 0;
 }
@@ -305,31 +302,29 @@ int foo() {
   }
 
   test_functionExpression_future_int_blockBody_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   Future<int> Function() foo = () async {};
+//                                      ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'FutureOr<int>', is a potentially non-nullable type.
   foo;
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 51, 1)],
-    );
+''');
   }
 
   test_functionExpression_future_void_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   Future<void> Function() foo = () {};
+//                                 ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'Future<void>', is a potentially non-nullable type.
   foo;
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 46, 1)],
-    );
+''');
   }
 
   test_functionExpression_future_void_blockBody_async() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   Future<void> Function() foo = () async {};
   foo;
@@ -338,20 +333,19 @@ main() {
   }
 
   test_functionExpression_notNullable_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int Function() foo = () {
+//                        ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'int', is a potentially non-nullable type.
   };
   foo;
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 37, 1)],
-    );
+''');
   }
 
   test_functionExpression_notNullable_blockBody_return() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int Function() foo = () {
     return 0;
@@ -362,7 +356,7 @@ main() {
   }
 
   test_generativeConstructor_blockBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() {}
 }
@@ -370,7 +364,7 @@ class A {
   }
 
   test_generativeConstructor_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
@@ -378,29 +372,27 @@ class A {
   }
 
   test_method_future_int_blockBody_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Future<int> foo() async {}
+//            ^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'FutureOr<int>', is a potentially non-nullable type.
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 24, 3)],
-    );
+''');
   }
 
   test_method_future_void_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Future<void> foo() {}
+//             ^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'Future<void>', is a potentially non-nullable type.
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 25, 3)],
-    );
+''');
   }
 
   test_method_future_void_blockBody_async() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Future<void> foo() async {}
 }
@@ -408,18 +400,17 @@ class A {
   }
 
   test_method_nonNullable_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() {}
+//    ^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'int', is a potentially non-nullable type.
 }
-''',
-      [error(diag.bodyMightCompleteNormally, 16, 3)],
-    );
+''');
   }
 
   test_method_nonNullable_blockBody_generator_async() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Stream<int> foo() async* {
     yield 0;
@@ -429,7 +420,7 @@ class A {
   }
 
   test_method_nonNullable_blockBody_generator_sync() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Iterable<int> foo() sync* {
     yield 0;
@@ -439,7 +430,7 @@ class A {
   }
 
   test_method_nonNullable_blockBody_return() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() {
     return 0;
@@ -449,7 +440,7 @@ class A {
   }
 
   test_method_nonNullable_blockBody_throw() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() {
     throw 0;
@@ -459,7 +450,7 @@ class A {
   }
 
   test_method_nonNullable_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int foo();
 }
@@ -467,7 +458,7 @@ abstract class A {
   }
 
   test_method_nonNullable_expressionBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
 }
@@ -475,7 +466,7 @@ class A {
   }
 
   test_method_nonNullable_expressionBody_throw() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => throw 0;
 }
@@ -483,7 +474,7 @@ class A {
   }
 
   test_method_nullable_blockBody_return() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? foo() {
     return 0;
@@ -496,11 +487,9 @@ class A {
     // Even though this code has an illegal return type for a setter, do not
     // use the invalid return type to report BODY_MIGHT_COMPLETE_NORMALLY for
     // setters.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool set s(int value) {}
-''',
-      [error(diag.nonVoidReturnForSetter, 0, 4)],
-    );
+// [diag.nonVoidReturnForSetter][column 1][length 4] The return type of the setter must be 'void' or absent.
+''');
   }
 }

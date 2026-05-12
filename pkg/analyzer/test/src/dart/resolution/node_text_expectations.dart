@@ -187,6 +187,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'ResolutionTest',
+      methodName: 'resolveTestCodeWithDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'SearchTest',
       methodName: 'assertDeclarationsText',
       argument: _ArgumentIndex(2),
