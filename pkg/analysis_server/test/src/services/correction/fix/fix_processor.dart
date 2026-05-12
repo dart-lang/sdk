@@ -99,6 +99,10 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
 }
 
 /// A base class defining support for writing bulk fix processor tests.
+///
+/// Tests using this base class validate that if there is more than one place to
+/// apply a fix, then the code is valid after applying as many fixes as possible
+/// in a single pass.
 abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// The source change associated with the fix that was found, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
