@@ -9,5 +9,5 @@ import 'package:expect/expect.dart';
 void main() {
   final int? x = 2;
   Expect.isTrue((x != null).=> this ? x.isEven : false);
-  Expect.isTrue((x != null).(b) => b ? x.isEven : false);
+  Expect.isTrue((x != null).(p) => p ? x.isEven : false);
 }

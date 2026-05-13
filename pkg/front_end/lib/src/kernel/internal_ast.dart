@@ -516,9 +516,10 @@ class Cascade extends InternalExpression {
 class AnonymousMethodExpression extends InternalExpression {
   VariableDeclaration variable;
   Expression body;
+  final bool isCascade;
   final bool isImplicitlyTyped;
   final bool isNullAware;
-  final bool isCascade;
+  final bool isParameterless;
   final int typeOffset;
 
   AnonymousMethodExpression(
@@ -528,7 +529,7 @@ class AnonymousMethodExpression extends InternalExpression {
     required this.isNullAware,
     required this.isCascade,
     required this.typeOffset,
-  }) {
+  }) : isParameterless = variable.isSynthesized {
     variable.parent = this;
     body.parent = this;
   }

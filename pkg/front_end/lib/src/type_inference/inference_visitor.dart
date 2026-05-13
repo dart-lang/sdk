@@ -11881,7 +11881,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isFinal: false,
       isLate: false,
       isImplicitlyTyped: node.isImplicitlyTyped,
-      inheritPromotableProperties: true,
+      inheritPromotableProperties: node.isParameterless,
     );
     if (node.isNullAware) {
       flow.nullAwareAccess_rightBegin(
@@ -11891,8 +11891,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
 
-    bool isParameterless = node.variable.isSynthesized;
-    if (isParameterless) {
+    if (node.isParameterless) {
       flow.thisBinding_begin(
         flowAnalysis.getExpressionInfo(node.variable.initializer!),
       );
@@ -11902,7 +11901,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       isVoidAllowed: true,
     );
-    if (isParameterless) {
+    if (node.isParameterless) {
       flow.thisBinding_end();
     }
 
@@ -11964,6 +11963,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = inferredType.withDeclaredNullability(Nullability.nullable);
     } else {
       replacement = new Let(node.variable, body)..fileOffset = node.fileOffset;
+    }
+
+    if (node.isParameterless) {
+      flowAnalysis.storeExpressionInfo(
+        replacement,
+        flowAnalysis.getExpressionInfo(node.body),
+      );
     }
 
     return new ExpressionInferenceResult(inferredType, replacement);

@@ -2517,7 +2517,7 @@ class InvokeAnonymousMethod extends Expression {
         isFinal: false,
         isLate: false,
         isImplicitlyTyped: isImplicitlyTyped,
-        inheritPromotableProperties: true,
+        inheritPromotableProperties: isParameterless,
       );
     }
     // Analyze the block, and generate its IR.

@@ -1993,7 +1993,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               isFinal: false,
               isLate: false,
               isImplicitlyTyped: parameter.type == null,
-              inheritPromotableProperties: true,
+              inheritPromotableProperties: false,
             );
           } else {
             // An error will occur because there are multiple parameters, but
@@ -2017,12 +2017,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var targetInfo = target != null
           ? flowAnalysis.flow?.getExpressionInfo(target)
           : null;
+      var body = node.body;
       flowAnalysis.flow?.thisBinding_begin(targetInfo);
       try {
-        returnedType = node.body.resolve(this, contextType);
+        returnedType = body.resolve(this, contextType);
       } finally {
         flowAnalysis.flow?.thisBinding_end();
         _thisType = oldThisType;
+      }
+      if (body is AnonymousExpressionBodyImpl) {
+        flowAnalysis.flow?.storeExpressionInfo(
+          node,
+          flowAnalysis.flow?.getExpressionInfo(body.expression),
+        );
       }
     } else {
       returnedType = node.body.resolve(this, contextType);

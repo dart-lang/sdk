@@ -12938,7 +12938,8 @@ main() {
       ]);
     });
 
-    test('Parameterized anonymous method parameter inherits promotion', () {
+    test('Parameterized anonymous method parameter '
+        'does not inherit promotion', () {
       var x = Var('x');
       var p = Var('p');
       h.addMember('A', '_field', 'Object', promotable: true);
@@ -12947,15 +12948,15 @@ main() {
         declare(x, type: 'A', initializer: expr('A')),
         x.property('_field').as_('num'),
         x.invokeAnonymousMethod(isParameterless: false, parameter: p, [
-          checkPromoted(p.property('_field'), 'num'),
+          checkNotPromoted(p.property('_field')),
           p.property('_field').as_('int'),
         ], returnType: 'void'),
-        checkPromoted(x.property('_field'), 'int'),
+        checkPromoted(x.property('_field'), 'num'),
       ]);
     });
 
-    test('Parameterized anonymous method promotes parameter._field '
-        'from instanceVariable._field and vice versa', () {
+    test('Parameterized anonymous method does not promote parameter._field '
+        'from instanceVariable._field or vice versa', () {
       var p = Var('p');
       h.addMember('A', '_field', 'B', promotable: true);
       h.addMember('B', '_subField', 'Object', promotable: true);
@@ -12967,10 +12968,10 @@ main() {
         this_
             .property('_field')
             .invokeAnonymousMethod(isParameterless: false, parameter: p, [
-              checkPromoted(p.property('_subField'), 'num'),
+              checkNotPromoted(p.property('_subField')),
               p.property('_subField').as_('int'),
         ], returnType: 'void'),
-        checkPromoted(this_.property('_field').property('_subField'), 'int'),
+        checkPromoted(this_.property('_field').property('_subField'), 'num'),
       ]);
     });
 
