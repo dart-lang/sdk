@@ -491,9 +491,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 }
@@ -864,9 +862,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 }

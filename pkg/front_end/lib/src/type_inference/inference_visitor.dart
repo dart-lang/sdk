@@ -537,7 +537,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (scopeProviderInfo != null) {
       // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope?..parent = node;
+      node.scope = scopeProviderInfo.scope;
     }
     return new ExpressionInferenceResult(valueResult.inferredType, node);
   }
@@ -1291,7 +1291,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      replacement.scope = scopeProviderInfo.scope?..parent = replacement;
+      replacement.scope = scopeProviderInfo.scope;
     }
     return statementInferenceResult;
   }
@@ -3420,7 +3420,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..bodyOffset = node.bodyOffset;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      forInStatement.scope = scopeProviderInfo.scope?..parent = forInStatement;
+      forInStatement.scope = scopeProviderInfo.scope;
     }
     Statement result = forInStatement;
     InvalidExpression? preLoopError = encoding.preLoopError;
@@ -3523,7 +3523,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.for_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope?..parent = node;
+      node.scope = scopeProviderInfo.scope;
     }
     return const StatementInferenceResult();
   }
@@ -3667,7 +3667,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.function.scope = scopeProviderInfo.scope?..parent = node.function;
+      node.function.scope = scopeProviderInfo.scope;
     }
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -4547,7 +4547,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [element]
       // is desugared into.
-      node.scope = scopeProviderInfo.scope?..parent = node;
+      node.scope = scopeProviderInfo.scope;
     }
     return new ExpressionInferenceResult(bodyResult.inferredType, node);
   }
@@ -7714,7 +7714,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [entry]
       // is desugared into.
-      node.scope = scopeProviderInfo.scope?..parent = node;
+      node.scope = scopeProviderInfo.scope;
     }
     return node;
   }
@@ -13280,7 +13280,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope?..parent = node;
+      node.scope = scopeProviderInfo.scope;
     }
   }
 
@@ -13521,10 +13521,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.whileStatement_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope =
-          scopeProviderInfo
-              .scope // Coverage-ignore(suite): Not run.
-            ?..parent = node;
+      node.scope = scopeProviderInfo.scope;
     }
     return const StatementInferenceResult();
   }

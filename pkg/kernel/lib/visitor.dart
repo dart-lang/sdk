@@ -765,8 +765,6 @@ abstract class TreeVisitor<R>
   R visitPatternGuard(PatternGuard node);
   R visitComponent(Component node);
   R visitTypeVariable(TypeVariable node);
-  R visitVariableContext(VariableContext node);
-  R visitScope(Scope node);
   R visitNominalParameter(NominalParameter node);
 }
 
@@ -823,10 +821,6 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitComponent(Component node) => defaultTreeNode(node);
   @override
   R visitTypeVariable(TypeVariable node) => defaultTreeNode(node);
-  @override
-  R visitVariableContext(VariableContext node) => defaultTreeNode(node);
-  @override
-  R visitScope(Scope node) => defaultTreeNode(node);
   @override
   R visitNominalParameter(NominalParameter node) => visitTypeParameter(node);
 }
@@ -890,8 +884,6 @@ abstract class TreeVisitor1<R, A>
   R visitPatternGuard(PatternGuard node, A arg);
   R visitComponent(Component node, A arg);
   R visitTypeVariable(TypeVariable node, A arg);
-  R visitVariableContext(VariableContext node, A arg);
-  R visitScope(Scope node, A arg);
   R visitNominalParameter(NominalParameter node, A arg);
 }
 
@@ -954,11 +946,6 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
   R visitComponent(Component node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitTypeVariable(TypeVariable node, A arg) => defaultTreeNode(node, arg);
-  @override
-  R visitVariableContext(VariableContext node, A arg) =>
-      defaultTreeNode(node, arg);
-  @override
-  R visitScope(Scope node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitNominalParameter(NominalParameter node, A arg) =>
       visitTypeParameter(node, arg);
@@ -3356,16 +3343,6 @@ mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
     throw StateError("${runtimeType}.visitTypeVariable isn't supported.");
   }
 
-  @override
-  R visitVariableContext(VariableContext node) {
-    throw StateError("${runtimeType}.visitVariableContext isn't supported.");
-  }
-
-  @override
-  R visitScope(Scope node) {
-    throw StateError("${runtimeType}.visitScope isn't supported.");
-  }
-
   /// Since [TypeParameter] is abstract due to an experiment, it doesn't have
   /// its own visit method in [TreeVisitor]. However, for the transitional
   /// period the backends would rely on having [visitTypeParameter] and on
@@ -3392,16 +3369,6 @@ mixin TreeVisitor1ExperimentExclusionMixin<R, A> implements TreeVisitor1<R, A> {
   @override
   R visitTypeVariable(TypeVariable node, A arg) {
     throw StateError("${runtimeType}.visitTypeVariable isn't supported.");
-  }
-
-  @override
-  R visitVariableContext(VariableContext node, A arg) {
-    throw StateError("${runtimeType}.visitVariableContext isn't supported.");
-  }
-
-  @override
-  R visitScope(Scope node, A arg) {
-    throw StateError("${runtimeType}.visitScope isn't supported.");
   }
 
   /// Since [TypeParameter] is abstract due to an experiment, it doesn't have

@@ -1866,7 +1866,7 @@ enum CaptureKind { notCaptured, directCaptured, assertCaptured }
 /// The box storing some of the variables in the scope it's associated with. It
 /// serves as the "declaration" of the variables it contains for the runtime
 /// environments.
-class VariableContext extends TreeNode {
+class VariableContext {
   final CaptureKind captureKind;
   final List<VariableBase> variables;
 
@@ -1878,38 +1878,12 @@ class VariableContext extends TreeNode {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw new UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw new UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
   String toString() {
-    return "VariableContext(${toStringInternal()})";
+    AstPrinter printer = new AstPrinter(defaultAstTextStrategy);
+    toTextInternal(printer);
+    return "VariableContext(${printer.getText()})";
   }
 
-  @override
   void toTextInternal(AstPrinter printer) {
     printer.write('[');
     for (int index = 0; index < variables.length; index++) {
@@ -1927,49 +1901,22 @@ class VariableContext extends TreeNode {
 /// variables they contain. They aren't [Statement]s, but a runtime may choose
 /// to interpret the [Scope] in an executable way before any [Statement]s or
 /// [Expression]s of its node.
-class Scope extends TreeNode {
+class Scope {
   final List<VariableContext> contexts;
 
   Scope({required this.contexts});
 
   void addContext(VariableContext context) {
-    context.parent = this;
     contexts.add(context);
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw new UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw new UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
   String toString() {
-    return "Scope(${toStringInternal()})";
+    AstPrinter printer = new AstPrinter(defaultAstTextStrategy);
+    toTextInternal(printer);
+    return "Scope(${printer.getText()})";
   }
 
-  @override
   void toTextInternal(AstPrinter printer) {
     printer.write('[');
     for (int index = 0; index < contexts.length; index++) {

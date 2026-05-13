@@ -477,9 +477,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 }
@@ -829,9 +827,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 }

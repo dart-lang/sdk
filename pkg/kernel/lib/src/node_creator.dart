@@ -103,11 +103,7 @@ class NodeCreator {
              VariableDeclarationKind.SyntheticVariable,
              VariableDeclarationKind.ThisVariable,
            }),
-       _pendingNodes = _createPending<NodeKind>(nodes, {
-         NodeKind.TypeVariable,
-         NodeKind.VariableContext,
-         NodeKind.Scope,
-       }),
+       _pendingNodes = _createPending<NodeKind>(nodes, {NodeKind.TypeVariable}),
        _uri = Uri.parse('test:uri') {
     _createdKinds.addAll(_pendingExpressions.keys);
     _createdKinds.addAll(_pendingStatements.keys);
@@ -389,8 +385,6 @@ class NodeCreator {
         case NodeKind.PatternSwitchCase:
         case NodeKind.SwitchExpressionCase:
         case NodeKind.TypeVariable:
-        case NodeKind.Scope:
-        case NodeKind.VariableContext:
           throw new UnimplementedError('Expected in body node $kind.');
         case NodeKind.Class:
           _needLibrary().addClass(node as Class);
@@ -2135,8 +2129,6 @@ class NodeCreator {
           _createExpression(),
         )..fileOffset = _needFileOffset();
       case NodeKind.TypeVariable:
-      case NodeKind.Scope:
-      case NodeKind.VariableContext:
         throw new UnimplementedError("Unimplemented support for kind $kind.");
     }
   }

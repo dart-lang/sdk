@@ -845,9 +845,7 @@ class FactoryEncoding implements InferredTypeListener {
         emittedValueType: emittedValueType,
       );
     }
-    _procedure.function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = _procedure.function;
+    _procedure.function.scope = scope;
     _procedure.function.thisVariable = thisVariable;
   }
 
