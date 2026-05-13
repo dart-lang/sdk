@@ -1,0 +1,52 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+callable:
+  - library: 'dart:core'
+  - library: 'shared/lib.dart'
+  - library: 'package:expect/expect.dart'
+
+dynamically-callable:
+  - library: 'shared/lib.dart'
+    class: 'A1'
+    member: 'm1'
+  - library: 'shared/lib.dart'
+    class: 'A1'
+    member: 'get:g2'
+  - library: 'shared/lib.dart'
+    class: 'A1'
+    member: 'set:s3'
+  - library: 'shared/lib.dart'
+    class: 'A1'
+    member: 'm4'
+  - library: 'shared/lib.dart'
+    class: 'A1'
+    member: 'f1'
+  - library: 'shared/lib.dart'
+    class: 'A1'
+    member: 'f2'
+  - library: 'shared/lib.dart'
+    class: 'A3'
+    member: 'm9'
+  - library: 'shared/lib.dart'
+    class: 'A5'
+    member: 'm12'
+  - library: 'shared/lib.dart'
+    class: 'A5'
+    member: 'm13'
+  - library: 'shared/lib.dart'
+    class: 'A7'
+    member: 'm17'
+  - library: 'shared/lib.dart'
+    class: 'A7'
+    member: 'm18'
+
+extendable:
+  - library: 'shared/lib.dart'
+    class: ['A5', 'A7']
+
+can-be-overridden:
+  - library: 'shared/lib.dart'
+    class: 'A5'
+  - library: 'shared/lib.dart'
+    class: 'A7'
