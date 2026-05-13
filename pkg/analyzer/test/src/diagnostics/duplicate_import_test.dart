@@ -21,13 +21,12 @@ class DuplicateExportTest extends PubPackageResolutionTest {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 export 'lib1.dart';
-''',
-      [error(diag.duplicateExport, 27, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''');
   }
 
   test_library_duplicateExport_differentShow() async {
@@ -35,7 +34,7 @@ export 'lib1.dart';
 class A {}
 class B {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart' show A;
 export 'lib1.dart' show B;
 ''');
@@ -46,13 +45,12 @@ export 'lib1.dart' show B;
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart' show A;
 export 'lib1.dart' show A;
-''',
-      [error(diag.duplicateExport, 34, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''');
   }
 
   test_part_duplicateExport() async {
@@ -79,15 +77,14 @@ class DuplicateImportTest extends PubPackageResolutionTest {
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:test/a.dart';
 import 'package:test/a.dart';
+//     ^^^^^^^^^^^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 
 final a = A();
-''',
-      [error(diag.duplicateImport, 37, 21)],
-    );
+''');
   }
 
   test_library_duplicateImport_relative_absolute() async {
@@ -95,15 +92,14 @@ final a = A();
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'package:test/a.dart';
+//     ^^^^^^^^^^^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 
 final a = A();
-''',
-      [error(diag.duplicateImport, 24, 21)],
-    );
+''');
   }
 
   test_library_duplicateImport_relative_relative() async {
@@ -111,15 +107,14 @@ final a = A();
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 
 final a = A();
-''',
-      [error(diag.duplicateImport, 24, 8)],
-    );
+''');
   }
 
   test_library_importsHaveIdenticalShowHide() async {

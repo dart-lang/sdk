@@ -24,19 +24,18 @@ augment enum E {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 enum E {}
 ''');
   }
 
   test_noConstants() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {}
-''',
-      [error(diag.enumWithoutConstants, 5, 1)],
-    );
+//   ^
+// [diag.enumWithoutConstants] The enum must have at least one enum constant.
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation

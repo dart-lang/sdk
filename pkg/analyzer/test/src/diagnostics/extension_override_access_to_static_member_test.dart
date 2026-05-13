@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,18 +16,17 @@ main() {
 class ExtensionOverrideAccessToStaticMemberTest
     extends PubPackageResolutionTest {
   test_call() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void call() {}
 }
 
 void f() {
   E(0)();
+//    ^^
+// [diag.extensionOverrideAccessToStaticMember] An extension override can't be used to access a static member from an extension.
 }
-''',
-      [error(diag.extensionOverrideAccessToStaticMember, 65, 2)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
@@ -56,46 +54,43 @@ FunctionExpressionInvocation
   }
 
   test_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static String get empty => '';
 }
 void f() {
   E('a').empty;
+//       ^^^^^
+// [diag.extensionOverrideAccessToStaticMember] An extension override can't be used to access a static member from an extension.
 }
-''',
-      [error(diag.extensionOverrideAccessToStaticMember, 79, 5)],
-    );
+''');
   }
 
   test_getterAndSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static String get empty => '';
   static void set empty(String s) {}
 }
 void f() {
   E('a').empty += 'b';
+//       ^^^^^
+// [diag.extensionOverrideAccessToStaticMember] An extension override can't be used to access a static member from an extension.
 }
-''',
-      [error(diag.extensionOverrideAccessToStaticMember, 116, 5)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static String empty() => '';
 }
 void f() {
   E('a').empty();
+//       ^^^^^
+// [diag.extensionOverrideAccessToStaticMember] An extension override can't be used to access a static member from an extension.
 }
-''',
-      [error(diag.extensionOverrideAccessToStaticMember, 77, 5)],
-    );
+''');
 
     var node = findNode.methodInvocation('empty();');
     assertResolvedNodeText(node, r'''
@@ -125,16 +120,15 @@ MethodInvocation
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static void set empty(String s) {}
 }
 void f() {
   E('a').empty = 'b';
+//       ^^^^^
+// [diag.extensionOverrideAccessToStaticMember] An extension override can't be used to access a static member from an extension.
 }
-''',
-      [error(diag.extensionOverrideAccessToStaticMember, 83, 5)],
-    );
+''');
   }
 }

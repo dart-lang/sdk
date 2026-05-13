@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,27 +16,25 @@ void main() {
 class DocDirectiveHasUnexpectedNamedArgumentTest
     extends PubPackageResolutionTest {
   test_animation_hasUnexpectedArgument() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@animation 600 400 http://google.com foo=bar}
+//                                        ^^^^^^^
+// [diag.docDirectiveHasUnexpectedNamedArgument] The 'animation' directive has an unexpected named argument, 'foo'.
 class C {}
-''',
-      [error(diag.docDirectiveHasUnexpectedNamedArgument, 42, 7)],
-    );
+''');
   }
 
   test_macro_hasExtraArgument() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@macro name foo=bar}
+//               ^^^^^^^
+// [diag.docDirectiveHasUnexpectedNamedArgument] The 'macro' directive has an unexpected named argument, 'foo'.
 class C {}
-''',
-      [error(diag.docDirectiveHasUnexpectedNamedArgument, 17, 7)],
-    );
+''');
   }
 
   test_macro_noExtraArgument() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@macro name}
 class C {}
 ''');

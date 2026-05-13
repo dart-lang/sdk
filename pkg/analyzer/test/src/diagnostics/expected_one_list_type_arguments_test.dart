@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class ExpectedOneListTypeArgumentsTest extends PubPackageResolutionTest {
   test_one_type_argument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   <int> [];
 }
@@ -24,12 +23,11 @@ main() {
   }
 
   test_two_type_arguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   <int, int>[];
-}''',
-      [error(diag.expectedOneListTypeArguments, 11, 10)],
-    );
+//^^^^^^^^^^
+// [diag.expectedOneListTypeArguments] List literals require one type argument or none, but 2 found.
+}''');
   }
 }

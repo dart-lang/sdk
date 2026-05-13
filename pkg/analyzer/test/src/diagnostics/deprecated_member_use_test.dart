@@ -8,6 +8,7 @@ import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -15,6 +16,7 @@ void main() {
     defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_PackageBuildWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_PackageConfigWorkspaceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -27,14 +29,13 @@ class DeprecatedMemberUse_BlazeWorkspaceTest
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:foo.bar/a.dart';
 
 void f(A a) {}
-''',
-      [error(diag.deprecatedMemberUse, 41, 1)],
-    );
+//     ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+''');
   }
 
   test_thirdPartyDart() async {
@@ -45,14 +46,13 @@ class A {}
 
     assertBlazeWorkspaceFor(testFile);
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {}
-''',
-      [error(diag.deprecatedMemberUse, 37, 1)],
-    );
+//     ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+''');
   }
 }
 
@@ -102,14 +102,13 @@ ${outFolder.path}
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {}
-''',
-      [error(diag.deprecatedMemberUse, 37, 1)],
-    );
+//     ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+''');
   }
 
   @override
@@ -158,14 +157,13 @@ class A {}
 ''',
     );
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {}
-''',
-      [error(diag.deprecatedMemberUse, 37, 1)],
-    );
+//     ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+''');
   }
 
   test_lib() async {
@@ -182,14 +180,13 @@ class A {}
     newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {}
-''',
-      [error(diag.deprecatedMemberUse, 37, 1)],
-    );
+//     ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+''');
   }
 }
 
@@ -225,6 +222,18 @@ $code
 ''');
   }
 
+  Future<void> resolveTestCodeWithDiagnostics2({
+    required String externalCode,
+    required String code,
+  }) async {
+    newFile(externalLibPath, externalCode);
+
+    await resolveTestCodeWithDiagnostics('''
+import '$externalLibUri';
+$code
+''');
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -236,7 +245,7 @@ $code
   }
 
   test_assignmentExpression_compound_deprecatedGetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int get x => 0;
@@ -246,14 +255,15 @@ set x(int _) {}
       code: r'''
 void f() {
   x += 2;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_assignmentExpression_compound_deprecatedSetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 int get x => 0;
 
@@ -263,14 +273,15 @@ set x(int _) {}
       code: r'''
 void f() {
   x += 2;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_assignmentExpression_simple_deprecatedGetter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int get x => 0;
@@ -286,7 +297,7 @@ void f() {
   }
 
   test_assignmentExpression_simple_deprecatedGetterSetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -294,14 +305,15 @@ int x = 1;
       code: r'''
 void f() {
   x = 0;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_assignmentExpression_simple_deprecatedSetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 int get x => 0;
 
@@ -311,14 +323,15 @@ set x(int _) {}
       code: r'''
 void f() {
   x = 0;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_call() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -328,22 +341,24 @@ class A {
       code: r'''
 void f(A a) {
   a();
+//^^^
+// [diag.deprecatedMemberUse] 'call' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 45, 3)],
     );
   }
 
   test_class() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class A {}
 ''',
       code: r'''
 void f(A a) {}
+//     ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 ''',
-      [error(diag.deprecatedMemberUse, 36, 1)],
     );
   }
 
@@ -353,7 +368,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 @deprecated
@@ -367,7 +382,7 @@ typedef A T();
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 @deprecated
@@ -376,7 +391,7 @@ typedef T = A Function();
   }
 
   test_compoundAssignment() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -386,14 +401,15 @@ class A {
       code: r'''
 f(A a, A b) {
   a += b;
+//^^^^^^
+// [diag.deprecatedMemberUse] '+' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 45, 6)],
     );
   }
 
   test_constructor_inAnnotation() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class MyAnnotation {
   @deprecated
@@ -402,14 +418,14 @@ class MyAnnotation {
 ''',
       code: r'''
 @MyAnnotation()
+// [diag.deprecatedMemberUse][column 2][length 12] 'MyAnnotation' is deprecated and shouldn't be used.
 void g() {}
 ''',
-      [error(diag.deprecatedMemberUse, 30, 12)],
     );
   }
 
   test_deprecatedField_inObjectPattern_explicitName() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class C {
   @Deprecated('')
@@ -420,15 +436,16 @@ class C {
 int g(Object s) =>
   switch (s) {
     C(foo: var f) => f,
+//    ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
     _ => 7,
   };
 ''',
-      [error(diag.deprecatedMemberUse, 69, 3)],
     );
   }
 
   test_deprecatedField_inObjectPattern_inferredName() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class C {
   @Deprecated('')
@@ -439,10 +456,11 @@ class C {
 int g(Object s) =>
   switch (s) {
     C(:var foo) => foo,
+//         ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
     _ => 7,
   };
 ''',
-      [error(diag.deprecatedMemberUse, 74, 3)],
     );
   }
 
@@ -456,21 +474,17 @@ class A {
 void wantA(A _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   wantA(.new());
+//      ^^^^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+//       ^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [
-        // TODO(srawlins): This seems like a wide range (`.new()`). Could be
-        // more specific.
-        error(diag.deprecatedMemberUse, 49, 6),
-        error(diag.deprecatedMemberUse, 50, 3),
-      ],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_deprecatedClass_undeprecatedConstructor() async {
@@ -482,16 +496,15 @@ class A {
 void wantA(A _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   wantA(.new());
+//      ^^^^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 49, 6)],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_deprecatedClass_undeprecatedNamedConstructor() async {
@@ -503,20 +516,19 @@ class A {
 void wantA(A _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   wantA(.a());
+//      ^^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 49, 4)],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_namedConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -527,16 +539,10 @@ void wantA(A _) {}
       code: r'''
 f() {
   wantA(.named(1));
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'A.named' is deprecated and shouldn't be used.
 }
 ''',
-      [
-        error(
-          diag.deprecatedMemberUse,
-          44,
-          5,
-          messageContains: ["'A.named' is deprecated and shouldn't be used."],
-        ),
-      ],
     );
   }
 
@@ -549,16 +555,15 @@ class A {
 void wantA(A _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   wantA(.new());
+//       ^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 50, 3)],
-    );
+''');
   }
 
   test_dotShorthandInvocation_deprecatedMethod() async {
@@ -570,16 +575,15 @@ class A {
 void wantA(A _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   wantA(.m());
+//       ^
+// [diag.deprecatedMemberUse] 'm' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 50, 1)],
-    );
+''');
   }
 
   test_dotShorthandPropertyAccess() async {
@@ -591,16 +595,15 @@ class A {
 void wantA(A _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   wantA(.x);
+//       ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 50, 1)],
-    );
+''');
   }
 
   test_export() async {
@@ -609,12 +612,10 @@ void f() {
 library a;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:aaa/a.dart';
-''',
-      [error(diag.deprecatedMemberUse, 0, 28)],
-    );
+// [diag.deprecatedMemberUse][column 1][length 28] 'package:aaa/a.dart' is deprecated and shouldn't be used.
+''');
   }
 
   test_export_fromSamePackage() async {
@@ -623,13 +624,13 @@ export 'package:aaa/a.dart';
 library a;
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib2.dart';
 ''');
   }
 
   test_extensionOverride() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 extension E on int {
@@ -639,9 +640,10 @@ extension E on int {
       code: '''
 void f() {
   E(0).foo;
+//^
+// [diag.deprecatedMemberUse] 'E' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -653,16 +655,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo;
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_field_implicitSetter() async {
@@ -673,16 +674,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo = 0;
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_field_inDeprecatedConstructor() async {
@@ -693,7 +693,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
@@ -711,9 +711,9 @@ class B extends A {
 @deprecated
 class A {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
-import '$externalLibUri' hide A;
+import 'package:aaa/a.dart' hide A;
 ''');
   }
 
@@ -723,49 +723,38 @@ import '$externalLibUri' hide A;
 library a;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
-''',
-      [
-        error(
-          diag.deprecatedMemberUse,
-          24,
-          28,
-          messageContains: ['package:aaa/a.dart'],
-        ),
-      ],
-    );
+// [diag.deprecatedMemberUse][column 1][length 28] 'package:aaa/a.dart' is deprecated and shouldn't be used.
+''');
   }
 
   test_incorrectlyNestedNamedParameterDeclaration() async {
     // This is a regression test; previously this code would cause an analyzer
     // crash in DeprecatedMemberUseVerifier.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String x;
   final bool y;
 
   const C({
+//      ^
+// [diag.finalNotInitializedConstructor1] All final variables must be initialized, but 'y' isn't.
     required this.x,
     {this.y = false}
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '}'.
   });
 }
 
 const z = C(x: '');
-''',
-      [
-        error(diag.finalNotInitializedConstructor1, 53, 1),
-        error(diag.missingIdentifier, 82, 1),
-        error(diag.expectedToken, 82, 1),
-      ],
-    );
+''');
   }
 
   test_inDeprecatedClass() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 f() {}
@@ -815,7 +804,7 @@ enum E {
   }
 
   test_inDeprecatedExtension() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 void f() {}
@@ -832,7 +821,7 @@ extension E on int {
   }
 
   test_inDeprecatedExtensionType() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 f() {}
@@ -849,7 +838,7 @@ extension type E(int i) {
   }
 
   test_inDeprecatedField() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class C {}
@@ -865,7 +854,7 @@ class X {
   }
 
   test_inDeprecatedFieldFormalParameter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class C {}
@@ -880,7 +869,7 @@ class A {
   }
 
   test_inDeprecatedFunction() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 f() {}
@@ -895,7 +884,7 @@ g() {
   }
 
   test_inDeprecatedFunctionTypedFormalParameter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class C {}
@@ -911,10 +900,10 @@ f({@deprecated C? callback()?}) {}
 @deprecated
 f() {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 @deprecated
 library lib;
-import '$externalLibUri';
+import 'package:aaa/a.dart';
 
 class C {
   m() {
@@ -925,7 +914,7 @@ class C {
   }
 
   test_inDeprecatedMethod() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 f() {}
@@ -942,7 +931,7 @@ class C {
   }
 
   test_inDeprecatedMethod_inDeprecatedClass() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 f() {}
@@ -960,7 +949,7 @@ class C {
   }
 
   test_inDeprecatedMixin() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 f() {}
@@ -977,7 +966,7 @@ mixin M {
   }
 
   test_inDeprecatedSimpleFormalParameter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class C {}
@@ -989,7 +978,7 @@ f({@deprecated C? c}) {}
   }
 
   test_inDeprecatedSuperFormalParameter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class C {}
@@ -1006,7 +995,7 @@ class B extends A {
   }
 
   test_inDeprecatedTopLevelVariable() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class C {}
@@ -1020,7 +1009,7 @@ C v = x;
   }
 
   test_indexExpression() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -1030,14 +1019,15 @@ class A {
       code: r'''
 void f(A a) {
   return a[1];
+//       ^^^^
+// [diag.deprecatedMemberUse] '[]' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 52, 4)],
     );
   }
 
   test_inEnum() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 void f() {}
@@ -1048,15 +1038,16 @@ enum E {
 
   void m() {
     f();
+//  ^
+// [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
   }
 }
 ''',
-      [error(diag.deprecatedMemberUse, 68, 1)],
     );
   }
 
   test_inExtension() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 void f() {}
@@ -1065,10 +1056,11 @@ void f() {}
 extension E on int {
   void m() {
     f();
+//  ^
+// [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
   }
 }
 ''',
-      [error(diag.deprecatedMemberUse, 67, 1)],
     );
   }
 
@@ -1081,16 +1073,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A();
+//^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_instanceCreation_deprecatedClass_undeprecatedConstructor() async {
@@ -1101,16 +1092,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A();
+//^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_instanceCreation_deprecatedClass_undeprecatedNamedConstructor() async {
@@ -1121,24 +1111,19 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A.a();
+//^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [
-        // https://github.com/dart-lang/linter/issues/4752
-        // Highlights `A`.
-        error(diag.deprecatedMemberUse, 43, 1),
-      ],
-    );
+''');
   }
 
   test_instanceCreation_namedConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -1148,16 +1133,10 @@ class A {
       code: r'''
 f() {
   return new A.named(1);
+//           ^^^^^^^
+// [diag.deprecatedMemberUse] 'A.named' is deprecated and shouldn't be used.
 }
 ''',
-      [
-        error(
-          diag.deprecatedMemberUse,
-          48,
-          7,
-          messageContains: ["'A.named' is deprecated and shouldn't be used."],
-        ),
-      ],
     );
   }
 
@@ -1169,16 +1148,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A();
+//^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_instanceCreation_undeprecatedClass_deprecatedConstructor_primary() async {
@@ -1189,20 +1167,19 @@ class A() {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A();
+//^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_instanceCreation_unnamedConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -1212,9 +1189,10 @@ class A {
       code: r'''
 f() {
   return new A(1);
+//           ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -1226,128 +1204,98 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo();
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_methodInvocation_constantAnnotation() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int f() => 0;
 ''',
       code: r'''
 var x = f();
+//      ^
+// [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
 ''',
-      [error(diag.deprecatedMemberUse, 37, 1)],
     );
   }
 
   test_methodInvocation_constructorAnnotation() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @Deprecated('0.9')
 int f() => 0;
 ''',
       code: r'''
 var x = f();
+//      ^
+// [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. 0.9.
 ''',
-      [
-        error(
-          diag.deprecatedMemberUseWithMessage,
-          37,
-          1,
-          text: "'f' is deprecated and shouldn't be used. 0.9.",
-        ),
-      ],
     );
   }
 
   test_methodInvocation_constructorAnnotation_dot() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @Deprecated('0.9.')
 int f() => 0;
 ''',
       code: r'''
 var x = f();
+//      ^
+// [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. 0.9.
 ''',
-      [
-        error(
-          diag.deprecatedMemberUseWithMessage,
-          37,
-          1,
-          text: "'f' is deprecated and shouldn't be used. 0.9.",
-        ),
-      ],
     );
   }
 
   test_methodInvocation_constructorAnnotation_exclamationMark() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @Deprecated(' Really! ')
 int f() => 0;
 ''',
       code: r'''
 var x = f();
+//      ^
+// [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. Really!
 ''',
-      [
-        error(
-          diag.deprecatedMemberUseWithMessage,
-          37,
-          1,
-          text: "'f' is deprecated and shouldn't be used. Really!",
-        ),
-      ],
     );
   }
 
   test_methodInvocation_constructorAnnotation_onlyDot() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @Deprecated('.')
 int f() => 0;
 ''',
       code: r'''
 var x = f();
+//      ^
+// [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
 ''',
-      [
-        error(
-          diag.deprecatedMemberUse,
-          37,
-          1,
-          text: "'f' is deprecated and shouldn't be used.",
-        ),
-      ],
     );
   }
 
   test_methodInvocation_constructorAnnotation_questionMark() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @Deprecated('Are you sure?')
 int f() => 0;
 ''',
       code: r'''
 var x = f();
+//      ^
+// [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. Are you sure?
 ''',
-      [
-        error(
-          diag.deprecatedMemberUseWithMessage,
-          37,
-          1,
-          text: "'f' is deprecated and shouldn't be used. Are you sure?",
-        ),
-      ],
     );
   }
 
@@ -1359,7 +1307,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib2.dart';
 
 void f(A a) {
@@ -1374,7 +1322,7 @@ void f(A a) {
 void foo() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib2.dart';
 class A {
   @deprecated
@@ -1391,7 +1339,7 @@ class A {
 void foo() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib2.dart';
 class A() {
   @deprecated
@@ -1410,7 +1358,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
@@ -1427,7 +1375,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
@@ -1444,23 +1392,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo();
+//  ^^^
+// [diag.deprecatedMemberUseWithMessage] 'foo' is deprecated and shouldn't be used. 0.9.
 }
-''',
-      [
-        error(
-          diag.deprecatedMemberUseWithMessage,
-          48,
-          3,
-          text: "'foo' is deprecated and shouldn't be used. 0.9.",
-        ),
-      ],
-    );
+''');
   }
 
   test_mixin_inDeprecatedClassTypeAlias() async {
@@ -1496,7 +1436,7 @@ var z = C(x: '');
   }
 
   test_operator() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -1506,26 +1446,28 @@ class A {
       code: r'''
 f(A a, A b) {
   return a + b;
+//       ^^^^^
+// [diag.deprecatedMemberUse] '+' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 52, 5)],
     );
   }
 
   test_parameter_named() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 void f({@deprecated int x = 0}) {}
 ''',
       code: r'''
 void g() => f(x: 1);
+//            ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 ''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
   test_parameter_named_inAnnotation() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class MyAnnotation {
   const MyAnnotation({@deprecated int? x});
@@ -1533,14 +1475,15 @@ class MyAnnotation {
 ''',
       code: r'''
 @MyAnnotation(x: 1)
+//            ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 void g() {}
 ''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
   test_parameter_named_inDefiningConstructor_asFieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C({@deprecated this.x = 0});
@@ -1549,7 +1492,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_assertInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@deprecated int y = 0}) : assert(y > 0);
 }
@@ -1557,7 +1500,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_fieldInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C({@deprecated int y = 0}) : x = y;
@@ -1566,7 +1509,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_inFieldFormalParameter_notName() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {}
 
@@ -1581,20 +1524,21 @@ const B instance = const B();
 class C {
   final A a;
   C({B this.a = instance});
+//   ^
+// [diag.deprecatedMemberUse] 'B' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 57, 1)],
     );
   }
 
   test_parameter_named_inDefiningFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f({@deprecated int x = 0}) => x;
 ''');
   }
 
   test_parameter_named_inDefiningLocalFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   m() {
     f({@deprecated int x = 0}) {
@@ -1607,7 +1551,7 @@ class C {
   }
 
   test_parameter_named_inDefiningMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   m({@deprecated int x = 0}) {
     return x;
@@ -1617,7 +1561,7 @@ class C {
   }
 
   test_parameter_named_inNestedLocalFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   m({@deprecated int x = 0}) {
     f() {
@@ -1634,16 +1578,15 @@ class C {
 void foo({@deprecated int a}) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   foo(a: 0);
+//    ^
+// [diag.deprecatedMemberUse] 'a' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 47, 1)],
-    );
+''');
   }
 
   test_parameter_named_ofMethod() async {
@@ -1653,32 +1596,32 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo(a: 0);
+//      ^
+// [diag.deprecatedMemberUse] 'a' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 52, 1)],
-    );
+''');
   }
 
   test_parameter_namedInPrimaryConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A({@deprecated int x = 0});
 ''',
       code: '''
 var x = A(x: 7);
+//        ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 ''',
-      [error(diag.deprecatedMemberUse, 39, 1)],
     );
   }
 
   test_parameter_positionalOptional() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   void foo([@deprecated int x = 0]) {}
@@ -1687,14 +1630,15 @@ class A {
       code: '''
 void f(A a) {
   a.foo(0);
+//      ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 51, 1)],
     );
   }
 
   test_parameter_positionalOptional_inDeprecatedConstructor() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 void foo([@deprecated int x = 0]) {}
 ''',
@@ -1710,7 +1654,7 @@ class A {
   }
 
   test_parameter_positionalOptional_inDeprecatedFunction() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   void foo([@deprecated int x = 0]) {}
@@ -1726,7 +1670,7 @@ void f(A a) {
   }
 
   test_parameter_positionalOptional_inDeprecatedPrimaryConstructor() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 void foo([@deprecated int x = 0]) {}
 ''',
@@ -1742,19 +1686,20 @@ class A() {
   }
 
   test_parameter_positionalOptionalInPrimaryConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A([@deprecated int x = 0]);
 ''',
       code: '''
 var x = A(7);
+//        ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 ''',
-      [error(diag.deprecatedMemberUse, 39, 1)],
     );
   }
 
   test_parameter_positionalRequired() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   void foo(@deprecated int x) {}
@@ -1775,16 +1720,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
   B() : super(7);
+//            ^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 64, 1)],
-    );
+''');
   }
 
   test_parameterInSuper_explicitInvocation_inPrimaryConstructorBody() async {
@@ -1794,16 +1738,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B() extends A {
   this : super(7);
+//             ^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 67, 1)],
-    );
+''');
   }
 
   test_parameterInSuper_explicitInvocation_namedParameter() async {
@@ -1813,16 +1756,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
   B() : super(p: 7);
+//            ^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 64, 1)],
-    );
+''');
   }
 
   test_parameterInSuper_implicitArgument() async {
@@ -1832,16 +1774,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
   B([super.p]);
+//   ^^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 55, 7)],
-    );
+''');
   }
 
   test_parameterInSuper_implicitArgument_alsoDeprecated() async {
@@ -1851,7 +1792,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
@@ -1867,7 +1808,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B([@deprecated super.p]) extends A;
@@ -1881,16 +1822,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
   B([super.p]) : super.named();
+//   ^^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 55, 7)],
-    );
+''');
   }
 
   test_parameterInSuper_implicitArgument_explicitInvocation_inPrimaryConstructor() async {
@@ -1900,16 +1840,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B([super.p]) extends A {
+//       ^^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
   this : super.named();
 }
-''',
-      [error(diag.deprecatedMemberUse, 39, 7)],
-    );
+''');
   }
 
   test_parameterInSuper_implicitArgument_inPrimaryConstructor() async {
@@ -1919,14 +1858,13 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B([super.p]) extends A;
-''',
-      [error(diag.deprecatedMemberUse, 39, 7)],
-    );
+//       ^^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
+''');
   }
 
   test_parameterInSuper_implicitInvocation_namedParameter() async {
@@ -1936,27 +1874,26 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 class B extends A {
   B({super.p});
+//   ^^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 55, 7)],
-    );
+''');
   }
 
   test_parameterOfGenericFunctionType_inCommentReference() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// [x]
 typedef F = void Function(@deprecated int x);
 ''');
   }
 
   test_postfixExpression_deprecatedGetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int get x => 0;
@@ -1966,14 +1903,15 @@ set x(int _) {}
       code: r'''
 void f() {
   x++;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_postfixExpression_deprecatedNothing() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 int get x => 0;
 
@@ -1988,7 +1926,7 @@ void f() {
   }
 
   test_postfixExpression_deprecatedSetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 int get x => 0;
 
@@ -1998,14 +1936,15 @@ set x(int _) {}
       code: r'''
 void f() {
   x++;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_prefixedIdentifier_identifier() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -2015,14 +1954,15 @@ class A {
       code: r'''
 void f() {
   A.foo;
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 44, 3)],
     );
   }
 
   test_prefixedIdentifier_prefix() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class A {
@@ -2032,14 +1972,15 @@ class A {
       code: r'''
 void f() {
   A.foo;
+//^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_prefixExpression_deprecatedGetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int get x => 0;
@@ -2049,14 +1990,15 @@ set x(int _) {}
       code: r'''
 void f() {
   ++x;
+//  ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 44, 1)],
     );
   }
 
   test_prefixExpression_deprecatedSetter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 int get x => 0;
 
@@ -2066,14 +2008,15 @@ set x(int _) {}
       code: r'''
 void f() {
   ++x;
+//  ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 44, 1)],
     );
   }
 
   test_propertyAccess_super() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -2084,15 +2027,16 @@ class A {
 class B extends A {
   void bar() {
     super.foo;
+//        ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
   }
 }
 ''',
-      [error(diag.deprecatedMemberUse, 74, 3)],
     );
   }
 
   test_redirectedConstructor_fromFactoryConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 import 'package:test/test.dart';
 class B extends A {
@@ -2103,14 +2047,15 @@ class B extends A {
       code: r'''
 class A {
   factory A.two() = B;
+//                  ^
+// [diag.deprecatedMemberUse] 'B' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 59, 1)],
     );
   }
 
   test_redirectedParameter_redirectingFactoryConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 import 'package:test/test.dart';
 class B extends A {
@@ -2120,14 +2065,15 @@ class B extends A {
       code: r'''
 class A {
   factory A.two([int? p]) = B;
+//               ^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 56, 6)],
     );
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_deprecatedFunctionTypedParameter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 import 'package:test/test.dart';
 class B extends A {
@@ -2143,7 +2089,7 @@ class A {
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_deprecatedParameter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 import 'package:test/test.dart';
 class B extends A {
@@ -2159,7 +2105,7 @@ class A {
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_functionTypedParameter() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 import 'package:test/test.dart';
 class B extends A {
@@ -2169,14 +2115,15 @@ class B extends A {
       code: r'''
 class A {
   factory A.two([void p()?]) = B;
+//               ^^^^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 56, 9)],
     );
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_named() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 import 'package:test/test.dart';
 class B extends A {
@@ -2186,14 +2133,15 @@ class B extends A {
       code: r'''
 class A {
   factory A.two({int? p}) = B;
+//               ^^^^^^
+// [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 56, 6)],
     );
   }
 
   test_redirectingConstructorInvocation_namedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({@deprecated int a = 0}) {}
   A.named() : this(a: 0);
@@ -2209,16 +2157,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo = 0;
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_showCombinator() async {
@@ -2226,17 +2173,16 @@ void f(A a) {
 @deprecated
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
-import '$externalLibUri' show A;
-''',
-      [error(diag.deprecatedMemberUse, 58, 1)],
-    );
+import 'package:aaa/a.dart' show A;
+//                               ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+''');
   }
 
   test_superConstructor_factoryConstructor() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -2254,7 +2200,7 @@ class B extends A {
   }
 
   test_superConstructor_implicitCall() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -2264,14 +2210,15 @@ class A {
       code: r'''
 class B extends A {
   B();
+//^^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 51, 4)],
     );
   }
 
   test_superConstructor_namedConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -2281,21 +2228,15 @@ class A {
       code: r'''
 class B extends A {
   B() : super.named() {}
+//      ^^^^^^^^^^^^^
+// [diag.deprecatedMemberUse] 'A.named' is deprecated and shouldn't be used.
 }
 ''',
-      [
-        error(
-          diag.deprecatedMemberUse,
-          57,
-          13,
-          text: "'A.named' is deprecated and shouldn't be used.",
-        ),
-      ],
     );
   }
 
   test_superConstructor_primaryConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A() {
   @deprecated
@@ -2305,21 +2246,15 @@ class A() {
       code: r'''
 class B extends A {
   B() : super();
+//      ^^^^^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
 ''',
-      [
-        error(
-          diag.deprecatedMemberUse,
-          57,
-          7,
-          text: "'A' is deprecated and shouldn't be used.",
-        ),
-      ],
     );
   }
 
   test_superConstructor_redirectingConstructor() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -2337,7 +2272,7 @@ class B extends A {
   }
 
   test_superConstructor_unnamedConstructor() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 class A {
   @deprecated
@@ -2347,21 +2282,15 @@ class A {
       code: r'''
 class B extends A {
   B() : super() {}
+//      ^^^^^^^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
 ''',
-      [
-        error(
-          diag.deprecatedMemberUse,
-          57,
-          7,
-          text: "'A' is deprecated and shouldn't be used.",
-        ),
-      ],
     );
   }
 
   test_topLevelVariable_argument() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2369,14 +2298,15 @@ int x = 1;
       code: r'''
 void f() {
   print(x);
+//      ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
   test_topLevelVariable_assignment_right() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2384,14 +2314,15 @@ int x = 1;
       code: r'''
 void f(int a) {
   a = x;
+//    ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 51, 1)],
     );
   }
 
   test_topLevelVariable_binaryExpression() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2399,14 +2330,15 @@ int x = 1;
       code: r'''
 void f() {
   x + 1;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_topLevelVariable_constructorFieldInitializer() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 const int x = 1;
@@ -2415,27 +2347,29 @@ const int x = 1;
 class A {
   final int f;
   A() : f = x;
+//          ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 66, 1)],
     );
   }
 
   test_topLevelVariable_expressionFunctionBody() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
 ''',
       code: r'''
 int f() => x;
+//         ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 ''',
-      [error(diag.deprecatedMemberUse, 40, 1)],
     );
   }
 
   test_topLevelVariable_expressionStatement() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2443,14 +2377,15 @@ int x = 1;
       code: r'''
 void f() {
   x;
+//^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
   test_topLevelVariable_forElement_condition() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 var x = true;
@@ -2458,14 +2393,15 @@ var x = true;
       code: r'''
 void f() {
   [for (;x;) 0];
+//       ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 49, 1)],
     );
   }
 
   test_topLevelVariable_forStatement_condition() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 var x = true;
@@ -2473,14 +2409,15 @@ var x = true;
       code: r'''
 void f() {
   for (;x;) {}
+//      ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
   test_topLevelVariable_ifElement_condition() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 var x = true;
@@ -2488,14 +2425,15 @@ var x = true;
       code: r'''
 void f() {
   [if (x) 0];
+//     ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 47, 1)],
     );
   }
 
   test_topLevelVariable_ifStatement_condition() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 var x = true;
@@ -2503,14 +2441,15 @@ var x = true;
       code: r'''
 void f() {
   if (x) {}
+//    ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 46, 1)],
     );
   }
 
   test_topLevelVariable_listLiteral() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2518,14 +2457,15 @@ int x = 1;
       code: r'''
 void f() {
   [x];
+// ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
   test_topLevelVariable_mapLiteralEntry() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2533,17 +2473,17 @@ int x = 1;
       code: r'''
 void f() {
   ({0: x, x: 0});
+//     ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+//        ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [
-        error(diag.deprecatedMemberUse, 47, 1),
-        error(diag.deprecatedMemberUse, 50, 1),
-      ],
     );
   }
 
   test_topLevelVariable_namedExpression() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2552,14 +2492,15 @@ int x = 1;
 void g({int a = 0}) {}
 void f() {
   g(a: x);
+//     ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 70, 1)],
     );
   }
 
   test_topLevelVariable_returnStatement() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2567,14 +2508,15 @@ int x = 1;
       code: r'''
 int f() {
   return x;
+//       ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
   test_topLevelVariable_setLiteral() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2582,14 +2524,15 @@ int x = 1;
       code: r'''
 void f() {
   ({x});
+//  ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 44, 1)],
     );
   }
 
   test_topLevelVariable_spreadElement() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 var x = [0];
@@ -2597,14 +2540,15 @@ var x = [0];
       code: r'''
 void f() {
   [...x];
+//    ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 46, 1)],
     );
   }
 
   test_topLevelVariable_switchCase() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 const int x = 1;
@@ -2613,11 +2557,12 @@ const int x = 1;
 void f(int a) {
   switch (a) {
     case x:
+//       ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
       break;
   }
 }
 ''',
-      [error(diag.deprecatedMemberUse, 69, 1)],
     );
   }
 
@@ -2626,23 +2571,22 @@ void f(int a) {
 @deprecated
 const int x = 1;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
-import '$externalLibUri';
+import 'package:aaa/a.dart';
 void f(int a) {
   switch (a) {
     case x:
+//       ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
       break;
   }
 }
-''',
-      [error(diag.deprecatedMemberUse, 85, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_switchStatement() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2650,9 +2594,10 @@ int x = 1;
       code: r'''
 void f() {
   switch (x) {}
+//        ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 50, 1)],
     );
   }
 
@@ -2661,20 +2606,19 @@ void f() {
 @deprecated
 int x = 1;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
-import '$externalLibUri';
+import 'package:aaa/a.dart';
 void f() {
   switch (x) {}
+//        ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-      [error(diag.deprecatedMemberUse, 66, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_unaryExpression() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 int x = 1;
@@ -2682,14 +2626,15 @@ int x = 1;
       code: r'''
 void f() {
   -x;
+// ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
   test_topLevelVariable_variableDeclaration_initializer() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 var x = 1;
@@ -2698,14 +2643,15 @@ var x = 1;
 void f() {
   // ignore: unused_local_variable
   var v = x;
+//        ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 85, 1)],
     );
   }
 
   test_topLevelVariable_whileStatement_condition() async {
-    await assertErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 var x = true;
@@ -2713,9 +2659,10 @@ var x = true;
       code: r'''
 void f() {
   while (x) {}
+//       ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
 ''',
-      [error(diag.deprecatedMemberUse, 49, 1)],
     );
   }
 

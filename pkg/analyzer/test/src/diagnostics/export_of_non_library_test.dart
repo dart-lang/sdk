@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,25 +18,17 @@ class ExportOfNonLibraryTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib1.dart', '''
 part of lib;
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib1.dart';
-''',
-      [
-        error(
-          diag.exportOfNonLibrary,
-          18,
-          11,
-          messageContains: ["library 'lib1.dart' "],
-        ),
-      ],
-    );
+//     ^^^^^^^^^^^
+// [diag.exportOfNonLibrary] The exported library 'lib1.dart' can't have a part-of directive.
+''');
   }
 
   test_libraryDeclared() async {
     newFile('$testPackageLibPath/lib1.dart', "library lib1;");
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib1.dart';
 ''');
@@ -45,7 +36,7 @@ export 'lib1.dart';
 
   test_libraryNotDeclared() async {
     newFile('$testPackageLibPath/lib1.dart', '');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib1.dart';
 ''');

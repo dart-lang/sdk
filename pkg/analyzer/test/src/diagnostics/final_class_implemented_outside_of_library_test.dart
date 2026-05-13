@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,7 +16,7 @@ main() {
 class FinalClassImplementedOutsideOfLibraryTest
     extends PubPackageResolutionTest {
   test_class_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class Foo {}
 final class Bar implements Foo {}
 ''');
@@ -28,13 +27,12 @@ final class Bar implements Foo {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 final class Bar implements Foo {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 46, 3)],
-    );
+//                         ^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Foo' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_class_outside_viaLanguage219AndCore() async {
@@ -50,16 +48,15 @@ class A implements MapEntry<int, int> {
     await resolveFile2(a);
     assertNoErrorsInResult();
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 final class B implements A {
+//                       ^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'MapEntry' can't be implemented outside of its library because it's a final class.
   int get key => 0;
   int get value => 1;
 }
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 42, 1)],
-    );
+''');
   }
 
   test_class_outside_viaTypedef_inside() async {
@@ -68,13 +65,12 @@ final class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 final class Bar implements FooTypedef {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 46, 10)],
-    );
+//                         ^^^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Foo' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_class_outside_viaTypedef_outside() async {
@@ -82,18 +78,17 @@ final class Bar implements FooTypedef {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 final class Bar implements FooTypedef {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 72, 10)],
-    );
+//                         ^^^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Foo' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_enum_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class Foo {}
 enum Bar implements Foo { bar }
 ''');
@@ -104,13 +99,12 @@ enum Bar implements Foo { bar }
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 enum Bar implements Foo { bar }
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 39, 3)],
-    );
+//                  ^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Foo' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_enum_outside_viaTypedef_inside() async {
@@ -119,13 +113,12 @@ final class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 39, 10)],
-    );
+//                  ^^^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Foo' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_enum_outside_viaTypedef_outside() async {
@@ -133,14 +126,13 @@ enum Bar implements FooTypedef { bar }
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 65, 10)],
-    );
+//                  ^^^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Foo' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_enum_subtypeOfFinal_outside() async {
@@ -149,7 +141,7 @@ final class Foo {}
 class Bar implements Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 enum Bar2 implements Bar { bar }
 ''');

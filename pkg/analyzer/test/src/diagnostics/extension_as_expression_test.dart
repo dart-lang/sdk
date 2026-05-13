@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,25 +18,23 @@ class ExtensionAsExpressionTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 var v = p.E;
-''',
-      [error(diag.extensionAsExpression, 30, 3)],
-    );
+//      ^^^
+// [diag.extensionAsExpression] Extension 'p.E' can't be used as an expression.
+''');
     assertTypeDynamic(findNode.simple('E;'));
     assertTypeDynamic(findNode.prefixed('p.E;'));
   }
 
   test_simpleIdentifier() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 var v = E;
-''',
-      [error(diag.extensionAsExpression, 30, 1)],
-    );
+//      ^
+// [diag.extensionAsExpression] Extension 'E' can't be used as an expression.
+''');
     assertTypeDynamic(findNode.simple('E;'));
   }
 }

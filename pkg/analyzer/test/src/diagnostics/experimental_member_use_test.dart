@@ -21,84 +21,87 @@ main() {
 @reflectiveTest
 class ExperimentalExtendTest extends _TestBase {
   test_annotatedClass() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar extends Foo {}
-''',
-      [error(diag.experimentalMemberUse, 47, 3)],
-    );
+//                ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_annotatedClass_indirect() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
 class Bar extends Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Baz extends Bar {}
-''',
-    );
+''');
   }
 
   test_annotatedClass_typedef() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
 typedef Foo2 = Foo;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar extends Foo2 {}
-''',
-    );
+''');
   }
 
   test_annotatedClassTypeAlias() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo = Object with M;
 mixin M {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar extends Foo {}
-''',
-      [error(diag.experimentalMemberUse, 47, 3)],
-    );
+//                ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_classTypeAlias() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 mixin M {}
 class Bar = Foo with M;
-''',
-      [error(diag.experimentalMemberUse, 52, 3)],
-    );
+//          ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -108,117 +111,117 @@ class Bar extends Foo {}
   }
 
   test_noAnnotation() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
+    newFile(externalLibPath, r'''
 class Foo {}
 ''');
 
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-class Foo {}
-''',
-      code: r'''
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar extends Foo {}
-''',
-    );
+''');
   }
 }
 
 @reflectiveTest
 class ExperimentalImplementTest extends _TestBase {
   test_annotatedClass() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar implements Foo {}
-''',
-      [error(diag.experimentalMemberUse, 50, 3)],
-    );
+//                   ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_annotatedClass_indirect() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
 class Bar extends Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Baz implements Bar {}
-''',
-    );
+''');
   }
 
   test_annotatedClass_typedef() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
 typedef Foo2 = Foo;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar implements Foo2 {}
-''',
-    );
+''');
   }
 
   test_annotatedClassTypeAlias() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo = Object with M;
 mixin M {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar implements Foo {}
-''',
-      [error(diag.experimentalMemberUse, 50, 3)],
-    );
+//                   ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_classTypeAlias() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 mixin M {}
 class Bar = Object with M implements Foo;
-''',
-      [error(diag.experimentalMemberUse, 77, 3)],
-    );
+//                                   ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 enum Bar implements Foo { one; }
-''',
-      [error(diag.experimentalMemberUse, 49, 3)],
-    );
+//                  ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -228,127 +231,132 @@ class Bar implements Foo {}
   }
 
   test_mixinImplementsClass() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 mixin Bar implements Foo {}
-''',
-      [error(diag.experimentalMemberUse, 50, 3)],
-    );
+//                   ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_mixinOnClass() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 mixin Bar on Foo {}
-''',
-      [error(diag.experimentalMemberUse, 42, 3)],
-    );
+//           ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_noAnnotation() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar implements Foo {}
-''',
-    );
+''');
   }
 }
 
 @reflectiveTest
 class ExperimentalInstantiateTest extends _TestBase {
   test_annotatedClass() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = Foo();
-''',
-      [error(diag.experimentalMemberUse, 37, 3)],
-    );
+//      ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_annotatedClass_tearoff() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = Foo.new;
-''',
-      [error(diag.experimentalMemberUse, 37, 3)],
-    );
+//      ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_annotatedClass_typedef() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
 typedef Foo2 = Foo;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = Foo2();
-''',
-    );
+''');
   }
 
   test_annotatedClass_typedef_tearoff() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo {}
 typedef Foo2 = Foo;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = Foo2.new;
-''',
-    );
+''');
   }
 
   test_annotatedClassTypeAlias() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class Foo = Object with M;
 mixin M {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = Foo();
-''',
-      [error(diag.experimentalMemberUse, 37, 3)],
-    );
+//      ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -358,143 +366,149 @@ var x = Foo();
   }
 
   test_noAnnotation() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = Foo();
-''',
-    );
+''');
   }
 }
 
 @reflectiveTest
 class ExperimentalMemberUseTest extends _TestBase {
   test_assignmentExpression_compound_experimentalGetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x += 2;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_assignmentExpression_compound_experimentalSetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
 
 @experimental
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x += 2;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_assignmentExpression_simple_experimentalGetter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x = 0;
 }
-''',
-    );
+''');
   }
 
   test_assignmentExpression_simple_experimentalGetterSetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x = 0;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_assignmentExpression_simple_experimentalSetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
 
 @experimental
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x = 0;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_call() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   call() {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f(A a) {
   a();
+//^^^
+// [diag.experimentalMemberUse] 'call' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 45, 3)],
-    );
+''');
   }
 
   test_class() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class A {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f(A a) {}
-''',
-      [error(diag.experimentalMemberUse, 36, 1)],
-    );
+//     ^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_class_inExperimentalFunctionTypeAlias() async {
@@ -505,7 +519,7 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 import 'package:aaa/a.dart';
 
@@ -522,7 +536,7 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 import 'package:aaa/a.dart';
 
@@ -532,22 +546,23 @@ typedef T = A Function();
   }
 
   test_compoundAssignment() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   A operator+(A a) { return a; }
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 f(A a, A b) {
   a += b;
+//^^^^^^
+// [diag.experimentalMemberUse] '+' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 45, 6)],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_experimentalClass_experimentalConstructor() async {
@@ -563,19 +578,17 @@ class A {
 void g(A a) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
+//  ^^^^^^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+//   ^^^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [
-        error(diag.experimentalMemberUse, 45, 6),
-        error(diag.experimentalMemberUse, 46, 3),
-      ],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_experimentalClass_unexperimentalConstructor() async {
@@ -589,16 +602,15 @@ class A {
 void g(A a) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
+//  ^^^^^^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 45, 6)],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_experimentalClass_unexperimentalNamedConstructor() async {
@@ -612,21 +624,19 @@ class A {
 void g(A _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   g(.a());
+//  ^^^^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 45, 4)],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_namedConstructor() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -634,23 +644,16 @@ class A {
   A.named(int i) {}
 }
 void g(A a) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 f() {
   g(.named(1));
+//   ^^^^^
+// [diag.experimentalMemberUse] 'A.named' is experimental and could be removed or changed at any time.
 }
-''',
-      [
-        error(
-          diag.experimentalMemberUse,
-          40,
-          5,
-          messageContains: [
-            "'A.named' is experimental and could be removed or changed at any time.",
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_unexperimentalClass_experimentalConstructor() async {
@@ -664,58 +667,59 @@ class A {
 void g(A a) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
+//   ^^^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 46, 3)],
-    );
+''');
   }
 
   test_experimentalField_inObjectPattern_explicitName() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class C {
   @experimental
   final int foo = 0;
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 int g(Object s) =>
   switch (s) {
     C(foo: var f) => f,
+//    ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
     _ => 7,
   };
-''',
-      [error(diag.experimentalMemberUse, 69, 3)],
-    );
+''');
   }
 
   test_experimentalField_inObjectPattern_inferredName() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class C {
   @experimental
   final int foo = 0;
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 int g(Object s) =>
   switch (s) {
     C(:var foo) => foo,
+//         ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
     _ => 7,
   };
-''',
-      [error(diag.experimentalMemberUse, 74, 3)],
-    );
+''');
   }
 
   test_export() async {
@@ -726,12 +730,10 @@ import 'package:meta/meta.dart';
 library a;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:aaa/a.dart';
-''',
-      [error(diag.experimentalMemberUse, 0, 28)],
-    );
+// [diag.experimentalMemberUse][column 1][length 28] 'package:aaa/a.dart' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_export_fromSamePackage() async {
@@ -742,28 +744,29 @@ import 'package:meta/meta.dart';
 library a;
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib2.dart';
 ''');
   }
 
   test_extensionOverride() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 extension E on int {
   int get foo => 0;
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   E(0).foo;
+//^
+// [diag.experimentalMemberUse] 'E' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_field_implicitGetter() async {
@@ -798,16 +801,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo = 0;
+//  ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_field_inExperimentalConstructor() async {
@@ -820,7 +822,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 import 'package:aaa/a.dart';
 
@@ -841,9 +843,9 @@ import 'package:meta/meta.dart';
 @experimental
 class A {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
-import '$externalLibUri' hide A;
+import 'package:aaa/a.dart' hide A;
 ''');
   }
 
@@ -855,97 +857,89 @@ import 'package:meta/meta.dart';
 library a;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
-''',
-      [
-        error(
-          diag.experimentalMemberUse,
-          24,
-          28,
-          messageContains: ['package:aaa/a.dart'],
-        ),
-      ],
-    );
+// [diag.experimentalMemberUse][column 1][length 28] 'package:aaa/a.dart' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_incorrectlyNestedNamedParameterDeclaration() async {
     // This is a regression test; previously this code would cause an analyzer
     // crash in ExperimentalMemberUseVerifier.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String x;
   final bool y;
 
   const C({
+//      ^
+// [diag.finalNotInitializedConstructor1] All final variables must be initialized, but 'y' isn't.
     required this.x,
     {this.y = false}
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '}'.
   });
 }
 
 const z = C(x: '');
-''',
-      [
-        error(diag.finalNotInitializedConstructor1, 53, 1),
-        error(diag.missingIdentifier, 82, 1),
-        error(diag.expectedToken, 82, 1),
-      ],
-    );
+''');
   }
 
   test_indexExpression() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   operator[](int i) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f(A a) {
   return a[1];
+//       ^^^^
+// [diag.experimentalMemberUse] '[]' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 52, 4)],
-    );
+''');
   }
 
   test_inEnum() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 enum E {
   one, two;
 
   void m() {
     f();
+//  ^
+// [diag.experimentalMemberUse] 'f' is experimental and could be removed or changed at any time.
   }
 }
-''',
-      [error(diag.experimentalMemberUse, 68, 1)],
-    );
+''');
   }
 
   test_inExperimentalClass() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 class C {
@@ -953,38 +947,38 @@ class C {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalDefaultFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class C {
   const C();
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 f({@experimental C? c = const C()}) {}
-''',
-    );
+''');
   }
 
   test_inExperimentalEnum() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 enum E {
@@ -994,20 +988,20 @@ enum E {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalExtension() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 extension E on int {
@@ -1015,20 +1009,20 @@ extension E on int {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalExtensionType() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 extension type E(int i) {
@@ -1036,96 +1030,95 @@ extension type E(int i) {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalField() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 class X {
   @experimental
   C f;
   X(this.f);
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalFieldFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 class A {
   Object? o;
   A({@experimental C? this.o});
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalFunction() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-import 'package:meta/meta.dart';
-
-@experimental
-f() {}
-''',
-      code: '''
-import 'package:meta/meta.dart';
-
-@experimental
-g() {
-  f();
-}
-''',
-    );
-  }
-
-  test_inExperimentalFunctionTypedFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
-import 'package:meta/meta.dart';
-
-@experimental
-class C {}
-''',
-      code: r'''
-import 'package:meta/meta.dart';
-
-f({@experimental C? callback()?}) {}
-''',
-    );
-  }
-
-  test_inExperimentalLibrary() async {
     newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 f() {}
 ''');
-    await assertNoErrorsInCode('''
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
+
+@experimental
+g() {
+  f();
+}
+''');
+  }
+
+  test_inExperimentalFunctionTypedFormalParameter() async {
+    newFile(externalLibPath, r'''
+import 'package:meta/meta.dart';
+
+@experimental
+class C {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
+
+f({@experimental C? callback()?}) {}
+''');
+  }
+
+  test_inExperimentalLibrary() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+@experimental
+f() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
 @experimental
 library lib;
 import 'package:meta/meta.dart';
-import '$externalLibUri';
+import 'package:aaa/a.dart';
 
 class C {
   m() {
@@ -1136,15 +1129,16 @@ class C {
   }
 
   test_inExperimentalMethod() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 class C {
   @experimental
@@ -1152,20 +1146,20 @@ class C {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalMethod_inExperimentalClass() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 class C {
@@ -1174,20 +1168,20 @@ class C {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalMixin() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 mixin M {
@@ -1195,36 +1189,36 @@ mixin M {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalSimpleFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 f({@experimental C? c}) {}
-''',
-    );
+''');
   }
 
   test_inExperimentalSuperFormalParameter() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 class A {
   A({Object? o});
@@ -1232,45 +1226,45 @@ class A {
 class B extends A {
   B({@experimental C? super.o});
 }
-''',
-    );
+''');
   }
 
   test_inExperimentalTopLevelVariable() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class C {}
 var x = C();
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 C v = x;
-''',
-    );
+''');
   }
 
   test_inExtension() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 extension E on int {
   void m() {
     f();
+//  ^
+// [diag.experimentalMemberUse] 'f' is experimental and could be removed or changed at any time.
   }
 }
-''',
-      [error(diag.experimentalMemberUse, 67, 1)],
-    );
+''');
   }
 
   test_instanceCreation_experimentalClass_experimentalConstructor() async {
@@ -1284,16 +1278,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A();
+//^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_instanceCreation_experimentalClass_unexperimentalConstructor() async {
@@ -1306,16 +1299,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A();
+//^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_instanceCreation_experimentalClass_unexperimentalNamedConstructor() async {
@@ -1328,70 +1320,51 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A.a();
+//^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [
-        // https://github.com/dart-lang/linter/issues/4752
-        // Highlights `A`.
-        error(diag.experimentalMemberUse, 43, 1),
-      ],
-    );
+''');
   }
 
   test_instanceCreation_namedConstructor() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   A.named(int i) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var a = A.named(1);
-''',
-      [
-        error(
-          diag.experimentalMemberUse,
-          37,
-          7,
-          messageContains: [
-            "'A.named' is experimental and could be removed or changed at any time.",
-          ],
-        ),
-      ],
-    );
+//      ^^^^^^^
+// [diag.experimentalMemberUse] 'A.named' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_instanceCreation_namedConstructor_primary() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A.named() {
   @experimental
   this;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var a = A.named();
-''',
-      [
-        error(
-          diag.experimentalMemberUse,
-          37,
-          7,
-          messageContains: ["'A.named' is experimental and could be removed"],
-        ),
-      ],
-    );
+//      ^^^^^^^
+// [diag.experimentalMemberUse] 'A.named' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_instanceCreation_unexperimentalClass_experimentalConstructor() async {
@@ -1445,54 +1418,47 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo();
+//  ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_methodInvocation_constantAnnotation() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = f();
-''',
-      [error(diag.experimentalMemberUse, 37, 1)],
-    );
+//      ^
+// [diag.experimentalMemberUse] 'f' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_methodInvocation_constructorAnnotation() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 var x = f();
-''',
-      [
-        error(
-          diag.experimentalMemberUse,
-          37,
-          1,
-          text:
-              "'f' is experimental and could be removed or changed at any time.",
-        ),
-      ],
-    );
+//      ^
+// [diag.experimentalMemberUse] 'f' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_methodInvocation_fromSamePackage() async {
@@ -1505,7 +1471,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib2.dart';
 
 void f(A a) {
@@ -1515,7 +1481,7 @@ void f(A a) {
   }
 
   test_methodInvocation_inExperimentalConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1538,7 +1504,7 @@ import 'package:meta/meta.dart';
 mixin A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 import 'package:aaa/a.dart';
 
@@ -1550,56 +1516,57 @@ class B = Object with A;
   test_namedParameterMissingName() async {
     // This is a regression test; previously this code would cause an analyzer
     // crash in ExperimentalMemberUseVerifier.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C({this.});
+//         ^^^^^
+// [diag.initializingFormalForNonExistentField] '' isn't a field in the enclosing class.
+//              ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 var z = C(x: '');
-''',
-      [
-        error(diag.initializingFormalForNonExistentField, 21, 5),
-        error(diag.missingIdentifier, 26, 1),
-        error(diag.undefinedNamedParameter, 42, 1),
-      ],
-    );
+//        ^
+// [diag.undefinedNamedParameter] The named parameter 'x' isn't defined.
+''');
   }
 
   test_operator() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   operator+(A a) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 f(A a, A b) {
   return a + b;
+//       ^^^^^
+// [diag.experimentalMemberUse] '+' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 52, 5)],
-    );
+''');
   }
 
   test_parameter_named() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 void f({@experimental int x = 0}) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void g() => f(x: 1);
-''',
-      [error(diag.experimentalMemberUse, 43, 1)],
-    );
+//            ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_parameter_named_inDefiningConstructor_asFieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1610,7 +1577,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_assertInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1620,7 +1587,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_fieldInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1631,8 +1598,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_inFieldFormalParameter_notName() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {}
@@ -1643,19 +1609,21 @@ class B extends A {
 }
 
 const B instance = const B();
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class C {
   final A a;
   C({B this.a = instance});
+//   ^
+// [diag.experimentalMemberUse] 'B' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 57, 1)],
-    );
+''');
   }
 
   test_parameter_named_inDefiningFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 f({@experimental int x = 0}) => x;
@@ -1663,7 +1631,7 @@ f({@experimental int x = 0}) => x;
   }
 
   test_parameter_named_inDefiningLocalFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1678,7 +1646,7 @@ class C {
   }
 
   test_parameter_named_inDefiningMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1690,7 +1658,7 @@ class C {
   }
 
   test_parameter_named_inNestedLocalFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1705,7 +1673,7 @@ class C {
   }
 
   test_parameter_named_inPrimaryConstructor_assertInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C({@experimental int y = 0}) {
@@ -1721,16 +1689,15 @@ import 'package:meta/meta.dart';
 void foo({@experimental int a}) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   foo(a: 0);
+//    ^
+// [diag.experimentalMemberUse] 'a' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 47, 1)],
-    );
+''');
   }
 
   test_parameter_named_ofMethod() async {
@@ -1742,45 +1709,46 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo(a: 0);
+//      ^
+// [diag.experimentalMemberUse] 'a' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 52, 1)],
-    );
+''');
   }
 
   test_parameter_positionalOptional() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   void foo([@experimental int x = 0]) {}
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f(A a) {
   a.foo(0);
+//      ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 51, 1)],
-    );
+''');
   }
 
   test_parameter_positionalOptional_inExperimentalConstructor() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 void foo([@experimental int x = 0]) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 class A {
   @experimental
@@ -1788,39 +1756,39 @@ class A {
     foo(0);
   }
 }
-''',
-    );
+''');
   }
 
   test_parameter_positionalOptional_inExperimentalFunction() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   void foo([@experimental int x = 0]) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 @experimental
 void f(A a) {
   a.foo(0);
 }
-''',
-    );
+''');
   }
 
   test_parameter_positionalOptional_inExperimentalPrimaryConstructor() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 void foo([@experimental int x = 0]) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
+import 'package:aaa/a.dart';
 
 class A() {
   @experimental
@@ -1828,179 +1796,185 @@ class A() {
     foo(0);
   }
 }
-''',
-    );
+''');
   }
 
   test_parameter_positionalRequired() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   void foo(@experimental int x) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f(A a) {
   a.foo(0);
 }
-''',
-    );
+''');
   }
 
   test_postfixExpression_experimentalGetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x++;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_postfixExpression_experimentalNothing() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x++;
 }
-''',
-    );
+''');
   }
 
   test_postfixExpression_experimentalSetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
 
 @experimental
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x++;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_prefixedIdentifier_identifier() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   static const foo = 0;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   A.foo;
+//  ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 44, 3)],
-    );
+''');
   }
 
   test_prefixedIdentifier_prefix() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 class A {
   static const foo = 0;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   A.foo;
+//^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_prefixExpression_experimentalGetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   ++x;
+//  ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 44, 1)],
-    );
+''');
   }
 
   test_prefixExpression_experimentalSetter() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
 
 @experimental
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   ++x;
+//  ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 44, 1)],
-    );
+''');
   }
 
   test_propertyAccess_super() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   int get foo => 0;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class B extends A {
   void bar() {
     super.foo;
+//        ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
   }
 }
-''',
-      [error(diag.experimentalMemberUse, 74, 3)],
-    );
+''');
   }
 
   test_redirectingConstructorInvocation_namedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -2020,16 +1994,14 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
-
 void f(A a) {
   a.foo = 0;
+//  ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_showCombinator() async {
@@ -2039,362 +2011,363 @@ import 'package:meta/meta.dart';
 @experimental
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
-import '$externalLibUri' show A;
-''',
-      [error(diag.experimentalMemberUse, 58, 1)],
-    );
+import 'package:aaa/a.dart' show A;
+//                               ^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_superConstructor_namedConstructor() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   A.named() {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class B extends A {
   B() : super.named() {}
+//      ^^^^^^^^^^^^^
+// [diag.experimentalMemberUse] 'A.named' is experimental and could be removed or changed at any time.
 }
-''',
-      [
-        error(
-          diag.experimentalMemberUse,
-          57,
-          13,
-          text:
-              "'A.named' is experimental and could be removed or changed at any time.",
-        ),
-      ],
-    );
+''');
   }
 
   test_superConstructor_unnamedConstructor() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   A() {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class B extends A {
   B() : super() {}
+//      ^^^^^^^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [
-        error(
-          diag.experimentalMemberUse,
-          57,
-          7,
-          text:
-              "'A' is experimental and could be removed or changed at any time.",
-        ),
-      ],
-    );
+''');
   }
 
   test_topLevelVariable_argument() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   print(x);
+//      ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_assignment_right() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f(int a) {
   a = x;
+//    ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 51, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_binaryExpression() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x + 1;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_constructorFieldInitializer() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 const int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class A {
   final int f;
   A() : f = x;
+//          ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 66, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_expressionFunctionBody() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 int f() => x;
-''',
-      [error(diag.experimentalMemberUse, 40, 1)],
-    );
+//         ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_topLevelVariable_expressionStatement() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   x;
+//^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 42, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_forElement_condition() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   [for (;x;) 0];
+//       ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 49, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_forStatement_condition() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   for (;x;) {}
+//      ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_ifElement_condition() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   [if (x) 0];
+//     ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 47, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_ifStatement_condition() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   if (x) {}
+//    ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 46, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_listLiteral() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   [x];
+// ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_mapLiteralEntry() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   ({0: x, x: 0});
+//     ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
+//        ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [
-        error(diag.experimentalMemberUse, 47, 1),
-        error(diag.experimentalMemberUse, 50, 1),
-      ],
-    );
+''');
   }
 
   test_topLevelVariable_namedExpression() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void g({int a = 0}) {}
 void f() {
   g(a: x);
+//     ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 70, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_returnStatement() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 int f() {
   return x;
+//       ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_setLiteral() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   ({x});
+//  ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 44, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_spreadElement() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 var x = [0];
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   [...x];
+//    ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 46, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_switchCase() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 const int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f(int a) {
   switch (a) {
     case x:
+//       ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
       break;
   }
 }
-''',
-      [error(diag.experimentalMemberUse, 69, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_switchCase_language219() async {
@@ -2404,36 +2377,36 @@ import 'package:meta/meta.dart';
 @experimental
 const int x = 1;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
-import '$externalLibUri';
+import 'package:aaa/a.dart';
 void f(int a) {
   switch (a) {
     case x:
+//       ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
       break;
   }
 }
-''',
-      [error(diag.experimentalMemberUse, 85, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_switchStatement() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   switch (x) {}
+//        ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 50, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_switchStatement_language219() async {
@@ -2443,68 +2416,70 @@ import 'package:meta/meta.dart';
 @experimental
 int x = 1;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
-import '$externalLibUri';
+import 'package:aaa/a.dart';
 void f() {
   switch (x) {}
+//        ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 66, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_unaryExpression() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   -x;
+// ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_variableDeclaration_initializer() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 var x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   // ignore: unused_local_variable
   var v = x;
+//        ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 85, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_whileStatement_condition() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 void f() {
   while (x) {}
+//       ^
+// [diag.experimentalMemberUse] 'x' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 49, 1)],
-    );
+''');
   }
 
   @override
@@ -2517,86 +2492,91 @@ void f() {
 @reflectiveTest
 class ExperimentalMixinTest extends _TestBase {
   test_annotatedClass_typedef() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 mixin class Foo {}
 typedef Foo2 = Foo;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar with Foo {}
-''',
-      [error(diag.experimentalMemberUse, 44, 3)],
-    );
+//             ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_annotatedClassTypeAlias() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 mixin M {}
 import 'package:meta/meta.dart';
 
 @experimental
 mixin class Foo = Object with M;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar with Foo {}
-''',
-      [error(diag.experimentalMemberUse, 44, 3)],
-    );
+//             ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_class() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 mixin class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar with Foo {}
-''',
-      [error(diag.experimentalMemberUse, 44, 3)],
-    );
+//             ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_classTypeAlias() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 mixin class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar = Object with Foo;
-''',
-      [error(diag.experimentalMemberUse, 53, 3)],
-    );
+//                      ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 import 'package:meta/meta.dart';
 
 @experimental
 mixin class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 enum Bar with Foo {
+//            ^^^
+// [diag.experimentalMemberUse] 'Foo' is experimental and could be removed or changed at any time.
   one, two;
 }
-''',
-      [error(diag.experimentalMemberUse, 43, 3)],
-    );
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2606,14 +2586,14 @@ class Bar with Foo {}
   }
 
   test_noAnnotation() async {
-    await assertNoErrorsInCode2(
-      externalCode: r'''
+    newFile(externalLibPath, r'''
 mixin class Foo {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
 class Bar with Foo {}
-''',
-    );
+''');
   }
 }
 

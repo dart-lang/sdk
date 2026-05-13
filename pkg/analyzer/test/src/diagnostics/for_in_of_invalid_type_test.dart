@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ForInOfInvalidTypeTest extends PubPackageResolutionTest {
   test_awaitForIn_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(dynamic e) async {
   await for (var id in e) {
     id;
@@ -27,48 +27,44 @@ f(dynamic e) async {
   }
 
   test_awaitForIn_interfaceType_notStream() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool e) async {
   await for (var id in e) {
+//                     ^
+// [diag.forInOfInvalidType] The type 'bool' used in the 'for' loop must implement 'Stream'.
     id;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 41, 1)],
-    );
+''');
   }
 
   test_awaitForIn_never() async {
-    await assertErrorsInCode(
-      '''
+    // TODO(scheglov): extract for-in resolution and implement
+    //    assertType(findNode.simple('id;'), 'Never');
+    await resolveTestCodeWithDiagnostics(r'''
 f(Never e) async {
   await for (var id in e) {
+// [diag.deadCode][column 14][length 78] Dead code.
     id;
   }
 }
-''',
-      [error(diag.deadCode, 32, 26)],
-    );
-    // TODO(scheglov): extract for-in resolution and implement
-    //    assertType(findNode.simple('id;'), 'Never');
+''');
   }
 
   test_awaitForIn_object() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object e) async {
   await for (var id in e) {
+//                     ^
+// [diag.forInOfInvalidType] The type 'Object' used in the 'for' loop must implement 'Stream'.
     id;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 43, 1)],
-    );
+''');
   }
 
   test_awaitForIn_streamOfDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Stream<dynamic> e) async {
   await for (var id in e) {
     id;
@@ -78,7 +74,7 @@ f(Stream<dynamic> e) async {
   }
 
   test_awaitForIn_streamOfDynamicSubclass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class MyStream<T> extends Stream<T> {
   factory MyStream() => throw 0;
 }
@@ -91,7 +87,7 @@ f(MyStream<dynamic> e) async {
   }
 
   test_forIn_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(dynamic e) {
   for (var id in e) {
     id;
@@ -101,7 +97,7 @@ f(dynamic e) {
   }
 
   test_forIn_interfaceType_iterable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Iterable e) {
   for (var id in e) {
     id;
@@ -111,20 +107,19 @@ f(Iterable e) {
   }
 
   test_forIn_interfaceType_notIterable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool e) {
   for (var id in e) {
+//               ^
+// [diag.forInOfInvalidType] The type 'bool' used in the 'for' loop must implement 'Iterable'.
     id;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 29, 1)],
-    );
+''');
   }
 
   test_forIn_interfaceTypeTypedef_iterable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef L = List<String>;
 f(L e) {
   for (var id in e) {
@@ -135,31 +130,28 @@ f(L e) {
   }
 
   test_forIn_never() async {
-    await assertErrorsInCode(
-      '''
+    // TODO(scheglov): extract for-in resolution and implement
+    //    assertType(findNode.simple('id;'), 'Never');
+    await resolveTestCodeWithDiagnostics(r'''
 f(Never e) {
   for (var id in e) {
+// [diag.deadCode][column 8][length 77] Dead code.
     id;
   }
 }
-''',
-      [error(diag.deadCode, 20, 26)],
-    );
-    // TODO(scheglov): extract for-in resolution and implement
-    //    assertType(findNode.simple('id;'), 'Never');
+''');
   }
 
   test_forIn_object() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object e) async {
   for (var id in e) {
+//               ^
+// [diag.forInOfInvalidType] The type 'Object' used in the 'for' loop must implement 'Iterable'.
     id;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 37, 1)],
-    );
+''');
   }
 }
 

@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class FieldInitializerNotAssignableTest extends PubPackageResolutionTest {
   test_class_implicitCallReference() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int p) {}
 }
@@ -29,7 +29,7 @@ class A {
   }
 
   test_class_implicitCallReference_genericFunctionInstantiation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call<T>(T p) {}
 }
@@ -41,15 +41,14 @@ class A {
   }
 
   test_class_unrelated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A() : x = '';
+//          ^^
+// [diag.fieldInitializerNotAssignable] The initializer type 'String' can't be assigned to the field type 'int'.
 }
-''',
-      [error(diag.fieldInitializerNotAssignable, 31, 2)],
-    );
+''');
   }
 }
 

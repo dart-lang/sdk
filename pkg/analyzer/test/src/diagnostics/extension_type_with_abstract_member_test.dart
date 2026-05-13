@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,18 +15,17 @@ main() {
 @reflectiveTest
 class ExtensionTypeWithAbstractMemberTest extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo;
+//^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'A' is an extension type.
 }
-''',
-      [error(diag.extensionTypeWithAbstractMember, 29, 12)],
-    );
+''');
   }
 
   test_getter_external() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   external int get foo;
 }
@@ -35,7 +33,7 @@ extension type A(int it) {
   }
 
   test_getter_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static int get foo;
 }
@@ -43,30 +41,28 @@ extension type A(int it) {
   }
 
   test_getter_static_language305() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type A(int it) {
   static int get foo;
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
-''',
-      [error(diag.missingFunctionBody, 62, 1)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo();
+//^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'A' is an extension type.
 }
-''',
-      [error(diag.extensionTypeWithAbstractMember, 29, 11)],
-    );
+''');
   }
 
   test_method_external() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   external void foo();
 }
@@ -74,7 +70,7 @@ extension type A(int it) {
   }
 
   test_method_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static void foo();
 }
@@ -82,30 +78,28 @@ extension type A(int it) {
   }
 
   test_method_static_language305() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type A(int it) {
   static void foo();
+//                 ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
-''',
-      [error(diag.missingFunctionBody, 61, 1)],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(int _);
+//^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'A' is an extension type.
 }
-''',
-      [error(diag.extensionTypeWithAbstractMember, 29, 15)],
-    );
+''');
   }
 
   test_setter_external() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   external set foo(int _);
 }
@@ -113,7 +107,7 @@ extension type A(int it) {
   }
 
   test_setter_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static set foo(int _);
 }
@@ -121,14 +115,13 @@ extension type A(int it) {
   }
 
   test_setter_static_language305() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type A(int it) {
   static set foo(int _);
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
-''',
-      [error(diag.missingFunctionBody, 65, 1)],
-    );
+''');
   }
 }

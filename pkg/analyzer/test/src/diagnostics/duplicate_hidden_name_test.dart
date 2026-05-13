@@ -20,12 +20,11 @@ class DuplicateHiddenNameTest extends PubPackageResolutionTest {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart' hide A, B, A;
-''',
-      [error(diag.duplicateHiddenName, 30, 1)],
-    );
+//                            ^
+// [diag.duplicateHiddenName] Duplicate hidden name.
+''');
   }
 
   test_part_hidden() async {
