@@ -6,8 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 
-import '../ast.dart';
 import '../extensions.dart';
 
 bool argumentsMatchParameters(
@@ -105,8 +105,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
   if (expression1 is SimpleIdentifier) {
     return expression2 is SimpleIdentifier &&
         canonicalElementsAreEqual(
-          getWriteOrReadElement(expression1),
-          getWriteOrReadElement(expression2),
+          expression1.writeOrReadElement,
+          expression2.writeOrReadElement,
         );
   }
 
@@ -117,8 +117,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
           expression2.prefix.element,
         ) &&
         canonicalElementsAreEqual(
-          getWriteOrReadElement(expression1.identifier),
-          getWriteOrReadElement(expression2.identifier),
+          expression1.identifier.writeOrReadElement,
+          expression2.identifier.writeOrReadElement,
         );
   }
 
@@ -127,8 +127,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
     var target2 = expression2.target;
     return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
         canonicalElementsAreEqual(
-          getWriteOrReadElement(expression1.propertyName),
-          getWriteOrReadElement(expression2.propertyName),
+          expression1.propertyName.writeOrReadElement,
+          expression2.propertyName.writeOrReadElement,
         );
   }
 

@@ -91,12 +91,6 @@ SyntacticEntity getNodeToAnnotate(AstNode node) {
   return node;
 }
 
-/// If the [node] is the finishing identifier of an assignment, return its
-/// "writeElement", otherwise return its "element", which might be
-/// thought as the "readElement".
-Element? getWriteOrReadElement(SimpleIdentifier node) =>
-    _getWriteElement(node) ?? node.element;
-
 bool hasConstantError(Expression node) =>
     node.computeConstantValue()?.diagnostics.isNotEmpty ?? true;
 
@@ -291,33 +285,6 @@ int? _getIntValue(
   if (value is! int) return null;
 
   return negated ? -value : value;
-}
-
-/// If the [node] is the target of a [CompoundAssignmentExpression],
-/// return the corresponding "writeElement", which is the local variable,
-/// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
-/// or the `[]=` operator.
-Element? _getWriteElement(AstNode node) {
-  var parent = node.parent;
-  if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement;
-  }
-  if (parent is PostfixExpression) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixExpression) {
-    return parent.writeElement;
-  }
-
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _getWriteElement(parent);
-  }
-
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _getWriteElement(parent);
-  }
-
-  return null;
 }
 
 bool _hasFieldOrMethod(ClassMember element, String name) =>
