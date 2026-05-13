@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,117 +28,72 @@ class InvalidWidgetPreviewPrivateArgumentTest extends PubPackageResolutionTest {
   test_invalidPrivatePreviewArgument() async {
     const String kPrivateName = '_privateName';
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
 const String $kPrivateName = 'Name';
 
 @Preview(name: $kPrivateName)
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
 Widget privateName() => Text('Foo');
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          133,
-          18,
-          correctionContains: correctionMessageBuilder(
-            kPrivateName,
-            kPrivateName.substring(1),
-          ),
-        ),
-      ],
-    );
+''');
   }
 
   test_invalidPrivatePreviewArguments_extraPrivate() async {
     const String kExtraPrivateName = '__extraPrivateName';
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
 const String $kExtraPrivateName = 'Extra';
 
 @Preview(name: $kExtraPrivateName)
+//       ^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
 Widget extraPrivateName() => Text('Foo');
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          140,
-          24,
-          correctionContains: correctionMessageBuilder(
-            kExtraPrivateName,
-            kExtraPrivateName.substring(2),
-          ),
-        ),
-      ],
-    );
+''');
   }
 
   test_invalidPrivatePreviewArguments_inArgumentExpression() async {
     const String kPrivateTextScaleFactor = '_textScaleFactor';
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
 const double $kPrivateTextScaleFactor = 2.0;
 
 @Preview(textScaleFactor: $kPrivateTextScaleFactor + 1)
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
 Widget numericExpressionWithPrivateDouble() => Text('Foo');
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          134,
-          37,
-          correctionContains: correctionMessageBuilder(
-            kPrivateTextScaleFactor,
-            kPrivateTextScaleFactor.substring(1),
-          ),
-        ),
-      ],
-    );
+''');
   }
 
   test_invalidPrivatePreviewArguments_interpolatedInStringArgument() async {
     const String kPrivateName = '_privateName';
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
 const String $kPrivateName = 'Name';
 
 @Preview(name: '\$$kPrivateName')
+//       ^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
 Widget privateNameStringInterp() => Text('Foo');
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          133,
-          21,
-          correctionContains: correctionMessageBuilder(
-            kPrivateName,
-            kPrivateName.substring(1),
-          ),
-        ),
-      ],
-    );
+''');
   }
 
   test_invalidPrivatePreviewArguments_size() async {
     const String kPrivateSize = '_privateSize';
     const String kPrivateTextScaleFactor = '_textScaleFactor';
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
@@ -148,85 +102,45 @@ const double $kPrivateTextScaleFactor = 2.0;
 
 @Preview(
   size: $kPrivateSize,
+//^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
   textScaleFactor: $kPrivateTextScaleFactor,
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
 )
 Widget privateDoubles() => Text('Foo');
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          182,
-          18,
-          correctionContains: correctionMessageBuilder(
-            kPrivateSize,
-            kPrivateSize.substring(1),
-          ),
-        ),
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          204,
-          33,
-          correctionContains: correctionMessageBuilder(
-            kPrivateTextScaleFactor,
-            kPrivateTextScaleFactor.substring(1),
-          ),
-        ),
-      ],
-    );
+''');
   }
 
   test_invalidPrivatePreviewArguments_theme() async {
     const String kPrivateTheme = '_privateTheme';
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
 PreviewThemeData $kPrivateTheme() => PreviewThemeData();
 
 @Preview(theme: $kPrivateTheme)
+//       ^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
 Widget privateThemeData() => Text('Foo');
-
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          153,
-          20,
-          correctionContains: correctionMessageBuilder(
-            kPrivateTheme,
-            kPrivateTheme.substring(1),
-          ),
-        ),
-      ],
-    );
+''');
   }
 
   test_invalidPrivatePreviewArguments_wrapper() async {
     const String kPrivateWrapper = '_privateWrapper';
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
 Widget $kPrivateWrapper(Widget child) => child;
 
 @Preview(wrapper: $kPrivateWrapper)
+//       ^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidWidgetPreviewPrivateArgument] '@Preview(...)' can only accept arguments that consist of literals and public symbols.
 Widget privateWrapper() => Text('Foo');
-''',
-      [
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          144,
-          24,
-          correctionContains: correctionMessageBuilder(
-            kPrivateWrapper,
-            kPrivateWrapper.substring(1),
-          ),
-        ),
-      ],
-    );
+''');
   }
 }

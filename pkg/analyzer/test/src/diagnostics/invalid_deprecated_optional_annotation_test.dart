@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,17 +15,15 @@ main() {
 @reflectiveTest
 class InvalidDeprecatedOptionalAnnotationTest extends PubPackageResolutionTest {
   test_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.optional()
+// [diag.invalidDeprecatedOptionalAnnotation][column 2][length 19] The annotation '@Deprecated.optional' can only be applied to optional parameters.
 void f([int p = 0]) {}
-''',
-      [error(diag.invalidDeprecatedOptionalAnnotation, 1, 19)],
-    );
+''');
   }
 
   test_parameter_ofConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
@@ -34,41 +31,38 @@ class C {
   }
 
   test_parameter_ofFunctionParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void cb([@Deprecated.optional() int? p])) {
+//               ^^^^^^^^^^^^^^^^^^^
+// [diag.invalidDeprecatedOptionalAnnotation] The annotation '@Deprecated.optional' can only be applied to optional parameters.
   cb();
 }
-''',
-      [error(diag.invalidDeprecatedOptionalAnnotation, 17, 19)],
-    );
+''');
   }
 
   test_parameter_ofFunctionTypedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function([@Deprecated.optional() int? p]) cb) {
+//                     ^^^^^^^^^^^^^^^^^^^
+// [diag.invalidDeprecatedOptionalAnnotation] The annotation '@Deprecated.optional' can only be applied to optional parameters.
   cb();
 }
-''',
-      [error(diag.invalidDeprecatedOptionalAnnotation, 23, 19)],
-    );
+''');
   }
 
   test_parameter_ofLocalFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g([@Deprecated.optional() int? p]) {}
+//         ^^^^^^^^^^^^^^^^^^^
+// [diag.invalidDeprecatedOptionalAnnotation] The annotation '@Deprecated.optional' can only be applied to optional parameters.
   g();
 }
-''',
-      [error(diag.invalidDeprecatedOptionalAnnotation, 22, 19)],
-    );
+''');
   }
 
   test_parameter_ofMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void m([@Deprecated.optional() int? p]) {}
 }
@@ -76,19 +70,18 @@ class C {
   }
 
   test_parameter_ofTypedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Cb = void Function([@Deprecated.optional() int? p]);
+//                           ^^^^^^^^^^^^^^^^^^^
+// [diag.invalidDeprecatedOptionalAnnotation] The annotation '@Deprecated.optional' can only be applied to optional parameters.
 void f(Cb cb) {
   cb();
 }
-''',
-      [error(diag.invalidDeprecatedOptionalAnnotation, 29, 19)],
-    );
+''');
   }
 
   test_parameter_optionalNamedWithDefault() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   {@Deprecated.optional() int p = 0}
 ) {}
@@ -96,7 +89,7 @@ void f(
   }
 
   test_parameter_optionalNamedWithoutDefault() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   {@Deprecated.optional() int? p}
 ) {}
@@ -104,7 +97,7 @@ void f(
   }
 
   test_parameter_optionalPositionalWithDefault() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   [@Deprecated.optional() int p = 0]
 ) {}
@@ -112,7 +105,7 @@ void f(
   }
 
   test_parameter_optionalPositionalWithoutDefault() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   [@Deprecated.optional() int? p]
 ) {}
@@ -120,24 +113,22 @@ void f(
   }
 
   test_parameter_requiredNamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   {@Deprecated.optional() required int? p}
+//  ^^^^^^^^^^^^^^^^^^^
+// [diag.invalidDeprecatedOptionalAnnotation] The annotation '@Deprecated.optional' can only be applied to optional parameters.
 ) {}
-''',
-      [error(diag.invalidDeprecatedOptionalAnnotation, 12, 19)],
-    );
+''');
   }
 
   test_parameter_requiredPositional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   @Deprecated.optional() int? p
+// ^^^^^^^^^^^^^^^^^^^
+// [diag.invalidDeprecatedOptionalAnnotation] The annotation '@Deprecated.optional' can only be applied to optional parameters.
 ) {}
-''',
-      [error(diag.invalidDeprecatedOptionalAnnotation, 11, 19)],
-    );
+''');
   }
 }

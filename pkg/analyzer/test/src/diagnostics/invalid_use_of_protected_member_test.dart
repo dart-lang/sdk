@@ -52,7 +52,7 @@ void main() {
   }
 
   test_extendingSubclass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -87,7 +87,7 @@ extension E on A {
   }
 
   test_extensionType_implementedMember() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @protected
@@ -123,7 +123,7 @@ void main() {
   }
 
   test_extensionType_member() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 extension type E(int i) {
   @protected
@@ -156,7 +156,7 @@ void main() {
   }
 
   test_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -208,7 +208,7 @@ abstract class B {
   }
 
   test_field_subclassAndSameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -264,7 +264,7 @@ main() {
   }
 
   test_function_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -276,7 +276,7 @@ main() {
   }
 
   test_function_subclass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -289,7 +289,7 @@ abstract class B implements A {
   }
 
   test_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -347,7 +347,7 @@ void f(Object o) {
   }
 
   test_getter_subclass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -407,7 +407,7 @@ class B {
 
   test_method_subclass() async {
     // https://github.com/dart-lang/linter/issues/257
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 typedef void VoidCallback();
@@ -426,7 +426,7 @@ class Button extends State<Object> {
   }
 
   test_mixingIn() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 mixin A {
   @protected
@@ -441,7 +441,7 @@ class B extends Object with A {
     // TODO(srawlins): This test verifies that the analyzer **allows**
     // protected members to be called from static members, which violates the
     // protected spec.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected m1() {}
@@ -452,7 +452,7 @@ class B extends A {
   }
 
   test_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -494,24 +494,23 @@ class B {
   }
 
   test_setter_sameClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   int _a = 0;
+//    ^^
+// [diag.unusedField] The value of the field '_a' isn't used.
   @protected
   void set a(int a) { _a = a; }
   A(int a) {
     this.a = a;
   }
 }
-''',
-      [error(diag.unusedField, 49, 2)],
-    );
+''');
   }
 
   test_setter_subclass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -526,7 +525,7 @@ class B extends A {
   }
 
   test_setter_subclassImplementing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -540,7 +539,7 @@ abstract class B implements A {
   }
 
   test_topLevelVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @protected
 int x = 0;

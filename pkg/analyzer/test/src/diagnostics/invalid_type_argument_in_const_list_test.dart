@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class InvalidTypeArgumentInConstListTest extends PubPackageResolutionTest {
   test_nonConst() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     <E>[];
@@ -26,102 +25,62 @@ class A<E> {
   }
 
   test_typeParameter_asTypeArgument() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     const <E>[];
+//         ^
+// [diag.invalidTypeArgumentInConstList] Constant list literals can't use a type parameter in a type argument, such as 'E'.
   }
 }
-''',
-      [
-        error(
-          diag.invalidTypeArgumentInConstList,
-          37,
-          1,
-          messageContains: ["'E'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_typeParameter_deepInTypeArgument_functionType_parameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     const <void Function(E)>[];
+//                       ^
+// [diag.invalidTypeArgumentInConstList] Constant list literals can't use a type parameter in a type argument, such as 'E'.
   }
 }
-''',
-      [
-        error(
-          diag.invalidTypeArgumentInConstList,
-          51,
-          1,
-          messageContains: ["'E'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_typeParameter_deepInTypeArgument_functionType_returnType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     const <E Function()>[];
+//         ^
+// [diag.invalidTypeArgumentInConstList] Constant list literals can't use a type parameter in a type argument, such as 'E'.
   }
 }
-''',
-      [
-        error(
-          diag.invalidTypeArgumentInConstList,
-          37,
-          1,
-          messageContains: ["'E'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_typeParameter_deepInTypeArgument_namedType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     const <List<E>>[];
+//              ^
+// [diag.invalidTypeArgumentInConstList] Constant list literals can't use a type parameter in a type argument, such as 'E'.
   }
 }
-''',
-      [
-        error(
-          diag.invalidTypeArgumentInConstList,
-          42,
-          1,
-          messageContains: ["'E'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_typeParameter_deepInTypeArgument_recordType_fieldType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     const <(E a, int b)>[];
+//          ^
+// [diag.invalidTypeArgumentInConstList] Constant list literals can't use a type parameter in a type argument, such as 'E'.
   }
 }
-''',
-      [
-        error(
-          diag.invalidTypeArgumentInConstList,
-          38,
-          1,
-          messageContains: ["'E'"],
-        ),
-      ],
-    );
+''');
   }
 }

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class InvalidUriTest extends PubPackageResolutionTest {
   test_libraryImport_emptyUri() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as top;
 int x = 1;
 class C {

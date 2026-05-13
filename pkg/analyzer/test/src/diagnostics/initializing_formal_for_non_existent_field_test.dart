@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,7 +16,7 @@ main() {
 class InitializingFormalForNonExistentFieldTest
     extends PubPackageResolutionTest {
   test_class_primary_fieldExists() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C(this.x) {
   final int x;
 }
@@ -25,16 +24,15 @@ class C(this.x) {
   }
 
   test_class_primary_fieldMissing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C(this.x) {}
-''',
-      [error(diag.initializingFormalForNonExistentField, 8, 6)],
-    );
+//      ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
+''');
   }
 
   test_class_secondary_fieldExists() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   C(this.x);
@@ -43,55 +41,51 @@ class C {
   }
 
   test_class_secondary_fieldMissing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(this.x) {}
+//  ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 14, 6)],
-    );
+''');
   }
 
   test_class_secondary_fieldMissing_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 1;
   A(this.x) {}
+//  ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 32, 6)],
-    );
+''');
   }
 
   test_class_secondary_notInEnclosingClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 1;
 }
 class B extends A {
   B(this.x) {}
+//  ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 49, 6)],
-    );
+''');
   }
 
   test_class_secondary_optionalPositional_fieldMissing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([this.x]) {}
+//   ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 15, 6)],
-    );
+''');
   }
 
   test_enum_primary_fieldExists() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E(this.x) {
   v(0);
 
@@ -101,18 +95,17 @@ enum E(this.x) {
   }
 
   test_enum_primary_fieldMissing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E(this.x) {
+//     ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
   v(0);
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 7, 6)],
-    );
+''');
   }
 
   test_enum_secondary_fieldExists() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(0);
   final int x;
@@ -122,56 +115,51 @@ enum E {
   }
 
   test_enum_secondary_fieldMissing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(0);
   const E(this.x);
+//        ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 27, 6)],
-    );
+''');
   }
 
   test_enum_secondary_fieldMissing_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(0);
   const E(this.x);
+//        ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
   int get x => 1;
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 27, 6)],
-    );
+''');
   }
 
   test_enum_secondary_optionalPositional_fieldMissing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E([this.x]);
+//         ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
+//              ^
+// [diag.unusedElementParameter] A value for optional parameter 'x' isn't ever given.
 }
-''',
-      [
-        error(diag.initializingFormalForNonExistentField, 25, 6),
-        error(diag.unusedElementParameter, 30, 1),
-      ],
-    );
+''');
   }
 
   test_extensionType_primary_fieldMissing_notReportedHere() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(this.x) {}
-''',
-      [error(diag.expectedRepresentationField, 17, 4)],
-    );
+//               ^^^^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
   }
 
   test_extensionType_secondary_fieldExists() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named(this.it);
 }
@@ -179,13 +167,12 @@ extension type E(int it) {
   }
 
   test_extensionType_secondary_fieldMissing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named(this.x) : this.it = 0;
+//        ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [error(diag.initializingFormalForNonExistentField, 37, 6)],
-    );
+''');
   }
 }

@@ -19,206 +19,173 @@ main() {
 class InvalidAssignment_ImplicitCallReferenceTest
     extends PubPackageResolutionTest {
   test_invalid_genericBoundedCall_nonGenericContext() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T extends num>(T t) => t;
 }
 
 String Function(String) f = C();
-''',
-      [error(diag.invalidAssignment, 76, 3)],
-    );
+//                          ^^^
+// [diag.invalidAssignment] A value of type 'num Function(num)' can't be assigned to a variable of type 'String Function(String)'.
+''');
   }
 
   test_invalid_genericCall_genericEnclosingClass_nonGenericContext() async {
-    await assertErrorsInCode(
-      '''
+    // The type arguments of the instance of `C` should be accurate and be
+    // taken into account when evaluating the assignment of the implicit call
+    // reference.
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   C(T a);
   void call<U>(T t, U u) {}
 }
 
 void Function(bool, String) f = C(7);
-''',
-      [
-        // The type arguments of the instance of `C` should be accurate and be
-        // taken into account when evaluating the assignment of the implicit call
-        // reference.
-        error(diag.invalidAssignment, 86, 4),
-      ],
-    );
+//                              ^^^^
+// [diag.invalidAssignment] A value of type 'void Function(int, dynamic)' can't be assigned to a variable of type 'void Function(bool, String)'.
+''');
   }
 
   test_invalid_genericCall_nonGenericContext() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
 
 void Function() f = C();
-''',
-      [error(diag.invalidAssignment, 56, 3)],
-    );
+//                  ^^^
+// [diag.invalidAssignment] A value of type 'dynamic Function(dynamic)' can't be assigned to a variable of type 'void Function()'.
+''');
   }
 
   test_invalid_genericCall_nonGenericContext_withoutConstructorTearoffs() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 class C {
   T call<T>(T t) => t;
 }
 
 int Function(int) f = C();
-''',
-      [error(diag.invalidAssignment, 72, 3)],
-    );
+//                    ^^^
+// [diag.invalidAssignment] A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+''');
   }
 
   test_invalid_interfaceType_enum_interfaces() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class I {}
 class J {}
 enum E implements J {
   v
 }
 I x = E.v;
-''',
-      [error(diag.invalidAssignment, 56, 3)],
-    );
+//    ^^^
+// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'I'.
+''');
   }
 
   test_invalid_message_preferTypeAlias_functionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = T Function();
 
 void f(A<int> a) {
   A<String> b = a;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
+//              ^
+// [diag.invalidAssignment] A value of type 'A<int>' can't be assigned to a variable of type 'A<String>'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 61, 1),
-        error(
-          diag.invalidAssignment,
-          65,
-          1,
-          messageContains: ['A<int>', 'A<String>'],
-        ),
-      ],
-    );
+''');
   }
 
   test_invalid_message_preferTypeAlias_interfaceType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = List<T>;
 
 void f(A<int> a) {
   A<String> b = a;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
+//              ^
+// [diag.invalidAssignment] A value of type 'A<int>' can't be assigned to a variable of type 'A<String>'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 56, 1),
-        error(
-          diag.invalidAssignment,
-          60,
-          1,
-          messageContains: ['A<int>', 'A<String>'],
-        ),
-      ],
-    );
+''');
   }
 
   test_invalid_message_preferTypeAlias_recordType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = (T, T);
 
 void f(A<int> a) {
   A<String> b = a;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
+//              ^
+// [diag.invalidAssignment] A value of type 'A<int>' can't be assigned to a variable of type 'A<String>'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 55, 1),
-        error(
-          diag.invalidAssignment,
-          59,
-          1,
-          messageContains: ['A<int>', 'A<String>'],
-        ),
-      ],
-    );
+''');
   }
 
   test_invalid_noCall_functionContext() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 Function f = C();
-''',
-      [error(diag.invalidAssignment, 25, 3)],
-    );
+//           ^^^
+// [diag.invalidAssignment] A value of type 'C' can't be assigned to a variable of type 'Function'.
+''');
   }
 
   test_invalid_noCall_functionTypeContext() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 String Function(String) f = C();
-''',
-      [error(diag.invalidAssignment, 40, 3)],
-    );
+//                          ^^^
+// [diag.invalidAssignment] A value of type 'C' can't be assigned to a variable of type 'String Function(String)'.
+''');
   }
 
   test_invalid_nonGenericCall() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int a) {}
 }
 
 void Function(String) f = C();
-''',
-      [error(diag.invalidAssignment, 61, 3)],
-    );
+//                        ^^^
+// [diag.invalidAssignment] A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(String)'.
+''');
   }
 
   test_invalid_nonGenericCall_typeVariableExtendsFunctionContext() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int a) {}
 }
 class D<U extends Function> {
   U f = C();
+//      ^^^
+// [diag.invalidAssignment] A value of type 'C' can't be assigned to a variable of type 'U'.
 }
-''',
-      [error(diag.invalidAssignment, 72, 3)],
-    );
+''');
   }
 
   test_invalid_nonGenericCall_typeVariableExtendsFunctionTypeContext() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int a) {}
 }
 class D<U extends void Function(int)> {
   U f = C();
+//      ^^^
+// [diag.invalidAssignment] A value of type 'C' can't be assigned to a variable of type 'U'.
 }
-''',
-      [error(diag.invalidAssignment, 82, 3)],
-    );
+''');
   }
 
   test_valid_genericBoundedCall_nonGenericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T extends num>(T t) => t;
 }
@@ -228,7 +195,7 @@ int Function(int) f = C();
   }
 
   test_valid_genericCall_functionContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
@@ -238,7 +205,7 @@ Function f = C();
   }
 
   test_valid_genericCall_futureOrFunctionContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class C {
   T call<T>(T t) => t;
@@ -249,7 +216,7 @@ FutureOr<Function> f = C();
   }
 
   test_valid_genericCall_futureOrFunctionTypeContext_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class C {
   T call<T>(T t) => t;
@@ -260,7 +227,7 @@ FutureOr<T Function<T>(T)> f = C();
   }
 
   test_valid_genericCall_futureOrFunctionTypeContext_nonGeneric() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class C {
   T call<T>(T t) => t;
@@ -271,7 +238,7 @@ FutureOr<int Function(int)> f = C();
   }
 
   test_valid_genericCall_genericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
@@ -281,7 +248,7 @@ T Function<T>(T) f = C();
   }
 
   test_valid_genericCall_genericEnclosingClass_nonGenericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   C(T a);
   void call<U>(T t, U u) {}
@@ -292,7 +259,7 @@ void Function(int, String) f = C(7);
   }
 
   test_valid_genericCall_genericTypedefContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
@@ -305,7 +272,7 @@ class D<U> {
   }
 
   test_valid_genericCall_nonGenericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
@@ -315,7 +282,7 @@ int Function(int) f = C();
   }
 
   test_valid_genericCall_nullableFunctionContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
@@ -325,7 +292,7 @@ Function? f = C();
   }
 
   test_valid_genericCall_nullableNonGenericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
@@ -335,7 +302,7 @@ int Function(int)? f = C();
   }
 
   test_valid_genericCall_typedefOfGenericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T call<T>(T t) => t;
 }
@@ -347,7 +314,7 @@ Fn f = C();
   }
 
   test_valid_interfaceType_enum_interfaces() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class I {}
 enum E implements I {
   v
@@ -357,7 +324,7 @@ I x = E.v;
   }
 
   test_valid_nonGenericCall() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int a) {}
 }
@@ -367,7 +334,7 @@ void Function(int) f = C();
   }
 
   test_valid_nonGenericCall_declaredOnMixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void call(int a) {}
 }
@@ -378,7 +345,7 @@ Function f = C();
   }
 
   test_valid_nonGenericCall_inCascade() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int a) {}
 }
@@ -393,7 +360,7 @@ void foo() {
   }
 
   test_valid_nonGenericCall_subTypeViaParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(num a) {}
 }
@@ -403,7 +370,7 @@ void Function(int) f = C();
   }
 
   test_valid_nonGenericCall_subTypeViaReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int call() => 7;
 }
@@ -416,49 +383,48 @@ num Function() f = C();
 @reflectiveTest
 class InvalidAssignmentTest extends PubPackageResolutionTest {
   test_assignment_to_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   var g;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'g' isn't used.
   g = () => 0;
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_cascadeExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   // ignore:unused_local_variable
   String v = (a)..isEven;
+//            ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
-''',
-      [error(diag.invalidAssignment, 64, 1)],
-    );
+''');
   }
 
   test_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class byte {
   int _value;
+//    ^^^^^^
+// [diag.unusedField] The value of the field '_value' isn't used.
   byte(this._value);
   byte operator +(int val) { return this; }
 }
 
 void main() {
   byte b = new byte(52);
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
   b += 3;
 }
-''',
-      [error(diag.unusedField, 19, 6), error(diag.unusedLocalVariable, 116, 1)],
-    );
+''');
   }
 
   test_constructorTearoff_inferredTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   C(T a);
 }
@@ -468,7 +434,7 @@ var g = C<int>.new;
   }
 
   test_constructorTearoff_withExplicitTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   C(T a);
 }
@@ -478,93 +444,91 @@ C Function(int) g = C<int>.new;
   }
 
   test_constructorTearoff_withExplicitTypeArgs_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   C(T a);
 }
 
 C Function(String) g = C<int>.new;
-''',
-      [error(diag.invalidAssignment, 49, 10)],
-    );
+//                     ^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'C<int> Function(int)' can't be assigned to a variable of type 'C<dynamic> Function(String)'.
+''');
   }
 
   test_defaultValue_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f({String x = 0}) {
+//            ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
-''',
-      [error(diag.invalidAssignment, 14, 1)],
-    );
+''');
   }
 
   test_defaultValue_named_sameType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f({String x = '0'}) {
 }''');
   }
 
   test_defaultValue_optional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f([String x = 0]) {
-}''',
-      [error(diag.invalidAssignment, 14, 1)],
-    );
+//            ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+}''');
   }
 
   test_defaultValue_optional_sameType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f([String x = '0']) {
 }
 ''');
   }
 
   test_functionExpressionInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   String x = (() => 5)();
+//           ^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
-''',
-      [error(diag.invalidAssignment, 23, 11)],
-    );
+''');
   }
 
+  void
   test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U) foo = f;
 ''');
   }
 
+  void
   test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U, int) foo = f;
-''',
-      [error(diag.invalidAssignment, 46, 1)],
-    );
+//                          ^
+// [diag.invalidAssignment] A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'U Function<U>(U, int)'.
+''');
   }
 
+  void
   test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 int Function(int) foo = f;
 ''');
   }
 
+  void
   test_functionInstantiation_topLevelVariable_nonGenericContext_nonAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 int Function(int, int) foo = f;
-''',
-      [error(diag.invalidAssignment, 47, 1)],
-    );
+//                           ^
+// [diag.invalidAssignment] A value of type 'dynamic Function(dynamic)' can't be assigned to a variable of type 'int Function(int, int)'.
+''');
   }
 
   test_functionTearoff_genericInstantiation() async {
@@ -587,7 +551,7 @@ FunctionReference
   }
 
   test_functionTearoff_inferredTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 
 var g = f<int>;
@@ -595,7 +559,7 @@ var g = f<int>;
   }
 
   test_functionTearoff_withExplicitTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 
 void Function(int) g = f<int>;
@@ -603,30 +567,28 @@ void Function(int) g = f<int>;
   }
 
   test_functionTearoff_withExplicitTypeArgs_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 
 void Function(String) g = f<int>;
-''',
-      [error(diag.invalidAssignment, 45, 6)],
-    );
+//                        ^^^^^^
+// [diag.invalidAssignment] A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(String)'.
+''');
   }
 
   test_ifNullAssignment() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   double? d;
   d ??= i;
+//      ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'double?'.
 }
-''',
-      [error(diag.invalidAssignment, 37, 1)],
-    );
+''');
   }
 
   test_ifNullAssignment_sameType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   int? j;
   j ??= i;
@@ -649,7 +611,7 @@ void f(int i) {
     // This test and
     // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()' are
     // closely related: here we see that 'I' checks as a subtype of 'IntToInt'.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class I {
   int call(int x) => 0;
 }
@@ -668,7 +630,7 @@ IntToInt f = new I();
     // of 'IntToInt'. Together with
     // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_1()' we see
     // that subtyping is not transitive here.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class I {
   int call(int x) => 0;
 }
@@ -685,7 +647,7 @@ IntToInt f = new C();
     //
     // Like 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()', but
     // uses type 'Function' instead of more precise type 'IntToInt' for 'f'.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class I {
   int call(int x) => 0;
 }
@@ -708,7 +670,7 @@ Function f = new C();
     // transitivity for 'JsBuilder' objects, assigning them to
     // '(String) -> dynamic'. The declared type of 'JsBuilder.call' is
     // '(String, [dynamic]) -> Expression'.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class I {
   int call([int x = 7]) => 0;
 }
@@ -721,8 +683,7 @@ VoidToInt f = new C();
   }
 
   test_instanceVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 7;
 }
@@ -730,81 +691,74 @@ f(y) {
   A a = A();
   if (y is String) {
     a.x = y;
+//        ^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
   }
 }
-''',
-      [error(diag.invalidAssignment, 76, 1)],
-    );
+''');
   }
 
   test_invalidAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   var x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   var y;
   x = y;
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_localLevelVariable_never_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x = null;
+//    ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Never'.
 }
-''',
-      [error(diag.invalidAssignment, 24, 4)],
-    );
+''');
   }
 
   test_localVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   int x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x = '0';
+//    ^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 12, 1),
-        error(diag.invalidAssignment, 21, 3),
-      ],
-    );
+''');
   }
 
   test_localVariable_promotion() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(y) {
   if (y is String) {
     int x = y;
+//          ^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
     print(x);
   }
 }
-''',
-      [error(diag.invalidAssignment, 40, 1)],
-    );
+''');
   }
 
   test_parenthesizedExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   // ignore:unused_local_variable
   String v = (a);
+//            ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
-''',
-      [error(diag.invalidAssignment, 64, 1)],
-    );
+''');
   }
 
   test_postfixExpression_localVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   B operator+(_) => new B();
 }
@@ -813,14 +767,14 @@ class B {}
 
 f(A a) {
   a++;
+//^^^
+// [diag.invalidAssignment] A value of type 'B' can't be assigned to a variable of type 'A'.
 }
-''',
-      [error(diag.invalidAssignment, 65, 3)],
-    );
+''');
   }
 
   test_postfixExpression_localVariable_sameType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator+(_) => this;
 }
@@ -832,8 +786,7 @@ f(A a) {
   }
 
   test_postfixExpression_property() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   B operator+(_) => new B();
 }
@@ -846,14 +799,14 @@ class C {
 
 f(C c) {
   c.a++;
+//^^^^^
+// [diag.invalidAssignment] A value of type 'B' can't be assigned to a variable of type 'A'.
 }
-''',
-      [error(diag.invalidAssignment, 91, 5)],
-    );
+''');
   }
 
   test_postfixExpression_property_sameType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator+(_) => this;
 }
@@ -869,8 +822,7 @@ f(C c) {
   }
 
   test_prefixExpression_localVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   B operator+(_) => new B();
 }
@@ -879,14 +831,14 @@ class B {}
 
 f(A a) {
   ++a;
+//^^^
+// [diag.invalidAssignment] A value of type 'B' can't be assigned to a variable of type 'A'.
 }
-''',
-      [error(diag.invalidAssignment, 65, 3)],
-    );
+''');
   }
 
   test_prefixExpression_localVariable_sameType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator+(_) => this;
 }
@@ -898,8 +850,7 @@ f(A a) {
   }
 
   test_prefixExpression_property() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   B operator+(_) => new B();
 }
@@ -912,14 +863,14 @@ class C {
 
 f(C c) {
   ++c.a;
+//^^^^^
+// [diag.invalidAssignment] A value of type 'B' can't be assigned to a variable of type 'A'.
 }
-''',
-      [error(diag.invalidAssignment, 91, 5)],
-    );
+''');
   }
 
   test_prefixExpression_property_sameType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator+(_) => this;
 }
@@ -973,112 +924,103 @@ void f() {
   }
 
   void test_recordType_parameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int a, int b) r) {
   r = (a: 1, b: 2);
+//    ^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type '({int a, int b})' can't be assigned to a variable of type '(int, int)'.
 }
-''',
-      [error(diag.invalidAssignment, 33, 12)],
-    );
+''');
   }
 
   void test_recordType_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(C c) {
   c.r = (a: 1, b: 2);
+//      ^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type '({int a, int b})' can't be assigned to a variable of type '(int, int)?'.
 }
 class C {
   (int, int)? r;
 }
-''',
-      [error(diag.invalidAssignment, 22, 12)],
-    );
+''');
   }
 
   test_regressionInIssue18468Fix() async {
     // https://code.google.com/p/dart/issues/detail?id=18628
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T t = int;
+//      ^^^
+// [diag.invalidAssignment] A value of type 'Type' can't be assigned to a variable of type 'T'.
 }
-''',
-      [error(diag.invalidAssignment, 21, 3)],
-    );
+''');
   }
 
   test_staticVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int x = 1;
 }
 f() {
   A.x = '0';
+//      ^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
 }
-''',
-      [error(diag.invalidAssignment, 46, 3)],
-    );
+''');
   }
 
   test_staticVariable_promoted() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int x = 7;
 }
 f(y) {
   if (y is String) {
     A.x = y;
+//        ^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
   }
 }
-''',
-      [error(diag.invalidAssignment, 70, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_never_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Never x = throw 0;
 
 void f() {
   x = null;
+//    ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Never'.
 }
-''',
-      [error(diag.invalidAssignment, 37, 4)],
-    );
+''');
   }
 
   test_topLevelVariableDeclaration() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 'string';
-''',
-      [error(diag.invalidAssignment, 8, 8)],
-    );
+//      ^^^^^^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_typeParameter() async {
     // https://github.com/dart-lang/sdk/issues/14221
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B<T> {
   T? value;
   void test(num n) {
     value = n;
+//          ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'T?'.
   }
 }
-''',
-      [error(diag.invalidAssignment, 58, 1)],
-    );
+''');
   }
 
   test_typeParameterRecursion_regress35306() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 class C extends D {}
@@ -1087,29 +1029,27 @@ class D {}
 void f<X extends A, Y extends B>(X x) {
   if (x is Y) {
     D d = x;
+//        ^
+// [diag.invalidAssignment] A value of type 'X & Y' can't be assigned to a variable of type 'D'.
     print(d);
   }
 }
-''',
-      [error(diag.invalidAssignment, 131, 1)],
-    );
+''');
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 'string';
+//        ^^^^^^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
 }
-''',
-      [error(diag.invalidAssignment, 20, 8)],
-    );
+''');
   }
 
   test_variableDeclaration_overriddenOperator() async {
     // https://github.com/dart-lang/sdk/issues/17971
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Point {
   final num x, y;
   Point(this.x, this.y);
@@ -1121,11 +1061,11 @@ main() {
   var p1 = new Point(0, 0);
   var p2 = new Point(10, 10);
   int n = p1 + p2;
+//        ^^^^^^^
+// [diag.invalidAssignment] A value of type 'Point' can't be assigned to a variable of type 'int'.
   print(n);
 }
-''',
-      [error(diag.invalidAssignment, 218, 7)],
-    );
+''');
   }
 }
 

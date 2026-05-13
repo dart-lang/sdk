@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,232 +24,218 @@ class InferenceFailureOnCollectionLiteralTest extends PubPackageResolutionTest {
   }
 
   test_collectionsWithAnyElements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var a = [7];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   var b = [7 as dynamic];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
   var c = {7};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
   var d = {7 as dynamic};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'd' isn't used.
   var e = {7: 42};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
   var f = {7 as dynamic: 42};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'f' isn't used.
   var g = {7: 42 as dynamic};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'g' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 20, 1),
-        error(diag.unusedLocalVariable, 35, 1),
-        error(diag.unusedLocalVariable, 61, 1),
-        error(diag.unusedLocalVariable, 76, 1),
-        error(diag.unusedLocalVariable, 102, 1),
-        error(diag.unusedLocalVariable, 121, 1),
-        error(diag.unusedLocalVariable, 151, 1),
-      ],
-    );
+''');
   }
 
   test_conditionalList() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var x = "a" == "b" ? [1, 2, 3] : [];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//                                 ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'List' can't be inferred.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 20, 1),
-        error(diag.inferenceFailureOnCollectionLiteral, 49, 2),
-      ],
-    );
+''');
   }
 
   test_defaultParameter_list() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([list = const []]) => print(list);
-''',
-      [
-        error(diag.inferenceFailureOnUntypedParameter, 8, 4),
-        error(diag.inferenceFailureOnCollectionLiteral, 15, 8),
-      ],
-    );
+//      ^^^^
+// [diag.inferenceFailureOnUntypedParameter] The type of 'list' can't be inferred; a type must be explicitly provided.
+//             ^^^^^^^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'List' can't be inferred.
+''');
   }
 
   test_defaultParameter_map() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([map = const {}]) => print(map);
-''',
-      [
-        error(diag.inferenceFailureOnUntypedParameter, 8, 3),
-        error(diag.inferenceFailureOnCollectionLiteral, 14, 8),
-      ],
-    );
+//      ^^^
+// [diag.inferenceFailureOnUntypedParameter] The type of 'map' can't be inferred; a type must be explicitly provided.
+//            ^^^^^^^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'Map' can't be inferred.
+''');
   }
 
   test_downwardsInference() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   List<dynamic> a = [];
+//              ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   Set<dynamic> b = {};
+//             ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
   Map<dynamic, dynamic> c = {};
+//                      ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
 
   int setLength(Set<Object> set) => set.length;
   setLength({});
 
   List<int> f() => [];
+//          ^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
   Set<int> g() => {};
+//         ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
   Map<int, int> h() => {};
+//              ^
+// [diag.unusedElement] The declaration 'h' isn't referenced.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 30, 1),
-        error(diag.unusedLocalVariable, 53, 1),
-        error(diag.unusedLocalVariable, 85, 1),
-        error(diag.unusedElement, 172, 1),
-        error(diag.unusedElement, 194, 1),
-        error(diag.unusedElement, 221, 1),
-      ],
-    );
+''');
   }
 
   test_explicitTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var a = <dynamic>[];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   var b = <dynamic>{};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
   var c = <dynamic, dynamic>{};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 20, 1),
-        error(diag.unusedLocalVariable, 43, 1),
-        error(diag.unusedLocalVariable, 66, 1),
-      ],
-    );
+''');
   }
 
   test_functionReturnsList_dynamicReturnType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f() => [];
-''',
-      [error(diag.inferenceFailureOnCollectionLiteral, 15, 2)],
-    );
+//             ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'List' can't be inferred.
+''');
   }
 
   test_functionReturnsList_ObjectReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Object f() => [];
 ''');
   }
 
   test_functionReturnsList_voidReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() => [];
 ''');
   }
 
   test_inferredFromNullAware() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List<int>? a) {
   var x = a ?? [];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 29, 1)],
-    );
+''');
   }
 
   test_localConstVariable_list() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   const x = [];
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//          ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'List' can't be inferred.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 22, 1),
-        error(diag.inferenceFailureOnCollectionLiteral, 26, 2),
-      ],
-    );
+''');
   }
 
   test_localConstVariable_map() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   const x = {};
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//          ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'Map' can't be inferred.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 22, 1),
-        error(diag.inferenceFailureOnCollectionLiteral, 26, 2),
-      ],
-    );
+''');
   }
 
   test_localVariable_list() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var x = [];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//        ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'List' can't be inferred.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 20, 1),
-        error(diag.inferenceFailureOnCollectionLiteral, 24, 2),
-      ],
-    );
+''');
   }
 
   test_localVariable_map() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var x = {};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//        ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'Map' can't be inferred.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 20, 1),
-        error(diag.inferenceFailureOnCollectionLiteral, 24, 2),
-      ],
-    );
+''');
   }
 
   test_onlyInnerMostEmptyCollections() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var x = {[]: {}};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//         ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'List' can't be inferred.
+//             ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'Map' can't be inferred.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 20, 1),
-        error(diag.inferenceFailureOnCollectionLiteral, 25, 2),
-        error(diag.inferenceFailureOnCollectionLiteral, 29, 2),
-      ],
-    );
+''');
   }
 
   test_topLevelVariable_list() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var x = [];
-''',
-      [error(diag.inferenceFailureOnCollectionLiteral, 8, 2)],
-    );
+//      ^^
+// [diag.inferenceFailureOnCollectionLiteral] The type argument(s) of 'List' can't be inferred.
+''');
   }
 
   test_topLevelVariable_listWithInferredType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List<int> x = [];
 ''');
   }
 
   test_topLevelVariable_listWithTypeArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var x = <int>[];
 ''');
   }

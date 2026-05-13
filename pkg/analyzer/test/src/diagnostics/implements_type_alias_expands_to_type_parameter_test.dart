@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,7 +16,7 @@ main() {
 class ImplementsTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T = A;
 class B implements T {}
@@ -25,14 +24,13 @@ class B implements T {}
   }
 
   test_class_typeParameter_noTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 class B implements T {}
-''',
-      [error(diag.implementsTypeAliasExpandsToTypeParameter, 58, 1)],
-    );
+//                 ^
+// [diag.implementsTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be implemented.
+''');
 
     var node = findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''
@@ -44,14 +42,13 @@ NamedType
   }
 
   test_class_typeParameter_withTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 class B implements T<A> {}
-''',
-      [error(diag.implementsTypeAliasExpandsToTypeParameter, 58, 1)],
-    );
+//                 ^
+// [diag.implementsTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be implemented.
+''');
 
     var node = findNode.namedType('T<A> {}');
     assertResolvedNodeText(node, r'''
@@ -71,14 +68,13 @@ NamedType
   }
 
   test_mixin_typeParameter_noTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 mixin M implements T {}
-''',
-      [error(diag.implementsTypeAliasExpandsToTypeParameter, 58, 1)],
-    );
+//                 ^
+// [diag.implementsTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be implemented.
+''');
 
     var node = findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''

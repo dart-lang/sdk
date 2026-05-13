@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,98 +15,90 @@ main() {
 @reflectiveTest
 class InvalidSuperFormalParameterLocationTest extends PubPackageResolutionTest {
   test_class_constructor_external() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   external A(super.a);
+//           ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
 }
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 23, 5)],
-    );
+''');
   }
 
   test_class_constructor_factory() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A(super.a) {
+//          ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
     return A._();
   }
   A._();
 }
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 22, 5)],
-    );
+''');
   }
 
   test_class_constructor_redirecting() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(super.a) : this._();
+//  ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
   A._();
 }
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 14, 5)],
-    );
+''');
   }
 
   test_class_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(super.a) {}
+//         ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
 }
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 21, 5)],
-    );
+''');
   }
 
   test_extension_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo(super.a) {}
+//         ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
 }
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 32, 5)],
-    );
+''');
   }
 
   test_local_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_element
   void g(super.a) {}
+//       ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
 }
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 47, 5)],
-    );
+''');
   }
 
   test_mixin_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo(super.a) {}
+//         ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
 }
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 21, 5)],
-    );
+''');
   }
 
   test_unit_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(super.a) {}
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 7, 5)],
-    );
+//     ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
+''');
   }
 
   test_valid_optionalNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? a});
 }
@@ -119,7 +110,7 @@ class B extends A {
   }
 
   test_valid_optionalPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? a]);
 }
@@ -131,7 +122,7 @@ class B extends A {
   }
 
   test_valid_requiredNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int a});
 }
@@ -143,7 +134,7 @@ class B extends A {
   }
 
   test_valid_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }

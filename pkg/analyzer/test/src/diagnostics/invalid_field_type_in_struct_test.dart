@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,49 +17,46 @@ class InvalidFieldTypeInStructTest extends PubPackageResolutionTest {
   // TODO(dacoharkes): Remove Pointer notEmpty field.
   // https://dartbug.com/44677
   test_instance_invalid() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   external String str;
+//         ^^^^^^
+// [diag.invalidFieldTypeInStruct] Fields in struct classes can't have the type 'String'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'.
 
   external Pointer notEmpty;
 }
-''',
-      [error(diag.invalidFieldTypeInStruct, 61, 6)],
-    );
+''');
   }
 
   // TODO(dacoharkes): Remove Pointer notEmpty field.
   // https://dartbug.com/44677
   test_instance_invalid2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Union {
   external String str;
+//         ^^^^^^
+// [diag.invalidFieldTypeInStruct] Fields in struct classes can't have the type 'String'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'.
 
   external Pointer notEmpty;
 }
-''',
-      [error(diag.invalidFieldTypeInStruct, 60, 6)],
-    );
+''');
   }
 
   test_instance_invalid3() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   external Pointer? p;
+//         ^^^^^^^^
+// [diag.invalidFieldTypeInStruct] Fields in struct classes can't have the type 'Pointer?'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'.
 }
-''',
-      [error(diag.invalidFieldTypeInStruct, 61, 8)],
-    );
+''');
   }
 
   test_instance_valid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   external Pointer p;
@@ -69,7 +65,7 @@ final class C extends Struct {
   }
 
   test_static() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   static String? str;

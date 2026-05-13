@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,93 +15,84 @@ main() {
 @reflectiveTest
 class ImplementsNonClassTest extends PubPackageResolutionTest {
   test_inClass_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements dynamic {}
-''',
-      [error(diag.implementsNonClass, 19, 7)],
-    );
+//                 ^^^^^^^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 
   test_inClass_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { ONE }
 class A implements E {}
-''',
-      [error(diag.implementsNonClass, 34, 1)],
-    );
+//                 ^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 
   test_inClass_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 class B implements A {}
-''',
-      [error(diag.implementsNonClass, 47, 1)],
-    );
+//                 ^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 
   test_inClass_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int A = 7;
 class B implements A {}
-''',
-      [error(diag.implementsNonClass, 30, 1)],
-    );
+//                 ^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 
   test_inClassTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M {}
 int B = 7;
 class C = A with M implements B;
-''',
-      [error(diag.implementsNonClass, 63, 1)],
-    );
+//                            ^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 
   test_inEnum_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int A = 7;
 enum E implements A {
+//                ^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
   v
 }
-''',
-      [error(diag.implementsNonClass, 29, 1)],
-    );
+''');
   }
 
   test_inMixin_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M implements dynamic {}
-''',
-      [error(diag.implementsNonClass, 19, 7)],
-    );
+//                 ^^^^^^^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 
   test_inMixin_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 mixin M implements A {}
-''',
-      [error(diag.implementsNonClass, 47, 1)],
-    );
+//                 ^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 
   test_Never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements Never {}
-''',
-      [error(diag.implementsNonClass, 19, 5)],
-    );
+//                 ^^^^^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+''');
   }
 }
