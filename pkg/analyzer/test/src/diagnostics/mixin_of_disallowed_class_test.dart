@@ -2,85 +2,79 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinOfDisallowedClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MixinOfDisallowedClassTest extends PubPackageResolutionTest {
   test_class_bool() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends Object with bool {}
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 4)],
-    );
+//                          ^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'bool'.
+''');
   }
 
   test_class_bool_augment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 augment class A with bool {}
-''',
-      [error(diag.mixinOfDisallowedClass, 33, 4)],
-    );
+//                   ^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'bool'.
+''');
   }
 
   test_class_double() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends Object with double {}
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 6)],
-    );
+//                          ^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'double'.
+''');
   }
 
   test_class_FutureOr() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class A extends Object with FutureOr {}
-''',
-      [error(diag.mixinOfDisallowedClass, 49, 8)],
-    );
+//                          ^^^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'FutureOr<dynamic>'.
+''');
   }
 
   test_class_FutureOr_typeArgument() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class A extends Object with FutureOr<int> {}
-''',
-      [error(diag.mixinOfDisallowedClass, 49, 13)],
-    );
+//                          ^^^^^^^^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'FutureOr<int>'.
+''');
   }
 
   test_class_FutureOr_typeVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class A<T> extends Object with FutureOr<T> {}
-''',
-      [error(diag.mixinOfDisallowedClass, 52, 11)],
-    );
+//                             ^^^^^^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'FutureOr<T>'.
+''');
   }
 
   test_class_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends Object with int {}
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 3)],
-    );
+//                          ^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'int'.
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -96,138 +90,124 @@ augment class A with int {}
 ''');
 
     await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [error(diag.mixinOfDisallowedClass, 39, 3)]);
+    await assertErrorsInFile2(b, []);
   }
 
   test_class_Null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends Object with Null {}
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 4)],
-    );
+//                          ^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'Null'.
+''');
   }
 
   test_class_num() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends Object with num {}
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 3)],
-    );
+//                          ^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'num'.
+''');
   }
 
   test_class_Record() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends Object with Record {}
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 6)],
-    );
+//                          ^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'Record'.
+''');
   }
 
   test_class_String() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends Object with String {}
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 6)],
-    );
+//                          ^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'String'.
+''');
   }
 
   test_classTypeAlias_bool() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C = A with bool;
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 4)],
-    );
+//               ^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'bool'.
+''');
   }
 
   test_classTypeAlias_double() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C = A with double;
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 6)],
-    );
+//               ^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'double'.
+''');
   }
 
   test_classTypeAlias_FutureOr() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class A {}
 class C = A with FutureOr;
-''',
-      [error(diag.mixinOfDisallowedClass, 49, 8)],
-    );
+//               ^^^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'FutureOr<dynamic>'.
+''');
   }
 
   test_classTypeAlias_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C = A with int;
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 3)],
-    );
+//               ^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'int'.
+''');
   }
 
   test_classTypeAlias_Null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C = A with Null;
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 4)],
-    );
+//               ^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'Null'.
+''');
   }
 
   test_classTypeAlias_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C = A with num;
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 3)],
-    );
+//               ^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'num'.
+''');
   }
 
   test_classTypeAlias_String() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C = A with String;
-''',
-      [error(diag.mixinOfDisallowedClass, 28, 6)],
-    );
+//               ^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'String'.
+''');
   }
 
   test_classTypeAlias_String_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C = A with String, num;
-''',
-      [
-        error(diag.mixinOfDisallowedClass, 28, 6),
-        error(diag.mixinOfDisallowedClass, 36, 3),
-      ],
-    );
+//               ^^^^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'String'.
+//                       ^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'num'.
+''');
   }
 
   test_enum_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 enum E with int {
+//          ^^^
+// [diag.mixinOfDisallowedClass] Classes can't mixin 'int'.
   v
 }
-''',
-      [error(diag.mixinOfDisallowedClass, 12, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -243,6 +223,6 @@ augment enum A with int {}
 ''');
 
     await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [error(diag.mixinOfDisallowedClass, 38, 3)]);
+    await assertErrorsInFile2(b, []);
   }
 }

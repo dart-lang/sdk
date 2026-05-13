@@ -6,23 +6,24 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OnRepeatedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class OnRepeatedTest extends PubPackageResolutionTest {
   test_2times() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M on A, A {}
-''',
-      [error(diag.onRepeated, 25, 1)],
-    );
+//            ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -46,13 +47,12 @@ augment mixin M on A {}
   }
 
   test_2times_viaTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef B = A;
 mixin M on A, B {}
-''',
-      [error(diag.onRepeated, 40, 1)],
-    );
+//            ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
+''');
   }
 }

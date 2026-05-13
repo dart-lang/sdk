@@ -6,58 +6,56 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolNegationExpressionTest);
     defineReflectiveTests(NonBoolNegationExpressionWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonBoolNegationExpressionTest extends PubPackageResolutionTest {
   test_nonBool() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   !42;
+// ^^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolNegationExpression, 9, 2)],
-    );
+''');
   }
 
   test_nonBool_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   ![1, 2, 3];
+// ^^^^^^^^^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolNegationExpression, 9, 9)],
-    );
+''');
   }
 
   test_nonBool_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   !o;
+// ^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolNegationExpression, 17, 1)],
-    );
+''');
   }
 
   test_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void m(Null x) {
   !x;
+// ^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolNegationExpression, 20, 1)],
-    );
+''');
   }
 }
 

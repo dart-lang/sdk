@@ -2,35 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinInstantiateTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MixinInstantiateTest extends PubPackageResolutionTest {
   test_namedConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   M.named() {}
+//^
+// [diag.mixinDeclaresConstructor] Mixins can't declare constructors.
 }
 
 void f() {
   new M.named();
+//    ^
+// [diag.mixinInstantiate] Mixins can't be instantiated.
 }
-''',
-      [
-        error(diag.mixinDeclaresConstructor, 12, 1),
-        error(diag.mixinInstantiate, 45, 1),
-      ],
-    );
+''');
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -57,16 +56,15 @@ invalidNodes
   }
 
   test_unnamedConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 
 void f() {
   new M();
+//    ^
+// [diag.mixinInstantiate] Mixins can't be instantiated.
 }
-''',
-      [error(diag.mixinInstantiate, 29, 1)],
-    );
+''');
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''

@@ -6,115 +6,108 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolOperandTest);
     defineReflectiveTests(NonBoolOperandWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonBoolOperandTest extends PubPackageResolutionTest {
   test_and_left() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(int left, bool right) {
   return left && right;
+//       ^^^^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 40, 4)],
-    );
+''');
   }
 
   test_and_left_fromInstanceCreationExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   new Object() && true;
+//^^^^^^^^^^^^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 11, 12)],
-    );
+''');
   }
 
   test_and_left_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(List<int> left, bool right) {
   return left && right;
+//       ^^^^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 46, 4)],
-    );
+''');
   }
 
   test_and_left_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(Object left, bool right) {
   return left && right;
+//       ^^^^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 43, 4)],
-    );
+''');
   }
 
   test_and_null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   if(x && true) {}
+//   ^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 21, 1)],
-    );
+''');
   }
 
   test_and_right() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(bool left, String right) {
   return left && right;
+//               ^^^^^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 51, 5)],
-    );
+''');
   }
 
   test_or_left() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(List<int> left, bool right) {
   return left || right;
+//       ^^^^
+// [diag.nonBoolOperand] The operands of the operator '||' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 46, 4)],
-    );
+''');
   }
 
   test_or_null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   if(x || false) {}
+//   ^
+// [diag.nonBoolOperand] The operands of the operator '||' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 21, 1)],
-    );
+''');
   }
 
   test_or_right() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(bool left, double right) {
   return left || right;
+//               ^^^^^
+// [diag.nonBoolOperand] The operands of the operator '||' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 51, 5)],
-    );
+''');
   }
 }
 

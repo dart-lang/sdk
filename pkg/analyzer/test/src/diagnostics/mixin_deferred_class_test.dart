@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinDeferredClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -20,36 +21,30 @@ class MixinDeferredClassTest extends PubPackageResolutionTest {
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class C = B with a.A;
-''',
-      [
-        error(diag.mixinDeferredClass, 76, 3),
-        error(diag.classUsedAsMixin, 76, 3),
-      ],
-    );
+//               ^^^
+// [diag.mixinDeferredClass] Classes can't mixin deferred classes.
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_enum() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' deferred as a;
 enum E with a.A {
+//          ^^^
+// [diag.mixinDeferredClass] Classes can't mixin deferred classes.
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
   v;
 }
-''',
-      [
-        error(diag.mixinDeferredClass, 43, 3),
-        error(diag.classUsedAsMixin, 43, 3),
-      ],
-    );
+''');
   }
 
   test_mixin_deferred_class() async {
@@ -57,16 +52,13 @@ enum E with a.A {
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 library root;
 import 'lib1.dart' deferred as a;
 class B extends Object with a.A {}
-''',
-      [
-        error(diag.mixinDeferredClass, 76, 3),
-        error(diag.classUsedAsMixin, 76, 3),
-      ],
-    );
+//                          ^^^
+// [diag.mixinDeferredClass] Classes can't mixin deferred classes.
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 }

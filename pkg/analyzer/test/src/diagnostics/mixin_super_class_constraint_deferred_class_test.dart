@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinSuperClassConstraintDeferredClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,13 +18,12 @@ main() {
 class MixinSuperClassConstraintDeferredClassTest
     extends PubPackageResolutionTest {
   test_error_onClause_deferredClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' deferred as math;
 mixin M on math.Random {}
-''',
-      [error(diag.mixinSuperClassConstraintDeferredClass, 48, 11)],
-    );
+//         ^^^^^^^^^^^
+// [diag.mixinSuperClassConstraintDeferredClass] Deferred classes can't be used as superclass constraints.
+''');
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''

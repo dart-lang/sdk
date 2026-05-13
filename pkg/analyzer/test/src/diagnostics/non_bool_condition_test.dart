@@ -6,313 +6,285 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolConditionTest);
     defineReflectiveTests(NonBoolConditionWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonBoolConditionTest extends PubPackageResolutionTest {
   test_conditional() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() { return 3 ? 2 : 1; }
-''',
-      [error(diag.nonBoolCondition, 13, 1)],
-    );
+//           ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_conditional_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() { return [1, 2, 3] ? 2 : 1; }
-''',
-      [error(diag.nonBoolCondition, 13, 9)],
-    );
+//           ^^^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_conditional_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object o) { return o ? 2 : 1; }
-''',
-      [error(diag.nonBoolCondition, 21, 1)],
-    );
+//                   ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_const_list_ifElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic c = 2;
 const x = [1, if (c) 2 else 3, 4];
-''',
-      [error(diag.nonBoolCondition, 39, 1)],
-    );
+//                ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_const_list_ifElement_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = [1, if (1) 2 else 3, 4];
-''',
-      [error(diag.nonBoolCondition, 18, 1)],
-    );
+//                ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_do() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   do {} while (3);
+//             ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 21, 1)],
-    );
+''');
   }
 
   test_do_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   do {} while ([1, 2, 3]);
+//             ^^^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 29, 9)],
-    );
+''');
   }
 
   test_do_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   do {} while (o);
+//             ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 29, 1)],
-    );
+''');
   }
 
   test_for() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   for (;3;) {}
+//      ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 14, 1)],
-    );
+''');
   }
 
   test_for_declaration() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   for (int i = 0; 3;) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
+//                ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 17, 1),
-        error(diag.nonBoolCondition, 24, 1),
-      ],
-    );
+''');
   }
 
   test_for_expression() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   int i;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   for (i = 0; 3;) {}
-}''',
-      [
-        error(diag.unusedLocalVariable, 12, 1),
-        error(diag.nonBoolCondition, 29, 1),
-      ],
-    );
+//            ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+}''');
   }
 
   test_for_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   for (;[1, 2, 3];) {}
+//      ^^^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 14, 9)],
-    );
+''');
   }
 
   test_for_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   for (;o;) {}
+//      ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 22, 1)],
-    );
+''');
   }
 
   test_forElement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var v = [for (; 0;) 1];
-''',
-      [error(diag.nonBoolCondition, 16, 1)],
-    );
+//              ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_guardedPattern_whenClause() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   if (0 case _ when 1) {}
+//                  ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 31, 1)],
-    );
+''');
   }
 
   test_if() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   if (3) return 2; else return 1;
+//    ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 12, 1)],
-    );
+''');
   }
 
   test_if_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   if ([1, 2, 3]) return 2; else return 1;
+//    ^^^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 12, 9)],
-    );
+''');
   }
 
   test_if_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   if (o) return 2; else return 1;
+//    ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 20, 1)],
-    );
+''');
   }
 
   test_if_map() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
-''',
-      [error(diag.nonBoolCondition, 51, 7)],
-    );
+//                   ^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_if_null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Null a) {
   if (a) {}
+//    ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 23, 1)],
-    );
+''');
   }
 
   test_if_set() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
-''',
-      [error(diag.nonBoolCondition, 50, 7)],
-    );
+//                   ^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_ifElement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var v = [if (3) 1];
-''',
-      [error(diag.nonBoolCondition, 13, 1)],
-    );
+//           ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_ifElement_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var v = [if ([1, 2, 3]) 'x'];
-''',
-      [error(diag.nonBoolCondition, 13, 9)],
-    );
+//           ^^^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_ifElement_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final o = Object();
 var v = [if (o) 'x'];
-''',
-      [error(diag.nonBoolCondition, 33, 1)],
-    );
+//           ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
   }
 
   test_ternary_condition_null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Null a) {
   a ? 0 : 1;
+//^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 19, 1)],
-    );
+''');
   }
 
   test_while() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   while (3) {}
+//       ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 15, 1)],
-    );
+''');
   }
 
   test_while_fromLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   while ([1, 2, 3]) {}
+//       ^^^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 15, 9)],
-    );
+''');
   }
 
   test_while_fromSupertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   while (o) {}
+//       ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 23, 1)],
-    );
+''');
   }
 }
 

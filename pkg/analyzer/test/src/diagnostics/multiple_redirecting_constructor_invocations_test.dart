@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MultipleRedirectingConstructorInvocationsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,66 +18,62 @@ main() {
 class MultipleRedirectingConstructorInvocationsTest
     extends PubPackageResolutionTest {
   test_class_primary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B() extends A {
   B.foo() : this();
   B.bar() : this();
   this : this.foo(), this.bar();
+//       ^^^^
+// [diag.primaryConstructorCannotRedirect] A primary constructor can't be a redirecting constructor.
+//                   ^^^^
+// [diag.primaryConstructorCannotRedirect] A primary constructor can't be a redirecting constructor.
 }
-''',
-      [
-        error(diag.primaryConstructorCannotRedirect, 83, 4),
-        error(diag.primaryConstructorCannotRedirect, 95, 4),
-      ],
-    );
+''');
   }
 
   test_class_typeName_twoNamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() : this.foo(), this.bar();
+//                  ^^^^^^^^^^
+// [diag.multipleRedirectingConstructorInvocations] Constructors can have only one 'this' redirection, at most.
   A.foo() {}
   A.bar() {}
 }
-''',
-      [error(diag.multipleRedirectingConstructorInvocations, 30, 10)],
-    );
+''');
   }
 
   test_enum_primary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   const E.foo() : this();
+//      ^^^^^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
   const E.bar() : this();
+//      ^^^^^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
   this : this.foo(), this.bar();
+//       ^^^^
+// [diag.primaryConstructorCannotRedirect] A primary constructor can't be a redirecting constructor.
+//                   ^^^^
+// [diag.primaryConstructorCannotRedirect] A primary constructor can't be a redirecting constructor.
 }
-''',
-      [
-        error(diag.recursiveConstantConstructor, 24, 5),
-        error(diag.recursiveConstantConstructor, 50, 5),
-        error(diag.primaryConstructorCannotRedirect, 77, 4),
-        error(diag.primaryConstructorCannotRedirect, 89, 4),
-      ],
-    );
+''');
   }
 
   test_enum_typeName_twoNamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E() : this.foo(), this.bar();
+//                        ^^^^^^^^^^
+// [diag.multipleRedirectingConstructorInvocations] Constructors can have only one 'this' redirection, at most.
   const E.foo();
   const E.bar();
 }
-''',
-      [error(diag.multipleRedirectingConstructorInvocations, 40, 10)],
-    );
+''');
   }
 }

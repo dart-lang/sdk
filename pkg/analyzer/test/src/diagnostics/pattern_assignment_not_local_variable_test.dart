@@ -2,43 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PatternAssignmentNotLocalVariableTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PatternAssignmentNotLocalVariableTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (int) = 0;
+// ^^^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 14, 3)],
-    );
+''');
   }
 
   test_class_instanceField_ofSelf() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var x = 0;
 
   void f() {
     (x) = 0;
+//   ^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
   }
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 42, 1)],
-    );
+''');
 
     var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
@@ -61,8 +60,7 @@ PatternAssignment
   }
 
   test_class_instanceField_ofSuperClass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var x = 0;
 }
@@ -70,11 +68,11 @@ class A {
 class B extends A {
   void f() {
     (x) = 0;
+//   ^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
   }
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 64, 1)],
-    );
+''');
 
     var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
@@ -97,18 +95,17 @@ PatternAssignment
   }
 
   test_class_staticField() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static var x = 0;
 
   void f() {
     (x) = 0;
+//   ^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
   }
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 49, 1)],
-    );
+''');
 
     var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
@@ -131,50 +128,46 @@ PatternAssignment
   }
 
   test_class_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void f() {
     (T) = 0;
+//   ^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
   }
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 31, 1)],
-    );
+''');
   }
 
   test_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (dynamic) = 0;
+// ^^^^^^^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 14, 7)],
-    );
+''');
   }
 
   test_function() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (f) = 0;
+// ^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 14, 1)],
-    );
+''');
   }
 
   test_topLevelVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var x = 0;
 
 void f() {
   (x) = 0;
+// ^
+// [diag.patternAssignmentNotLocalVariable] Only local variables can be assigned in pattern assignments.
 }
-''',
-      [error(diag.patternAssignmentNotLocalVariable, 26, 1)],
-    );
+''');
   }
 }
