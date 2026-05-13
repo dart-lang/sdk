@@ -77,7 +77,7 @@ final class _ExpectedDiagnosticsUpdater {
           length: contextMessage.length,
           caretLength: presentation.caretLength,
           includeExplicitLocation: presentation.includeExplicitLocation,
-          message: contextMessage.messageText(includeUrl: false),
+          message: _toPosixPaths(contextMessage.messageText(includeUrl: false)),
         ),
       );
     }
@@ -103,7 +103,9 @@ final class _ExpectedDiagnosticsUpdater {
         caretLength: presentation.caretLength,
         includeExplicitLocation: presentation.includeExplicitLocation,
         contextRefs: contextRefs,
-        message: diagnostic.problemMessage.messageText(includeUrl: false),
+        message: _toPosixPaths(
+          diagnostic.problemMessage.messageText(includeUrl: false),
+        ),
       ),
     );
   }
@@ -250,6 +252,14 @@ final class _ExpectedDiagnosticsUpdater {
       }
     }
     return buffer.toString();
+  }
+
+  static String _toPosixPaths(String message) {
+    return message.replaceAllMapped(RegExp(r'C:\\([a-zA-Z0-9_.\\]+)'), (match) {
+      var path = match.group(1)!;
+      var posixPath = path.replaceAll(r'\', '/');
+      return '/$posixPath';
+    });
   }
 }
 
