@@ -87,6 +87,12 @@ abstract base class IsolateManager {
   /// Used to support the `isolates/root` isolate ID.
   int? _rootIsolateId;
 
+  @protected
+  int? get rootIsolateId => _rootIsolateId;
+
+  @protected
+  set rootIsolateId(int? value) => _rootIsolateId = value;
+
   @mustCallSuper
   Future<void> shutdown() async {
     _logger.info('Shutting down.');
@@ -103,10 +109,12 @@ abstract base class IsolateManager {
   });
 
   /// Initializes state for a newly started isolate.
-  void isolateStarted({required RunningIsolate isolate}) {
+  void isolateStarted({
+    required RunningIsolate isolate,
+    bool isSystemIsolate = false,
+  }) {
     _logger.info('Starting isolate: $isolate');
-    if (_rootIsolateId == null) {
-      // TODO(bkonyi): ensure this is a non-system isolate
+    if (_rootIsolateId == null && !isSystemIsolate) {
       _logger.info('$isolate is the root isolate.');
       _rootIsolateId = isolate.id;
     }

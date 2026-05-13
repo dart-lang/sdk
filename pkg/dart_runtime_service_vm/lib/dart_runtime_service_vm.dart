@@ -271,11 +271,23 @@ class DartRuntimeServiceVMBackend
             final SendPort sendPort,
             final String name,
           ]
-          when opcode == _kIsolateStartupMessageId ||
-              opcode == _kIsolateShutdownMessageId:
-        // This is a message informing us of the birth or death of an
-        // isolate.
+          when opcode == _kIsolateShutdownMessageId:
         _isolateControlMessageHandler(opcode, portId, sendPort, name);
+      case [
+            final int opcode,
+            final int portId,
+            final SendPort sendPort,
+            final String name,
+            final bool isSystemIsolate,
+          ]
+          when opcode == _kIsolateStartupMessageId:
+        _isolateControlMessageHandler(
+          opcode,
+          portId,
+          sendPort,
+          name,
+          isSystemIsolate: isSystemIsolate,
+        );
       default:
         _logger.warning(
           'Internal vm-service error: ignoring illegal message: $message',
@@ -311,14 +323,16 @@ class DartRuntimeServiceVMBackend
     int code,
     int portId,
     SendPort sp,
-    String name,
-  ) {
+    String name, {
+    bool isSystemIsolate = false,
+  }) {
     switch (code) {
       case _kIsolateStartupMessageId:
         isolateManager.onIsolateStartupMessage(
           id: portId,
           sendPort: sp,
           name: name,
+          isSystemIsolate: isSystemIsolate,
         );
       case _kIsolateShutdownMessageId:
         isolateManager.onIsolateShutdownMessage(id: portId);
