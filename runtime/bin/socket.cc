@@ -828,7 +828,12 @@ void FUNCTION_NAME(Socket_SendMessage)(Dart_NativeArguments args) {
     Dart_Handle buffer_dart = Dart_GetNativeArgument(args, 1);
     TypedDataScope data(buffer_dart);
 
-    ASSERT((offset + length) <= data.size_in_bytes());
+    const intptr_t end = offset + length;
+    if (!(0 <= offset && offset <= end && end <= data.size_in_bytes())) {
+      delete os_error;
+      Dart_SetReturnValue(args, Dart_NewApiError("Invalid range"));
+      return;
+    }
     uint8_t* buffer_at_offset =
         reinterpret_cast<uint8_t*>(data.data()) + offset;
     bytes_written = SocketBase::SendMessage(
