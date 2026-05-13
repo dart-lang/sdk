@@ -65,7 +65,23 @@ var x = <M>[].contains(C());
   }
 
   test_contains_related_null() async {
-    await assertNoDiagnostics('var x = <num>[].contains(null);');
+    await assertNoDiagnostics('var x = <num?>[].contains(null);');
+  }
+
+  test_contains_related_null_genericNullable() async {
+    await assertNoDiagnostics('''
+bool f<T extends Object?>() {
+  return <T>[].contains(null);
+}
+''');
+  }
+
+  test_contains_related_null_genericNullable2() async {
+    await assertNoDiagnostics('''
+bool f<T extends Object>() {
+  return <T?>[].contains(null);
+}
+''');
   }
 
   test_contains_related_Object() async {
@@ -161,6 +177,21 @@ abstract class C implements List<num> {
 }
 ''',
       [lint(66, 3)],
+    );
+  }
+
+  test_contains_unrelated_null() async {
+    await assertDiagnostics('var x = <num>[].contains(null);', [lint(25, 4)]);
+  }
+
+  test_contains_unrelated_null_generic() async {
+    await assertDiagnostics(
+      '''
+bool f<T extends Object>() {
+  return <T>[].contains(null);
+}
+''',
+      [lint(53, 4)],
     );
   }
 

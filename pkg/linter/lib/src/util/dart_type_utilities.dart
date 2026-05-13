@@ -182,6 +182,12 @@ bool typesAreUnrelated(
   }
   var promotedLeftType = typeSystem.promoteToNonNull(leftType);
   var promotedRightType = typeSystem.promoteToNonNull(rightType);
+  if (leftType.isDartCoreNull && typeSystem.isNonNullable(rightType)) {
+    return true;
+  }
+  if (rightType.isDartCoreNull && typeSystem.isNonNullable(leftType)) {
+    return true;
+  }
   if (promotedLeftType == promotedRightType ||
       typeSystem.isSubtypeOf(promotedLeftType, promotedRightType) ||
       typeSystem.isSubtypeOf(promotedRightType, promotedLeftType)) {
