@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' hide jsonEncode;
+import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/session_logger/log_entry.dart';
@@ -18,9 +18,6 @@ void main() {
     defineReflectiveTests(LogNormalizerTest);
   });
 }
-
-/// A jsonEncode function that formats/indents with two spaces.
-final _jsonEncode = JsonEncoder.withIndent('  ').convert;
 
 @reflectiveTest
 class LogNormalizerTest {
@@ -65,27 +62,28 @@ class LogNormalizerTest {
 
     // For each tested path, include multiple variations we'd expect to be
     // replaced
-    var testInput = inputPaths
-        .map(
+    var pathList = inputPaths
+        .expand(
           // JSON encode each path in a list so that we have correct escaping
           // to ensure that we restore the correct escaping.
-          (inputPath) => _jsonEncode([
+          (inputPath) => [
             inputPath,
             inputPath.toUpperCase(),
             inputPath.toLowerCase(),
             Uri.file(inputPath).toString(),
             Uri.file(inputPath.toUpperCase()).toString(),
             Uri.file(inputPath.toLowerCase()).toString(),
-          ]),
+          ],
         )
-        .join('\n');
+        .toList();
+    var testInput = {'paths': pathList};
 
     // Expect normalize + denormalize to be the same if we ignore case (we
     // ignore case during normalization, so we can't reverse the case to what
     // it was).
     expect(
       normalizer.denormalize(normalizer.normalize(testInput)).toLowerCase(),
-      testInput.toLowerCase(),
+      jsonEncode(testInput).toLowerCase(),
     );
   }
 
@@ -117,17 +115,21 @@ class LogNormalizerTest {
         normalizer.addReplacementsForPath(folderPath, 'folder-$i');
       }
 
-      // Generate a payload.
-      var buffer = StringBuffer();
-      for (var i = 0; buffer.length < payloadSizeBytes; i++) {
-        buffer
-          // Add padding + quotes around the path
-          ..write('before "')
-          ..write(paths[i % paths.length])
-          ..write('" after');
+      // Generate a large payload that is a JSON array of maps that include
+      // file paths in keys, values and list entries.
+      var entries = <Map<String, Object?>>[];
+      var payloadSize = 0;
+      for (var i = 0; payloadSize < payloadSizeBytes; i++) {
+        var filePath = paths[i % paths.length];
+        var entry = {
+          filePath: 'filePathAsKey',
+          'filePathAsValue': filePath,
+          'filePathInList': [filePath],
+        };
+        entries.add(entry);
+        payloadSize += jsonEncode(entry).length + 2;
       }
-
-      var input = buffer.toString();
+      var input = {'entries': entries};
 
       // Record first normalize individually because it incurrs the cost of the
       // regex compilation.
@@ -152,7 +154,7 @@ class LogNormalizerTest {
         ),
       );
 
-      // Time the remainder of the calls.
+      // Time additional calls once the regex is compiled.
       stopwatch
         ..reset()
         ..start();
@@ -171,26 +173,45 @@ class LogNormalizerTest {
   void test_normalize_caseInsensitive() {
     normalizer.addReplacementsForPath(inputPath.toLowerCase(), 'new_value');
 
-    var input =
-        ' "${inputPath.toUpperCase()}" "${inputUriString.toUpperCase()}" ';
-    var expected = ' "{{new_value:filePath}}" "{{new_value}}" ';
+    var input = [inputPath.toUpperCase(), inputUriString.toUpperCase()];
+    var expected = ['{{new_value:filePath}}', '{{new_value}}'];
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
+  }
+
+  void test_normalize_encoding_ampersands() {
+    var encodedPath = path.join(inputPath, 'uri&encoding&quirks');
+    normalizer.addReplacementsForPath(encodedPath, 'new_value');
+
+    var uriString = Uri.file(encodedPath).toString();
+    var vsCodeEncodedUriString = uriString.replaceAll('&', '%26');
+    var input = {
+      vsCodeEncodedUriString: 'uriAsKey',
+      'uriAsValue': vsCodeEncodedUriString,
+      'uriInList': [vsCodeEncodedUriString],
+    };
+    var expected = {
+      '{{new_value}}': 'uriAsKey',
+      'uriAsValue': '{{new_value}}',
+      'uriInList': ['{{new_value}}'],
+    };
+
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// On Windows, file URIs might have the colons in drive letters escaped:
   ///
   /// file:///C:/foo
   /// file:///C%3A/foo
-  void test_normalize_handlesEscapedColons() {
+  void test_normalize_encoding_colons() {
     if (path.style != path.Style.windows) return;
 
     normalizer.addReplacementsForPath(r'C:\test', 'new_value');
 
-    var input = r' "file:///C:/test" "file:///C%3A/test" "file:///C%3a/test" ';
-    var expected = ' "{{new_value}}" "{{new_value}}" "{{new_value}}" ';
+    var input = ['file:///C:/test', 'file:///C%3A/test', 'file:///C%3a/test'];
+    var expected = ['{{new_value}}', '{{new_value}}', '{{new_value}}'];
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   void test_normalize_handlesPathsAndUris() {
@@ -198,17 +219,14 @@ class LogNormalizerTest {
 
     var testPath = path.join(inputPath, 'a', 'b.dart');
     var testUri = Uri.file(testPath);
-    var testPayload = _jsonEncode({
-      'filePath': testPath,
-      'fileUri': testUri.toString(),
-    });
+    var testPayload = {'filePath': testPath, 'fileUri': testUri.toString()};
 
-    var expectedPayload = _jsonEncode({
+    var expected = {
       'filePath': path.join('{{workspaceFolder0:filePath}}', 'a', 'b.dart'),
       'fileUri': '{{workspaceFolder0}}/a/b.dart',
-    });
+    };
 
-    expect(normalizer.normalize(testPayload), expectedPayload);
+    expect(normalizer.normalize(testPayload), jsonEncode(expected));
   }
 
   void test_normalize_includesAllLspFields() {
@@ -236,11 +254,56 @@ class LogNormalizerTest {
       ),
     );
 
-    var input = ' "$rootPath" "$rootUri" "$workspaceFolderUri" ';
-    var expected =
-        ' "{{rootPath:filePath}}" "{{rootUri}}" "{{workspaceFolder-0}}" ';
+    var input = [rootPath, rootUri.toString(), workspaceFolderUri.toString()];
+    var expected = [
+      '{{rootPath:filePath}}',
+      '{{rootUri}}',
+      '{{workspaceFolder-0}}',
+    ];
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
+  }
+
+  void test_normalize_listValues() {
+    normalizer.addReplacementsForPath(inputPath, 'new_value');
+
+    var testPath = path.join(inputPath, 'a', 'b.dart');
+    var testUri = Uri.file(testPath).toString();
+    var input = [testPath, testUri];
+    var expected = [
+      path.join('{{new_value:filePath}}', 'a', 'b.dart'),
+      '{{new_value}}/a/b.dart',
+    ];
+
+    expect(normalizer.normalize(input), jsonEncode(expected));
+  }
+
+  void test_normalize_mapKeys() {
+    normalizer.addReplacementsForPath(inputPath, 'new_value');
+
+    var pathKey = path.join(inputPath, 'a', 'b.dart');
+    var uriKey = Uri.file(pathKey).toString();
+    var input = {pathKey: 'pathKey', uriKey: 'uriKey'};
+    var expected = {
+      path.join('{{new_value:filePath}}', 'a', 'b.dart'): 'pathKey',
+      '{{new_value}}/a/b.dart': 'uriKey',
+    };
+
+    expect(normalizer.normalize(input), jsonEncode(expected));
+  }
+
+  void test_normalize_mapValues() {
+    normalizer.addReplacementsForPath(inputPath, 'new_value');
+
+    var testPath = path.join(inputPath, 'a', 'b.dart');
+    var testUri = Uri.file(testPath).toString();
+    var input = {'path': testPath, 'uri': testUri};
+    var expected = {
+      'path': path.join('{{new_value:filePath}}', 'a', 'b.dart'),
+      'uri': '{{new_value}}/a/b.dart',
+    };
+
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// When there are nested paths that have different replacements, ensure they
@@ -253,10 +316,10 @@ class LogNormalizerTest {
     normalizer.addReplacementsForPath('/root', 'r1');
     normalizer.addReplacementsForPath('/root/nested2', 'n2');
 
-    var input = ' "/root/nested1" "/root" "/root/nested2" ';
-    var expected = ' "{{n1:filePath}}" "{{r1:filePath}}" "{{n2:filePath}}" ';
+    var input = ['/root/nested1', '/root', '/root/nested2'];
+    var expected = ['{{n1:filePath}}', '{{r1:filePath}}', '{{n2:filePath}}'];
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// When there are nested paths that have different replacements, ensure they
@@ -269,10 +332,10 @@ class LogNormalizerTest {
     normalizer.addReplacementsForPath(r'C:\root', 'r1');
     normalizer.addReplacementsForPath(r'C:\root\nested2', 'n2');
 
-    var input = r' "C:\root\nested1" "C:\root" "C:\root\nested2" ';
-    var expected = ' "{{n1:filePath}}" "{{r1:filePath}}" "{{n2:filePath}}" ';
+    var input = [r'C:\root\nested1', r'C:\root', r'C:\root\nested2'];
+    var expected = ['{{n1:filePath}}', '{{r1:filePath}}', '{{n2:filePath}}'];
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// A replacement for `/a` should not replace substrings of other paths that
@@ -287,11 +350,17 @@ class LogNormalizerTest {
     normalizer.addReplacementsForPath('/a', 'a');
     normalizer.addReplacementsForPath('/ac', 'ac');
 
-    var input = ' "/a" "/ab" "/ac" "/abc" "/abcd" "/b/a/ab/" ';
-    var expected =
-        ' "{{a:filePath}}" "{{ab:filePath}}" "{{ac:filePath}}" "/abc" "/abcd" "/b/a/ab/" ';
+    var input = ['/a', '/ab', '/ac', '/abc', '/abcd', '/b/a/ab/'];
+    var expected = [
+      '{{a:filePath}}',
+      '{{ab:filePath}}',
+      '{{ac:filePath}}',
+      '/abc',
+      '/abcd',
+      '/b/a/ab/',
+    ];
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// Paths will be replaced even if they don't have a trailing path separator
@@ -302,7 +371,7 @@ class LogNormalizerTest {
     var input = ' "$inputPath" ';
     var expected = ' "{{replaced:filePath}}" ';
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// Paths will be replaced when they have a trailing path separator.
@@ -312,7 +381,7 @@ class LogNormalizerTest {
     var input = ' "$inputPath${path.separator}foo" ';
     var expected = ' "{{replaced:filePath}}${path.separator}foo" ';
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// Unquoted paths will not be replaced, because we only replace full paths
@@ -324,16 +393,16 @@ class LogNormalizerTest {
     var input = ' $inputPath "$inputPath $inputPath${path.separator} ';
     var expected = input;
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   void test_normalize_replacesAll() {
     normalizer.addReplacementsForPath(inputPath, 'new_value');
 
-    var input = ' "$inputPath" ' * 10;
-    var expected = ' "{{new_value:filePath}}" ' * 10;
+    var input = List.filled(10, inputPath);
+    var expected = List.filled(10, '{{new_value:filePath}}');
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// Uris will be replaced without a trailing uri separator if they are the
@@ -341,31 +410,31 @@ class LogNormalizerTest {
   void test_normalize_uri_quoted() {
     normalizer.addReplacementsForPath(inputPath, 'replaced');
 
-    var input = ' "$inputUri" ';
-    var expected = ' "{{replaced}}" ';
+    var input = inputUri.toString();
+    var expected = '{{replaced}}';
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
   /// Uris will be replaced with a trailing uri separator.
   void test_normalize_uri_quotedWithTrailingSeparator() {
     normalizer.addReplacementsForPath(inputPath, 'replaced');
 
-    var input = ' "$inputUri/foo" ';
-    var expected = ' "{{replaced}}/foo" ';
+    var input = '${inputUri.toString()}/foo';
+    var expected = '{{replaced}}/foo';
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
-  /// Unquoted uris will not be replaced, because we only replace full uris
-  /// and require a leading quote and a trailing quote or uri separator to
-  /// match.
+  /// Unquoted uris in the JSON will not be replaced, because we only replace
+  /// full uris and require a leading quote and a trailing quote or uri
+  /// separator to match.
   void test_normalize_uri_unquoted() {
     normalizer.addReplacementsForPath(inputPath, 'replaced');
 
     var input = ' $inputUri "$inputUri $inputUri/ ';
     var expected = input;
 
-    expect(normalizer.normalize(input), expected);
+    expect(normalizer.normalize(input), jsonEncode(expected));
   }
 }
