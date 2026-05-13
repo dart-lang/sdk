@@ -14,10 +14,12 @@ import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnignorableIgnoreTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -34,48 +36,39 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(unignorableNames: ['undefined_annotation']),
     );
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: undefined_annotation
+//                  ^^^^^^^^^^^^^^^^^^^^
+// [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-''',
-      [
-        error(diag.unignorableIgnore, 20, 20),
-        error(diag.undefinedAnnotation, 41, 2),
-      ],
-    );
+// [diag.undefinedAnnotation][column 1][length 2] Undefined name 'x' used as an annotation.
+''');
   }
 
   test_file_upperCase() async {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(unignorableNames: ['UNDEFINED_ANNOTATION']),
     );
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: UNDEFINED_ANNOTATION
+//                  ^^^^^^^^^^^^^^^^^^^^
+// [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-''',
-      [
-        error(diag.unignorableIgnore, 20, 20),
-        error(diag.undefinedAnnotation, 41, 2),
-      ],
-    );
+// [diag.undefinedAnnotation][column 1][length 2] Undefined name 'x' used as an annotation.
+''');
   }
 
   test_line() async {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(unignorableNames: ['undefined_annotation']),
     );
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: undefined_annotation
+//         ^^^^^^^^^^^^^^^^^^^^
+// [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-''',
-      [
-        error(diag.unignorableIgnore, 11, 20),
-        error(diag.undefinedAnnotation, 32, 2),
-      ],
-    );
+// [diag.undefinedAnnotation][column 1][length 2] Undefined name 'x' used as an annotation.
+''');
   }
 
   test_lint() async {

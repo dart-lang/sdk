@@ -2,38 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedSetterTest extends PubPackageResolutionTest {
   test_functionAlias_typeInstantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
   Fn<int>.foo = 7;
+//        ^^^
+// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'Fn' function type.
 }
 
 extension E on Type {
   set foo(int value) {}
 }
-''',
-      [error(diag.undefinedSetterOnFunctionType, 58, 3)],
-    );
+''');
   }
 
   test_functionAlias_typeInstantiated_parenthesized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -50,7 +50,7 @@ extension E on Type {
     newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 set y(int value) {}''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as x;
 main() {
   x.y = 0;
@@ -59,31 +59,26 @@ main() {
   }
 
   test_instance_undefined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class T {}
 f(T e1) { e1.m = 0; }
-''',
-      [
-        error(diag.undefinedSetter, 24, 1, messageContains: ["the type 'T'"]),
-      ],
-    );
+//           ^
+// [diag.undefinedSetter] The setter 'm' isn't defined for the type 'T'.
+''');
   }
 
   test_instance_undefined_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   f() { this.m = 0; }
+//           ^
+// [diag.undefinedSetter] The setter 'm' isn't defined for the type 'M'.
 }
-''',
-      [error(diag.undefinedSetter, 23, 1)],
-    );
+''');
   }
 
   test_inSubtype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {
   set b(x) {}
@@ -91,103 +86,96 @@ class B extends A {
 f(a) {
   if (a is A) {
     a.b = 0;
+//    ^
+// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'A'.
   }
 }
-''',
-      [error(diag.undefinedSetter, 76, 1)],
-    );
+''');
   }
 
   test_inType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 f(a) {
   if(a is A) {
     a.m = 0;
+//    ^
+// [diag.undefinedSetter] The setter 'm' isn't defined for the type 'A'.
   }
 }
-''',
-      [error(diag.undefinedSetter, 39, 1)],
-    );
+''');
   }
 
   test_new_cascade() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 f(C? c) {
   c..new = 1;
+//   ^^^
+// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C?'.
 }
-''',
-      [error(diag.undefinedSetter, 27, 3)],
-    );
+''');
   }
 
   test_new_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(dynamic d) {
   d.new = 1;
+//  ^^^
+// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'dynamic'.
 }
-''',
-      [error(diag.undefinedSetter, 19, 3)],
-    );
+''');
   }
 
   test_new_instance() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 f(C c) {
   c.new = 1;
+//  ^^^
+// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedSetter, 25, 3)],
-    );
+''');
   }
 
   test_new_interfaceType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 f() {
   C.new = 1;
+//  ^^^
+// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedSetter, 22, 3)],
-    );
+''');
   }
 
   test_new_nullAware() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 f(C? c) {
   c?.new = 1;
+//   ^^^
+// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedSetter, 27, 3)],
-    );
+''');
   }
 
   test_new_typeVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f<T>(T t) {
   t.new = 1;
+//  ^^^
+// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'T'.
 }
-''',
-      [error(diag.undefinedSetter, 16, 3)],
-    );
+''');
   }
 
   test_set_abstract_field_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract int x;
 }
@@ -198,7 +186,7 @@ void f(A a, int x) {
   }
 
   test_set_external_field_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external int x;
 }
@@ -209,7 +197,7 @@ void f(A a, int x) {
   }
 
   test_set_external_static_field_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external static int x;
 }
@@ -220,36 +208,31 @@ void f(int x) {
   }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static var x;
 }
 f() { A?.x = 1; }
-''',
-      [error(diag.invalidNullAwareOperator, 35, 2)],
-    );
+//     ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+''');
   }
 
   test_static_definedInSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class S {
   static set s(int i) {}
 }
 class C extends S {}
 f(p) {
   f(C.s = 1);
-}''',
-      [
-        error(diag.undefinedSetter, 71, 1, messageContains: ["type 'C'"]),
-      ],
-    );
+//    ^
+// [diag.undefinedSetter] The setter 's' isn't defined for the type 'C'.
+}''');
   }
 
   test_static_extension_instanceAccess() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -258,10 +241,10 @@ extension E on C {
 
 f(C c) {
   c.a = 2;
+//  ^
+// [diag.undefinedSetter] The setter 'a' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedSetter, 72, 1)],
-    );
+''');
 
     assertResolvedNodeText(findNode.assignment('a ='), r'''
 AssignmentExpression
@@ -292,41 +275,38 @@ AssignmentExpression
   }
 
   test_static_undefined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 f() { A.B = 0;}
-''',
-      [error(diag.undefinedSetter, 19, 1)],
-    );
+//      ^
+// [diag.undefinedSetter] The setter 'B' isn't defined for the type 'A'.
+''');
   }
 
   test_typeLiteral_cascadeTarget() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class T {
   static void set foo(_) {}
 }
 main() {
   T..foo = 42;
+//   ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedSetter, 54, 3)],
-    );
+''');
   }
 
   test_withExtension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 extension E on C {}
 
 f(C c) {
   c.a = 1;
+//  ^
+// [diag.undefinedSetter] The setter 'a' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedSetter, 46, 1)],
-    );
+''');
   }
 }

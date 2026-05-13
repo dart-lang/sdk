@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedExtensionOperatorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedExtensionOperatorTest extends PubPackageResolutionTest {
   test_binary_defined() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on String {
   void operator +(int offset) {}
 }
@@ -27,15 +28,14 @@ f() {
   }
 
   test_binary_undefined() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on String {}
 f() {
   E('a') + 1;
+//       ^
+// [diag.undefinedExtensionOperator] The operator '+' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 40, 1)],
-    );
+''');
 
     var node = findNode.binary('+ 1');
     assertResolvedNodeText(node, r'''
@@ -63,7 +63,7 @@ BinaryExpression
   }
 
   test_index_get_hasGetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -77,23 +77,21 @@ f(A a) {
   }
 
   test_index_get_hasNone() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {}
 
 f(A a) {
   E(a)[0];
+//    ^^^
+// [diag.undefinedExtensionOperator] The operator '[]' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 48, 3)],
-    );
+''');
   }
 
   test_index_get_hasSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -102,14 +100,14 @@ extension E on A {
 
 f(A a) {
   E(a)[0];
+//    ^^^
+// [diag.undefinedExtensionOperator] The operator '[]' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 93, 3)],
-    );
+''');
   }
 
   test_index_getSet_hasBoth() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -124,8 +122,7 @@ f(A a) {
   }
 
   test_index_getSet_hasGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -134,33 +131,29 @@ extension E on A {
 
 f(A a) {
   E(a)[0] += 1;
+//    ^^^
+// [diag.undefinedExtensionOperator] The operator '[]=' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 83, 3)],
-    );
+''');
   }
 
   test_index_getSet_hasNone() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {}
 
 f(A a) {
   E(a)[0] += 1;
+//    ^^^
+// [diag.undefinedExtensionOperator] The operator '[]' isn't defined for the extension 'E'.
+// [diag.undefinedExtensionOperator] The operator '[]=' isn't defined for the extension 'E'.
 }
-''',
-      [
-        error(diag.undefinedExtensionOperator, 48, 3),
-        error(diag.undefinedExtensionOperator, 48, 3),
-      ],
-    );
+''');
   }
 
   test_index_getSet_hasSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -169,15 +162,14 @@ extension E on A {
 
 f(A a) {
   E(a)[0] += 1;
+//    ^^^
+// [diag.undefinedExtensionOperator] The operator '[]' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 93, 3)],
-    );
+''');
   }
 
   test_index_set_hasGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -186,29 +178,28 @@ extension E on A {
 
 f(A a) {
   E(a)[0] = 1;
+//    ^^^
+// [diag.undefinedExtensionOperator] The operator '[]=' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 83, 3)],
-    );
+''');
   }
 
   test_index_set_hasNone() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {}
 
 f(A a) {
   E(a)[0] = 1;
+//    ^^^
+// [diag.undefinedExtensionOperator] The operator '[]=' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 48, 3)],
-    );
+''');
   }
 
   test_index_set_hasSetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -222,7 +213,7 @@ f(A a) {
   }
 
   test_prefix_minus_defined() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on String {
   String operator -() => substring(1);
 }
@@ -233,14 +224,13 @@ f() {
   }
 
   test_prefix_minus_undefined() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on String {}
 f() {
   -E('a');
+//^
+// [diag.undefinedExtensionOperator] The operator 'unary-' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 33, 1)],
-    );
+''');
   }
 }

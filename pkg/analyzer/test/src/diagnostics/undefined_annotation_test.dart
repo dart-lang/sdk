@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedAnnotationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedAnnotationTest extends PubPackageResolutionTest {
   test_identifier1_localVariable_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   const a = 0;
   g(@a x) {}
@@ -26,70 +27,58 @@ main() {
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @unresolved
+// [diag.undefinedAnnotation][column 1][length 11] Undefined name 'unresolved' used as an annotation.
 main() {
 }
-''',
-      [error(diag.undefinedAnnotation, 0, 11)],
-    );
+''');
   }
 
   test_unresolved_invocation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Unresolved()
+// [diag.undefinedAnnotation][column 1][length 13] Undefined name 'Unresolved' used as an annotation.
 main() {
 }
-''',
-      [error(diag.undefinedAnnotation, 0, 13)],
-    );
+''');
   }
 
   test_unresolved_prefix() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @p.A(0)
+// [diag.undefinedAnnotation][column 1][length 7] Undefined name 'p' used as an annotation.
 class B {}
-''',
-      [error(diag.undefinedAnnotation, 0, 7)],
-    );
+''');
   }
 
   test_unresolved_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 
 @p.A(0)
+// [diag.undefinedAnnotation][column 1][length 7] Undefined name 'A' used as an annotation.
 class B {}
-''',
-      [error(diag.undefinedAnnotation, 26, 7)],
-    );
+''');
   }
 
   test_unresolved_prefixedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 @p.unresolved
+// [diag.undefinedAnnotation][column 1][length 13] Undefined name 'unresolved' used as an annotation.
 main() {
 }
-''',
-      [error(diag.undefinedAnnotation, 25, 13)],
-    );
+''');
   }
 
   test_useLibraryScope() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @foo
+// [diag.undefinedAnnotation][column 1][length 4] Undefined name 'foo' used as an annotation.
 class A {
   static const foo = null;
 }
-''',
-      [error(diag.undefinedAnnotation, 0, 4)],
-    );
+''');
   }
 }
