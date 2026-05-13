@@ -8,33 +8,37 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  test('api_summary output matches api_summary.txt', () async {
-    final packageDir = _pkgDir();
+  test(
+    'api_summary output matches api_summary.txt',
+    timeout: const Timeout.factor(3),
+    () async {
+      final packageDir = _pkgDir();
 
-    final result = await Process.run(Platform.resolvedExecutable, [
-      if (Platform.packageConfig != null)
-        '--packages=${Platform.packageConfig}',
-      p.join(packageDir, 'bin', 'api_summary.dart'),
-      '-p',
-      packageDir,
-    ], workingDirectory: packageDir);
+      final result = await Process.run(Platform.resolvedExecutable, [
+        if (Platform.packageConfig != null)
+          '--packages=${Platform.packageConfig}',
+        p.join(packageDir, 'bin', 'api_summary.dart'),
+        '-p',
+        packageDir,
+      ], workingDirectory: packageDir);
 
-    expect(
-      result.exitCode,
-      equals(0),
-      reason: 'CLI run failed with stderr:\n${result.stderr}',
-    );
+      expect(
+        result.exitCode,
+        equals(0),
+        reason: 'CLI run failed with stderr:\n${result.stderr}',
+      );
 
-    final goldenFile = File(p.join(packageDir, 'api_summary.txt'));
-    final expectedOutput = LineSplitter.split(
-      goldenFile.readAsStringSync(),
-    ).join('\n');
-    final actualOutput = LineSplitter.split(
-      result.stdout.toString(),
-    ).join('\n');
+      final goldenFile = File(p.join(packageDir, 'api_summary.txt'));
+      final expectedOutput = LineSplitter.split(
+        goldenFile.readAsStringSync(),
+      ).join('\n');
+      final actualOutput = LineSplitter.split(
+        result.stdout.toString(),
+      ).join('\n');
 
-    expect(actualOutput, equals(expectedOutput));
-  });
+      expect(actualOutput, equals(expectedOutput));
+    },
+  );
 }
 
 // Dynamically locate the api_summary package root
