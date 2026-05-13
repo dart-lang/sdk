@@ -77,6 +77,7 @@
           local.get $var3
           i32.const 5
           call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref $_Type))
+          unreachable
         end
         local.get $var1
         ref.cast $Object

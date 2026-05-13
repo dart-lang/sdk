@@ -67,6 +67,12 @@ class SelectorInfo {
   /// Will be set during `_computeSignature`.
   late final bool synthesizeNullReturnValue;
 
+  /// Whether the call will never return and callers can emit an
+  /// `unreachable()` after the call.
+  ///
+  /// Will be set during `_computeSignature`.
+  late final bool synthesizeNoReturn;
+
   /// The selector's member's name.
   final String name;
 
@@ -210,14 +216,18 @@ class SelectorInfo {
       outputSets.length,
       (i) => _upperBound(outputSets[i], ensureBoxed: false),
     );
-    if (outputs case [w.RefType(heapType: w.HeapType.none, nullable: true)]) {
-      // All functions are guaranteed to return null.
-      // Will prune the signature and make call sites synthesize `null` if
-      // needed.
+    if (outputs case [
+      w.RefType(heapType: w.HeapType.none, nullable: final nullable),
+    ]) {
+      // All functions are guaranteed to return null or are unreachable.
+      // => Prune signature to not return anything
+      // => Tell callers to synthesize `null` or emit `unreachable`.
       outputs.clear();
-      synthesizeNullReturnValue = true;
+      synthesizeNullReturnValue = nullable;
+      synthesizeNoReturn = !nullable;
     } else {
       synthesizeNullReturnValue = isSetterOrIndexSetter;
+      synthesizeNoReturn = false;
     }
     return translator.typesBuilder.defineFunction([
       inputs[0],

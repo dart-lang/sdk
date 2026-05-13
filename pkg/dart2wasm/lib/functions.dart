@@ -107,6 +107,7 @@ class FunctionCollector {
             null,
             isImportOrExport: true,
             synthesizeNullReturnValue: false,
+            synthesizeNoReturn: false,
           );
           return _functions[member.reference] =
               translator
@@ -141,6 +142,7 @@ class FunctionCollector {
               null,
               isImportOrExport: true,
               synthesizeNullReturnValue: false,
+              synthesizeNoReturn: false,
             )
           : translator.signatureForDirectCall(target);
 
@@ -253,6 +255,7 @@ class FunctionCollector {
   w.FunctionType _getFunctionType(Reference target) {
     final Member member = target.asMember;
     final synthesizeNullReturnValue = this.synthesizeNullReturnValue(target);
+    final synthesizeNoReturn = this.synthesizeNoReturn(target);
 
     if (target.isBodyReference) {
       // This is the function body that is always called directly (never via
@@ -262,11 +265,16 @@ class FunctionCollector {
         translator,
         member,
         synthesizeNullReturnValue,
+        synthesizeNoReturn,
       );
     }
 
     return member.accept1(
-      _FunctionTypeGenerator(translator, synthesizeNullReturnValue),
+      _FunctionTypeGenerator(
+        translator,
+        synthesizeNullReturnValue,
+        synthesizeNoReturn,
+      ),
       target,
     );
   }
@@ -277,8 +285,20 @@ class FunctionCollector {
     if (member.name == indexSetName) return true;
 
     final returnType = translator.typeOfReturnValue(member);
-    final wasmType = translator.translateType(returnType);
+    final wasmType = translator.translateReturnType(returnType);
     if (wasmType case w.RefType(heapType: w.HeapType.none, nullable: true)) {
+      return true;
+    }
+    return false;
+  }
+
+  bool synthesizeNoReturn(Reference target) {
+    final member = target.asMember;
+    if (member is! Procedure) return false;
+
+    final returnType = translator.typeOfReturnValue(member);
+    final wasmType = translator.translateReturnType(returnType);
+    if (wasmType case w.RefType(heapType: w.HeapType.none, nullable: false)) {
       return true;
     }
     return false;
@@ -433,8 +453,13 @@ class FunctionCollector {
 class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
   final Translator translator;
   final bool synthesizeNullReturnValue;
+  final bool synthesizeNoReturn;
 
-  _FunctionTypeGenerator(this.translator, this.synthesizeNullReturnValue);
+  _FunctionTypeGenerator(
+    this.translator,
+    this.synthesizeNullReturnValue,
+    this.synthesizeNoReturn,
+  );
 
   @override
   w.FunctionType visitField(Field node, Reference target) {
@@ -445,6 +470,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         target,
         null,
         synthesizeNullReturnValue: synthesizeNullReturnValue,
+        synthesizeNoReturn: synthesizeNoReturn,
       );
     }
     assert(
@@ -465,6 +491,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       target,
       translator.translateType(receiverType),
       synthesizeNullReturnValue: synthesizeNullReturnValue,
+      synthesizeNoReturn: synthesizeNoReturn,
     );
   }
 
@@ -477,6 +504,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         target,
         null,
         synthesizeNullReturnValue: synthesizeNullReturnValue,
+        synthesizeNoReturn: synthesizeNoReturn,
       );
     }
 
@@ -502,6 +530,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       target,
       receiverType,
       synthesizeNullReturnValue: synthesizeNullReturnValue,
+      synthesizeNoReturn: synthesizeNoReturn,
     );
   }
 
@@ -738,6 +767,7 @@ w.FunctionType makeFunctionTypeForBody(
   Translator translator,
   Member member,
   bool synthesizeNullReturnValue,
+  bool synthesizeNoReturn,
 ) {
   assert(member.isInstanceMember);
   assert(member is Procedure);
@@ -758,7 +788,7 @@ w.FunctionType makeFunctionTypeForBody(
       translator.translateType(translator.typeOfCheckedParameterVariable(p)),
   ];
 
-  final hasNoReturnValue = synthesizeNullReturnValue;
+  final hasNoReturnValue = synthesizeNullReturnValue || synthesizeNoReturn;
   final outputs = [
     if (!hasNoReturnValue)
       translator.translateReturnType(translator.typeOfReturnValue(member)),
@@ -841,6 +871,7 @@ w.FunctionType _makeFunctionType(
   Reference target,
   w.ValueType? receiverType, {
   required bool synthesizeNullReturnValue,
+  required bool synthesizeNoReturn,
   bool isImportOrExport = false,
 }) {
   Member member = target.asMember;
@@ -881,7 +912,7 @@ w.FunctionType _makeFunctionType(
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  final hasNoReturnValue = target.isSetter || synthesizeNullReturnValue;
+  final hasNoReturnValue = synthesizeNullReturnValue || synthesizeNoReturn;
   if (hasNoReturnValue) {
     outputs = const [];
   } else {

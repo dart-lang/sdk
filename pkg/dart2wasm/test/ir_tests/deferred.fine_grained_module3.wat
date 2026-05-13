@@ -211,6 +211,7 @@
       global.get $"\"[]\""
       i32.const 21
       call_indirect $module0.cross-module-funcs-0 (param i64 i64 (ref null $JSExternWrapper))
+      unreachable
     end
     local.get $var1
     struct.get $WasmListBase $_data

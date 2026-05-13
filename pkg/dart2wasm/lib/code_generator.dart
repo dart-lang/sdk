@@ -2077,6 +2077,11 @@ abstract class AstCodeGenerator
       b.ref_null(w.HeapType.none);
       return w.RefType(w.HeapType.none, nullable: true);
     }
+    if (selector.synthesizeNoReturn) {
+      assert(selector.signature.outputs.isEmpty);
+      b.unreachable();
+      return voidMarker;
+    }
 
     return translator.outputOrVoid(signature.outputs);
   }
@@ -6099,6 +6104,9 @@ abstract class CallTarget {
   /// Whether callers should synthesize a `null` return value.
   bool get synthesizeNullReturnValue => false;
 
+  /// Whether callee never returns and callers should emit `unreachable`.
+  bool get synthesizeNoReturn => false;
+
   /// Whether this call target supports inlining.
   bool get supportsInlining => false;
 
@@ -6132,6 +6140,9 @@ class AstCallTarget extends CallTarget {
   @override
   bool get synthesizeNullReturnValue =>
       _translator.synthesizeNullReturnValue(_reference);
+
+  @override
+  bool get synthesizeNoReturn => _translator.synthesizeNoReturn(_reference);
 
   @override
   String get name => _translator.functions.getFunctionName(_reference);

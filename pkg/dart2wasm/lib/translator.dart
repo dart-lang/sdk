@@ -783,6 +783,11 @@ class Translator with KernelNodes {
       b.ref_null(w.HeapType.none);
       return [w.RefType(w.HeapType.none, nullable: true)];
     }
+    if (callTarget.synthesizeNoReturn) {
+      assert(outputs.isEmpty);
+      b.unreachable();
+      return const [];
+    }
     return outputs;
   }
 
@@ -1782,14 +1787,22 @@ class Translator with KernelNodes {
       final table = dispatchTable;
       final selector = table.selectorForTarget(target);
       if (selector.containsTarget(target)) {
-        assert(
-          !selector.synthesizeNullReturnValue ||
-              selector.signature.outputs.isEmpty,
-        );
         return selector.synthesizeNullReturnValue;
       }
     }
     return functions.synthesizeNullReturnValue(target);
+  }
+
+  bool synthesizeNoReturn(Reference target) {
+    final member = target.asMember;
+    if (member.isInstanceMember) {
+      final table = dispatchTable;
+      final selector = table.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
+        return selector.synthesizeNoReturn;
+      }
+    }
+    return functions.synthesizeNoReturn(target);
   }
 
   ParameterInfo paramInfoForDirectCall(Reference target) {
@@ -2920,9 +2933,6 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         outputs.single,
         translator.outputOrVoid(function.type.outputs),
       );
-    } else if (function.type.outputs.isNotEmpty) {
-      assert(target.synthesizeNullReturnValue);
-      b.ref_null(w.HeapType.none);
     }
 
     b.end(); // end function
