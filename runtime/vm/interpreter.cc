@@ -44,6 +44,16 @@ DEFINE_FLAG(uint64_t,
             100 * MB,
             "Maximum size in bytes of the interpreter trace file");
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+constexpr bool kDefaultCheckDynamicCalls = true;
+#else
+constexpr bool kDefaultCheckDynamicCalls = false;
+#endif
+DEFINE_FLAG(bool,
+            check_dynamic_calls,
+            kDefaultCheckDynamicCalls,
+            "Whether to check dynamic calls from dynamic modules.");
+
 // InterpreterSetjmpBuffer are linked together, and the last created one
 // is referenced by the Interpreter. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -2492,12 +2502,8 @@ SwitchDispatchNoSingleStep:
       StringPtr target_name = String::RawCast(LOAD_CONSTANT(kidx));
       argdesc_ = Array::RawCast(LOAD_CONSTANT(kidx + 1));
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-      bool caller_in_dynamic_module = true;
-#else
-      // TODO(sigmund): track when caller is declared in a dynamic module.
-      bool caller_in_dynamic_module = false;
-#endif
+      // TODO(b/448095881): track when caller is declared in a dynamic module.
+      bool caller_in_dynamic_module = FLAG_check_dynamic_calls;
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP, &SP,
                         /*check_dynamic_call=*/caller_in_dynamic_module)) {
         HANDLE_EXCEPTION;
