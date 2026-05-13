@@ -6189,7 +6189,7 @@ class Parser {
       token = parseFunctionBody(
         token,
         /* ofFunctionExpression = */ false,
-        /* allowAbstract = */ false,
+        /* allowAbstract = */ _isAugmentationsFeatureEnabled,
       );
     }
     switch (kind) {

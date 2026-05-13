@@ -1335,6 +1335,7 @@ class C {
     ]);
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   void test_factoryWithoutBody() {
     var parseResult = parseStringWithErrors(r'''
 class C {
@@ -1342,6 +1343,16 @@ class C {
 }
 ''');
     parseResult.assertErrors([error(diag.missingFunctionBody, 23, 1)]);
+  }
+
+  void test_factoryWithoutBody_language305() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.5
+class C {
+  factory C();
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 38, 1)]);
   }
 
   void test_fieldInitializerOutsideConstructor() {

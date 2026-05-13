@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,18 +27,32 @@ class A {
   }
 
   test_class_fieldFormalParameter_functionTyped() async {
-    // TODO(srawlins): Only report one error. Theoretically change Fasta to
-    // report "Field initializer in factory constructor" as a parse error.
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   int Function()? x;
   factory A(int this.x());
 //          ^^^^^^^^^^^^
 // [diag.fieldInitializerFactoryConstructor] Initializing formal parameters can't be used in factory constructors.
-//                       ^
-// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
+  }
+
+  test_class_fieldFormalParameter_functionTyped_language305() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.5
+class A {
+  int Function()? x;
+  factory A(int this.x());
+}
+''',
+      [
+        // TODO(srawlins): Only report one error. Theoretically change Fasta to
+        // report "Field initializer in factory constructor" as a parse error.
+        error(diag.fieldInitializerFactoryConstructor, 58, 12),
+        error(diag.missingFunctionBody, 71, 1),
+      ],
+    );
   }
 
   test_enum_fieldFormalParameter() async {

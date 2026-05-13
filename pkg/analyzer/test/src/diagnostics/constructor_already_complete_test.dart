@@ -55,7 +55,6 @@ class A {
     );
   }
 
-  @FailingTest() // TODO(scheglov): implement augmentation
   test_secondary_factory_introductory_noBody() async {
     await assertNoErrorsInCode(r'''
 class A {

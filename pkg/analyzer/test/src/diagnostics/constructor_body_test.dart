@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -109,6 +110,7 @@ class C {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -119,6 +121,18 @@ class C {
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
+  }
+
+  test_class_secondaryConstructor_constFactory_emptyBody_language305() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.5
+class C {
+  const factory C();
+}
+''',
+      [error(diag.constFactory, 27, 5), error(diag.missingFunctionBody, 44, 1)],
+    );
   }
 
   test_class_secondaryConstructor_constFactory_expressionBody() async {
@@ -470,6 +484,7 @@ enum E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -482,6 +497,20 @@ enum E {
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
+  }
+
+  test_enum_secondaryConstructor_constFactory_emptyBody_language305() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.5
+enum E {
+  v;
+  const E();
+  const factory E.named();
+}
+''',
+      [error(diag.constFactory, 44, 5), error(diag.missingFunctionBody, 67, 1)],
+    );
   }
 
   test_enum_secondaryConstructor_constFactory_expressionBody() async {
@@ -804,6 +833,7 @@ extension type const E(int it) {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
@@ -814,6 +844,18 @@ extension type const E(int it) {
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
+  }
+
+  test_extensionType_secondaryConstructor_constFactory_emptyBody_language305() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.5
+extension type const E(int it) {
+  const factory E.named();
+}
+''',
+      [error(diag.constFactory, 50, 5), error(diag.missingFunctionBody, 73, 1)],
+    );
   }
 
   test_extensionType_secondaryConstructor_constFactory_expressionBody() async {
