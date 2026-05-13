@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,21 +15,15 @@ main() {
 @reflectiveTest
 class DuplicateRestElementInPatternTest extends PubPackageResolutionTest {
   test_listPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   if (x case [..., ...]) {}
+//            ^^^
+// [context 1] The first rest element.
+//                 ^^^
+// [diag.duplicateRestElementInPattern][context 1] At most one rest element is allowed in a list or map pattern.
 }
-''',
-      [
-        error(
-          diag.duplicateRestElementInPattern,
-          41,
-          3,
-          contextMessages: [message(testFile, 36, 3)],
-        ),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern

@@ -692,17 +692,9 @@ class ConstantPool {
     ),
   );
 
-  int addArgDescByArguments(
-    Arguments args, {
-    bool hasReceiver = false,
-    bool isFactory = false,
-  }) => _add(
+  int addArgDescByArguments(Arguments args, {bool hasReceiver = false}) => _add(
     new ConstantObjectRef(
-      objectTable.getArgDescHandleByArguments(
-        args,
-        hasReceiver: hasReceiver,
-        isFactory: isFactory,
-      ),
+      objectTable.getArgDescHandleByArguments(args, hasReceiver: hasReceiver),
     ),
   );
 

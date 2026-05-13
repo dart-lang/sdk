@@ -383,6 +383,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert classes to enums in file',
   );
+  static const convertDefaultToPrimaryConstructor = FixKind(
+    'dart.fix.convert.defaultToPrimaryConstructor',
+    DartFixKindPriority.standard,
+    'Convert the default constructor to a primary constructor',
+  );
+  static const convertDefaultToPrimaryConstructorMulti = FixKind(
+    'dart.fix.convert.defaultToPrimaryConstructor.multi',
+    DartFixKindPriority.standard,
+    'Convert default constructor to primary constructor everywhere in file',
+  );
   static const convertFlutterChild = FixKind(
     'dart.fix.flutter.convert.childToChildren',
     DartFixKindPriority.standard,
@@ -482,6 +492,16 @@ abstract final class DartFixKind {
     'dart.fix.convert.toContains.multi',
     DartFixKindPriority.inFile,
     "Convert to using 'contains' everywhere in file",
+  );
+  static const convertToDeclaringParameter = FixKind(
+    'dart.fix.convert.toDeclaringParameter',
+    DartFixKindPriority.standard,
+    'Convert to a declaring parameter',
+  );
+  static const convertToDeclaringParameterMulti = FixKind(
+    'dart.fix.convert.toDeclaringParameter.multi',
+    DartFixKindPriority.standard,
+    'Convert to declaring parameters everywhere in file',
   );
   static const convertToDoubleQuotedString = FixKind(
     'dart.fix.convert.toDoubleQuotedString',
@@ -667,6 +687,16 @@ abstract final class DartFixKind {
     'dart.fix.convert.toPackageImport.multi',
     DartFixKindPriority.inFile,
     "Convert to 'package:' imports everywhere in file",
+  );
+  static const convertToPrimaryConstructor = FixKind(
+    'dart.fix.convert.toPrimaryConstructor',
+    DartFixKindPriority.standard,
+    'Convert to a primary constructor',
+  );
+  static const convertToPrimaryConstructorMulti = FixKind(
+    'dart.fix.convert.toPrimaryConstructor.multi',
+    DartFixKindPriority.standard,
+    'Convert to primary constructors everywhere in file',
   );
   static const convertToRawString = FixKind(
     'dart.fix.convert.toRawString',
@@ -1395,6 +1425,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.emptyConstructorBody.multi',
     DartFixKindPriority.inFile,
     'Remove empty constructor bodies in file',
+  );
+  static const removeEmptyContainerBody = FixKind(
+    'dart.fix.remove.emptyContainerBody',
+    DartFixKindPriority.standard,
+    'Remove empty {0} body',
+  );
+  static const removeEmptyContainerBodyMulti = FixKind(
+    'dart.fix.remove.emptyContainerBody.multi',
+    DartFixKindPriority.inFile,
+    'Remove empty class and enum bodies in file',
   );
   static const removeEmptyElse = FixKind(
     'dart.fix.remove.emptyElse',

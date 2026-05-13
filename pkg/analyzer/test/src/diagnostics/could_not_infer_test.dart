@@ -18,6 +18,8 @@ main() {
 @reflectiveTest
 class CouldNotInferTest extends PubPackageResolutionTest {
   test_constructors_inferenceFBounded() async {
+    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
+    // error messages for couldNotInfer which are not supported well by the tool.
     await assertErrorsInCode(
       '''
 class C<T> {}
@@ -56,8 +58,7 @@ main() {
   }
 
   test_constructors_inferFromArguments_argumentNotAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 typedef T F<T>();
@@ -68,22 +69,21 @@ class C<T extends A> {
 
 class NotA {}
 NotA myF() => null;
+//            ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'myF' because it has a return type of 'NotA'.
 
 main() {
   var x = C(myF);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//          ^^^
+// [diag.argumentTypeNotAssignable] The argument type 'NotA Function()' can't be assigned to the parameter type 'F<A>'. 
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromFunction, 98, 4),
-        error(diag.unusedLocalVariable, 120, 1),
-        error(diag.argumentTypeNotAssignable, 126, 3),
-      ],
-    );
+''');
   }
 
   test_downwardInference_fixes_noUpwardsErrors() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 // T max<T extends num>(T x, T y);
 main() {
@@ -91,49 +91,52 @@ main() {
   dynamic y;
 
   num a = max(x, y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//            ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'x' must be assigned before it can be used.
   Object b = max(x, y);
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
+//               ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'x' must be assigned before it can be used.
   dynamic c = max(x, y);
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//                ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'x' must be assigned before it can be used.
   var d = max(x, y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'd' isn't used.
+//            ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'x' must be assigned before it can be used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 93, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 101, 1),
-        error(diag.unusedLocalVariable, 117, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 125, 1),
-        error(diag.unusedLocalVariable, 142, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 150, 1),
-        error(diag.unusedLocalVariable, 163, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 171, 1),
-      ],
-    );
+''');
   }
 
   test_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T t) => null;
+//             ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
 main() { f(<S>(S s) => s); }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 15, 4)],
-    );
+''');
   }
 
   test_function_argument_invalidType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T extends num>(T t) {}
 
 void f(X x) {
+//     ^
+// [diag.undefinedClass] Undefined class 'X'.
   foo(x);
 }
-''',
-      [error(diag.undefinedClass, 40, 1)],
-    );
+''');
   }
 
   test_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<X>() {}
 
 main() {
@@ -143,7 +146,7 @@ main() {
   }
 
   test_functionType_allSameSubtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(int cb(int a, int b)) {}
 void main() {
@@ -153,6 +156,8 @@ void main() {
   }
 
   test_functionType_instantiatedToBounds() async {
+    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
+    // error messages for couldNotInfer which are not supported well by the tool.
     await assertErrorsInCode(
       r'''
 class A<X extends A<X>> {}
@@ -171,6 +176,8 @@ void f() {
     newFile('$testPackageLibPath/a.dart', '''
 void f<X>() {}
 ''');
+    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
+    // error messages for couldNotInfer which are not supported well by the tool.
     await assertErrorsInCode(
       '''
 // @dart=2.12
@@ -184,7 +191,7 @@ main() {
   }
 
   test_functionType_parameterIsBound_returnIsBound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(num cb(num a, num b)) {}
 void main() {
@@ -194,50 +201,46 @@ void main() {
   }
 
   test_functionType_parameterIsObject_returnIsBound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(num cb(Object a, Object b)) {}
 void main() {
   g(f);
+//  ^
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(Object, Object)'. 
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 95, 1)],
-    );
+''');
   }
 
   test_functionType_parameterIsObject_returnIsBound_prefixedFunction() async {
     newFile('$testPackageLibPath/a.dart', '''
 external T f<T extends num>(T a, T b);
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as a;
 void g(num cb(Object a, Object b)) {}
 void main() {
   g(a.f);
+//  ^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(Object, Object)'. 
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 78, 3)],
-    );
+''');
   }
 
   test_functionType_parameterIsObject_returnIsSubtype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(int cb(Object a, Object b)) {}
 void main() {
   g(f);
+//  ^
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(Object, Object)'. 
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 95, 1)],
-    );
+''');
   }
 
   test_functionType_parameterIsObject_returnIsSubtype_tearOff() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T m<T extends num>(T x, T y) {
     throw 'error';
@@ -246,14 +249,14 @@ class C {
 void g(int cb(Object a, Object b)) {}
 void main() {
   g(C().m);
+//  ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(Object, Object)'. 
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 124, 5)],
-    );
+''');
   }
 
   test_functionType_parameterIsSubtype_returnIsBound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(num cb(int a, int b)) {}
 void main() {
@@ -263,7 +266,7 @@ void main() {
   }
 
   test_functionType_parameterIsSubtype_returnIsObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(Object cb(int a, int b)) {}
 void main() {
@@ -273,7 +276,7 @@ void main() {
   }
 
   test_functionType_parametersAreSubtypes_returnIsBound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(num cb(int a, double b)) {}
 void main() {
@@ -283,6 +286,8 @@ void main() {
   }
 
   test_functionType_parametersAreSubtypes_returnIsOne() async {
+    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
+    // error messages for couldNotInfer which are not supported well by the tool.
     await assertErrorsInCode(
       '''
 external T f<T extends num>(T a, T b);
@@ -300,20 +305,21 @@ void main() {
 
   test_genericMethods_correctlyRecognizeGenericUpperBound() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T extends Pattern> {
   U method<U extends T>(U u) => u;
 }
 main() {
   new Foo<String>().method(42);
+//                         ^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 104, 2)],
-    );
+''');
   }
 
   test_instanceCreation_viaTypeAlias_notWellBounded() async {
+    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
+    // error messages for couldNotInfer which are not supported well by the tool.
     await assertErrorsInCode(
       '''
 class C<X> {
@@ -339,28 +345,26 @@ void f() {
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T f<T>(T t) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
 main() { new C().f(<S>(S s) => s); }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 27, 4)],
-    );
+''');
   }
 
   test_topLevel() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<P extends num> {
   factory C(Iterable<P> p) => C._();
   C._();
 }
 
 var c = C([]);
-''',
-      [error(diag.argumentTypeNotAssignable, 84, 2)],
-    );
+//        ^^
+// [diag.argumentTypeNotAssignable] The argument type 'List<dynamic>' can't be assigned to the parameter type 'Iterable<num>'. 
+''');
   }
 }

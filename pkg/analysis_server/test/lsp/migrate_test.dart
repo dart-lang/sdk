@@ -31,7 +31,10 @@ class MigrateTest extends AbstractLspAnalysisServerTest {
       response.error,
       isResponseError(
         ErrorCodes.InvalidParams,
-        message: contains("doesn't contain a 'pubspec.yaml' file."),
+        message: contains(
+          "The directory '$projectFolderPath' doesn't contain a 'pubspec.yaml' "
+          'file.',
+        ),
       ),
     );
   }
@@ -52,7 +55,8 @@ class MigrateTest extends AbstractLspAnalysisServerTest {
       isResponseError(
         ErrorCodes.InvalidParams,
         message: contains(
-          "doesn't refer to a package or pub workspace directory.",
+          "The path '$mainFilePath' doesn't refer to a package or pub workspace"
+          ' directory.',
         ),
       ),
     );
@@ -77,6 +81,28 @@ class MigrateTest extends AbstractLspAnalysisServerTest {
       isResponseError(
         ServerErrorCodes.invalidFilePath,
         message: contains("URI scheme 'http' is not supported"),
+      ),
+    );
+  }
+
+  Future<void> test_error_invalidPubspec() async {
+    await initialize();
+
+    newFile(pubspecFilePath, 'invalid: [');
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(uris: [projectFolderUri]),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: contains(
+          "Failed to parse 'pubspec.yaml' at '$projectFolderPath'",
+        ),
       ),
     );
   }
@@ -119,7 +145,8 @@ resolution: workspace
       isResponseError(
         ErrorCodes.InvalidParams,
         message: contains(
-          "is part of a workspace and can't be migrated independently.",
+          "The directory '$projectFolderPath' is part of a workspace and can't "
+          'be migrated independently.',
         ),
       ),
     );

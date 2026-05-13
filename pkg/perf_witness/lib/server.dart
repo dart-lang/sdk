@@ -251,7 +251,13 @@ class PerfWitnessServer {
     }
     await _server?.close();
     if (io.FileSystemEntity.typeSync(_controlSocketPath) != .notFound) {
-      io.File(_controlSocketPath).deleteSync();
+      try {
+        // Normally we would not expect this to throw, but on Windows
+        // users reported an occasional ERROR_CANT_ACCESS_FILE thrown here,
+        // possibly due to some sort of NTFS race with deleting the reparse
+        // point after unix domain socket was closed. See dartbug.com/63343.
+        io.File(_controlSocketPath).deleteSync();
+      } catch (_) {}
     }
     calloc.free(_isRecordingTimelineWithAsyncSpans);
   }

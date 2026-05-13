@@ -260,7 +260,7 @@ class AstPrinter {
         return _variableNames[node] ??= '#${_variableNames.length}';
       case CatchVariable(catchVariableName: var name):
         return name;
-      case LegacyVariableDeclaration(:var name):
+      case VariableStatement(:var name):
       case VariableInitialization(:var name):
         if (name != null) {
           return name;
@@ -519,11 +519,12 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeVariableInitialization(
-    VariableInitializationBase node, {
+    VariableDeclaration node, {
     bool includeModifiersAndType = true,
     bool? isLate,
     DartType? type,
     bool includeInitializer = true,
+    bool isImplicitlyTyped = false,
   }) {
     if (includeModifiersAndType) {
       if (node.isRequired) {
@@ -538,8 +539,12 @@ class AstPrinter {
       if (node.isConst) {
         _sb.write('const ');
       }
-      writeType(type ?? node.type);
-      _sb.write(' ');
+      if (isImplicitlyTyped) {
+        _sb.write('var ');
+      } else {
+        writeType(type ?? node.type);
+        _sb.write(' ');
+      }
     }
     _sb.write(getVariableName(node.variable));
     if (includeInitializer && node.initializer != null && !node.isRequired) {

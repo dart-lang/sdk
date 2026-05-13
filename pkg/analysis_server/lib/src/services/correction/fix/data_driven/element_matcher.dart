@@ -125,9 +125,11 @@ class ElementMatcher {
     if (validKinds.isNotEmpty && !validKinds.contains(element.kind)) {
       return false;
     }
-    //
+    // If this is a library element, then there are no imported URIs to check.
+    if (element.kind == ElementKind.libraryKind) {
+      return true;
+    }
     // Check whether the element is in an imported library.
-    //
     var libraryUris = element.libraryUris;
     for (var importedUri in importedUris) {
       if (libraryUris.contains(importedUri)) {
@@ -216,6 +218,13 @@ class _MatcherBuilder {
       }
       if (parent is ArgumentList) {
         _buildFromArgumentList(parent);
+      }
+      if (parent is ImportDirective && node is SimpleStringLiteral) {
+        _addMatcher(
+          components: [node.value],
+          kinds: [ElementKind.libraryKind],
+          node: parent,
+        );
       }
     } else if (node is NamedArgument) {
       _buildFromArgumentList(node.parent as ArgumentList);

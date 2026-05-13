@@ -1319,10 +1319,9 @@ final class AllocateObject extends Definition with CanThrow, Pure {
 }
 
 /// Allocate a closure instance.
-///
-/// Takes captured values as inputs.
 final class AllocateClosure extends Definition with CanThrow, Pure {
   final ClosureFunction function;
+  final ClosureLayout closureLayout;
 
   @override
   final CType type;
@@ -1331,9 +1330,9 @@ final class AllocateClosure extends Definition with CanThrow, Pure {
     super.graph,
     super.sourcePosition,
     this.function,
-    this.type, {
-    required super.inputCount,
-  });
+    this.closureLayout,
+    this.type,
+  ) : super(inputCount: 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateClosure(this);

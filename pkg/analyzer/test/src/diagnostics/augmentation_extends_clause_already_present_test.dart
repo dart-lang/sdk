@@ -9,8 +9,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationExtendsClauseAlreadyPresentTest);
+    defineReflectiveTests(AugmentationExtendsClauseAlreadyPresentTest);
   });
 }
 
@@ -18,76 +17,49 @@ main() {
 class AugmentationExtendsClauseAlreadyPresentTest
     extends PubPackageResolutionTest {
   test_alreadyPresent() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-
-class B extends A {};
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
+class A {}
 
+class B extends A {}
 augment class B extends A {}
 ''',
       [
         error(
           diag.augmentationExtendsClauseAlreadyPresent,
-          35,
+          49,
           7,
-          contextMessages: [message(a, 37, 1)],
+          contextMessages: [message(testFile, 18, 1)],
         ),
       ],
     );
   }
 
   test_alreadyPresent2() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-part 'test.dart';
-
-class A {}
-
-class B extends A {};
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment class B {}
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
+class A {}
 
+class B extends A {}
+augment class B {}
 augment class B extends A {}
 ''',
       [
         error(
           diag.augmentationExtendsClauseAlreadyPresent,
-          35,
+          68,
           7,
-          contextMessages: [message(a, 52, 1)],
+          contextMessages: [message(testFile, 18, 1)],
         ),
       ],
     );
   }
 
   test_notPresent() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+    await assertNoErrorsInCode(r'''
 class A {}
 
-class B {};
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
+class B {}
 augment class B extends A {}
 ''');
   }

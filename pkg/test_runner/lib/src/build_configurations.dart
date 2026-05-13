@@ -16,6 +16,7 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
   final modes = <Mode>{};
   final architectures = <Architecture>{};
   final systems = <System>{};
+  final sanitizers = <Sanitizer>{};
   for (final configuration in configurations) {
     if (!configuration.build) {
       continue;
@@ -25,6 +26,7 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
     modes.add(inner.mode);
     architectures.add(inner.architecture);
     systems.add(inner.system);
+    sanitizers.add(inner.sanitizer);
   }
 
   if (buildTargets.isEmpty) {
@@ -53,10 +55,12 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
 
   final command = [
     'tools/build.py',
-    '-m',
+    '--mode',
     modes.join(','),
-    '-a',
+    '--arch',
     architectures.join(','),
+    '--sanitizer',
+    sanitizers.join(','),
     ...osFlags,
     ...buildTargets,
   ];

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -56,6 +57,9 @@ class AnalyticsManager {
   /// The object used to send analytics.
   final Analytics analytics;
 
+  /// The environment variables.
+  final Map<String, String> _environment;
+
   /// Data about the current session, or `null` if the [startUp] method has not
   /// been invoked.
   SessionData? _sessionData;
@@ -101,7 +105,8 @@ class AnalyticsManager {
 
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
-  AnalyticsManager(this.analytics) {
+  AnalyticsManager(this.analytics, {Map<String, String>? environment})
+    : _environment = environment ?? Platform.environment {
     if (analytics is! NoOpAnalytics) {
       periodicTimer = Timer.periodic(Duration(minutes: 30), (_) {
         _sendPeriodicData();
@@ -745,6 +750,13 @@ class AnalyticsManager {
   Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
+
+    // Record the start of the session.
+    var ideName = _environment['DASH__IDE_NAME'] ?? '';
+    var ideVersion = _environment['DASH__IDE_VERSION'] ?? '';
+    var pluginName = _environment['DASH__PLUGIN_NAME'] ?? '';
+    var pluginVersion = _environment['DASH__PLUGIN_VERSION'] ?? '';
+
     analytics.send(
       Event.serverSession(
         flags: sessionData.commandLineArguments,
@@ -752,6 +764,10 @@ class AnalyticsManager {
         clientId: sessionData.clientId,
         clientVersion: sessionData.clientVersion,
         duration: duration,
+        ideName: ideName,
+        ideVersion: ideVersion,
+        pluginName: pluginName,
+        pluginVersion: pluginVersion,
       ),
     );
     for (var MapEntry(key: pluginId, value: percentileCalculator)

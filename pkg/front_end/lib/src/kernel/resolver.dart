@@ -1004,6 +1004,7 @@ class Resolver {
           scopeProviderInfo: null,
           contextAllocationStrategy:
               InferenceVisitorBase.createContextAllocationStrategy(),
+          constructorContext: null,
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -1234,7 +1235,7 @@ class Resolver {
 
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [fileOffset] as the file offset.
-  VariableGet _createVariableGet({
+  Expression _createVariableGet({
     required AssignedVariables assignedVariables,
     required InternalVariable variable,
     required int fileOffset,
@@ -1242,8 +1243,10 @@ class Resolver {
     if (!variable.isLocalFunction && !variable.isWildcard) {
       assignedVariables.read(variable.astVariable);
     }
-    return new VariableGet(variable.asExpressionVariable)
-      ..fileOffset = fileOffset;
+    return intern.createVariableGet(
+      variable as VariableDeclaration,
+      fileOffset: fileOffset,
+    );
   }
 
   void _declareFormals({
@@ -1483,6 +1486,7 @@ class Resolver {
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
         contextAllocationStrategy: contextAllocationStrategy,
+        constructorContext: bodyBuilderContext.constructorContext,
       );
       body = inferredFunctionBody.body;
       scopeProviderInfo = inferredFunctionBody.scopeProviderInfo;

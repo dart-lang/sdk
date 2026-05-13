@@ -77,7 +77,7 @@ class _RecGroupBuilder {
   late final List<List<ir.DefType>> _allRecursiveGroups =
       _createAllRecursiveGroups();
   final List<ir.DefType> _allDefinedTypes = [];
-  final Map<ir.DefType, int> _brandTypeAssignments = {};
+  final Set<ir.StructType> _brandedStructs = {};
 
   _RecGroupBuilder();
 
@@ -132,7 +132,6 @@ class _RecGroupBuilder {
     // (2) length of first struct
     // (3) group structural equality
     final equivalenceGroups = <_RecursionGroupKey, List<List<ir.DefType>>>{};
-
     for (final group in groups) {
       final structIndex = group.indexWhere((g) => g is ir.StructType);
       // Skip groups with no struct types.
@@ -148,14 +147,85 @@ class _RecGroupBuilder {
 
     for (final equalGroups in equivalenceGroups.values) {
       // All the groups in `equalGroups` are structurally equivalent.
-      // Skip the first group since we can leave one group as-is.
-      for (int i = 1; i < equalGroups.length; i++) {
-        // Key the assignment on the first element in the group. If a user is
-        // trying to use the brand index to restore the group, then all other
-        // elements are implicitly the same.
-        final typeIndex = _brandTypeAssignments[equalGroups[i].first] ??= i - 1;
-        final brandType = _getBrandType(typeIndex);
-        equalGroups[i].insert(0, brandType);
+      final toBrand = <List<ir.DefType>>[];
+      final noBrand = <List<ir.DefType>>[];
+
+      for (final group in equalGroups) {
+        final hasBrandedStruct = group.any(
+          (t) => t is ir.StructType && _brandedStructs.contains(t),
+        );
+        (hasBrandedStruct ? toBrand : noBrand).add(group);
+      }
+
+      final int startIdx = noBrand.isNotEmpty ? 0 : 1;
+      for (int i = startIdx; i < toBrand.length; i++) {
+        final brandTypeIndex = i - startIdx;
+        final brandType = _getBrandType(brandTypeIndex);
+        toBrand[i].insert(0, brandType);
+      }
+
+      // Rename the types and fields of wasm structs that will not get branded
+      // with a union name.
+      if (noBrand.length > 1) {
+        final groupCount = noBrand.length;
+        final dotDotDotLimit = 10;
+        final typesCount = noBrand.first.length;
+
+        // Equivalent groups must have the same length.
+        assert(noBrand.every((types) => types.length == typesCount));
+
+        for (int typeIndex = 0; typeIndex < typesCount; ++typeIndex) {
+          final structType = noBrand[0][typeIndex];
+          if (structType is! ir.StructType) {
+            continue;
+          }
+
+          // Build new struct names & field names by |-ing the ones from the
+          // individual groups, adding trailing '|...' if it's more than
+          // [dotDotDotLimit].
+          final structNameBuilder = StringBuffer();
+          final List<StringBuffer?> fieldNameBuilder = List.filled(
+            structType.fields.length,
+            null,
+          );
+          for (int group = 0; group < groupCount; ++group) {
+            if (group == dotDotDotLimit) {
+              structNameBuilder.write('|...');
+              for (int field = 0; field < fieldNameBuilder.length; ++field) {
+                if (fieldNameBuilder[field] case final StringBuffer buffer?) {
+                  buffer.write('|...');
+                }
+              }
+              break;
+            }
+
+            final structType = noBrand[group][typeIndex] as ir.StructType;
+            if (structType.name case final String? name) {
+              if (structNameBuilder.isNotEmpty) structNameBuilder.write('|');
+              structNameBuilder.write(name);
+            }
+            structType.fieldNames.forEach((fieldIndex, name) {
+              final buffer = fieldNameBuilder[fieldIndex] ??= StringBuffer();
+              if (buffer.isNotEmpty) buffer.write('|');
+              buffer.write(structType.name ?? '');
+              buffer.write('.');
+              buffer.write(name);
+            });
+          }
+          final newStructName = structNameBuilder.toString();
+          final List<String?> newFieldNames = fieldNameBuilder
+              .map((buffer) => buffer?.toString())
+              .toList();
+          for (int group = 0; group < groupCount; ++group) {
+            final structType = noBrand[group][typeIndex] as ir.StructType;
+            structType.name = newStructName;
+            for (int field = 0; field < structType.fields.length; ++field) {
+              if (newFieldNames[field] case final String name?) {
+                structType.fieldNames[field] = name;
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -249,12 +319,6 @@ class TypesBuilder with Builder<ir.Types> {
   TypesBuilder(this._module, {TypesBuilder? parent})
     : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
 
-  Map<ir.DefType, int> get brandTypeAssignments =>
-      _recGroupBuilder._brandTypeAssignments;
-
-  void addBrandTypeAssignment(ir.DefType type, int brandIndex) =>
-      _recGroupBuilder._brandTypeAssignments[type] = brandIndex;
-
   /// Add a new function type to the module.
   ///
   /// All function types are canonicalized, such that identical types become
@@ -287,9 +351,13 @@ class TypesBuilder with Builder<ir.Types> {
     String name, {
     Iterable<ir.FieldType>? fields,
     ir.DefType? superType,
+    required bool brand,
   }) {
     final type = ir.StructType(name, fields: fields, superType: superType);
     _recGroupBuilder.addDefinedType(type);
+    if (brand) {
+      _recGroupBuilder._brandedStructs.add(type);
+    }
     return type;
   }
 

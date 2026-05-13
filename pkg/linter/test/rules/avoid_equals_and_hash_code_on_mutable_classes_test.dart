@@ -115,7 +115,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment int get hashCode => 0;
+  augment int get hashCode;
 }
 ''');
   }

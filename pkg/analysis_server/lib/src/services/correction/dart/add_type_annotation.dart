@@ -196,13 +196,10 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
 
-    int offset;
-    switch (node) {
-      case ListLiteral():
-        offset = node.leftBracket.offset;
-      case SetOrMapLiteral():
-        offset = node.leftBracket.offset;
-    }
+    var offset = switch (node) {
+      ListLiteral() => node.leftBracket.offset,
+      SetOrMapLiteral() => node.leftBracket.offset,
+    };
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(offset, (builder) {

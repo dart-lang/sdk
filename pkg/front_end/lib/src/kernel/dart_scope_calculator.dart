@@ -4,6 +4,8 @@
 
 import 'package:kernel/ast.dart';
 
+import '../api_prototype/lowering_predicates.dart';
+
 // Coverage-ignore(suite): Not run.
 /// Dart scope
 ///
@@ -121,6 +123,12 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
             !decl.isSynthesized &&
             !hoistedUnwritten.contains(decl) &&
             !decl.isWildcard) {
+          // Rename late lowered - but not the #set and #get variants - to the
+          // original name.
+          // See also https://github.com/dart-lang/sdk/issues/55918.
+          if (decl.isLowered && isLateLoweredLocalName(name)) {
+            name = extractLocalNameFromLateLoweredLocal(name);
+          }
           definitions[name] = decl;
         }
       }

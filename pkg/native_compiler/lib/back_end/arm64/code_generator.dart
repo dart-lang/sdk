@@ -239,7 +239,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
       argumentsDescriptorReg,
       argumentsDescriptorReg,
       Immediate(
-        vmOffsets.ArgumentsDescriptor_first_named_entry_offset +
+        vmOffsets.ArgumentsDescriptor_first_named_entry_offset -
+            heapObjectTag +
             vmOffsets.ArgumentsDescriptor_position_offset,
       ),
     );
@@ -482,7 +483,38 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitComparison(Comparison instr) {
-    _asm.unimplemented('Unimplemented: code generation for Comparison');
+    final left = inputReg(instr, 0);
+    final right = instr.right;
+    final result = outputReg(instr);
+    switch (instr.op) {
+      case ComparisonOpcode.equal:
+      case ComparisonOpcode.notEqual:
+      case ComparisonOpcode.intEqual:
+      case ComparisonOpcode.intNotEqual:
+      case ComparisonOpcode.intLess:
+      case ComparisonOpcode.intLessOrEqual:
+      case ComparisonOpcode.intGreater:
+      case ComparisonOpcode.intGreaterOrEqual:
+        final (operand, negated) = _generateAddSubRightOperand(instr, right);
+        if (negated) {
+          _asm.cmn(left, operand);
+        } else {
+          _asm.cmp(left, operand);
+        }
+        break;
+      case ComparisonOpcode.intTestIsZero:
+      case ComparisonOpcode.intTestIsNotZero:
+        final operand = _generateLogicalRightOperand(instr, right);
+        _asm.tst(left, operand);
+        break;
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for Comparison ${instr.op}',
+        );
+    }
+    _asm.loadConstant(result, ConstantValue.fromBool(true));
+    _asm.loadConstant(tempReg, ConstantValue.fromBool(false));
+    _asm.csel(result, result, tempReg, instr.op.conditionCode);
   }
 
   @override
@@ -687,7 +719,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   bool _canBeSmi(Definition def) => switch (def) {
     Constant(:var value) => value.isInt && objectLayout.isSmi(value.intValue),
-    _ => def.type is IntType || const IntType().isSubtypeOf(def.type),
+    Definition(type: IntType()) => true,
+    Definition(type: ExtendedType()) => false,
+    Definition(:var type) => const IntType().isSubtypeOf(type),
   };
 
   void _writeBarrier(
@@ -1137,7 +1171,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitTypeArguments(TypeArguments instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeArguments');
+    _asm.loadConstant(
+      InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
+      ConstantValue(TypeArgumentsConstant(instr.types)),
+    );
+    _asm.callVmStub(StubCode.InstantiateTypeArguments);
   }
 
   @override
@@ -1247,37 +1285,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitAllocateClosure(AllocateClosure instr) {
     final function = instr.function;
-    final hasDelayedTypeArgs = function.hasFunctionTypeParameters;
-    final hasInstantiatorTypeArgs = switch (function) {
-      LocalFunction() => containsClassTypeParameters(
-        function.functionNode!.computeFunctionType(ast.Nullability.nonNullable),
-      ),
-      TearOffFunction() =>
-        function.member.isInstanceMember &&
-            containsClassTypeParameters(
-              function.member.function!.computeFunctionType(
-                ast.Nullability.nonNullable,
-              ),
-            ),
-    };
-    final hasFunctionTypeArgs = switch (function) {
-      LocalFunction() => hasGenericEnclosingFunction(function.localFunction),
-      TearOffFunction() => false,
-    };
-    final numElements =
-        (hasDelayedTypeArgs ? 1 : 0) +
-        (hasInstantiatorTypeArgs ? 1 : 0) +
-        (hasFunctionTypeArgs ? 1 : 0) +
-        1 /* context */;
+    final closureLayout = instr.closureLayout;
     final lengthAndFlags = vmOffsets.encodeClosureLengthAndFlags(
-      numElements,
-      hasDelayedTypeArgs: hasDelayedTypeArgs,
-      hasInstantiatorTypeArgs: hasInstantiatorTypeArgs,
-      hasFunctionTypeArgs: hasFunctionTypeArgs,
+      closureLayout.length,
+      hasDelayedTypeArgs: closureLayout.hasDelayedTypeArgs,
+      hasInstantiatorTypeArgs: closureLayout.hasClassTypeArgs,
+      hasFunctionTypeArgs: closureLayout.hasFunctionTypeArgs,
     );
     final instanceSize = roundUp(
       vmOffsets.Closure_elementsStartOffset +
-          numElements * objectLayout.compressedWordSize,
+          closureLayout.length * objectLayout.compressedWordSize,
       objectAlignment(wordSize),
     );
 
@@ -1321,8 +1338,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(resultReg, vmOffsets.Closure_length_and_flags_offset),
     );
     _asm.str(ZR, _asm.fieldAddress(resultReg, vmOffsets.Closure_hash_offset));
-    // TODO: initialize the rest of the fields.
-    assert(instr.inputCount == 0);
+    // TODO: initialize delayed type arguments.
     _asm.bind(done);
   }
 
@@ -1673,9 +1689,21 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitUnaryIntOp(UnaryIntOp instr) {
-    _asm.unimplemented(
-      'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
-    );
+    final operandReg = inputReg(instr, 0);
+    switch (instr.op) {
+      case .neg:
+        _asm.neg(outputReg(instr), operandReg);
+        break;
+      case .bitNot:
+        _asm.mvn(outputReg(instr), operandReg);
+        break;
+      case .toDouble:
+        _asm.scvtf(outputFPReg(instr), operandReg);
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
+        );
+    }
   }
 
   @override

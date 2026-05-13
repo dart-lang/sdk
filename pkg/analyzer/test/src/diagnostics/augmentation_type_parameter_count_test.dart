@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,13 +17,12 @@ main() {
 @reflectiveTest
 class AugmentationTypeParameterCountTest extends PubPackageResolutionTest {
   test_class_0_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 augment class A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 27, 1)],
-    );
+//              ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
 ClassDeclaration
@@ -48,13 +46,12 @@ ClassDeclaration
   }
 
   test_class_1_0() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 augment class A {}
-''',
-      [error(diag.augmentationTypeParameterCount, 28, 1)],
-    );
+//            ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
 ClassDeclaration
@@ -70,7 +67,7 @@ ClassDeclaration
   }
 
   test_class_1_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 augment class A<T> {}
 ''');
@@ -97,13 +94,12 @@ ClassDeclaration
   }
 
   test_class_1_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 augment class A<T, U> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 33, 1)],
-    );
+//                 ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
 ClassDeclaration
@@ -131,13 +127,12 @@ ClassDeclaration
   }
 
   test_class_1_3() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 augment class A<T, U, V> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 33, 1)],
-    );
+//                 ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
 ClassDeclaration
@@ -169,13 +164,12 @@ ClassDeclaration
   }
 
   test_class_2_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {}
 augment class A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 34, 1)],
-    );
+//               ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
 ClassDeclaration
@@ -199,17 +193,16 @@ ClassDeclaration
   }
 
   test_class_method_0_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 augment class A {
   augment void foo<T>();
+//                 ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
 }
-''',
-      [error(diag.augmentationTypeParameterCount, 65, 1)],
-    );
+''');
     var node = findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
@@ -239,7 +232,7 @@ MethodDeclaration
   }
 
   test_class_method_1_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo<T>() {}
 }
@@ -276,17 +269,16 @@ MethodDeclaration
   }
 
   test_class_method_1_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo<T>() {}
 }
 augment class A {
   augment void foo<T, U>();
+//                    ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
 }
-''',
-      [error(diag.augmentationTypeParameterCount, 71, 1)],
-    );
+''');
     var node = findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
@@ -320,13 +312,12 @@ MethodDeclaration
   }
 
   test_enum_0_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A {v}
 augment enum A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 26, 1)],
-    );
+//             ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
 EnumDeclaration
@@ -350,13 +341,12 @@ EnumDeclaration
   }
 
   test_enum_1_0() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T> {v}
 augment enum A {}
-''',
-      [error(diag.augmentationTypeParameterCount, 27, 1)],
-    );
+//           ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
 EnumDeclaration
@@ -372,7 +362,7 @@ EnumDeclaration
   }
 
   test_enum_1_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T> {v}
 augment enum A <T>{}
 ''');
@@ -399,13 +389,12 @@ EnumDeclaration
   }
 
   test_enum_1_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T> {v}
 augment enum A<T, U> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 32, 1)],
-    );
+//                ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
 EnumDeclaration
@@ -433,13 +422,12 @@ EnumDeclaration
   }
 
   test_enum_2_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T, U> {v}
 augment enum A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 33, 1)],
-    );
+//              ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
 EnumDeclaration
@@ -463,13 +451,12 @@ EnumDeclaration
   }
 
   test_extension_0_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {}
 augment extension A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 42, 1)],
-    );
+//                  ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
 ExtensionDeclaration
@@ -492,13 +479,12 @@ ExtensionDeclaration
   }
 
   test_extension_1_0() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T> on int {}
 augment extension A {}
-''',
-      [error(diag.augmentationTypeParameterCount, 43, 1)],
-    );
+//                ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
 ExtensionDeclaration
@@ -513,7 +499,7 @@ ExtensionDeclaration
   }
 
   test_extension_1_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T> on int {}
 augment extension A<T> {}
 ''');
@@ -539,13 +525,12 @@ ExtensionDeclaration
   }
 
   test_extension_1_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T> on int {}
 augment extension A<T, U> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 48, 1)],
-    );
+//                     ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
 ExtensionDeclaration
@@ -572,13 +557,12 @@ ExtensionDeclaration
   }
 
   test_extension_2_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T, U> on int {}
 augment extension A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 49, 1)],
-    );
+//                   ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
 ExtensionDeclaration
@@ -601,13 +585,12 @@ ExtensionDeclaration
   }
 
   test_extensionType_0_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 augment extension type A<T>(int it) {}
-''',
-      [error(diag.augmentationTypeParameterCount, 53, 1)],
-    );
+//                       ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
@@ -648,13 +631,12 @@ ExtensionTypeDeclaration
   }
 
   test_extensionType_1_0() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
 augment extension type A(int it) {}
-''',
-      [error(diag.augmentationTypeParameterCount, 54, 1)],
-    );
+//                     ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
@@ -687,7 +669,7 @@ ExtensionTypeDeclaration
   }
 
   test_extensionType_1_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
 augment extension type A<T>(int it) {}
 ''');
@@ -731,13 +713,12 @@ ExtensionTypeDeclaration
   }
 
   test_extensionType_1_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
 augment extension type A<T, U>(int it) {}
-''',
-      [error(diag.augmentationTypeParameterCount, 59, 1)],
-    );
+//                          ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
@@ -782,13 +763,12 @@ ExtensionTypeDeclaration
   }
 
   test_extensionType_2_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T, U>(int it) {}
 augment extension type A<T>(int it) {}
-''',
-      [error(diag.augmentationTypeParameterCount, 60, 1)],
-    );
+//                        ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
@@ -829,13 +809,12 @@ ExtensionTypeDeclaration
   }
 
   test_mixin_0_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 augment mixin A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 27, 1)],
-    );
+//              ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
 MixinDeclaration
@@ -858,13 +837,12 @@ MixinDeclaration
   }
 
   test_mixin_1_0() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T> {}
 augment mixin A {}
-''',
-      [error(diag.augmentationTypeParameterCount, 28, 1)],
-    );
+//            ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
 MixinDeclaration
@@ -879,7 +857,7 @@ MixinDeclaration
   }
 
   test_mixin_1_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T> {}
 augment mixin A<T> {}
 ''');
@@ -905,13 +883,12 @@ MixinDeclaration
   }
 
   test_mixin_1_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T> {}
 augment mixin A<T, U> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 33, 1)],
-    );
+//                 ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
 MixinDeclaration
@@ -938,13 +915,12 @@ MixinDeclaration
   }
 
   test_mixin_2_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T, U> {}
 augment mixin A<T> {}
-''',
-      [error(diag.augmentationTypeParameterCount, 34, 1)],
-    );
+//               ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
 MixinDeclaration
@@ -967,13 +943,12 @@ MixinDeclaration
   }
 
   test_topLevelFunction_0_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {}
-augment void f<T>() {}
-''',
-      [error(diag.augmentationTypeParameterCount, 27, 1)],
-    );
+augment void f<T>();
+//             ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.functionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
@@ -995,10 +970,8 @@ FunctionDeclaration
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+    body: EmptyFunctionBody
+      semicolon: ;
     declaredFragment: <testLibraryFragment> f@25
       element: <testLibrary>::@function::f
         type: void Function<T>()
@@ -1010,9 +983,9 @@ FunctionDeclaration
   }
 
   test_topLevelFunction_1_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {}
-augment void f<T>() {}
+augment void f<T>();
 ''');
     var node = findNode.functionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
@@ -1035,10 +1008,8 @@ FunctionDeclaration
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+    body: EmptyFunctionBody
+      semicolon: ;
     declaredFragment: <testLibraryFragment> f@28
       element: <testLibrary>::@function::f
         type: void Function<T>()
@@ -1050,13 +1021,12 @@ FunctionDeclaration
   }
 
   test_topLevelFunction_1_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {}
-augment void f<T, U>() {}
-''',
-      [error(diag.augmentationTypeParameterCount, 33, 1)],
-    );
+augment void f<T, U>();
+//                ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+''');
     var node = findNode.functionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
@@ -1082,10 +1052,8 @@ FunctionDeclaration
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+    body: EmptyFunctionBody
+      semicolon: ;
     declaredFragment: <testLibraryFragment> f@28
       element: <testLibrary>::@function::f
         type: void Function<T, U>()

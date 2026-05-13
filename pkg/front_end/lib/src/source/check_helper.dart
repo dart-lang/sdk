@@ -873,6 +873,7 @@ extension CheckHelper on ProblemReporting {
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     int offset = expression.fileOffset;
     if (offset == -1) {
+      // Coverage-ignore-block(suite): Not run.
       offset = message.charOffset;
     }
     return buildProblem(

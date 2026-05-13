@@ -145,6 +145,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     reference.element = this;
     _firstFragment.element = this;
 
+    isAbstract = _firstFragment.isAbstract || _firstFragment.isSealed;
     isBase = _firstFragment.isBase;
     isFinal = _firstFragment.isFinal;
     isInterface = _firstFragment.isInterface;
@@ -315,7 +316,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIncludedInId
   bool get isAbstract {
-    return _firstFragment.isAbstract;
+    return hasFlag(_ElementStorageFlag.classElement_isAbstract);
+  }
+
+  @generated
+  set isAbstract(bool value) {
+    setFlag(_ElementStorageFlag.classElement_isAbstract, value);
   }
 
   @generated
@@ -515,8 +521,11 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         .where((constructor) => constructor.isGenerative)
         .toList(growable: false);
 
-    bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element.fields.any((e) => e.isOriginDeclaration);
+    bool typeHasInstanceVariables(InterfaceTypeImpl type) {
+      return type.element.fields.any(
+        (field) => field.isInstanceField && field.isOriginDeclaration,
+      );
+    }
 
     _constructors = superConstructors.map((superConstructor) {
       var constructorFragment = ConstructorFragmentImpl(
@@ -728,6 +737,18 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   @override
   ClassFragmentImpl? get nextFragment {
     return super.nextFragment as ClassFragmentImpl?;
+  }
+
+  @override
+  List<ClassFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
   }
 
   @override
@@ -2681,6 +2702,18 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   }
 
   @override
+  List<ExecutableFragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
+  }
+
+  @override
   List<FormalParameterFragmentImpl> get formalParameters {
     _ensureReadResolution();
     return _formalParameters;
@@ -2799,6 +2832,18 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
 
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
+
+  @override
+  List<ExecutableFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
+  }
 
   @override
   ExecutableFragmentImpl? get previousFragment;
@@ -4017,6 +4062,18 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     };
   }
 
+  @override
+  List<FormalParameterFragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
+  }
+
   /// The parameters defined by this parameter.
   ///
   /// A parameter will only define other parameters if it is a function typed
@@ -4162,12 +4219,15 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   @override
-  Iterable<FormalParameterFragmentImpl> get precedingFragments sync* {
-    var current = previousFragment;
-    while (current != null) {
-      yield current;
-      current = current.previousFragment;
-    }
+  List<FormalParameterFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
   }
 
   /// The type parameters defined by this parameter.
@@ -4376,12 +4436,15 @@ abstract class FragmentImpl implements Fragment {
 
   /// The fragments in the augmentation chain that follow this fragment,
   /// in order from the immediate next fragment to the last fragment.
-  Iterable<FragmentImpl> get followingFragments sync* {
-    var current = nextFragment;
-    while (current != null) {
-      yield current;
-      current = current.nextFragment;
-    }
+  List<FragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
   }
 
   @generated
@@ -4445,12 +4508,15 @@ abstract class FragmentImpl implements Fragment {
 
   /// The fragments in the augmentation chain that precede this fragment,
   /// in order from the immediate previous fragment to the first fragment.
-  Iterable<FragmentImpl> get precedingFragments sync* {
-    var current = previousFragment;
-    while (current != null) {
-      yield current;
-      current = current.previousFragment;
-    }
+  List<FragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
   }
 
   @override
@@ -11761,7 +11827,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
 enum _ClassElementFlags {
   hasExtendsClause(fragment: true),
-  isAbstract(fragment: true, element: _ElementFlagSource.firstFragment),
+  isAbstract(fragment: true, element: _ElementFlagSource.stored),
   isBase(fragment: true, element: _ElementFlagSource.stored),
   isFinal(fragment: true, element: _ElementFlagSource.stored),
   isInterface(fragment: true, element: _ElementFlagSource.stored),
@@ -11819,6 +11885,7 @@ enum _ElementFlagSource { none, firstFragment, stored, computed }
 
 @generated
 enum _ElementStorageFlag {
+  classElement_isAbstract,
   classElement_isBase,
   classElement_isFinal,
   classElement_isInterface,

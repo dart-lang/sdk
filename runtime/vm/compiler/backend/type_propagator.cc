@@ -1507,13 +1507,14 @@ static CompileType ComputeListFactoryType(CompileType* inferred_type,
   ASSERT(cid != kDynamicCid);
   if ((cid == kGrowableObjectArrayCid || cid == kArrayCid ||
        cid == kImmutableArrayCid) &&
-      type_args_value->BindsToConstant()) {
+      ((type_args_value == nullptr) || type_args_value->BindsToConstant())) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     const Class& cls =
         Class::Handle(zone, thread->isolate_group()->class_table()->At(cid));
     auto& type_args = TypeArguments::Handle(zone);
-    if (!type_args_value->BoundConstant().IsNull()) {
+    if (type_args_value != nullptr &&
+        !type_args_value->BoundConstant().IsNull()) {
       type_args ^= type_args_value->BoundConstant().ptr();
       ASSERT(type_args.Length() >= cls.NumTypeArguments());
       type_args = type_args.FromInstanceTypeArguments(thread, cls);
@@ -1533,7 +1534,8 @@ CompileType StaticCallInstr::ComputeType() const {
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* const inferred_type = result_type();
   if (is_known_list_constructor()) {
-    return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
+    Value* type_args_value = type_args_len() > 0 ? ArgumentValueAt(0) : nullptr;
+    return ComputeListFactoryType(inferred_type, type_args_value);
   }
 
   intptr_t inferred_cid = kDynamicCid;

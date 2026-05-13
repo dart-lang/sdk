@@ -107,15 +107,11 @@ abstract class Generator {
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
-  ///
-  /// If [forOutput] is true, the assignment is emitted in the form it will be
-  /// given to the backends, skipping the internal representation stage, which
-  /// might be required, for example, by type inference.
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  });
+  Expression buildAssignment(Expression value, {bool voidContext = false});
+
+  /// Builds a [InternalForInElement] for the use of this generator as the
+  /// element in a for-in loop.
+  InternalForInElement buildForInElement({required int inOffset});
 
   /// Returns an [Expression] representing a null-aware assignment (`??=`) with
   /// the generator on the LHS and [value] on the RHS.
@@ -181,7 +177,7 @@ abstract class Generator {
   /// Returns an [Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
-  Expression _makeInvalidRead({
+  InvalidExpression _makeInvalidRead({
     required UnresolvedKind unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -197,7 +193,7 @@ abstract class Generator {
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _helper.buildUnresolvedError(
       _plainNameForRead,
       fileOffset,
@@ -318,14 +314,15 @@ abstract class Generator {
     int fileOffset,
     List<TypeBuilder>? typeArguments,
   ) {
-    return new Instantiation(
+    return intern.createInstantiation(
       buildSimpleRead(),
       _helper.buildDartTypeArguments(
         typeArguments,
         TypeUse.tearOffTypeArgument,
         allowPotentiallyConstantType: true,
       ),
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
   }
 
   /// Returns a [TypeBuilder] for this subexpression instantiated with the
@@ -465,12 +462,8 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
-    return _createWrite(fileOffset, value, forOutput: forOutput);
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    return _createWrite(fileOffset, value);
   }
 
   void _checkAssignment(int offset) {
@@ -484,18 +477,21 @@ class VariableUseGenerator extends Generator {
     }
   }
 
-  Expression _createWrite(
-    int offset,
-    Expression value, {
-    bool forOutput = false,
-  }) {
+  Expression _createWrite(int offset, Expression value) {
     _checkAssignment(offset);
     _helper.registerVariableAssignment(variable);
-    if (variable case InternalVariable(:var astVariable) when forOutput) {
-      return new VariableSet(astVariable, value)..fileOffset = offset;
-    } else {
-      return new VariableSet(variable, value)..fileOffset = offset;
-    }
+    return intern.createVariableSet(variable, value, fileOffset: offset);
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    _checkAssignment(fileOffset);
+    _helper.registerVariableAssignment(variable);
+    return new ExistingVariableForInElement(
+      variable: variable,
+      nameOffset: fileOffset,
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -653,19 +649,22 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   String get _debugName => "ForInLateFinalVariableUseGenerator";
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
-    InvalidExpression error = _helper.buildProblem(
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+    return _helper.buildProblem(
       message: diag.cannotAssignToFinalVariable.withArguments(
         variableName: variable.cosmeticName!,
       ),
       fileUri: _helper.uri,
       fileOffset: fileOffset,
       length: lengthForToken(token),
-    )..parent = variable;
+      errorHasBeenReported: errorHasBeenReported,
+    );
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    InvalidExpression error = _makeInvalidWrite()..parent = variable;
     Expression assignment = super.buildAssignment(
       value,
       voidContext: voidContext,
@@ -674,6 +673,16 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
       assignment.value = error..parent = assignment;
     }
     return assignment;
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new ExistingVariableForInElement(
+      variable: variable,
+      nameOffset: fileOffset,
+      error: _makeInvalidWrite(),
+      inOffset: inOffset,
+    );
   }
 }
 
@@ -755,11 +764,7 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return intern.createPropertySet(
       fileOffset,
       receiver,
@@ -767,6 +772,20 @@ class PropertyAccessGenerator extends Generator {
       value,
       forEffect: voidContext,
       isNullAware: false,
+    );
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
     );
   }
 
@@ -888,6 +907,7 @@ class PropertyAccessGenerator extends Generator {
         thisVariable: helper.thisVariable,
         thisOffset: receiver.fileOffset,
         isNullAware: isNullAware,
+        isThisExplicit: true,
       );
     } else {
       return isNullAware
@@ -935,6 +955,8 @@ class ThisPropertyAccessGenerator extends Generator {
   final int? thisOffset;
   final bool isNullAware;
 
+  final bool isThisExplicit;
+
   /// The synthetic variable used for 'this' in instance extension members
   /// and instance extension type members/constructor bodies.
   VariableDeclaration? thisVariable;
@@ -946,6 +968,7 @@ class ThisPropertyAccessGenerator extends Generator {
     this.thisVariable,
     this.thisOffset,
     this.isNullAware = false,
+    required this.isThisExplicit,
   }) : super(helper, nameToken);
 
   @override
@@ -959,8 +982,11 @@ class ThisPropertyAccessGenerator extends Generator {
   int get _nameOffset => fileOffset;
 
   Expression get _thisExpression => thisVariable != null
-      ? intern.createVariableGet(thisOffset ?? fileOffset, thisVariable!)
-      : intern.createThisExpression(thisOffset ?? fileOffset);
+      ? intern.createVariableGet(
+          thisVariable!,
+          fileOffset: thisOffset ?? fileOffset,
+        )
+      : intern.createThisExpression(fileOffset: thisOffset ?? fileOffset);
 
   @override
   Expression buildSimpleRead() {
@@ -978,11 +1004,7 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
@@ -999,6 +1021,28 @@ class ThisPropertyAccessGenerator extends Generator {
       value,
       forEffect: forEffect,
       isNullAware: false,
+    );
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    if (isThisExplicit) {
+      return new InvalidForInElement(
+        error: _helper.buildProblem(
+          message: diag.nonIdentifierForInElement,
+          fileUri: _helper.uri,
+          fileOffset: fileOffset,
+          length: noLength,
+          errorHasBeenReported: true,
+        ),
+        inOffset: inOffset,
+      );
+    }
+    return new PropertyForInElement(
+      receiver: _thisExpression,
+      name: name,
+      nameOffset: _nameOffset,
+      inOffset: inOffset,
     );
   }
 
@@ -1156,11 +1200,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return intern.createPropertySet(
       fileOffset,
       receiver,
@@ -1168,6 +1208,20 @@ class NullAwarePropertyAccessGenerator extends Generator {
       value,
       forEffect: voidContext,
       isNullAware: true,
+    );
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
     );
   }
 
@@ -1335,17 +1389,17 @@ class SuperPropertyAccessGenerator extends Generator {
       );
     } else {
       _helper.readInternalThisVariable();
-      return new SuperPropertyGet(new ThisExpression(), name, getter)
-        ..fileOffset = fileOffset;
+      return intern.createSuperPropertyGet(
+        intern.createThisExpression(fileOffset: fileOffset),
+        name,
+        getter,
+        fileOffset: fileOffset,
+      );
     }
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(fileOffset, value);
   }
 
@@ -1360,9 +1414,28 @@ class SuperPropertyAccessGenerator extends Generator {
       );
     } else {
       _helper.readInternalThisVariable();
-      return new SuperPropertySet(new ThisExpression(), name, value, setter)
-        ..fileOffset = offset;
+      return intern.createSuperPropertySet(
+        intern.createThisExpression(fileOffset: fileOffset),
+        name,
+        setter,
+        value,
+        fileOffset: offset,
+      );
     }
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -1567,11 +1640,7 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return intern.createIndexSet(
       fileOffset,
       receiver,
@@ -1579,6 +1648,20 @@ class IndexedAccessGenerator extends Generator {
       value,
       forEffect: voidContext,
       isNullAware: isNullAware,
+    );
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
     );
   }
 
@@ -1738,7 +1821,7 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return intern.createIndexGet(
       fileOffset,
       receiver,
@@ -1748,13 +1831,9 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return intern.createIndexSet(
       fileOffset,
       receiver,
@@ -1766,6 +1845,20 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
+    );
+  }
+
+  @override
   Expression buildIfNullAssignment(
     Expression value,
     DartType type,
@@ -1773,7 +1866,7 @@ class ThisIndexedAccessGenerator extends Generator {
     bool voidContext = false,
   }) {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return new IfNullIndexSet(
       receiver: receiver,
       index: index,
@@ -1796,7 +1889,7 @@ class ThisIndexedAccessGenerator extends Generator {
     bool isPostIncDec = false,
   }) {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return new CompoundIndexSet(
       receiver: receiver,
       index: index,
@@ -1920,11 +2013,7 @@ class SuperIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     Procedure? setter = this.setter;
     if (setter == null) {
       return _helper.buildUnresolvedError(
@@ -1957,6 +2046,20 @@ class SuperIndexedAccessGenerator extends Generator {
         return new SuperIndexSet(setter, index, value)..fileOffset = fileOffset;
       }
     }
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -2134,6 +2237,8 @@ class StaticAccessGenerator extends Generator {
   final int? typeOffset;
   final bool isNullAware;
 
+  final bool isQualifiedAccess;
+
   StaticAccessGenerator(
     ExpressionGeneratorHelper helper,
     Token nameToken,
@@ -2143,6 +2248,7 @@ class StaticAccessGenerator extends Generator {
     this.writeTarget, {
     this.typeOffset,
     this.isNullAware = false,
+    required this.isQualifiedAccess,
   }) : assert(
          readTarget != null || invokeTarget != null || writeTarget != null,
          "No targets for $targetName.",
@@ -2157,6 +2263,7 @@ class StaticAccessGenerator extends Generator {
     MemberBuilder? setterBuilder, {
     int? typeOffset,
     bool isNullAware = false,
+    required bool isQualifiedAccess,
   }) {
     // If both [getterBuilder] and [setterBuilder] exist, they must both be
     // either top level (potentially from different libraries) or from the same
@@ -2176,6 +2283,7 @@ class StaticAccessGenerator extends Generator {
       setterBuilder?.writeTarget,
       typeOffset: typeOffset,
       isNullAware: isNullAware,
+      isQualifiedAccess: isQualifiedAccess,
     );
   }
 
@@ -2209,22 +2317,45 @@ class StaticAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(fileOffset, value);
   }
 
   Expression _createWrite(int offset, Expression value) {
-    Expression write;
-    if (writeTarget == null) {
-      write = _makeInvalidWrite();
+    Member? target = writeTarget;
+    if (target == null) {
+      return _makeInvalidWrite();
     } else {
-      write = new StaticSet(writeTarget!, value)..fileOffset = offset;
+      return intern.createStaticSet(writeTarget!, value, fileOffset: offset);
     }
-    return write;
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    if (isQualifiedAccess) {
+      return new InvalidForInElement(
+        error: _helper.buildProblem(
+          message: diag.nonIdentifierForInElement,
+          fileUri: _helper.uri,
+          fileOffset: fileOffset,
+          length: noLength,
+          errorHasBeenReported: true,
+        ),
+        inOffset: inOffset,
+      );
+    }
+    Member? target = writeTarget;
+    if (target == null) {
+      return new InvalidForInElement(
+        error: _makeInvalidWrite(),
+        inOffset: inOffset,
+      );
+    }
+    return new StaticForInElement(
+      target: target,
+      nameOffset: _nameOffset,
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -2576,11 +2707,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
@@ -2603,6 +2730,26 @@ class ExtensionInstanceAccessGenerator extends Generator {
         forEffect: forEffect,
       )..fileOffset = offset;
     }
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    Procedure? setter = writeTarget;
+    if (setter == null) {
+      return new InvalidForInElement(
+        error: _makeInvalidWrite(),
+        inOffset: inOffset,
+      );
+    }
+    return new ExtensionForInElement(
+      extension: extension,
+      thisTypeArguments: _createThisTypeArguments(),
+      thisAccess: _createThisAccess(),
+      name: targetName,
+      setter: setter,
+      nameOffset: fileOffset,
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -3010,11 +3157,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _createWrite(
       fileOffset,
       receiver,
@@ -3048,6 +3191,20 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       )..fileOffset = offset;
     }
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -3364,11 +3521,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     Procedure? setter = writeTarget;
     if (setter == null) {
       // Coverage-ignore-block(suite): Not run.
@@ -3385,6 +3538,20 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       forEffect: voidContext,
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     )..fileOffset = fileOffset;
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -3576,12 +3743,17 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _makeInvalidWrite(),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -3750,7 +3922,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   @override
-  Expression _makeInvalidRead({
+  InvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -3765,7 +3937,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _helper.buildProblem(
       message: diag.explicitExtensionAsLvalue,
       fileUri: _helper.uri,
@@ -3856,12 +4028,17 @@ class LoadLibraryGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _makeInvalidWrite(),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -3972,15 +4149,25 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _helper.wrapInDeferredCheck(
       suffixGenerator.buildAssignment(value, voidContext: voidContext),
       prefixGenerator.prefix,
       token.charOffset,
+    );
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _helper.buildProblem(
+        message: diag.nonIdentifierForInElement,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: noLength,
+        errorHasBeenReported: true,
+      ),
+      inOffset: inOffset,
     );
   }
 
@@ -4684,7 +4871,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   builtTypeArguments = unaliasTypes(builtTypeArguments)!;
 
                   tearOffExpression = intern.createInstantiation(
-                    token.charOffset,
+                    fileOffset: token.charOffset,
                     tearOffExpression,
                     builtTypeArguments,
                   );
@@ -4717,6 +4904,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 memberLookupResult.setable,
                 typeOffset: fileOffset,
                 isNullAware: isNullAware,
+                isQualifiedAccess: true,
               );
             }
           } else {
@@ -4777,6 +4965,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     memberLookupResult.setable,
                     typeOffset: fileOffset,
                     isNullAware: isNullAware,
+                    isQualifiedAccess: true,
                   );
                 }
               } else {
@@ -4806,6 +4995,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               setable is MemberBuilder ? setable : null,
               typeOffset: fileOffset,
               isNullAware: isNullAware,
+              isQualifiedAccess: true,
             );
           }
         } else {
@@ -4817,6 +5007,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             setable is MemberBuilder ? setable : null,
             typeOffset: fileOffset,
             isNullAware: isNullAware,
+            isQualifiedAccess: true,
           );
         }
       }
@@ -4995,7 +5186,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   Expression _createRead() => expression;
 
   @override
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     switch (kind) {
       case ReadOnlyAccessKind.ConstVariable:
         return _helper.buildProblem(
@@ -5057,12 +5248,16 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite();
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _makeInvalidWrite(),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -5207,12 +5402,16 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildError(kind: UnresolvedKind.Setter);
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: buildError(kind: UnresolvedKind.Setter),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -5264,7 +5463,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidRead({
+  InvalidExpression _makeInvalidRead({
     required UnresolvedKind unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -5276,7 +5475,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return buildError(
       kind: UnresolvedKind.Setter,
       errorHasBeenReported: errorHasBeenReported,
@@ -5364,7 +5563,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidRead({
+  InvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -5373,7 +5572,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _createInvalidExpression();
   }
 
@@ -5511,12 +5710,16 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
-    return _buildUnresolvedVariableAssignment(false, value);
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    return _buildUnresolvedVariableAssignment(isCompound: false);
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _buildUnresolvedVariableAssignment(isCompound: false),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -5528,7 +5731,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    return _buildUnresolvedVariableAssignment(true, value);
+    return _buildUnresolvedVariableAssignment(isCompound: true);
   }
 
   @override
@@ -5546,10 +5749,9 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     sink.write(name.text);
   }
 
-  Expression _buildUnresolvedVariableAssignment(
-    bool isCompound,
-    Expression value,
-  ) {
+  InvalidExpression _buildUnresolvedVariableAssignment({
+    required bool isCompound,
+  }) {
     return buildError(
       kind: UnresolvedKind.Setter,
       errorHasBeenReported: errorHasBeenReported,
@@ -5601,12 +5803,17 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _makeInvalidWrite(),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -5664,7 +5871,7 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _helper.buildProblem(
       message: diag.illegalAssignmentToNonAssignable,
       fileUri: _helper.uri,
@@ -5916,12 +6123,17 @@ class PrefixUseGenerator extends Generator {
   Expression buildSimpleRead() => _makeInvalidRead();
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  // Coverage-ignore(suite): Not run.
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite();
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _makeInvalidWrite(),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -6046,7 +6258,7 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  Expression _makeInvalidRead({
+  InvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -6060,7 +6272,7 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
       _makeInvalidRead(errorHasBeenReported: errorHasBeenReported);
 
   @override
@@ -6118,12 +6330,17 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(errorHasBeenReported: errorHasBeenReported);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: _makeInvalidWrite(errorHasBeenReported: errorHasBeenReported),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -6309,12 +6526,13 @@ class ParserErrorGenerator extends Generator {
   Expression buildSimpleRead() => buildProblem();
 
   @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildProblem();
+  }
+
+  @override
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(error: buildProblem(), inOffset: inOffset);
   }
 
   @override
@@ -6363,14 +6581,14 @@ class ParserErrorGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidRead({
+  InvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) => buildProblem();
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
+  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
       buildProblem();
 
   @override
@@ -6552,7 +6770,7 @@ class ThisAccessGenerator extends Generator {
         _helper.readInternalThisVariable();
         return _helper.thisVariable != null
             ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
-            : intern.createThisExpression(fileOffset);
+            : intern.createThisExpression(fileOffset: fileOffset);
       }
     } else {
       return _helper.buildProblem(
@@ -6624,7 +6842,7 @@ class ThisAccessGenerator extends Generator {
         return _helper.buildMethodInvocation(
           _helper.thisVariable != null
               ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
-              : intern.createThisExpression(fileOffset),
+              : intern.createThisExpression(fileOffset: fileOffset),
           name,
           selector.typeArguments,
           selector.arguments,
@@ -6652,6 +6870,7 @@ class ThisAccessGenerator extends Generator {
           thisVariable: _helper.thisVariable,
           thisOffset: fileOffset,
           isNullAware: isNullAware,
+          isThisExplicit: true,
         );
       }
     }
@@ -6682,7 +6901,7 @@ class ThisAccessGenerator extends Generator {
         offset,
         _helper.thisVariable != null
             ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
-            : intern.createThisExpression(fileOffset),
+            : intern.createThisExpression(fileOffset: fileOffset),
         typeArguments,
         arguments,
       );
@@ -6829,12 +7048,17 @@ class ThisAccessGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildAssignmentError();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  InternalForInElement buildForInElement({required int inOffset}) {
+    return new InvalidForInElement(
+      error: buildAssignmentError(),
+      inOffset: inOffset,
+    );
   }
 
   @override
@@ -6907,7 +7131,7 @@ class ThisAccessGenerator extends Generator {
   }
 
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignmentError() {
+  InvalidExpression buildAssignmentError() {
     return _helper.buildProblem(
       message: isSuper ? diag.cannotAssignToSuper : diag.notAnLvalue,
       fileUri: _helper.uri,

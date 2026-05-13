@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
@@ -44,6 +45,7 @@ import 'wasm_annotations.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
+  bool? enableUniqueTypes;
   bool enableAsserts = false;
   bool importSharedMemory = false;
   bool uniqueConstantNames = true;
@@ -79,6 +81,7 @@ class TranslatorOptions {
       omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
   bool get omitBoundsChecks =>
       omitBoundsChecksOverride ?? optimizationLevel >= 4;
+  bool get uniqueTypes => enableUniqueTypes ?? optimizationLevel >= 2;
 }
 
 /// The main entry point for the translation from kernel to Wasm and the hub for
@@ -755,8 +758,13 @@ class Translator with KernelNodes {
   List<w.ValueType> callReference(
     Reference reference,
     w.InstructionsBuilder b,
-  ) {
-    final callTarget = directCallTarget(reference);
+  ) => callTarget(directCallTarget(reference), b, reference);
+
+  List<w.ValueType> callTarget(
+    CallTarget callTarget,
+    w.InstructionsBuilder b, [
+    Reference? reference,
+  ]) {
     late final List<w.ValueType> outputs;
     if (callTarget.supportsInlining) {
       final decision = callTarget.shouldInline;
@@ -774,6 +782,11 @@ class Translator with KernelNodes {
       assert(outputs.isEmpty);
       b.ref_null(w.HeapType.none);
       return [w.RefType(w.HeapType.none, nullable: true)];
+    }
+    if (callTarget.synthesizeNoReturn) {
+      assert(outputs.isEmpty);
+      b.unreachable();
+      return const [];
     }
     return outputs;
   }
@@ -1215,10 +1228,9 @@ class Translator with KernelNodes {
         member.reference,
         uncheckedEntry: false,
       );
-      w.BaseFunction target = functions.getFunction(reference);
       return getClosure(
         member.function,
-        target,
+        directCallTarget(reference),
         closureModule,
         paramInfoForDirectCall(reference),
         "$member tear-off",
@@ -1260,7 +1272,7 @@ class Translator with KernelNodes {
 
   ClosureImplementation getClosure(
     FunctionNode functionNode,
-    w.BaseFunction target,
+    CallTarget target,
     w.ModuleBuilder closureModule,
     ParameterInfo paramInfo,
     String name,
@@ -1294,7 +1306,7 @@ class Translator with KernelNodes {
     assert(positionalCount <= paramInfo.positional.length);
     assert(names.length <= paramInfo.named.length);
     assert(
-      target.type.inputs.length ==
+      target.signature.inputs.length ==
           (paramInfo.takesContextOrReceiver ? 1 : 0) +
               paramInfo.typeParamCount +
               paramInfo.positional.length +
@@ -1501,11 +1513,8 @@ class Translator with KernelNodes {
       }
       if (to != voidMarker) {
         // This can happen e.g. when a `return;` is guaranteed to be never taken
-        // but TFA didn't remove the dead code. In that case we synthesize a
-        // dummy value.
-        getDummyValuesCollectorForModule(
-          b.moduleBuilder,
-        ).instantiateLocalDummyValue(b, to);
+        // but TFA didn't remove the dead code.
+        b.unreachable();
         return;
       }
     }
@@ -1778,14 +1787,22 @@ class Translator with KernelNodes {
       final table = dispatchTable;
       final selector = table.selectorForTarget(target);
       if (selector.containsTarget(target)) {
-        assert(
-          !selector.synthesizeNullReturnValue ||
-              selector.signature.outputs.isEmpty,
-        );
         return selector.synthesizeNullReturnValue;
       }
     }
     return functions.synthesizeNullReturnValue(target);
+  }
+
+  bool synthesizeNoReturn(Reference target) {
+    final member = target.asMember;
+    if (member.isInstanceMember) {
+      final table = dispatchTable;
+      final selector = table.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
+        return selector.synthesizeNoReturn;
+      }
+    }
+    return functions.synthesizeNoReturn(target);
   }
 
   ParameterInfo paramInfoForDirectCall(Reference target) {
@@ -1895,42 +1912,34 @@ class Translator with KernelNodes {
       );
 
       return SingleClosureTarget._(
-        member,
+        directCallTarget(entryReference),
         paramInfoForDirectCall(entryReference),
-        signatureForDirectCall(entryReference),
-        null,
-      );
-    } else {
-      // A closure in the member is called.
-      final Closures enclosingMemberClosures = getClosures(
-        member,
-        findCaptures: true,
-      );
-      final Lambda lambda = enclosingMemberClosures.lambdas.values.firstWhere(
-        (lambda) => lambda.index == closureId - 1,
-      );
-      final FunctionType lambdaDartType = lambda.functionNode
-          .computeFunctionType(Nullability.nonNullable);
-      final w.BaseFunction lambdaFunction = functions.getLambdaFunction(
-        lambda,
-        member,
-        enclosingMemberClosures,
-      );
-
-      if (!typeEnvironment.isSubtypeOf(
-        lambdaDartType,
-        node.receiver.getStaticType(typeContext),
-      )) {
-        return null;
-      }
-
-      return SingleClosureTarget._(
-        member,
-        ParameterInfo.fromLocalFunction(lambda.functionNode),
-        lambdaFunction.type,
-        lambdaFunction,
       );
     }
+
+    // A closure in the member is called.
+    final Closures enclosingMemberClosures = getClosures(
+      member,
+      findCaptures: true,
+    );
+    final Lambda lambda = enclosingMemberClosures.lambdas.values.firstWhere(
+      (lambda) => lambda.index == closureId - 1,
+    );
+    final FunctionType lambdaDartType = lambda.functionNode.computeFunctionType(
+      Nullability.nonNullable,
+    );
+
+    if (!typeEnvironment.isSubtypeOf(
+      lambdaDartType,
+      node.receiver.getStaticType(typeContext),
+    )) {
+      return null;
+    }
+
+    return SingleClosureTarget._(
+      lambda.callTarget,
+      ParameterInfo.fromLocalFunction(lambda.functionNode),
+    );
   }
 
   bool canSkipImplicitCheck(VariableDeclaration node) {
@@ -1958,7 +1967,7 @@ class Translator with KernelNodes {
       // If [node] is a parameter of a `operator==` method, then the argument to
       // it cannot be nullable.
       final member = node.parent!.parent;
-      if (member is Procedure && member.name.text == '==') {
+      if (member is Procedure && member.name == equalsName) {
         return coreTypes.objectNonNullableRawType;
       }
       // The type argument of a static type is not required to conform
@@ -2506,7 +2515,10 @@ class Translator with KernelNodes {
     instantiateHeapType,
   ) {
     if (type == w.HeapType.struct) {
-      final structType = typesBuilder.defineStruct(name);
+      final structType = typesBuilder.defineStruct(
+        name,
+        brand: options.uniqueTypes,
+      );
       b.struct_new(structType);
       return;
     } else if (type is w.DefType) {
@@ -2640,7 +2652,7 @@ class AstCompilationTask extends CompilationTask {
 class _ClosureTrampolineGenerator implements CodeGenerator {
   final Translator translator;
   final w.FunctionBuilder trampoline;
-  final w.BaseFunction target;
+  final CallTarget target;
   final int typeCount;
   final int posArgCount;
   final List<String> argNames;
@@ -2671,7 +2683,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       translator.convertType(
         b,
         receiver.type,
-        target.type.inputs[targetIndex++],
+        target.signature.inputs[targetIndex++],
       );
     }
     int argIndex = 1;
@@ -2683,12 +2695,16 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       if (i < posArgCount) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(
+          b,
+          arg.type,
+          target.signature.inputs[targetIndex++],
+        );
       } else {
         translator.constants.instantiateConstant(
           b,
           paramInfo.positional[i]!,
-          target.type.inputs[targetIndex++],
+          target.signature.inputs[targetIndex++],
         );
       }
     }
@@ -2698,27 +2714,32 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       if (argNameIndex < argNames.length && argNames[argNameIndex] == argName) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(
+          b,
+          arg.type,
+          target.signature.inputs[targetIndex++],
+        );
         argNameIndex++;
       } else {
         translator.constants.instantiateConstant(
           b,
           paramInfo.named[argName]!,
-          target.type.inputs[targetIndex++],
+          target.signature.inputs[targetIndex++],
         );
       }
     }
     assert(argIndex == trampoline.type.inputs.length);
-    assert(targetIndex == target.type.inputs.length);
+    assert(targetIndex == target.signature.inputs.length);
     assert(argNameIndex == argNames.length);
 
-    translator.callFunction(target, b);
-
-    translator.convertType(
-      b,
-      translator.outputOrVoid(target.type.outputs),
-      translator.outputOrVoid(trampoline.type.outputs),
-    );
+    final outputs = translator.callTarget(target, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(
+        b,
+        outputs.single,
+        translator.outputOrVoid(trampoline.type.outputs),
+      );
+    }
     b.end();
   }
 }
@@ -2728,7 +2749,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
 class _ClosureDynamicEntryGenerator implements CodeGenerator {
   final Translator translator;
   final FunctionNode functionNode;
-  final w.BaseFunction target;
+  final CallTarget target;
   final ParameterInfo paramInfo;
   final String name;
   final w.FunctionBuilder function;
@@ -2768,7 +2789,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     // of type arguments in the list, but optional positional and named
     // parameters may be missing.
 
-    final targetInputs = target.type.inputs;
+    final targetInputs = target.signature.inputs;
     int inputIdx = 0;
 
     // Push context or receiver
@@ -2871,7 +2892,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.convertType(
           b,
           translator.nullableObjectArrayType.elementType.type.unpacked,
-          target.type.inputs[inputIdx],
+          target.signature.inputs[inputIdx],
         );
       } else {
         // Parameter may not be passed.
@@ -2905,13 +2926,14 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       inputIdx += 1;
     }
 
-    translator.callFunction(target, b);
-
-    translator.convertType(
-      b,
-      translator.outputOrVoid(target.type.outputs),
-      translator.outputOrVoid(function.type.outputs),
-    );
+    final outputs = translator.callTarget(target, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(
+        b,
+        outputs.single,
+        translator.outputOrVoid(function.type.outputs),
+      );
+    }
 
     b.end(); // end function
   }
@@ -3920,26 +3942,11 @@ class WasmTagImporter extends _WasmImporter<w.Tag> {
 }
 
 class SingleClosureTarget {
-  /// When `lambdaFunction` is null, the member being directly called. Otherwise
-  /// the enclosing member of the closure being called.
-  final Member member;
+  final CallTarget callTarget;
 
   /// [ParameterInfo] specifying how to compile arguments to the closure or
   /// member.
   final ParameterInfo paramInfo;
 
-  /// Wasm function type that goes along with the [paramInfo] for compiling
-  /// arguments.
-  final w.FunctionType signature;
-
-  /// If the callee is a local function or function expression (intead of a
-  /// member), this Wasm function for it.
-  final w.BaseFunction? lambdaFunction;
-
-  SingleClosureTarget._(
-    this.member,
-    this.paramInfo,
-    this.signature,
-    this.lambdaFunction,
-  );
+  SingleClosureTarget._(this.callTarget, this.paramInfo);
 }

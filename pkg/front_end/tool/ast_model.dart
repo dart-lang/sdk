@@ -31,7 +31,8 @@ Uri computePackageConfig(Uri repoDir) =>
 /// nominality. For instance the name of a variable declaration is taking as
 /// defining its identity.
 const Map<String, String?> _declarativeClassesNames = const {
-  'LegacyVariableDeclaration': 'name',
+  // TODO(johnniwinther): This should be [VariableDeclaration].
+  'VariableStatement': 'name',
   'TypeParameter': 'name',
   'StructuralParameter': 'name',
   'LabeledStatement': null,
@@ -763,8 +764,7 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
               "and a rule must therefore specify "
               "whether this constitutes declarative or referential use.",
             );
-          }
-          if (!rule.isDeclaration!) {
+          } else if (!rule.isDeclaration!) {
             return new FieldType(type, AstFieldKind.use);
           }
         }

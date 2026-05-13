@@ -112,6 +112,27 @@ void f(void x) async {
     );
   }
 
+  test_awaitForIn_streamVoid_declaredVariable_nonVoid() async {
+    await assertErrorsInCode(
+      '''
+void f(Stream<void> values) async {
+  await for (Object? _ in values) {}
+  await for (dynamic _ in values) {}
+}
+''',
+      [error(diag.useOfVoidResult, 62, 6), error(diag.useOfVoidResult, 99, 6)],
+    );
+  }
+
+  test_awaitForIn_streamVoid_declaredVariable_void() async {
+    await assertNoErrorsInCode('''
+void f(Stream<void> values) async {
+  await for (void _ in values) {}
+  await for (var _ in values) {}
+}
+''');
+  }
+
   test_constructorFieldInitializer_toDynamic() async {
     await assertErrorsInCode(
       '''
@@ -148,6 +169,56 @@ void h() {
 ''',
       [error(diag.useOfVoidResult, 73, 3)],
     );
+  }
+
+  test_forIn_iterableVoid_declaredVariable_nonVoid() async {
+    await assertErrorsInCode(
+      '''
+void f(List<void> values) {
+  for (Object? _ in values) {}
+  for (dynamic _ in values) {}
+}
+''',
+      [error(diag.useOfVoidResult, 48, 6), error(diag.useOfVoidResult, 79, 6)],
+    );
+  }
+
+  test_forIn_iterableVoid_declaredVariable_void() async {
+    await assertNoErrorsInCode('''
+void f(List<void> values) {
+  for (void _ in values) {}
+  for (var _ in values) {}
+}
+''');
+  }
+
+  test_forIn_iterableVoid_existingVariable_nonVoid() async {
+    await assertErrorsInCode(
+      '''
+void f(List<void> values) {
+  Object? object;
+  dynamic anything;
+  for (object in values) {
+    object;
+  }
+  for (anything in values) {
+    anything;
+  }
+}
+''',
+      [error(diag.useOfVoidResult, 83, 6), error(diag.useOfVoidResult, 128, 6)],
+    );
+  }
+
+  test_forIn_iterableVoid_existingVariable_void() async {
+    await assertNoErrorsInCode('''
+void f(List<void> values) {
+  void existing = null;
+  for (existing in values) {
+    existing;
+  }
+}
+''');
   }
 
   test_implicitReturnValue() async {
@@ -225,6 +296,66 @@ g() {
 }
 ''',
       [error(diag.unusedLocalVariable, 26, 1)],
+    );
+  }
+
+  test_nullAwareElement_list_voidValue() async {
+    await assertErrorsInCode(
+      '''
+void f(void value) {
+  <void>[?value];
+}
+''',
+      [error(diag.useOfVoidResult, 31, 5)],
+    );
+  }
+
+  test_nullAwareElement_set_voidValue() async {
+    await assertErrorsInCode(
+      '''
+void f(void value) {
+  <void>{?value};
+}
+''',
+      [error(diag.useOfVoidResult, 31, 5)],
+    );
+  }
+
+  test_nullAwareMapEntry_nullAwareKey_voidKey() async {
+    await assertErrorsInCode(
+      '''
+void f(void key) {
+  <void, int>{?key: 0};
+}
+''',
+      [error(diag.useOfVoidResult, 34, 3)],
+    );
+  }
+
+  test_nullAwareMapEntry_nullAwareKey_voidValue() async {
+    await assertNoErrorsInCode('''
+void f(int? key, void value) {
+  <int, void>{?key: value};
+}
+''');
+  }
+
+  test_nullAwareMapEntry_nullAwareValue_voidKey() async {
+    await assertNoErrorsInCode('''
+void f(void key, int? value) {
+  <void, int>{key: ?value};
+}
+''');
+  }
+
+  test_nullAwareMapEntry_nullAwareValue_voidValue() async {
+    await assertErrorsInCode(
+      '''
+void f(void value) {
+  <int, void>{0: ?value};
+}
+''',
+      [error(diag.useOfVoidResult, 39, 5)],
     );
   }
 

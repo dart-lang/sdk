@@ -232,6 +232,19 @@ final class LocalFunction extends ClosureFunction {
 
   @override
   SourcePosition get sourcePosition => SourcePosition(localFunction.fileOffset);
+
+  bool hasGenericEnclosingFunction() {
+    ast.TreeNode node = localFunction;
+    for (;;) {
+      node = node.parent!;
+      if (node is ast.Member) {
+        return false;
+      }
+      if (node is ast.FunctionNode && node.typeParameters.isNotEmpty) {
+        return true;
+      }
+    }
+  }
 }
 
 /// Tear-off (result of function closurization).

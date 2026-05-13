@@ -5368,6 +5368,7 @@ class Parser {
             token,
             kind,
             beforeStart,
+            augmentToken,
             externalToken,
             staticToken ?? covariantToken,
             varFinalOrConst,
@@ -5388,6 +5389,7 @@ class Parser {
               token,
               kind,
               beforeStart,
+              augmentToken,
               externalToken,
               staticToken ?? covariantToken,
               varFinalOrConst,
@@ -6098,6 +6100,7 @@ class Parser {
     Token token,
     DeclarationKind kind,
     Token beforeStart,
+    Token? augmentToken,
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
@@ -6131,7 +6134,13 @@ class Parser {
       varFinalOrConst = null;
     }
 
-    listener.beginFactory(kind, beforeStart, externalToken, varFinalOrConst);
+    listener.beginFactory(
+      kind,
+      beforeStart,
+      augmentToken,
+      externalToken,
+      varFinalOrConst,
+    );
     if (!hasName) {
       listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
     } else if (token.next!.isA(Keyword.NEW) &&

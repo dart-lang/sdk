@@ -8938,6 +8938,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var init = _visitExpression(v.initializer!);
     var body = _visitExpression(node.body);
     var temp = _tempVariables.remove(v);
+    // TODO(eernst): Remove the following `if` if anonymous-methods is rejected.
+    // Otherwise, revise this method to be more readable.
+    // See https://github.com/dart-lang/language/issues/260.
+    if (temp == null && !_isTemporaryVariable(v)) {
+      temp = _emitVariableRef(v);
+    }
     if (temp != null) {
       if (_letVariables != null) {
         init = js_ast.Assignment(temp, init);

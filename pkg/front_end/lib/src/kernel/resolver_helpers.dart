@@ -300,10 +300,14 @@ class _InitializerBuilder {
                       _bodyBuilderContext.formals!;
                   ActualArguments arguments = initializer.arguments;
                   List<Expression> enumSyntheticArguments = [
-                    new VariableGet(formals[0].variable)
-                      ..parent = initializer.arguments,
-                    new VariableGet(formals[1].variable)
-                      ..parent = initializer.arguments,
+                    intern.createVariableGet(
+                      formals[0].variable,
+                      fileOffset: formals[0].fileOffset,
+                    )..parent = initializer.arguments,
+                    intern.createVariableGet(
+                      formals[1].variable,
+                      fileOffset: formals[1].fileOffset,
+                    )..parent = initializer.arguments,
                   ];
                   arguments.prependArguments([
                     new PositionalArgument(enumSyntheticArguments[0]),
@@ -646,8 +650,14 @@ class _InitializerBuilder {
             formals[0].name == "#index" &&
             formals[1].name == "#name",
       );
-      Expression indexExpression = new VariableGet(formals[0].variable);
-      Expression nameExpression = new VariableGet(formals[1].variable);
+      Expression indexExpression = intern.createVariableGet(
+        formals[0].variable,
+        fileOffset: formals[0].fileOffset,
+      );
+      Expression nameExpression = intern.createVariableGet(
+        formals[1].variable,
+        fileOffset: formals[1].fileOffset,
+      );
       (argumentsOriginalOrder ??= []).insertAll(0, [
         new PositionalArgument(indexExpression),
         new PositionalArgument(nameExpression),

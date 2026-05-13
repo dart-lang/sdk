@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,66 +16,59 @@ main() {
 class ConstInitializedWithNonConstantValueTest
     extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(p) {
   const c = p;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//          ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 15, 1),
-        error(diag.constInitializedWithNonConstantValue, 19, 1),
-      ],
-    );
+''');
   }
 
   test_finalField() async {
     // Regression test for bug #25526; previously, two errors were reported.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo {
   final field = 0;
   foo([int x = field]) {}
+//             ^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.implicitThisReferenceInInitializer] The instance member 'field' can't be accessed in an initializer.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 46, 5),
-        error(diag.implicitThisReferenceInInitializer, 46, 5),
-      ],
-    );
+''');
   }
 
   test_functionExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = () {};
-''',
-      [error(diag.constInitializedWithNonConstantValue, 10, 5)],
-    );
+//        ^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_missingConstInListLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 const List L = [0];
 ''');
   }
 
   test_missingConstInMapLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 const Map M = {'a' : 0};
 ''');
   }
 
   test_newInstance_constConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 const a = new A();
-''',
-      [error(diag.constInitializedWithNonConstantValue, 35, 7)],
-    );
+//        ^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_newInstance_externalFactoryConstConstructor() async {
@@ -91,27 +83,26 @@ const x = const A();
   }
 
   test_propertyExtraction_targetNotConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   int m() => 0;
 }
 final a = const A();
 const c = a.m;
-''',
-      [error(diag.constInitializedWithNonConstantValue, 72, 1)],
-    );
+//        ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_typeLiteral_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = int;
 ''');
   }
 
   test_typeLiteral_typeAlias_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 const a = A;
 ''');

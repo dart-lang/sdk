@@ -26,6 +26,7 @@ import '../../dill/dill_member_builder.dart';
 import '../../fragment/fragment.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/kernel_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/redirecting_factory_body.dart';
@@ -98,16 +99,24 @@ class FactoryEncoding implements InferredTypeListener {
     required bool isConst,
   }) {
     _procedure =
-        new Procedure(
+        extern.createProcedure(
             dummyName,
             nameScheme.isExtensionTypeMember
                 ? ProcedureKind.Method
                 : ProcedureKind.Factory,
-            new FunctionNode(null)
-              ..asyncMarker = _asyncModifier.kind
-              ..dartAsyncMarker = _asyncModifier.kind,
+            extern.createFunctionNode(
+              null,
+              asyncMarker: _asyncModifier.kind,
+              dartAsyncMarker: _asyncModifier.kind,
+              fileOffset: _fragment.fullNameOffset,
+              fileEndOffset: _fragment.endOffset,
+            ),
             fileUri: _fragment.fileUri,
             reference: factoryReferences?.factoryReference,
+            fileStartOffset: _fragment.startOffset,
+            fileOffset: _fragment.fullNameOffset,
+            fileEndOffset: _fragment.endOffset,
+            isExtensionTypeMember: nameScheme.isExtensionTypeMember,
           )
           ..fileStartOffset = _fragment.startOffset
           ..fileOffset = _fragment.fullNameOffset
@@ -130,7 +139,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (_redirectionTarget == null &&
         !_fragment.modifiers.isAbstract &&
         !_fragment.modifiers.isExternal) {
-      _procedure.function.registerFunctionBody(new EmptyStatement());
+      _procedure.function.registerFunctionBody(extern.createEmptyStatement());
     }
     buildTypeParametersAndFormals(
       libraryBuilder,
@@ -845,9 +854,7 @@ class FactoryEncoding implements InferredTypeListener {
         emittedValueType: emittedValueType,
       );
     }
-    _procedure.function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = _procedure.function;
+    _procedure.function.scope = scope;
     _procedure.function.thisVariable = thisVariable;
   }
 

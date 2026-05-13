@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AssignmentToFinalTest extends PubPackageResolutionTest {
   test_prefixedIdentifier_instanceField() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var x = 0;
 }
@@ -31,7 +32,7 @@ void f(A a) {
   }
 
   test_prefixedIdentifier_instanceField_abstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract int x;
 }
@@ -46,30 +47,30 @@ void f(A a) {
   }
 
   test_prefixedIdentifier_instanceField_abstractFinal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract final int x;
 }
 
 void f(A a) {
   a.x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++a.x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 64, 1),
-        error(diag.assignmentToFinal, 75, 1),
-        error(diag.assignmentToFinal, 89, 1),
-        error(diag.assignmentToFinal, 96, 1),
-      ],
-    );
+''');
   }
 
   test_prefixedIdentifier_instanceField_external() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   external int x;
 }
@@ -84,53 +85,53 @@ void f(A a) {
   }
 
   test_prefixedIdentifier_instanceField_externalFinal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   external final int x;
 }
 
 void f(A a) {
   a.x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++a.x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 64, 1),
-        error(diag.assignmentToFinal, 75, 1),
-        error(diag.assignmentToFinal, 89, 1),
-        error(diag.assignmentToFinal, 96, 1),
-      ],
-    );
+''');
   }
 
   test_prefixedIdentifier_instanceField_final() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final x = 0;
 }
 
 void f(A a) {
   a.x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++a.x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 46, 1),
-        error(diag.assignmentToFinal, 57, 1),
-        error(diag.assignmentToFinal, 71, 1),
-        error(diag.assignmentToFinal, 78, 1),
-      ],
-    );
+''');
   }
 
   test_prefixedIdentifier_instanceField_lateFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   late final int x;
 }
@@ -145,53 +146,53 @@ void f(A a) {
   }
 
   test_prefixedIdentifier_instanceField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   late final int x = 0;
 }
 
 void f(A a) {
   a.x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++a.x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   a.x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 64, 1),
-        error(diag.assignmentToFinal, 75, 1),
-        error(diag.assignmentToFinal, 89, 1),
-        error(diag.assignmentToFinal, 96, 1),
-      ],
-    );
+''');
   }
 
   test_prefixedIdentifier_staticField_externalFinal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   external static final int x;
 }
 
 void f() {
   A.x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   A.x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++A.x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   A.x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 68, 1),
-        error(diag.assignmentToFinal, 79, 1),
-        error(diag.assignmentToFinal, 93, 1),
-        error(diag.assignmentToFinal, 100, 1),
-      ],
-    );
+''');
   }
 
   test_prefixedIdentifier_staticField_lateFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   static late final int x;
 }
@@ -206,30 +207,30 @@ void f() {
   }
 
   test_prefixedIdentifier_staticField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   static late final int x = 0;
 }
 
 void f() {
   A.x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   A.x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++A.x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   A.x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 68, 1),
-        error(diag.assignmentToFinal, 79, 1),
-        error(diag.assignmentToFinal, 93, 1),
-        error(diag.assignmentToFinal, 100, 1),
-      ],
-    );
+''');
   }
 
   test_propertyAccess_instanceField_lateFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   late final int x;
 }
@@ -244,31 +245,30 @@ void f(A a) {
   }
 
   test_propertyAccess_instanceField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   late final int x = 0;
 }
 
 void f(A a) {
   (a).x = 0;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   (a).x += 0;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++(a).x;
+//      ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   (a).x++;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 66, 1),
-        error(diag.assignmentToFinal, 79, 1),
-        error(diag.assignmentToFinal, 95, 1),
-        error(diag.assignmentToFinal, 104, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_inheritedSetter_shadowedBy_topLevelGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void set foo(int _) {}
 }
@@ -278,15 +278,15 @@ int get foo => 0;
 class B extends A {
   void bar() {
     foo = 0;
+//  ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
   }
 }
-''',
-      [error(diag.assignmentToFinal, 96, 3)],
-    );
+''');
   }
 
   test_simpleIdentifier_instanceField_lateFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   late final int x;
 
@@ -301,30 +301,30 @@ abstract class A {
   }
 
   test_simpleIdentifier_instanceField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   late final int x = 0;
 
   void f() {
     x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
     x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
     ++x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
     x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   }
 }
-''',
-      [
-        error(diag.assignmentToFinal, 61, 1),
-        error(diag.assignmentToFinal, 72, 1),
-        error(diag.assignmentToFinal, 86, 1),
-        error(diag.assignmentToFinal, 93, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_staticField_lateFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   static late final int x;
 
@@ -339,51 +339,51 @@ abstract class A {
   }
 
   test_simpleIdentifier_staticField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   static late final int x = 0;
 
   void f() {
     x = 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
     x += 0;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
     ++x;
+//    ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
     x++;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   }
 }
-''',
-      [
-        error(diag.assignmentToFinal, 68, 1),
-        error(diag.assignmentToFinal, 79, 1),
-        error(diag.assignmentToFinal, 93, 1),
-        error(diag.assignmentToFinal, 100, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_topLevelGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
 
 void f() {
   x = 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x += 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++x;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x++;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 30, 1),
-        error(diag.assignmentToFinal, 39, 1),
-        error(diag.assignmentToFinal, 51, 1),
-        error(diag.assignmentToFinal, 56, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_topLevelVariable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var x = 0;
 
 void f() {
@@ -396,7 +396,7 @@ void f() {
   }
 
   test_simpleIdentifier_topLevelVariable_external() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 external int x;
 
 void f() {
@@ -409,49 +409,49 @@ void f() {
   }
 
   test_simpleIdentifier_topLevelVariable_externalFinal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 external final x;
 
 void f() {
   x = 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x += 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++x;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x++;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 32, 1),
-        error(diag.assignmentToFinal, 41, 1),
-        error(diag.assignmentToFinal, 53, 1),
-        error(diag.assignmentToFinal, 58, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_topLevelVariable_final() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final x = 0;
 
 void f() {
   x = 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x += 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++x;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x++;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 27, 1),
-        error(diag.assignmentToFinal, 36, 1),
-        error(diag.assignmentToFinal, 48, 1),
-        error(diag.assignmentToFinal, 53, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_topLevelVariable_lateFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 late final int x;
 
 void f() {
@@ -464,23 +464,23 @@ void f() {
   }
 
   test_simpleIdentifier_topLevelVariable_lateFinal_hasInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 late final int x = 0;
 
 void f() {
   x = 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x += 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   ++x;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   x++;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [
-        error(diag.assignmentToFinal, 36, 1),
-        error(diag.assignmentToFinal, 45, 1),
-        error(diag.assignmentToFinal, 57, 1),
-        error(diag.assignmentToFinal, 62, 1),
-      ],
-    );
+''');
   }
 }

@@ -98,7 +98,10 @@ class MigrateHandler
           );
         }
       } catch (e) {
-        return error(ErrorCodes.InvalidParams, "Failed to parse '$path': $e");
+        return error(
+          ErrorCodes.InvalidParams,
+          "Failed to parse 'pubspec.yaml' at '$path': $e",
+        );
       }
     }
     return success(null);

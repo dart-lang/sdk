@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/types.dart';
@@ -352,11 +353,15 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitTypeParameters(TypeParameters instr) {
     assert(instr.block is EntryBlock);
     // TypeParameters can only be used in TypeCast, TypeTest,
-    // TypeArguments and TypeLiteral.
+    // TypeArguments, TypeLiteral and StoreInstanceField for capturing.
     for (final use in instr.inputUses) {
       final user = use.getInstruction(graph);
       switch (user) {
         case TypeCast() || TypeTest() || TypeArguments() || TypeLiteral():
+        case StoreInstanceField(:var field)
+            when field.isSynthetic &&
+                (field.asSynthetic is ClosureField ||
+                    field.asSynthetic is ContextField):
           break;
         default:
           throw 'Unexpected user ${IrToText.instruction(user)} of TypeParameters';

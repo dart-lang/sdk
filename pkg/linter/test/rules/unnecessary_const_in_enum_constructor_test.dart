@@ -17,7 +17,13 @@ class UnnecessaryConstInEnumConstructorTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.unnecessary_const_in_enum_constructor;
 
-  test_primary() async {
+  test_primary_inClass() async {
+    await assertNoDiagnostics(r'''
+class const C();
+''');
+  }
+
+  test_primary_inEnum() async {
     await assertDiagnosticsFromMarkdown(r'''
 enum [!const!] E(final int i) {
   a(1), b(2);
@@ -25,7 +31,15 @@ enum [!const!] E(final int i) {
 ''');
   }
 
-  test_secondary() async {
+  test_secondary_inClass() async {
+    await assertNoDiagnostics(r'''
+class C {
+  const C();
+}
+''');
+  }
+
+  test_secondary_inEnum() async {
     await assertDiagnosticsFromMarkdown(r'''
 enum E {
   a(1), b(2);

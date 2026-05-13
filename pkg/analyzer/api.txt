@@ -977,6 +977,7 @@ package:analyzer/dart/ast/ast.dart:
     body (getter: FunctionBody)
     constKeyword (getter: Token?)
     declaredFragment (getter: ConstructorFragment?)
+    errorRange (getter: SourceRange)
     externalKeyword (getter: Token?)
     factoryKeyword (getter: Token?)
     initializers (getter: NodeList<ConstructorInitializer>)
@@ -1554,6 +1555,7 @@ package:analyzer/dart/ast/ast.dart:
     constKeyword (getter: Token?)
     constructorName (getter: PrimaryConstructorName?)
     declaredFragment (getter: ConstructorFragment?)
+    errorRange (getter: SourceRange)
     formalParameters (getter: FormalParameterList)
   PrimaryConstructorName (class extends Object implements AstNode, abstract, final):
     name (getter: Token)

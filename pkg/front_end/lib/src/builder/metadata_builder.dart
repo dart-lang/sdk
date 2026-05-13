@@ -15,6 +15,7 @@ import '../base/extension_scope.dart';
 import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder_context.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/macro/metadata.dart' hide ExtensionScope;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -149,10 +150,11 @@ class MetadataBuilder {
         );
         // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
-          annotation = new FileUriExpression(
-            annotation,
-            annotationBuilder.fileUri,
-          )..fileOffset = annotationBuilder.atOffset;
+          annotation = extern.createFileUriExpression(
+            expression: annotation,
+            fileUri: annotationBuilder.fileUri,
+            fileOffset: annotationBuilder.atOffset,
+          );
         }
         annotatable.addAnnotation(annotation);
       }

@@ -1429,11 +1429,6 @@ class ActiveClass {
            member->IsFactory();
   }
 
-  bool MemberIsFactoryProcedure() {
-    ASSERT(member != nullptr);
-    return member->IsFactory();
-  }
-
   intptr_t MemberTypeParameterCount(Zone* zone);
 
   intptr_t ClassNumTypeArguments() {

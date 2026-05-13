@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,18 +15,17 @@ main() {
 @reflectiveTest
 class ExtensionTypeDeclaresInstanceFieldTest extends PubPackageResolutionTest {
   Future<void> test_instance_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   final int foo = 0;
+//          ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
-''',
-      [error(diag.extensionTypeDeclaresInstanceField, 39, 3)],
-    );
+''');
   }
 
   Future<void> test_instance_field_external() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   external int foo;
 }
@@ -35,7 +33,7 @@ extension type E(int it) {
   }
 
   Future<void> test_instance_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   int get foo => 0;
 }
@@ -43,7 +41,7 @@ extension type E(int it) {
   }
 
   Future<void> test_instance_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   set foo(int _) {}
 }
@@ -51,22 +49,21 @@ extension type E(int it) {
   }
 
   Future<void> test_multiple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   String? one, two, three;
+//        ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+//             ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+//                  ^^^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
-''',
-      [
-        error(diag.extensionTypeDeclaresInstanceField, 37, 3),
-        error(diag.extensionTypeDeclaresInstanceField, 42, 3),
-        error(diag.extensionTypeDeclaresInstanceField, 47, 5),
-      ],
-    );
+''');
   }
 
   Future<void> test_static_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static final int foo = 0;
 }

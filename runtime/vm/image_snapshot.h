@@ -170,7 +170,7 @@ class ImageReader : public ZoneObject {
  public:
   ImageReader(const uint8_t* data_image, const uint8_t* instructions_image);
 
-  ApiErrorPtr VerifyAlignment() const;
+  char* VerifyAlignment() const;
 
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsAt(uint32_t offset) const);
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsEnd() const);

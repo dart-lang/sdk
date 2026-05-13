@@ -27,9 +27,9 @@ class MessageEquality implements Equality<Message> {
     if (!skipMatchId && a.id != b.id) return false;
     return switch (a.method) {
       // No method means this is a response, compare the result.
-      null => _recursiveEquality.equals(a.result, b.result),
+      null => _recursiveEquality.equals(a.result, b.result, path: 'result'),
       // A method means this is a request, compare the params.
-      String() => _recursiveEquality.equals(a.params, b.params),
+      String() => _recursiveEquality.equals(a.params, b.params, path: 'params'),
     };
   }
 
@@ -52,11 +52,11 @@ class _CustomDeepCollectionEquality implements Equality<Object?> {
   _CustomDeepCollectionEquality(this._ignoredKeys);
 
   @override
-  bool equals(Object? e1, Object? e2) {
+  bool equals(Object? e1, Object? e2, {String? path}) {
     if (identical(e1, e2)) return true;
 
     if (e1 is Map<String, Object?> && e2 is Map<String, Object?>) {
-      return _mapEquals(e1, e2);
+      return _mapEquals(e1, e2, path);
     } else if (e1 is List<Object?> && e2 is List<Object?>) {
       if (e1.every((entry) => entry is int)) {
         return _orderedListEquality.equals(e1, e2);
@@ -80,15 +80,41 @@ class _CustomDeepCollectionEquality implements Equality<Object?> {
   @override
   bool isValidKey(Object? o) => true;
 
-  bool _mapEquals(Map<String, Object?> e1, Map<String, Object?> e2) {
-    var keys1 = e1.keys.where((k) => !_ignoredKeys.contains(k)).toSet();
-    var keys2 = e2.keys.where((k) => !_ignoredKeys.contains(k)).toSet();
+  /// Joins an optional [parentPath] and child [key].
+  String _childPath(String? parentPath, String key) =>
+      parentPath != null ? '$parentPath.$key' : key;
+
+  /// Checks if [key] is an ignored field when it exists as a child in a path
+  /// of [parentPath].
+  ///
+  /// Paths can be partial, so an ignored path of  'b.c' will ignore a field
+  /// at 'a.b.c'.
+  bool _isIgnoredPath(String? parentPath, String key) {
+    var actualPath = _childPath(parentPath, key);
+    return _ignoredKeys.any(
+      (ignoredKey) =>
+          actualPath == ignoredKey || actualPath.endsWith('.$ignoredKey'),
+    );
+  }
+
+  /// Checks if [e1] and [e2] are equal, taking into account any ignored paths.
+  ///
+  /// If these maps are not from the top level, [path] is the qualified path to
+  /// them.
+  bool _mapEquals(
+    Map<String, Object?> e1,
+    Map<String, Object?> e2,
+    String? path,
+  ) {
+    var keys1 = e1.keys.where((key) => !_isIgnoredPath(path, key)).toSet();
+    var keys2 = e2.keys.where((key) => !_isIgnoredPath(path, key)).toSet();
 
     if (keys1.length != keys2.length) return false;
 
     for (var key in keys1) {
       if (!keys2.contains(key)) return false;
-      if (!equals(e1[key], e2[key])) return false;
+      var childPath = _childPath(path, key);
+      if (!equals(e1[key], e2[key], path: childPath)) return false;
     }
 
     return true;

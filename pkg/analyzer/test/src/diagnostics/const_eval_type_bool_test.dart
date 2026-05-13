@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,54 +15,48 @@ main() {
 @reflectiveTest
 class ConstEvalTypeBoolTest extends PubPackageResolutionTest {
   test_binary_and() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true && '';
-''',
-      [
-        error(diag.constEvalTypeBool, 10, 10),
-        error(diag.nonBoolOperand, 18, 2),
-      ],
-    );
+//        ^^^^^^^^^^
+// [diag.constEvalTypeBool] In constant expressions, operands of this operator must be of type 'bool'.
+//                ^^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
+''');
   }
 
   test_binary_leftTrue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = (true || 0);
-''',
-      [error(diag.deadCode, 16, 4), error(diag.nonBoolOperand, 19, 1)],
-    );
+//              ^^^^
+// [diag.deadCode] Dead code.
+//                 ^
+// [diag.nonBoolOperand] The operands of the operator '||' must be assignable to 'bool'.
+''');
   }
 
   test_binary_or() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = false || '';
-''',
-      [
-        error(diag.constEvalTypeBool, 10, 11),
-        error(diag.nonBoolOperand, 19, 2),
-      ],
-    );
+//        ^^^^^^^^^^^
+// [diag.constEvalTypeBool] In constant expressions, operands of this operator must be of type 'bool'.
+//                 ^^
+// [diag.nonBoolOperand] The operands of the operator '||' must be assignable to 'bool'.
+''');
   }
 
   test_lengthOfErroneousConstant() async {
     // Attempting to compute the length of constant that couldn't be evaluated
     // (due to an error) should not crash the analyzer (see dartbug.com/23383)
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const int i = (1 ? 'alpha' : 'beta').length;
-''',
-      [
-        error(diag.nonBoolCondition, 15, 1),
-        error(diag.constEvalTypeBool, 15, 1),
-      ],
-    );
+//             ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+// [diag.constEvalTypeBool] In constant expressions, operands of this operator must be of type 'bool'.
+''');
   }
 
   test_logicalOr_trueLeftOperand() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int? x;
   const C({this.x}) : assert(x == null || x >= 0);

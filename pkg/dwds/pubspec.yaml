@@ -1,12 +1,12 @@
 name: dwds
 # Every time this changes you need to run `dart run tool/build.dart`.
-version: 27.1.1-wip
+version: 27.1.2-wip
 
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
   service protocol.
 environment:
-  sdk: ^3.12.0-0
+  sdk: ^3.12.0-307.0.dev
 
 resolution: workspace
 

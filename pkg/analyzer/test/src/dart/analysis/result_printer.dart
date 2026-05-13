@@ -366,6 +366,14 @@ class DriverEventsPrinter {
     }
   }
 
+  /// Converts strings that look like Windows paths to Posix style.
+  String _toPosixIfWindowsPath(String str) {
+    if (str.startsWith(r'C:\')) {
+      return str.substring(2).replaceAll(r'\', '/');
+    }
+    return str;
+  }
+
   void _writeAnalyzeFileEvent(events.AnalyzeFile object) {
     if (!configuration.withAnalyzeFileEvents) {
       return;
@@ -558,7 +566,8 @@ class DriverEventsPrinter {
     sink.withIndent(() {
       if (event.result case var result?) {
         sink.writeElements('strings', result.strings, (str) {
-          sink.writelnWithIndent(str);
+          var displayStr = _toPosixIfWindowsPath(str);
+          sink.writelnWithIndent(displayStr);
         });
       }
     });

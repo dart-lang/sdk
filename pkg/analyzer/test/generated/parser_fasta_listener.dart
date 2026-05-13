@@ -245,12 +245,14 @@ class ForwardingTestListener extends ForwardingListener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
     super.beginFactory(
       declarationKind,
       lastConsumed,
+      augmentToken,
       externalToken,
       constToken,
     );

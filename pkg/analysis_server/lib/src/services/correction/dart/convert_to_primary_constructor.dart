@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
@@ -18,14 +20,24 @@ class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not a fix.
-      CorrectionApplicability.singleLocation;
+      CorrectionApplicability.automatically;
 
   @override
   AssistKind? get assistKind => DartAssistKind.convertToPrimaryConstructor;
 
+  /// This is only a fix in order to support the lint usePrimaryConstructors.
+  /// If that lint is removed after testing the primary constructors feature,
+  /// then this producer can be changed back to only producing an assist.
+  @override
+  FixKind get fixKind => DartFixKind.convertToPrimaryConstructor;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.convertToPrimaryConstructorMulti;
+
   /// The constructor being converted to a primary constructor.
   ConstructorDeclaration? get _constructorToConvert {
+    var node = this.node;
+    if (node is ConstructorDeclaration) return node;
     if (node is! SimpleIdentifier) return null;
     var parent = node.parent;
     if (parent is ConstructorDeclaration && parent.typeName == node) {

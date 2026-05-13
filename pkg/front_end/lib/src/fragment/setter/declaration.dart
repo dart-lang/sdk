@@ -19,6 +19,7 @@ import '../../builder/property_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/external_ast_helper.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/type_algorithms.dart';
@@ -324,7 +325,7 @@ class RegularSetterDeclaration
         declaredFormals.single.isOptionalPositional) {
       int fileOffset = _fragment.formalsOffset;
       if (body == null) {
-        body = new EmptyStatement()..fileOffset = fileOffset;
+        body = extern.createEmptyStatement(fileOffset: fileOffset);
       }
       if (declaredFormals != null) {
         // Illegal parameters were removed by the function builder.

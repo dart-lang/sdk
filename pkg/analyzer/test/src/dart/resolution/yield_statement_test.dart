@@ -86,6 +86,40 @@ Iterable<List<int>> f2() sync* {
     );
   }
 
+  test_downInference_function_unionFreeReturnType_asyncStar() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+FutureOr<Stream<List<int>>?> f() async* {
+  yield [];
+}
+''');
+    var node = findNode.singleListLiteral;
+    assertResolvedNodeText(node, r'''
+ListLiteral
+  leftBracket: [
+  rightBracket: ]
+  staticType: List<int>
+''');
+  }
+
+  test_downInference_function_unionFreeReturnType_syncStar() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+FutureOr<Iterable<List<int>>?> f() sync* {
+  yield [];
+}
+''');
+    var node = findNode.singleListLiteral;
+    assertResolvedNodeText(node, r'''
+ListLiteral
+  leftBracket: [
+  rightBracket: ]
+  staticType: List<int>
+''');
+  }
+
   test_downInference_functionExpression_asyncStar() async {
     await assertNoErrorsInCode(r'''
 import 'my_stream.dart';

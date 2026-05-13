@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 
 import 'records.dart';
 import 'util.dart';
@@ -177,7 +178,7 @@ class _RecordClassGenerator {
               .extensions
               .singleWhere((e) => e.name == 'WasmArrayExt')
               .memberDescriptors
-              .singleWhere((member) => member.name.text == '[]')
+              .singleWhere((member) => member.name == indexGetName)
               .memberReference!
               .node
           as Procedure;

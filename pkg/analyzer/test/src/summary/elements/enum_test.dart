@@ -21,6 +21,7 @@ abstract class EnumElementTest extends ElementsBaseTest {
     var library = await buildLibrary(r'''
 enum E {
   v(#foo.bar);
+
   const E(Object _);
 }
 ''');
@@ -67,12 +68,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:26) (offset:32)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:33)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 32
+              typeNameOffset: 33
               formalParameters
-                #F5 requiredPositional isOriginDeclaration _ (nameOffset:41) (firstTokenOffset:34) (offset:41)
+                #F5 requiredPositional isOriginDeclaration _ (nameOffset:42) (firstTokenOffset:35) (offset:42)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::_
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -1125,15 +1126,17 @@ library
   }
 
   test_constant_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   /**
    * aaa
    */
   a,
+
   /// bbb
-  b
-}''');
+  b,
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1159,7 +1162,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:47) (firstTokenOffset:37) (offset:47)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:48) (firstTokenOffset:38) (offset:48)
               element: <testLibrary>::@enum::E::@field::b
               documentationComment: /// bbb
               initializer: expression_1
@@ -1197,7 +1200,7 @@ library
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@enum::E::@getter::b
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -1258,13 +1261,14 @@ library
   }
 
   test_constant_documented_withMetadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   /**
    * aaa
    */
   @annotation
   a,
+
   /// bbb
   @annotation
   b,
@@ -1305,14 +1309,14 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:75) (firstTokenOffset:51) (offset:75)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:76) (firstTokenOffset:52) (offset:76)
               element: <testLibrary>::@enum::E::@field::b
               documentationComment: /// bbb
               metadata
                 Annotation
-                  atSign: @ @61
+                  atSign: @ @62
                   name: SimpleIdentifier
-                    token: annotation @62
+                    token: annotation @63
                     element: <testLibrary>::@getter::annotation
                     staticType: null
                   element: <testLibrary>::@getter::annotation
@@ -1351,19 +1355,19 @@ library
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@enum::E::@getter::b
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F9 hasInitializer isConst isOriginDeclaration isStatic annotation (nameOffset:91) (firstTokenOffset:91) (offset:91)
+        #F9 hasInitializer isConst isOriginDeclaration isStatic annotation (nameOffset:92) (firstTokenOffset:92) (offset:92)
           element: <testLibrary>::@topLevelVariable::annotation
           initializer: expression_3
             IntegerLiteral
-              literal: 0 @104
+              literal: 0 @105
               staticType: int
       getters
-        #F10 isCompleteDeclaration isOriginVariable isStatic annotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+        #F10 isCompleteDeclaration isOriginVariable isStatic annotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
           element: <testLibrary>::@getter::annotation
   enums
     isSimplyBounded enum E
@@ -1394,9 +1398,9 @@ library
           documentationComment: /// bbb
           metadata
             Annotation
-              atSign: @ @61
+              atSign: @ @62
               name: SimpleIdentifier
-                token: annotation @62
+                token: annotation @63
                 element: <testLibrary>::@getter::annotation
                 staticType: null
               element: <testLibrary>::@getter::annotation
@@ -1455,7 +1459,9 @@ library
   test_constant_inference() async {
     var library = await buildLibrary(r'''
 enum E<T> {
-  int(1), string('2');
+  int(1),
+  string('2');
+
   const E(T a);
 }
 ''');
@@ -1492,7 +1498,7 @@ library
                         staticType: int
                     rightParenthesis: ) @19
                   staticType: E<int>
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic string (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic string (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@enum::E::@field::string
               initializer: expression_1
                 InstanceCreationExpression
@@ -1505,11 +1511,11 @@ library
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: String}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @28
+                    leftParenthesis: ( @30
                     arguments
                       SimpleStringLiteral
-                        literal: '2' @29
-                    rightParenthesis: ) @32
+                        literal: '2' @31
+                    rightParenthesis: ) @34
                   staticType: E<String>
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
@@ -1528,17 +1534,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:43)
+            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:40) (offset:46)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 43
+              typeNameOffset: 46
               formalParameters
-                #F7 requiredPositional isOriginDeclaration a (nameOffset:47) (firstTokenOffset:45) (offset:47)
+                #F7 requiredPositional isOriginDeclaration a (nameOffset:50) (firstTokenOffset:48) (offset:50)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
             #F8 isCompleteDeclaration isOriginVariable isStatic int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::int
-            #F9 isCompleteDeclaration isOriginVariable isStatic string (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 isCompleteDeclaration isOriginVariable isStatic string (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@enum::E::@getter::string
             #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -1604,7 +1610,14 @@ library
   }
 
   test_constant_metadata() async {
-    var library = await buildLibrary('const a = 42; enum E { @a v }');
+    var library = await buildLibrary(r'''
+const a = 42;
+
+enum E {
+  @a
+  v,
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1612,16 +1625,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F1 enum E (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:23) (offset:26)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:31) (firstTokenOffset:26) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               metadata
                 Annotation
-                  atSign: @ @23
+                  atSign: @ @26
                   name: SimpleIdentifier
-                    token: a @24
+                    token: a @27
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
@@ -1637,7 +1650,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1650,13 +1663,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -1679,9 +1692,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @23
+              atSign: @ @26
               name: SimpleIdentifier
-                token: a @24
+                token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -1733,16 +1746,18 @@ library
   }
 
   test_constant_metadata_instanceCreation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   final dynamic value;
   const A(this.value);
 }
 
 enum E {
-  @A(100) a,
+  @A(100)
+  a,
   b,
-  @A(300) c,
+  @A(300)
+  c,
 }
 ''');
     checkElementText(library, r'''
@@ -1772,7 +1787,7 @@ library
         #F6 enum E (nameOffset:64) (firstTokenOffset:59) (offset:64)
           element: <testLibrary>::@enum::E
           fields
-            #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:78) (firstTokenOffset:70) (offset:78)
+            #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:80) (firstTokenOffset:70) (offset:80)
               element: <testLibrary>::@enum::E::@field::a
               metadata
                 Annotation
@@ -1801,7 +1816,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:83) (firstTokenOffset:83) (offset:83)
+            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:85) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -1815,22 +1830,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:96) (firstTokenOffset:88) (offset:96)
+            #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:100) (firstTokenOffset:90) (offset:100)
               element: <testLibrary>::@enum::E::@field::c
               metadata
                 Annotation
-                  atSign: @ @88
+                  atSign: @ @90
                   name: SimpleIdentifier
-                    token: A @89
+                    token: A @91
                     element: <testLibrary>::@class::A
                     staticType: null
                   arguments: ArgumentList
-                    leftParenthesis: ( @90
+                    leftParenthesis: ( @92
                     arguments
                       IntegerLiteral
-                        literal: 300 @91
+                        literal: 300 @93
                         staticType: int
-                    rightParenthesis: ) @94
+                    rightParenthesis: ) @96
                   element: <testLibrary>::@class::A::@constructor::new
               initializer: expression_2
                 InstanceCreationExpression
@@ -1869,11 +1884,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F12 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F12 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
               element: <testLibrary>::@enum::E::@getter::a
-            #F13 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:83)
+            #F13 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:85)
               element: <testLibrary>::@enum::E::@getter::b
-            #F14 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F14 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
               element: <testLibrary>::@enum::E::@getter::c
             #F15 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@getter::values
@@ -1944,18 +1959,18 @@ library
           firstFragment: #F9
           metadata
             Annotation
-              atSign: @ @88
+              atSign: @ @90
               name: SimpleIdentifier
-                token: A @89
+                token: A @91
                 element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
-                leftParenthesis: ( @90
+                leftParenthesis: ( @92
                 arguments
                   IntegerLiteral
-                    literal: 300 @91
+                    literal: 300 @93
                     staticType: int
-                rightParenthesis: ) @94
+                rightParenthesis: ) @96
               element: <testLibrary>::@class::A::@constructor::new
           type: E
           constantInitializer
@@ -2003,7 +2018,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   @v
-  v
+  v,
 }
 ''');
     checkElementText(library, r'''
@@ -2110,7 +2125,9 @@ library
 
   test_constant_missingName() async {
     var library = await buildLibrary(r'''
-enum E {v,,}
+enum E {
+  v,,
+}
 ''');
     checkElementText(library, r'''
 library
@@ -2122,7 +2139,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2136,7 +2153,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::#0
               initializer: expression_1
                 InstanceCreationExpression
@@ -2171,9 +2188,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isCompleteDeclaration isOriginVariable isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F7 isCompleteDeclaration isOriginVariable isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::#1
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -2234,9 +2251,7 @@ library
   /// Test that a constant named `_name` renames the synthetic `name` field.
   test_constant_name() async {
     var library = await buildLibrary(r'''
-enum E {
-  _name;
-}
+enum E { _name }
 ''');
     checkElementText(library, r'''
 library
@@ -2248,7 +2263,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _name (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _name (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::_name
               initializer: expression_0
                 InstanceCreationExpression
@@ -2279,7 +2294,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic _name (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isCompleteDeclaration isOriginVariable isStatic _name (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::_name
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -2328,6 +2343,7 @@ library
     var library = await buildLibrary(r'''
 enum E<T> {
   v<double>(42);
+
   const E(T a);
 }
 ''');
@@ -2385,12 +2401,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F5 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
+            #F5 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:38)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 37
+              typeNameOffset: 38
               formalParameters
-                #F6 requiredPositional isOriginDeclaration a (nameOffset:41) (firstTokenOffset:39) (offset:41)
+                #F6 requiredPositional isOriginDeclaration a (nameOffset:42) (firstTokenOffset:40) (offset:42)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
             #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
@@ -2446,10 +2462,8 @@ library
   }
 
   test_constant_underscore() async {
-    var library = await buildLibrary('''
-enum E {
-  _
-}
+    var library = await buildLibrary(r'''
+enum E { _ }
 ''');
     checkElementText(library, r'''
 library
@@ -2461,7 +2475,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _ (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _ (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::_
               initializer: expression_0
                 InstanceCreationExpression
@@ -2492,7 +2506,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic _ (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isCompleteDeclaration isOriginVariable isStatic _ (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::_
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -2541,6 +2555,7 @@ library
     var library = await buildLibrary(r'''
 enum E() {
   v;
+
   this : assert(true);
 }
 ''');
@@ -2585,7 +2600,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
-              thisKeywordOffset: 18
+              thisKeywordOffset: 19
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -2619,12 +2634,12 @@ library
           firstFragment: #F4
           constantInitializers
             AssertInitializer
-              assertKeyword: assert @25
-              leftParenthesis: ( @31
+              assertKeyword: assert @26
+              leftParenthesis: ( @32
               condition: BooleanLiteral
-                literal: true @32
+                literal: true @33
                 staticType: bool
-              rightParenthesis: ) @36
+              rightParenthesis: ) @37
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -2644,6 +2659,7 @@ library
     var library = await buildLibrary(r'''
 enum E() {
   v;
+
   final int x;
   this : x = 0;
 }
@@ -2684,20 +2700,20 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 isFinal isOriginDeclaration x (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F4 isFinal isOriginDeclaration x (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E::@field::x
           constructors
             #F5 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
-              thisKeywordOffset: 33
+              thisKeywordOffset: 34
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     isSimplyBounded enum E
@@ -2733,12 +2749,12 @@ library
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
-                token: x @40
+                token: x @41
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
-              equals: = @42
+              equals: = @43
               expression: IntegerLiteral
-                literal: 0 @44
+                literal: 0 @45
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
@@ -2764,6 +2780,7 @@ library
     var library = await buildLibrary(r'''
 enum E() {
   v;
+
   final int y;
   @Deprecated('0')
   this : y = 0;
@@ -2807,34 +2824,34 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 isFinal isOriginDeclaration y (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F4 isFinal isOriginDeclaration y (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E::@field::y
           constructors
             #F5 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
-                  atSign: @ @33
+                  atSign: @ @34
                   name: SimpleIdentifier
-                    token: Deprecated @34
+                    token: Deprecated @35
                     element: dart:core::@class::Deprecated
                     staticType: null
                   arguments: ArgumentList
-                    leftParenthesis: ( @44
+                    leftParenthesis: ( @45
                     arguments
                       SimpleStringLiteral
-                        literal: '0' @45
-                    rightParenthesis: ) @48
+                        literal: '0' @46
+                    rightParenthesis: ) @49
                   element: dart:core::@class::Deprecated::@constructor::new
               typeName: E
               typeNameOffset: 5
-              thisKeywordOffset: 52
+              thisKeywordOffset: 53
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isCompleteDeclaration isOriginVariable y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F8 isCompleteDeclaration isOriginVariable y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::y
   enums
     isSimplyBounded enum E
@@ -2869,27 +2886,27 @@ library
           firstFragment: #F5
           metadata
             Annotation
-              atSign: @ @33
+              atSign: @ @34
               name: SimpleIdentifier
-                token: Deprecated @34
+                token: Deprecated @35
                 element: dart:core::@class::Deprecated
                 staticType: null
               arguments: ArgumentList
-                leftParenthesis: ( @44
+                leftParenthesis: ( @45
                 arguments
                   SimpleStringLiteral
-                    literal: '0' @45
-                rightParenthesis: ) @48
+                    literal: '0' @46
+                rightParenthesis: ) @49
               element: dart:core::@class::Deprecated::@constructor::new
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
-                token: y @59
+                token: y @60
                 element: <testLibrary>::@enum::E::@field::y
                 staticType: null
-              equals: = @61
+              equals: = @62
               expression: IntegerLiteral
-                literal: 0 @63
+                literal: 0 @64
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
@@ -2915,6 +2932,7 @@ library
     var library = await buildLibrary(r'''
 enum E(int x) {
   v(0);
+
   @deprecated
   this;
 }
@@ -2964,15 +2982,15 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
-                  atSign: @ @26
+                  atSign: @ @27
                   name: SimpleIdentifier
-                    token: deprecated @27
+                    token: deprecated @28
                     element: dart:core::@getter::deprecated
                     staticType: null
                   element: dart:core::@getter::deprecated
               typeName: E
               typeNameOffset: 5
-              thisKeywordOffset: 40
+              thisKeywordOffset: 41
               formalParameters
                 #F5 requiredPositional isOriginDeclaration x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
@@ -3009,9 +3027,9 @@ library
           firstFragment: #F4
           metadata
             Annotation
-              atSign: @ @26
+              atSign: @ @27
               name: SimpleIdentifier
-                token: deprecated @27
+                token: deprecated @28
                 element: dart:core::@getter::deprecated
                 staticType: null
               element: dart:core::@getter::deprecated
@@ -3038,6 +3056,7 @@ library
     var library = await buildLibrary(r'''
 enum E.named() {
   v.named();
+
   this : assert(true);
 }
 ''');
@@ -3088,7 +3107,7 @@ library
               typeName: E
               typeNameOffset: 5
               periodOffset: 6
-              thisKeywordOffset: 32
+              thisKeywordOffset: 33
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::v
@@ -3122,12 +3141,12 @@ library
           firstFragment: #F4
           constantInitializers
             AssertInitializer
-              assertKeyword: assert @39
-              leftParenthesis: ( @45
+              assertKeyword: assert @40
+              leftParenthesis: ( @46
               condition: BooleanLiteral
-                literal: true @46
+                literal: true @47
                 staticType: bool
-              rightParenthesis: ) @50
+              rightParenthesis: ) @51
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -3147,6 +3166,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   this : assert(true);
 }
 ''');
@@ -3240,6 +3260,7 @@ library
     var library = await buildLibrary(r'''
 enum E() {
   v;
+
   this : assert(true);
 }
 ''');
@@ -3284,7 +3305,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
-              thisKeywordOffset: 18
+              thisKeywordOffset: 19
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -3318,12 +3339,12 @@ library
           firstFragment: #F4
           constantInitializers
             AssertInitializer
-              assertKeyword: assert @25
-              leftParenthesis: ( @31
+              assertKeyword: assert @26
+              leftParenthesis: ( @32
               condition: BooleanLiteral
-                literal: true @32
+                literal: true @33
                 staticType: bool
-              rightParenthesis: ) @36
+              rightParenthesis: ) @37
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -3343,6 +3364,7 @@ library
     var library = await buildLibrary(r'''
 enum E(int x) {
   v(1);
+
   this : assert(x > 0);
 }
 ''');
@@ -3391,7 +3413,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
-              thisKeywordOffset: 26
+              thisKeywordOffset: 27
               formalParameters
                 #F5 requiredPositional isOriginDeclaration x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
@@ -3432,21 +3454,21 @@ library
               type: int
           constantInitializers
             AssertInitializer
-              assertKeyword: assert @33
-              leftParenthesis: ( @39
+              assertKeyword: assert @34
+              leftParenthesis: ( @40
               condition: BinaryExpression
                 leftOperand: SimpleIdentifier
-                  token: x @40
+                  token: x @41
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   staticType: int
-                operator: > @42
+                operator: > @43
                 rightOperand: IntegerLiteral
-                  literal: 0 @44
+                  literal: 0 @45
                   staticType: int
                 element: dart:core::@class::num::@method::>
                 staticInvokeType: bool Function(num)
                 staticType: bool
-              rightParenthesis: ) @45
+              rightParenthesis: ) @46
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -3463,8 +3485,10 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalNamed_simple_final() async {
-    var library = await buildLibrary('''
-enum A({final int? foo}) {v(foo: 0)}
+    var library = await buildLibrary(r'''
+enum A({final int? foo}) {
+  v(foo: 0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -3476,7 +3500,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3487,15 +3511,15 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @27
+                    leftParenthesis: ( @30
                     arguments
                       NamedArgument
-                        name: foo @28
-                        colon: : @31
+                        name: foo @31
+                        colon: : @34
                         argumentExpression: IntegerLiteral
-                          literal: 0 @33
+                          literal: 0 @36
                           staticType: int
-                    rightParenthesis: ) @34
+                    rightParenthesis: ) @37
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -3520,7 +3544,7 @@ library
                 #F6 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -3584,8 +3608,10 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalPositional_simple_final() async {
-    var library = await buildLibrary('''
-enum A([final int? foo]) {v(0)}
+    var library = await buildLibrary(r'''
+enum A([final int? foo]) {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -3597,7 +3623,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3608,12 +3634,12 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @27
+                    leftParenthesis: ( @30
                     arguments
                       IntegerLiteral
-                        literal: 0 @28
+                        literal: 0 @31
                         staticType: int
-                    rightParenthesis: ) @29
+                    rightParenthesis: ) @32
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -3638,7 +3664,7 @@ library
                 #F6 optionalPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -3702,8 +3728,10 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_simple_final() async {
-    var library = await buildLibrary('''
-enum A({required final int foo}) {v(foo: 0)}
+    var library = await buildLibrary(r'''
+enum A({required final int foo}) {
+  v(foo: 0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -3715,7 +3743,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3726,15 +3754,15 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @35
+                    leftParenthesis: ( @38
                     arguments
                       NamedArgument
-                        name: foo @36
-                        colon: : @39
+                        name: foo @39
+                        colon: : @42
                         argumentExpression: IntegerLiteral
-                          literal: 0 @41
+                          literal: 0 @44
                           staticType: int
-                    rightParenthesis: ) @42
+                    rightParenthesis: ) @45
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -3759,7 +3787,7 @@ library
                 #F6 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:27) (firstTokenOffset:8) (offset:27)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -3827,8 +3855,7 @@ library
 enum A(
   /// first
   /// second
-  @deprecated
-  final void foo(),
+  @deprecated final void foo(),
 ) {
   v();
 }
@@ -3843,7 +3870,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:73) (firstTokenOffset:73) (offset:73)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3854,8 +3881,8 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @74
-                    rightParenthesis: ) @75
+                    leftParenthesis: ( @72
+                    rightParenthesis: ) @73
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -3877,7 +3904,7 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:60) (firstTokenOffset:10) (offset:60)
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:10) (offset:58)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -3889,7 +3916,7 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -3975,8 +4002,7 @@ library
 enum A(
   /// first
   /// second
-  @deprecated
-  final int foo,
+  @deprecated final int foo,
 ) {
   v(0)
 }
@@ -3991,7 +4017,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:70) (firstTokenOffset:70) (offset:70)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4002,12 +4028,12 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @71
+                    leftParenthesis: ( @69
                     arguments
                       IntegerLiteral
-                        literal: 0 @72
+                        literal: 0 @70
                         staticType: int
-                    rightParenthesis: ) @73
+                    rightParenthesis: ) @71
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -4029,7 +4055,7 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:59) (firstTokenOffset:10) (offset:59)
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:57) (firstTokenOffset:10) (offset:57)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -4041,7 +4067,7 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -4123,8 +4149,10 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_simple_var() async {
-    var library = await buildLibrary('''
-enum A(var int foo) {v(0)}
+    var library = await buildLibrary(r'''
+enum A(var int foo) {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -4136,7 +4164,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4147,12 +4175,12 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @22
+                    leftParenthesis: ( @25
                     arguments
                       IntegerLiteral
-                        literal: 0 @23
+                        literal: 0 @26
                         staticType: int
-                    rightParenthesis: ) @24
+                    rightParenthesis: ) @27
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -4177,7 +4205,7 @@ library
                 #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:7) (offset:15)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -4258,11 +4286,14 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_type_fromField_inferred() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int get foo => 0;
 }
-enum B(final foo) implements A {v(0)}
+
+enum B(final foo) implements A {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -4284,10 +4315,10 @@ library
             #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
       enums
-        #F5 enum B (nameOffset:37) (firstTokenOffset:32) (offset:37)
+        #F5 enum B (nameOffset:38) (firstTokenOffset:33) (offset:38)
           element: <testLibrary>::@enum::B
           fields
-            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:64) (firstTokenOffset:64) (offset:64)
+            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4298,14 +4329,14 @@ library
                       type: B
                     element: <testLibrary>::@enum::B::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @65
+                    leftParenthesis: ( @69
                     arguments
                       IntegerLiteral
-                        literal: 0 @66
+                        literal: 0 @70
                         staticType: int
-                    rightParenthesis: ) @67
+                    rightParenthesis: ) @71
                   staticType: B
-            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::B::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4317,22 +4348,22 @@ library
                       staticType: B
                   rightBracket: ] @0
                   staticType: List<B>
-            #F8 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F8 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::B::@field::foo
           constructors
-            #F9 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F9 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
-              typeNameOffset: 37
+              typeNameOffset: 38
               formalParameters
-                #F10 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:45) (firstTokenOffset:39) (offset:45)
+                #F10 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:46) (firstTokenOffset:40) (offset:46)
                   element: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
           getters
-            #F11 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F11 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@enum::B::@getter::v
-            #F12 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F12 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::B::@getter::values
-            #F13 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F13 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::B::@getter::foo
   classes
     isSimplyBounded class A
@@ -4414,8 +4445,10 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_type_typeParameter() async {
-    var library = await buildLibrary('''
-enum A<T>(final T foo) {v(0)}
+    var library = await buildLibrary(r'''
+enum A<T>(final T foo) {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -4430,7 +4463,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4443,12 +4476,12 @@ library
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @25
+                    leftParenthesis: ( @28
                     arguments
                       IntegerLiteral
-                        literal: 0 @26
+                        literal: 0 @29
                         staticType: int
-                    rightParenthesis: ) @27
+                    rightParenthesis: ) @30
                   staticType: A<int>
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -4473,7 +4506,7 @@ library
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:18) (firstTokenOffset:10) (offset:18)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::A::@getter::v
             #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -4540,9 +4573,10 @@ library
   }
 
   test_constructor_primary_formalParameter_field_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A(this.foo) {
   v(0);
+
   final int foo;
 }
 ''');
@@ -4586,7 +4620,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 isFinal isOriginDeclaration foo (nameOffset:39) (firstTokenOffset:39) (offset:39)
+            #F4 isFinal isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -4601,7 +4635,7 @@ library
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     isSimplyBounded enum A
@@ -4660,8 +4694,10 @@ library
   }
 
   test_constructor_primary_formalParameter_regular_requiredPositional_functionTypedSuffix() async {
-    var library = await buildLibrary('''
-enum A(int foo()) {v(0)}
+    var library = await buildLibrary(r'''
+enum A(int foo()) {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -4673,7 +4709,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4684,12 +4720,12 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @20
+                    leftParenthesis: ( @23
                     arguments
                       IntegerLiteral
-                        literal: 0 @21
+                        literal: 0 @24
                         staticType: int
-                    rightParenthesis: ) @22
+                    rightParenthesis: ) @25
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -4712,7 +4748,7 @@ library
                 #F5 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::A::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -4762,8 +4798,10 @@ library
   }
 
   test_constructor_primary_formalParameter_regular_requiredPositional_simple() async {
-    var library = await buildLibrary('''
-enum A(int foo) {v(0)}
+    var library = await buildLibrary(r'''
+enum A(int foo) {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -4775,7 +4813,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4786,12 +4824,12 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @18
+                    leftParenthesis: ( @21
                     arguments
                       IntegerLiteral
-                        literal: 0 @19
+                        literal: 0 @22
                         staticType: int
-                    rightParenthesis: ) @20
+                    rightParenthesis: ) @23
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -4814,7 +4852,7 @@ library
                 #F5 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::A::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -4864,8 +4902,10 @@ library
   }
 
   test_constructor_primary_named_const() async {
-    var library = await buildLibrary('''
-enum const A.named() {v.named()}
+    var library = await buildLibrary(r'''
+enum const A.named() {
+  v.named()
+}
 ''');
     checkElementText(library, r'''
 library
@@ -4877,7 +4917,7 @@ library
         #F1 enum A (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4893,8 +4933,8 @@ library
                       staticType: null
                     element: <testLibrary>::@enum::A::@constructor::named
                   argumentList: ArgumentList
-                    leftParenthesis: ( @29
-                    rightParenthesis: ) @30
+                    leftParenthesis: ( @32
+                    rightParenthesis: ) @33
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@field::values
@@ -4915,7 +4955,7 @@ library
               typeNameOffset: 11
               periodOffset: 12
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::values
@@ -4961,8 +5001,10 @@ library
   }
 
   test_constructor_primary_named_notConst() async {
-    var library = await buildLibrary('''
-enum A.named() {v.named()}
+    var library = await buildLibrary(r'''
+enum A.named() {
+  v.named()
+}
 ''');
     checkElementText(library, r'''
 library
@@ -4974,7 +5016,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4990,8 +5032,8 @@ library
                       staticType: null
                     element: <testLibrary>::@enum::A::@constructor::named
                   argumentList: ArgumentList
-                    leftParenthesis: ( @23
-                    rightParenthesis: ) @24
+                    leftParenthesis: ( @26
+                    rightParenthesis: ) @27
                   staticType: A
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -5012,7 +5054,7 @@ library
               typeNameOffset: 5
               periodOffset: 6
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -5058,10 +5100,12 @@ library
   }
 
   test_constructor_primary_scopes() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const foo = 0;
+
 enum E<@foo T>([@foo int x = foo]) {
   v;
+
   static const foo = 1;
 }
 ''');
@@ -5072,21 +5116,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:20) (firstTokenOffset:15) (offset:20)
+        #F1 enum E (nameOffset:21) (firstTokenOffset:16) (offset:21)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T (nameOffset:27) (firstTokenOffset:22) (offset:27)
+            #F2 T (nameOffset:28) (firstTokenOffset:23) (offset:28)
               element: #E0 T
               metadata
                 Annotation
-                  atSign: @ @22
+                  atSign: @ @23
                   name: SimpleIdentifier
-                    token: foo @23
+                    token: foo @24
                     element: <testLibrary>::@getter::foo
                     staticType: null
                   element: <testLibrary>::@getter::foo
           fields
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:54) (firstTokenOffset:54) (offset:54)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:55) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5102,7 +5146,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5114,39 +5158,39 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-            #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:72) (firstTokenOffset:72) (offset:72)
+            #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
-                  literal: 1 @78
+                  literal: 1 @80
                   staticType: int
           constructors
-            #F6 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:20) (offset:20)
+            #F6 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 20
+              typeNameOffset: 21
               formalParameters
-                #F7 optionalPositional isOriginDeclaration x (nameOffset:40) (firstTokenOffset:31) (offset:40)
+                #F7 optionalPositional isOriginDeclaration x (nameOffset:41) (firstTokenOffset:32) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   metadata
                     Annotation
-                      atSign: @ @31
+                      atSign: @ @32
                       name: SimpleIdentifier
-                        token: foo @32
+                        token: foo @33
                         element: <testLibrary>::@enum::E::@getter::foo
                         staticType: null
                       element: <testLibrary>::@enum::E::@getter::foo
                   initializer: expression_3
                     SimpleIdentifier
-                      token: foo @44
+                      token: foo @45
                       element: <testLibrary>::@enum::E::@getter::foo
                       staticType: int
           getters
-            #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+            #F10 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@enum::E::@getter::foo
       topLevelVariables
         #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -5167,9 +5211,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @22
+              atSign: @ @23
               name: SimpleIdentifier
-                token: foo @23
+                token: foo @24
                 element: <testLibrary>::@getter::foo
                 staticType: null
               element: <testLibrary>::@getter::foo
@@ -5209,9 +5253,9 @@ library
               type: int
               metadata
                 Annotation
-                  atSign: @ @31
+                  atSign: @ @32
                   name: SimpleIdentifier
-                    token: foo @32
+                    token: foo @33
                     element: <testLibrary>::@enum::E::@getter::foo
                     staticType: null
                   element: <testLibrary>::@enum::E::@getter::foo
@@ -5254,7 +5298,7 @@ library
   }
 
   test_constructor_primary_typeParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A<T extends U, U extends num>(T t, U u) {
   v(0, 0);
 }
@@ -5380,8 +5424,10 @@ library
   }
 
   test_constructor_primary_unnamed_const() async {
-    var library = await buildLibrary('''
-enum const A() {v}
+    var library = await buildLibrary(r'''
+enum const A() {
+  v
+}
 ''');
     checkElementText(library, r'''
 library
@@ -5393,7 +5439,7 @@ library
         #F1 enum A (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5425,7 +5471,7 @@ library
               typeName: A
               typeNameOffset: 11
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::values
@@ -5471,8 +5517,10 @@ library
   }
 
   test_constructor_primary_unnamed_notConst() async {
-    var library = await buildLibrary('''
-enum A() {v}
+    var library = await buildLibrary(r'''
+enum A() {
+  v
+}
 ''');
     checkElementText(library, r'''
 library
@@ -5484,7 +5532,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5516,7 +5564,7 @@ library
               typeName: A
               typeNameOffset: 5
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@getter::v
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -6400,268 +6448,21 @@ library
 ''');
   }
 
-  test_constructor_secondary_augmentation_chain_named() async {
-    var library = await buildLibrary(r'''
-enum A {
-  v.named();
-  const A.named();
-}
-
-augment enum A {;
-  augment const A.named();
-}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      enums
-        #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@enum::A
-          nextFragment: #F2
-          fields
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
-              element: <testLibrary>::@enum::A::@field::v
-              initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: A @-1
-                      element: <testLibrary>::@enum::A
-                      type: A
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::A::@constructor::named
-                      staticType: null
-                    element: <testLibrary>::@enum::A::@constructor::named
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @18
-                    rightParenthesis: ) @19
-                  staticType: A
-            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@field::values
-              initializer: expression_1
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: v @-1
-                      element: <testLibrary>::@enum::A::@getter::v
-                      staticType: A
-                  rightBracket: ] @0
-                  staticType: List<A>
-          constructors
-            #F5 isConst isOriginDeclaration named (nameOffset:32) (firstTokenOffset:24) (offset:32)
-              element: <testLibrary>::@enum::A::@constructor::named
-              typeName: A
-              typeNameOffset: 30
-              periodOffset: 31
-              nextFragment: #F6
-          getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
-              element: <testLibrary>::@enum::A::@getter::v
-            #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@getter::values
-        #F2 isAugmentation enum A (nameOffset:57) (firstTokenOffset:44) (offset:57)
-          element: <testLibrary>::@enum::A
-          previousFragment: #F1
-          constructors
-            #F6 isAugmentation isConst isOriginDeclaration named (nameOffset:80) (firstTokenOffset:64) (offset:80)
-              element: <testLibrary>::@enum::A::@constructor::named
-              typeName: A
-              typeNameOffset: 78
-              periodOffset: 79
-              previousFragment: #F5
-  enums
-    isSimplyBounded enum A
-      reference: <testLibrary>::@enum::A
-      firstFragment: #F1
-      supertype: Enum
-      fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
-          reference: <testLibrary>::@enum::A::@field::v
-          firstFragment: #F3
-          type: A
-          constantInitializer
-            fragment: #F3
-            expression: expression_0
-          getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::A::@field::values
-          firstFragment: #F4
-          type: List<A>
-          constantInitializer
-            fragment: #F4
-            expression: expression_1
-          getter: <testLibrary>::@enum::A::@getter::values
-      constructors
-        isConst isOriginDeclaration named
-          reference: <testLibrary>::@enum::A::@constructor::named
-          firstFragment: #F5
-          superConstructor: dart:core::@class::Enum::@constructor::new
-      getters
-        isOriginVariable isStatic v
-          reference: <testLibrary>::@enum::A::@getter::v
-          firstFragment: #F7
-          returnType: A
-          variable: <testLibrary>::@enum::A::@field::v
-        isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::A::@getter::values
-          firstFragment: #F8
-          returnType: List<A>
-          variable: <testLibrary>::@enum::A::@field::values
-''');
-  }
-
-  test_constructor_secondary_augmentation_chain_twoDeclarations() async {
-    var library = await buildLibrary(r'''
-enum A {
-  v.named();
-  const A.named();
-}
-
-augment enum A {;
-  augment const A.named();
-}
-
-augment enum A {;
-  augment const A.named();
-}
-''');
-
-    configuration.withConstantInitializers = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      enums
-        #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@enum::A
-          nextFragment: #F2
-          fields
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
-              element: <testLibrary>::@enum::A::@field::v
-              initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: A @-1
-                      element: <testLibrary>::@enum::A
-                      type: A
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::A::@constructor::named
-                      staticType: null
-                    element: <testLibrary>::@enum::A::@constructor::named
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @18
-                    rightParenthesis: ) @19
-                  staticType: A
-            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@field::values
-              initializer: expression_1
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: v @-1
-                      element: <testLibrary>::@enum::A::@getter::v
-                      staticType: A
-                  rightBracket: ] @0
-                  staticType: List<A>
-          constructors
-            #F5 isConst isOriginDeclaration named (nameOffset:32) (firstTokenOffset:24) (offset:32)
-              element: <testLibrary>::@enum::A::@constructor::named
-              typeName: A
-              typeNameOffset: 30
-              periodOffset: 31
-              nextFragment: #F6
-          getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
-              element: <testLibrary>::@enum::A::@getter::v
-            #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@getter::values
-        #F2 isAugmentation enum A (nameOffset:57) (firstTokenOffset:44) (offset:57)
-          element: <testLibrary>::@enum::A
-          previousFragment: #F1
-          nextFragment: #F9
-          constructors
-            #F6 isAugmentation isConst isOriginDeclaration named (nameOffset:80) (firstTokenOffset:64) (offset:80)
-              element: <testLibrary>::@enum::A::@constructor::named
-              typeName: A
-              typeNameOffset: 78
-              periodOffset: 79
-              nextFragment: #F10
-              previousFragment: #F5
-        #F9 isAugmentation enum A (nameOffset:105) (firstTokenOffset:92) (offset:105)
-          element: <testLibrary>::@enum::A
-          previousFragment: #F2
-          constructors
-            #F10 isAugmentation isConst isOriginDeclaration named (nameOffset:128) (firstTokenOffset:112) (offset:128)
-              element: <testLibrary>::@enum::A::@constructor::named
-              typeName: A
-              typeNameOffset: 126
-              periodOffset: 127
-              previousFragment: #F6
-  enums
-    isSimplyBounded enum A
-      reference: <testLibrary>::@enum::A
-      firstFragment: #F1
-      supertype: Enum
-      fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
-          reference: <testLibrary>::@enum::A::@field::v
-          firstFragment: #F3
-          type: A
-          constantInitializer
-            fragment: #F3
-            expression: expression_0
-          getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::A::@field::values
-          firstFragment: #F4
-          type: List<A>
-          constantInitializer
-            fragment: #F4
-            expression: expression_1
-          getter: <testLibrary>::@enum::A::@getter::values
-      constructors
-        isConst isOriginDeclaration named
-          reference: <testLibrary>::@enum::A::@constructor::named
-          firstFragment: #F5
-          superConstructor: dart:core::@class::Enum::@constructor::new
-      getters
-        isOriginVariable isStatic v
-          reference: <testLibrary>::@enum::A::@getter::v
-          firstFragment: #F7
-          returnType: A
-          variable: <testLibrary>::@enum::A::@field::v
-        isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::A::@getter::values
-          firstFragment: #F8
-          returnType: List<A>
-          variable: <testLibrary>::@enum::A::@field::values
-''');
-  }
-
-  test_constructor_secondary_augmentation_chain_unnamed() async {
+  test_constructor_secondary_augmentation_chain_isCompleteDeclaration_factory() async {
     var library = await buildLibrary(r'''
 enum A {
   v;
-  const A();
+  factory A();
 }
 
 augment enum A {;
-  augment const A();
+  augment factory A() => v;
+}
+
+augment enum A {;
+  augment factory A();
 }
 ''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6700,25 +6501,39 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F5 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:22)
+            #F5 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@constructor::new
+              factoryKeywordOffset: 16
               typeName: A
-              typeNameOffset: 22
+              typeNameOffset: 24
               nextFragment: #F6
           getters
             #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-        #F2 isAugmentation enum A (nameOffset:43) (firstTokenOffset:30) (offset:43)
+        #F2 isAugmentation enum A (nameOffset:45) (firstTokenOffset:32) (offset:45)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
+          nextFragment: #F9
           constructors
-            #F6 isAugmentation isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:50) (offset:64)
+            #F6 isAugmentation isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:52) (offset:68)
               element: <testLibrary>::@enum::A::@constructor::new
+              factoryKeywordOffset: 60
               typeName: A
-              typeNameOffset: 64
+              typeNameOffset: 68
+              nextFragment: #F10
               previousFragment: #F5
+        #F9 isAugmentation enum A (nameOffset:94) (firstTokenOffset:81) (offset:94)
+          element: <testLibrary>::@enum::A
+          previousFragment: #F2
+          constructors
+            #F10 isAugmentation isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:101) (offset:117)
+              element: <testLibrary>::@enum::A::@constructor::new
+              factoryKeywordOffset: 109
+              typeName: A
+              typeNameOffset: 117
+              previousFragment: #F6
   enums
     isSimplyBounded enum A
       reference: <testLibrary>::@enum::A
@@ -6742,10 +6557,9 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        isConst isOriginDeclaration new
+        isFactory isOriginDeclaration new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
-          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -6764,6 +6578,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   factory E() => v;
 }
 ''');
@@ -6804,11 +6619,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:24)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@enum::E::@constructor::new
-              factoryKeywordOffset: 16
+              factoryKeywordOffset: 17
               typeName: E
-              typeNameOffset: 24
+              typeNameOffset: 25
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
@@ -6858,6 +6673,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   factory E.named() => v;
 }
 ''');
@@ -6898,12 +6714,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration named (nameOffset:26) (firstTokenOffset:16) (offset:26)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration named (nameOffset:27) (firstTokenOffset:17) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::named
-              factoryKeywordOffset: 16
+              factoryKeywordOffset: 17
               typeName: E
-              typeNameOffset: 24
-              periodOffset: 25
+              typeNameOffset: 25
+              periodOffset: 26
             #F5 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
@@ -6960,6 +6776,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   factory named() => v;
 }
 ''');
@@ -7000,9 +6817,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration named (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration named (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@enum::E::@constructor::named
-              factoryKeywordOffset: 16
+              factoryKeywordOffset: 17
               typeName: null
             #F5 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
@@ -7060,8 +6877,9 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v.named();
+
   const E.named();
-  factory () => v;
+  factory() => v;
 }
 ''');
     checkElementText(library, r'''
@@ -7106,14 +6924,14 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration named (nameOffset:32) (firstTokenOffset:24) (offset:32)
+            #F4 isConst isOriginDeclaration named (nameOffset:33) (firstTokenOffset:25) (offset:33)
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
-              typeNameOffset: 30
-              periodOffset: 31
-            #F5 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
+              typeNameOffset: 31
+              periodOffset: 32
+            #F5 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@enum::E::@constructor::new
-              factoryKeywordOffset: 43
+              factoryKeywordOffset: 44
               typeName: null
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -7168,6 +6986,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   final int x;
   const E({this.x = 1 + 2});
 }
@@ -7208,24 +7027,24 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 isFinal isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F4 isFinal isOriginDeclaration x (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:38)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 37
+              typeNameOffset: 38
               formalParameters
-                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:45) (firstTokenOffset:40) (offset:45)
+                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   initializer: expression_2
                     BinaryExpression
                       leftOperand: IntegerLiteral
-                        literal: 1 @49
+                        literal: 1 @50
                         staticType: int
-                      operator: + @51
+                      operator: + @52
                       rightOperand: IntegerLiteral
-                        literal: 2 @53
+                        literal: 2 @54
                         staticType: int
                       element: dart:core::@class::num::@method::+
                       staticInvokeType: num Function(num)
@@ -7235,7 +7054,7 @@ library
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     isSimplyBounded enum E
@@ -7300,6 +7119,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   final x;
   E(this.x);
 }
@@ -7340,22 +7160,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType isFinal isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 hasImplicitType isFinal isOriginDeclaration x (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 27
+              typeNameOffset: 28
               formalParameters
-                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:34) (firstTokenOffset:29) (offset:34)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:35) (firstTokenOffset:30) (offset:35)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
             #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     isSimplyBounded enum E
@@ -7417,6 +7237,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   final x;
   E(int this.x);
 }
@@ -7457,22 +7278,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType isFinal isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 hasImplicitType isFinal isOriginDeclaration x (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 27
+              typeNameOffset: 28
               formalParameters
-                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:38) (firstTokenOffset:29) (offset:38)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:39) (firstTokenOffset:30) (offset:39)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
             #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     isSimplyBounded enum E
@@ -7531,9 +7352,10 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldTyped_formalTyped() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   final num x;
   const E(int this.x);
 }
@@ -7574,22 +7396,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 isFinal isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F4 isFinal isOriginDeclaration x (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:38)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 37
+              typeNameOffset: 38
               formalParameters
-                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:48) (firstTokenOffset:39) (offset:48)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:49) (firstTokenOffset:40) (offset:49)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
             #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     isSimplyBounded enum E
@@ -7651,6 +7473,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   final x;
   const E(int this.x(double a));
 }
@@ -7691,25 +7514,25 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType isFinal isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 hasImplicitType isFinal isOriginDeclaration x (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:33)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:34)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 33
+              typeNameOffset: 34
               formalParameters
-                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:44) (firstTokenOffset:35) (offset:44)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:45) (firstTokenOffset:36) (offset:45)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   parameters
-                    #F7 requiredPositional isOriginDeclaration a (nameOffset:53) (firstTokenOffset:46) (offset:53)
-                      element: a@53
+                    #F7 requiredPositional isOriginDeclaration a (nameOffset:54) (firstTokenOffset:47) (offset:54)
+                      element: a@54
           getters
             #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
             #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     isSimplyBounded enum E
@@ -7772,9 +7595,10 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_multipleMatchingFields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   final int x;
   final String x;
   const E(this.x);
@@ -7817,26 +7641,26 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 isFinal isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F4 isFinal isOriginDeclaration x (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::x
-            #F5 isFinal isOriginDeclaration x (nameOffset:44) (firstTokenOffset:44) (offset:44)
+            #F5 isFinal isOriginDeclaration x (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: <testLibrary>::@enum::E::@field::x#1
           constructors
-            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:49) (offset:55)
+            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:50) (offset:56)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 55
+              typeNameOffset: 56
               formalParameters
-                #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:62) (firstTokenOffset:57) (offset:62)
+                #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:63) (firstTokenOffset:58) (offset:63)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
             #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
             #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::x
-            #F11 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F11 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@enum::E::@getter::x#1
   enums
     isSimplyBounded enum E
@@ -7905,9 +7729,10 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_noMatchingField() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   const E(this.x);
 }
 ''');
@@ -7948,12 +7773,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:22)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:23)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 22
+              typeNameOffset: 23
               formalParameters
-                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:30) (firstTokenOffset:25) (offset:30)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -8010,6 +7835,7 @@ library
     var library = await buildLibrary(r'''
 enum E<T> {
   v;
+
   final int x;
   const E(T? a) : assert(a is T), x = 0;
 }
@@ -8055,22 +7881,22 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-            #F5 isFinal isOriginDeclaration x (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F5 isFinal isOriginDeclaration x (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
+            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:35) (offset:41)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 40
+              typeNameOffset: 41
               formalParameters
-                #F7 requiredPositional isOriginDeclaration a (nameOffset:45) (firstTokenOffset:42) (offset:45)
+                #F7 requiredPositional isOriginDeclaration a (nameOffset:46) (firstTokenOffset:43) (offset:46)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
             #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
             #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     isSimplyBounded enum E
@@ -8112,28 +7938,28 @@ library
               type: T?
           constantInitializers
             AssertInitializer
-              assertKeyword: assert @50
-              leftParenthesis: ( @56
+              assertKeyword: assert @51
+              leftParenthesis: ( @57
               condition: IsExpression
                 expression: SimpleIdentifier
-                  token: a @57
+                  token: a @58
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
                   staticType: T?
-                isOperator: is @59
+                isOperator: is @60
                 type: NamedType
-                  name: T @62
+                  name: T @63
                   element: #E0 T
                   type: T
                 staticType: bool
-              rightParenthesis: ) @63
+              rightParenthesis: ) @64
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
-                token: x @66
+                token: x @67
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
-              equals: = @68
+              equals: = @69
               expression: IntegerLiteral
-                literal: 0 @70
+                literal: 0 @71
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
@@ -8158,8 +7984,10 @@ library
   test_constructor_secondary_metadata() async {
     var library = await buildLibrary(r'''
 const a = 42;
+
 enum E {
   v;
+
   @a
   const E();
 }
@@ -8171,10 +7999,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F1 enum E (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8188,7 +8016,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8201,22 +8029,22 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:30) (offset:41)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:43)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
-                  atSign: @ @30
+                  atSign: @ @32
                   name: SimpleIdentifier
-                    token: a @31
+                    token: a @33
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
               typeName: E
-              typeNameOffset: 41
+              typeNameOffset: 43
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -8256,9 +8084,9 @@ library
           firstFragment: #F4
           metadata
             Annotation
-              atSign: @ @30
+              atSign: @ @32
               name: SimpleIdentifier
-                token: a @31
+                token: a @33
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -8296,6 +8124,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v.named(42);
+
   const E.named(int a);
 }
 ''');
@@ -8345,13 +8174,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration named (nameOffset:34) (firstTokenOffset:26) (offset:34)
+            #F4 isConst isOriginDeclaration named (nameOffset:35) (firstTokenOffset:27) (offset:35)
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
-              typeNameOffset: 32
-              periodOffset: 33
+              typeNameOffset: 33
+              periodOffset: 34
               formalParameters
-                #F5 requiredPositional isOriginDeclaration a (nameOffset:44) (firstTokenOffset:40) (offset:44)
+                #F5 requiredPositional isOriginDeclaration a (nameOffset:45) (firstTokenOffset:41) (offset:45)
                   element: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -8407,6 +8236,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v.named();
+
   new named();
 }
 ''');
@@ -8452,9 +8282,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration named (nameOffset:28) (firstTokenOffset:24) (offset:28)
+            #F4 isConst isOriginDeclaration named (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@enum::E::@constructor::named
-              newKeywordOffset: 24
+              newKeywordOffset: 25
               typeName: null
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -8506,6 +8336,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v.named();
+
   const new named();
 }
 ''');
@@ -8551,9 +8382,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration named (nameOffset:34) (firstTokenOffset:24) (offset:34)
+            #F4 isConst isOriginDeclaration named (nameOffset:35) (firstTokenOffset:25) (offset:35)
               element: <testLibrary>::@enum::E::@constructor::named
-              newKeywordOffset: 30
+              newKeywordOffset: 31
               typeName: null
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -8605,7 +8436,8 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
-  new ();
+
+  new();
 }
 ''');
     checkElementText(library, r'''
@@ -8645,9 +8477,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:16)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@enum::E::@constructor::new
-              newKeywordOffset: 16
+              newKeywordOffset: 17
               typeName: null
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -8699,7 +8531,8 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
-  const new ();
+
+  const new();
 }
 ''');
     checkElementText(library, r'''
@@ -8739,9 +8572,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:16)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@enum::E::@constructor::new
-              newKeywordOffset: 22
+              newKeywordOffset: 23
               typeName: null
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -8794,6 +8627,7 @@ library
 // @dart = 3.10
 enum E {
   v.named();
+
   E.named();
 }
 ''');
@@ -8839,11 +8673,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isOriginDeclaration named (nameOffset:42) (firstTokenOffset:40) (offset:42)
+            #F4 isOriginDeclaration named (nameOffset:43) (firstTokenOffset:41) (offset:43)
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
-              typeNameOffset: 40
-              periodOffset: 41
+              typeNameOffset: 41
+              periodOffset: 42
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::v
@@ -8895,6 +8729,7 @@ library
 // @dart = 3.10
 enum E {
   v;
+
   E();
 }
 ''');
@@ -8935,10 +8770,10 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:32)
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 32
+              typeNameOffset: 33
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::v
@@ -8989,6 +8824,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v(42);
+
   const E(int a);
 }
 ''');
@@ -9033,12 +8869,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:20) (offset:26)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
-              typeNameOffset: 26
+              typeNameOffset: 27
               formalParameters
-                #F5 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:28) (offset:32)
+                #F5 requiredPositional isOriginDeclaration a (nameOffset:33) (firstTokenOffset:29) (offset:33)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -9104,7 +8940,6 @@ enum A {
 augment enum A {;
   void foo3() {}
 }
-
 ''');
 
     configuration.withConstantInitializers = false;
@@ -9382,9 +9217,8 @@ augment enum A {}
     var library = await buildLibrary(r'''
 part 'a1.dart';
 part 'a2.dart';
-enum A {
-  v
-}
+
+enum A { v }
 ''');
 
     configuration
@@ -9407,11 +9241,11 @@ library
           partKeywordOffset: 16
           unit: #F2
       enums
-        #F3 enum A (nameOffset:37) (firstTokenOffset:32) (offset:37)
+        #F3 enum A (nameOffset:38) (firstTokenOffset:33) (offset:38)
           element: <testLibrary>::@enum::A
           nextFragment: #F4
           fields
-            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:43) (firstTokenOffset:43) (offset:43)
+            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -9425,7 +9259,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -9438,13 +9272,13 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F7 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F7 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::A::@getter::values
     #F1 package:test/a1.dart
       element: <testLibrary>
@@ -9798,10 +9632,8 @@ library
   }
 
   test_enum_codeRange() async {
-    var library = await buildLibrary('''
-enum E {
-  aaa, bbb, ccc
-}
+    var library = await buildLibrary(r'''
+enum E { aaa, bbb, ccc }
 ''');
     configuration.withCodeRanges = true;
     checkElementText(library, r'''
@@ -9814,7 +9646,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic aaa (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic aaa (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::aaa
               initializer: expression_0
                 InstanceCreationExpression
@@ -9828,7 +9660,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic bbb (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic bbb (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::bbb
               initializer: expression_1
                 InstanceCreationExpression
@@ -9842,7 +9674,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic ccc (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic ccc (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::E::@field::ccc
               initializer: expression_2
                 InstanceCreationExpression
@@ -9881,11 +9713,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic aaa (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isCompleteDeclaration isOriginVariable isStatic aaa (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::aaa
-            #F8 isCompleteDeclaration isOriginVariable isStatic bbb (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 isCompleteDeclaration isOriginVariable isStatic bbb (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::bbb
-            #F9 isCompleteDeclaration isOriginVariable isStatic ccc (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 isCompleteDeclaration isOriginVariable isStatic ccc (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::ccc
             #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -9957,12 +9789,13 @@ library
   }
 
   test_enum_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-enum E { v }''');
+enum E { v }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -10164,8 +9997,8 @@ library
   }
 
   test_enum_error_extendsEnum() async {
-    var library = await buildLibrary('''
-enum E {a, b, c}
+    var library = await buildLibrary(r'''
+enum E { a, b, c }
 
 class M {}
 
@@ -10190,50 +10023,50 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class M (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 class M (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::M
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
-        #F3 hasExtendsClause class A (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F3 hasExtendsClause class A (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::A
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F5 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:54) (firstTokenOffset:54) (offset:54)
               element: <testLibrary>::@class::A::@method::foo
-        #F6 class B (nameOffset:70) (firstTokenOffset:64) (offset:70)
+        #F6 class B (nameOffset:72) (firstTokenOffset:66) (offset:72)
           element: <testLibrary>::@class::B
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F8 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
+            #F8 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::B::@method::foo
-        #F9 hasExtendsClause class C (nameOffset:110) (firstTokenOffset:104) (offset:110)
+        #F9 hasExtendsClause class C (nameOffset:112) (firstTokenOffset:106) (offset:112)
           element: <testLibrary>::@class::C
           constructors
-            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:110)
+            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:141) (firstTokenOffset:141) (offset:141)
+            #F11 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:143) (firstTokenOffset:143) (offset:143)
               element: <testLibrary>::@class::C::@method::foo
-        #F12 isMixinApplication class D (nameOffset:159) (firstTokenOffset:153) (offset:159)
+        #F12 isMixinApplication class D (nameOffset:161) (firstTokenOffset:155) (offset:161)
           element: <testLibrary>::@class::D
           constructors
-            #F13 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:159)
+            #F13 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:161)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       enums
         #F14 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F15 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F15 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -10247,7 +10080,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F16 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F16 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -10261,7 +10094,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F17 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F17 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -10300,11 +10133,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F20 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F20 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::a
-            #F21 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F21 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@enum::E::@getter::b
-            #F22 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F22 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@enum::E::@getter::c
             #F23 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -10444,9 +10277,8 @@ library
   test_enum_interfaces() async {
     var library = await buildLibrary(r'''
 class I {}
-enum E implements I {
-  v;
-}
+
+enum E implements I { v }
 ''');
     checkElementText(library, r'''
 library
@@ -10462,10 +10294,10 @@ library
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
       enums
-        #F3 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
+        #F3 enum E (nameOffset:17) (firstTokenOffset:12) (offset:17)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -10479,7 +10311,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -10492,13 +10324,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F6 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     isSimplyBounded class I
@@ -11161,8 +10993,11 @@ library
   test_enum_interfaces_extensionType() async {
     var library = await buildLibrary(r'''
 class A {}
+
 extension type B(int it) {}
+
 class C {}
+
 enum E implements A, B, C { v }
 ''');
     configuration
@@ -11177,13 +11012,13 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F2 class C (nameOffset:47) (firstTokenOffset:41) (offset:47)
           element: <testLibrary>::@class::C
       enums
-        #F3 enum E (nameOffset:55) (firstTokenOffset:50) (offset:55)
+        #F3 enum E (nameOffset:58) (firstTokenOffset:53) (offset:58)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:78) (firstTokenOffset:78) (offset:78)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:81) (firstTokenOffset:81) (offset:81)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11197,7 +11032,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11210,18 +11045,18 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
-        #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
+        #F8 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     isSimplyBounded class A
@@ -11292,9 +11127,8 @@ library
   test_enum_interfaces_generic() async {
     var library = await buildLibrary(r'''
 class I<T> {}
-enum E<U> implements I<U> {
-  v;
-}
+
+enum E<U> implements I<U> { v }
 ''');
     checkElementText(library, r'''
 library
@@ -11313,13 +11147,13 @@ library
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
       enums
-        #F4 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F4 enum E (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F5 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F5 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 U
           fields
-            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:44) (firstTokenOffset:44) (offset:44)
+            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:43) (firstTokenOffset:43) (offset:43)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11335,7 +11169,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11348,13 +11182,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F8 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F8 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F9 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     isSimplyBounded class I
@@ -11414,12 +11248,12 @@ library
   }
 
   test_enum_interfaces_unresolved() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class X {}
+
 class Z {}
-enum E implements X, Y, Z {
-  v
-}
+
+enum E implements X, Y, Z { v }
 ''');
     checkElementText(library, r'''
 library
@@ -11434,14 +11268,14 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
-        #F3 class Z (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 class Z (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::Z
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
       enums
-        #F5 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
+        #F5 enum E (nameOffset:29) (firstTokenOffset:24) (offset:29)
           element: <testLibrary>::@enum::E
           fields
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:52) (firstTokenOffset:52) (offset:52)
@@ -11458,7 +11292,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11471,13 +11305,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F8 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F8 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             #F9 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     isSimplyBounded class X
@@ -11539,9 +11373,10 @@ library
   }
 
   test_enum_lazy_all_constructors() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v.foo();
+
   const E.foo();
 }
 ''');
@@ -11551,9 +11386,10 @@ enum E {
   }
 
   test_enum_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   final foo = 42;
 }
 ''');
@@ -11563,9 +11399,10 @@ enum E {
   }
 
   test_enum_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   int get foo => 0;
 }
 ''');
@@ -11575,9 +11412,10 @@ enum E {
   }
 
   test_enum_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   void foo() {}
 }
 ''');
@@ -11587,9 +11425,10 @@ enum E {
   }
 
   test_enum_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   set foo(int _) {}
 }
 ''');
@@ -11599,9 +11438,10 @@ enum E {
   }
 
   test_enum_lazy_byReference_constructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v.foo();
+
   const E.foo();
 }
 ''');
@@ -11612,9 +11452,10 @@ enum E {
   }
 
   test_enum_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   final foo = 42;
 }
 ''');
@@ -11625,9 +11466,10 @@ enum E {
   }
 
   test_enum_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   int get foo => 0;
 }
 ''');
@@ -11638,9 +11480,10 @@ enum E {
   }
 
   test_enum_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
+
   void foo() {}
 }
 ''');
@@ -11651,9 +11494,10 @@ enum E {
   }
 
   test_enum_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
-enum E{
+    var library = await buildLibrary(r'''
+enum E {
   v;
+
   set foo(int _) {}
 }
 ''');
@@ -11664,7 +11508,12 @@ enum E{
   }
 
   test_enum_metadata() async {
-    var library = await buildLibrary('const a = 42; @a enum E { v }');
+    var library = await buildLibrary(r'''
+const a = 42;
+
+@a
+enum E { v }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -11672,10 +11521,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:22) (firstTokenOffset:14) (offset:22)
+        #F1 enum E (nameOffset:23) (firstTokenOffset:15) (offset:23)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11689,7 +11538,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11702,13 +11551,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -11783,6 +11632,7 @@ const foo = 0;
 @foo
 enum E<@foo T> {
   v;
+
   static const foo = 1;
   @foo
   void bar() {}
@@ -11837,11 +11687,11 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-            #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:58) (offset:58)
+            #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:59) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
-                  literal: 1 @64
+                  literal: 1 @65
                   staticType: int
           constructors
             #F6 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
@@ -11852,16 +11702,16 @@ library
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F9 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@enum::E::@getter::foo
           methods
-            #F10 isCompleteDeclaration isOriginDeclaration bar (nameOffset:81) (firstTokenOffset:69) (offset:81)
+            #F10 isCompleteDeclaration isOriginDeclaration bar (nameOffset:82) (firstTokenOffset:70) (offset:82)
               element: <testLibrary>::@enum::E::@method::bar
               metadata
                 Annotation
-                  atSign: @ @69
+                  atSign: @ @70
                   name: SimpleIdentifier
-                    token: foo @70
+                    token: foo @71
                     element: <testLibrary>::@enum::E::@getter::foo
                     staticType: null
                   element: <testLibrary>::@enum::E::@getter::foo
@@ -11943,9 +11793,9 @@ library
           firstFragment: #F10
           metadata
             Annotation
-              atSign: @ @69
+              atSign: @ @70
               name: SimpleIdentifier
-                token: foo @70
+                token: foo @71
                 element: <testLibrary>::@enum::E::@getter::foo
                 staticType: null
               element: <testLibrary>::@enum::E::@getter::foo
@@ -11970,7 +11820,9 @@ library
 
   test_enum_missingName() async {
     var library = await buildLibrary(r'''
-enum {v}
+enum {
+  v
+}
 ''');
     checkElementText(library, r'''
 library
@@ -11982,7 +11834,7 @@ library
         #F1 enum <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@enum::#0
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::#0::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12013,7 +11865,7 @@ library
               element: <testLibrary>::@enum::#0::@constructor::new
               typeName: null
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::#0::@getter::v
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::#0::@getter::values
@@ -12061,9 +11913,8 @@ library
   test_enum_mixins() async {
     var library = await buildLibrary(r'''
 mixin M {}
-enum E with M {
-  v;
-}
+
+enum E with M { v }
 ''');
     checkElementText(library, r'''
 library
@@ -12072,10 +11923,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
+        #F1 enum E (nameOffset:17) (firstTokenOffset:12) (offset:17)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12089,7 +11940,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12102,13 +11953,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
         #F7 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -12466,8 +12317,11 @@ library
   test_enum_mixins_extensionType() async {
     var library = await buildLibrary(r'''
 class A {}
+
 extension type B(int it) {}
+
 class C {}
+
 enum E with A, B, C { v }
 ''');
     configuration
@@ -12482,13 +12336,13 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F2 class C (nameOffset:47) (firstTokenOffset:41) (offset:47)
           element: <testLibrary>::@class::C
       enums
-        #F3 enum E (nameOffset:55) (firstTokenOffset:50) (offset:55)
+        #F3 enum E (nameOffset:58) (firstTokenOffset:53) (offset:58)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:72) (firstTokenOffset:72) (offset:72)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:75) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12502,7 +12356,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12515,18 +12369,18 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
-        #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
+        #F8 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     isSimplyBounded class A
@@ -12597,10 +12451,10 @@ library
   test_enum_mixins_inference() async {
     var library = await buildLibrary(r'''
 mixin M1<T> {}
+
 mixin M2<T> on M1<T> {}
-enum E with M1<int>, M2 {
-  v;
-}
+
+enum E with M1<int>, M2 { v }
 ''');
     checkElementText(library, r'''
 library
@@ -12609,7 +12463,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:44) (firstTokenOffset:39) (offset:44)
+        #F1 enum E (nameOffset:46) (firstTokenOffset:41) (offset:46)
           element: <testLibrary>::@enum::E
           fields
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:67) (firstTokenOffset:67) (offset:67)
@@ -12626,7 +12480,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12639,13 +12493,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
         #F7 mixin M1 (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -12653,10 +12507,10 @@ library
           typeParameters
             #F8 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: #E0 T
-        #F9 mixin M2 (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F9 mixin M2 (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@mixin::M2
           typeParameters
-            #F10 T (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F10 T (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E1 T
   enums
     isSimplyBounded enum E
@@ -12720,10 +12574,8 @@ library
   }
 
   test_enum_typeParameters() async {
-    var library = await buildLibrary('''
-enum E<T> {
-  v
-}
+    var library = await buildLibrary(r'''
+enum E<T> { v }
 ''');
     checkElementText(library, r'''
 library
@@ -12738,7 +12590,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12771,7 +12623,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@enum::E::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -13201,10 +13053,8 @@ library
   }
 
   test_enum_typeParameters_bound() async {
-    var library = await buildLibrary('''
-enum E<T extends num, U extends T> {
-  v
-}
+    var library = await buildLibrary(r'''
+enum E<T extends num, U extends T> { v }
 ''');
     checkElementText(library, r'''
 library
@@ -13221,7 +13071,7 @@ library
             #F3 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 U
           fields
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:39) (firstTokenOffset:39) (offset:39)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13254,7 +13104,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F7 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -13307,7 +13157,7 @@ library
   }
 
   test_enum_typeParameters_cycle_1of1() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<T extends T> {}
 ''');
     checkElementText(library, r'''
@@ -13636,11 +13486,10 @@ library
   }
 
   test_enum_typeParameters_metadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
-enum E<@a T> {
-  v
-}
+
+enum E<@a T> { v }
 ''');
     checkElementText(library, r'''
 library
@@ -13649,21 +13498,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F1 enum E (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T (nameOffset:24) (firstTokenOffset:21) (offset:24)
+            #F2 T (nameOffset:25) (firstTokenOffset:22) (offset:25)
               element: #E0 T
               metadata
                 Annotation
-                  atSign: @ @21
+                  atSign: @ @22
                   name: SimpleIdentifier
-                    token: a @22
+                    token: a @23
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
           fields
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13679,7 +13528,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13692,13 +13541,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F5 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F5 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -13719,9 +13568,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @21
+              atSign: @ @22
               name: SimpleIdentifier
-                token: a @22
+                token: a @23
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -13778,7 +13627,7 @@ library
   }
 
   test_enum_typeParameters_variance_contravariant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<in T> {}
 ''');
     checkElementText(library, r'''
@@ -13840,7 +13689,7 @@ library
   }
 
   test_enum_typeParameters_variance_covariant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<out T> {}
 ''');
     checkElementText(library, r'''
@@ -13902,7 +13751,7 @@ library
   }
 
   test_enum_typeParameters_variance_invariant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<inout T> {}
 ''');
     checkElementText(library, r'''
@@ -13964,7 +13813,7 @@ library
   }
 
   test_enum_typeParameters_variance_multiple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<inout T, in U, out V> {}
 ''');
     checkElementText(library, r'''
@@ -14034,7 +13883,9 @@ library
   }
 
   test_enum_values() async {
-    var library = await buildLibrary('enum E { v1, v2 }');
+    var library = await buildLibrary(r'''
+enum E { v1, v2 }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14155,7 +14006,11 @@ library
   }
 
   test_enums() async {
-    var library = await buildLibrary('enum E1 { v1 } enum E2 { v2 }');
+    var library = await buildLibrary(r'''
+enum E1 { v1 }
+
+enum E2 { v2 }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14201,10 +14056,10 @@ library
               element: <testLibrary>::@enum::E1::@getter::v1
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@getter::values
-        #F7 enum E2 (nameOffset:20) (firstTokenOffset:15) (offset:20)
+        #F7 enum E2 (nameOffset:21) (firstTokenOffset:16) (offset:21)
           element: <testLibrary>::@enum::E2
           fields
-            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E2::@field::v2
               initializer: expression_2
                 InstanceCreationExpression
@@ -14218,7 +14073,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E2
-            #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E2::@field::values
               initializer: expression_3
                 ListLiteral
@@ -14231,13 +14086,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E2>
           constructors
-            #F10 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F10 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E2::@constructor::new
               typeName: E2
           getters
-            #F11 isCompleteDeclaration isOriginVariable isStatic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F11 isCompleteDeclaration isOriginVariable isStatic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E2::@getter::v2
-            #F12 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F12 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E2::@getter::values
   enums
     isSimplyBounded enum E1
@@ -14321,6 +14176,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   final foo = 42;
 }
 ''');
@@ -14360,11 +14216,11 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
-                  literal: 42 @28
+                  literal: 42 @29
                   staticType: int
           constructors
             #F5 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -14375,7 +14231,7 @@ library
               element: <testLibrary>::@enum::E::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     isSimplyBounded enum E
@@ -15988,6 +15844,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v(null);
+
   final int? _foo;
   E(this._foo);
 }
@@ -16012,8 +15869,9 @@ library
 
   test_getter() async {
     var library = await buildLibrary(r'''
-enum E{
+enum E {
   v;
+
   int get foo => 0;
 }
 ''');
@@ -16027,7 +15885,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16060,11 +15918,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isCompleteDeclaration isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:15) (offset:23)
+            #F8 isCompleteDeclaration isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     isSimplyBounded enum E
@@ -17189,6 +17047,7 @@ library
     var library = await buildLibrary(r'''
 enum E<T> {
   v;
+
   int foo<U>(T t, U u) => 0;
 }
 ''');
@@ -17243,15 +17102,15 @@ library
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F8 isCompleteDeclaration isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
+            #F8 isCompleteDeclaration isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@enum::E::@method::foo
               typeParameters
-                #F9 U (nameOffset:27) (firstTokenOffset:27) (offset:27)
+                #F9 U (nameOffset:28) (firstTokenOffset:28) (offset:28)
                   element: #E1 U
               formalParameters
-                #F10 requiredPositional isOriginDeclaration t (nameOffset:32) (firstTokenOffset:30) (offset:32)
+                #F10 requiredPositional isOriginDeclaration t (nameOffset:33) (firstTokenOffset:31) (offset:33)
                   element: <testLibrary>::@enum::E::@method::foo::@formalParameter::t
-                #F11 requiredPositional isOriginDeclaration u (nameOffset:37) (firstTokenOffset:35) (offset:37)
+                #F11 requiredPositional isOriginDeclaration u (nameOffset:38) (firstTokenOffset:36) (offset:38)
                   element: <testLibrary>::@enum::E::@method::foo::@formalParameter::u
   enums
     isSimplyBounded enum E
@@ -19065,8 +18924,10 @@ library
   test_method_metadata() async {
     var library = await buildLibrary(r'''
 const a = 42;
+
 enum E {
   v;
+
   @a
   void foo() {}
 }
@@ -19078,10 +18939,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F1 enum E (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -19095,7 +18956,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -19108,22 +18969,22 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 isCompleteDeclaration isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:30) (offset:40)
+            #F7 isCompleteDeclaration isOriginDeclaration foo (nameOffset:42) (firstTokenOffset:32) (offset:42)
               element: <testLibrary>::@enum::E::@method::foo
               metadata
                 Annotation
-                  atSign: @ @30
+                  atSign: @ @32
                   name: SimpleIdentifier
-                    token: a @31
+                    token: a @33
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
@@ -19181,9 +19042,9 @@ library
           firstFragment: #F7
           metadata
             Annotation
-              atSign: @ @30
+              atSign: @ @32
               name: SimpleIdentifier
-                token: a @31
+                token: a @33
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -19210,6 +19071,7 @@ library
     var library = await buildLibrary(r'''
 enum E {
   v;
+
   String toString() => 'E';
 }
 ''');
@@ -19259,7 +19121,7 @@ library
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 isCompleteDeclaration isOriginDeclaration toString (nameOffset:23) (firstTokenOffset:16) (offset:23)
+            #F7 isCompleteDeclaration isOriginDeclaration toString (nameOffset:24) (firstTokenOffset:17) (offset:24)
               element: <testLibrary>::@enum::E::@method::toString
   enums
     isSimplyBounded enum E
@@ -19311,6 +19173,7 @@ library
     var library = await buildLibrary(r'''
 enum E(int foo) {
   v(0);
+
   final bar = foo;
 }
 ''');
@@ -19354,11 +19217,11 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@enum::E::@field::bar
               initializer: expression_2
                 SimpleIdentifier
-                  token: foo @40
+                  token: foo @41
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                   staticType: int
           constructors
@@ -19374,7 +19237,7 @@ library
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F9 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     isSimplyBounded enum E
@@ -19438,6 +19301,7 @@ library
     var library = await buildLibrary(r'''
 enum E(final int foo) {
   v(0);
+
   final bar = foo;
 }
 ''');
@@ -19483,11 +19347,11 @@ library
                   staticType: List<E>
             #F4 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::foo
-            #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: <testLibrary>::@enum::E::@field::bar
               initializer: expression_2
                 SimpleIdentifier
-                  token: foo @46
+                  token: foo @47
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                   staticType: int
           constructors
@@ -19505,7 +19369,7 @@ library
               element: <testLibrary>::@enum::E::@getter::values
             #F10 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::foo
-            #F11 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F11 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     isSimplyBounded enum E
@@ -19581,6 +19445,7 @@ library
     var library = await buildLibrary(r'''
 enum E(int foo) {
   v(0);
+
   late final bar = foo;
 }
 ''');
@@ -19624,11 +19489,11 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType hasInitializer isFinal isLate isOriginDeclaration bar (nameOffset:39) (firstTokenOffset:39) (offset:39)
+            #F4 hasImplicitType hasInitializer isFinal isLate isOriginDeclaration bar (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@enum::E::@field::bar
               initializer: expression_2
                 SimpleIdentifier
-                  token: foo @45
+                  token: foo @46
                   element: <null>
                   staticType: InvalidType
           constructors
@@ -19644,7 +19509,7 @@ library
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F9 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     isSimplyBounded enum E
@@ -19708,6 +19573,7 @@ library
     var library = await buildLibrary(r'''
 enum E(int? foo) {
   v(0);
+
   final bar = foo != null ? foo : 0;
 }
 ''');
@@ -19751,30 +19617,30 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::E::@field::bar
               initializer: expression_2
                 ConditionalExpression
                   condition: BinaryExpression
                     leftOperand: SimpleIdentifier
-                      token: foo @41
+                      token: foo @42
                       element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                       staticType: int?
-                    operator: != @45
+                    operator: != @46
                     rightOperand: NullLiteral
-                      literal: null @48
+                      literal: null @49
                       staticType: Null
                     element: dart:core::@class::num::@method::==
                     staticInvokeType: bool Function(Object)
                     staticType: bool
-                  question: ? @53
+                  question: ? @54
                   thenExpression: SimpleIdentifier
-                    token: foo @55
+                    token: foo @56
                     element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                     staticType: int
-                  colon: : @59
+                  colon: : @60
                   elseExpression: IntegerLiteral
-                    literal: 0 @61
+                    literal: 0 @62
                     staticType: int
                   staticType: int
           constructors
@@ -19790,7 +19656,7 @@ library
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F9 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     isSimplyBounded enum E
@@ -19854,6 +19720,7 @@ library
     var library = await buildLibrary(r'''
 enum E(int foo) {
   v(0);
+
   static final bar = foo;
 }
 ''');
@@ -19897,7 +19764,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic bar (nameOffset:41) (firstTokenOffset:41) (offset:41)
+            #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic bar (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@enum::E::@field::bar
           constructors
             #F5 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -19912,7 +19779,7 @@ library
               element: <testLibrary>::@enum::E::@getter::v
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isCompleteDeclaration isOriginVariable isStatic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F9 isCompleteDeclaration isOriginVariable isStatic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     isSimplyBounded enum E
@@ -19971,8 +19838,9 @@ library
 
   test_setter() async {
     var library = await buildLibrary(r'''
-enum E{
+enum E {
   v;
+
   set foo(int _) {}
 }
 ''');
@@ -19986,7 +19854,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -20019,15 +19887,15 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           setters
-            #F8 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:19) (firstTokenOffset:15) (offset:19)
+            #F8 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@enum::E::@setter::foo
               formalParameters
-                #F9 requiredPositional isOriginDeclaration _ (nameOffset:27) (firstTokenOffset:23) (offset:27)
+                #F9 requiredPositional isOriginDeclaration _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
   enums
     isSimplyBounded enum E

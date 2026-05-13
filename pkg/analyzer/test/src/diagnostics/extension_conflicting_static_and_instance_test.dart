@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,10 +15,8 @@ main() {
 @reflectiveTest
 class ExtensionConflictingStaticAndInstanceTest
     extends PubPackageResolutionTest {
-  DiagnosticCode get _errorCode => diag.extensionConflictingStaticAndInstance;
-
   test_extendedType_staticField() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int foo = 0;
   int bar = 0;
@@ -34,7 +30,7 @@ extension E on A {
   }
 
   test_extendedType_staticGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo => 0;
   int get bar => 0;
@@ -48,7 +44,7 @@ extension E on A {
   }
 
   test_extendedType_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
   void bar() {}
@@ -62,7 +58,7 @@ extension E on A {
   }
 
   test_extendedType_staticSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(_) {}
   set bar(_) {}
@@ -77,8 +73,7 @@ extension E on A {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_instanceMethod_staticMethodInAugmentation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {
   void foo() {}
 }
@@ -86,135 +81,122 @@ extension A on int {
 augment extension A {
   static void foo() {}
 }
-''',
-      [error(_errorCode, 76, 3)],
-    );
+''');
   }
 
   test_staticField_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int foo = 0;
+//           ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   int get foo => 0;
 }
-''',
-      [error(_errorCode, 37, 3)],
-    );
+''');
   }
 
   test_staticField_instanceGetter_unnamed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int foo = 0;
+//           ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   int get foo => 0;
 }
-''',
-      [error(_errorCode, 37, 3)],
-    );
+''');
   }
 
   test_staticField_instanceMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int foo = 0;
+//           ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   void foo() {}
 }
-''',
-      [error(_errorCode, 37, 3)],
-    );
+''');
   }
 
   test_staticField_instanceSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int foo = 0;
+//           ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   set foo(_) {}
 }
-''',
-      [error(_errorCode, 37, 3)],
-    );
+''');
   }
 
   test_staticGetter_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int get foo => 0;
+//               ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   int get foo => 0;
 }
-''',
-      [error(_errorCode, 41, 3)],
-    );
+''');
   }
 
   test_staticGetter_instanceGetter_unnamed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int get foo => 0;
+//               ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   int get foo => 0;
 }
-''',
-      [error(_errorCode, 41, 3)],
-    );
+''');
   }
 
   test_staticGetter_instanceMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int get foo => 0;
+//               ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   void foo() {}
 }
-''',
-      [error(_errorCode, 41, 3)],
-    );
+''');
   }
 
   test_staticGetter_instanceSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static int get foo => 0;
+//               ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   set foo(_) {}
 }
-''',
-      [error(_errorCode, 41, 3)],
-    );
+''');
   }
 
   test_staticMethod_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static void foo() {}
+//            ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   int get foo => 0;
 }
-''',
-      [error(_errorCode, 38, 3)],
-    );
+''');
   }
 
   test_staticMethod_instanceMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static void foo() {}
+//            ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   void foo() {}
 }
-''',
-      [error(_errorCode, 38, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_staticMethod_instanceMethodInAugmentation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {
   static void foo() {}
 }
@@ -222,56 +204,50 @@ extension A on int {
 augment extension A {
   void foo() {}
 }
-''',
-      [error(_errorCode, 35, 3)],
-    );
+''');
   }
 
   test_staticMethod_instanceSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static void foo() {}
+//            ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   set foo(_) {}
 }
-''',
-      [error(_errorCode, 38, 3)],
-    );
+''');
   }
 
   test_staticSetter_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static set foo(_) {}
+//           ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   int get foo => 0;
 }
-''',
-      [error(_errorCode, 37, 3)],
-    );
+''');
   }
 
   test_staticSetter_instanceMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static set foo(_) {}
+//           ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   void foo() {}
 }
-''',
-      [error(_errorCode, 37, 3)],
-    );
+''');
   }
 
   test_staticSetter_instanceSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static set foo(_) {}
+//           ^^^
+// [diag.extensionConflictingStaticAndInstance] An extension can't define static member 'foo' and an instance member with the same name.
   set foo(_) {}
 }
-''',
-      [error(_errorCode, 37, 3)],
-    );
+''');
   }
 }

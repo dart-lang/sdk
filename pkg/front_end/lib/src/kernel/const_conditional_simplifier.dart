@@ -8,6 +8,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
+import 'external_ast_helper.dart' as extern;
 import 'try_constant_evaluator.dart';
 
 class ConstConditionalSimplifier extends RemovingTransformer {
@@ -81,7 +82,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     } else {
       return node.otherwise ??
           removalSentinel ?? // Coverage-ignore(suite): Not run.
-          new EmptyStatement();
+          extern.createEmptyStatement();
     }
   }
 
@@ -89,7 +90,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   // Coverage-ignore(suite): Not run.
   TreeNode visitAssertBlock(AssertBlock node, TreeNode? removalSentinel) {
     if (_removeAsserts) {
-      return removalSentinel ?? new EmptyStatement();
+      return removalSentinel ?? extern.createEmptyStatement();
     } else {
       return super.visitAssertBlock(node, removalSentinel);
     }
@@ -117,7 +118,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     TreeNode? removalSentinel,
   ) {
     if (_removeAsserts) {
-      return removalSentinel ?? new EmptyStatement();
+      return removalSentinel ?? extern.createEmptyStatement();
     } else {
       return super.visitAssertStatement(node, removalSentinel);
     }

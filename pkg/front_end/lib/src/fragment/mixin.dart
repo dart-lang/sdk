@@ -57,7 +57,6 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
       modifiers.isAugment;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
 
   @override

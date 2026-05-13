@@ -48,6 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.parent is! BlockEnumBody) return;
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
       rule.reportAtToken(constKeyword);
@@ -56,6 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.parent is! EnumDeclaration) return;
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
       rule.reportAtToken(constKeyword);

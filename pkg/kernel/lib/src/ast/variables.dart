@@ -6,7 +6,7 @@ part of '../../ast.dart';
 
 /// Generalized notion of a variable.
 sealed class VariableBase extends TreeNode implements Annotatable {
-  VariableContext get context => parent as VariableContext;
+  abstract VariableContext context;
 
   /// The cosmetic name of the variable from the source code, if exists.
   String? get cosmeticName;
@@ -28,8 +28,9 @@ sealed class VariableBase extends TreeNode implements Annotatable {
 abstract interface class IVariable implements TreeNode {
   abstract DartType type;
   abstract String? cosmeticName;
-  abstract VariableInitializationBase? variableInitialization;
+  abstract VariableDeclaration? variableInitialization;
   abstract Expression? initializer;
+  abstract VariableContext context;
   abstract bool isFinal;
   abstract bool isConst;
   abstract bool isLate;
@@ -68,19 +69,19 @@ abstract interface class IVariable implements TreeNode {
   bool get hasIsWildcard;
   bool get hasIsSuperInitializingFormal;
   bool get hasIsErroneouslyInitialized;
-  VariableDeclaration get asExpressionVariable;
+  VariableDeclaration get asVariableDeclaration;
 }
 
 /// The root of the sealed hierarchy of non-type variables.
 sealed class VariableDeclaration extends VariableBase
-    implements IVariable, Statement, VariableInitializationBase {
+    implements IVariable, Statement, ContextConsumer {
   /// Static type of the variable.
   @override
   abstract DartType type;
 
   /// Initialization node for the variable, if available.
   @override
-  abstract VariableInitializationBase? variableInitialization;
+  abstract VariableDeclaration? variableInitialization;
 
   /// Derived from [variableInitialization], if available.
   @override
@@ -184,10 +185,9 @@ sealed class VariableDeclaration extends VariableBase
   bool get isAssignable;
 
   @override
-  VariableDeclaration get asExpressionVariable => this;
+  VariableDeclaration get asVariableDeclaration => this;
 
-  @override
-  String? get name;
+  abstract String? name;
 }
 
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
@@ -202,10 +202,13 @@ class LocalVariable extends VariableDeclaration {
   DartType type;
 
   @override
-  VariableInitializationBase? variableInitialization;
+  VariableDeclaration? variableInitialization;
 
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  late VariableContext context;
 
   LocalVariable({
     this.cosmeticName,
@@ -513,6 +516,9 @@ class CatchVariable extends VariableDeclaration {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  @override
+  late VariableContext context;
+
   CatchVariable({
     required String name,
     required DartType? type,
@@ -532,12 +538,12 @@ class CatchVariable extends VariableDeclaration {
   }
 
   @override
-  VariableInitializationBase? get variableInitialization {
+  VariableDeclaration? get variableInitialization {
     throw new UnsupportedError("${this.runtimeType}.variableInitialization");
   }
 
   @override
-  void set variableInitialization(VariableInitializationBase? value) {
+  void set variableInitialization(VariableDeclaration? value) {
     throw new UnsupportedError("${this.runtimeType}.variableInitialization=");
   }
 
@@ -836,10 +842,10 @@ sealed class FunctionParameter extends VariableDeclaration {
 
   /// Function parameters don't have initializers, only default values.
   @override
-  VariableInitializationBase? get variableInitialization => null;
+  VariableDeclaration? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableInitializationBase? value) {}
+  void set variableInitialization(VariableDeclaration? value) {}
 
   @override
   Expression? get initializer => defaultValue;
@@ -1013,6 +1019,9 @@ class PositionalParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  @override
+  late VariableContext context;
+
   PositionalParameter({
     this.cosmeticName,
     required this.type,
@@ -1029,13 +1038,13 @@ class PositionalParameter extends FunctionParameter {
   });
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1157,6 +1166,9 @@ class NamedParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  @override
+  late VariableContext context;
+
   NamedParameter({
     required this.parameterName,
     required this.type,
@@ -1173,13 +1185,13 @@ class NamedParameter extends FunctionParameter {
   });
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1292,10 +1304,10 @@ class ThisVariable extends VariableDeclaration {
   void set cosmeticName(String? value) {}
 
   @override
-  VariableInitializationBase? get variableInitialization => null;
+  VariableDeclaration? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableInitializationBase? value) {}
+  void set variableInitialization(VariableDeclaration? value) {}
 
   @override
   DartType type;
@@ -1303,6 +1315,9 @@ class ThisVariable extends VariableDeclaration {
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  late VariableContext context;
 
   ThisVariable({required this.type}) : super.empty();
 
@@ -1573,11 +1588,14 @@ class SyntheticVariable extends VariableDeclaration {
   DartType type;
 
   @override
-  VariableInitializationBase? variableInitialization;
+  VariableDeclaration? variableInitialization;
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  late VariableContext context;
 
   SyntheticVariable({this.cosmeticName, required this.type}) : super.empty();
 
@@ -1848,50 +1866,24 @@ enum CaptureKind { notCaptured, directCaptured, assertCaptured }
 /// The box storing some of the variables in the scope it's associated with. It
 /// serves as the "declaration" of the variables it contains for the runtime
 /// environments.
-class VariableContext extends TreeNode {
+class VariableContext {
   final CaptureKind captureKind;
   final List<VariableBase> variables;
 
   VariableContext({required this.captureKind, required this.variables});
 
   void addVariable(VariableBase variable) {
-    variable.parent = this;
+    variable.context = this;
     variables.add(variable);
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw new UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw new UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
   String toString() {
-    return "VariableContext(${toStringInternal()})";
+    AstPrinter printer = new AstPrinter(defaultAstTextStrategy);
+    toTextInternal(printer);
+    return "VariableContext(${printer.getText()})";
   }
 
-  @override
   void toTextInternal(AstPrinter printer) {
     printer.write('[');
     for (int index = 0; index < variables.length; index++) {
@@ -1909,49 +1901,22 @@ class VariableContext extends TreeNode {
 /// variables they contain. They aren't [Statement]s, but a runtime may choose
 /// to interpret the [Scope] in an executable way before any [Statement]s or
 /// [Expression]s of its node.
-class Scope extends TreeNode {
+class Scope {
   final List<VariableContext> contexts;
 
   Scope({required this.contexts});
 
   void addContext(VariableContext context) {
-    context.parent = this;
     contexts.add(context);
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw new UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw new UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
   String toString() {
-    return "Scope(${toStringInternal()})";
+    AstPrinter printer = new AstPrinter(defaultAstTextStrategy);
+    toTextInternal(printer);
+    return "Scope(${printer.getText()})";
   }
 
-  @override
   void toTextInternal(AstPrinter printer) {
     printer.write('[');
     for (int index = 0; index < contexts.length; index++) {

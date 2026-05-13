@@ -2852,22 +2852,21 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       // argument passed to the constructor.
       if (call->is_known_list_constructor() &&
           IsFixedLengthArrayCid(call->Type()->ToCid())) {
-        return call->ArgumentAt(1);
+        return call->ArgumentAt(call->FirstArgIndex());
       } else if (call->function().recognized_kind() ==
                  MethodRecognizer::kByteDataFactory) {
         // Similarly, we check for the ByteData constructor and forward its
         // explicit length argument appropriately.
-        return call->ArgumentAt(1);
+        return call->ArgumentAt(call->FirstArgIndex());
       } else if (IsTypedDataViewFactory(call->function())) {
-        // Typed data view factories all take three arguments (after
-        // the implicit type arguments parameter):
+        // Typed data view factories all take three arguments:
         //
         // 1) _TypedList buffer -- the underlying data for the view
         // 2) int offsetInBytes -- the offset into the buffer to start viewing
         // 3) int length        -- the number of elements in the view
         //
         // Here, we forward the third.
-        return call->ArgumentAt(3);
+        return call->ArgumentAt(call->FirstArgIndex() + 2);
       }
     } else if (LoadFieldInstr* load_array = orig_instance->AsLoadField()) {
       // For arrays with guarded lengths, replace the length load
@@ -2901,7 +2900,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
         if (IsTypedDataViewFactory(call->function()) ||
             IsUnmodifiableTypedDataViewFactory(call->function())) {
-          return call->ArgumentAt(1);
+          return call->ArgumentAt(call->FirstArgIndex());
         }
       }
       break;
@@ -2911,7 +2910,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       ASSERT(!calls_initializer());
       if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
         if (IsTypedDataViewFactory(call->function())) {
-          return call->ArgumentAt(2);
+          return call->ArgumentAt(call->FirstArgIndex() + 1);
         } else if (call->function().recognized_kind() ==
                    MethodRecognizer::kByteDataFactory) {
           // A _ByteDataView returned from the ByteData constructor always
@@ -2944,7 +2943,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
         if (call->is_known_list_constructor()) {
-          return call->ArgumentAt(0);
+          return (call->type_args_len() > 0) ? call->ArgumentAt(0)
+                                             : flow_graph->constant_null();
         } else if (IsTypedDataViewFactory(call->function()) ||
                    IsUnmodifiableTypedDataViewFactory(call->function())) {
           return flow_graph->constant_null();
@@ -3942,12 +3942,12 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   ConstantInstr* length = nullptr;
   if (call->is_known_list_constructor() &&
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
-    length = call->ArgumentAt(1)->AsConstant();
+    length = call->ArgumentAt(call->FirstArgIndex())->AsConstant();
   } else if (call->function().recognized_kind() ==
              MethodRecognizer::kByteDataFactory) {
-    length = call->ArgumentAt(1)->AsConstant();
+    length = call->ArgumentAt(call->FirstArgIndex())->AsConstant();
   } else if (LoadFieldInstr::IsTypedDataViewFactory(call->function())) {
-    length = call->ArgumentAt(3)->AsConstant();
+    length = call->ArgumentAt(call->FirstArgIndex() + 2)->AsConstant();
   }
   if ((length != nullptr) && length->value().IsSmi() &&
       Smi::Cast(length->value()).Value() == expected_length) {
@@ -5471,7 +5471,7 @@ Representation StaticCallInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // The first input is the array of types
   // for generic functions
-  if (type_args_len() > 0 || function().IsFactory()) {
+  if (type_args_len() > 0) {
     if (idx == 0) {
       return kTagged;
     }
@@ -5954,14 +5954,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateStaticCall(deopt_id(), source(), function(), args_info,
                                locs(), *call_ic_data, rebind_rule_,
                                entry_kind());
-  if (function().IsFactory()) {
-    TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
-    if (type_usage_info != nullptr) {
-      const Class& klass = Class::Handle(function().Owner());
-      RegisterTypeArgumentsUse(compiler->function(), type_usage_info, klass,
-                               ArgumentAt(0));
-    }
-  }
 }
 
 CachableIdempotentCallInstr::CachableIdempotentCallInstr(
@@ -5997,7 +5989,7 @@ CachableIdempotentCallInstr::CachableIdempotentCallInstr(
 Representation CachableIdempotentCallInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // The first input is the array of types for generic functions.
-  if (type_args_len() > 0 || function().IsFactory()) {
+  if (type_args_len() > 0) {
     if (idx == 0) {
       return kTagged;
     }
@@ -8684,11 +8676,10 @@ SimdOpInstr* SimdOpInstr::CreateFromFactoryCall(Zone* zone,
                                                 Instruction* call) {
   SimdOpInstr* op =
       new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
+  ASSERT(call->ArgumentCount() == op->InputCount());
   for (intptr_t i = 0; i < op->InputCount(); i++) {
-    // Note: ArgumentAt(0) is type arguments which we don't need.
-    op->SetInputAt(i, call->ArgumentValueAt(i + 1)->CopyWithType(zone));
+    op->SetInputAt(i, call->ArgumentValueAt(i)->CopyWithType(zone));
   }
-  ASSERT(call->ArgumentCount() == (op->InputCount() + 1));
   return op;
 }
 

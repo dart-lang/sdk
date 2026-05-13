@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
@@ -34,7 +33,7 @@ class Scanner {
   final String _inputText;
 
   /// The callback to report diagnostics.
-  final void Function(LocatedDiagnostic) reportError;
+  final void Function(diag.LocatedDiagnostic) reportError;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.

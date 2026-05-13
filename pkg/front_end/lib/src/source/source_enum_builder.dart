@@ -432,10 +432,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           constructor.initializers.add(
             new SuperInitializer.byReference(
               superConstructor.invokeTargetReference!,
-              new Arguments.forwarded(
-                constructor.function,
-                libraryBuilder.library,
-              ),
+              new Arguments.forwarded(constructor.function),
             )..parent = constructor,
           );
         }

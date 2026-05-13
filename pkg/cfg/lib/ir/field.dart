@@ -56,3 +56,65 @@ final class ClosureField extends SyntheticField {
         isFinal: true,
       );
 }
+
+/// Defines assignment of the closure elements.
+class ClosureLayout {
+  static const int hasDelayedTypeArgsFlag = 1 << 0;
+  static const int hasClassTypeArgsFlag = 1 << 1;
+  static const int hasFunctionTypeArgsFlag = 1 << 2;
+
+  final int _flags;
+
+  /// Total number of closure elements.
+  final int length;
+
+  ClosureLayout(
+    int numContexts, {
+    required bool hasDelayedTypeArgs,
+    required bool hasClassTypeArgs,
+    required bool hasFunctionTypeArgs,
+  }) : _flags =
+           (hasDelayedTypeArgs ? hasDelayedTypeArgsFlag : 0) |
+           (hasClassTypeArgs ? hasClassTypeArgsFlag : 0) |
+           (hasFunctionTypeArgs ? hasFunctionTypeArgsFlag : 0),
+       length =
+           (hasDelayedTypeArgs ? 1 : 0) +
+           (hasClassTypeArgs ? 1 : 0) +
+           (hasFunctionTypeArgs ? 1 : 0) +
+           numContexts {
+    assert(length == firstContextIndex + numContexts);
+  }
+
+  /// Whether closure has an element for delayed type arguments.
+  bool get hasDelayedTypeArgs => (_flags & hasDelayedTypeArgsFlag) != 0;
+
+  /// Whether closure has an element for enclosing class type arguments.
+  bool get hasClassTypeArgs => (_flags & hasClassTypeArgsFlag) != 0;
+
+  /// Whether closure has an element for enclosing function type arguments.
+  bool get hasFunctionTypeArgs => (_flags & hasFunctionTypeArgsFlag) != 0;
+
+  /// Index of the delayed type arguments element.
+  int get delayedTypeArgsIndex {
+    assert(hasDelayedTypeArgs);
+    return 0;
+  }
+
+  /// Index of the enclosing class type arguments element.
+  int get classTypeArgsIndex {
+    assert(hasClassTypeArgs);
+    return hasDelayedTypeArgs ? 1 : 0;
+  }
+
+  /// Index of the enclosing function type arguments element.
+  int get functionTypeArgsIndex {
+    assert(hasFunctionTypeArgs);
+    return (hasDelayedTypeArgs ? 1 : 0) + (hasClassTypeArgs ? 1 : 0);
+  }
+
+  int get firstContextIndex {
+    return (hasDelayedTypeArgs ? 1 : 0) +
+        (hasClassTypeArgs ? 1 : 0) +
+        (hasFunctionTypeArgs ? 1 : 0);
+  }
+}

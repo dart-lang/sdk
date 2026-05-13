@@ -28,11 +28,6 @@ class NativeMessageHandler final : public PortHandler {
   const char* name() const override { return name_.get(); }
   Dart_NativeMessageHandler func() const { return func_; }
 
-#if defined(DEBUG)
-  // Check that it is safe to access this handler.
-  void CheckAccess() const override;
-#endif
-
   void OnPortClosed(Dart_Port port) override {}
 
   Isolate* isolate() const override { return nullptr; }

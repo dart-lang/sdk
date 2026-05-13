@@ -26,7 +26,10 @@ extension type _DDCLoader(JSObject _) implements JSObject {
 
 extension type _DartDevEmbedder(JSObject _) implements JSObject {
   external JSPromise hotReload(JSArray<JSString> files, JSArray<JSString> ids);
-  external JSPromise hotRestart();
+  external JSPromise<JSArray<JSObject>> hotRestartBegin(
+    JSArray<JSObject> filesToRequest,
+  );
+  external void hotRestartEnd();
   external JSNumber get hotReloadGeneration;
   external JSNumber get hotRestartGeneration;
 }
@@ -39,6 +42,9 @@ external JSArray<JSArray<JSString>>? injectedFilesAndLibrariesToReload(
   JSNumber requestedFileGeneration,
 );
 
+@JS('\$injectedReloadedSourcesHelper')
+external JSArray<JSObject>? injectedReloadedSourcesHelper();
+
 @JS('\$dartLoader')
 external _DartLoader get _dartLoader;
 
@@ -48,6 +54,12 @@ int get hotRestartGeneration => _dartDevEmbedder.hotRestartGeneration.toDartInt;
 
 Future<void> hotRestart() async {
   _ddcLoader.intendedHotRestartGeneration++;
+  final filesToRequest = injectedReloadedSourcesHelper();
+  if (filesToRequest == null) {
+    throw Exception('Restart requested but no remaining generations found.');
+  }
+  await _dartDevEmbedder.hotRestartBegin(filesToRequest).toDart;
+  // Must return the receipt before re-running the main method.
   final restartReceipt = HotReloadReceipt(
     generation: _ddcLoader.intendedHotRestartGeneration,
     status: Status.restarted,
@@ -56,7 +68,7 @@ Future<void> hotRestart() async {
     '${HotReloadReceipt.hotReloadReceiptTag}'
     '${jsonEncode(restartReceipt.toJson())}',
   );
-  await _dartDevEmbedder.hotRestart().toDart;
+  _dartDevEmbedder.hotRestartEnd();
 }
 
 /// The reload generation of the currently running application.

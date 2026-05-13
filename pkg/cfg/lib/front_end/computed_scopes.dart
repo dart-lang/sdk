@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/front_end/scopes.dart';
+import 'package:cfg/ir/global_context.dart';
 import 'package:kernel/ast.dart' as ast;
 
 /// Implementation of [Scopes] by computing scopes and contexts.
@@ -16,8 +17,13 @@ final class ComputedScopes implements Scopes {
 
   ComputedScopes(this.member, {required this.enableAsserts}) {
     if (member.isInstanceMember || member is ast.Constructor) {
+      final type = member.enclosingClass!.getThisType(
+        GlobalContext.instance.coreTypes,
+        .nonNullable,
+      );
       thisVariable =
-          member.function?.thisVariable ?? ast.VariableDeclaration('this');
+          member.function?.thisVariable ??
+          ast.VariableDeclaration('this', type: type);
     }
     final builder = _ScopeBuilder(this);
     member.accept(builder);

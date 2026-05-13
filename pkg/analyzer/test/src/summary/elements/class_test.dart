@@ -209,6 +209,7 @@ augment class A {}
     var library = await buildLibrary(r'''
 part 'a1.dart';
 part 'a2.dart';
+
 class A {}
 ''');
 
@@ -229,11 +230,11 @@ library
           partKeywordOffset: 16
           unit: #F2
       classes
-        #F3 class A (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F3 class A (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::A
           nextFragment: #F4
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F1 package:test/a1.dart
@@ -500,6 +501,7 @@ library
   test_class_cycle_interfaces() async {
     var library = await buildLibrary(r'''
 class A implements B {}
+
 class B implements A {}
 ''');
     checkElementText(library, r'''
@@ -515,10 +517,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F3 class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -542,6 +544,7 @@ library
   test_class_cycle_mixins() async {
     var library = await buildLibrary(r'''
 class A with B {}
+
 class B with A {}
 ''');
     checkElementText(library, r'''
@@ -557,10 +560,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F3 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -584,6 +587,7 @@ library
   test_class_cycle_supertype() async {
     var library = await buildLibrary(r'''
 class A extends B {}
+
 class B extends A {}
 ''');
     checkElementText(library, r'''
@@ -599,10 +603,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause class B (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F3 hasExtendsClause class B (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -624,11 +628,12 @@ library
   }
 
   test_class_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /**
  * Docs
  */
-class C {}''');
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -655,7 +660,7 @@ library
   }
 
   test_class_documented_mix() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /**
  * aaa
  */
@@ -774,11 +779,12 @@ library
   }
 
   test_class_documented_tripleSlash() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// first
 /// second
 /// third
-class C {}''');
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -805,14 +811,16 @@ library
   }
 
   test_class_documented_with_references() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /**
  * Docs referring to [D] and [E]
  */
 class C {}
 
 class D {}
-class E {}''');
+
+class E {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -832,10 +840,10 @@ library
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:70) (firstTokenOffset:64) (offset:70)
+        #F5 class E (nameOffset:71) (firstTokenOffset:65) (offset:71)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -865,7 +873,15 @@ library
   }
 
   test_class_documented_with_windows_line_endings() async {
-    var library = await buildLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
+    var library = await buildLibrary(
+      r'''
+/**
+ * Docs
+ */
+class C {}
+'''
+          .replaceAll('\n', '\r\n'),
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -892,12 +908,13 @@ library
   }
 
   test_class_documented_withLeadingNotDocumentation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-class C {}''');
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -924,7 +941,7 @@ library
   }
 
   test_class_documented_withMetadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// Comment 1
 /// Comment 2
 @Annotation()
@@ -1228,9 +1245,11 @@ library
   }
 
   test_class_interfaces() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C implements D, E {}
+
 class D {}
+
 class E {}
 ''');
     checkElementText(library, r'''
@@ -1246,16 +1265,16 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F3 class D (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:44) (firstTokenOffset:38) (offset:44)
+        #F5 class E (nameOffset:46) (firstTokenOffset:40) (offset:46)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -1614,10 +1633,13 @@ library
   }
 
   test_class_interfaces_extensionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 extension type B(int it) {}
+
 class C {}
+
 class D implements A, B, C {}
 ''');
     configuration.withConstructors = false;
@@ -1630,18 +1652,18 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F2 class C (nameOffset:47) (firstTokenOffset:41) (offset:47)
           element: <testLibrary>::@class::C
-        #F3 class D (nameOffset:56) (firstTokenOffset:50) (offset:56)
+        #F3 class D (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::D
       extensionTypes
-        #F4 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
+        #F4 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     isSimplyBounded class A
@@ -1680,9 +1702,11 @@ library
   }
 
   test_class_interfaces_Function() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 class B {}
+
 class C implements A, Function, B {}
 ''');
     checkElementText(library, r'''
@@ -1698,16 +1722,16 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F5 class C (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::C
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -1741,6 +1765,7 @@ library
   test_class_interfaces_mixin() async {
     var library = await buildLibrary(r'''
 class A implements M {}
+
 mixin M {}
 ''');
 
@@ -1758,7 +1783,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        #F3 mixin M (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F3 mixin M (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -1780,9 +1805,13 @@ library
   }
 
   test_class_interfaces_unresolved() async {
-    var library = await buildLibrary(
-      'class C implements X, Y, Z {} class X {} class Z {}',
-    );
+    var library = await buildLibrary(r'''
+class C implements X, Y, Z {}
+
+class X {}
+
+class Z {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1796,16 +1825,16 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class X (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F3 class X (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::X
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
-        #F5 class Z (nameOffset:47) (firstTokenOffset:41) (offset:47)
+        #F5 class Z (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::Z
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
   classes
@@ -1837,7 +1866,7 @@ library
   }
 
   test_class_lazy_all_constructors() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.foo();
 }
@@ -1848,7 +1877,7 @@ class A {
   }
 
   test_class_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int foo = 0;
 }
@@ -1859,7 +1888,7 @@ class A {
   }
 
   test_class_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int foo = 0;
 }
@@ -1870,7 +1899,7 @@ class A {
   }
 
   test_class_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void foo() {}
 }
@@ -1881,7 +1910,7 @@ class A {
   }
 
   test_class_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int foo = 0;
 }
@@ -1892,7 +1921,7 @@ class A {
   }
 
   test_class_lazy_byReference_constructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.foo();
 }
@@ -1904,7 +1933,7 @@ class A {
   }
 
   test_class_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int foo = 0;
 }
@@ -1916,7 +1945,7 @@ class A {
   }
 
   test_class_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int foo = 0;
 }
@@ -1928,7 +1957,7 @@ class A {
   }
 
   test_class_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void foo() {}
 }
@@ -1940,7 +1969,7 @@ class A {
   }
 
   test_class_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int foo = 0;
 }
@@ -1983,11 +2012,15 @@ library
   }
 
   test_class_mixins() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C extends D with E, F, G {}
+
 class D {}
+
 class E {}
+
 class F {}
+
 class G {}
 ''');
     checkElementText(library, r'''
@@ -2003,28 +2036,28 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F3 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:51) (firstTokenOffset:45) (offset:51)
+        #F5 class E (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
-        #F7 class F (nameOffset:62) (firstTokenOffset:56) (offset:62)
+        #F7 class F (nameOffset:65) (firstTokenOffset:59) (offset:65)
           element: <testLibrary>::@class::F
           constructors
-            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::F::@constructor::new
               typeName: F
-        #F9 class G (nameOffset:73) (firstTokenOffset:67) (offset:73)
+        #F9 class G (nameOffset:77) (firstTokenOffset:71) (offset:77)
           element: <testLibrary>::@class::G
           constructors
-            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
               element: <testLibrary>::@class::G::@constructor::new
               typeName: G
   classes
@@ -2259,10 +2292,13 @@ library
   }
 
   test_class_mixins_extensionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin A {}
+
 extension type B(int it) {}
+
 mixin C {}
+
 class D extends Object with A, B, C {}
 ''');
     configuration.withConstructors = false;
@@ -2273,21 +2309,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class D (nameOffset:56) (firstTokenOffset:50) (offset:56)
+        #F1 hasExtendsClause class D (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::D
       extensionTypes
-        #F2 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
+        #F2 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
           element: <testLibrary>::@extensionType::B
           fields
-            #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
       mixins
         #F5 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
-        #F6 mixin C (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F6 mixin C (nameOffset:47) (firstTokenOffset:41) (offset:47)
           element: <testLibrary>::@mixin::C
   classes
     isSimplyBounded class D
@@ -2332,10 +2368,13 @@ library
   }
 
   test_class_mixins_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class Z extends A with B<int>, C<double> {}
+
 class A {}
+
 class B<B1> {}
+
 class C<C1> {}
 ''');
     checkElementText(library, r'''
@@ -2351,28 +2390,28 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
-        #F3 class A (nameOffset:50) (firstTokenOffset:44) (offset:50)
+        #F3 class A (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::A
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F5 class B (nameOffset:61) (firstTokenOffset:55) (offset:61)
+        #F5 class B (nameOffset:63) (firstTokenOffset:57) (offset:63)
           element: <testLibrary>::@class::B
           typeParameters
-            #F6 B1 (nameOffset:63) (firstTokenOffset:63) (offset:63)
+            #F6 B1 (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: #E0 B1
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F8 class C (nameOffset:76) (firstTokenOffset:70) (offset:76)
+        #F8 class C (nameOffset:79) (firstTokenOffset:73) (offset:79)
           element: <testLibrary>::@class::C
           typeParameters
-            #F9 C1 (nameOffset:78) (firstTokenOffset:78) (offset:78)
+            #F9 C1 (nameOffset:81) (firstTokenOffset:81) (offset:81)
               element: #E1 C1
           constructors
-            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
+            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -2419,10 +2458,13 @@ library
   }
 
   test_class_mixins_generic_superAfter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M<T extends num> {}
+
 mixin M2<T extends num> on M<T> {}
+
 class Z extends S with M2 {}
+
 class S with M<int> {}
 ''');
     checkElementText(library, r'''
@@ -2432,16 +2474,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class Z (nameOffset:67) (firstTokenOffset:61) (offset:67)
+        #F1 hasExtendsClause class Z (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::Z
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
-        #F3 class S (nameOffset:96) (firstTokenOffset:90) (offset:96)
+        #F3 class S (nameOffset:99) (firstTokenOffset:93) (offset:99)
           element: <testLibrary>::@class::S
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:99)
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
       mixins
@@ -2450,10 +2492,10 @@ library
           typeParameters
             #F6 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
-        #F7 mixin M2 (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F7 mixin M2 (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@mixin::M2
           typeParameters
-            #F8 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F8 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E1 T
   classes
     isSimplyBounded class Z
@@ -2500,8 +2542,9 @@ library
   }
 
   test_class_mixins_genericMixin_tooManyArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M<T> {}
+
 class A extends Object with M<int, String> {}
 ''');
     checkElementText(library, r'''
@@ -2511,10 +2554,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class A (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F1 hasExtendsClause class A (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
@@ -2547,9 +2590,11 @@ library
   }
 
   test_class_mixins_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M1 {}
+
 mixin M2 {}
+
 class A<T> extends Object with M1, T<int>, M2 {}
 ''');
     checkElementText(library, r'''
@@ -2559,19 +2604,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class A (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F1 hasExtendsClause class A (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
         #F4 mixin M1 (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M1
-        #F5 mixin M2 (nameOffset:18) (firstTokenOffset:12) (offset:18)
+        #F5 mixin M2 (nameOffset:19) (firstTokenOffset:13) (offset:19)
           element: <testLibrary>::@mixin::M2
   classes
     isSimplyBounded class A
@@ -2603,9 +2648,13 @@ library
   }
 
   test_class_mixins_unresolved() async {
-    var library = await buildLibrary(
-      'class C extends Object with X, Y, Z {} class X {} class Z {}',
-    );
+    var library = await buildLibrary(r'''
+class C extends Object with X, Y, Z {}
+
+class X {}
+
+class Z {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2619,16 +2668,16 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class X (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F3 class X (nameOffset:46) (firstTokenOffset:40) (offset:46)
           element: <testLibrary>::@class::X
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
-        #F5 class Z (nameOffset:56) (firstTokenOffset:50) (offset:56)
+        #F5 class Z (nameOffset:58) (firstTokenOffset:52) (offset:58)
           element: <testLibrary>::@class::Z
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
   classes
@@ -2661,7 +2710,9 @@ library
   }
 
   test_class_modifiers_abstract() async {
-    var library = await buildLibrary('abstract class C {}');
+    var library = await buildLibrary(r'''
+abstract class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2875,14 +2926,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isAbstract isSealed class A (nameOffset:13) (firstTokenOffset:0) (offset:13)
+        #F1 isSealed class A (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F2 isAbstract isAugmentation isSealed class A (nameOffset:40) (firstTokenOffset:19) (offset:40)
+        #F2 isAugmentation isSealed class A (nameOffset:40) (firstTokenOffset:19) (offset:40)
           element: <testLibrary>::@class::A
           previousFragment: #F1
   classes
@@ -2897,7 +2948,9 @@ library
   }
 
   test_class_modifiers_base() async {
-    var library = await buildLibrary('base class C {}');
+    var library = await buildLibrary(r'''
+base class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2923,7 +2976,9 @@ library
   }
 
   test_class_modifiers_final() async {
-    var library = await buildLibrary('final class C {}');
+    var library = await buildLibrary(r'''
+final class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2949,7 +3004,9 @@ library
   }
 
   test_class_modifiers_interface() async {
-    var library = await buildLibrary('interface class C {}');
+    var library = await buildLibrary(r'''
+interface class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2975,7 +3032,9 @@ library
   }
 
   test_class_modifiers_mixin_class() async {
-    var library = await buildLibrary('mixin class C {}');
+    var library = await buildLibrary(r'''
+mixin class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3001,7 +3060,9 @@ library
   }
 
   test_class_modifiers_sealed() async {
-    var library = await buildLibrary('sealed class C {}');
+    var library = await buildLibrary(r'''
+sealed class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3009,7 +3070,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isAbstract isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
+        #F1 isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::C
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -3027,9 +3088,11 @@ library
   }
 
   test_class_modifiers_sealed_induced_base_extends_base() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 base class A {}
-sealed class B extends A {}''');
+
+sealed class B extends A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3043,10 +3106,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause isAbstract isSealed class B (nameOffset:29) (firstTokenOffset:16) (offset:29)
+        #F3 hasExtendsClause isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -3070,9 +3133,11 @@ library
   }
 
   test_class_modifiers_sealed_induced_base_implements_base() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 base class A {}
-sealed class B implements A {}''');
+
+sealed class B implements A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3086,10 +3151,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isAbstract isSealed class B (nameOffset:29) (firstTokenOffset:16) (offset:29)
+        #F3 isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -3113,9 +3178,11 @@ library
   }
 
   test_class_modifiers_sealed_induced_base_implements_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final class A {}
-sealed class B implements A {}''');
+
+sealed class B implements A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3129,10 +3196,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isAbstract isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F3 isSealed class B (nameOffset:31) (firstTokenOffset:18) (offset:31)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -3156,9 +3223,11 @@ library
   }
 
   test_class_modifiers_sealed_induced_final_extends_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final class A {}
-sealed class B extends A {}''');
+
+sealed class B extends A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3172,10 +3241,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause isAbstract isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F3 hasExtendsClause isSealed class B (nameOffset:31) (firstTokenOffset:18) (offset:31)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -3199,10 +3268,13 @@ library
   }
 
   test_class_modifiers_sealed_induced_final_with_base_mixin() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 base mixin A {}
+
 interface class B {}
-sealed class C extends B with A {}''');
+
+sealed class C extends B with A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3210,16 +3282,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isInterface class B (nameOffset:32) (firstTokenOffset:16) (offset:32)
+        #F1 isInterface class B (nameOffset:33) (firstTokenOffset:17) (offset:33)
           element: <testLibrary>::@class::B
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F3 hasExtendsClause isAbstract isSealed class C (nameOffset:50) (firstTokenOffset:37) (offset:50)
+        #F3 hasExtendsClause isSealed class C (nameOffset:52) (firstTokenOffset:39) (offset:52)
           element: <testLibrary>::@class::C
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
@@ -3254,9 +3326,11 @@ library
   }
 
   test_class_modifiers_sealed_induced_interface_extends_interface() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 interface class A {}
-sealed class B extends A {}''');
+
+sealed class B extends A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3270,10 +3344,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause isAbstract isSealed class B (nameOffset:34) (firstTokenOffset:21) (offset:34)
+        #F3 hasExtendsClause isSealed class B (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -3297,9 +3371,11 @@ library
   }
 
   test_class_modifiers_sealed_induced_none_implements_interface() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 interface class A {}
-sealed class B implements A {}''');
+
+sealed class B implements A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3313,10 +3389,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isAbstract isSealed class B (nameOffset:34) (firstTokenOffset:21) (offset:34)
+        #F3 isSealed class B (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -3387,8 +3463,9 @@ library
   }
 
   test_class_notSimplyBounded_circularity_via_typeAlias_recordType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends A> {}
+
 typedef A = (C, int);
 ''');
     checkElementText(library, r'''
@@ -3408,7 +3485,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 A (nameOffset:32) (firstTokenOffset:24) (offset:32)
+        #F4 A (nameOffset:33) (firstTokenOffset:25) (offset:33)
           element: <testLibrary>::@typeAlias::A
   classes
     class C
@@ -3433,8 +3510,9 @@ library
   test_class_notSimplyBounded_circularity_via_typedef() async {
     // C's type parameter T is not simply bounded because its bound, F, expands
     // to `dynamic F(C)`, which refers to C.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends F> {}
+
 typedef F(C value);
 ''');
     checkElementText(library, r'''
@@ -3454,7 +3532,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F (nameOffset:32) (firstTokenOffset:24) (offset:32)
+        #F4 F (nameOffset:33) (firstTokenOffset:25) (offset:33)
           element: <testLibrary>::@typeAlias::F
   classes
     class C
@@ -3479,7 +3557,7 @@ library
   test_class_notSimplyBounded_circularity_with_typeParameters() async {
     // C's type parameter T is simply bounded because even though it refers to
     // C, it specifies a bound.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends C<dynamic>> {}
 ''');
     checkElementText(library, r'''
@@ -3514,8 +3592,9 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_class() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends D> {}
+
 class D<T extends C> {}
 ''');
     checkElementText(library, r'''
@@ -3534,13 +3613,13 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F4 class D (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::D
           typeParameters
-            #F5 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+            #F5 T (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: #E1 T
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -3570,7 +3649,7 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_typedef_functionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef C<T extends D> = void Function();
 typedef D<T extends C> = void Function();
 ''');
@@ -3612,7 +3691,7 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_typedef_interfaceType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef C<T extends D> = List<T>;
 typedef D<T extends C> = List<T>;
 ''');
@@ -3654,8 +3733,9 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_reference_to_cycle() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends D> {}
+
 class D<T extends D> {}
 ''');
     checkElementText(library, r'''
@@ -3674,13 +3754,13 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F4 class D (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::D
           typeParameters
-            #F5 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+            #F5 T (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: #E1 T
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -3710,8 +3790,9 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_use_of_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends D<T>> {}
+
 class D<T> {}
 ''');
     checkElementText(library, r'''
@@ -3730,13 +3811,13 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F4 class D (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@class::D
           typeParameters
-            #F5 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F5 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E1 T
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -3767,8 +3848,9 @@ library
   test_class_notSimplyBounded_dependency_with_typeParameters() async {
     // C's type parameter T is simply bounded because even though it refers to
     // non-simply-bounded type D, it specifies a bound.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends D<dynamic>> {}
+
 class D<T extends D<T>> {}
 ''');
     checkElementText(library, r'''
@@ -3787,13 +3869,13 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:39) (firstTokenOffset:33) (offset:39)
+        #F4 class D (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::D
           typeParameters
-            #F5 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
+            #F5 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E1 T
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -3823,7 +3905,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_complex_via_formalParameterType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
@@ -3858,7 +3940,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_complex_via_return_type() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends T Function()> {}
 ''');
     checkElementText(library, r'''
@@ -3893,7 +3975,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_simple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends void Function()> {}
 ''');
     checkElementText(library, r'''
@@ -3931,8 +4013,9 @@ library
     // C's type parameter T has a bound of F, which is a circular typedef.  This
     // is illegal in Dart, but we need to make sure it doesn't lead to a crash
     // or infinite loop.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends F> {}
+
 typedef F(G value);
 typedef G(F value);
 ''');
@@ -3953,9 +4036,9 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F (nameOffset:32) (firstTokenOffset:24) (offset:32)
+        #F4 F (nameOffset:33) (firstTokenOffset:25) (offset:33)
           element: <testLibrary>::@typeAlias::F
-        #F5 G (nameOffset:52) (firstTokenOffset:44) (offset:52)
+        #F5 G (nameOffset:53) (firstTokenOffset:45) (offset:53)
           element: <testLibrary>::@typeAlias::G
   classes
     class C
@@ -3982,7 +4065,7 @@ library
   }
 
   test_class_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends C> {}
 ''');
     checkElementText(library, r'''
@@ -4019,7 +4102,7 @@ library
   test_class_notSimplyBounded_simple_because_non_generic() async {
     // If no type parameters are specified, then the class is simply bounded, so
     // there is no reason to assign it a slot.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {}
 ''');
     checkElementText(library, r'''
@@ -4047,8 +4130,9 @@ library
   }
 
   test_class_notSimplyBounded_simple_by_lack_of_cycles() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends D> {}
+
 class D<T> {}
 ''');
     checkElementText(library, r'''
@@ -4067,13 +4151,13 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F4 class D (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::D
           typeParameters
-            #F5 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+            #F5 T (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: #E1 T
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -4104,7 +4188,7 @@ library
   test_class_notSimplyBounded_simple_by_syntax() async {
     // If no bounds are specified, then the class is simply bounded by syntax
     // alone, so there is no reason to assign it a slot.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {}
 ''');
     checkElementText(library, r'''
@@ -4138,73 +4222,10 @@ library
   }
 
   test_class_ref_nullability_none() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {}
-C c;
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::C
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::C::@constructor::new
-              typeName: C
-      topLevelVariables
-        #F3 isOriginDeclaration isStatic c (nameOffset:13) (firstTokenOffset:13) (offset:13)
-          element: <testLibrary>::@topLevelVariable::c
-      getters
-        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-          element: <testLibrary>::@getter::c
-      setters
-        #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-          element: <testLibrary>::@setter::c
-          formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-              element: <testLibrary>::@setter::c::@formalParameter::value
-  classes
-    isSimplyBounded class C
-      reference: <testLibrary>::@class::C
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F2
-  topLevelVariables
-    isOriginDeclaration isStatic c
-      reference: <testLibrary>::@topLevelVariable::c
-      firstFragment: #F3
-      type: C
-      getter: <testLibrary>::@getter::c
-      setter: <testLibrary>::@setter::c
-  getters
-    isOriginVariable isStatic c
-      reference: <testLibrary>::@getter::c
-      firstFragment: #F4
-      returnType: C
-      variable: <testLibrary>::@topLevelVariable::c
-  setters
-    isOriginVariable isStatic c
-      reference: <testLibrary>::@setter::c
-      firstFragment: #F5
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F6
-          type: C
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::c
-''');
-  }
 
-  test_class_ref_nullability_question() async {
-    var library = await buildLibrary('''
-class C {}
-C? c;
+C c;
 ''');
     checkElementText(library, r'''
 library
@@ -4243,6 +4264,71 @@ library
     isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
+      type: C
+      getter: <testLibrary>::@getter::c
+      setter: <testLibrary>::@setter::c
+  getters
+    isOriginVariable isStatic c
+      reference: <testLibrary>::@getter::c
+      firstFragment: #F4
+      returnType: C
+      variable: <testLibrary>::@topLevelVariable::c
+  setters
+    isOriginVariable isStatic c
+      reference: <testLibrary>::@setter::c
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: C
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_class_ref_nullability_question() async {
+    var library = await buildLibrary(r'''
+class C {}
+
+C? c;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+      topLevelVariables
+        #F3 isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
+          element: <testLibrary>::@topLevelVariable::c
+      getters
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+          element: <testLibrary>::@getter::c
+      setters
+        #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+          element: <testLibrary>::@setter::c
+          formalParameters
+            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+  topLevelVariables
+    isOriginDeclaration isStatic c
+      reference: <testLibrary>::@topLevelVariable::c
+      firstFragment: #F3
       type: C?
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
@@ -4266,8 +4352,9 @@ library
   }
 
   test_class_supertype() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 class B extends A {}
 ''');
     configuration.withConstructors = false;
@@ -4280,7 +4367,7 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 hasExtendsClause class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F2 hasExtendsClause class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
   classes
     isSimplyBounded class A
@@ -4435,7 +4522,7 @@ library
   }
 
   test_class_supertype_dynamic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A extends dynamic {}
 ''');
     checkElementText(library, r'''
@@ -4463,8 +4550,9 @@ library
   }
 
   test_class_supertype_extensionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type A(int it) {}
+
 class B extends A {}
 ''');
     configuration.withConstructors = false;
@@ -4475,7 +4563,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F1 hasExtendsClause class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
       extensionTypes
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
@@ -4514,8 +4602,9 @@ library
   }
 
   test_class_supertype_genericClass() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C extends D<int, double> {}
+
 class D<T1, T2> {}
 ''');
     checkElementText(library, r'''
@@ -4531,15 +4620,15 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F3 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::D
           typeParameters
-            #F4 T1 (nameOffset:42) (firstTokenOffset:42) (offset:42)
+            #F4 T1 (nameOffset:43) (firstTokenOffset:43) (offset:43)
               element: #E0 T1
-            #F5 T2 (nameOffset:46) (firstTokenOffset:46) (offset:46)
+            #F5 T2 (nameOffset:47) (firstTokenOffset:47) (offset:47)
               element: #E1 T2
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -4570,8 +4659,9 @@ library
   }
 
   test_class_supertype_genericClass_tooManyArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {}
+
 class B extends A<int, String> {}
 ''');
     configuration.withConstructors = false;
@@ -4587,7 +4677,7 @@ library
           typeParameters
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
-        #F3 hasExtendsClause class B (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F3 hasExtendsClause class B (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::B
   classes
     isSimplyBounded class A
@@ -4604,8 +4694,9 @@ library
   }
 
   test_class_supertype_typeArguments_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {}
+
 class B extends A<B> {}
 ''');
     checkElementText(library, r'''
@@ -4624,10 +4715,10 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class B (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F4 hasExtendsClause class B (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -4656,7 +4747,7 @@ library
   }
 
   test_class_supertype_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> extends T<int> {}
 ''');
     checkElementText(library, r'''
@@ -4690,7 +4781,9 @@ library
   }
 
   test_class_supertype_unresolved() async {
-    var library = await buildLibrary('class C extends D {}');
+    var library = await buildLibrary(r'''
+class C extends D {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4716,7 +4809,9 @@ library
   }
 
   test_class_typeParameters() async {
-    var library = await buildLibrary('class C<T, U> {}');
+    var library = await buildLibrary(r'''
+class C<T, U> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5313,8 +5408,9 @@ library
   }
 
   test_class_typeParameters_bound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends Object, U extends D> {}
+
 class D {}
 ''');
     checkElementText(library, r'''
@@ -5335,10 +5431,10 @@ library
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F5 class D (nameOffset:48) (firstTokenOffset:42) (offset:48)
+        #F5 class D (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::D
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -5367,7 +5463,9 @@ library
   }
 
   test_class_typeParameters_cycle_1of1() async {
-    var library = await buildLibrary('class C<T extends T> {}');
+    var library = await buildLibrary(r'''
+class C<T extends T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5978,7 +6076,9 @@ library
   }
 
   test_class_typeParameters_f_bound_complex() async {
-    var library = await buildLibrary('class C<T extends List<U>, U> {}');
+    var library = await buildLibrary(r'''
+class C<T extends List<U>, U> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6015,7 +6115,9 @@ library
   }
 
   test_class_typeParameters_f_bound_simple() async {
-    var library = await buildLibrary('class C<T extends U, U> {}');
+    var library = await buildLibrary(r'''
+class C<T extends U, U> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6090,7 +6192,9 @@ library
   }
 
   test_class_typeParameters_variance_contravariant() async {
-    var library = await buildLibrary('class C<in T> {}');
+    var library = await buildLibrary(r'''
+class C<in T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6122,7 +6226,9 @@ library
   }
 
   test_class_typeParameters_variance_covariant() async {
-    var library = await buildLibrary('class C<out T> {}');
+    var library = await buildLibrary(r'''
+class C<out T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6154,7 +6260,9 @@ library
   }
 
   test_class_typeParameters_variance_invariant() async {
-    var library = await buildLibrary('class C<inout T> {}');
+    var library = await buildLibrary(r'''
+class C<inout T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6186,7 +6294,9 @@ library
   }
 
   test_class_typeParameters_variance_multiple() async {
-    var library = await buildLibrary('class C<inout T, in U, out V> {}');
+    var library = await buildLibrary(r'''
+class C<inout T, in U, out V> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6226,11 +6336,15 @@ library
   }
 
   test_classAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C = D with E, F, G;
+
 class D {}
+
 class E {}
+
 class F {}
+
 class G {}
 ''');
     checkElementText(library, r'''
@@ -6246,28 +6360,28 @@ library
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F3 class D (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:43) (firstTokenOffset:37) (offset:43)
+        #F5 class E (nameOffset:45) (firstTokenOffset:39) (offset:45)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
-        #F7 class F (nameOffset:54) (firstTokenOffset:48) (offset:54)
+        #F7 class F (nameOffset:57) (firstTokenOffset:51) (offset:57)
           element: <testLibrary>::@class::F
           constructors
-            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::F::@constructor::new
               typeName: F
-        #F9 class G (nameOffset:65) (firstTokenOffset:59) (offset:65)
+        #F9 class G (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::G
           constructors
-            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::G::@constructor::new
               typeName: G
   classes
@@ -6323,9 +6437,11 @@ library
   }
 
   test_classAlias_abstract() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class C = D with E;
+
 class D {}
+
 class E {}
 ''');
     checkElementText(library, r'''
@@ -6341,16 +6457,16 @@ library
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:35) (firstTokenOffset:29) (offset:35)
+        #F3 class D (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:46) (firstTokenOffset:40) (offset:46)
+        #F5 class E (nameOffset:48) (firstTokenOffset:42) (offset:48)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -6390,8 +6506,9 @@ library
   }
 
   test_classAlias_base() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 base class C = Object with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -6408,7 +6525,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F3 mixin M (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F3 mixin M (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@mixin::M
   classes
     isBase isMixinApplication isSimplyBounded class C
@@ -6439,9 +6556,11 @@ library
 
   test_classAlias_constructors_beforeOtherProperties() async {
     // https://github.com/dart-lang/sdk/issues/57035
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract mixin class A {}
+
 mixin M {}
+
 class X = A with M;
 ''');
 
@@ -6450,12 +6569,14 @@ class X = A with M;
   }
 
   test_classAlias_constructors_chain_backward() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.named();
 }
+
 class C = B with M;
 class B = A with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -6473,20 +6594,20 @@ library
               typeName: A
               typeNameOffset: 12
               periodOffset: 13
-        #F3 isMixinApplication class C (nameOffset:31) (firstTokenOffset:25) (offset:31)
+        #F3 isMixinApplication class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::C
           constructors
-            #F4 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F4 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
-        #F5 isMixinApplication class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
+        #F5 isMixinApplication class B (nameOffset:52) (firstTokenOffset:46) (offset:52)
           element: <testLibrary>::@class::B
           constructors
-            #F6 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F6 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@class::B::@constructor::named
               typeName: B
       mixins
-        #F7 mixin M (nameOffset:71) (firstTokenOffset:65) (offset:71)
+        #F7 mixin M (nameOffset:73) (firstTokenOffset:67) (offset:73)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -6552,12 +6673,14 @@ library
   }
 
   test_classAlias_constructors_chain_forward() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.named();
 }
+
 class B = A with M;
 class C = B with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -6575,20 +6698,20 @@ library
               typeName: A
               typeNameOffset: 12
               periodOffset: 13
-        #F3 isMixinApplication class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
+        #F3 isMixinApplication class B (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F4 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::B::@constructor::named
               typeName: B
-        #F5 isMixinApplication class C (nameOffset:51) (firstTokenOffset:45) (offset:51)
+        #F5 isMixinApplication class C (nameOffset:52) (firstTokenOffset:46) (offset:52)
           element: <testLibrary>::@class::C
           constructors
-            #F6 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F6 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
       mixins
-        #F7 mixin M (nameOffset:71) (firstTokenOffset:65) (offset:71)
+        #F7 mixin M (nameOffset:73) (firstTokenOffset:67) (offset:73)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -6654,9 +6777,11 @@ library
   }
 
   test_classAlias_constructors_default() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 mixin class M {}
+
 class X = A with M;
 ''');
     checkElementText(library, r'''
@@ -6672,16 +6797,16 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isMixinClass class M (nameOffset:23) (firstTokenOffset:11) (offset:23)
+        #F3 isMixinClass class M (nameOffset:24) (firstTokenOffset:12) (offset:24)
           element: <testLibrary>::@class::M
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
-        #F5 isMixinApplication class X (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F5 isMixinApplication class X (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::X
           constructors
-            #F6 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F6 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
@@ -6721,11 +6846,13 @@ library
   }
 
   test_classAlias_constructors_dependencies() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(int i);
 }
+
 mixin class M1 {}
+
 mixin class M2 {}
 
 class C2 = C1 with M2;
@@ -6748,35 +6875,35 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration i (nameOffset:18) (firstTokenOffset:14) (offset:18)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::i
-        #F4 isMixinClass class M1 (nameOffset:36) (firstTokenOffset:24) (offset:36)
+        #F4 isMixinClass class M1 (nameOffset:37) (firstTokenOffset:25) (offset:37)
           element: <testLibrary>::@class::M1
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::M1::@constructor::new
               typeName: M1
-        #F6 isMixinClass class M2 (nameOffset:54) (firstTokenOffset:42) (offset:54)
+        #F6 isMixinClass class M2 (nameOffset:56) (firstTokenOffset:44) (offset:56)
           element: <testLibrary>::@class::M2
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::M2::@constructor::new
               typeName: M2
-        #F8 isMixinApplication class C2 (nameOffset:67) (firstTokenOffset:61) (offset:67)
+        #F8 isMixinApplication class C2 (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::C2
           constructors
-            #F9 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F9 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::C2::@constructor::new
               typeName: C2
               formalParameters
-                #F10 requiredPositional isOriginMixinApplicationClassConstructor i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+                #F10 requiredPositional isOriginMixinApplicationClassConstructor i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
                   element: <testLibrary>::@class::C2::@constructor::new::@formalParameter::i
-        #F11 isMixinApplication class C1 (nameOffset:90) (firstTokenOffset:84) (offset:90)
+        #F11 isMixinApplication class C1 (nameOffset:92) (firstTokenOffset:86) (offset:92)
           element: <testLibrary>::@class::C1
           constructors
-            #F12 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:90)
+            #F12 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
               element: <testLibrary>::@class::C1::@constructor::new
               typeName: C1
               formalParameters
-                #F13 requiredPositional isOriginMixinApplicationClassConstructor i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:90)
+                #F13 requiredPositional isOriginMixinApplicationClassConstructor i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
                   element: <testLibrary>::@class::C1::@constructor::new::@formalParameter::i
   classes
     isSimplyBounded class A
@@ -6862,7 +6989,7 @@ library
   }
 
   test_classAlias_constructors_optionalFormalParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.c1(int a);
   A.c2(int a, [int? b, int c = 0]);
@@ -7138,8 +7265,9 @@ class A {
 class B = A with M;
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
+
 const x = B.named();
 ''');
     checkElementText(library, r'''
@@ -7151,27 +7279,27 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
-                  name: B @27
+                  name: B @28
                   element: package:test/a.dart::@class::B
                   type: B
-                period: . @28
+                period: . @29
                 name: SimpleIdentifier
-                  token: named @29
+                  token: named @30
                   element: package:test/a.dart::@class::B::@constructor::named
                   staticType: null
                 element: package:test/a.dart::@class::B::@constructor::named
               argumentList: ArgumentList
-                leftParenthesis: ( @34
-                rightParenthesis: ) @35
+                leftParenthesis: ( @35
+                rightParenthesis: ) @36
               staticType: B
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::x
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
@@ -7192,7 +7320,7 @@ library
   }
 
   test_classAlias_constructors_requiredFormalParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T extends num> {
   A(T x, T y);
 }
@@ -7309,13 +7437,14 @@ library
   }
 
   test_classAlias_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /**
  * Docs
  */
 class C = D with E;
 
 class D {}
+
 class E {}
 ''');
     checkElementText(library, r'''
@@ -7337,10 +7466,10 @@ library
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:54) (firstTokenOffset:48) (offset:54)
+        #F5 class E (nameOffset:55) (firstTokenOffset:49) (offset:55)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -7381,13 +7510,14 @@ library
   }
 
   test_classAlias_documented_tripleSlash() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// aaa
 /// b
 /// cc
 class C = D with E;
 
 class D {}
+
 class E {}
 ''');
     checkElementText(library, r'''
@@ -7409,10 +7539,10 @@ library
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:59) (firstTokenOffset:53) (offset:59)
+        #F5 class E (nameOffset:60) (firstTokenOffset:54) (offset:60)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -7453,7 +7583,7 @@ library
   }
 
   test_classAlias_documented_withLeadingNonDocumentation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -7461,7 +7591,9 @@ library
 class C = D with E;
 
 class D {}
-class E {}''');
+
+class E {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7481,10 +7613,10 @@ library
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:87)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:98) (firstTokenOffset:92) (offset:98)
+        #F5 class E (nameOffset:99) (firstTokenOffset:93) (offset:99)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:99)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -7525,8 +7657,9 @@ library
   }
 
   test_classAlias_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final class C = Object with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -7543,7 +7676,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F3 mixin M (nameOffset:37) (firstTokenOffset:31) (offset:37)
+        #F3 mixin M (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@mixin::M
   classes
     isFinal isMixinApplication isSimplyBounded class C
@@ -7573,10 +7706,13 @@ library
   }
 
   test_classAlias_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class Z = A with B<int>, C<double>;
+
 class A {}
+
 class B<B1> {}
+
 class C<C1> {}
 ''');
     checkElementText(library, r'''
@@ -7592,28 +7728,28 @@ library
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
-        #F3 class A (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F3 class A (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::A
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F5 class B (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F5 class B (nameOffset:55) (firstTokenOffset:49) (offset:55)
           element: <testLibrary>::@class::B
           typeParameters
-            #F6 B1 (nameOffset:55) (firstTokenOffset:55) (offset:55)
+            #F6 B1 (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: #E0 B1
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F8 class C (nameOffset:68) (firstTokenOffset:62) (offset:68)
+        #F8 class C (nameOffset:71) (firstTokenOffset:65) (offset:71)
           element: <testLibrary>::@class::C
           typeParameters
-            #F9 C1 (nameOffset:70) (firstTokenOffset:70) (offset:70)
+            #F9 C1 (nameOffset:73) (firstTokenOffset:73) (offset:73)
               element: #E1 C1
           constructors
-            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -7667,8 +7803,9 @@ library
   }
 
   test_classAlias_interface() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 interface class C = Object with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -7685,7 +7822,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F3 mixin M (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F3 mixin M (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@mixin::M
   classes
     isInterface isMixinApplication isSimplyBounded class C
@@ -7720,8 +7857,9 @@ enum E { v }
 mixin M {}
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
+
 class A = E with M;
 ''');
     checkElementText(library, r'''
@@ -7733,10 +7871,10 @@ library
       libraryImports
         package:test/a.dart
       classes
-        #F1 isMixinApplication class A (nameOffset:23) (firstTokenOffset:17) (offset:23)
+        #F1 isMixinApplication class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F2 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
   classes
@@ -7761,9 +7899,11 @@ library
   }
 
   test_classAlias_invalid_extendsMixin() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M1 {}
+
 mixin M2 {}
+
 class A = M1 with M2;
 ''');
     checkElementText(library, r'''
@@ -7773,16 +7913,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isMixinApplication class A (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F1 isMixinApplication class A (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F2 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
         #F3 mixin M1 (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M1
-        #F4 mixin M2 (nameOffset:18) (firstTokenOffset:12) (offset:18)
+        #F4 mixin M2 (nameOffset:19) (firstTokenOffset:13) (offset:19)
           element: <testLibrary>::@mixin::M2
   classes
     isMixinApplication isSimplyBounded class A
@@ -7817,8 +7957,9 @@ library
   }
 
   test_classAlias_mixin_class() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin class C = Object with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -7835,7 +7976,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F3 mixin M (nameOffset:37) (firstTokenOffset:31) (offset:37)
+        #F3 mixin M (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@mixin::M
   classes
     isMixinApplication isMixinClass isSimplyBounded class C
@@ -7865,9 +8006,11 @@ library
   }
 
   test_classAlias_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends C> = D with E;
+
 class D {}
+
 class E {}
 ''');
     checkElementText(library, r'''
@@ -7886,16 +8029,16 @@ library
             #F3 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:39) (firstTokenOffset:33) (offset:39)
+        #F4 class D (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F6 class E (nameOffset:50) (firstTokenOffset:44) (offset:50)
+        #F6 class E (nameOffset:52) (firstTokenOffset:46) (offset:52)
           element: <testLibrary>::@class::E
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -7941,9 +8084,11 @@ library
   test_classAlias_notSimplyBounded_simple_no_typeParameter_bound() async {
     // If no bounds are specified, then the class is simply bounded by syntax
     // alone, so there is no reason to assign it a slot.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> = D with E;
+
 class D {}
+
 class E {}
 ''');
     checkElementText(library, r'''
@@ -7962,16 +8107,16 @@ library
             #F3 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:29) (firstTokenOffset:23) (offset:29)
+        #F4 class D (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F6 class E (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F6 class E (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::E
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -8016,9 +8161,11 @@ library
   test_classAlias_notSimplyBounded_simple_non_generic() async {
     // If no type parameters are specified, then the class is simply bounded, so
     // there is no reason to assign it a slot.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C = D with E;
+
 class D {}
+
 class E {}
 ''');
     checkElementText(library, r'''
@@ -8034,16 +8181,16 @@ library
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:26) (firstTokenOffset:20) (offset:26)
+        #F3 class D (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:37) (firstTokenOffset:31) (offset:37)
+        #F5 class E (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
   classes
@@ -8083,8 +8230,9 @@ library
   }
 
   test_classAlias_sealed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 sealed class C = Object with M;
+
 mixin M {}
 ''');
     checkElementText(library, r'''
@@ -8094,14 +8242,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isAbstract isMixinApplication isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
+        #F1 isMixinApplication isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::C
           constructors
             #F2 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F3 mixin M (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F3 mixin M (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@mixin::M
   classes
     isAbstract isMixinApplication isSealed isSimplyBounded class C
@@ -8138,9 +8286,11 @@ class Base {
   const Base.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "a.dart";
+
 class M {}
+
 class MixinApp = Base with M;
 ''');
     checkElementText(library, r'''
@@ -8152,19 +8302,19 @@ library
       libraryImports
         package:test/a.dart
       classes
-        #F1 class M (nameOffset:23) (firstTokenOffset:17) (offset:23)
+        #F1 class M (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::M
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
-        #F3 isMixinApplication class MixinApp (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F3 isMixinApplication class MixinApp (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::MixinApp
           constructors
-            #F4 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::new
               typeName: MixinApp
-            #F5 isConst isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isConst isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::named
               typeName: MixinApp
   classes
@@ -8212,6 +8362,246 @@ library
 ''');
   }
 
+  test_classAlias_with_const_constructors_mixinInstanceField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Base {
+  const Base();
+  const Base.named();
+}
+''');
+    var library = await buildLibrary(r'''
+import "a.dart";
+
+mixin class M {
+  int x = 0;
+}
+
+class MixinApp = Base with M;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      classes
+        #F1 isMixinClass class M (nameOffset:30) (firstTokenOffset:18) (offset:30)
+          element: <testLibrary>::@class::M
+          fields
+            #F2 hasInitializer isOriginDeclaration x (nameOffset:40) (firstTokenOffset:40) (offset:40)
+              element: <testLibrary>::@class::M::@field::x
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::M::@constructor::new
+              typeName: M
+          getters
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@class::M::@getter::x
+          setters
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@class::M::@setter::x
+              formalParameters
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                  element: <testLibrary>::@class::M::@setter::x::@formalParameter::value
+        #F7 isMixinApplication class MixinApp (nameOffset:56) (firstTokenOffset:50) (offset:56)
+          element: <testLibrary>::@class::MixinApp
+          constructors
+            #F8 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@class::MixinApp::@constructor::new
+              typeName: MixinApp
+            #F9 isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@class::MixinApp::@constructor::named
+              typeName: MixinApp
+  classes
+    hasNonFinalField isMixinClass isSimplyBounded class M
+      reference: <testLibrary>::@class::M
+      firstFragment: #F1
+      fields
+        hasInitializer isOriginDeclaration x
+          reference: <testLibrary>::@class::M::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::M::@getter::x
+          setter: <testLibrary>::@class::M::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::M::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginVariable x
+          reference: <testLibrary>::@class::M::@getter::x
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::M::@field::x
+      setters
+        isOriginVariable x
+          reference: <testLibrary>::@class::M::@setter::x
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F6
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::M::@field::x
+    hasNonFinalField isMixinApplication isSimplyBounded class MixinApp
+      reference: <testLibrary>::@class::MixinApp
+      firstFragment: #F7
+      supertype: Base
+      mixins
+        M
+      constructors
+        isOriginMixinApplication new
+          reference: <testLibrary>::@class::MixinApp::@constructor::new
+          firstFragment: #F8
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::new
+          superConstructor: package:test/a.dart::@class::Base::@constructor::new
+        isOriginMixinApplication named
+          reference: <testLibrary>::@class::MixinApp::@constructor::named
+          firstFragment: #F9
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::named
+          superConstructor: package:test/a.dart::@class::Base::@constructor::named
+''');
+  }
+
+  test_classAlias_with_const_constructors_mixinStaticField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Base {
+  const Base();
+  const Base.named();
+}
+''');
+    var library = await buildLibrary(r'''
+import "a.dart";
+
+mixin class M {
+  static int x = 0;
+}
+
+class MixinApp = Base with M;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      classes
+        #F1 isMixinClass class M (nameOffset:30) (firstTokenOffset:18) (offset:30)
+          element: <testLibrary>::@class::M
+          fields
+            #F2 hasInitializer isOriginDeclaration isStatic x (nameOffset:47) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@class::M::@field::x
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::M::@constructor::new
+              typeName: M
+          getters
+            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@class::M::@getter::x
+          setters
+            #F5 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@class::M::@setter::x
+              formalParameters
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+                  element: <testLibrary>::@class::M::@setter::x::@formalParameter::value
+        #F7 isMixinApplication class MixinApp (nameOffset:63) (firstTokenOffset:57) (offset:63)
+          element: <testLibrary>::@class::MixinApp
+          constructors
+            #F8 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@class::MixinApp::@constructor::new
+              typeName: MixinApp
+            #F9 isConst isOriginMixinApplication named (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@class::MixinApp::@constructor::named
+              typeName: MixinApp
+  classes
+    isMixinClass isSimplyBounded class M
+      reference: <testLibrary>::@class::M
+      firstFragment: #F1
+      fields
+        hasInitializer isOriginDeclaration isStatic x
+          reference: <testLibrary>::@class::M::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::M::@getter::x
+          setter: <testLibrary>::@class::M::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::M::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginVariable isStatic x
+          reference: <testLibrary>::@class::M::@getter::x
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::M::@field::x
+      setters
+        isOriginVariable isStatic x
+          reference: <testLibrary>::@class::M::@setter::x
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F6
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::M::@field::x
+    isMixinApplication isSimplyBounded class MixinApp
+      reference: <testLibrary>::@class::MixinApp
+      firstFragment: #F7
+      supertype: Base
+      mixins
+        M
+      constructors
+        isConst isOriginMixinApplication new
+          reference: <testLibrary>::@class::MixinApp::@constructor::new
+          firstFragment: #F8
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::new
+          superConstructor: package:test/a.dart::@class::Base::@constructor::new
+        isConst isOriginMixinApplication named
+          reference: <testLibrary>::@class::MixinApp::@constructor::named
+          firstFragment: #F9
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: package:test/a.dart::@class::Base::@constructor::named
+          superConstructor: package:test/a.dart::@class::Base::@constructor::named
+''');
+  }
+
   test_classAlias_with_forwarding_constructors() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class Base {
@@ -8228,9 +8618,11 @@ class Base {
   factory Base.fact2() = Base.noArgs;
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "a.dart";
+
 class M {}
+
 class MixinApp = Base with M;
 ''');
     checkElementText(library, r'''
@@ -8242,62 +8634,62 @@ library
       libraryImports
         package:test/a.dart
       classes
-        #F1 class M (nameOffset:23) (firstTokenOffset:17) (offset:23)
+        #F1 class M (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::M
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
-        #F3 isMixinApplication class MixinApp (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F3 isMixinApplication class MixinApp (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::MixinApp
           constructors
-            #F4 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::new
               typeName: MixinApp
-            #F5 isOriginMixinApplication noArgs (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isOriginMixinApplication noArgs (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::noArgs
               typeName: MixinApp
-            #F6 isOriginMixinApplication requiredArg (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F6 isOriginMixinApplication requiredArg (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::requiredArg
               typeName: MixinApp
               formalParameters
-                #F7 requiredPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
-            #F8 isOriginMixinApplication positionalArg (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F8 isOriginMixinApplication positionalArg (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::positionalArg
               typeName: MixinApp
               formalParameters
-                #F9 optionalPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F9 optionalPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
                   initializer: expression_0
                     BooleanLiteral
                       literal: true @127
                       staticType: bool
-            #F10 isOriginMixinApplication positionalArg2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F10 isOriginMixinApplication positionalArg2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2
               typeName: MixinApp
               formalParameters
-                #F11 optionalPositional isFinal isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F11 optionalPositional isFinal isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
                   initializer: expression_1
                     BooleanLiteral
                       literal: true @167
                       staticType: bool
-            #F12 isOriginMixinApplication namedArg (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F12 isOriginMixinApplication namedArg (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::namedArg
               typeName: MixinApp
               formalParameters
-                #F13 optionalNamed isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F13 optionalNamed isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
                   initializer: expression_2
                     IntegerLiteral
                       literal: 42 @200
                       staticType: int
-            #F14 isOriginMixinApplication namedArg2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F14 isOriginMixinApplication namedArg2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::MixinApp::@constructor::namedArg2
               typeName: MixinApp
               formalParameters
-                #F15 optionalNamed isFinal isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F15 optionalNamed isFinal isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
                   initializer: expression_3
                     BooleanLiteral
@@ -8486,11 +8878,13 @@ library
   }
 
   test_classAlias_with_forwarding_constructors_type_substitution() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class Base<T> {
   Base.ctor(T t, List<T> l);
 }
+
 class M {}
+
 class MixinApp = Base with M;
 ''');
     checkElementText(library, r'''
@@ -8516,22 +8910,22 @@ library
                   element: <testLibrary>::@class::Base::@constructor::ctor::@formalParameter::t
                 #F5 requiredPositional isOriginDeclaration l (nameOffset:41) (firstTokenOffset:33) (offset:41)
                   element: <testLibrary>::@class::Base::@constructor::ctor::@formalParameter::l
-        #F6 class M (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F6 class M (nameOffset:54) (firstTokenOffset:48) (offset:54)
           element: <testLibrary>::@class::M
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
-        #F8 isMixinApplication class MixinApp (nameOffset:64) (firstTokenOffset:58) (offset:64)
+        #F8 isMixinApplication class MixinApp (nameOffset:66) (firstTokenOffset:60) (offset:66)
           element: <testLibrary>::@class::MixinApp
           constructors
-            #F9 isOriginMixinApplication ctor (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F9 isOriginMixinApplication ctor (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::MixinApp::@constructor::ctor
               typeName: MixinApp
               formalParameters
-                #F10 requiredPositional isOriginMixinApplicationClassConstructor t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F10 requiredPositional isOriginMixinApplicationClassConstructor t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
-                #F11 requiredPositional isOriginMixinApplicationClassConstructor l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F11 requiredPositional isOriginMixinApplicationClassConstructor l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
   classes
     isSimplyBounded class Base
@@ -8603,11 +8997,13 @@ library
   }
 
   test_classAlias_with_forwarding_constructors_type_substitution_complex() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class Base<T> {
   Base.ctor(T t, List<T> l);
 }
+
 class M {}
+
 class MixinApp<U> = Base<List<U>> with M;
 ''');
     checkElementText(library, r'''
@@ -8633,25 +9029,25 @@ library
                   element: <testLibrary>::@class::Base::@constructor::ctor::@formalParameter::t
                 #F5 requiredPositional isOriginDeclaration l (nameOffset:41) (firstTokenOffset:33) (offset:41)
                   element: <testLibrary>::@class::Base::@constructor::ctor::@formalParameter::l
-        #F6 class M (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F6 class M (nameOffset:54) (firstTokenOffset:48) (offset:54)
           element: <testLibrary>::@class::M
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
-        #F8 isMixinApplication class MixinApp (nameOffset:64) (firstTokenOffset:58) (offset:64)
+        #F8 isMixinApplication class MixinApp (nameOffset:66) (firstTokenOffset:60) (offset:66)
           element: <testLibrary>::@class::MixinApp
           typeParameters
-            #F9 U (nameOffset:73) (firstTokenOffset:73) (offset:73)
+            #F9 U (nameOffset:75) (firstTokenOffset:75) (offset:75)
               element: #E1 U
           constructors
-            #F10 isOriginMixinApplication ctor (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F10 isOriginMixinApplication ctor (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::MixinApp::@constructor::ctor
               typeName: MixinApp
               formalParameters
-                #F11 requiredPositional isOriginMixinApplicationClassConstructor t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F11 requiredPositional isOriginMixinApplicationClassConstructor t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
-                #F12 requiredPositional isOriginMixinApplicationClassConstructor l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F12 requiredPositional isOriginMixinApplicationClassConstructor l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
   classes
     isSimplyBounded class Base
@@ -8726,15 +9122,18 @@ library
   }
 
   test_classAlias_with_mixin_members() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C = D with E;
+
 class D {}
+
 class E {
   int get a => null;
   void set b(int i) {}
   void f() {}
   int x;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8748,43 +9147,43 @@ library
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:26) (firstTokenOffset:20) (offset:26)
+        #F3 class D (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:37) (firstTokenOffset:31) (offset:37)
+        #F5 class E (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::E
           fields
-            #F6 isOriginGetterSetter a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F6 isOriginGetterSetter a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::E::@field::a
-            #F7 isOriginGetterSetter b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F7 isOriginGetterSetter b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::E::@field::b
-            #F8 isOriginDeclaration x (nameOffset:105) (firstTokenOffset:105) (offset:105)
+            #F8 isOriginDeclaration x (nameOffset:107) (firstTokenOffset:107) (offset:107)
               element: <testLibrary>::@class::E::@field::x
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
           getters
-            #F10 isCompleteDeclaration isOriginDeclaration a (nameOffset:51) (firstTokenOffset:43) (offset:51)
+            #F10 isCompleteDeclaration isOriginDeclaration a (nameOffset:53) (firstTokenOffset:45) (offset:53)
               element: <testLibrary>::@class::E::@getter::a
-            #F11 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+            #F11 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
               element: <testLibrary>::@class::E::@getter::x
           setters
-            #F12 isCompleteDeclaration isOriginDeclaration b (nameOffset:73) (firstTokenOffset:64) (offset:73)
+            #F12 isCompleteDeclaration isOriginDeclaration b (nameOffset:75) (firstTokenOffset:66) (offset:75)
               element: <testLibrary>::@class::E::@setter::b
               formalParameters
-                #F13 requiredPositional isOriginDeclaration i (nameOffset:79) (firstTokenOffset:75) (offset:79)
+                #F13 requiredPositional isOriginDeclaration i (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@class::E::@setter::b::@formalParameter::i
-            #F14 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+            #F14 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
               element: <testLibrary>::@class::E::@setter::x
               formalParameters
-                #F15 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+                #F15 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
                   element: <testLibrary>::@class::E::@setter::x::@formalParameter::value
           methods
-            #F16 isCompleteDeclaration isOriginDeclaration f (nameOffset:92) (firstTokenOffset:87) (offset:92)
+            #F16 isCompleteDeclaration isOriginDeclaration f (nameOffset:94) (firstTokenOffset:89) (offset:94)
               element: <testLibrary>::@class::E::@method::f
   classes
     hasNonFinalField isMixinApplication isSimplyBounded class C
@@ -8875,7 +9274,11 @@ library
   }
 
   test_classes() async {
-    var library = await buildLibrary('class C {} class D {}');
+    var library = await buildLibrary(r'''
+class C {}
+
+class D {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8889,10 +9292,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 class D (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -8914,7 +9317,7 @@ library
   }
 
   test_constructor_primary_body_constantInitializers_assertInitializer() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class const A() {
   this : assert(true);
 }
@@ -8954,7 +9357,7 @@ library
   }
 
   test_constructor_primary_body_constantInitializers_fieldInitializer() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class const A() {
   final int x;
   this : x = 0;
@@ -9015,7 +9418,7 @@ library
   }
 
   test_constructor_primary_body_constantInitializers_superConstructorInvocation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int x);
 
 class const B() extends A {
@@ -9083,7 +9486,7 @@ library
   }
 
   test_constructor_primary_body_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// Class docs
 class const A() {
   /// first
@@ -9214,7 +9617,7 @@ library
   }
 
   test_constructor_primary_body_metadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class const A(final int x) {
   @deprecated
   this;
@@ -9331,7 +9734,7 @@ library
   }
 
   test_constructor_primary_body_noDeclaration() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   this : assert(true) {}
 }
@@ -9361,7 +9764,7 @@ library
   }
 
   test_constructor_primary_body_notConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A() {
   this : assert(true) {}
 }
@@ -9393,7 +9796,7 @@ library
   }
 
   test_constructor_primary_body_primaryInitializerScope() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class const A(final int x) {
   this : assert(x > 0);
 }
@@ -9469,7 +9872,7 @@ library
   }
 
   test_constructor_primary_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class const A(final int foo) {}
 ''');
     checkElementText(library, r'''
@@ -9525,7 +9928,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalNamed_functionTypedSuffix_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({final int foo()}) {}
 ''');
     checkElementText(library, r'''
@@ -9581,7 +9984,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalNamed_private() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({final int? _foo}) {}
 ''');
     checkElementText(library, r'''
@@ -9638,7 +10041,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalNamed_private_noCorrespondingPublic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({final int? _123}) {}
 ''');
     checkElementText(library, r'''
@@ -9694,7 +10097,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalNamed_simple_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({final int foo}) {}
 ''');
     checkElementText(library, r'''
@@ -9750,7 +10153,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalPositional_functionTypedSuffix_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A([final int foo()]) {}
 ''');
     checkElementText(library, r'''
@@ -9806,7 +10209,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalPositional_simple_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A([final int foo]) {}
 ''');
     checkElementText(library, r'''
@@ -9862,7 +10265,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_functionTypedSuffix_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({required final int foo()}) {}
 ''');
     checkElementText(library, r'''
@@ -9918,7 +10321,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_private() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({required final int _foo}) {}
 ''');
     checkElementText(library, r'''
@@ -9975,7 +10378,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_simple_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({required final int foo}) {}
 ''');
     checkElementText(library, r'''
@@ -10031,7 +10434,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_type_defaultObjectQuestion() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({final foo}) {}
 ''');
     checkElementText(library, r'''
@@ -10087,7 +10490,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_type_fromDefaultValue() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({final foo = 0}) {}
 ''');
     checkElementText(library, r'''
@@ -10150,7 +10553,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_type_fromDefaultValue_null() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({final foo = null}) {}
 ''');
     checkElementText(library, r'''
@@ -10213,10 +10616,11 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_type_fromField_inferred() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int get foo => 0;
 }
+
 class B({required final foo}) implements A {}
 ''');
     checkElementText(library, r'''
@@ -10238,21 +10642,21 @@ library
           getters
             #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
-        #F5 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F5 class B (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::B
           fields
-            #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@field::foo
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
+            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 38
+              typeNameOffset: 39
               formalParameters
-                #F8 requiredNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:56) (firstTokenOffset:41) (offset:56)
+                #F8 requiredNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:57) (firstTokenOffset:42) (offset:57)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
           getters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@getter::foo
   classes
     isSimplyBounded class A
@@ -10305,10 +10709,11 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_type_fromField_inferred_hasDefaultValue() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   num get foo => 0;
 }
+
 class B({final foo = 0}) implements A {}
 ''');
     checkElementText(library, r'''
@@ -10330,25 +10735,25 @@ library
           getters
             #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
-        #F5 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F5 class B (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::B
           fields
-            #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@field::foo
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
+            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 38
+              typeNameOffset: 39
               formalParameters
-                #F8 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:47) (firstTokenOffset:41) (offset:47)
+                #F8 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:48) (firstTokenOffset:42) (offset:48)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
                   initializer: expression_0
                     IntegerLiteral
-                      literal: 0 @53
+                      literal: 0 @54
                       staticType: int
           getters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@getter::foo
   classes
     isSimplyBounded class A
@@ -10404,12 +10809,11 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_functionTypedSuffix_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(
   /// first
   /// second
-  @deprecated
-  final int foo(),
+  @deprecated final int foo(),
 ) {}
 ''');
     checkElementText(library, r'''
@@ -10430,7 +10834,7 @@ library
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:60) (firstTokenOffset:11) (offset:60)
+                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:11) (offset:58)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -10492,7 +10896,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_functionTypedSuffix_var() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(var int foo()) {}
 ''');
     checkElementText(library, r'''
@@ -10569,8 +10973,7 @@ library
 class A(
   /// first
   /// second
-  @deprecated
-  final int foo,
+  @deprecated final int foo,
 );
 ''');
     checkElementText(library, r'''
@@ -10591,7 +10994,7 @@ library
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:60) (firstTokenOffset:11) (offset:60)
+                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:11) (offset:58)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -10653,7 +11056,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_simple_var() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(var int foo) {}
 ''');
     checkElementText(library, r'''
@@ -10726,7 +11129,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_type_defaultObjectQuestion() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(final foo) {}
 ''');
     checkElementText(library, r'''
@@ -10782,10 +11185,11 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_type_fromField_inferred() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int get foo => 0;
 }
+
 class B(final foo) implements A {}
 ''');
     checkElementText(library, r'''
@@ -10807,21 +11211,21 @@ library
           getters
             #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
-        #F5 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F5 class B (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::B
           fields
-            #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@field::foo
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
+            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 38
+              typeNameOffset: 39
               formalParameters
-                #F8 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:46) (firstTokenOffset:40) (offset:46)
+                #F8 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:47) (firstTokenOffset:41) (offset:47)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
           getters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@getter::foo
   classes
     isSimplyBounded class A
@@ -10874,7 +11278,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_type_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T>(final T foo) {}
 ''');
     checkElementText(library, r'''
@@ -10936,7 +11340,7 @@ library
   }
 
   test_constructor_primary_fieldTypeAnnotation_usesClassScope() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int A) {
   A? field;
 }
@@ -11009,7 +11413,7 @@ library
   }
 
   test_constructor_primary_formalParameter_field_optionalNamed_private() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({this._foo}) {
   final int? _foo;
 }
@@ -11124,7 +11528,7 @@ library
   }
 
   test_constructor_primary_formalParameter_field_requiredNamed_private() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A({required this._foo}) {
   final int? _foo;
 }
@@ -11182,7 +11586,7 @@ library
   }
 
   test_constructor_primary_formalParameter_field_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(this.foo) {
   final int foo;
 }
@@ -11239,7 +11643,7 @@ library
   }
 
   test_constructor_primary_formalParameter_regular_requiredPositional_functionTypedSuffix() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int foo()) {}
 ''');
     checkElementText(library, r'''
@@ -11275,7 +11679,7 @@ library
   }
 
   test_constructor_primary_formalParameter_regular_requiredPositional_simple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int foo) {}
 ''');
     checkElementText(library, r'''
@@ -11311,8 +11715,9 @@ library
   }
 
   test_constructor_primary_formalParameter_super_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int foo) {}
+
 class B(super.foo) extends A {}
 ''');
     checkElementText(library, r'''
@@ -11332,15 +11737,15 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-        #F4 hasExtendsClause class B (nameOffset:26) (firstTokenOffset:20) (offset:26)
+        #F4 hasExtendsClause class B (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:26) (offset:26)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 26
+              typeNameOffset: 27
               formalParameters
-                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration super.foo (nameOffset:34) (firstTokenOffset:28) (offset:34)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration super.foo (nameOffset:35) (firstTokenOffset:29) (offset:35)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
   classes
     isSimplyBounded class A
@@ -11372,7 +11777,7 @@ library
   }
 
   test_constructor_primary_named_formalParameter_super_optionalNamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.named({required int a, required double b});
 }
@@ -11461,7 +11866,7 @@ library
   }
 
   test_constructor_primary_named_formalParameter_super_optionalPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.named(int a, double b);
 }
@@ -11550,7 +11955,7 @@ library
   }
 
   test_constructor_primary_named_formalParameter_super_requiredNamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.named({required int a, required double b});
 }
@@ -11644,7 +12049,7 @@ library
   }
 
   test_constructor_primary_named_formalParameter_super_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.named(int a, double b);
 }
@@ -11733,8 +12138,9 @@ library
   }
 
   test_constructor_primary_scopes() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const foo = 0;
+
 class A<@foo T>([@foo int x = foo]) {
   static const foo = 1;
 }
@@ -11746,49 +12152,49 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F1 class A (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:28) (firstTokenOffset:23) (offset:28)
+            #F2 T (nameOffset:29) (firstTokenOffset:24) (offset:29)
               element: #E0 T
               metadata
                 Annotation
-                  atSign: @ @23
+                  atSign: @ @24
                   name: SimpleIdentifier
-                    token: foo @24
+                    token: foo @25
                     element: <testLibrary>::@getter::foo
                     staticType: null
                   element: <testLibrary>::@getter::foo
           fields
-            #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:68) (offset:68)
+            #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:69) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
-                  literal: 1 @74
+                  literal: 1 @75
                   staticType: int
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 21
+              typeNameOffset: 22
               formalParameters
-                #F5 optionalPositional isOriginDeclaration x (nameOffset:41) (firstTokenOffset:32) (offset:41)
+                #F5 optionalPositional isOriginDeclaration x (nameOffset:42) (firstTokenOffset:33) (offset:42)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
                     Annotation
-                      atSign: @ @32
+                      atSign: @ @33
                       name: SimpleIdentifier
-                        token: foo @33
+                        token: foo @34
                         element: <testLibrary>::@class::A::@getter::foo
                         staticType: null
                       element: <testLibrary>::@class::A::@getter::foo
                   initializer: expression_1
                     SimpleIdentifier
-                      token: foo @45
+                      token: foo @46
                       element: <testLibrary>::@class::A::@getter::foo
                       staticType: int
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::A::@getter::foo
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -11809,9 +12215,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @23
+              atSign: @ @24
               name: SimpleIdentifier
-                token: foo @24
+                token: foo @25
                 element: <testLibrary>::@getter::foo
                 staticType: null
               element: <testLibrary>::@getter::foo
@@ -11834,9 +12240,9 @@ library
               type: int
               metadata
                 Annotation
-                  atSign: @ @32
+                  atSign: @ @33
                   name: SimpleIdentifier
-                    token: foo @33
+                    token: foo @34
                     element: <testLibrary>::@class::A::@getter::foo
                     staticType: null
                   element: <testLibrary>::@class::A::@getter::foo
@@ -11868,7 +12274,7 @@ library
   }
 
   test_constructor_primary_typeParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T extends U, U extends num>(T t, U u);
 ''');
     checkElementText(library, r'''
@@ -11921,7 +12327,7 @@ library
   }
 
   test_constructor_primary_unnamed_formalParameter_super_optionalNamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({required int a, required double b});
 }
@@ -12006,7 +12412,7 @@ library
   }
 
   test_constructor_primary_unnamed_formalParameter_super_optionalPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(int a, double b);
 }
@@ -12091,7 +12497,7 @@ library
   }
 
   test_constructor_primary_unnamed_formalParameter_super_requiredNamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({required int a, required double b});
 }
@@ -12181,7 +12587,7 @@ library
   }
 
   test_constructor_primary_unnamed_formalParameter_super_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(int a, double b);
 }
@@ -17604,11 +18010,11 @@ library
   test_constructor_secondary_augmentation_chain_isCompleteDeclaration_factory() async {
     var library = await buildLibrary(r'''
 class A {
-  factory A() => throw 0;
+  factory A();
 }
 
 augment class A {
-  augment factory A() {}
+  augment factory A() => throw 0;
 }
 
 augment class A {
@@ -17626,30 +18032,34 @@ library
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
-            #F3 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
+            #F3 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@constructor::new
               factoryKeywordOffset: 12
               typeName: A
               typeNameOffset: 20
-        #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F4
+          nextFragment: #F5
           constructors
-            #F5 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:67) (offset:75)
-              element: <testLibrary>::@class::A::@constructor::new#1
-              factoryKeywordOffset: 67
+            #F4 isAugmentation isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:48) (offset:64)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 56
               typeName: A
-              typeNameOffset: 75
-        #F4 isAugmentation class A (nameOffset:99) (firstTokenOffset:85) (offset:99)
+              typeNameOffset: 64
+              nextFragment: #F6
+              previousFragment: #F3
+        #F5 isAugmentation class A (nameOffset:97) (firstTokenOffset:83) (offset:97)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           constructors
-            #F6 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:113) (offset:121)
-              element: <testLibrary>::@class::A::@constructor::new#2
-              factoryKeywordOffset: 113
+            #F6 isAugmentation isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:103) (offset:119)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 111
               typeName: A
-              typeNameOffset: 121
+              typeNameOffset: 119
+              previousFragment: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -17658,12 +18068,6 @@ library
         isFactory isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-        isFactory isOriginDeclaration new
-          reference: <testLibrary>::@class::A::@constructor::new#1
-          firstFragment: #F5
-        isFactory isOriginDeclaration new
-          reference: <testLibrary>::@class::A::@constructor::new#2
-          firstFragment: #F6
 ''');
   }
 
@@ -18417,7 +18821,11 @@ library
   }
 
   test_constructor_secondary_const() async {
-    var library = await buildLibrary('class C { const C(); }');
+    var library = await buildLibrary(r'''
+class C {
+  const C();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18428,10 +18836,10 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:16)
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 16
+              typeNameOffset: 18
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -18444,7 +18852,11 @@ library
   }
 
   test_constructor_secondary_const_external() async {
-    var library = await buildLibrary('class C { external const C(); }');
+    var library = await buildLibrary(r'''
+class C {
+  external const C();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18455,10 +18867,10 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isConst isExternal isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:25)
+            #F2 isCompleteDeclaration isConst isExternal isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:27)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 25
+              typeNameOffset: 27
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -18471,13 +18883,14 @@ library
   }
 
   test_constructor_secondary_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   /**
    * Docs
    */
   C();
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18506,7 +18919,11 @@ library
   }
 
   test_constructor_secondary_explicit_named() async {
-    var library = await buildLibrary('class C { C.foo(); }');
+    var library = await buildLibrary(r'''
+class C {
+  C.foo();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18517,11 +18934,11 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:10) (offset:12)
+            #F2 isOriginDeclaration foo (nameOffset:14) (firstTokenOffset:12) (offset:14)
               element: <testLibrary>::@class::C::@constructor::foo
               typeName: C
-              typeNameOffset: 10
-              periodOffset: 11
+              typeNameOffset: 12
+              periodOffset: 13
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -18534,7 +18951,11 @@ library
   }
 
   test_constructor_secondary_explicit_typeParameters() async {
-    var library = await buildLibrary('class C<T, U> { C(); }');
+    var library = await buildLibrary(r'''
+class C<T, U> {
+  C();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18550,10 +18971,10 @@ library
             #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
           constructors
-            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:16)
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 16
+              typeNameOffset: 18
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -18571,7 +18992,11 @@ library
   }
 
   test_constructor_secondary_explicit_unnamed() async {
-    var library = await buildLibrary('class C { C(); }');
+    var library = await buildLibrary(r'''
+class C {
+  C();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18582,10 +19007,10 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 10
+              typeNameOffset: 12
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -18598,7 +19023,11 @@ library
   }
 
   test_constructor_secondary_external() async {
-    var library = await buildLibrary('class C { external C(); }');
+    var library = await buildLibrary(r'''
+class C {
+  external C();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18609,10 +19038,10 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isExternal isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:19)
+            #F2 isCompleteDeclaration isExternal isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 19
+              typeNameOffset: 21
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -18625,7 +19054,11 @@ library
   }
 
   test_constructor_secondary_factory() async {
-    var library = await buildLibrary('class C { factory C() => throw 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  factory C() => throw 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18636,11 +19069,11 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:18)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 10
+              factoryKeywordOffset: 12
               typeName: C
-              typeNameOffset: 18
+              typeNameOffset: 20
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -18717,7 +19150,7 @@ library
   test_constructor_secondary_factoryHead_unnamed() async {
     var library = await buildLibrary(r'''
 class C {
-  factory () => throw 0;
+  factory() => throw 0;
 }
 ''');
     checkElementText(library, r'''
@@ -18748,7 +19181,7 @@ library
   test_constructor_secondary_factoryHead_unnamed_const() async {
     var library = await buildLibrary(r'''
 class C {
-  const factory () = C;
+  const factory() = C;
 }
 ''');
     checkElementText(library, r'''
@@ -18778,7 +19211,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_optionalNamed_noDefault() async {
-    var library = await buildLibrary('class C { int x; C({this.x}); }');
+    var library = await buildLibrary(r'''
+class C {
+  int x;
+  C({this.x});
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18789,24 +19227,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:25) (firstTokenOffset:20) (offset:25)
+                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -18848,7 +19286,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_optionalNamed_withDefault() async {
-    var library = await buildLibrary('class C { int x; C({this.x: 42}); }');
+    var library = await buildLibrary(r'''
+class C {
+  int x;
+  C({this.x: 42});
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18859,28 +19302,28 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:25) (firstTokenOffset:20) (offset:25)
+                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
-                      literal: 42 @28
+                      literal: 42 @32
                       staticType: int
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -18925,7 +19368,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_optionalPositional_noDefault() async {
-    var library = await buildLibrary('class C { int x; C([this.x]); }');
+    var library = await buildLibrary(r'''
+class C {
+  int x;
+  C([this.x]);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18936,24 +19384,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:25) (firstTokenOffset:20) (offset:25)
+                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -18995,7 +19443,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_optionalPositional_withDefault() async {
-    var library = await buildLibrary('class C { int x; C([this.x = 42]); }');
+    var library = await buildLibrary(r'''
+class C {
+  int x;
+  C([this.x = 42]);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19006,28 +19459,28 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:25) (firstTokenOffset:20) (offset:25)
+                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
-                      literal: 42 @29
+                      literal: 42 @33
                       staticType: int
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19072,9 +19525,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldDynamic_formalDynamic() async {
-    var library = await buildLibrary(
-      'class C { dynamic x; C(dynamic this.x); }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19085,24 +19541,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
+            #F2 isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 21
+              typeNameOffset: 25
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:23) (offset:36)
+                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:27) (offset:40)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19144,7 +19600,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldDynamic_formalImplicitType() async {
-    var library = await buildLibrary('class C { dynamic x; C(this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  dynamic x;
+  C(this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19155,24 +19616,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
+            #F2 isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 21
+              typeNameOffset: 25
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
+                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:27) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19214,7 +19675,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldDynamic_formalTyped() async {
-    var library = await buildLibrary('class C { dynamic x; C(int this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  dynamic x;
+  C(int this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19225,24 +19691,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
+            #F2 isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 21
+              typeNameOffset: 25
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
+                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:27) (offset:36)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19284,7 +19750,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldImplicitType_formalDynamic() async {
-    var library = await buildLibrary('class C { var x; C(dynamic this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  var x;
+  C(dynamic this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19295,24 +19766,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:19) (offset:32)
+                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:23) (offset:36)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19354,7 +19825,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldImplicitType_formalImplicitType() async {
-    var library = await buildLibrary('class C { var x; C(this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  var x;
+  C(this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19365,24 +19841,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19424,7 +19900,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldImplicitType_formalTyped() async {
-    var library = await buildLibrary('class C { var x; C(int this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  var x;
+  C(int this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19435,24 +19916,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:19) (offset:28)
+                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19494,7 +19975,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldTyped_formalDynamic() async {
-    var library = await buildLibrary('class C { num x; C(dynamic this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  num x;
+  C(dynamic this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19505,24 +19991,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:19) (offset:32)
+                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:23) (offset:36)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19564,7 +20050,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldTyped_formalImplicitType() async {
-    var library = await buildLibrary('class C { num x; C(this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  num x;
+  C(this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19575,24 +20066,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:24) (firstTokenOffset:19) (offset:24)
+                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19634,7 +20125,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldTyped_formalTyped() async {
-    var library = await buildLibrary('class C { num x; C(int this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  num x;
+  C(int this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19645,24 +20141,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 17
+              typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:19) (offset:28)
+                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -19961,7 +20457,13 @@ library
 
   test_constructor_secondary_formalParameter_field_requiredPositional_multipleMatchingFields() async {
     // This is a compile-time error but it should still analyze consistently.
-    var library = await buildLibrary('class C { C(this.x); int x; String x; }');
+    var library = await buildLibrary(r'''
+class C {
+  C(this.x);
+  int x;
+  String x;
+}
+''');
 
     checkElementText(library, r'''
 library
@@ -19973,33 +20475,33 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 isOriginDeclaration x (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::C::@field::x
-            #F3 isOriginDeclaration x (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F3 isOriginDeclaration x (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: <testLibrary>::@class::C::@field::x#1
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
+            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 10
+              typeNameOffset: 12
               formalParameters
-                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:17) (firstTokenOffset:12) (offset:17)
+                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:19) (firstTokenOffset:14) (offset:19)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@getter::x
-            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::C::@getter::x#1
           setters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
-            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::C::@setter::x#1
               formalParameters
-                #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+                #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
                   element: <testLibrary>::@class::C::@setter::x#1::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -20062,7 +20564,11 @@ library
 
   test_constructor_secondary_formalParameter_field_requiredPositional_noMatchingField() async {
     // This is a compile-time error but it should still analyze consistently.
-    var library = await buildLibrary('class C { C(this.x); }');
+    var library = await buildLibrary(r'''
+class C {
+  C(this.x);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -20073,12 +20579,12 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
+            #F2 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 10
+              typeNameOffset: 12
               formalParameters
-                #F3 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:17) (firstTokenOffset:12) (offset:17)
+                #F3 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:19) (firstTokenOffset:14) (offset:19)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
   classes
     isSimplyBounded class C
@@ -20097,7 +20603,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_private() async {
-    var library = await buildLibrary('class C { int? _x; C({this._x}); }');
+    var library = await buildLibrary(r'''
+class C {
+  int? _x;
+  C({this._x});
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -20108,24 +20619,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration _x (nameOffset:15) (firstTokenOffset:15) (offset:15)
+            #F2 isOriginDeclaration _x (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::C::@field::_x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:19) (offset:19)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 19
+              typeNameOffset: 23
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:27) (firstTokenOffset:22) (offset:27)
+                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:31) (firstTokenOffset:26) (offset:31)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@getter::_x
           setters
-            #F6 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@setter::_x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@class::C::@setter::_x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -20172,7 +20683,12 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_private_noCorrespondingPublic() async {
-    var library = await buildLibrary('class C { int? _123; C({this._123}); }');
+    var library = await buildLibrary(r'''
+class C {
+  int? _123;
+  C({this._123});
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -20183,24 +20699,24 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration _123 (nameOffset:15) (firstTokenOffset:15) (offset:15)
+            #F2 isOriginDeclaration _123 (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::C::@field::_123
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 21
+              typeNameOffset: 25
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this._123 (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this._123 (nameOffset:33) (firstTokenOffset:28) (offset:33)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::_123
           getters
-            #F5 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@getter::_123
           setters
-            #F6 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@setter::_123
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@class::C::@setter::_123::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -20246,7 +20762,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_optionalNamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({required int a, required double b});
 }
@@ -20333,7 +20849,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_optionalNamed_defaultValue() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({int a = 0});
 }
@@ -20407,7 +20923,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_optionalNamed_unresolved() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({required int a});
 }
@@ -20473,7 +20989,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_optionalNamed_unresolved2() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(int a);
 }
@@ -20539,7 +21055,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_optionalPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(int a, double b);
 }
@@ -20626,7 +21142,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredNamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({required int a, required double b});
 }
@@ -20718,7 +21234,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredNamed_defaultValue() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({int a = 0});
 }
@@ -20792,7 +21308,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(int a, double b);
 }
@@ -20879,7 +21395,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredPositional_explicitType_functionTypedSuffix() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(Object? a);
 }
@@ -20959,7 +21475,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredPositional_explicitType_interface() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(num a);
 }
@@ -21025,7 +21541,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredPositional_explicitType_interface_nullable() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(num? a);
 }
@@ -21093,7 +21609,7 @@ library
   test_constructor_secondary_formalParameter_super_requiredPositional_inferenceOrder() async {
     // It is important that `B` is declared after `C`, so that we check that
     // inference happens in order - first `B`, then `C`.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class A {
   A(int a);
 }
@@ -21189,7 +21705,7 @@ library
   test_constructor_secondary_formalParameter_super_requiredPositional_inferenceOrder_generic() async {
     // It is important that `C` is declared before `B`, so that we check that
     // inference happens in order - first `B`, then `C`.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(int a);
 }
@@ -21293,7 +21809,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredPositional_invalid_topFunction() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f(super.a) {}
 ''');
     checkElementText(library, r'''
@@ -21322,7 +21838,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredPositional_unresolved() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 
 class B extends A {
@@ -21378,7 +21894,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_super_requiredPositional_unresolved2() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A({required int a})
 }
@@ -21444,7 +21960,11 @@ library
   }
 
   test_constructor_secondary_formalParameters() async {
-    var library = await buildLibrary('class C { C(x, int y); }');
+    var library = await buildLibrary(r'''
+class C {
+  C(x, int y);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -21455,14 +21975,14 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 10
+              typeNameOffset: 12
               formalParameters
-                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:12) (firstTokenOffset:12) (offset:12)
+                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-                #F4 requiredPositional isOriginDeclaration y (nameOffset:19) (firstTokenOffset:15) (offset:19)
+                #F4 requiredPositional isOriginDeclaration y (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::y
   classes
     isSimplyBounded class C
@@ -21483,7 +22003,9 @@ library
   }
 
   test_constructor_secondary_implicit_typeParameters() async {
-    var library = await buildLibrary('class C<T, U> {}');
+    var library = await buildLibrary(r'''
+class C<T, U> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -21519,7 +22041,7 @@ library
   }
 
   test_constructor_secondary_initializers_assertInvocation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   const C(int x) : assert(x >= 42);
 }
@@ -21574,7 +22096,7 @@ library
   }
 
   test_constructor_secondary_initializers_assertInvocation_message() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   const C(int x) : assert(x >= 42, 'foo');
 }
@@ -21632,7 +22154,7 @@ library
   }
 
   test_constructor_secondary_initializers_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   const C() : x = 42;
@@ -21692,11 +22214,12 @@ library
   }
 
   test_constructor_secondary_initializers_field_notConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   const C() : x = foo();
 }
+
 int foo() => 42;
 ''');
     // It is OK to keep non-constant initializers.
@@ -21721,7 +22244,7 @@ library
             #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
       functions
-        #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:52) (firstTokenOffset:48) (offset:52)
+        #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:53) (firstTokenOffset:49) (offset:53)
           element: <testLibrary>::@function::foo
   classes
     isSimplyBounded class C
@@ -21769,7 +22292,7 @@ library
   }
 
   test_constructor_secondary_initializers_field_optionalPositionalFormalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   final int _f;
   const A([int f = 0]) : _f = f;
@@ -21844,7 +22367,7 @@ library
   }
 
   test_constructor_secondary_initializers_field_recordLiteral() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final Object x;
   const C(int a) : x = (0, a);
@@ -22069,7 +22592,7 @@ library
   }
 
   test_constructor_secondary_initializers_field_withFormalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   const C(int p) : x = 1 + p;
@@ -22145,14 +22668,14 @@ library
   }
 
   test_constructor_secondary_initializers_genericFunctionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
+
 class B {
   const B(dynamic x);
-  const B.f()
-   : this(A<Function()>());
+  const B.f() : this(A<Function()>());
 }
 ''');
     checkElementText(library, r'''
@@ -22172,21 +22695,21 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
-        #F4 class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F4 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:40) (offset:46)
+            #F5 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:41) (offset:47)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 46
+              typeNameOffset: 47
               formalParameters
-                #F6 requiredPositional isOriginDeclaration x (nameOffset:56) (firstTokenOffset:48) (offset:56)
+                #F6 requiredPositional isOriginDeclaration x (nameOffset:57) (firstTokenOffset:49) (offset:57)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
-            #F7 isCompleteDeclaration isConst isOriginDeclaration f (nameOffset:70) (firstTokenOffset:62) (offset:70)
+            #F7 isCompleteDeclaration isConst isOriginDeclaration f (nameOffset:71) (firstTokenOffset:63) (offset:71)
               element: <testLibrary>::@class::B::@constructor::f
               typeName: B
-              typeNameOffset: 68
-              periodOffset: 69
+              typeNameOffset: 69
+              periodOffset: 70
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22214,48 +22737,49 @@ library
           firstFragment: #F7
           constantInitializers
             RedirectingConstructorInvocation
-              thisKeyword: this @79
+              thisKeyword: this @77
               argumentList: ArgumentList
-                leftParenthesis: ( @83
+                leftParenthesis: ( @81
                 arguments
                   InstanceCreationExpression
                     constructorName: ConstructorName
                       type: NamedType
-                        name: A @84
+                        name: A @82
                         typeArguments: TypeArgumentList
-                          leftBracket: < @85
+                          leftBracket: < @83
                           arguments
                             GenericFunctionType
-                              functionKeyword: Function @86
+                              functionKeyword: Function @84
                               parameters: FormalParameterList
-                                leftParenthesis: ( @94
-                                rightParenthesis: ) @95
+                                leftParenthesis: ( @92
+                                rightParenthesis: ) @93
                               declaredFragment: GenericFunctionTypeElement
                                 parameters
                                 returnType: dynamic
                                 type: dynamic Function()
                               type: dynamic Function()
-                          rightBracket: > @96
+                          rightBracket: > @94
                         element: <testLibrary>::@class::A
                         type: A<dynamic Function()>
                       element: ConstructorMember
                         baseElement: <testLibrary>::@class::A::@constructor::new
                         substitution: {T: dynamic Function()}
                     argumentList: ArgumentList
-                      leftParenthesis: ( @97
-                      rightParenthesis: ) @98
+                      leftParenthesis: ( @95
+                      rightParenthesis: ) @96
                     staticType: A<dynamic Function()>
-                rightParenthesis: ) @99
+                rightParenthesis: ) @97
               element: <testLibrary>::@class::B::@constructor::new
           redirectedConstructor: <testLibrary>::@class::B::@constructor::new
 ''');
   }
 
   test_constructor_secondary_initializers_superInvocation_argumentContextType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(List<String> values);
 }
+
 class B extends A {
   const B() : super(const []);
 }
@@ -22277,13 +22801,13 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration values (nameOffset:33) (firstTokenOffset:20) (offset:33)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::values
-        #F4 hasExtendsClause class B (nameOffset:50) (firstTokenOffset:44) (offset:50)
+        #F4 hasExtendsClause class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:66) (offset:72)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:67) (offset:73)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 72
+              typeNameOffset: 73
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22306,26 +22830,27 @@ library
           firstFragment: #F5
           constantInitializers
             SuperConstructorInvocation
-              superKeyword: super @78
+              superKeyword: super @79
               argumentList: ArgumentList
-                leftParenthesis: ( @83
+                leftParenthesis: ( @84
                 arguments
                   ListLiteral
-                    constKeyword: const @84
-                    leftBracket: [ @90
-                    rightBracket: ] @91
+                    constKeyword: const @85
+                    leftBracket: [ @91
+                    rightBracket: ] @92
                     staticType: List<String>
-                rightParenthesis: ) @92
+                rightParenthesis: ) @93
               element: <testLibrary>::@class::A::@constructor::new
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
   test_constructor_secondary_initializers_superInvocation_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A.aaa(int p);
 }
+
 class C extends A {
   const C() : super.aaa(42);
 }
@@ -22348,13 +22873,13 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration p (nameOffset:28) (firstTokenOffset:24) (offset:28)
                   element: <testLibrary>::@class::A::@constructor::aaa::@formalParameter::p
-        #F4 hasExtendsClause class C (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F4 hasExtendsClause class C (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:56) (offset:62)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:57) (offset:63)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 62
+              typeNameOffset: 63
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22377,29 +22902,30 @@ library
           firstFragment: #F5
           constantInitializers
             SuperConstructorInvocation
-              superKeyword: super @68
-              period: . @73
+              superKeyword: super @69
+              period: . @74
               constructorName: SimpleIdentifier
-                token: aaa @74
+                token: aaa @75
                 element: <testLibrary>::@class::A::@constructor::aaa
                 staticType: null
               argumentList: ArgumentList
-                leftParenthesis: ( @77
+                leftParenthesis: ( @78
                 arguments
                   IntegerLiteral
-                    literal: 42 @78
+                    literal: 42 @79
                     staticType: int
-                rightParenthesis: ) @80
+                rightParenthesis: ) @81
               element: <testLibrary>::@class::A::@constructor::aaa
           superConstructor: <testLibrary>::@class::A::@constructor::aaa
 ''');
   }
 
   test_constructor_secondary_initializers_superInvocation_named_underscore() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A._();
 }
+
 class B extends A {
   const B() : super._();
 }
@@ -22419,13 +22945,13 @@ library
               typeName: A
               typeNameOffset: 18
               periodOffset: 19
-        #F3 hasExtendsClause class B (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F3 hasExtendsClause class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:49) (offset:55)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:50) (offset:56)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 55
+              typeNameOffset: 56
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22444,25 +22970,26 @@ library
           firstFragment: #F4
           constantInitializers
             SuperConstructorInvocation
-              superKeyword: super @61
-              period: . @66
+              superKeyword: super @62
+              period: . @67
               constructorName: SimpleIdentifier
-                token: _ @67
+                token: _ @68
                 element: <testLibrary>::@class::A::@constructor::_
                 staticType: null
               argumentList: ArgumentList
-                leftParenthesis: ( @68
-                rightParenthesis: ) @69
+                leftParenthesis: ( @69
+                rightParenthesis: ) @70
               element: <testLibrary>::@class::A::@constructor::_
           superConstructor: <testLibrary>::@class::A::@constructor::_
 ''');
   }
 
   test_constructor_secondary_initializers_superInvocation_namedExpression() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A.aaa(a, {int b});
 }
+
 class C extends A {
   const C() : super.aaa(1, b: 2);
 }
@@ -22487,13 +23014,13 @@ library
                   element: <testLibrary>::@class::A::@constructor::aaa::@formalParameter::a
                 #F4 optionalNamed isOriginDeclaration b (nameOffset:32) (firstTokenOffset:28) (offset:32)
                   element: <testLibrary>::@class::A::@constructor::aaa::@formalParameter::b
-        #F5 hasExtendsClause class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F5 hasExtendsClause class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
           element: <testLibrary>::@class::C
           constructors
-            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:61) (offset:67)
+            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:68)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 67
+              typeNameOffset: 68
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22519,35 +23046,36 @@ library
           firstFragment: #F6
           constantInitializers
             SuperConstructorInvocation
-              superKeyword: super @73
-              period: . @78
+              superKeyword: super @74
+              period: . @79
               constructorName: SimpleIdentifier
-                token: aaa @79
+                token: aaa @80
                 element: <testLibrary>::@class::A::@constructor::aaa
                 staticType: null
               argumentList: ArgumentList
-                leftParenthesis: ( @82
+                leftParenthesis: ( @83
                 arguments
                   IntegerLiteral
-                    literal: 1 @83
+                    literal: 1 @84
                     staticType: int
                   NamedArgument
-                    name: b @86
-                    colon: : @87
+                    name: b @87
+                    colon: : @88
                     argumentExpression: IntegerLiteral
-                      literal: 2 @89
+                      literal: 2 @90
                       staticType: int
-                rightParenthesis: ) @90
+                rightParenthesis: ) @91
               element: <testLibrary>::@class::A::@constructor::aaa
           superConstructor: <testLibrary>::@class::A::@constructor::aaa
 ''');
   }
 
   test_constructor_secondary_initializers_superInvocation_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(int p);
 }
+
 class C extends A {
   const C.ccc() : super(42);
 }
@@ -22569,14 +23097,14 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration p (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p
-        #F4 hasExtendsClause class C (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F4 hasExtendsClause class C (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isCompleteDeclaration isConst isOriginDeclaration ccc (nameOffset:60) (firstTokenOffset:52) (offset:60)
+            #F5 isCompleteDeclaration isConst isOriginDeclaration ccc (nameOffset:61) (firstTokenOffset:53) (offset:61)
               element: <testLibrary>::@class::C::@constructor::ccc
               typeName: C
-              typeNameOffset: 58
-              periodOffset: 59
+              typeNameOffset: 59
+              periodOffset: 60
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22599,21 +23127,21 @@ library
           firstFragment: #F5
           constantInitializers
             SuperConstructorInvocation
-              superKeyword: super @68
+              superKeyword: super @69
               argumentList: ArgumentList
-                leftParenthesis: ( @73
+                leftParenthesis: ( @74
                 arguments
                   IntegerLiteral
-                    literal: 42 @74
+                    literal: 42 @75
                     staticType: int
-                rightParenthesis: ) @76
+                rightParenthesis: ) @77
               element: <testLibrary>::@class::A::@constructor::new
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
   test_constructor_secondary_initializers_thisInvocation_argumentContextType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(List<String> values);
   const A.empty() : this(const []);
@@ -22674,7 +23202,7 @@ library
   }
 
   test_constructor_secondary_initializers_thisInvocation_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   const C() : this.named(1, 'bbb');
   const C.named(int a, String b);
@@ -22745,7 +23273,7 @@ library
   }
 
   test_constructor_secondary_initializers_thisInvocation_namedExpression() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   const C() : this.named(1, b: 2);
   const C.named(a, {int b});
@@ -22820,7 +23348,7 @@ library
   }
 
   test_constructor_secondary_initializers_thisInvocation_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   const C.named() : this(1, 'bbb');
   const C(int a, String b);
@@ -22886,7 +23414,7 @@ library
   }
 
   test_constructor_secondary_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C.foo();
 }
@@ -22983,7 +23511,7 @@ library
   test_constructor_secondary_newHead_unnamed() async {
     var library = await buildLibrary(r'''
 class C {
-  new ();
+  new();
 }
 ''');
     checkElementText(library, r'''
@@ -23014,7 +23542,7 @@ library
   test_constructor_secondary_newHead_unnamed_const() async {
     var library = await buildLibrary(r'''
 class C {
-  const new ();
+  const new();
 }
 ''');
     checkElementText(library, r'''
@@ -23043,11 +23571,12 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   factory C() = D.named;
   C._();
 }
+
 class D extends C {
   D.named() : super._();
 }
@@ -23072,14 +23601,14 @@ library
               typeName: C
               typeNameOffset: 37
               periodOffset: 38
-        #F4 hasExtendsClause class D (nameOffset:52) (firstTokenOffset:46) (offset:52)
+        #F4 hasExtendsClause class D (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isCompleteDeclaration isOriginDeclaration named (nameOffset:70) (firstTokenOffset:68) (offset:70)
+            #F5 isCompleteDeclaration isOriginDeclaration named (nameOffset:71) (firstTokenOffset:69) (offset:71)
               element: <testLibrary>::@class::D::@constructor::named
               typeName: D
-              typeNameOffset: 68
-              periodOffset: 69
+              typeNameOffset: 69
+              periodOffset: 70
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23105,11 +23634,12 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> {
   factory C() = D<U, T>.named;
   C._();
 }
+
 class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
@@ -23139,19 +23669,19 @@ library
               typeName: C
               typeNameOffset: 49
               periodOffset: 50
-        #F6 hasExtendsClause class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
+        #F6 hasExtendsClause class D (nameOffset:65) (firstTokenOffset:59) (offset:65)
           element: <testLibrary>::@class::D
           typeParameters
-            #F7 T (nameOffset:66) (firstTokenOffset:66) (offset:66)
+            #F7 T (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: #E2 T
-            #F8 U (nameOffset:69) (firstTokenOffset:69) (offset:69)
+            #F8 U (nameOffset:70) (firstTokenOffset:70) (offset:70)
               element: #E3 U
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration named (nameOffset:94) (firstTokenOffset:92) (offset:94)
+            #F9 isCompleteDeclaration isOriginDeclaration named (nameOffset:95) (firstTokenOffset:93) (offset:95)
               element: <testLibrary>::@class::D::@constructor::named
               typeName: D
-              typeNameOffset: 92
-              periodOffset: 93
+              typeNameOffset: 93
+              periodOffset: 94
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23191,7 +23721,7 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_generic_inference() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T, U> implements B<T, U> {
   A.named();
 }
@@ -23267,12 +23797,14 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_generic_viaTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef A<T, U> = C<T, U>;
+
 class B<T, U> {
   factory B() = A<U, T>.named;
   B._();
 }
+
 class C<T, U> extends A<U, T> {
   C.named() : super._();
 }
@@ -23284,37 +23816,37 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class B (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F1 class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@class::B
           typeParameters
-            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F2 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E0 T
-            #F3 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
+            #F3 U (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E1 U
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:45) (offset:53)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:46) (offset:54)
               element: <testLibrary>::@class::B::@constructor::new
-              factoryKeywordOffset: 45
+              factoryKeywordOffset: 46
               typeName: B
-              typeNameOffset: 53
-            #F5 isOriginDeclaration _ (nameOffset:78) (firstTokenOffset:76) (offset:78)
+              typeNameOffset: 54
+            #F5 isOriginDeclaration _ (nameOffset:79) (firstTokenOffset:77) (offset:79)
               element: <testLibrary>::@class::B::@constructor::_
               typeName: B
-              typeNameOffset: 76
-              periodOffset: 77
-        #F6 hasExtendsClause class C (nameOffset:91) (firstTokenOffset:85) (offset:91)
+              typeNameOffset: 77
+              periodOffset: 78
+        #F6 hasExtendsClause class C (nameOffset:93) (firstTokenOffset:87) (offset:93)
           element: <testLibrary>::@class::C
           typeParameters
-            #F7 T (nameOffset:93) (firstTokenOffset:93) (offset:93)
+            #F7 T (nameOffset:95) (firstTokenOffset:95) (offset:95)
               element: #E2 T
-            #F8 U (nameOffset:96) (firstTokenOffset:96) (offset:96)
+            #F8 U (nameOffset:98) (firstTokenOffset:98) (offset:98)
               element: #E3 U
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration named (nameOffset:121) (firstTokenOffset:119) (offset:121)
+            #F9 isCompleteDeclaration isOriginDeclaration named (nameOffset:123) (firstTokenOffset:121) (offset:123)
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
-              typeNameOffset: 119
-              periodOffset: 120
+              typeNameOffset: 121
+              periodOffset: 122
       typeAliases
         #F10 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
@@ -23368,14 +23900,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_imported() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart';
+
 class C {
   factory C() = D.named;
   C._();
@@ -23390,19 +23923,19 @@ library
       libraryImports
         package:test/foo.dart
       classes
-        #F1 class C (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 class C (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:39)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:40)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 31
+              factoryKeywordOffset: 32
               typeName: C
-              typeNameOffset: 39
-            #F3 isOriginDeclaration _ (nameOffset:58) (firstTokenOffset:56) (offset:58)
+              typeNameOffset: 40
+            #F3 isOriginDeclaration _ (nameOffset:59) (firstTokenOffset:57) (offset:59)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 56
-              periodOffset: 57
+              typeNameOffset: 57
+              periodOffset: 58
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23419,14 +23952,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_imported_generic() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart';
+
 class C<T, U> {
   factory C() = D<U, T>.named;
   C._();
@@ -23441,24 +23975,24 @@ library
       libraryImports
         package:test/foo.dart
       classes
-        #F1 class C (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 class C (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:27) (firstTokenOffset:27) (offset:27)
+            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: #E0 T
-            #F3 U (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F3 U (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E1 U
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:45)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 37
+              factoryKeywordOffset: 38
               typeName: C
-              typeNameOffset: 45
-            #F5 isOriginDeclaration _ (nameOffset:70) (firstTokenOffset:68) (offset:70)
+              typeNameOffset: 46
+            #F5 isOriginDeclaration _ (nameOffset:71) (firstTokenOffset:69) (offset:71)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 68
-              periodOffset: 69
+              typeNameOffset: 69
+              periodOffset: 70
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23482,14 +24016,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_prefixed() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
+
 class C {
   factory C() = foo.D.named;
   C._();
@@ -23507,19 +24042,19 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:39) (offset:47)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 38
+              factoryKeywordOffset: 39
               typeName: C
-              typeNameOffset: 46
-            #F3 isOriginDeclaration _ (nameOffset:69) (firstTokenOffset:67) (offset:69)
+              typeNameOffset: 47
+            #F3 isOriginDeclaration _ (nameOffset:70) (firstTokenOffset:68) (offset:70)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 67
-              periodOffset: 68
+              typeNameOffset: 68
+              periodOffset: 69
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23536,14 +24071,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_prefixed_generic() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
+
 class C<T, U> {
   factory C() = foo.D<U, T>.named;
   C._();
@@ -23561,24 +24097,24 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E0 T
-            #F3 U (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F3 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 U
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:44) (offset:52)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:45) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 44
+              factoryKeywordOffset: 45
               typeName: C
-              typeNameOffset: 52
-            #F5 isOriginDeclaration _ (nameOffset:81) (firstTokenOffset:79) (offset:81)
+              typeNameOffset: 53
+            #F5 isOriginDeclaration _ (nameOffset:82) (firstTokenOffset:80) (offset:82)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 79
-              periodOffset: 80
+              typeNameOffset: 80
+              periodOffset: 81
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23602,7 +24138,7 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_unresolved_class() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<E> {
   factory C() = D.named<E>;
 }
@@ -23640,8 +24176,9 @@ library
   }
 
   test_constructor_secondary_redirected_factory_named_unresolved_constructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class D {}
+
 class C<E> {
   factory C() = D.named<E>;
 }
@@ -23659,17 +24196,17 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F3 class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 class C (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::C
           typeParameters
-            #F4 E (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F4 E (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: #E0 E
           constructors
-            #F5 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:26) (offset:34)
+            #F5 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:35)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 26
+              factoryKeywordOffset: 27
               typeName: C
-              typeNameOffset: 34
+              typeNameOffset: 35
   classes
     isSimplyBounded class D
       reference: <testLibrary>::@class::D
@@ -23692,11 +24229,12 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   factory C() = D;
   C._();
 }
+
 class D extends C {
   D() : super._();
 }
@@ -23721,13 +24259,13 @@ library
               typeName: C
               typeNameOffset: 31
               periodOffset: 32
-        #F4 hasExtendsClause class D (nameOffset:46) (firstTokenOffset:40) (offset:46)
+        #F4 hasExtendsClause class D (nameOffset:47) (firstTokenOffset:41) (offset:47)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:62)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-              typeNameOffset: 62
+              typeNameOffset: 63
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23753,11 +24291,12 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> {
   factory C() = D<U, T>;
   C._();
 }
+
 class D<T, U> extends C<U, T> {
   D() : super._();
 }
@@ -23787,18 +24326,18 @@ library
               typeName: C
               typeNameOffset: 43
               periodOffset: 44
-        #F6 hasExtendsClause class D (nameOffset:58) (firstTokenOffset:52) (offset:58)
+        #F6 hasExtendsClause class D (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::D
           typeParameters
-            #F7 T (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F7 T (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: #E2 T
-            #F8 U (nameOffset:63) (firstTokenOffset:63) (offset:63)
+            #F8 U (nameOffset:64) (firstTokenOffset:64) (offset:64)
               element: #E3 U
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:86) (offset:86)
+            #F9 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-              typeNameOffset: 86
+              typeNameOffset: 87
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -23838,7 +24377,7 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_generic_inference() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T, U> implements B<T, U> {
   A();
 }
@@ -23913,7 +24452,7 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_generic_inference_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   A();
   factory A.redirected() = A;
@@ -23963,12 +24502,14 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_generic_viaTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef A<T, U> = C<T, U>;
+
 class B<T, U> {
   factory B() = A<U, T>;
   B_();
 }
+
 class C<T, U> extends B<U, T> {
   C() : super._();
 }
@@ -23980,34 +24521,34 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class B (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F1 class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@class::B
           typeParameters
-            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F2 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E0 T
-            #F3 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
+            #F3 U (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E1 U
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:45) (offset:53)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:46) (offset:54)
               element: <testLibrary>::@class::B::@constructor::new
-              factoryKeywordOffset: 45
+              factoryKeywordOffset: 46
               typeName: B
-              typeNameOffset: 53
+              typeNameOffset: 54
           methods
-            #F5 hasImplicitReturnType isAbstract isOriginDeclaration B_ (nameOffset:70) (firstTokenOffset:70) (offset:70)
+            #F5 hasImplicitReturnType isAbstract isOriginDeclaration B_ (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::B::@method::B_
-        #F6 hasExtendsClause class C (nameOffset:84) (firstTokenOffset:78) (offset:84)
+        #F6 hasExtendsClause class C (nameOffset:86) (firstTokenOffset:80) (offset:86)
           element: <testLibrary>::@class::C
           typeParameters
-            #F7 T (nameOffset:86) (firstTokenOffset:86) (offset:86)
+            #F7 T (nameOffset:88) (firstTokenOffset:88) (offset:88)
               element: #E2 T
-            #F8 U (nameOffset:89) (firstTokenOffset:89) (offset:89)
+            #F8 U (nameOffset:91) (firstTokenOffset:91) (offset:91)
               element: #E3 U
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:112) (offset:112)
+            #F9 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:114) (offset:114)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 112
+              typeNameOffset: 114
       typeAliases
         #F10 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
@@ -24064,14 +24605,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_imported() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D extends C {
   D() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart';
+
 class C {
   factory C() = D;
   C._();
@@ -24086,19 +24628,19 @@ library
       libraryImports
         package:test/foo.dart
       classes
-        #F1 class C (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 class C (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:39)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:40)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 31
+              factoryKeywordOffset: 32
               typeName: C
-              typeNameOffset: 39
-            #F3 isOriginDeclaration _ (nameOffset:52) (firstTokenOffset:50) (offset:52)
+              typeNameOffset: 40
+            #F3 isOriginDeclaration _ (nameOffset:53) (firstTokenOffset:51) (offset:53)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 50
-              periodOffset: 51
+              typeNameOffset: 51
+              periodOffset: 52
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -24115,14 +24657,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_imported_generic() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart';
+
 class C<T, U> {
   factory C() = D<U, T>;
   C._();
@@ -24137,24 +24680,24 @@ library
       libraryImports
         package:test/foo.dart
       classes
-        #F1 class C (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 class C (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:27) (firstTokenOffset:27) (offset:27)
+            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: #E0 T
-            #F3 U (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F3 U (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E1 U
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:45)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 37
+              factoryKeywordOffset: 38
               typeName: C
-              typeNameOffset: 45
-            #F5 isOriginDeclaration _ (nameOffset:64) (firstTokenOffset:62) (offset:64)
+              typeNameOffset: 46
+            #F5 isOriginDeclaration _ (nameOffset:65) (firstTokenOffset:63) (offset:65)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 62
-              periodOffset: 63
+              typeNameOffset: 63
+              periodOffset: 64
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -24178,15 +24721,16 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_imported_viaTypeAlias() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 typedef A = B;
 class B extends C {
   B() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart';
+
 class C {
   factory C() = A;
   C._();
@@ -24201,19 +24745,19 @@ library
       libraryImports
         package:test/foo.dart
       classes
-        #F1 class C (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 class C (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:39)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:40)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 31
+              factoryKeywordOffset: 32
               typeName: C
-              typeNameOffset: 39
-            #F3 isOriginDeclaration _ (nameOffset:52) (firstTokenOffset:50) (offset:52)
+              typeNameOffset: 40
+            #F3 isOriginDeclaration _ (nameOffset:53) (firstTokenOffset:51) (offset:53)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 50
-              periodOffset: 51
+              typeNameOffset: 51
+              periodOffset: 52
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -24230,14 +24774,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_prefixed() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D extends C {
   D() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
+
 class C {
   factory C() = foo.D;
   C._();
@@ -24255,19 +24800,19 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:39) (offset:47)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 38
+              factoryKeywordOffset: 39
               typeName: C
-              typeNameOffset: 46
-            #F3 isOriginDeclaration _ (nameOffset:63) (firstTokenOffset:61) (offset:63)
+              typeNameOffset: 47
+            #F3 isOriginDeclaration _ (nameOffset:64) (firstTokenOffset:62) (offset:64)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 61
-              periodOffset: 62
+              typeNameOffset: 62
+              periodOffset: 63
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -24284,14 +24829,15 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_prefixed_generic() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
+
 class C<T, U> {
   factory C() = foo.D<U, T>;
   C._();
@@ -24309,24 +24855,24 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E0 T
-            #F3 U (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F3 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 U
           constructors
-            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:44) (offset:52)
+            #F4 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:45) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 44
+              factoryKeywordOffset: 45
               typeName: C
-              typeNameOffset: 52
-            #F5 isOriginDeclaration _ (nameOffset:75) (firstTokenOffset:73) (offset:75)
+              typeNameOffset: 53
+            #F5 isOriginDeclaration _ (nameOffset:76) (firstTokenOffset:74) (offset:76)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 73
-              periodOffset: 74
+              typeNameOffset: 74
+              periodOffset: 75
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -24350,15 +24896,16 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_prefixed_viaTypeAlias() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
 typedef A = B;
 class B extends C {
   B() : super._();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
+
 class C {
   factory C() = foo.A;
   C._();
@@ -24376,19 +24923,19 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:39) (offset:47)
               element: <testLibrary>::@class::C::@constructor::new
-              factoryKeywordOffset: 38
+              factoryKeywordOffset: 39
               typeName: C
-              typeNameOffset: 46
-            #F3 isOriginDeclaration _ (nameOffset:63) (firstTokenOffset:61) (offset:63)
+              typeNameOffset: 47
+            #F3 isOriginDeclaration _ (nameOffset:64) (firstTokenOffset:62) (offset:64)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
-              typeNameOffset: 61
-              periodOffset: 62
+              typeNameOffset: 62
+              periodOffset: 63
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -24405,7 +24952,7 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_unresolved() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<E> {
   factory C() = D<E>;
 }
@@ -24443,12 +24990,14 @@ library
   }
 
   test_constructor_secondary_redirected_factory_unnamed_viaTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef A = C;
+
 class B {
   factory B() = A;
   B._();
 }
+
 class C extends B {
   C() : super._();
 }
@@ -24460,26 +25009,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class B (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F1 class B (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::B
           constructors
-            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:35)
+            #F2 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:36)
               element: <testLibrary>::@class::B::@constructor::new
-              factoryKeywordOffset: 27
+              factoryKeywordOffset: 28
               typeName: B
-              typeNameOffset: 35
-            #F3 isOriginDeclaration _ (nameOffset:48) (firstTokenOffset:46) (offset:48)
+              typeNameOffset: 36
+            #F3 isOriginDeclaration _ (nameOffset:49) (firstTokenOffset:47) (offset:49)
               element: <testLibrary>::@class::B::@constructor::_
               typeName: B
-              typeNameOffset: 46
-              periodOffset: 47
-        #F4 hasExtendsClause class C (nameOffset:61) (firstTokenOffset:55) (offset:61)
+              typeNameOffset: 47
+              periodOffset: 48
+        #F4 hasExtendsClause class C (nameOffset:63) (firstTokenOffset:57) (offset:63)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:77) (offset:77)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:79) (offset:79)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 77
+              typeNameOffset: 79
       typeAliases
         #F6 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
@@ -24513,7 +25062,7 @@ library
   }
 
   test_constructor_secondary_redirected_thisInvocation_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   const C.named();
   const C() : this.named();
@@ -24566,7 +25115,7 @@ library
   }
 
   test_constructor_secondary_redirected_thisInvocation_named_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   const C.named();
   const C() : this.named();
@@ -24625,7 +25174,7 @@ library
   }
 
   test_constructor_secondary_redirected_thisInvocation_named_notConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C.named();
   C() : this.named();
@@ -24666,7 +25215,7 @@ library
   }
 
   test_constructor_secondary_redirected_thisInvocation_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   const C();
   const C.named() : this();
@@ -24714,7 +25263,7 @@ library
   }
 
   test_constructor_secondary_redirected_thisInvocation_unnamed_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   const C();
   const C.named() : this();
@@ -24768,7 +25317,7 @@ library
   }
 
   test_constructor_secondary_redirected_thisInvocation_unnamed_notConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C();
   C.named() : this();
@@ -24909,7 +25458,9 @@ library
   test_constructor_secondary_superConstructor_generic01() async {
     var library = await buildLibrary(r'''
 class A {}
+
 class B<U> extends A {}
+
 class C extends B<int> {}
 ''');
 
@@ -24923,10 +25474,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class C (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F1 hasExtendsClause class C (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -24948,7 +25499,9 @@ library
   test_constructor_secondary_superConstructor_generic11() async {
     var library = await buildLibrary(r'''
 class A<T> {}
+
 class B<U> extends A<String> {}
+
 class C extends B<int> {}
 ''');
 
@@ -24962,10 +25515,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class C (nameOffset:52) (firstTokenOffset:46) (offset:52)
+        #F1 hasExtendsClause class C (nameOffset:54) (firstTokenOffset:48) (offset:54)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -24988,10 +25541,11 @@ library
   }
 
   test_constructor_secondary_superConstructor_generic_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   A.named(T a);
 }
+
 class B extends A<int> {
   B() : super.named(0);
 }
@@ -25017,13 +25571,13 @@ library
               formalParameters
                 #F4 requiredPositional isOriginDeclaration a (nameOffset:25) (firstTokenOffset:23) (offset:25)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
-        #F5 hasExtendsClause class B (nameOffset:37) (firstTokenOffset:31) (offset:37)
+        #F5 hasExtendsClause class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::B
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:58) (offset:58)
+            #F6 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 58
+              typeNameOffset: 59
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -25054,10 +25608,11 @@ library
   }
 
   test_constructor_secondary_superConstructor_notGeneric_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A.named();
 }
+
 class B extends A {
   B() : super.named();
 }
@@ -25077,13 +25632,13 @@ library
               typeName: A
               typeNameOffset: 12
               periodOffset: 13
-        #F3 hasExtendsClause class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
+        #F3 hasExtendsClause class B (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:47) (offset:47)
+            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:48) (offset:48)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 47
+              typeNameOffset: 48
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -25105,8 +25660,9 @@ library
   }
 
   test_constructor_secondary_superConstructor_notGeneric_unnamed_explicit() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 class B extends A {
   B() : super();
 }
@@ -25124,13 +25680,13 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 hasExtendsClause class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:33)
+            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 33
+              typeNameOffset: 34
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -25152,8 +25708,9 @@ library
   }
 
   test_constructor_secondary_superConstructor_notGeneric_unnamed_implicit() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 class B extends A {
   B();
 }
@@ -25171,13 +25728,13 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 hasExtendsClause class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:33)
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 33
+              typeNameOffset: 34
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -25199,8 +25756,9 @@ library
   }
 
   test_constructor_secondary_superConstructor_notGeneric_unnamed_implicit2() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 class B extends A {}
 ''');
     checkElementText(library, r'''
@@ -25216,10 +25774,10 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 hasExtendsClause class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -25243,7 +25801,7 @@ library
   }
 
   test_constructor_secondary_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C();
 }
@@ -25275,7 +25833,9 @@ library
   }
 
   test_constructor_secondary_unnamed_implicit() async {
-    var library = await buildLibrary('class C {}');
+    var library = await buildLibrary(r'''
+class C {}
+''');
     configuration.withDisplayName = true;
     checkElementText(library, r'''
 library
@@ -25302,7 +25862,7 @@ library
   }
 
   test_constructor_secondary_unnamed_new() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C.new();
 }
@@ -25335,11 +25895,12 @@ library
   }
 
   test_constructor_secondary_withCycles_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   const C() : x = const D();
 }
+
 class D {
   final x;
   const D() : x = const C();
@@ -25365,18 +25926,18 @@ library
           getters
             #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
-        #F5 class D (nameOffset:58) (firstTokenOffset:52) (offset:58)
+        #F5 class D (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::D
           fields
-            #F6 hasImplicitType isFinal isOriginDeclaration x (nameOffset:70) (firstTokenOffset:70) (offset:70)
+            #F6 hasImplicitType isFinal isOriginDeclaration x (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::D::@field::x
           constructors
-            #F7 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:75) (offset:81)
+            #F7 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:76) (offset:82)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-              typeNameOffset: 81
+              typeNameOffset: 82
           getters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::D::@getter::x
   classes
     isSimplyBounded class C
@@ -25433,21 +25994,21 @@ library
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
-                token: x @87
+                token: x @88
                 element: <testLibrary>::@class::D::@field::x
                 staticType: null
-              equals: = @89
+              equals: = @90
               expression: InstanceCreationExpression
-                keyword: const @91
+                keyword: const @92
                 constructorName: ConstructorName
                   type: NamedType
-                    name: C @97
+                    name: C @98
                     element: <testLibrary>::@class::C
                     type: C
                   element: <testLibrary>::@class::C::@constructor::new
                 argumentList: ArgumentList
-                  leftParenthesis: ( @98
-                  rightParenthesis: ) @99
+                  leftParenthesis: ( @99
+                  rightParenthesis: ) @100
                 staticType: C
       getters
         isOriginVariable x
@@ -25459,11 +26020,12 @@ library
   }
 
   test_constructor_secondary_withCycles_nonConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x;
   C() : x = new D();
 }
+
 class D {
   final x;
   D() : x = new C();
@@ -25489,18 +26051,18 @@ library
           getters
             #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
-        #F5 class D (nameOffset:50) (firstTokenOffset:44) (offset:50)
+        #F5 class D (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::D
           fields
-            #F6 hasImplicitType isFinal isOriginDeclaration x (nameOffset:62) (firstTokenOffset:62) (offset:62)
+            #F6 hasImplicitType isFinal isOriginDeclaration x (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::D::@field::x
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:67) (offset:67)
+            #F7 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:68) (offset:68)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-              typeNameOffset: 67
+              typeNameOffset: 68
           getters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
               element: <testLibrary>::@class::D::@getter::x
   classes
     isSimplyBounded class C
@@ -25545,7 +26107,7 @@ library
   }
 
   test_field_abstract() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class C {
   abstract int i;
 }
@@ -26810,7 +27372,6 @@ augment class A {
 augment class A {
   augment int foo = 2;
 }
-
 ''');
 
     checkElementText(library, r'''
@@ -27550,7 +28111,11 @@ library
   }
 
   test_field_const() async {
-    var library = await buildLibrary('class C { static const int i = 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  static const int i = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27561,18 +28126,18 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasInitializer isConst isOriginDeclaration isStatic i (nameOffset:27) (firstTokenOffset:27) (offset:27)
+            #F2 hasInitializer isConst isOriginDeclaration isStatic i (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::C::@field::i
               initializer: expression_0
                 IntegerLiteral
-                  literal: 0 @31
+                  literal: 0 @33
                   staticType: int
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@getter::i
   classes
     isSimplyBounded class C
@@ -27601,9 +28166,11 @@ library
   }
 
   test_field_const_late() async {
-    var library = await buildLibrary(
-      'class C { static late const int i = 0; }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  static late const int i = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27614,18 +28181,18 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasInitializer isConst isLate isOriginDeclaration isStatic i (nameOffset:32) (firstTokenOffset:32) (offset:32)
+            #F2 hasInitializer isConst isLate isOriginDeclaration isStatic i (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@class::C::@field::i
               initializer: expression_0
                 IntegerLiteral
-                  literal: 0 @36
+                  literal: 0 @38
                   staticType: int
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@getter::i
   classes
     isSimplyBounded class C
@@ -27654,10 +28221,11 @@ library
   }
 
   test_field_covariant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   covariant int x;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27718,13 +28286,14 @@ library
   }
 
   test_field_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   /**
    * Docs
    */
   var x;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27787,7 +28356,7 @@ library
   }
 
   test_field_duplicate_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int foo = 0;
   int get foo => 0;
@@ -27867,7 +28436,7 @@ library
   }
 
   test_field_duplicate_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int foo = 0;
   set foo(int _) {}
@@ -27954,7 +28523,7 @@ library
   }
 
   test_field_external() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class C {
   external int i;
 }
@@ -28019,7 +28588,7 @@ library
   }
 
   test_field_final_hasInitializer_hasConstConstructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x = 42;
   const C();
@@ -28076,10 +28645,11 @@ library
   }
 
   test_field_final_hasInitializer_hasConstConstructor_genericFunctionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
+
 class B {
   final f = const A<int Function(double a)>();
   const B();
@@ -28102,38 +28672,38 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
-        #F4 class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F4 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
           fields
-            #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:46) (firstTokenOffset:46) (offset:46)
+            #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:47) (firstTokenOffset:47) (offset:47)
               element: <testLibrary>::@class::B::@field::f
               initializer: expression_0
                 InstanceCreationExpression
-                  keyword: const @50
+                  keyword: const @51
                   constructorName: ConstructorName
                     type: NamedType
-                      name: A @56
+                      name: A @57
                       typeArguments: TypeArgumentList
-                        leftBracket: < @57
+                        leftBracket: < @58
                         arguments
                           GenericFunctionType
                             returnType: NamedType
-                              name: int @58
+                              name: int @59
                               element: dart:core::@class::int
                               type: int
-                            functionKeyword: Function @62
+                            functionKeyword: Function @63
                             parameters: FormalParameterList
-                              leftParenthesis: ( @70
+                              leftParenthesis: ( @71
                               parameter: RegularFormalParameter
                                 type: NamedType
-                                  name: double @71
+                                  name: double @72
                                   element: dart:core::@class::double
                                   type: double
-                                name: a @78
-                                declaredFragment: <testLibraryFragment> a@78
+                                name: a @79
+                                declaredFragment: <testLibraryFragment> a@79
                                   element: isPublic
                                     type: double
-                              rightParenthesis: ) @79
+                              rightParenthesis: ) @80
                             declaredFragment: GenericFunctionTypeElement
                               parameters
                                 a
@@ -28143,23 +28713,23 @@ library
                               returnType: int
                               type: int Function(double)
                             type: int Function(double)
-                        rightBracket: > @80
+                        rightBracket: > @81
                       element: <testLibrary>::@class::A
                       type: A<int Function(double)>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@class::A::@constructor::new
                       substitution: {T: int Function(double)}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @81
-                    rightParenthesis: ) @82
+                    leftParenthesis: ( @82
+                    rightParenthesis: ) @83
                   staticType: A<int Function(double)>
           constructors
-            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:87) (offset:93)
+            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:88) (offset:94)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 93
+              typeNameOffset: 94
           getters
-            #F7 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F7 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::B::@getter::f
   classes
     isSimplyBounded class A
@@ -28198,7 +28768,7 @@ library
   }
 
   test_field_final_hasInitializer_noConstConstructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x = 42;
 }
@@ -28322,10 +28892,16 @@ library
   }
 
   test_field_formalParameter_inferredType_implicit() async {
-    var library = await buildLibrary(
-      'class C extends D { var v; C(this.v); }'
-      ' abstract class D { int get v; }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D {
+  var v;
+  C(this.v);
+}
+
+abstract class D {
+  int get v;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28336,36 +28912,36 @@ library
         #F1 hasExtendsClause class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration v (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F2 hasImplicitType isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::C::@field::v
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 27
+              typeNameOffset: 31
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.v (nameOffset:34) (firstTokenOffset:29) (offset:34)
+                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.v (nameOffset:38) (firstTokenOffset:33) (offset:38)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::v
           getters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@getter::v
           setters
-            #F6 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F6 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
-        #F8 isAbstract class D (nameOffset:55) (firstTokenOffset:40) (offset:55)
+        #F8 isAbstract class D (nameOffset:60) (firstTokenOffset:45) (offset:60)
           element: <testLibrary>::@class::D
           fields
-            #F9 isOriginGetterSetter v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F9 isOriginGetterSetter v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@class::D::@field::v
           constructors
-            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F11 isAbstract isOriginDeclaration v (nameOffset:67) (firstTokenOffset:59) (offset:67)
+            #F11 isAbstract isOriginDeclaration v (nameOffset:74) (firstTokenOffset:66) (offset:74)
               element: <testLibrary>::@class::D::@getter::v
   classes
     hasNonFinalField isSimplyBounded class C
@@ -28428,7 +29004,11 @@ library
   }
 
   test_field_implicit_type() async {
-    var library = await buildLibrary('class C { var x; }');
+    var library = await buildLibrary(r'''
+class C {
+  var x;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28439,20 +29019,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -28489,7 +29069,11 @@ library
   }
 
   test_field_implicit_type_late() async {
-    var library = await buildLibrary('class C { late var x; }');
+    var library = await buildLibrary(r'''
+class C {
+  late var x;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28500,20 +29084,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isLate isOriginDeclaration x (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F2 hasImplicitType isLate isOriginDeclaration x (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -28550,7 +29134,11 @@ library
   }
 
   test_field_inferred_type_nonStatic_explicit_initialized() async {
-    var library = await buildLibrary('class C { num v = 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  num v = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28561,20 +29149,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::v
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::v
           setters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -28611,7 +29199,11 @@ library
   }
 
   test_field_inferred_type_nonStatic_implicit_initialized() async {
-    var library = await buildLibrary('class C { var v = 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  var v = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28622,20 +29214,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasImplicitType hasInitializer isOriginDeclaration v (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::v
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::v
           setters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -28672,9 +29264,15 @@ library
   }
 
   test_field_inferred_type_nonStatic_implicit_uninitialized() async {
-    var library = await buildLibrary(
-      'class C extends D { var v; } abstract class D { int get v; }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D {
+  var v;
+}
+
+abstract class D {
+  int get v;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28685,32 +29283,32 @@ library
         #F1 hasExtendsClause class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration v (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F2 hasImplicitType isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::C::@field::v
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@getter::v
           setters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
-        #F7 isAbstract class D (nameOffset:44) (firstTokenOffset:29) (offset:44)
+        #F7 isAbstract class D (nameOffset:47) (firstTokenOffset:32) (offset:47)
           element: <testLibrary>::@class::D
           fields
-            #F8 isOriginGetterSetter v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F8 isOriginGetterSetter v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::D::@field::v
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F10 isAbstract isOriginDeclaration v (nameOffset:56) (firstTokenOffset:48) (offset:56)
+            #F10 isAbstract isOriginDeclaration v (nameOffset:61) (firstTokenOffset:53) (offset:61)
               element: <testLibrary>::@class::D::@getter::v
   classes
     hasNonFinalField isSimplyBounded class C
@@ -28770,10 +29368,12 @@ library
   test_field_inferred_type_nonStatic_inherited_resolveInitializer() async {
     var library = await buildLibrary(r'''
 const a = 0;
+
 abstract class A {
   const A();
   List<int> get f;
 }
+
 class B extends A {
   const B();
   final f = [a];
@@ -28786,41 +29386,41 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isAbstract class A (nameOffset:28) (firstTokenOffset:13) (offset:28)
+        #F1 isAbstract class A (nameOffset:29) (firstTokenOffset:14) (offset:29)
           element: <testLibrary>::@class::A
           fields
-            #F2 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F2 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::A::@field::f
           constructors
-            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:35) (offset:41)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 40
+              typeNameOffset: 41
           getters
-            #F4 isAbstract isOriginDeclaration f (nameOffset:61) (firstTokenOffset:47) (offset:61)
+            #F4 isAbstract isOriginDeclaration f (nameOffset:62) (firstTokenOffset:48) (offset:62)
               element: <testLibrary>::@class::A::@getter::f
-        #F5 hasExtendsClause class B (nameOffset:72) (firstTokenOffset:66) (offset:72)
+        #F5 hasExtendsClause class B (nameOffset:74) (firstTokenOffset:68) (offset:74)
           element: <testLibrary>::@class::B
           fields
-            #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:107) (firstTokenOffset:107) (offset:107)
+            #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@class::B::@field::f
               initializer: expression_0
                 ListLiteral
-                  leftBracket: [ @111
+                  leftBracket: [ @113
                   elements
                     SimpleIdentifier
-                      token: a @112
+                      token: a @114
                       element: <testLibrary>::@getter::a
                       staticType: int
-                  rightBracket: ] @113
+                  rightBracket: ] @115
                   staticType: List<int>
           constructors
-            #F7 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:88) (offset:94)
+            #F7 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:90) (offset:96)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 94
+              typeNameOffset: 96
           getters
-            #F8 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
+            #F8 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@class::B::@getter::f
       topLevelVariables
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -28895,7 +29495,11 @@ library
   }
 
   test_field_inferred_type_static_implicit_initialized() async {
-    var library = await buildLibrary('class C { static var v = 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  static var v = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28906,20 +29510,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@field::v
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F4 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@getter::v
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -28956,11 +29560,12 @@ library
   }
 
   test_field_inheritedContextType_double() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class A {
   const A();
   double get foo;
 }
+
 class B extends A {
   const B();
   final foo = 2;
@@ -28986,22 +29591,22 @@ library
           getters
             #F4 isAbstract isOriginDeclaration foo (nameOffset:45) (firstTokenOffset:34) (offset:45)
               element: <testLibrary>::@class::A::@getter::foo
-        #F5 hasExtendsClause class B (nameOffset:58) (firstTokenOffset:52) (offset:58)
+        #F5 hasExtendsClause class B (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::B
           fields
-            #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:93) (firstTokenOffset:93) (offset:93)
+            #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::B::@field::foo
               initializer: expression_0
                 IntegerLiteral
-                  literal: 2 @99
+                  literal: 2 @100
                   staticType: double
           constructors
-            #F7 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:74) (offset:80)
+            #F7 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:75) (offset:81)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 80
+              typeNameOffset: 81
           getters
-            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:93)
+            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@class::B::@getter::foo
   classes
     isAbstract isSimplyBounded class A
@@ -29171,6 +29776,7 @@ class B {
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class A {
   final int? _foo;
   A(this._foo);
@@ -29545,6 +30151,7 @@ class B {
 /// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
 enum E implements B {
   v;
+
   dynamic noSuchMethod(Invocation invocation) {}
 }
 ''');
@@ -29867,7 +30474,7 @@ library
   }
 
   test_field_missingName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class C {
   Object a,;
 }
@@ -29961,7 +30568,7 @@ library
   }
 
   test_field_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   late int foo;
 }
@@ -30025,7 +30632,7 @@ library
   }
 
   test_field_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   late T foo;
 }
@@ -30089,10 +30696,11 @@ library
   }
 
   test_field_propagatedType_const_noDep() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static const x = 0;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30143,12 +30751,16 @@ library
   }
 
   test_field_propagatedType_final_dep_inLib() async {
-    newFile('$testPackageLibPath/a.dart', 'final a = 1;');
-    var library = await buildLibrary('''
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 1;
+''');
+    var library = await buildLibrary(r'''
 import "a.dart";
+
 class C {
   final b = a / 2;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30158,17 +30770,17 @@ library
       libraryImports
         package:test/a.dart
       classes
-        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
+        #F1 class C (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration b (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration b (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@class::C::@field::b
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::C::@getter::b
   classes
     isSimplyBounded class C
@@ -30194,13 +30806,19 @@ library
   }
 
   test_field_propagatedType_final_dep_inPart() async {
-    newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
-    var library = await buildLibrary('''
+    newFile('$testPackageLibPath/a.dart', r'''
+part of lib;
+final a = 1;
+''');
+    var library = await buildLibrary(r'''
 library lib;
+
 part "a.dart";
+
 class C {
   final b = a / 2;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30212,20 +30830,20 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 13
+          partKeywordOffset: 14
           unit: #F1
       classes
-        #F2 class C (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F2 class C (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::C
           fields
-            #F3 hasImplicitType hasInitializer isFinal isOriginDeclaration b (nameOffset:46) (firstTokenOffset:46) (offset:46)
+            #F3 hasImplicitType hasInitializer isFinal isOriginDeclaration b (nameOffset:48) (firstTokenOffset:48) (offset:48)
               element: <testLibrary>::@class::C::@field::b
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F5 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::C::@getter::b
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -30273,10 +30891,11 @@ library
   }
 
   test_field_propagatedType_final_noDep_instance() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final x = 0;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30320,10 +30939,11 @@ library
   }
 
   test_field_propagatedType_final_noDep_static() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static final x = 0;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30367,7 +30987,11 @@ library
   }
 
   test_field_static() async {
-    var library = await buildLibrary('class C { static int i; }');
+    var library = await buildLibrary(r'''
+class C {
+  static int i;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30378,20 +31002,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration isStatic i (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F2 isOriginDeclaration isStatic i (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@field::i
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@getter::i
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F5 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -31078,7 +31702,7 @@ library
   }
 
   test_field_static_final_hasConstConstructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static final f = 0;
   const C();
@@ -31128,7 +31752,11 @@ library
   }
 
   test_field_static_final_untyped() async {
-    var library = await buildLibrary('class C { static final x = 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  static final x = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -31139,14 +31767,14 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:23) (firstTokenOffset:23) (offset:23)
+            #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::x
   classes
     isSimplyBounded class C
@@ -31172,7 +31800,11 @@ library
   }
 
   test_field_static_late() async {
-    var library = await buildLibrary('class C { static late int i; }');
+    var library = await buildLibrary(r'''
+class C {
+  static late int i;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -31183,20 +31815,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isLate isOriginDeclaration isStatic i (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 isLate isOriginDeclaration isStatic i (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::C::@field::i
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@getter::i
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -31233,7 +31865,7 @@ library
   }
 
   test_field_static_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   static T? foo;
 }
@@ -31588,7 +32220,11 @@ library
   }
 
   test_field_typed() async {
-    var library = await buildLibrary('class C { int x = 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  int x = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -31599,20 +32235,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasInitializer isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -31649,7 +32285,11 @@ library
   }
 
   test_field_untyped() async {
-    var library = await buildLibrary('class C { var x = 0; }');
+    var library = await buildLibrary(r'''
+class C {
+  var x = 0;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -31660,20 +32300,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType hasInitializer isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 hasImplicitType hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -31710,7 +32350,12 @@ library
   }
 
   test_fields() async {
-    var library = await buildLibrary('class C { int i; int j; }');
+    var library = await buildLibrary(r'''
+class C {
+  int i;
+  int j;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -31721,29 +32366,29 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration i (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration i (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::i
-            #F3 isOriginDeclaration j (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F3 isOriginDeclaration j (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::j
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F5 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::i
-            #F6 isCompleteDeclaration isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F6 isCompleteDeclaration isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::j
           setters
-            #F7 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F7 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::i
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
-            #F9 isCompleteDeclaration isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 isCompleteDeclaration isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@setter::j
               formalParameters
-                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
                   element: <testLibrary>::@class::C::@setter::j::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -31800,7 +32445,7 @@ library
   }
 
   test_fields_late() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   late int foo;
 }
@@ -31865,7 +32510,7 @@ library
   }
 
   test_fields_late_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   late final int foo;
 }
@@ -31930,7 +32575,7 @@ library
   }
 
   test_fields_late_final_initialized() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   late final int foo = 0;
 }
@@ -31978,7 +32623,7 @@ library
   }
 
   test_fields_late_inference_usingSuper_methodInvocation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int foo() => 0;
 }
@@ -32070,7 +32715,7 @@ library
   }
 
   test_fields_late_inference_usingSuper_propertyAccess() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int get foo => 0;
 }
@@ -32172,7 +32817,11 @@ library
   }
 
   test_getter_abstract() async {
-    var library = await buildLibrary('abstract class C { int get x; }');
+    var library = await buildLibrary(r'''
+abstract class C {
+  int get x;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -32190,7 +32839,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isAbstract isOriginDeclaration x (nameOffset:27) (firstTokenOffset:19) (offset:27)
+            #F4 isAbstract isOriginDeclaration x (nameOffset:29) (firstTokenOffset:21) (offset:29)
               element: <testLibrary>::@class::C::@getter::x
   classes
     isAbstract isSimplyBounded class C
@@ -32723,6 +33372,61 @@ library
           getters
             #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:48) (firstTokenOffset:32) (offset:48)
               element: <testLibrary>::@class::A::@getter::foo
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_getter_augmentation_chain_returnType_int_String() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo => 0;
+}
+
+augment class A {
+  augment String get foo => '';
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F5
+        #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          getters
+            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:72) (firstTokenOffset:53) (offset:72)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -33309,7 +34013,11 @@ library
   }
 
   test_getter_external() async {
-    var library = await buildLibrary('class C { external int get x; }');
+    var library = await buildLibrary(r'''
+class C {
+  external int get x;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -33327,7 +34035,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isExternal isOriginDeclaration x (nameOffset:27) (firstTokenOffset:10) (offset:27)
+            #F4 isCompleteDeclaration isExternal isOriginDeclaration x (nameOffset:29) (firstTokenOffset:12) (offset:29)
               element: <testLibrary>::@class::C::@getter::x
   classes
     isSimplyBounded class C
@@ -33353,7 +34061,11 @@ library
   }
 
   test_getter_implicit_return_type() async {
-    var library = await buildLibrary('class C { get x => null; }');
+    var library = await buildLibrary(r'''
+class C {
+  get x => null;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -33371,7 +34083,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration x (nameOffset:14) (firstTokenOffset:10) (offset:14)
+            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration x (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
   classes
     isSimplyBounded class C
@@ -33547,9 +34259,9 @@ library
   }
 
   test_getter_missingName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
-  get () => 0;
+  get() => 0;
 }
 ''');
     checkElementText(library, r'''
@@ -33585,7 +34297,7 @@ library
   }
 
   test_getter_native() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int get x() native;
 }
@@ -33633,7 +34345,7 @@ library
   }
 
   test_getter_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   int get foo {}
 }
@@ -33680,7 +34392,7 @@ library
   }
 
   test_getter_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   T get foo {}
 }
@@ -33727,7 +34439,11 @@ library
   }
 
   test_getter_static() async {
-    var library = await buildLibrary('class C { static int get x => null; }');
+    var library = await buildLibrary(r'''
+class C {
+  static int get x => null;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -33745,7 +34461,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:10) (offset:25)
+            #F4 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:27) (firstTokenOffset:12) (offset:27)
               element: <testLibrary>::@class::C::@getter::x
   classes
     isSimplyBounded class C
@@ -34345,9 +35061,12 @@ library
   }
 
   test_getters() async {
-    var library = await buildLibrary(
-      'class C { int get x => null; get y => null; }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  int get x => null;
+  get y => null;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -34367,9 +35086,9 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginDeclaration x (nameOffset:18) (firstTokenOffset:10) (offset:18)
+            #F5 isCompleteDeclaration isOriginDeclaration x (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::C::@getter::x
-            #F6 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration y (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F6 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration y (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: <testLibrary>::@class::C::@getter::y
   classes
     isSimplyBounded class C
@@ -34405,11 +35124,12 @@ library
   }
 
   test_implicitConstructor_named_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   final Object x;
   const C.named(this.x);
 }
+
 const x = C.named(42);
 ''');
     checkElementText(library, r'''
@@ -34437,31 +35157,31 @@ library
             #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::x
       topLevelVariables
-        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:61) (firstTokenOffset:61) (offset:61)
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @65
+                  name: C @66
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @66
+                period: . @67
                 name: SimpleIdentifier
-                  token: named @67
+                  token: named @68
                   element: <testLibrary>::@class::C::@constructor::named
                   staticType: null
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
-                leftParenthesis: ( @72
+                leftParenthesis: ( @73
                 arguments
                   IntegerLiteral
-                    literal: 42 @73
+                    literal: 42 @74
                     staticType: int
-                rightParenthesis: ) @75
+                rightParenthesis: ) @76
               staticType: C
       getters
-        #F7 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+        #F7 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@getter::x
   classes
     isSimplyBounded class C
@@ -34507,7 +35227,7 @@ library
   }
 
   test_implicitField_getterFirst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int get x => 0;
   void set x(int value) {}
@@ -34573,7 +35293,7 @@ library
   }
 
   test_implicitField_setterFirst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   void set x(int value) {}
   int get x => 0;
@@ -34665,7 +35385,11 @@ class A {
   }
 
   test_method_abstract() async {
-    var library = await buildLibrary('abstract class C { f(); }');
+    var library = await buildLibrary(r'''
+abstract class C {
+  f();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -34680,7 +35404,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isAbstract isOriginDeclaration f (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F3 hasImplicitReturnType isAbstract isOriginDeclaration f (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@method::f
   classes
     isAbstract isSimplyBounded class C
@@ -34701,6 +35425,7 @@ library
   test_method_async() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
+
 class C {
   Future f() async {}
 }
@@ -34714,14 +35439,14 @@ library
       libraryImports
         dart:async
       classes
-        #F1 class C (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isAsynchronous isCompleteDeclaration isOriginDeclaration f (nameOffset:40) (firstTokenOffset:33) (offset:40) async
+            #F3 isAsynchronous isCompleteDeclaration isOriginDeclaration f (nameOffset:41) (firstTokenOffset:34) (offset:41) async
               element: <testLibrary>::@class::C::@method::f
   classes
     isSimplyBounded class C
@@ -34742,6 +35467,7 @@ library
   test_method_asyncStar() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
+
 class C {
   Stream f() async* {}
 }
@@ -34755,14 +35481,14 @@ library
       libraryImports
         dart:async
       classes
-        #F1 class C (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration f (nameOffset:40) (firstTokenOffset:33) (offset:40) async*
+            #F3 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration f (nameOffset:41) (firstTokenOffset:34) (offset:41) async*
               element: <testLibrary>::@class::C::@method::f
   classes
     isSimplyBounded class C
@@ -38445,6 +39171,51 @@ library
 ''');
   }
 
+  test_method_augmentation_chain_returnType_void_int() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo() {}
+}
+
+augment class A {
+  augment int foo() => 0;
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:61) (firstTokenOffset:49) (offset:61)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          returnType: void
+''');
+  }
+
   test_method_augmentation_chain_twoDeclarations() async {
     var library = await buildLibrary(r'''
 class A {
@@ -39893,13 +40664,14 @@ library
   }
 
   test_method_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   /**
    * Docs
    */
   f() {}
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -39935,7 +40707,11 @@ library
   }
 
   test_method_external() async {
-    var library = await buildLibrary('class C { external f(); }');
+    var library = await buildLibrary(r'''
+class C {
+  external f();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -39950,7 +40726,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isExternal isOriginDeclaration f (nameOffset:19) (firstTokenOffset:10) (offset:19)
+            #F3 hasImplicitReturnType isCompleteDeclaration isExternal isOriginDeclaration f (nameOffset:21) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@method::f
   classes
     isSimplyBounded class C
@@ -39969,10 +40745,15 @@ library
   }
 
   test_method_formalParameter_regular_requiredPositional_inferredType_nonStatic_implicit() async {
-    var library = await buildLibrary(
-      'class C extends D { void f(value) {} }'
-      ' abstract class D { void f(int value); }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D {
+  void f(value) {}
+}
+
+abstract class D {
+  void f(int value);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -39987,22 +40768,22 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration f (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F3 isCompleteDeclaration isOriginDeclaration f (nameOffset:27) (firstTokenOffset:22) (offset:27)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F4 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:27) (firstTokenOffset:27) (offset:27)
+                #F4 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:29) (firstTokenOffset:29) (offset:29)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::value
-        #F5 isAbstract class D (nameOffset:54) (firstTokenOffset:39) (offset:54)
+        #F5 isAbstract class D (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@class::D
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           methods
-            #F7 isAbstract isOriginDeclaration f (nameOffset:63) (firstTokenOffset:58) (offset:63)
+            #F7 isAbstract isOriginDeclaration f (nameOffset:68) (firstTokenOffset:63) (offset:68)
               element: <testLibrary>::@class::D::@method::f
               formalParameters
-                #F8 requiredPositional isOriginDeclaration value (nameOffset:69) (firstTokenOffset:65) (offset:69)
+                #F8 requiredPositional isOriginDeclaration value (nameOffset:74) (firstTokenOffset:70) (offset:74)
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -40043,7 +40824,11 @@ library
   }
 
   test_method_formalParameters() async {
-    var library = await buildLibrary('class C { f(x, y) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  f(x, y) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -40058,12 +40843,12 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F4 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:12) (firstTokenOffset:12) (offset:12)
+                #F4 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::x
-                #F5 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:15) (firstTokenOffset:15) (offset:15)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:17) (firstTokenOffset:17) (offset:17)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::y
   classes
     isSimplyBounded class C
@@ -40089,7 +40874,7 @@ library
   }
 
   test_method_hasImplicitReturnType_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int m() => 0;
 }
@@ -40100,7 +40885,7 @@ class C {
   }
 
   test_method_hasImplicitReturnType_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   m() => 0;
 }
@@ -40111,10 +40896,11 @@ class C {
   }
 
   test_method_inferred_type_nonStatic_implicit_return() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C extends D {
   f() => null;
 }
+
 abstract class D {
   int f();
 }
@@ -40135,14 +40921,14 @@ library
           methods
             #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::C::@method::f
-        #F4 isAbstract class D (nameOffset:52) (firstTokenOffset:37) (offset:52)
+        #F4 isAbstract class D (nameOffset:53) (firstTokenOffset:38) (offset:53)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           methods
-            #F6 isAbstract isOriginDeclaration f (nameOffset:62) (firstTokenOffset:58) (offset:62)
+            #F6 isAbstract isOriginDeclaration f (nameOffset:63) (firstTokenOffset:59) (offset:63)
               element: <testLibrary>::@class::D::@method::f
   classes
     isSimplyBounded class C
@@ -40215,7 +41001,7 @@ library
   }
 
   test_method_missingName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   () {}
 }
@@ -40255,6 +41041,7 @@ library
   test_method_namedAsSupertype() async {
     var library = await buildLibrary(r'''
 class A {}
+
 class B extends A {
   void A() {}
 }
@@ -40272,14 +41059,14 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 hasExtendsClause class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F5 isCompleteDeclaration isOriginDeclaration A (nameOffset:38) (firstTokenOffset:33) (offset:38)
+            #F5 isCompleteDeclaration isOriginDeclaration A (nameOffset:39) (firstTokenOffset:34) (offset:39)
               element: <testLibrary>::@class::B::@method::A
   classes
     isSimplyBounded class A
@@ -40307,7 +41094,7 @@ library
   }
 
   test_method_native() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int m() native;
 }
@@ -40345,7 +41132,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_false_hide() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   void foo<T>(T _) {}
 }
@@ -40395,7 +41182,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true_formalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   void foo(T _) {}
 }
@@ -40439,7 +41226,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true_formalParameter2() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   void foo(void Function(T) _) {}
 }
@@ -40483,7 +41270,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true_inferred() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<U> {
   U foo() {}
 }
@@ -40544,7 +41331,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true_returnType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   T foo() {}
 }
@@ -40581,7 +41368,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true_typeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef MyInt<U> = int;
 
 class C<T> {
@@ -40637,7 +41424,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   void foo<U extends T>() {}
 }
@@ -40681,7 +41468,11 @@ library
   }
 
   test_method_static() async {
-    var library = await buildLibrary('class C { static f() {} }');
+    var library = await buildLibrary(r'''
+class C {
+  static f() {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -40696,7 +41487,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:17) (firstTokenOffset:10) (offset:17)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::C::@method::f
   classes
     isSimplyBounded class C
@@ -41308,7 +42099,7 @@ library
   }
 
   test_method_static_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   static T? foo() => null;
 }
@@ -41392,7 +42183,11 @@ library
   }
 
   test_method_typeParameter() async {
-    var library = await buildLibrary('class C { T f<T, U>(U u) => null; }');
+    var library = await buildLibrary(r'''
+class C {
+  T f<T, U>(U u) => null;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -41407,15 +42202,15 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration f (nameOffset:12) (firstTokenOffset:10) (offset:12)
+            #F3 isCompleteDeclaration isOriginDeclaration f (nameOffset:14) (firstTokenOffset:12) (offset:14)
               element: <testLibrary>::@class::C::@method::f
               typeParameters
-                #F4 T (nameOffset:14) (firstTokenOffset:14) (offset:14)
+                #F4 T (nameOffset:16) (firstTokenOffset:16) (offset:16)
                   element: #E0 T
-                #F5 U (nameOffset:17) (firstTokenOffset:17) (offset:17)
+                #F5 U (nameOffset:19) (firstTokenOffset:19) (offset:19)
                   element: #E1 U
               formalParameters
-                #F6 requiredPositional isOriginDeclaration u (nameOffset:22) (firstTokenOffset:20) (offset:22)
+                #F6 requiredPositional isOriginDeclaration u (nameOffset:24) (firstTokenOffset:22) (offset:24)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::u
   classes
     isSimplyBounded class C
@@ -41443,7 +42238,7 @@ library
   }
 
   test_method_typeParameter_inGenericClass() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> {
   V f<V, W>(T t, U u, W w) => null;
 }
@@ -41518,7 +42313,11 @@ library
   }
 
   test_method_typeParameter_with_formalParameter_regular_requiredPositional_functionTypedSuffix() async {
-    var library = await buildLibrary('class C { void f<T, U>(T x(U u)) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  void f<T, U>(T x(U u)) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -41533,19 +42332,19 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration f (nameOffset:15) (firstTokenOffset:10) (offset:15)
+            #F3 isCompleteDeclaration isOriginDeclaration f (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::C::@method::f
               typeParameters
-                #F4 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
+                #F4 T (nameOffset:19) (firstTokenOffset:19) (offset:19)
                   element: #E0 T
-                #F5 U (nameOffset:20) (firstTokenOffset:20) (offset:20)
+                #F5 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
                   element: #E1 U
               formalParameters
-                #F6 requiredPositional isOriginDeclaration x (nameOffset:25) (firstTokenOffset:23) (offset:25)
+                #F6 requiredPositional isOriginDeclaration x (nameOffset:27) (firstTokenOffset:25) (offset:27)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::x
                   parameters
-                    #F7 requiredPositional isOriginDeclaration u (nameOffset:29) (firstTokenOffset:27) (offset:29)
-                      element: u@29
+                    #F7 requiredPositional isOriginDeclaration u (nameOffset:31) (firstTokenOffset:29) (offset:31)
+                      element: u@31
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -41576,7 +42375,12 @@ library
   }
 
   test_methods() async {
-    var library = await buildLibrary('class C { f() {} g() {} }');
+    var library = await buildLibrary(r'''
+class C {
+  f() {}
+  g() {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -41591,9 +42395,9 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@method::f
-            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration g (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration g (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@method::g
   classes
     isSimplyBounded class C
@@ -41616,9 +42420,11 @@ library
   }
 
   test_operator() async {
-    var library = await buildLibrary(
-      'class C { C operator+(C other) => null; }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  C operator +(C other) => null;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -41633,10 +42439,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration + (nameOffset:20) (firstTokenOffset:10) (offset:20)
+            #F3 isCompleteDeclaration isOriginDeclaration + (nameOffset:23) (firstTokenOffset:12) (offset:23)
               element: <testLibrary>::@class::C::@method::+
               formalParameters
-                #F4 requiredPositional isOriginDeclaration other (nameOffset:24) (firstTokenOffset:22) (offset:24)
+                #F4 requiredPositional isOriginDeclaration other (nameOffset:27) (firstTokenOffset:25) (offset:27)
                   element: <testLibrary>::@class::C::@method::+::@formalParameter::other
   classes
     isSimplyBounded class C
@@ -41659,9 +42465,9 @@ library
   }
 
   test_operator_equal() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
-  bool operator==(Object other) => false;
+  bool operator ==(Object other) => false;
 }
 ''');
     checkElementText(library, r'''
@@ -41678,10 +42484,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration == (nameOffset:25) (firstTokenOffset:12) (offset:25)
+            #F3 isCompleteDeclaration isOriginDeclaration == (nameOffset:26) (firstTokenOffset:12) (offset:26)
               element: <testLibrary>::@class::C::@method::==
               formalParameters
-                #F4 requiredPositional isOriginDeclaration other (nameOffset:35) (firstTokenOffset:28) (offset:35)
+                #F4 requiredPositional isOriginDeclaration other (nameOffset:36) (firstTokenOffset:29) (offset:36)
                   element: <testLibrary>::@class::C::@method::==::@formalParameter::other
   classes
     isSimplyBounded class C
@@ -41704,9 +42510,11 @@ library
   }
 
   test_operator_external() async {
-    var library = await buildLibrary(
-      'class C { external C operator+(C other); }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  external C operator +(C other);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -41721,10 +42529,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isExternal isOriginDeclaration + (nameOffset:29) (firstTokenOffset:10) (offset:29)
+            #F3 isCompleteDeclaration isExternal isOriginDeclaration + (nameOffset:32) (firstTokenOffset:12) (offset:32)
               element: <testLibrary>::@class::C::@method::+
               formalParameters
-                #F4 requiredPositional isOriginDeclaration other (nameOffset:33) (firstTokenOffset:31) (offset:33)
+                #F4 requiredPositional isOriginDeclaration other (nameOffset:36) (firstTokenOffset:34) (offset:36)
                   element: <testLibrary>::@class::C::@method::+::@formalParameter::other
   classes
     isSimplyBounded class C
@@ -41747,9 +42555,9 @@ library
   }
 
   test_operator_greater_equal() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
-  bool operator>=(C other) => false;
+  bool operator >=(C other) => false;
 }
 ''');
     checkElementText(library, r'''
@@ -41766,10 +42574,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration >= (nameOffset:25) (firstTokenOffset:12) (offset:25)
+            #F3 isCompleteDeclaration isOriginDeclaration >= (nameOffset:26) (firstTokenOffset:12) (offset:26)
               element: <testLibrary>::@class::C::@method::>=
               formalParameters
-                #F4 requiredPositional isOriginDeclaration other (nameOffset:30) (firstTokenOffset:28) (offset:30)
+                #F4 requiredPositional isOriginDeclaration other (nameOffset:31) (firstTokenOffset:29) (offset:31)
                   element: <testLibrary>::@class::C::@method::>=::@formalParameter::other
   classes
     isSimplyBounded class C
@@ -41792,9 +42600,11 @@ library
   }
 
   test_operator_index() async {
-    var library = await buildLibrary(
-      'class C { bool operator[](int i) => null; }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  bool operator [](int i) => null;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -41809,10 +42619,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration [] (nameOffset:23) (firstTokenOffset:10) (offset:23)
+            #F3 isCompleteDeclaration isOriginDeclaration [] (nameOffset:26) (firstTokenOffset:12) (offset:26)
               element: <testLibrary>::@class::C::@method::[]
               formalParameters
-                #F4 requiredPositional isOriginDeclaration i (nameOffset:30) (firstTokenOffset:26) (offset:30)
+                #F4 requiredPositional isOriginDeclaration i (nameOffset:33) (firstTokenOffset:29) (offset:33)
                   element: <testLibrary>::@class::C::@method::[]::@formalParameter::i
   classes
     isSimplyBounded class C
@@ -41835,9 +42645,9 @@ library
   }
 
   test_operator_index_set() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
-  void operator[]=(int i, bool v) {}
+  void operator []=(int i, bool v) {}
 }
 ''');
     checkElementText(library, r'''
@@ -41854,12 +42664,12 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration []= (nameOffset:25) (firstTokenOffset:12) (offset:25)
+            #F3 isCompleteDeclaration isOriginDeclaration []= (nameOffset:26) (firstTokenOffset:12) (offset:26)
               element: <testLibrary>::@class::C::@method::[]=
               formalParameters
-                #F4 requiredPositional isOriginDeclaration i (nameOffset:33) (firstTokenOffset:29) (offset:33)
+                #F4 requiredPositional isOriginDeclaration i (nameOffset:34) (firstTokenOffset:30) (offset:34)
                   element: <testLibrary>::@class::C::@method::[]=::@formalParameter::i
-                #F5 requiredPositional isOriginDeclaration v (nameOffset:41) (firstTokenOffset:36) (offset:41)
+                #F5 requiredPositional isOriginDeclaration v (nameOffset:42) (firstTokenOffset:37) (offset:42)
                   element: <testLibrary>::@class::C::@method::[]=::@formalParameter::v
   classes
     isSimplyBounded class C
@@ -41885,9 +42695,9 @@ library
   }
 
   test_operator_less_equal() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
-  bool operator<=(C other) => false;
+  bool operator <=(C other) => false;
 }
 ''');
     checkElementText(library, r'''
@@ -41904,10 +42714,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration <= (nameOffset:25) (firstTokenOffset:12) (offset:25)
+            #F3 isCompleteDeclaration isOriginDeclaration <= (nameOffset:26) (firstTokenOffset:12) (offset:26)
               element: <testLibrary>::@class::C::@method::<=
               formalParameters
-                #F4 requiredPositional isOriginDeclaration other (nameOffset:30) (firstTokenOffset:28) (offset:30)
+                #F4 requiredPositional isOriginDeclaration other (nameOffset:31) (firstTokenOffset:29) (offset:31)
                   element: <testLibrary>::@class::C::@method::<=::@formalParameter::other
   classes
     isSimplyBounded class C
@@ -41930,7 +42740,7 @@ library
   }
 
   test_operator_minus() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int operator -(int other) => 0;
 }
@@ -41975,7 +42785,7 @@ library
   }
 
   test_operator_minus_unary() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int operator -() => 0;
 }
@@ -42013,7 +42823,7 @@ library
   }
 
   test_primaryInitializerScope_fieldInitializer_instance() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int foo) {
   var bar = foo;
 }
@@ -42086,7 +42896,7 @@ library
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(final int foo) {
   var bar = foo;
 }
@@ -42175,7 +42985,7 @@ library
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_late() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int foo) {
   late var bar = foo;
 }
@@ -42248,7 +43058,7 @@ library
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_typePromotion() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int? foo) {
   var bar = foo != null ? foo : 0;
 }
@@ -42321,7 +43131,7 @@ library
   }
 
   test_primaryInitializerScope_fieldInitializer_static() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A(int foo) {
   static var bar = foo;
 }
@@ -42394,9 +43204,11 @@ library
   }
 
   test_setter_abstract() async {
-    var library = await buildLibrary(
-      'abstract class C { void set x(int value); }',
-    );
+    var library = await buildLibrary(r'''
+abstract class C {
+  void set x(int value);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -42414,10 +43226,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isAbstract isOriginDeclaration x (nameOffset:28) (firstTokenOffset:19) (offset:28)
+            #F4 isAbstract isOriginDeclaration x (nameOffset:30) (firstTokenOffset:21) (offset:30)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional isOriginDeclaration value (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:36) (firstTokenOffset:32) (offset:36)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     isAbstract isSimplyBounded class C
@@ -43401,9 +44213,11 @@ library
   }
 
   test_setter_covariant() async {
-    var library = await buildLibrary(
-      'class C { void set x(covariant int value); }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  void set x(covariant int value);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -43421,10 +44235,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isAbstract isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
+            #F4 isAbstract isOriginDeclaration x (nameOffset:21) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional isExplicitlyCovariant isOriginDeclaration value (nameOffset:35) (firstTokenOffset:21) (offset:35)
+                #F5 requiredPositional isExplicitlyCovariant isOriginDeclaration value (nameOffset:37) (firstTokenOffset:23) (offset:37)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -43454,9 +44268,11 @@ library
   }
 
   test_setter_external() async {
-    var library = await buildLibrary(
-      'class C { external void set x(int value); }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  external void set x(int value);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -43474,10 +44290,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isExternal isOriginDeclaration x (nameOffset:28) (firstTokenOffset:10) (offset:28)
+            #F4 isCompleteDeclaration isExternal isOriginDeclaration x (nameOffset:30) (firstTokenOffset:12) (offset:30)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional isOriginDeclaration value (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:36) (firstTokenOffset:32) (offset:36)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -43507,7 +44323,11 @@ library
   }
 
   test_setter_formalParameter_regular_requiredPositional_implicitType() async {
-    var library = await buildLibrary('class C { void set x(value) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  void set x(value) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -43525,10 +44345,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
+            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:21) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:23) (firstTokenOffset:23) (offset:23)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -43558,10 +44378,15 @@ library
   }
 
   test_setter_formalParameter_regular_requiredPositional_inferredType_nonStatic_implicit() async {
-    var library = await buildLibrary(
-      'class C extends D { void set f(value) {} }'
-      ' abstract class D { void set f(int value); }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D {
+  void set f(value) {}
+}
+
+abstract class D {
+  void set f(int value);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -43579,25 +44404,25 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isOriginDeclaration f (nameOffset:29) (firstTokenOffset:20) (offset:29)
+            #F4 isCompleteDeclaration isOriginDeclaration f (nameOffset:31) (firstTokenOffset:22) (offset:31)
               element: <testLibrary>::@class::C::@setter::f
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:31) (firstTokenOffset:31) (offset:31)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:33) (firstTokenOffset:33) (offset:33)
                   element: <testLibrary>::@class::C::@setter::f::@formalParameter::value
-        #F6 isAbstract class D (nameOffset:58) (firstTokenOffset:43) (offset:58)
+        #F6 isAbstract class D (nameOffset:61) (firstTokenOffset:46) (offset:61)
           element: <testLibrary>::@class::D
           fields
-            #F7 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F7 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@class::D::@field::f
           constructors
-            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           setters
-            #F9 isAbstract isOriginDeclaration f (nameOffset:71) (firstTokenOffset:62) (offset:71)
+            #F9 isAbstract isOriginDeclaration f (nameOffset:76) (firstTokenOffset:67) (offset:76)
               element: <testLibrary>::@class::D::@setter::f
               formalParameters
-                #F10 requiredPositional isOriginDeclaration value (nameOffset:77) (firstTokenOffset:73) (offset:77)
+                #F10 requiredPositional isOriginDeclaration value (nameOffset:82) (firstTokenOffset:78) (offset:82)
                   element: <testLibrary>::@class::D::@setter::f::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -43652,7 +44477,11 @@ library
   }
 
   test_setter_implicit_return_type() async {
-    var library = await buildLibrary('class C { set x(int value) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  set x(int value) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -43670,10 +44499,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration x (nameOffset:14) (firstTokenOffset:10) (offset:14)
+            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration x (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional isOriginDeclaration value (nameOffset:20) (firstTokenOffset:16) (offset:20)
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:22) (firstTokenOffset:18) (offset:22)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -43703,15 +44532,17 @@ library
   }
 
   test_setter_inferred_type_conflictingInheritance() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int t;
 }
+
 class B extends A {
   double t;
 }
-class C extends A implements B {
-}
+
+class C extends A implements B {}
+
 class D extends C {
   void set t(p) {}
 }
@@ -43741,44 +44572,44 @@ library
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::t::@formalParameter::value
-        #F7 hasExtendsClause class B (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F7 hasExtendsClause class B (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::B
           fields
-            #F8 isOriginDeclaration t (nameOffset:50) (firstTokenOffset:50) (offset:50)
+            #F8 isOriginDeclaration t (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@class::B::@field::t
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F10 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F10 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@getter::t
           setters
-            #F11 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F11 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@setter::t
               formalParameters
-                #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+                #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
                   element: <testLibrary>::@class::B::@setter::t::@formalParameter::value
-        #F13 hasExtendsClause class C (nameOffset:61) (firstTokenOffset:55) (offset:61)
+        #F13 hasExtendsClause class C (nameOffset:63) (firstTokenOffset:57) (offset:63)
           element: <testLibrary>::@class::C
           constructors
-            #F14 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F14 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F15 hasExtendsClause class D (nameOffset:96) (firstTokenOffset:90) (offset:96)
+        #F15 hasExtendsClause class D (nameOffset:98) (firstTokenOffset:92) (offset:98)
           element: <testLibrary>::@class::D
           fields
-            #F16 isOriginGetterSetter t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F16 isOriginGetterSetter t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
               element: <testLibrary>::@class::D::@field::t
           constructors
-            #F17 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F17 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           setters
-            #F18 isCompleteDeclaration isOriginDeclaration t (nameOffset:121) (firstTokenOffset:112) (offset:121)
+            #F18 isCompleteDeclaration isOriginDeclaration t (nameOffset:123) (firstTokenOffset:114) (offset:123)
               element: <testLibrary>::@class::D::@setter::t
               formalParameters
-                #F19 requiredPositional hasImplicitType isOriginDeclaration p (nameOffset:123) (firstTokenOffset:123) (offset:123)
+                #F19 requiredPositional hasImplicitType isOriginDeclaration p (nameOffset:125) (firstTokenOffset:125) (offset:125)
                   element: <testLibrary>::@class::D::@setter::t::@formalParameter::p
   classes
     hasNonFinalField isSimplyBounded class A
@@ -43883,7 +44714,7 @@ library
   }
 
   test_setter_inferred_type_static_implicit_return() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static set f(int value) {}
 }
@@ -43938,7 +44769,7 @@ library
   }
 
   test_setter_invalid_formalParameter_field_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int foo;
   void set bar(this.foo) {}
@@ -44026,7 +44857,7 @@ library
   }
 
   test_setter_invalid_formalParameter_field_requiredPositional_sameName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   set x(this.x) {}
 }
@@ -44082,7 +44913,11 @@ library
   }
 
   test_setter_invalid_formalParameter_regular_optionalNamed() async {
-    var library = await buildLibrary('class C { void set x({a}) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  void set x({a}) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -44100,10 +44935,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
+            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:21) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 optionalNamed hasImplicitType isOriginDeclaration a (nameOffset:22) (firstTokenOffset:22) (offset:22)
+                #F5 optionalNamed hasImplicitType isOriginDeclaration a (nameOffset:24) (firstTokenOffset:24) (offset:24)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::a
   classes
     isSimplyBounded class C
@@ -44133,7 +44968,11 @@ library
   }
 
   test_setter_invalid_formalParameter_regular_optionalPositional() async {
-    var library = await buildLibrary('class C { void set x([a]) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  void set x([a]) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -44151,10 +44990,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
+            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:21) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 optionalPositional hasImplicitType isOriginDeclaration a (nameOffset:22) (firstTokenOffset:22) (offset:22)
+                #F5 optionalPositional hasImplicitType isOriginDeclaration a (nameOffset:24) (firstTokenOffset:24) (offset:24)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::a
   classes
     isSimplyBounded class C
@@ -44184,7 +45023,11 @@ library
   }
 
   test_setter_invalid_formalParameters_none() async {
-    var library = await buildLibrary('class C { void set x() {} }');
+    var library = await buildLibrary(r'''
+class C {
+  void set x() {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -44202,10 +45045,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
+            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:21) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::<null-name>
   classes
     isSimplyBounded class C
@@ -44235,7 +45078,11 @@ library
   }
 
   test_setter_invalid_formalParameters_tooMany() async {
-    var library = await buildLibrary('class C { void set x(a, b) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  void set x(a, b) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -44253,10 +45100,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
+            #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:21) (firstTokenOffset:12) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:23) (firstTokenOffset:23) (offset:23)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::a
   classes
     isSimplyBounded class C
@@ -44400,9 +45247,9 @@ library
   }
 
   test_setter_missingName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
-  set (int _) {}
+  set(int _) {}
 }
 ''');
     checkElementText(library, r'''
@@ -44422,7 +45269,7 @@ library
             #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration set (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@method::set
               formalParameters
-                #F4 requiredPositional isOriginDeclaration _ (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                #F4 requiredPositional isOriginDeclaration _ (nameOffset:20) (firstTokenOffset:16) (offset:20)
                   element: <testLibrary>::@class::A::@method::set::@formalParameter::_
   classes
     isSimplyBounded class A
@@ -44445,7 +45292,7 @@ library
   }
 
   test_setter_native() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   void set x(int value) native;
 }
@@ -44500,7 +45347,7 @@ library
   }
 
   test_setter_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   set foo(int _) {}
 }
@@ -44554,7 +45401,7 @@ library
   }
 
   test_setter_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   set foo(T _) {}
 }
@@ -44608,9 +45455,11 @@ library
   }
 
   test_setter_static() async {
-    var library = await buildLibrary(
-      'class C { static void set x(int value) {} }',
-    );
+    var library = await buildLibrary(r'''
+class C {
+  static void set x(int value) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -44628,10 +45477,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:26) (firstTokenOffset:10) (offset:26)
+            #F4 isCompleteDeclaration isOriginDeclaration isStatic x (nameOffset:28) (firstTokenOffset:12) (offset:28)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional isOriginDeclaration value (nameOffset:32) (firstTokenOffset:28) (offset:32)
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:34) (firstTokenOffset:30) (offset:34)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     isSimplyBounded class C
@@ -45299,7 +46148,7 @@ library
   }
 
   test_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   void set x(int value) {}
   set y(value) {}
@@ -45376,10 +46225,11 @@ library
   }
 
   test_unused_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   void f() {}
 }
+
 C<int> c;
 var v = c.f;
 ''');
@@ -45403,25 +46253,25 @@ library
             #F4 isCompleteDeclaration isOriginDeclaration f (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@class::C::@method::f
       topLevelVariables
-        #F5 isOriginDeclaration isStatic c (nameOffset:36) (firstTokenOffset:36) (offset:36)
+        #F5 isOriginDeclaration isStatic c (nameOffset:37) (firstTokenOffset:37) (offset:37)
           element: <testLibrary>::@topLevelVariable::c
-        #F6 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:43) (firstTokenOffset:43) (offset:43)
+        #F6 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:44) (firstTokenOffset:44) (offset:44)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
           element: <testLibrary>::@getter::c
-        #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+        #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@getter::v
       setters
-        #F9 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F9 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F11 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+        #F11 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@setter::v::@formalParameter::value
   classes
     isSimplyBounded class C

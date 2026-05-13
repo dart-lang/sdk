@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,14 +18,14 @@ main() {
 @reflectiveTest
 class GenericFunctionTypeCannotBeBoundTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T extends S Function<S>(S)> {
 }
 ''');
   }
 
   test_genericFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 late T Function<T extends S Function<S>(S)>(T) fun;
 ''');
   }
@@ -35,30 +34,29 @@ late T Function<T extends S Function<S>(S)>(T) fun;
     newFile('$testPackageLibPath/a.dart', '''
 typedef F = S Function<S>(S);
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 import 'a.dart';
 late T Function<T extends F>(T) fun;
-''',
-      [error(diag.genericFunctionTypeCannotBeBound, 57, 1)],
-    );
+//                        ^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+''');
   }
 
   test_genericFunctionTypedef() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef foo = T Function<T extends S Function<S>(S)>(T t);
 ''');
   }
 
   test_parameterOfFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T extends void Function(S Function<S>(S))> {}
 ''');
   }
 
   test_typedef() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef T foo<T extends S Function<S>(S)>(T t);
 ''');
   }
@@ -68,49 +66,45 @@ typedef T foo<T extends S Function<S>(S)>(T t);
 class GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 class C<T extends S Function<S>(S)> {
+//                ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
 }
-''',
-      [error(diag.genericFunctionTypeCannotBeBound, 32, 16)],
-    );
+''');
   }
 
   test_genericFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 late T Function<T extends S Function<S>(S)>(T) fun;
-''',
-      [error(diag.genericFunctionTypeCannotBeBound, 40, 16)],
-    );
+//                        ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+''');
   }
 
   test_genericFunctionTypedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 typedef foo = T Function<T extends S Function<S>(S)>(T t);
-''',
-      [error(diag.genericFunctionTypeCannotBeBound, 49, 16)],
-    );
+//                                 ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+''');
   }
 
   test_parameterOfFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T extends void Function(S Function<S>(S))> {}
 ''');
   }
 
   test_typedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 typedef T foo<T extends S Function<S>(S)>(T t);
-''',
-      [error(diag.genericFunctionTypeCannotBeBound, 38, 16)],
-    );
+//                      ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+''');
   }
 }

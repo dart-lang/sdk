@@ -92,148 +92,135 @@ augment class A {
   }
 
   test_class_newHead_named_newHead_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   new foo();
   new foo();
+//^^^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 25, 7)],
-    );
+''');
   }
 
   test_class_primary_named_typeName_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C.foo() {
   C.foo() : this.foo();
+//^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 18, 5)],
-    );
+''');
   }
 
   test_class_typeName_named_factoryHead_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   factory C.foo() => throw 0;
   factory foo() => throw 0;
+//^^^^^^^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 42, 11)],
-    );
+''');
   }
 
   test_class_typeName_named_newHead_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.foo();
   new foo();
+//^^^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 23, 7)],
-    );
+''');
   }
 
   test_class_typeName_named_typeName_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.foo();
   C.foo();
+//^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 23, 5)],
-    );
+''');
   }
 
   test_class_wrongTypeName_named_typeName_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory B.foo() => throw 0;
+//        ^
+// [diag.invalidFactoryNameNotAClass] The name of a factory constructor must be the same as the name of the immediately enclosing class.
   A.foo();
 }
-''',
-      [error(diag.invalidFactoryNameNotAClass, 20, 1)],
-    );
+''');
   }
 
   test_enum_primary_named_typeName_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E.foo() {
   v.foo();
   factory E.foo() => v;
+//        ^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 36, 5)],
-    );
+''');
   }
 
   test_enum_typeName_named_typeName_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.foo();
   const E.foo();
   const E.foo();
+//      ^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
+//        ^^^
+// [diag.unusedElement] The declaration 'E.foo' isn't referenced.
 }
-''',
-      [
-        error(diag.duplicateConstructorName, 45, 5),
-        error(diag.unusedElement, 47, 3),
-      ],
-    );
+''');
   }
 
   test_extensionType_primary_typeName_named_secondary_typeName_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A.foo(int it) {
   A.foo(this.it);
+//^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 33, 5)],
-    );
+''');
   }
 
   test_extensionType_secondary_typeName_named_factoryHead_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   factory A.foo(int it) => A(it);
   factory foo(int it) => A(it);
+//^^^^^^^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 63, 11)],
-    );
+''');
   }
 
   test_extensionType_secondary_typeName_named_newHead_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A.foo(this.it);
   new foo(this.it);
+//^^^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 47, 7)],
-    );
+''');
   }
 
   test_extensionType_secondary_typeName_named_secondary_typeName_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A.foo(this.it);
   A.foo(this.it);
+//^^^^^
+// [diag.duplicateConstructorName] The constructor with name 'foo' is already defined.
 }
-''',
-      [error(diag.duplicateConstructorName, 47, 5)],
-    );
+''');
   }
 }

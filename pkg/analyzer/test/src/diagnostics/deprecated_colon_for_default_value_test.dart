@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedColonForDefaultValueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,14 +20,13 @@ class DeprecatedColonForDefaultValueTest extends PubPackageResolutionTest {
   String get testPackageLanguageVersion => '2.19';
 
   test_noDefault() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({int? x}) {}
 ''');
   }
 
   test_superFormalParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   String? a;
   A({this.a});
@@ -34,23 +34,22 @@ class A {
 
 class B extends A {
   B({super.a : ''});
+//           ^
+// [diag.deprecatedColonForDefaultValue] Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
 }
-''',
-      [error(diag.deprecatedColonForDefaultValue, 74, 1)],
-    );
+''');
   }
 
   test_usesColon() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({int x : 0}) {}
-''',
-      [error(diag.deprecatedColonForDefaultValue, 14, 1)],
-    );
+//            ^
+// [diag.deprecatedColonForDefaultValue] Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
+''');
   }
 
   test_usesEqual() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({int x = 0}) {}
 ''');
   }

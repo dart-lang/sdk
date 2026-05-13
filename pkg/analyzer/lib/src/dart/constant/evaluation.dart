@@ -28,8 +28,9 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';

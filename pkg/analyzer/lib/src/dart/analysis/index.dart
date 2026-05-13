@@ -6,6 +6,9 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -219,14 +222,14 @@ class _IndexAssembler {
   /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
   /// describe each unique [LibraryFragmentImpl].
   ///
-  /// This field contains the library URI of a unit.
+  /// This field contains the path of the library file for a unit.
   final List<_StringInfo> unitLibraryUris = [];
 
   /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
   /// describe each unique [LibraryFragmentImpl].
   ///
-  /// This field contains the unit URI of a unit, which might be the same as
-  /// the library URI for the defining unit, or a different one for a part.
+  /// This field contains the path of a unit, which might be the same as the
+  /// library path for the defining unit, or a different one for a part.
   final List<_StringInfo> unitUnitUris = [];
 
   /// Map associating strings with their [_StringInfo]s.
@@ -450,6 +453,13 @@ class _IndexAssembler {
     });
   }
 
+  /// Return the unique [_StringInfo] corresponding to [source].  The field
+  /// [_StringInfo.id] is filled by [assemble] during final sorting.
+  _StringInfo _getSourceInfo(Source source) {
+    var filePath = source.mustBeFile.path;
+    return _getStringInfo(filePath);
+  }
+
   /// Return the unique [_StringInfo] corresponding the given [string].  The
   /// field [_StringInfo.id] is filled by [assemble] during final sorting.
   _StringInfo _getStringInfo(String? string) {
@@ -469,17 +479,12 @@ class _IndexAssembler {
     return unitMap.putIfAbsent(libraryFragment, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(libraryFragment.library.uri));
-      unitUnitUris.add(_getUriInfo(libraryFragment.source.uri));
+      unitLibraryUris.add(
+        _getSourceInfo(libraryFragment.element.firstFragment.source),
+      );
+      unitUnitUris.add(_getSourceInfo(libraryFragment.source));
       return id;
     });
-  }
-
-  /// Return the unique [_StringInfo] corresponding [uri].  The field
-  /// [_StringInfo.id] is filled by [assemble] during final sorting.
-  _StringInfo _getUriInfo(Uri uri) {
-    String str = uri.toString();
-    return _getStringInfo(str);
   }
 
   /// Return a new [_ElementInfo] for the given [element] in the given [unitId].
@@ -1234,16 +1239,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> members = [];
 
     String getInterfaceElementId(InterfaceElement element) {
-      var libraryUri = element.library.uri;
+      var libraryFile = element.library.firstFragment.source.mustBeFile;
+      var libraryPath = libraryFile.path;
+
       var libraryFragment = element.firstFragment.libraryFragment;
-      var libraryFragmentUri = libraryFragment.source.uri;
-      return '$libraryUri;$libraryFragmentUri;${element.name}';
+      var libraryFragmentFile = libraryFragment.source.mustBeFile;
+      var libraryFragmentPath = libraryFragmentFile.path;
+
+      return '$libraryPath;$libraryFragmentPath;${element.name}';
     }
 
     void addSupertype(NamedType? type) {
       var element = type?.element;
       if (element is InterfaceElement) {
-        String id = getInterfaceElementId(element);
+        var id = getInterfaceElementId(element);
         supertypes.add(id);
       }
     }
@@ -1429,14 +1438,20 @@ class _SubtypeInfo {
 
 extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
   int getLibraryFragmentId(LibraryFragmentImpl fragment) {
-    var libraryUriId = getUriId(fragment.element.uri);
-    var unitUriId = getUriId(fragment.source.uri);
+    var libraryUriId = getSourceId(fragment.element.firstFragment.source);
+    var unitUriId = getSourceId(fragment.source);
     for (var i = 0; i < unitLibraryUris.length; i++) {
       if (unitLibraryUris[i] == libraryUriId && unitUnitUris[i] == unitUriId) {
         return i;
       }
     }
     return -1;
+  }
+
+  /// Returns the identifier of [source], or `-1` if not used.
+  int getSourceId(Source source) {
+    var filePath = source.mustBeFile.path;
+    return getStringId(filePath);
   }
 
   /// Returns the identifier of [str], or `-1` if not used.
@@ -1447,10 +1462,15 @@ extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
 
     return binarySearch(strings, str);
   }
+}
 
-  /// Returns the identifier of the [uri], or `-1` if not used.
-  int getUriId(Uri uri) {
-    var str = uri.toString();
-    return getStringId(str);
+extension _SourceExtension on Source {
+  /// Returns the [File] for this source.
+  ///
+  /// This assumes that the source is a [FileSource], which is safe because
+  /// index and search are only supported in DAS, where all sources are file
+  /// based.
+  File get mustBeFile {
+    return (this as FileSource).file;
   }
 }

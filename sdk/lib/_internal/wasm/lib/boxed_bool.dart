@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:_wasm';
+
 @pragma("wasm:entry-point")
 final class BoxedBool extends bool {
-  // A boxed bool contains an unboxed bool.
   @pragma("wasm:entry-point")
-  bool value = false;
+  final WasmI32 value;
 
-  /// Dummy factory to silence error about missing superclass constructor.
-  external factory BoxedBool();
+  @pragma("wasm:entry-point")
+  external BoxedBool();
 
   @override
   bool operator ==(Object other) {

@@ -7768,6 +7768,11 @@ anonymousMethodWrongParameterTypeCfe:
   statement:
     - '"".(int i) => 1;'
 
+nonIdentifierForInElement:
+  parameters: none
+  problemMessage: "The element in a for-in loop must be an identifier or a local variable declaration."
+  correctionMessage: "Try using an existing variable or a variable declaration."
+
 dartExternalEffectNotMethod:
   parameters: none
   problemMessage: "The 'external-effect' pragma can only be applied to methods."

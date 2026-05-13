@@ -364,7 +364,6 @@ class NullCheckPattern extends Pattern {
 class ListPattern extends Pattern {
   static const int FlagNeedsCheck = 1 << 0;
   static const int FlagHasRestPattern = 1 << 1;
-  static const int FlagIsNeverPattern = 1 << 2;
 
   int flags = 0;
 
@@ -402,17 +401,6 @@ class ListPattern extends Pattern {
   ///
   /// This is set during inference.
   DartType? lookupType;
-
-  /// If `true`, this list pattern is performed on an expression of type
-  /// `Never`.
-  ///
-  /// This is set during inference.
-  bool get isNeverPattern => flags & FlagIsNeverPattern != 0;
-  void set isNeverPattern(bool value) {
-    flags = value
-        ? (flags | FlagIsNeverPattern)
-        : (flags & ~FlagIsNeverPattern);
-  }
 
   /// If `true`, this list pattern contains a rest pattern.
   ///
@@ -966,7 +954,6 @@ class AssignedVariablePattern extends Pattern {
 
 class MapPattern extends Pattern {
   static const int FlagNeedsCheck = 1 << 0;
-  static const int FlagIsNeverPattern = 1 << 1;
 
   int flags = 0;
 
@@ -1007,16 +994,6 @@ class MapPattern extends Pattern {
   ///
   /// This is set during inference.
   DartType? lookupType;
-
-  /// If `true`, this map pattern is performed on an expression of type `Never`.
-  ///
-  /// This is set during inference.
-  bool get isNeverPattern => flags & FlagIsNeverPattern != 0;
-  void set isNeverPattern(bool value) {
-    flags = value
-        ? (flags | FlagIsNeverPattern)
-        : (flags & ~FlagIsNeverPattern);
-  }
 
   /// Reference to the target of the `containsKey` method of the map.
   ///

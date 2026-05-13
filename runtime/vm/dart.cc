@@ -442,10 +442,9 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
         return Utils::StrDup("Invalid vm isolate snapshot seen");
       }
       FullSnapshotReader reader(snapshot, params->vm_snapshot_instructions, T);
-      const Error& error = Error::Handle(reader.ReadVMSnapshot());
-      if (!error.IsNull()) {
-        // Must copy before leaving the zone.
-        return Utils::StrDup(error.ToErrorCString());
+      char* error = reader.ReadVMSnapshot();
+      if (error != nullptr) {
+        return error;
       }
 
       Object::FinishInit(vm_isolate_->group());
@@ -849,17 +848,16 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
   return isolate;
 }
 
-ErrorPtr Dart::InitIsolateGroupFromSnapshot(
-    Thread* T,
-    const uint8_t* snapshot_data,
-    const uint8_t* snapshot_instructions,
-    const uint8_t* kernel_buffer,
-    intptr_t kernel_buffer_size) {
+char* Dart::InitIsolateGroupFromSnapshot(Thread* T,
+                                         const uint8_t* snapshot_data,
+                                         const uint8_t* snapshot_instructions,
+                                         const uint8_t* kernel_buffer,
+                                         intptr_t kernel_buffer_size) {
   auto IG = T->isolate_group();
   Error& error = Error::Handle(T->zone());
   error = Object::Init(IG, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
-    return error.ptr();
+    return Utils::StrDup(error.ToCString());
   }
   if (snapshot_data != nullptr && kernel_buffer == nullptr) {
     // Read the snapshot and setup the initial state.
@@ -869,23 +867,21 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
 #endif  // defined(SUPPORT_TIMELINE)
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
     if (snapshot == nullptr) {
-      const String& message = String::Handle(String::New("Invalid snapshot"));
-      return ApiError::New(message);
+      return Utils::StrDup("Invalid snapshot");
     }
     if (!IsSnapshotCompatible(vm_snapshot_kind_, snapshot->kind())) {
-      const String& message = String::Handle(String::NewFormatted(
-          "Incompatible snapshot kinds: vm '%s', isolate '%s'",
-          Snapshot::KindToCString(vm_snapshot_kind_),
-          Snapshot::KindToCString(snapshot->kind())));
-      return ApiError::New(message);
+      return OS::SCreate(nullptr,
+                         "Incompatible snapshot kinds: vm '%s', isolate '%s'",
+                         Snapshot::KindToCString(vm_snapshot_kind_),
+                         Snapshot::KindToCString(snapshot->kind()));
     }
     if (FLAG_trace_isolates) {
       OS::PrintErr("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
     FullSnapshotReader reader(snapshot, snapshot_instructions, T);
-    const Error& error = Error::Handle(reader.ReadProgramSnapshot());
-    if (!error.IsNull()) {
-      return error.ptr();
+    char* error = reader.ReadProgramSnapshot();
+    if (error != nullptr) {
+      return error;
     }
     {
       // Initialize sentinel field table, which should have sentinel values for
@@ -913,16 +909,14 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
     }
   } else {
     if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_buffer == nullptr) {
-      const String& message =
-          String::Handle(String::New("Missing isolate snapshot"));
-      return ApiError::New(message);
+      return Utils::StrDup("Missing isolate snapshot");
     }
   }
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   IG->class_table()->PopulateUserVisibleNames();
 #endif
 
-  return Error::null();
+  return nullptr;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -946,16 +940,16 @@ static void FinalizeBuiltinClasses(Thread* thread) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
-                                      const uint8_t* snapshot_data,
-                                      const uint8_t* snapshot_instructions,
-                                      const uint8_t* kernel_buffer,
-                                      intptr_t kernel_buffer_size) {
-  auto& error = Error::Handle(
+char* Dart::InitializeIsolateGroup(Thread* T,
+                                   const uint8_t* snapshot_data,
+                                   const uint8_t* snapshot_instructions,
+                                   const uint8_t* kernel_buffer,
+                                   intptr_t kernel_buffer_size) {
+  char* error =
       InitIsolateGroupFromSnapshot(T, snapshot_data, snapshot_instructions,
-                                   kernel_buffer, kernel_buffer_size));
-  if (!error.IsNull()) {
-    return error.ptr();
+                                   kernel_buffer, kernel_buffer_size);
+  if (error != nullptr) {
+    return error;
   }
 
   Object::VerifyBuiltinVtables();
@@ -975,9 +969,9 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
 
   if (snapshot_data == nullptr || kernel_buffer != nullptr) {
     auto object_store = IG->object_store();
-    error ^= object_store->PreallocateObjects();
+    const Error& error = Error::Handle(object_store->PreallocateObjects());
     if (!error.IsNull()) {
-      return error.ptr();
+      return Utils::StrDup(error.ToErrorCString());
     }
   }
 
@@ -988,7 +982,7 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
   IG->object_store()->set_tag_table(
       GrowableObjectArray::Handle(GrowableObjectArray::New()));
 
-  return Error::null();
+  return nullptr;
 }
 
 ErrorPtr Dart::InitializeIsolate(Thread* T,

@@ -41,9 +41,10 @@ external void _invokeMainInternal(WasmExternRef jsArray);
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")
-void _invokeMain(WasmExternRef jsArrayRef) {
+WasmVoid _invokeMain(WasmExternRef jsArrayRef) {
   try {
     _invokeMainInternal(jsArrayRef);
+    return WasmVoid();
   } catch (e, s) {
     print(e);
     print(s);

@@ -285,7 +285,7 @@ FunctionExpressionInvocation
 ''');
   }
 
-  test_expression_recordType_hasCall() async {
+  test_expression_recordType_hasCall_extensionMethod() async {
     await assertNoErrorsInCode(r'''
 void f((String,) a) {
   a();
@@ -308,6 +308,32 @@ FunctionExpressionInvocation
   element: <testLibrary>::@extension::#0::@method::call
   staticInvokeType: int Function()
   staticType: int
+''');
+  }
+
+  test_expression_recordType_hasCall_namedField() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  var r = (call: () => 0);
+  r();
+}
+''',
+      [error(diag.invocationOfNonFunctionExpression, 40, 1)],
+    );
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: r
+    element: r@17
+    staticType: ({int Function() call})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 

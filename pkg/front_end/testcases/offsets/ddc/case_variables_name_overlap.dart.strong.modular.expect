@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 [478]class X1 extends core::Object {
-[493]  field core::String? s = [-1] [-1] null;
-[503]  field core::int? i = [-1] [-1] null;
-[516]  field core::double? d = [-1] [-1] null;
+[493]  field core::String? s = [493] [493] null;
+[503]  field core::int? i = [503] [503] null;
+[516]  field core::double? d = [516] [516] null;
 [478]  synthetic constructor [-1] [-1] •() → self::X1
     : [-1] super core::Object::• [-1]()
 [-1]    ;
@@ -13,9 +13,9 @@ import "dart:core" as core;
 [478]    return [478] [478] new self::X1::• [478]();
 }
 [528]class X2 extends core::Object {
-[543]  field core::String? s2 = [-1] [-1] null;
-[554]  field core::int? i = [-1] [-1] null;
-[567]  field core::double? d = [-1] [-1] null;
+[543]  field core::String? s2 = [543] [543] null;
+[554]  field core::int? i = [554] [554] null;
+[567]  field core::double? d = [567] [567] null;
 [528]  synthetic constructor [-1] [-1] •() → self::X2
     : [-1] super core::Object::• [-1]()
 [-1]    ;

@@ -18,9 +18,10 @@ main() {
 
 abstract class MetadataElementTest extends ElementsBaseTest {
   test_annotationArgument_recordLiteral() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @A((2, a: 3))
 class C {}
+
 class A {
   const A(o);
 }
@@ -38,15 +39,15 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class A (nameOffset:31) (firstTokenOffset:25) (offset:31)
+        #F3 class A (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::A
           constructors
-            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:43)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:44)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 43
+              typeNameOffset: 44
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration o (nameOffset:45) (firstTokenOffset:45) (offset:45)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration o (nameOffset:46) (firstTokenOffset:46) (offset:46)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
   classes
     isSimplyBounded class C
@@ -71,9 +72,10 @@ library
   }
 
   test_annotationArgument_recordLiteral_withConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @A(const ('',))
 class C {}
+
 class A {
   const A(o);
 }
@@ -91,15 +93,15 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class A (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F3 class A (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@class::A
           constructors
-            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:39) (offset:45)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:40) (offset:46)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 45
+              typeNameOffset: 46
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration o (nameOffset:47) (firstTokenOffset:47) (offset:47)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration o (nameOffset:48) (firstTokenOffset:48) (offset:48)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
   classes
     isSimplyBounded class C
@@ -129,8 +131,9 @@ class A {
   const A.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "a.dart" as a;
+
 @a.A.named
 class C {}
 ''');
@@ -146,10 +149,10 @@ library
         <testLibraryFragment>::@prefix::a
           fragments: @19
       classes
-        #F1 class C (nameOffset:39) (firstTokenOffset:22) (offset:39)
+        #F1 class C (nameOffset:40) (firstTokenOffset:23) (offset:40)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -169,8 +172,9 @@ class A {
   const A.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "a.dart";
+
 @A.named
 class C {}
 ''');
@@ -183,10 +187,10 @@ library
       libraryImports
         package:test/a.dart
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:17) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:18) (offset:33)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -203,6 +207,7 @@ library
   test_metadata_class_field_first() async {
     var library = await buildLibrary(r'''
 const a = 0;
+
 class C {
   @a
   int x = 0;
@@ -219,31 +224,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:19) (firstTokenOffset:13) (offset:19)
+        #F1 class C (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasInitializer isOriginDeclaration x (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 hasInitializer isOriginDeclaration x (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@class::C::@field::x
               metadata
                 Annotation
-                  atSign: @ @25
+                  atSign: @ @26
                   name: SimpleIdentifier
-                    token: a @26
+                    token: a @27
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -265,9 +270,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @25
+              atSign: @ @26
               name: SimpleIdentifier
-                token: a @26
+                token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -447,9 +452,11 @@ library
     var library = await buildLibrary(r'''
 const a = null;
 const b = null;
+
 @a
 @b
-class C {}''');
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -457,10 +464,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:44) (firstTokenOffset:32) (offset:44)
+        #F1 class C (nameOffset:45) (firstTokenOffset:33) (offset:45)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
@@ -521,9 +528,15 @@ library
   }
 
   test_metadata_classTypeAlias() async {
-    var library = await buildLibrary(
-      'const a = null; @a class C = D with E; class D {} class E {}',
-    );
+    var library = await buildLibrary(r'''
+const a = null;
+@a
+class C = D with E;
+
+class D {}
+
+class E {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -537,16 +550,16 @@ library
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F3 class D (nameOffset:46) (firstTokenOffset:40) (offset:46)
           element: <testLibrary>::@class::D
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F5 class E (nameOffset:56) (firstTokenOffset:50) (offset:56)
+        #F5 class E (nameOffset:58) (firstTokenOffset:52) (offset:58)
           element: <testLibrary>::@class::E
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
       topLevelVariables
@@ -611,10 +624,11 @@ library
   }
 
   test_metadata_constructor_call_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A.named(int _);
 }
+
 @A.named(0)
 class C {}
 ''');
@@ -636,10 +650,10 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration _ (nameOffset:30) (firstTokenOffset:26) (offset:30)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::_
-        #F4 class C (nameOffset:54) (firstTokenOffset:36) (offset:54)
+        #F4 class C (nameOffset:55) (firstTokenOffset:37) (offset:55)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -665,7 +679,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_inference() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A.named(T _);
 }
@@ -726,7 +740,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A.named();
 }
@@ -780,7 +794,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments_disabledGenericMetadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A.named();
 }
@@ -834,13 +848,14 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 class A {
   const A.named(int _);
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
+
 @foo.A.named(0)
 class C {}
 ''');
@@ -856,10 +871,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:48) (firstTokenOffset:26) (offset:48)
+        #F1 class C (nameOffset:49) (firstTokenOffset:27) (offset:49)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -874,13 +889,14 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 class A<T> {
   const A.named(T _);
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
+
 @foo.A.named(0)
 class C {}
 ''');
@@ -896,10 +912,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:48) (firstTokenOffset:26) (offset:48)
+        #F1 class C (nameOffset:49) (firstTokenOffset:27) (offset:49)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -914,13 +930,14 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 class A<T> {
   const A.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
+
 @foo.A<int>.named()
 class C {}
 ''');
@@ -936,10 +953,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:52) (firstTokenOffset:26) (offset:52)
+        #F1 class C (nameOffset:53) (firstTokenOffset:27) (offset:53)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -954,7 +971,7 @@ library
   }
 
   test_metadata_constructor_call_named_synthetic_ofClassAlias_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A.named();
 }
@@ -1050,10 +1067,11 @@ library
   }
 
   test_metadata_constructor_call_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(int _);
 }
+
 @A(0)
 class C {}
 ''');
@@ -1074,10 +1092,10 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
-        #F4 class C (nameOffset:42) (firstTokenOffset:30) (offset:42)
+        #F4 class C (nameOffset:43) (firstTokenOffset:31) (offset:43)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -1103,7 +1121,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_inference() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A(T _);
 }
@@ -1163,7 +1181,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_typeArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -1216,47 +1234,14 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed() async {
-    newFile('$testPackageLibPath/foo.dart', 'class A { const A(_); }');
-    var library = await buildLibrary(
-      'import "foo.dart" as foo; @foo.A(0) class C {}',
-    );
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
-      prefixes
-        <testLibraryFragment>::@prefix::foo
-          fragments: @21
-      classes
-        #F1 class C (nameOffset:42) (firstTokenOffset:26) (offset:42)
-          element: <testLibrary>::@class::C
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
-              element: <testLibrary>::@class::C::@constructor::new
-              typeName: C
-  classes
-    isSimplyBounded class C
-      reference: <testLibrary>::@class::C
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F2
-''');
-  }
-
-  test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
-    newFile('$testPackageLibPath/foo.dart', '''
-class A<T> {
-  const A(T _);
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  const A(_);
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
+
 @foo.A(0)
 class C {}
 ''');
@@ -1272,10 +1257,51 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:42) (firstTokenOffset:26) (offset:42)
+        #F1 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+''');
+  }
+
+  test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A<T> {
+  const A(T _);
+}
+''');
+    var library = await buildLibrary(r'''
+import "foo.dart" as foo;
+
+@foo.A(0)
+class C {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
+      prefixes
+        <testLibraryFragment>::@prefix::foo
+          fragments: @21
+      classes
+        #F1 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -1290,13 +1316,14 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 class A<T> {
   const A();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
+
 @foo.A<int>()
 class C {}
 ''');
@@ -1312,10 +1339,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:46) (firstTokenOffset:26) (offset:46)
+        #F1 class C (nameOffset:47) (firstTokenOffset:27) (offset:47)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -1330,7 +1357,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_synthetic_ofClassAlias_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A();
 }
@@ -1420,9 +1447,14 @@ library
   }
 
   test_metadata_constructor_call_with_args() async {
-    var library = await buildLibrary(
-      'class A { const A(x); } @A(null) class C {}',
-    );
+    var library = await buildLibrary(r'''
+class A {
+  const A(x);
+}
+
+@A(null)
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1433,17 +1465,17 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:10) (offset:16)
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 16
+              typeNameOffset: 18
               formalParameters
-                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
+                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
-        #F4 class C (nameOffset:39) (firstTokenOffset:24) (offset:39)
+        #F4 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -1477,6 +1509,7 @@ class A {
 
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 @A(value: 42)
 void f() {}
 ''');
@@ -1489,25 +1522,25 @@ library
       libraryImports
         package:test/a.dart
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:36) (firstTokenOffset:17) (offset:36)
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:37) (firstTokenOffset:18) (offset:37)
           element: <testLibrary>::@function::f
           metadata
             Annotation
-              atSign: @ @17
+              atSign: @ @18
               name: SimpleIdentifier
-                token: A @18
+                token: A @19
                 element: package:test/a.dart::@class::A
                 staticType: null
               arguments: ArgumentList
-                leftParenthesis: ( @19
+                leftParenthesis: ( @20
                 arguments
                   NamedArgument
-                    name: value @20
-                    colon: : @25
+                    name: value @21
+                    colon: : @26
                     argumentExpression: IntegerLiteral
-                      literal: 42 @27
+                      literal: 42 @28
                       staticType: int
-                rightParenthesis: ) @29
+                rightParenthesis: ) @30
               element: package:test/a.dart::@class::A::@constructor::new
   functions
     isOriginDeclaration isStatic f
@@ -1515,30 +1548,35 @@ library
       firstFragment: #F1
       metadata
         Annotation
-          atSign: @ @17
+          atSign: @ @18
           name: SimpleIdentifier
-            token: A @18
+            token: A @19
             element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
-            leftParenthesis: ( @19
+            leftParenthesis: ( @20
             arguments
               NamedArgument
-                name: value @20
-                colon: : @25
+                name: value @21
+                colon: : @26
                 argumentExpression: IntegerLiteral
-                  literal: 42 @27
+                  literal: 42 @28
                   staticType: int
-            rightParenthesis: ) @29
+            rightParenthesis: ) @30
           element: package:test/a.dart::@class::A::@constructor::new
       returnType: void
 ''');
   }
 
   test_metadata_constructorDeclaration_named() async {
-    var library = await buildLibrary(
-      'const a = null; class C { @a C.named(); }',
-    );
+    var library = await buildLibrary(r'''
+const a = null;
+
+class C {
+  @a
+  C.named();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1546,22 +1584,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginDeclaration named (nameOffset:31) (firstTokenOffset:26) (offset:31)
+            #F2 isOriginDeclaration named (nameOffset:36) (firstTokenOffset:29) (offset:36)
               element: <testLibrary>::@class::C::@constructor::named
               metadata
                 Annotation
-                  atSign: @ @26
+                  atSign: @ @29
                   name: SimpleIdentifier
-                    token: a @27
+                    token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
               typeName: C
-              typeNameOffset: 29
-              periodOffset: 30
+              typeNameOffset: 34
+              periodOffset: 35
       topLevelVariables
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -1582,9 +1620,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @26
+              atSign: @ @29
               name: SimpleIdentifier
-                token: a @27
+                token: a @30
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -1607,7 +1645,14 @@ library
   }
 
   test_metadata_constructorDeclaration_unnamed() async {
-    var library = await buildLibrary('const a = null; class C { @a C(); }');
+    var library = await buildLibrary(r'''
+const a = null;
+
+class C {
+  @a
+  C();
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1615,21 +1660,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:26) (offset:29)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@class::C::@constructor::new
               metadata
                 Annotation
-                  atSign: @ @26
+                  atSign: @ @29
                   name: SimpleIdentifier
-                    token: a @27
+                    token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
               typeName: C
-              typeNameOffset: 29
+              typeNameOffset: 34
       topLevelVariables
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -1650,9 +1695,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @26
+              atSign: @ @29
               name: SimpleIdentifier
-                token: a @27
+                token: a @30
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -1675,11 +1720,13 @@ library
   }
 
   test_metadata_exportDirective() async {
-    newFile('$testPackageLibPath/foo.dart', '');
+    newFile('$testPackageLibPath/foo.dart', r'''
+''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @a
 export 'foo.dart';
+
 const a = 0;
 ''');
 
@@ -1708,14 +1755,14 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
-              literal: 0 @32
+              literal: 0 @33
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::a
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -1736,7 +1783,14 @@ library
   }
 
   test_metadata_fieldDeclaration() async {
-    var library = await buildLibrary('const a = null; class C { @a int x; }');
+    var library = await buildLibrary(r'''
+const a = null;
+
+class C {
+  @a
+  int x;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1744,31 +1798,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginDeclaration x (nameOffset:33) (firstTokenOffset:33) (offset:33)
+            #F2 isOriginDeclaration x (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@class::C::@field::x
               metadata
                 Annotation
-                  atSign: @ @26
+                  atSign: @ @29
                   name: SimpleIdentifier
-                    token: a @27
+                    token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -1790,9 +1844,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @26
+              atSign: @ @29
               name: SimpleIdentifier
-                token: a @27
+                token: a @30
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -1838,8 +1892,9 @@ library
   }
 
   test_metadata_fieldFormalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
+
 class C {
   var x;
   C(@a this.x);
@@ -1852,35 +1907,35 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration x (nameOffset:32) (firstTokenOffset:32) (offset:32)
+            #F2 hasImplicitType isOriginDeclaration x (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 37
+              typeNameOffset: 38
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:47) (firstTokenOffset:39) (offset:47)
+                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:48) (firstTokenOffset:40) (offset:48)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   metadata
                     Annotation
-                      atSign: @ @39
+                      atSign: @ @40
                       name: SimpleIdentifier
-                        token: a @40
+                        token: a @41
                         element: <testLibrary>::@getter::a
                         staticType: null
                       element: <testLibrary>::@getter::a
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -1913,9 +1968,9 @@ library
               type: dynamic
               metadata
                 Annotation
-                  atSign: @ @39
+                  atSign: @ @40
                   name: SimpleIdentifier
-                    token: a @40
+                    token: a @41
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
@@ -1955,9 +2010,14 @@ library
   }
 
   test_metadata_fieldFormalParameter_withDefault() async {
-    var library = await buildLibrary(
-      'const a = null; class C { var x; C([@a this.x = null]); }',
-    );
+    var library = await buildLibrary(r'''
+const a = null;
+
+class C {
+  var x;
+  C([@a this.x = null]);
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1965,39 +2025,39 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType isOriginDeclaration x (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F2 hasImplicitType isOriginDeclaration x (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:33)
+            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              typeNameOffset: 33
+              typeNameOffset: 38
               formalParameters
-                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:44) (firstTokenOffset:36) (offset:44)
+                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:49) (firstTokenOffset:41) (offset:49)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   metadata
                     Annotation
-                      atSign: @ @36
+                      atSign: @ @41
                       name: SimpleIdentifier
-                        token: a @37
+                        token: a @42
                         element: <testLibrary>::@getter::a
                         staticType: null
                       element: <testLibrary>::@getter::a
                   initializer: expression_0
                     NullLiteral
-                      literal: null @48
+                      literal: null @53
                       staticType: Null
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -2030,9 +2090,9 @@ library
               type: dynamic
               metadata
                 Annotation
-                  atSign: @ @36
+                  atSign: @ @41
                   name: SimpleIdentifier
-                    token: a @37
+                    token: a @42
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
@@ -2075,7 +2135,7 @@ library
   }
 
   test_metadata_functionDeclaration_function() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 @a
 f() {}
@@ -2139,7 +2199,11 @@ library
   }
 
   test_metadata_functionDeclaration_getter() async {
-    var library = await buildLibrary('const a = null; @a get f => null;');
+    var library = await buildLibrary(r'''
+const a = null;
+@a
+get f => null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2205,7 +2269,11 @@ library
   }
 
   test_metadata_functionDeclaration_setter() async {
-    var library = await buildLibrary('const a = null; @a set f(value) {}');
+    var library = await buildLibrary(r'''
+const a = null;
+@a
+set f(value) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2280,7 +2348,11 @@ library
   }
 
   test_metadata_functionTypeAlias() async {
-    var library = await buildLibrary('const a = null; @a typedef F();');
+    var library = await buildLibrary(r'''
+const a = null;
+@a
+typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2340,7 +2412,10 @@ library
   }
 
   test_metadata_functionTypedFormalParameter() async {
-    var library = await buildLibrary('const a = null; f(@a g()) {}');
+    var library = await buildLibrary(r'''
+const a = null;
+f(@a g()) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2407,7 +2482,10 @@ library
   }
 
   test_metadata_functionTypedFormalParameter_withDefault() async {
-    var library = await buildLibrary('const a = null; f([@a g() = null]) {}');
+    var library = await buildLibrary(r'''
+const a = null;
+f([@a g() = null]) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2486,7 +2564,8 @@ const a = null;
 const b = null;
 @a
 @b
-typedef F = void Function();''');
+typedef F = void Function();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2581,11 +2660,13 @@ library
   }
 
   test_metadata_importDirective() async {
-    newFile('$testPackageLibPath/foo.dart', '');
+    newFile('$testPackageLibPath/foo.dart', r'''
+''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @a
 import 'foo.dart';
+
 const a = 0;
 ''');
 
@@ -2614,14 +2695,14 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
-              literal: 0 @32
+              literal: 0 @33
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::a
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -2642,7 +2723,7 @@ library
   }
 
   test_metadata_inAliasedElement_formalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
 typedef F = void Function(@a int first)
 ''');
@@ -2689,7 +2770,7 @@ library
   }
 
   test_metadata_inAliasedElement_formalParameter2() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
 typedef F = void Function(int foo(@a int bar))
 ''');
@@ -2736,7 +2817,7 @@ library
   }
 
   test_metadata_inAliasedElement_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
 typedef F = void Function<@a T>(int first)
 ''');
@@ -2783,7 +2864,12 @@ library
   }
 
   test_metadata_invalid_classDeclaration() async {
-    var library = await buildLibrary('f(_) {} @f(42) class C {}');
+    var library = await buildLibrary(r'''
+f(_) {}
+
+@f(42)
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2791,10 +2877,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:21) (firstTokenOffset:8) (offset:21)
+        #F1 class C (nameOffset:22) (firstTokenOffset:9) (offset:22)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       functions
@@ -2827,7 +2913,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @deprecated
 part 'a.dart';
 ''');
@@ -2868,7 +2954,7 @@ library
 
   /// Even though the target is not a part, metadata is available.
   test_metadata_library_part_notPart() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @deprecated
 part 'dart:math';
 ''');
@@ -2902,7 +2988,12 @@ library
   }
 
   test_metadata_libraryDirective() async {
-    var library = await buildLibrary('@a library L; const a = null;');
+    var library = await buildLibrary(r'''
+@a
+library L;
+
+const a = null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2919,14 +3010,14 @@ library
     #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:11)
       element: <testLibrary>
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:20) (firstTokenOffset:20) (offset:20)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             NullLiteral
-              literal: null @24
+              literal: null @25
               staticType: Null
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::a
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -2947,9 +3038,14 @@ library
   }
 
   test_metadata_methodDeclaration_getter() async {
-    var library = await buildLibrary(
-      'const a = null; class C { @a get m => null; }',
-    );
+    var library = await buildLibrary(r'''
+const a = null;
+
+class C {
+  @a
+  get m => null;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2957,23 +3053,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginGetterSetter m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F2 isOriginGetterSetter m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@field::m
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:33) (firstTokenOffset:26) (offset:33)
+            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:38) (firstTokenOffset:29) (offset:38)
               element: <testLibrary>::@class::C::@getter::m
               metadata
                 Annotation
-                  atSign: @ @26
+                  atSign: @ @29
                   name: SimpleIdentifier
-                    token: a @27
+                    token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
@@ -3007,9 +3103,9 @@ library
           firstFragment: #F4
           metadata
             Annotation
-              atSign: @ @26
+              atSign: @ @29
               name: SimpleIdentifier
-                token: a @27
+                token: a @30
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -3037,6 +3133,7 @@ library
     var library = await buildLibrary(r'''
 const a = null;
 const b = null;
+
 class C {
   @a
   @b
@@ -3050,27 +3147,27 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F1 class C (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:54) (firstTokenOffset:44) (offset:54)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:55) (firstTokenOffset:45) (offset:55)
               element: <testLibrary>::@class::C::@method::m
               metadata
                 Annotation
-                  atSign: @ @44
+                  atSign: @ @45
                   name: SimpleIdentifier
-                    token: a @45
+                    token: a @46
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
                 Annotation
-                  atSign: @ @49
+                  atSign: @ @50
                   name: SimpleIdentifier
-                    token: b @50
+                    token: b @51
                     element: <testLibrary>::@getter::b
                     staticType: null
                   element: <testLibrary>::@getter::b
@@ -3106,16 +3203,16 @@ library
           firstFragment: #F3
           metadata
             Annotation
-              atSign: @ @44
+              atSign: @ @45
               name: SimpleIdentifier
-                token: a @45
+                token: a @46
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
             Annotation
-              atSign: @ @49
+              atSign: @ @50
               name: SimpleIdentifier
-                token: b @50
+                token: b @51
                 element: <testLibrary>::@getter::b
                 staticType: null
               element: <testLibrary>::@getter::b
@@ -3155,6 +3252,7 @@ library
     var library = await buildLibrary(r'''
 const a = null;
 const b = null;
+
 mixin M {
   @a
   @b
@@ -3168,23 +3266,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F1 mixin M (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@mixin::M
           methods
-            #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:54) (firstTokenOffset:44) (offset:54)
+            #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:55) (firstTokenOffset:45) (offset:55)
               element: <testLibrary>::@mixin::M::@method::m
               metadata
                 Annotation
-                  atSign: @ @44
+                  atSign: @ @45
                   name: SimpleIdentifier
-                    token: a @45
+                    token: a @46
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
                 Annotation
-                  atSign: @ @49
+                  atSign: @ @50
                   name: SimpleIdentifier
-                    token: b @50
+                    token: b @51
                     element: <testLibrary>::@getter::b
                     staticType: null
                   element: <testLibrary>::@getter::b
@@ -3218,16 +3316,16 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @44
+              atSign: @ @45
               name: SimpleIdentifier
-                token: a @45
+                token: a @46
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
             Annotation
-              atSign: @ @49
+              atSign: @ @50
               name: SimpleIdentifier
-                token: b @50
+                token: b @51
                 element: <testLibrary>::@getter::b
                 staticType: null
               element: <testLibrary>::@getter::b
@@ -3264,8 +3362,9 @@ library
   }
 
   test_metadata_methodDeclaration_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
+
 class C {
   @a
   set m(value) {}
@@ -3278,28 +3377,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           fields
-            #F2 isOriginGetterSetter m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F2 isOriginGetterSetter m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@field::m
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:37) (firstTokenOffset:28) (offset:37)
+            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration m (nameOffset:38) (firstTokenOffset:29) (offset:38)
               element: <testLibrary>::@class::C::@setter::m
               metadata
                 Annotation
-                  atSign: @ @28
+                  atSign: @ @29
                   name: SimpleIdentifier
-                    token: a @29
+                    token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:39) (firstTokenOffset:39) (offset:39)
+                #F5 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:40) (firstTokenOffset:40) (offset:40)
                   element: <testLibrary>::@class::C::@setter::m::@formalParameter::value
       topLevelVariables
         #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -3331,9 +3430,9 @@ library
           firstFragment: #F4
           metadata
             Annotation
-              atSign: @ @28
+              atSign: @ @29
               name: SimpleIdentifier
-                token: a @29
+                token: a @30
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -3490,9 +3589,11 @@ library
     var library = await buildLibrary(r'''
 const a = null;
 const b = null;
+
 @a
 @b
-mixin M {}''');
+mixin M {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3500,7 +3601,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M (nameOffset:44) (firstTokenOffset:32) (offset:44)
+        #F1 mixin M (nameOffset:45) (firstTokenOffset:33) (offset:45)
           element: <testLibrary>::@mixin::M
       topLevelVariables
         #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -4072,6 +4173,7 @@ library
 const foo = 0;
 
 class A {}
+
 mixin M {}
 
 @foo
@@ -4090,25 +4192,25 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isMixinApplication class B (nameOffset:50) (firstTokenOffset:39) (offset:50)
+        #F3 isMixinApplication class B (nameOffset:51) (firstTokenOffset:40) (offset:51)
           element: <testLibrary>::@class::B
           typeParameters
-            #F4 T (nameOffset:57) (firstTokenOffset:52) (offset:57)
+            #F4 T (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: #E0 T
               metadata
                 Annotation
-                  atSign: @ @52
+                  atSign: @ @53
                   name: SimpleIdentifier
-                    token: foo @53
+                    token: foo @54
                     element: <testLibrary>::@getter::foo
                     staticType: null
                   element: <testLibrary>::@getter::foo
           constructors
-            #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F6 mixin M (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@mixin::M
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -4136,9 +4238,9 @@ library
           firstFragment: #F4
           metadata
             Annotation
-              atSign: @ @52
+              atSign: @ @53
               name: SimpleIdentifier
-                token: foo @53
+                token: foo @54
                 element: <testLibrary>::@getter::foo
                 staticType: null
               element: <testLibrary>::@getter::foo
@@ -4187,9 +4289,11 @@ const foo = 0;
 
 @foo
 enum E {
-  @foo e1,
+  @foo
+  e1,
   e2,
-  @foo e3,
+  @foo
+  e3,
 }
 ''');
     checkElementText(library, r'''
@@ -4202,7 +4306,7 @@ library
         #F1 enum E (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e1 (nameOffset:39) (firstTokenOffset:32) (offset:39)
               element: <testLibrary>::@enum::E::@field::e1
               metadata
                 Annotation
@@ -4224,7 +4328,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e2 (nameOffset:43) (firstTokenOffset:43) (offset:43)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e2 (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: <testLibrary>::@enum::E::@field::e2
               initializer: expression_1
                 InstanceCreationExpression
@@ -4238,13 +4342,13 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e3 (nameOffset:54) (firstTokenOffset:49) (offset:54)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e3 (nameOffset:58) (firstTokenOffset:51) (offset:58)
               element: <testLibrary>::@enum::E::@field::e3
               metadata
                 Annotation
-                  atSign: @ @49
+                  atSign: @ @51
                   name: SimpleIdentifier
-                    token: foo @50
+                    token: foo @52
                     element: <testLibrary>::@getter::foo
                     staticType: null
                   element: <testLibrary>::@getter::foo
@@ -4285,11 +4389,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic e1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F7 isCompleteDeclaration isOriginVariable isStatic e1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::E::@getter::e1
-            #F8 isCompleteDeclaration isOriginVariable isStatic e2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F8 isCompleteDeclaration isOriginVariable isStatic e2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@enum::E::@getter::e2
-            #F9 isCompleteDeclaration isOriginVariable isStatic e3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F9 isCompleteDeclaration isOriginVariable isStatic e3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@getter::e3
             #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::values
@@ -4338,9 +4442,9 @@ library
           firstFragment: #F4
           metadata
             Annotation
-              atSign: @ @49
+              atSign: @ @51
               name: SimpleIdentifier
-                token: foo @50
+                token: foo @52
                 element: <testLibrary>::@getter::foo
                 staticType: null
               element: <testLibrary>::@getter::foo
@@ -4671,7 +4775,7 @@ library
   }
 
   test_metadata_offsets_onLibrary() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// Some documentation.
 @foo
 library my.lib;
@@ -4969,15 +5073,15 @@ library
   }
 
   test_metadata_offsets_onUnit() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of my.lib;
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library my.lib;
 
 @foo
@@ -5475,9 +5579,10 @@ library
 part of 'test.dart';
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @a
 part 'foo.dart';
+
 const a = 0;
 ''');
 
@@ -5510,14 +5615,14 @@ library
               element: <testLibrary>::@getter::a
           unit: #F1
       topLevelVariables
-        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:26) (firstTokenOffset:26) (offset:26)
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
-              literal: 0 @30
+              literal: 0 @31
               staticType: int
       getters
-        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::a
     #F1 package:test/foo.dart
       element: <testLibrary>
@@ -5542,12 +5647,17 @@ library
   }
 
   test_metadata_partDirective2() async {
-    newFile('$testPackageLibPath/foo.dart', 'part of L;');
-    var library = await buildLibrary('''
+    newFile('$testPackageLibPath/foo.dart', r'''
+part of L;
+''');
+    var library = await buildLibrary(r'''
 library L;
+
 @a
 part 'foo.dart';
-const a = null;''');
+
+const a = null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5559,25 +5669,25 @@ library
       parts
         part_0
           uri: package:test/foo.dart
-          partKeywordOffset: 14
+          partKeywordOffset: 15
           metadata
             Annotation
-              atSign: @ @11
+              atSign: @ @12
               name: SimpleIdentifier
-                token: a @12
+                token: a @13
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
           unit: #F1
       topLevelVariables
-        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:37) (firstTokenOffset:37) (offset:37)
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:39) (firstTokenOffset:39) (offset:39)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             NullLiteral
-              literal: null @41
+              literal: null @43
               staticType: Null
       getters
-        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@getter::a
     #F1 package:test/foo.dart
       element: <testLibrary>
@@ -5608,7 +5718,7 @@ part of 'test.dart';
     newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 part 'b.dart';
 ''');
@@ -5624,7 +5734,7 @@ part of 'test.dart';
 @deprecated
 class A {}
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -5667,7 +5777,7 @@ part of 'test.dart';
 @deprecated
 export 'dart:math';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -5705,7 +5815,7 @@ part of 'test.dart';
 @deprecated
 import 'dart:math';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -5748,7 +5858,7 @@ part of 'test.dart';
 part 'a.dart';
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'b.dart';
 ''');
 
@@ -5790,8 +5900,15 @@ library
   }
 
   test_metadata_prefixed_variable() async {
-    newFile('$testPackageLibPath/a.dart', 'const b = null;');
-    var library = await buildLibrary('import "a.dart" as a; @a.b class C {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+const b = null;
+''');
+    var library = await buildLibrary(r'''
+import "a.dart" as a;
+
+@a.b
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5804,10 +5921,10 @@ library
         <testLibraryFragment>::@prefix::a
           fragments: @19
       classes
-        #F1 class C (nameOffset:33) (firstTokenOffset:22) (offset:33)
+        #F1 class C (nameOffset:34) (firstTokenOffset:23) (offset:34)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -5822,7 +5939,10 @@ library
   }
 
   test_metadata_simpleFormalParameter() async {
-    var library = await buildLibrary('const a = null; f(@a x) {}');
+    var library = await buildLibrary(r'''
+const a = null;
+f(@a x) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5889,7 +6009,7 @@ library
   }
 
   test_metadata_simpleFormalParameter_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 
 class C {
@@ -5977,7 +6097,7 @@ library
   }
 
   test_metadata_simpleFormalParameter_unit_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 
 set foo(@a int x) {}
@@ -6056,7 +6176,10 @@ library
   }
 
   test_metadata_simpleFormalParameter_withDefault() async {
-    var library = await buildLibrary('const a = null; f([@a x = null]) {}');
+    var library = await buildLibrary(r'''
+const a = null;
+f([@a x = null]) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6130,7 +6253,7 @@ library
   }
 
   test_metadata_superFormalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 
 class A {
@@ -6239,7 +6362,11 @@ library
   }
 
   test_metadata_topLevelVariableDeclaration() async {
-    var library = await buildLibrary('const a = null; @a int v;');
+    var library = await buildLibrary(r'''
+const a = null;
+@a
+int v;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6322,7 +6449,11 @@ library
   }
 
   test_metadata_typeParameter_ofClass() async {
-    var library = await buildLibrary('const a = null; class C<@a T> {}');
+    var library = await buildLibrary(r'''
+const a = null;
+
+class C<@a T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6330,21 +6461,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:27) (firstTokenOffset:24) (offset:27)
+            #F2 T (nameOffset:28) (firstTokenOffset:25) (offset:28)
               element: #E0 T
               metadata
                 Annotation
-                  atSign: @ @24
+                  atSign: @ @25
                   name: SimpleIdentifier
-                    token: a @25
+                    token: a @26
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
@@ -6366,9 +6497,9 @@ library
           firstFragment: #F2
           metadata
             Annotation
-              atSign: @ @24
+              atSign: @ @25
               name: SimpleIdentifier
-                token: a @25
+                token: a @26
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
@@ -6395,11 +6526,14 @@ library
   }
 
   test_metadata_typeParameter_ofClassTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 class C<@a T> = D with E;
+
 class D {}
-class E {}''');
+
+class E {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6424,16 +6558,16 @@ library
             #F3 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F4 class D (nameOffset:48) (firstTokenOffset:42) (offset:48)
+        #F4 class D (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
-        #F6 class E (nameOffset:59) (firstTokenOffset:53) (offset:59)
+        #F6 class E (nameOffset:61) (firstTokenOffset:55) (offset:61)
           element: <testLibrary>::@class::E
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
       topLevelVariables
@@ -6509,7 +6643,10 @@ library
   }
 
   test_metadata_typeParameter_ofFunction() async {
-    var library = await buildLibrary('const a = null; f<@a T>() {}');
+    var library = await buildLibrary(r'''
+const a = null;
+f<@a T>() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6575,7 +6712,10 @@ library
   }
 
   test_metadata_typeParameter_ofTypedef() async {
-    var library = await buildLibrary('const a = null; typedef F<@a T>();');
+    var library = await buildLibrary(r'''
+const a = null;
+typedef F<@a T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6732,10 +6872,11 @@ library
   }
 
   test_metadata_value_class_staticField() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   static const x = 0;
 }
+
 @A.x
 class C {}
 ''');
@@ -6762,10 +6903,10 @@ library
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@getter::x
-        #F5 class C (nameOffset:45) (firstTokenOffset:34) (offset:45)
+        #F5 class C (nameOffset:46) (firstTokenOffset:35) (offset:46)
           element: <testLibrary>::@class::C
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -6802,8 +6943,9 @@ library
   }
 
   test_metadata_value_enum_constant() async {
-    var library = await buildLibrary('''
-enum E {a, b, c}
+    var library = await buildLibrary(r'''
+enum E { a, b, c }
+
 @E.b
 class C {}
 ''');
@@ -6814,17 +6956,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:28) (firstTokenOffset:17) (offset:28)
+        #F1 class C (nameOffset:31) (firstTokenOffset:20) (offset:31)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
         #F3 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -6838,7 +6980,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -6852,7 +6994,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -6891,11 +7033,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F9 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::a
-            #F10 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F10 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@enum::E::@getter::b
-            #F11 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F11 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@enum::E::@getter::c
             #F12 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
@@ -6975,10 +7117,11 @@ library
   }
 
   test_metadata_value_extension_staticField() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static const x = 0;
 }
+
 @E.x
 class C {}
 ''');
@@ -6989,10 +7132,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:56) (firstTokenOffset:45) (offset:56)
+        #F1 class C (nameOffset:57) (firstTokenOffset:46) (offset:57)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       extensions
@@ -7041,7 +7184,7 @@ library
   }
 
   test_metadata_value_extension_staticField_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension on Object {
   @foo
   static const foo = 0;
@@ -7107,13 +7250,14 @@ library
   }
 
   test_metadata_value_prefix_extension_staticField() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 extension E on int {
   static const x = 0;
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
+
 @foo.E.x
 class C {}
 ''');
@@ -7129,10 +7273,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
-        #F1 class C (nameOffset:41) (firstTokenOffset:26) (offset:41)
+        #F1 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -7147,7 +7291,7 @@ library
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(_);
 }
@@ -7201,7 +7345,7 @@ library
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(_);
 }
@@ -7255,7 +7399,10 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() async {
-    var library = await buildLibrary('@foo.bar() class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7281,7 +7428,10 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
-    var library = await buildLibrary('@String.foo() class C {}');
+    var library = await buildLibrary(r'''
+@String.foo()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7307,7 +7457,10 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
-    var library = await buildLibrary('@foo.bar class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7333,9 +7486,12 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.bar class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo;
+
+@foo.bar
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7348,10 +7504,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
-        #F1 class C (nameOffset:43) (firstTokenOffset:28) (offset:43)
+        #F1 class C (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -7366,7 +7522,10 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
-    var library = await buildLibrary('@foo.bar.baz() class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar.baz()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7392,9 +7551,12 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.bar.baz() class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo;
+
+@foo.bar.baz()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7407,10 +7569,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
-        #F1 class C (nameOffset:49) (firstTokenOffset:28) (offset:49)
+        #F1 class C (nameOffset:50) (firstTokenOffset:29) (offset:50)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -7425,9 +7587,12 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.Future.bar() class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo;
+
+@foo.Future.bar()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7440,10 +7605,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
-        #F1 class C (nameOffset:52) (firstTokenOffset:28) (offset:52)
+        #F1 class C (nameOffset:53) (firstTokenOffset:29) (offset:53)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -7458,7 +7623,10 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
-    var library = await buildLibrary('@foo.bar() class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7484,9 +7652,12 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.bar() class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo;
+
+@foo.bar()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7499,10 +7670,10 @@ library
         <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
-        #F1 class C (nameOffset:45) (firstTokenOffset:28) (offset:45)
+        #F1 class C (nameOffset:46) (firstTokenOffset:29) (offset:46)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -7517,7 +7688,10 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
-    var library = await buildLibrary('@foo class C {}');
+    var library = await buildLibrary(r'''
+@foo
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7545,9 +7719,13 @@ library
   test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
     if (!keepLinkingLibraries) return;
 
-    newFile('$testPackageLibPath/a.dart', 'const v = 0;');
-    newFile('$testPackageLibPath/b.dart', 'const v = 0;');
-    var library = await buildLibrary('''
+    newFile('$testPackageLibPath/a.dart', r'''
+const v = 0;
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+const v = 0;
+''');
+    var library = await buildLibrary(r'''
 import 'a.dart';
 import 'b.dart';
 
@@ -7582,7 +7760,10 @@ library
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
-    var library = await buildLibrary('@foo() class C {}');
+    var library = await buildLibrary(r'''
+@foo()
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

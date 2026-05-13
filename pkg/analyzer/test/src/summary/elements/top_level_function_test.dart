@@ -12,1619 +12,11 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelFunctionElementTest_keepLinking);
     defineReflectiveTests(TopLevelFunctionElementTest_fromBytes);
-    defineReflectiveTests(TopLevelFunctionElementTest_augmentation_keepLinking);
-    defineReflectiveTests(TopLevelFunctionElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 abstract class TopLevelFunctionElementTest extends ElementsBaseTest {
-  test_function_async() async {
-    var library = await buildLibrary(r'''
-import 'dart:async';
-Future f() async {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        dart:async
-      functions
-        #F1 isAsynchronous isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:28) (firstTokenOffset:21) (offset:28)
-          element: <testLibrary>::@function::f
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: Future<dynamic>
-''');
-  }
-
-  test_function_asyncStar() async {
-    var library = await buildLibrary(r'''
-import 'dart:async';
-Stream f() async* {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        dart:async
-      functions
-        #F1 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration isStatic f (nameOffset:28) (firstTokenOffset:21) (offset:28)
-          element: <testLibrary>::@function::f
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: Stream<dynamic>
-''');
-  }
-
-  test_function_documented() async {
-    var library = await buildLibrary('''
-// Extra comment so doc comment offset != 0
-/**
- * Docs
- */
-f() {}''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:60) (firstTokenOffset:44) (offset:60)
-          element: <testLibrary>::@function::f
-          documentationComment: /**\n * Docs\n */
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      documentationComment: /**\n * Docs\n */
-      returnType: dynamic
-''');
-  }
-
-  test_function_entry_point() async {
-    var library = await buildLibrary('main() {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::main
-  functions
-    isOriginDeclaration isStatic main
-      reference: <testLibrary>::@function::main
-      firstFragment: #F1
-      returnType: dynamic
-''');
-  }
-
-  test_function_entry_point_in_export() async {
-    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
-    var library = await buildLibrary('export "a.dart";');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryExports
-        package:test/a.dart
-''');
-  }
-
-  test_function_entry_point_in_export_hidden() async {
-    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
-    var library = await buildLibrary('export "a.dart" hide main;');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryExports
-        package:test/a.dart
-          combinators
-            hide: main
-''');
-  }
-
-  test_function_entry_point_in_part() async {
-    newFile('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
-    var library = await buildLibrary('library my.lib; part "a.dart";');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  name: my.lib
-  fragments
-    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
-      element: <testLibrary>
-      nextFragment: #F1
-      parts
-        part_0
-          uri: package:test/a.dart
-          partKeywordOffset: 16
-          unit: #F1
-    #F1 package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F0
-      functions
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:16) (firstTokenOffset:16) (offset:16)
-          element: <testLibrary>::@function::main
-  functions
-    isOriginDeclaration isStatic main
-      reference: <testLibrary>::@function::main
-      firstFragment: #F2
-      returnType: dynamic
-''');
-  }
-
-  test_function_external() async {
-    var library = await buildLibrary('external f();');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isExternal isOriginDeclaration isStatic f (nameOffset:9) (firstTokenOffset:0) (offset:9)
-          element: <testLibrary>::@function::f
-  functions
-    isExternal isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: dynamic
-''');
-  }
-
-  test_function_hasImplicitReturnType_false() async {
-    var library = await buildLibrary('''
-int f() => 0;
-''');
-    var f = library.firstFragment.functions.single;
-    expect(f.hasImplicitReturnType, isFalse);
-  }
-
-  test_function_hasImplicitReturnType_true() async {
-    var library = await buildLibrary('''
-f() => 0;
-''');
-    var f = library.firstFragment.functions.single;
-    expect(f.hasImplicitReturnType, isTrue);
-  }
-
-  test_function_loadLibrary_declared() async {
-    var library = await buildLibrary(r'''
-void loadLibrary() {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic loadLibrary (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::loadLibrary#1
-  functions
-    isOriginDeclaration isStatic loadLibrary
-      reference: <testLibrary>::@function::loadLibrary#1
-      firstFragment: #F1
-      returnType: void
-''');
-  }
-
-  test_function_missingName() async {
-    var library = await buildLibrary('''
-() {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-''');
-  }
-
-  test_function_parameter_const() async {
-    var library = await buildLibrary('''
-void f(const x) {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:13) (firstTokenOffset:7) (offset:13)
-              element: <testLibrary>::@function::f::@formalParameter::x
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional hasImplicitType x
-          firstFragment: #F2
-          type: dynamic
-      returnType: void
-''');
-  }
-
-  test_function_parameter_fieldFormal() async {
-    var library = await buildLibrary('''
-void f(int this.a) {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional isFinal isOriginDeclaration this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
-              element: <testLibrary>::@function::f::@formalParameter::a
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional isFinal this.a
-          firstFragment: #F2
-          type: int
-          field: <null>
-      returnType: void
-''');
-  }
-
-  test_function_parameter_fieldFormal_default() async {
-    var library = await buildLibrary('''
-void f({int this.a: 42}) {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 optionalNamed isFinal isOriginDeclaration this.a (nameOffset:17) (firstTokenOffset:8) (offset:17)
-              element: <testLibrary>::@function::f::@formalParameter::a
-              initializer: expression_0
-                IntegerLiteral
-                  literal: 42 @20
-                  staticType: int
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 optionalNamed hasDefaultValue isFinal this.a
-          firstFragment: #F2
-          type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
-          field: <null>
-      returnType: void
-''');
-  }
-
-  test_function_parameter_fieldFormal_functionTyped() async {
-    var library = await buildLibrary('''
-void f(int this.a(int b)) {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional isFinal isOriginDeclaration this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
-              element: <testLibrary>::@function::f::@formalParameter::a
-              parameters
-                #F3 requiredPositional isOriginDeclaration b (nameOffset:22) (firstTokenOffset:18) (offset:22)
-                  element: b@22
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional isFinal this.a
-          firstFragment: #F2
-          type: int Function(int)
-          formalParameters
-            #E1 requiredPositional b
-              firstFragment: #F3
-              type: int
-          field: <null>
-      returnType: void
-''');
-  }
-
-  test_function_parameter_final() async {
-    var library = await buildLibrary('f(final x) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional hasImplicitType isFinal isOriginDeclaration x (nameOffset:8) (firstTokenOffset:2) (offset:8)
-              element: <testLibrary>::@function::f::@formalParameter::x
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional hasImplicitType isFinal x
-          firstFragment: #F2
-          type: dynamic
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_kind_named() async {
-    var library = await buildLibrary('f({x}) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 optionalNamed hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
-              element: <testLibrary>::@function::f::@formalParameter::x
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 optionalNamed hasImplicitType x
-          firstFragment: #F2
-          type: dynamic
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_kind_positional() async {
-    var library = await buildLibrary('f([x]) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
-              element: <testLibrary>::@function::f::@formalParameter::x
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 optionalPositional hasImplicitType x
-          firstFragment: #F2
-          type: dynamic
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_kind_required() async {
-    var library = await buildLibrary('f(x) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:2) (firstTokenOffset:2) (offset:2)
-              element: <testLibrary>::@function::f::@formalParameter::x
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional hasImplicitType x
-          firstFragment: #F2
-          type: dynamic
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_parameters() async {
-    var library = await buildLibrary('f(g(x, y)) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional isOriginDeclaration g (nameOffset:2) (firstTokenOffset:2) (offset:2)
-              element: <testLibrary>::@function::f::@formalParameter::g
-              parameters
-                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
-                  element: x@4
-                #F4 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:7) (firstTokenOffset:7) (offset:7)
-                  element: y@7
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional g
-          firstFragment: #F2
-          type: dynamic Function(dynamic, dynamic)
-          formalParameters
-            #E1 requiredPositional hasImplicitType x
-              firstFragment: #F3
-              type: dynamic
-            #E2 requiredPositional hasImplicitType y
-              firstFragment: #F4
-              type: dynamic
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_return_type() async {
-    var library = await buildLibrary('f(int g()) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional isOriginDeclaration g (nameOffset:6) (firstTokenOffset:2) (offset:6)
-              element: <testLibrary>::@function::f::@formalParameter::g
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional g
-          firstFragment: #F2
-          type: int Function()
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_return_type_void() async {
-    var library = await buildLibrary('f(void g()) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional isOriginDeclaration g (nameOffset:7) (firstTokenOffset:2) (offset:7)
-              element: <testLibrary>::@function::f::@formalParameter::g
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional g
-          firstFragment: #F2
-          type: void Function()
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_type() async {
-    var library = await buildLibrary('f(int i) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional isOriginDeclaration i (nameOffset:6) (firstTokenOffset:2) (offset:6)
-              element: <testLibrary>::@function::f::@formalParameter::i
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional i
-          firstFragment: #F2
-          type: int
-      returnType: dynamic
-''');
-  }
-
-  test_function_parameter_type_typeParameter() async {
-    var library = await buildLibrary('''
-void f<T>(T a) {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          typeParameters
-            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
-              element: #E0 T
-          formalParameters
-            #F3 requiredPositional isOriginDeclaration a (nameOffset:12) (firstTokenOffset:10) (offset:12)
-              element: <testLibrary>::@function::f::@formalParameter::a
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F2
-      formalParameters
-        #E1 requiredPositional a
-          firstFragment: #F3
-          type: T
-      returnType: void
-''');
-  }
-
-  test_function_parameter_type_unresolved() async {
-    var library = await buildLibrary(r'''
-void f(A a) {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional isOriginDeclaration a (nameOffset:9) (firstTokenOffset:7) (offset:9)
-              element: <testLibrary>::@function::f::@formalParameter::a
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional a
-          firstFragment: #F2
-          type: InvalidType
-      returnType: void
-''');
-  }
-
-  test_function_parameters() async {
-    var library = await buildLibrary('f(x, y) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-          formalParameters
-            #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:2) (firstTokenOffset:2) (offset:2)
-              element: <testLibrary>::@function::f::@formalParameter::x
-            #F3 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:5) (firstTokenOffset:5) (offset:5)
-              element: <testLibrary>::@function::f::@formalParameter::y
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional hasImplicitType x
-          firstFragment: #F2
-          type: dynamic
-        #E1 requiredPositional hasImplicitType y
-          firstFragment: #F3
-          type: dynamic
-      returnType: dynamic
-''');
-  }
-
-  test_function_return_type_implicit() async {
-    var library = await buildLibrary('f() => null;');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: dynamic
-''');
-  }
-
-  test_function_return_type_unresolved() async {
-    var library = await buildLibrary(r'''
-A f() {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
-          element: <testLibrary>::@function::f
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: InvalidType
-''');
-  }
-
-  test_function_return_type_void() async {
-    var library = await buildLibrary('void f() {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: void
-''');
-  }
-
-  test_function_returnType() async {
-    var library = await buildLibrary('''
-int f() => 0;
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
-          element: <testLibrary>::@function::f
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: int
-''');
-  }
-
-  test_function_returnType_typeParameter() async {
-    var library = await buildLibrary('''
-T f<T>() => throw 0;
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
-          element: <testLibrary>::@function::f
-          typeParameters
-            #F2 T (nameOffset:4) (firstTokenOffset:4) (offset:4)
-              element: #E0 T
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F2
-      returnType: T
-''');
-  }
-
-  test_function_type_parameter_with_function_typed_parameter() async {
-    var library = await buildLibrary('void f<T, U>(T x(U u)) {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          typeParameters
-            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
-              element: #E0 T
-            #F3 U (nameOffset:10) (firstTokenOffset:10) (offset:10)
-              element: #E1 U
-          formalParameters
-            #F4 requiredPositional isOriginDeclaration x (nameOffset:15) (firstTokenOffset:13) (offset:15)
-              element: <testLibrary>::@function::f::@formalParameter::x
-              parameters
-                #F5 requiredPositional isOriginDeclaration u (nameOffset:19) (firstTokenOffset:17) (offset:19)
-                  element: u@19
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F2
-        #E1 U
-          firstFragment: #F3
-      formalParameters
-        #E2 requiredPositional x
-          firstFragment: #F4
-          type: T Function(U)
-          formalParameters
-            #E3 requiredPositional u
-              firstFragment: #F5
-              type: U
-      returnType: void
-''');
-  }
-
-  test_function_typed_parameter_implicit() async {
-    var library = await buildLibrary('f(g()) => null;');
-    expect(
-      library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
-      isFalse,
-    );
-  }
-
-  test_function_typeParameters_hasBound() async {
-    var library = await buildLibrary('''
-void f<T extends num>() {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          typeParameters
-            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
-              element: #E0 T
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F2
-          bound: num
-      returnType: void
-''');
-  }
-
-  test_function_typeParameters_noBound() async {
-    var library = await buildLibrary('''
-void f<T>() {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::f
-          typeParameters
-            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
-              element: #E0 T
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F2
-      returnType: void
-''');
-  }
-
-  test_functions() async {
-    var library = await buildLibrary('f() {} g() {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::f
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
-          element: <testLibrary>::@function::g
-  functions
-    isOriginDeclaration isStatic f
-      reference: <testLibrary>::@function::f
-      firstFragment: #F1
-      returnType: dynamic
-    isOriginDeclaration isStatic g
-      reference: <testLibrary>::@function::g
-      firstFragment: #F2
-      returnType: dynamic
-''');
-  }
-
-  test_getter_missingName() async {
-    var library = await buildLibrary('''
-get () => 0;
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic get (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::get
-  functions
-    isOriginDeclaration isStatic get
-      reference: <testLibrary>::@function::get
-      firstFragment: #F1
-      returnType: dynamic
-''');
-  }
-
-  test_main_class() async {
-    var library = await buildLibrary('class main {}');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class main (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::main
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::main::@constructor::new
-              typeName: main
-  classes
-    isSimplyBounded class main
-      reference: <testLibrary>::@class::main
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::main::@constructor::new
-          firstFragment: #F2
-''');
-  }
-
-  test_main_class_alias() async {
-    var library = await buildLibrary(
-      'class main = C with D; class C {} class D {}',
-    );
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 isMixinApplication class main (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::main
-          constructors
-            #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::main::@constructor::new
-              typeName: main
-        #F3 class C (nameOffset:29) (firstTokenOffset:23) (offset:29)
-          element: <testLibrary>::@class::C
-          constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
-              element: <testLibrary>::@class::C::@constructor::new
-              typeName: C
-        #F5 class D (nameOffset:40) (firstTokenOffset:34) (offset:40)
-          element: <testLibrary>::@class::D
-          constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
-              element: <testLibrary>::@class::D::@constructor::new
-              typeName: D
-  classes
-    isMixinApplication isSimplyBounded class main
-      reference: <testLibrary>::@class::main
-      firstFragment: #F1
-      supertype: C
-      mixins
-        D
-      constructors
-        isOriginMixinApplication new
-          reference: <testLibrary>::@class::main::@constructor::new
-          firstFragment: #F2
-          constantInitializers
-            SuperConstructorInvocation
-              superKeyword: super @0
-              argumentList: ArgumentList
-                leftParenthesis: ( @0
-                rightParenthesis: ) @0
-              element: <testLibrary>::@class::C::@constructor::new
-          superConstructor: <testLibrary>::@class::C::@constructor::new
-    isSimplyBounded class C
-      reference: <testLibrary>::@class::C
-      firstFragment: #F3
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
-    isSimplyBounded class D
-      reference: <testLibrary>::@class::D
-      firstFragment: #F5
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F6
-''');
-  }
-
-  test_main_class_alias_via_export() async {
-    newFile(
-      '$testPackageLibPath/a.dart',
-      'class main = C with D; class C {} class D {}',
-    );
-    var library = await buildLibrary('export "a.dart";');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryExports
-        package:test/a.dart
-''');
-  }
-
-  test_main_class_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'class main {}');
-    var library = await buildLibrary('export "a.dart";');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryExports
-        package:test/a.dart
-''');
-  }
-
-  test_main_getter() async {
-    var library = await buildLibrary('get main => null;');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@topLevelVariable::main
-      getters
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:4) (firstTokenOffset:0) (offset:4)
-          element: <testLibrary>::@getter::main
-  topLevelVariables
-    isOriginGetterSetter isStatic main
-      reference: <testLibrary>::@topLevelVariable::main
-      firstFragment: #F1
-      type: dynamic
-      getter: <testLibrary>::@getter::main
-  getters
-    isOriginDeclaration isStatic main
-      reference: <testLibrary>::@getter::main
-      firstFragment: #F2
-      returnType: dynamic
-      variable: <testLibrary>::@topLevelVariable::main
-''');
-  }
-
-  test_main_getter_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'get main => null;');
-    var library = await buildLibrary('export "a.dart";');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryExports
-        package:test/a.dart
-''');
-  }
-
-  test_main_typedef() async {
-    var library = await buildLibrary('typedef main();');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      typeAliases
-        #F1 main (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@typeAlias::main
-  typeAliases
-    isSimplyBounded main
-      reference: <testLibrary>::@typeAlias::main
-      firstFragment: #F1
-      aliasedType: dynamic Function()
-''');
-  }
-
-  test_main_typedef_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'typedef main();');
-    var library = await buildLibrary('export "a.dart";');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryExports
-        package:test/a.dart
-''');
-  }
-
-  test_main_variable() async {
-    var library = await buildLibrary('var main;');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasImplicitType isOriginDeclaration isStatic main (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::main
-      getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::main
-      setters
-        #F3 isCompleteDeclaration isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::main
-          formalParameters
-            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::main::@formalParameter::value
-  topLevelVariables
-    hasImplicitType isOriginDeclaration isStatic main
-      reference: <testLibrary>::@topLevelVariable::main
-      firstFragment: #F1
-      type: dynamic
-      getter: <testLibrary>::@getter::main
-      setter: <testLibrary>::@setter::main
-  getters
-    isOriginVariable isStatic main
-      reference: <testLibrary>::@getter::main
-      firstFragment: #F2
-      returnType: dynamic
-      variable: <testLibrary>::@topLevelVariable::main
-  setters
-    isOriginVariable isStatic main
-      reference: <testLibrary>::@setter::main
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F4
-          type: dynamic
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::main
-''');
-  }
-
-  test_main_variable_via_export() async {
-    newFile('$testPackageLibPath/a.dart', 'var main;');
-    var library = await buildLibrary('export "a.dart";');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryExports
-        package:test/a.dart
-''');
-  }
-
-  test_setter_missingName() async {
-    var library = await buildLibrary('''
-set (int _) {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic set (nameOffset:0) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@function::set
-          formalParameters
-            #F2 requiredPositional isOriginDeclaration _ (nameOffset:9) (firstTokenOffset:5) (offset:9)
-              element: <testLibrary>::@function::set::@formalParameter::_
-  functions
-    isOriginDeclaration isStatic set
-      reference: <testLibrary>::@function::set
-      firstFragment: #F1
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F2
-          type: int
-      returnType: dynamic
-''');
-  }
-}
-
-abstract class TopLevelFunctionElementTest_augmentation
-    extends ElementsBaseTest {
-  test_augment_function() async {
-    var library = await buildLibrary(r'''
-void foo() {}
-augment void foo() {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::foo
-          nextFragment: #F2
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:27) (firstTokenOffset:14) (offset:27)
-          element: <testLibrary>::@function::foo
-          previousFragment: #F1
-  functions
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F1
-      returnType: void
-  exportEntries
-    declared <testLibrary>::@function::foo
-  exportNamespace
-    foo: <testLibrary>::@function::foo
-''');
-  }
-
-  test_augment_getter() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment void foo() {}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-      functions
-        #F3 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
-          element: <testLibrary>::@function::foo
-  topLevelVariables
-    isOriginGetterSetter isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  functions
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F3
-      previousFragmentOfDifferentKind: #F2
-      returnType: void
-''');
-  }
-
-  test_augment_nothing() async {
-    var library = await buildLibrary(r'''
-augment void foo() {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      functions
-        #F1 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:13) (firstTokenOffset:0) (offset:13)
-          element: <testLibrary>::@function::foo
-  functions
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F1
-      returnType: void
-  exportEntries
-    declared <testLibrary>::@function::foo
-  exportNamespace
-    foo: <testLibrary>::@function::foo
-''');
-  }
-
-  test_augment_setter() async {
-    var library = await buildLibrary(r'''
-set foo(int _) {}
-augment void foo() {}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-      setters
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F3 requiredPositional isOriginDeclaration _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-      functions
-        #F4 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
-          element: <testLibrary>::@function::foo
-  topLevelVariables
-    isOriginGetterSetter isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      setter: <testLibrary>::@setter::foo
-  setters
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F2
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F3
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  functions
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F4
-      previousFragmentOfDifferentKind: #F2
-      returnType: void
-''');
-  }
-
-  test_augment_variable() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment void foo() {}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-      functions
-        #F5 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
-          element: <testLibrary>::@function::foo
-  topLevelVariables
-    hasInitializer isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    isOriginVariable isStatic foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    isOriginVariable isStatic foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  functions
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F5
-      previousFragmentOfDifferentKind: #F1
-      returnType: void
-''');
-  }
-
-  test_augmentationTarget() async {
-    newFile('$testPackageLibPath/a1.dart', r'''
-part of 'test.dart';
-part 'a11.dart';
-part 'a12.dart';
-augment void foo() {}
-''');
-
-    newFile('$testPackageLibPath/a11.dart', r'''
-part of 'a1.dart';
-augment void foo() {}
-''');
-
-    newFile('$testPackageLibPath/a12.dart', r'''
-part of 'a1.dart';
-augment void foo() {}
-''');
-
-    newFile('$testPackageLibPath/a2.dart', r'''
-part of 'test.dart';
-part 'a21.dart';
-part 'a22.dart';
-augment void foo() {}
-''');
-
-    newFile('$testPackageLibPath/a21.dart', r'''
-part of 'a2.dart';
-augment void foo() {}
-''');
-
-    newFile('$testPackageLibPath/a22.dart', r'''
-part of 'a2.dart';
-augment void foo() {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a1.dart';
-part 'a2.dart';
-void foo() {}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: #F1
-      parts
-        part_0
-          uri: package:test/a1.dart
-          partKeywordOffset: 0
-          unit: #F1
-        part_1
-          uri: package:test/a2.dart
-          partKeywordOffset: 16
-          unit: #F2
-      functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:32) (offset:37)
-          element: <testLibrary>::@function::foo
-          nextFragment: #F4
-    #F1 package:test/a1.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F0
-      nextFragment: #F5
-      parts
-        part_2
-          uri: package:test/a11.dart
-          partKeywordOffset: 21
-          unit: #F5
-        part_3
-          uri: package:test/a12.dart
-          partKeywordOffset: 38
-          unit: #F6
-      functions
-        #F4 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
-          element: <testLibrary>::@function::foo
-          previousFragment: #F3
-          nextFragment: #F7
-    #F5 package:test/a11.dart
-      element: <testLibrary>
-      enclosingFragment: #F1
-      previousFragment: #F1
-      nextFragment: #F6
-      functions
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
-          element: <testLibrary>::@function::foo
-          previousFragment: #F4
-          nextFragment: #F8
-    #F6 package:test/a12.dart
-      element: <testLibrary>
-      enclosingFragment: #F1
-      previousFragment: #F5
-      nextFragment: #F2
-      functions
-        #F8 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
-          element: <testLibrary>::@function::foo
-          previousFragment: #F7
-          nextFragment: #F9
-    #F2 package:test/a2.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F6
-      nextFragment: #F10
-      parts
-        part_4
-          uri: package:test/a21.dart
-          partKeywordOffset: 21
-          unit: #F10
-        part_5
-          uri: package:test/a22.dart
-          partKeywordOffset: 38
-          unit: #F11
-      functions
-        #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
-          element: <testLibrary>::@function::foo
-          previousFragment: #F8
-          nextFragment: #F12
-    #F10 package:test/a21.dart
-      element: <testLibrary>
-      enclosingFragment: #F2
-      previousFragment: #F2
-      nextFragment: #F11
-      functions
-        #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
-          element: <testLibrary>::@function::foo
-          previousFragment: #F9
-          nextFragment: #F13
-    #F11 package:test/a22.dart
-      element: <testLibrary>
-      enclosingFragment: #F2
-      previousFragment: #F10
-      functions
-        #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
-          element: <testLibrary>::@function::foo
-          previousFragment: #F12
-  functions
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F3
-      returnType: void
-''');
-  }
-
-  test_augments_class() async {
-    var library = await buildLibrary(r'''
-class foo {}
-augment void foo() {}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class foo (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::foo
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::foo::@constructor::new
-              typeName: foo
-      functions
-        #F3 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
-          element: <testLibrary>::@function::foo
-  classes
-    isSimplyBounded class foo
-      reference: <testLibrary>::@class::foo
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::foo::@constructor::new
-          firstFragment: #F2
-  functions
-    isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F3
-      previousFragmentOfDifferentKind: #F1
-      returnType: void
-''');
-  }
-
   test_formalParameters_rN1__rN1() async {
     var library = await buildLibrary(r'''
 void foo({required int n1}) {}
@@ -3216,10 +1608,60 @@ library
 ''');
   }
 
-  test_typeParameter() async {
+  test_function_async() async {
     var library = await buildLibrary(r'''
-void foo<T>() {}
-augment void foo<T>() {}
+import 'dart:async';
+
+Future f() async {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async
+      functions
+        #F1 isAsynchronous isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: Future<dynamic>
+''');
+  }
+
+  test_function_asyncStar() async {
+    var library = await buildLibrary(r'''
+import 'dart:async';
+
+Stream f() async* {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async
+      functions
+        #F1 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: Stream<dynamic>
+''');
+  }
+
+  test_function_augmentation_chain() async {
+    var library = await buildLibrary(r'''
+void foo() {}
+augment void foo() {}
 ''');
 
     configuration.withExportScope = true;
@@ -3233,24 +1675,13 @@ library
         #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
-          typeParameters
-            #F3 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
-              element: #E0 T
-              nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:27) (firstTokenOffset:14) (offset:27)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
-          typeParameters
-            #F4 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
-              element: #E0 T
-              previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F3
       returnType: void
   exportEntries
     declared <testLibrary>::@function::foo
@@ -3259,7 +1690,208 @@ library
 ''');
   }
 
-  test_typeParameters_augmentation_chain_count_111() async {
+  test_function_augmentation_chain_noIntroductoryDeclaration() async {
+    var library = await buildLibrary(r'''
+augment void foo() {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:13) (firstTokenOffset:0) (offset:13)
+          element: <testLibrary>::@function::foo
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      returnType: void
+  exportEntries
+    declared <testLibrary>::@function::foo
+  exportNamespace
+    foo: <testLibrary>::@function::foo
+''');
+  }
+
+  test_function_augmentation_chain_partTreePreorder() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+part of 'test.dart';
+part 'a11.dart';
+part 'a12.dart';
+augment void foo() {}
+''');
+
+    newFile('$testPackageLibPath/a11.dart', r'''
+part of 'a1.dart';
+augment void foo() {}
+''');
+
+    newFile('$testPackageLibPath/a12.dart', r'''
+part of 'a1.dart';
+augment void foo() {}
+''');
+
+    newFile('$testPackageLibPath/a2.dart', r'''
+part of 'test.dart';
+part 'a21.dart';
+part 'a22.dart';
+augment void foo() {}
+''');
+
+    newFile('$testPackageLibPath/a21.dart', r'''
+part of 'a2.dart';
+augment void foo() {}
+''');
+
+    newFile('$testPackageLibPath/a22.dart', r'''
+part of 'a2.dart';
+augment void foo() {}
+''');
+
+    var library = await buildLibrary(r'''
+part 'a1.dart';
+part 'a2.dart';
+
+void foo() {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: #F1
+      parts
+        part_0
+          uri: package:test/a1.dart
+          partKeywordOffset: 0
+          unit: #F1
+        part_1
+          uri: package:test/a2.dart
+          partKeywordOffset: 16
+          unit: #F2
+      functions
+        #F3 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:33) (offset:38)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F4
+    #F1 package:test/a1.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+      nextFragment: #F5
+      parts
+        part_2
+          uri: package:test/a11.dart
+          partKeywordOffset: 21
+          unit: #F5
+        part_3
+          uri: package:test/a12.dart
+          partKeywordOffset: 38
+          unit: #F6
+      functions
+        #F4 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F3
+          nextFragment: #F7
+    #F5 package:test/a11.dart
+      element: <testLibrary>
+      enclosingFragment: #F1
+      previousFragment: #F1
+      nextFragment: #F6
+      functions
+        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F4
+          nextFragment: #F8
+    #F6 package:test/a12.dart
+      element: <testLibrary>
+      enclosingFragment: #F1
+      previousFragment: #F5
+      nextFragment: #F2
+      functions
+        #F8 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F7
+          nextFragment: #F9
+    #F2 package:test/a2.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F6
+      nextFragment: #F10
+      parts
+        part_4
+          uri: package:test/a21.dart
+          partKeywordOffset: 21
+          unit: #F10
+        part_5
+          uri: package:test/a22.dart
+          partKeywordOffset: 38
+          unit: #F11
+      functions
+        #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F8
+          nextFragment: #F12
+    #F10 package:test/a21.dart
+      element: <testLibrary>
+      enclosingFragment: #F2
+      previousFragment: #F2
+      nextFragment: #F11
+      functions
+        #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F9
+          nextFragment: #F13
+    #F11 package:test/a22.dart
+      element: <testLibrary>
+      enclosingFragment: #F2
+      previousFragment: #F10
+      functions
+        #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F12
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F3
+      returnType: void
+''');
+  }
+
+  test_function_augmentation_chain_returnType_void_int() async {
+    var library = await buildLibrary(r'''
+void foo() {}
+augment int foo() => 0;
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:14) (offset:26)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      returnType: void
+''');
+  }
+
+  test_function_augmentation_chain_typeParameters_count_111() async {
     var library = await buildLibrary(r'''
 void foo<T>() {}
 augment void foo<T>() {}
@@ -3308,7 +1940,7 @@ library
 ''');
   }
 
-  test_typeParameters_augmentation_chain_count_112() async {
+  test_function_augmentation_chain_typeParameters_count_112() async {
     var library = await buildLibrary(r'''
 void foo<T>() {}
 augment void foo<T>() {}
@@ -3368,7 +2000,7 @@ library
 ''');
   }
 
-  test_typeParameters_augmentation_chain_count_121() async {
+  test_function_augmentation_chain_typeParameters_count_121() async {
     var library = await buildLibrary(r'''
 void foo<T>() {}
 augment void foo<T, U>() {}
@@ -3429,7 +2061,7 @@ library
 ''');
   }
 
-  test_typeParameters_augmentation_chain_count_123() async {
+  test_function_augmentation_chain_typeParameters_count_123() async {
     var library = await buildLibrary(r'''
 void foo<T>() {}
 augment void foo<T, U>() {}
@@ -3501,7 +2133,7 @@ library
 ''');
   }
 
-  test_typeParameters_augmentation_chain_count_211() async {
+  test_function_augmentation_chain_typeParameters_count_211() async {
     var library = await buildLibrary(r'''
 void foo<T, U>() {}
 augment void foo<T>() {}
@@ -3561,7 +2193,7 @@ library
 ''');
   }
 
-  test_typeParameters_augmentation_chain_count_212() async {
+  test_function_augmentation_chain_typeParameters_count_212() async {
     var library = await buildLibrary(r'''
 void foo<T, U>() {}
 augment void foo<T>() {}
@@ -3622,6 +2254,1482 @@ library
 ''');
   }
 
+  test_function_augmentation_sameName_class() async {
+    var library = await buildLibrary(r'''
+class foo {}
+augment void foo() {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class foo (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::foo
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::foo::@constructor::new
+              typeName: foo
+      functions
+        #F3 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
+          element: <testLibrary>::@function::foo
+  classes
+    isSimplyBounded class foo
+      reference: <testLibrary>::@class::foo
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::foo::@constructor::new
+          firstFragment: #F2
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
+      returnType: void
+''');
+  }
+
+  test_function_augmentation_sameName_getter() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment void foo() {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+      functions
+        #F3 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
+          element: <testLibrary>::@function::foo
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F2
+      returnType: void
+''');
+  }
+
+  test_function_augmentation_sameName_setter() async {
+    var library = await buildLibrary(r'''
+set foo(int _) {}
+augment void foo() {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+      setters
+        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+      functions
+        #F4 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
+          element: <testLibrary>::@function::foo
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F3
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F4
+      previousFragmentOfDifferentKind: #F2
+      returnType: void
+''');
+  }
+
+  test_function_augmentation_sameName_variable() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment void foo() {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+      functions
+        #F5 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
+          element: <testLibrary>::@function::foo
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F5
+      previousFragmentOfDifferentKind: #F1
+      returnType: void
+''');
+  }
+
+  test_function_documented() async {
+    var library = await buildLibrary(r'''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:60) (firstTokenOffset:44) (offset:60)
+          element: <testLibrary>::@function::f
+          documentationComment: /**\n * Docs\n */
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      documentationComment: /**\n * Docs\n */
+      returnType: dynamic
+''');
+  }
+
+  test_function_entry_point() async {
+    var library = await buildLibrary(r'''
+main() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::main
+  functions
+    isOriginDeclaration isStatic main
+      reference: <testLibrary>::@function::main
+      firstFragment: #F1
+      returnType: dynamic
+''');
+  }
+
+  test_function_entry_point_in_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library a;
+main() {}
+''');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+''');
+  }
+
+  test_function_entry_point_in_export_hidden() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library a;
+main() {}
+''');
+    var library = await buildLibrary(r'''
+export "a.dart" hide main;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+          combinators
+            hide: main
+''');
+  }
+
+  test_function_entry_point_in_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+main() {}
+''');
+    var library = await buildLibrary(r'''
+library my.lib;
+
+part "a.dart";
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  name: my.lib
+  fragments
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
+      element: <testLibrary>
+      nextFragment: #F1
+      parts
+        part_0
+          uri: package:test/a.dart
+          partKeywordOffset: 17
+          unit: #F1
+    #F1 package:test/a.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+      functions
+        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:16) (firstTokenOffset:16) (offset:16)
+          element: <testLibrary>::@function::main
+  functions
+    isOriginDeclaration isStatic main
+      reference: <testLibrary>::@function::main
+      firstFragment: #F2
+      returnType: dynamic
+''');
+  }
+
+  test_function_external() async {
+    var library = await buildLibrary(r'''
+external f();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isExternal isOriginDeclaration isStatic f (nameOffset:9) (firstTokenOffset:0) (offset:9)
+          element: <testLibrary>::@function::f
+  functions
+    isExternal isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: dynamic
+''');
+  }
+
+  test_function_hasImplicitReturnType_false() async {
+    var library = await buildLibrary(r'''
+int f() => 0;
+''');
+    var f = library.firstFragment.functions.single;
+    expect(f.hasImplicitReturnType, isFalse);
+  }
+
+  test_function_hasImplicitReturnType_true() async {
+    var library = await buildLibrary(r'''
+f() => 0;
+''');
+    var f = library.firstFragment.functions.single;
+    expect(f.hasImplicitReturnType, isTrue);
+  }
+
+  test_function_loadLibrary_declared() async {
+    var library = await buildLibrary(r'''
+void loadLibrary() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic loadLibrary (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::loadLibrary#1
+  functions
+    isOriginDeclaration isStatic loadLibrary
+      reference: <testLibrary>::@function::loadLibrary#1
+      firstFragment: #F1
+      returnType: void
+''');
+  }
+
+  test_function_missingName() async {
+    var library = await buildLibrary(r'''
+() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+''');
+  }
+
+  test_function_parameter_const() async {
+    var library = await buildLibrary(r'''
+void f(const x) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:13) (firstTokenOffset:7) (offset:13)
+              element: <testLibrary>::@function::f::@formalParameter::x
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional hasImplicitType x
+          firstFragment: #F2
+          type: dynamic
+      returnType: void
+''');
+  }
+
+  test_function_parameter_fieldFormal() async {
+    var library = await buildLibrary(r'''
+void f(int this.a) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional isFinal isOriginDeclaration this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
+              element: <testLibrary>::@function::f::@formalParameter::a
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional isFinal this.a
+          firstFragment: #F2
+          type: int
+          field: <null>
+      returnType: void
+''');
+  }
+
+  test_function_parameter_fieldFormal_default() async {
+    var library = await buildLibrary(r'''
+void f({int this.a: 42}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 optionalNamed isFinal isOriginDeclaration this.a (nameOffset:17) (firstTokenOffset:8) (offset:17)
+              element: <testLibrary>::@function::f::@formalParameter::a
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 42 @20
+                  staticType: int
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 optionalNamed hasDefaultValue isFinal this.a
+          firstFragment: #F2
+          type: int
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          field: <null>
+      returnType: void
+''');
+  }
+
+  test_function_parameter_fieldFormal_functionTyped() async {
+    var library = await buildLibrary(r'''
+void f(int this.a(int b)) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional isFinal isOriginDeclaration this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
+              element: <testLibrary>::@function::f::@formalParameter::a
+              parameters
+                #F3 requiredPositional isOriginDeclaration b (nameOffset:22) (firstTokenOffset:18) (offset:22)
+                  element: b@22
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional isFinal this.a
+          firstFragment: #F2
+          type: int Function(int)
+          formalParameters
+            #E1 requiredPositional b
+              firstFragment: #F3
+              type: int
+          field: <null>
+      returnType: void
+''');
+  }
+
+  test_function_parameter_final() async {
+    var library = await buildLibrary(r'''
+f(final x) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional hasImplicitType isFinal isOriginDeclaration x (nameOffset:8) (firstTokenOffset:2) (offset:8)
+              element: <testLibrary>::@function::f::@formalParameter::x
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional hasImplicitType isFinal x
+          firstFragment: #F2
+          type: dynamic
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_kind_named() async {
+    var library = await buildLibrary(r'''
+f({x}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 optionalNamed hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
+              element: <testLibrary>::@function::f::@formalParameter::x
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 optionalNamed hasImplicitType x
+          firstFragment: #F2
+          type: dynamic
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_kind_positional() async {
+    var library = await buildLibrary(r'''
+f([x]) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
+              element: <testLibrary>::@function::f::@formalParameter::x
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 optionalPositional hasImplicitType x
+          firstFragment: #F2
+          type: dynamic
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_kind_required() async {
+    var library = await buildLibrary(r'''
+f(x) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:2) (firstTokenOffset:2) (offset:2)
+              element: <testLibrary>::@function::f::@formalParameter::x
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional hasImplicitType x
+          firstFragment: #F2
+          type: dynamic
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_parameters() async {
+    var library = await buildLibrary(r'''
+f(g(x, y)) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional isOriginDeclaration g (nameOffset:2) (firstTokenOffset:2) (offset:2)
+              element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+                  element: x@4
+                #F4 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:7) (firstTokenOffset:7) (offset:7)
+                  element: y@7
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional g
+          firstFragment: #F2
+          type: dynamic Function(dynamic, dynamic)
+          formalParameters
+            #E1 requiredPositional hasImplicitType x
+              firstFragment: #F3
+              type: dynamic
+            #E2 requiredPositional hasImplicitType y
+              firstFragment: #F4
+              type: dynamic
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_return_type() async {
+    var library = await buildLibrary(r'''
+f(int g()) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional isOriginDeclaration g (nameOffset:6) (firstTokenOffset:2) (offset:6)
+              element: <testLibrary>::@function::f::@formalParameter::g
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional g
+          firstFragment: #F2
+          type: int Function()
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_return_type_void() async {
+    var library = await buildLibrary(r'''
+f(void g()) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional isOriginDeclaration g (nameOffset:7) (firstTokenOffset:2) (offset:7)
+              element: <testLibrary>::@function::f::@formalParameter::g
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional g
+          firstFragment: #F2
+          type: void Function()
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_type() async {
+    var library = await buildLibrary(r'''
+f(int i) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional isOriginDeclaration i (nameOffset:6) (firstTokenOffset:2) (offset:6)
+              element: <testLibrary>::@function::f::@formalParameter::i
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional i
+          firstFragment: #F2
+          type: int
+      returnType: dynamic
+''');
+  }
+
+  test_function_parameter_type_typeParameter() async {
+    var library = await buildLibrary(r'''
+void f<T>(T a) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          typeParameters
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
+              element: #E0 T
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:12) (firstTokenOffset:10) (offset:12)
+              element: <testLibrary>::@function::f::@formalParameter::a
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      formalParameters
+        #E1 requiredPositional a
+          firstFragment: #F3
+          type: T
+      returnType: void
+''');
+  }
+
+  test_function_parameter_type_unresolved() async {
+    var library = await buildLibrary(r'''
+void f(A a) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional isOriginDeclaration a (nameOffset:9) (firstTokenOffset:7) (offset:9)
+              element: <testLibrary>::@function::f::@formalParameter::a
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional a
+          firstFragment: #F2
+          type: InvalidType
+      returnType: void
+''');
+  }
+
+  test_function_parameters() async {
+    var library = await buildLibrary(r'''
+f(x, y) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:2) (firstTokenOffset:2) (offset:2)
+              element: <testLibrary>::@function::f::@formalParameter::x
+            #F3 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:5) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@function::f::@formalParameter::y
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional hasImplicitType x
+          firstFragment: #F2
+          type: dynamic
+        #E1 requiredPositional hasImplicitType y
+          firstFragment: #F3
+          type: dynamic
+      returnType: dynamic
+''');
+  }
+
+  test_function_return_type_implicit() async {
+    var library = await buildLibrary(r'''
+f() => null;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: dynamic
+''');
+  }
+
+  test_function_return_type_unresolved() async {
+    var library = await buildLibrary(r'''
+A f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: InvalidType
+''');
+  }
+
+  test_function_return_type_void() async {
+    var library = await buildLibrary(r'''
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: void
+''');
+  }
+
+  test_function_returnType() async {
+    var library = await buildLibrary(r'''
+int f() => 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: int
+''');
+  }
+
+  test_function_returnType_typeParameter() async {
+    var library = await buildLibrary(r'''
+T f<T>() => throw 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
+          element: <testLibrary>::@function::f
+          typeParameters
+            #F2 T (nameOffset:4) (firstTokenOffset:4) (offset:4)
+              element: #E0 T
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      returnType: T
+''');
+  }
+
+  test_function_type_parameter_with_function_typed_parameter() async {
+    var library = await buildLibrary(r'''
+void f<T, U>(T x(U u)) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          typeParameters
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
+              element: #E0 T
+            #F3 U (nameOffset:10) (firstTokenOffset:10) (offset:10)
+              element: #E1 U
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration x (nameOffset:15) (firstTokenOffset:13) (offset:15)
+              element: <testLibrary>::@function::f::@formalParameter::x
+              parameters
+                #F5 requiredPositional isOriginDeclaration u (nameOffset:19) (firstTokenOffset:17) (offset:19)
+                  element: u@19
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+        #E1 U
+          firstFragment: #F3
+      formalParameters
+        #E2 requiredPositional x
+          firstFragment: #F4
+          type: T Function(U)
+          formalParameters
+            #E3 requiredPositional u
+              firstFragment: #F5
+              type: U
+      returnType: void
+''');
+  }
+
+  test_function_typed_parameter_implicit() async {
+    var library = await buildLibrary(r'''
+f(g()) => null;
+''');
+    expect(
+      library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
+      isFalse,
+    );
+  }
+
+  test_function_typeParameters_hasBound() async {
+    var library = await buildLibrary(r'''
+void f<T extends num>() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          typeParameters
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
+              element: #E0 T
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          bound: num
+      returnType: void
+''');
+  }
+
+  test_function_typeParameters_noBound() async {
+    var library = await buildLibrary(r'''
+void f<T>() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          typeParameters
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
+              element: #E0 T
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      returnType: void
+''');
+  }
+
+  test_functions() async {
+    var library = await buildLibrary(r'''
+f() {}
+g() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::f
+        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
+          element: <testLibrary>::@function::g
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      returnType: dynamic
+    isOriginDeclaration isStatic g
+      reference: <testLibrary>::@function::g
+      firstFragment: #F2
+      returnType: dynamic
+''');
+  }
+
+  test_getter_missingName() async {
+    var library = await buildLibrary(r'''
+get() => 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic get (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::get
+  functions
+    isOriginDeclaration isStatic get
+      reference: <testLibrary>::@function::get
+      firstFragment: #F1
+      returnType: dynamic
+''');
+  }
+
+  test_main_class() async {
+    var library = await buildLibrary(r'''
+class main {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class main (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::main
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::main::@constructor::new
+              typeName: main
+  classes
+    isSimplyBounded class main
+      reference: <testLibrary>::@class::main
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::main::@constructor::new
+          firstFragment: #F2
+''');
+  }
+
+  test_main_class_alias() async {
+    var library = await buildLibrary(r'''
+class main = C with D;
+
+class C {}
+
+class D {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isMixinApplication class main (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::main
+          constructors
+            #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::main::@constructor::new
+              typeName: main
+        #F3 class C (nameOffset:30) (firstTokenOffset:24) (offset:30)
+          element: <testLibrary>::@class::C
+          constructors
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+        #F5 class D (nameOffset:42) (firstTokenOffset:36) (offset:42)
+          element: <testLibrary>::@class::D
+          constructors
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+              element: <testLibrary>::@class::D::@constructor::new
+              typeName: D
+  classes
+    isMixinApplication isSimplyBounded class main
+      reference: <testLibrary>::@class::main
+      firstFragment: #F1
+      supertype: C
+      mixins
+        D
+      constructors
+        isOriginMixinApplication new
+          reference: <testLibrary>::@class::main::@constructor::new
+          firstFragment: #F2
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibrary>::@class::C::@constructor::new
+          superConstructor: <testLibrary>::@class::C::@constructor::new
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F3
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F4
+    isSimplyBounded class D
+      reference: <testLibrary>::@class::D
+      firstFragment: #F5
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F6
+''');
+  }
+
+  test_main_class_alias_via_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class main = C with D;
+class C {}
+class D {}
+''');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+''');
+  }
+
+  test_main_class_via_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class main {}
+''');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+''');
+  }
+
+  test_main_getter() async {
+    var library = await buildLibrary(r'''
+get main => null;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@topLevelVariable::main
+      getters
+        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@getter::main
+  topLevelVariables
+    isOriginGetterSetter isStatic main
+      reference: <testLibrary>::@topLevelVariable::main
+      firstFragment: #F1
+      type: dynamic
+      getter: <testLibrary>::@getter::main
+  getters
+    isOriginDeclaration isStatic main
+      reference: <testLibrary>::@getter::main
+      firstFragment: #F2
+      returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::main
+''');
+  }
+
+  test_main_getter_via_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+get main => null;
+''');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+''');
+  }
+
+  test_main_typedef() async {
+    var library = await buildLibrary(r'''
+typedef main();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 main (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::main
+  typeAliases
+    isSimplyBounded main
+      reference: <testLibrary>::@typeAlias::main
+      firstFragment: #F1
+      aliasedType: dynamic Function()
+''');
+  }
+
+  test_main_typedef_via_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef main();
+''');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+''');
+  }
+
+  test_main_variable() async {
+    var library = await buildLibrary(r'''
+var main;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType isOriginDeclaration isStatic main (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::main
+      getters
+        #F2 isCompleteDeclaration isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::main
+      setters
+        #F3 isCompleteDeclaration isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::main
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::main::@formalParameter::value
+  topLevelVariables
+    hasImplicitType isOriginDeclaration isStatic main
+      reference: <testLibrary>::@topLevelVariable::main
+      firstFragment: #F1
+      type: dynamic
+      getter: <testLibrary>::@getter::main
+      setter: <testLibrary>::@setter::main
+  getters
+    isOriginVariable isStatic main
+      reference: <testLibrary>::@getter::main
+      firstFragment: #F2
+      returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::main
+  setters
+    isOriginVariable isStatic main
+      reference: <testLibrary>::@setter::main
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: dynamic
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::main
+''');
+  }
+
+  test_main_variable_via_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var main;
+''');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+''');
+  }
+
+  test_setter_missingName() async {
+    var library = await buildLibrary(r'''
+set(int _) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic set (nameOffset:0) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@function::set
+          formalParameters
+            #F2 requiredPositional isOriginDeclaration _ (nameOffset:8) (firstTokenOffset:4) (offset:8)
+              element: <testLibrary>::@function::set::@formalParameter::_
+  functions
+    isOriginDeclaration isStatic set
+      reference: <testLibrary>::@function::set
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F2
+          type: int
+      returnType: dynamic
+''');
+  }
+
+  test_typeParameter() async {
+    var library = await buildLibrary(r'''
+void foo<T>() {}
+augment void foo<T>() {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          typeParameters
+            #F4 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: #E0 T
+              previousFragment: #F3
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+      returnType: void
+  exportEntries
+    declared <testLibrary>::@function::foo
+  exportNamespace
+    foo: <testLibrary>::@function::foo
+''');
+  }
+
   test_typeParameters_int_string() async {
     var library = await buildLibrary(r'''
 void foo<T extends int>() {}
@@ -3665,20 +3773,6 @@ library
     foo: <testLibrary>::@function::foo
 ''');
   }
-}
-
-@reflectiveTest
-class TopLevelFunctionElementTest_augmentation_fromBytes
-    extends TopLevelFunctionElementTest_augmentation {
-  @override
-  bool get keepLinkingLibraries => false;
-}
-
-@reflectiveTest
-class TopLevelFunctionElementTest_augmentation_keepLinking
-    extends TopLevelFunctionElementTest_augmentation {
-  @override
-  bool get keepLinkingLibraries => true;
 }
 
 @reflectiveTest

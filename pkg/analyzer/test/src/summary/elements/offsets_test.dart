@@ -17,7 +17,7 @@ main() {
 
 abstract class OffsetsElementTest extends ElementsBaseTest {
   test_codeRange_class() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class Raw {}
 
 /// Comment 1.
@@ -137,7 +137,7 @@ library
   }
 
   test_codeRange_class_namedMixin() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 
 class B {}
@@ -353,7 +353,7 @@ library
   }
 
   test_codeRange_constructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C();
 
@@ -567,7 +567,7 @@ library
   }
 
   test_codeRange_constructor_factory() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   factory C() => throw 0;
 
@@ -788,7 +788,7 @@ library
   }
 
   test_codeRange_extensions() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 
 extension Raw on A {}
@@ -889,7 +889,7 @@ library
   }
 
   test_codeRange_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int withInit = 1;
 
@@ -1075,7 +1075,7 @@ library
   }
 
   test_codeRange_field_annotations() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   /// Comment 1.
   /// Comment 2.
@@ -1614,7 +1614,7 @@ library
   }
 
   test_codeRange_function() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void raw() {}
 
 /// Comment 1.
@@ -1784,7 +1784,7 @@ library
   }
 
   test_codeRange_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   void raw() {}
 
@@ -1983,7 +1983,7 @@ library
   }
 
   test_codeRange_parameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 main({int a = 1, int b, int c = 2}) {}
 ''');
     configuration.withCodeRanges = true;
@@ -2036,7 +2036,7 @@ library
   }
 
   test_codeRange_parameter_annotations() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 main(@Object() int a, int b, @Object() int c) {}
 ''');
     configuration.withCodeRanges = true;
@@ -2119,7 +2119,7 @@ library
   }
 
   test_codeRange_topLevelVariable() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int withInit = 1 + 2 * 3;
 
 int withoutInit;
@@ -2288,7 +2288,7 @@ library
   }
 
   test_codeRange_topLevelVariable_annotations() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// Comment 1.
 /// Comment 2.
 int hasDocComment, hasDocComment2;
@@ -2810,7 +2810,7 @@ library
   }
 
   test_codeRange_type_parameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {}
 void f<U extends num> {}
 ''');

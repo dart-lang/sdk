@@ -1080,7 +1080,6 @@ class PromotedCacheableExpression
         result = createAsExpression(
           result,
           _promotedType,
-          forNonNullableByDefault: true,
           isUnchecked: true,
           fileOffset: result.fileOffset,
         );
@@ -1150,7 +1149,6 @@ class CovariantCheckCacheableExpression
     return createAsExpression(
       result,
       _checkedType,
-      forNonNullableByDefault: true,
       fileOffset: fileOffset,
       isCovarianceCheck: true,
     );

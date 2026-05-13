@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+[229]static method [236] [270] method0() → asy::Stream<core::int> async* 
+[-1]  ;
+[286]static method [293] [406] method1() → asy::Future<void> async 
+[-1]  ;
+[414]static method [421] [425] method2() → void
+[-1]  ;

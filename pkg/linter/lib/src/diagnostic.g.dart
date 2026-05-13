@@ -1290,6 +1290,22 @@ emptyConstructorBodies = LinterLintWithoutArguments(
   expectedTypes: [],
 );
 
+/// Parameters:
+/// String containerKind: The kind of the container, such as 'class' or
+///                       'enum'.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String containerKind})
+>
+emptyContainerBodies = LinterLintTemplate(
+  name: 'empty_container_bodies',
+  problemMessage:
+      "Empty {0} bodies should be written using a ';' rather than '{}'.",
+  correctionMessage: "Try replacing the {0} body with ';'.",
+  uniqueName: 'empty_container_bodies',
+  withArguments: _withArgumentsEmptyContainerBodies,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const LinterLintWithoutArguments emptyStatements = LinterLintWithoutArguments(
   name: 'empty_statements',
@@ -1437,6 +1453,16 @@ implicitReopen = LinterLintTemplate(
     ExpectedType.object,
   ],
 );
+
+/// No parameters.
+const LinterLintWithoutArguments initializeInFieldDeclaration =
+    LinterLintWithoutArguments(
+      name: 'initialize_in_field_declaration',
+      problemMessage: "Field should be initialized in the field declaration.",
+      correctionMessage: "Try initializing the field where it's declared.",
+      uniqueName: 'initialize_in_field_declaration',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const LinterLintWithoutArguments invalidCasePatterns =
@@ -3607,6 +3633,16 @@ const LinterLintWithoutArguments useColoredBox = LinterLintWithoutArguments(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments useDeclaringParameters =
+    LinterLintWithoutArguments(
+      name: 'use_declaring_parameters',
+      problemMessage: "Use a declaring parameter.",
+      correctionMessage: "Try using a declaring parameter.",
+      uniqueName: 'use_declaring_parameters',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments useDecoratedBox = LinterLintWithoutArguments(
   name: 'use_decorated_box',
   problemMessage:
@@ -3730,6 +3766,16 @@ const LinterLintWithoutArguments useNullAwareElements =
       correctionMessage: "Try using '?'.",
       hasPublishedDocs: true,
       uniqueName: 'use_null_aware_elements',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const LinterLintWithoutArguments usePrimaryConstructors =
+    LinterLintWithoutArguments(
+      name: 'use_primary_constructors',
+      problemMessage: "Use a primary constructor.",
+      correctionMessage: "Try using a primary constructor.",
+      uniqueName: 'use_primary_constructors',
       expectedTypes: [],
     );
 
@@ -4107,6 +4153,12 @@ LocatableDiagnostic _withArgumentsDirectivesOrderingPackageBeforeRelative({
   return LocatableDiagnosticImpl(diag.directivesOrderingPackageBeforeRelative, [
     p0,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsEmptyContainerBodies({
+  required String containerKind,
+}) {
+  return LocatableDiagnosticImpl(diag.emptyContainerBodies, [containerKind]);
 }
 
 LocatableDiagnostic _withArgumentsExhaustiveCases({required Object p0}) {

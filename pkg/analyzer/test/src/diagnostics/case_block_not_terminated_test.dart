@@ -23,7 +23,7 @@ class CaseBlockNotTerminatedTest_Language219 extends PubPackageResolutionTest
 
 mixin CaseBlockNotTerminatedTestCases on PubPackageResolutionTest {
   test_lastCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a) {
   switch (a) {
     case 0:
@@ -34,7 +34,7 @@ f(int a) {
   }
 
   test_terminated_break() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -47,7 +47,7 @@ void f(int a) {
   }
 
   test_terminated_continue_loop() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   while (true) {
     switch (a) {
@@ -62,7 +62,7 @@ void f(int a) {
   }
 
   test_terminated_return() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -75,7 +75,7 @@ void f(int a) {
   }
 
   test_terminated_return2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -89,7 +89,7 @@ void f(int a) {
   }
 
   test_terminated_throw() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:

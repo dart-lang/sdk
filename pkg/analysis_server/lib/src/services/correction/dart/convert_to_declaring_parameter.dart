@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 typedef _RefactorData = ({
@@ -23,11 +25,16 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not a fix.
-      CorrectionApplicability.singleLocation;
+      CorrectionApplicability.automatically;
 
   @override
   AssistKind? get assistKind => DartAssistKind.convertToDeclaringParameter;
+
+  @override
+  FixKind? get fixKind => DartFixKind.convertToDeclaringParameter;
+
+  @override
+  FixKind? get multiFixKind => DartFixKind.convertToDeclaringParameterMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -99,7 +106,8 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         }
       }
 
-      // Insert the keyword (and renaming if needed).
+      // Insert the keyword, and a type if the parameter didn't already have a
+      // type.
       var insertedVariable = false;
       if (parameter is FieldFormalParameter) {
         if (parameter.offset == parameter.thisKeyword.offset) {
@@ -131,6 +139,7 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
           );
         }
       }
+      // Rename the parameter if it's different than the name of the field.
       if (fieldName != parameterName.lexeme) {
         builder.addSimpleReplacement(range.token(parameterName), fieldName);
       }

@@ -46,12 +46,14 @@ class Dart : public AllStatic {
                                 IsolateGroup* isolate_group);
 
   // Initialize an isolate group either from a snapshot or from a Kernel binary.
-  static ErrorPtr InitializeIsolateGroup(Thread* T,
-                                         const uint8_t* snapshot_data,
-                                         const uint8_t* snapshot_instructions,
-                                         const uint8_t* kernel_buffer,
-                                         intptr_t kernel_buffer_size);
-  static ErrorPtr InitIsolateGroupFromSnapshot(
+  // On success, returns nullptr. On failure, returns an error message that the
+  // caller must free.
+  static char* InitializeIsolateGroup(Thread* T,
+                                      const uint8_t* snapshot_data,
+                                      const uint8_t* snapshot_instructions,
+                                      const uint8_t* kernel_buffer,
+                                      intptr_t kernel_buffer_size);
+  static char* InitIsolateGroupFromSnapshot(
       Thread* T,
       const uint8_t* snapshot_data,
       const uint8_t* snapshot_instructions,

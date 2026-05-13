@@ -66,7 +66,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment f() { }
+  augment f();
 }
 ''');
 
@@ -84,7 +84,7 @@ f() { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment f() { }
+augment f();
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
@@ -101,8 +101,8 @@ f() { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment dynamic f() { }
-augment f() { }
+augment dynamic f();
+augment f();
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(16, 1)]);

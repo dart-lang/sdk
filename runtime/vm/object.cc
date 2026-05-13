@@ -9713,10 +9713,6 @@ bool Function::CanBeInlined() const {
 
 intptr_t Function::NumImplicitParameters() const {
   const UntaggedFunction::Kind k = kind();
-  if (k == UntaggedFunction::kConstructor) {
-    // Type arguments for factory; instance for generative constructor.
-    return 1;
-  }
   if ((k == UntaggedFunction::kClosureFunction) ||
       (k == UntaggedFunction::kImplicitClosureFunction) ||
       (k == UntaggedFunction::kFfiTrampoline)) {
@@ -10910,7 +10906,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   }
 
   const intptr_t num_type_params =
-      IsConstructor() ? cls.NumTypeParameters() : NumTypeParameters();
+      IsGenerativeConstructor() ? cls.NumTypeParameters() : NumTypeParameters();
 
   TypeArguments& instantiator_type_arguments = TypeArguments::Handle(zone);
   TypeArguments& function_type_arguments = TypeArguments::Handle(zone);
@@ -10922,7 +10918,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 
   auto transform_type = [&](AbstractType& type) {
     if (num_type_params > 0) {
-      if (IsConstructor()) {
+      if (IsGenerativeConstructor()) {
         type = type.UpdateFunctionTypes(num_type_params, kAllFree, Heap::kOld,
                                         nullptr);
         if (!type.IsInstantiated(kCurrentClass)) {
@@ -10940,7 +10936,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   auto transform_type_args = [&](TypeArguments& type_args) {
     ASSERT(num_type_params > 0);
     if (!type_args.IsNull()) {
-      if (IsConstructor()) {
+      if (IsGenerativeConstructor()) {
         type_args = type_args.UpdateFunctionTypes(num_type_params, kAllFree,
                                                   Heap::kOld, nullptr);
         if (!type_args.IsInstantiated(kCurrentClass)) {
@@ -10958,7 +10954,8 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   // Set closure function's type parameters.
   if (num_type_params > 0) {
     const TypeParameters& old_type_params = TypeParameters::Handle(
-        zone, IsConstructor() ? cls.type_parameters() : type_parameters());
+        zone,
+        IsGenerativeConstructor() ? cls.type_parameters() : type_parameters());
     const TypeParameters& new_type_params =
         TypeParameters::Handle(zone, TypeParameters::New());
     // No need to set names that are ignored in a signature, however, the
@@ -10977,7 +10974,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       type_args.SetTypeAt(i, type_param);
     }
 
-    if (IsConstructor()) {
+    if (IsGenerativeConstructor()) {
       instantiator_type_arguments =
           type_args.ToInstantiatorTypeArguments(thread, cls);
     } else {
@@ -10996,7 +10993,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 
   // Set closure function's result type.
   AbstractType& result_type = AbstractType::Handle(zone);
-  if (IsConstructor()) {
+  if (IsGenerativeConstructor()) {
     result_type = cls.DeclarationType();
   } else {
     result_type = this->result_type();
@@ -18123,14 +18120,13 @@ ICDataPtr ICData::NewForStaticCall(const Function& owner,
                                    intptr_t num_args_tested,
                                    RebindRule rebind_rule) {
   // See `MethodRecognizer::NumArgsCheckedForStaticCall`.
-  ASSERT(num_args_tested == 0 || num_args_tested == 2);
+  ASSERT(num_args_tested == 0 || num_args_tested == 1 || num_args_tested == 2);
   ASSERT(!target.IsNull());
 
   Zone* zone = Thread::Current()->zone();
   const auto& target_name = String::Handle(zone, target.name());
   GrowableArray<intptr_t> cids(num_args_tested);
-  if (num_args_tested == 2) {
-    cids.Add(kObjectCid);
+  for (intptr_t i = 0; i < num_args_tested; ++i) {
     cids.Add(kObjectCid);
   }
   return ICData::NewWithCheck(owner, target_name, arguments_descriptor,

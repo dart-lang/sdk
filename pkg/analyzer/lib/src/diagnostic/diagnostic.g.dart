@@ -956,6 +956,28 @@ const DiagnosticWithoutArguments augmentationOfMixinApplicationClass =
       expectedTypes: [],
     );
 
+/// Parameters:
+/// Type expectedType: the return type of the declaration
+/// Type actualType: the return type of the augmentation
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required DartType expectedType,
+    required DartType actualType,
+  })
+>
+augmentationReturnTypeMismatch = DiagnosticWithArguments(
+  name: 'augmentation_return_type_mismatch',
+  problemMessage:
+      "The augmentation's return type '{1}' must be the same as the introductory "
+      "declaration's return type '{0}'.",
+  correctionMessage:
+      "Try changing the augmentation's return type to match the declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_return_type_mismatch',
+  withArguments: _withArgumentsAugmentationReturnTypeMismatch,
+  expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments augmentationTypeParameterBound =
     DiagnosticWithoutArgumentsImpl(
@@ -18276,6 +18298,16 @@ LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
   return LocatableDiagnosticImpl(diag.augmentationOfDifferentDeclarationKind, [
     declarationKind,
     augmentationKind,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAugmentationReturnTypeMismatch({
+  required DartType expectedType,
+  required DartType actualType,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationReturnTypeMismatch, [
+    expectedType,
+    actualType,
   ]);
 }
 

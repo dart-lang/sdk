@@ -27,9 +27,10 @@ import '../source/source_type_alias_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/type_inferrer.dart'
-    show InferredConstructorInitializer, TypeInferrer;
+    show InferredConstructorInitializer, TypeInferrer, ConstructorContext;
 import '../util/helpers.dart';
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart' as intern;
 
 /// Interface that defines the interface between the [BodyBuilder] and the
 /// member/declaration whose AST is being built.
@@ -154,6 +155,10 @@ abstract class BodyBuilderContext {
   /// Returns `true` if the member whose body is being built is a non-factory
   /// constructor declaration.
   bool get isConstructor => false;
+
+  /// Returns the [ConstructorContext] used for inferring constructor
+  /// initializers and body.
+  ConstructorContext? get constructorContext => null;
 
   // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a non-factory
@@ -412,7 +417,10 @@ abstract class BodyBuilderContext {
   /// as a parameter in that case.
   ThisVariable? createInternalThisVariable() {
     return thisType != null && isDeclarationInstanceContext
-        ? new ThisVariable(type: thisType!)
+        ? intern.createThisVariable(
+            type: thisType!,
+            fileOffset: memberNameOffset,
+          )
         : null;
   }
 }

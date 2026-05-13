@@ -164,18 +164,8 @@ Fragment FlowGraphBuilder::PopContext() {
 Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   // TODO(27590): We could use `active_class_->IsGeneric()`.
   Fragment instructions;
-  if (scopes_ != nullptr && scopes_->type_arguments_variable != nullptr) {
-#ifdef DEBUG
-    Function& function =
-        Function::Handle(Z, parsed_function_->function().ptr());
-    while (function.IsClosureFunction()) {
-      function = function.parent_function();
-    }
-    ASSERT(function.IsFactory());
-#endif
-    instructions += LoadLocal(scopes_->type_arguments_variable);
-  } else if (parsed_function_->has_receiver_var() &&
-             active_class_.ClassNumTypeArguments() > 0) {
+  if (parsed_function_->has_receiver_var() &&
+      active_class_.ClassNumTypeArguments() > 0) {
     ASSERT(!parsed_function_->function().IsFactory());
     instructions += LoadLocal(parsed_function_->receiver_var());
     instructions += LoadNativeField(
@@ -1466,14 +1456,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kGrowableArrayAllocateWithData: {
       ASSERT(function.IsFactory());
-      ASSERT_EQUAL(function.NumParameters(), 2);
+      ASSERT_EQUAL(function.NumParameters(), 1);
       const Class& cls =
           Class::ZoneHandle(Z, compiler::GrowableObjectArrayClass().ptr());
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->function_type_arguments());
       body += AllocateObject(TokenPosition::kNoSource, cls, 1);
       LocalVariable* object = MakeTemporary();
       body += LoadLocal(object);
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += StoreNativeField(Slot::GrowableObjectArray_data(),
                                StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
@@ -1494,9 +1484,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Object::mutable_empty_array());
       break;
     case MethodRecognizer::kObjectArrayAllocate:
-      ASSERT(function.IsFactory() && (function.NumParameters() == 2));
+      ASSERT(function.IsFactory() && (function.NumParameters() == 1));
+      body += LoadLocal(parsed_function_->function_type_arguments());
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += CreateArray();
       break;
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
@@ -1693,7 +1683,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const auto& type_arguments = TypeArguments::ZoneHandle(
           Z, IG->object_store()->type_argument_never());
 
-      ASSERT(function.NumTypeParameters() == 1);
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += Constant(type_arguments);
       body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
@@ -2013,10 +2002,10 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   ASSERT(class_table->HasValidClassAt(cid));
   const auto& view_class = Class::ZoneHandle(H.zone(), class_table->At(cid));
 
-  ASSERT(function.IsFactory() && (function.NumParameters() == 4));
-  LocalVariable* typed_data = parsed_function_->RawParameterVariable(1);
-  LocalVariable* offset_in_bytes = parsed_function_->RawParameterVariable(2);
-  LocalVariable* length = parsed_function_->RawParameterVariable(3);
+  ASSERT(function.IsFactory() && (function.NumParameters() == 3));
+  LocalVariable* typed_data = parsed_function_->RawParameterVariable(0);
+  LocalVariable* offset_in_bytes = parsed_function_->RawParameterVariable(1);
+  LocalVariable* length = parsed_function_->RawParameterVariable(2);
 
   Fragment body;
 
@@ -2265,8 +2254,8 @@ Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
   ASSERT(
       Thread::Current()->isolate_group()->class_table()->HasValidClassAt(cid));
 
-  ASSERT(function.IsFactory() && (function.NumParameters() == 2));
-  LocalVariable* length = parsed_function_->RawParameterVariable(1);
+  ASSERT(function.IsFactory() && (function.NumParameters() == 1));
+  LocalVariable* length = parsed_function_->RawParameterVariable(0);
 
   Fragment instructions;
   instructions += LoadLocal(length);
@@ -2423,12 +2412,8 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
     ASSERT(!forwarding_target->IsNull());
   }
 
-  TypeParameters& type_parameters = TypeParameters::Handle(Z);
-  if (dart_function.IsFactory()) {
-    type_parameters = Class::Handle(Z, dart_function.Owner()).type_parameters();
-  } else {
-    type_parameters = dart_function.type_parameters();
-  }
+  TypeParameters& type_parameters =
+      TypeParameters::Handle(Z, dart_function.type_parameters());
   const intptr_t num_type_params = type_parameters.Length();
   if (num_type_params == 0) return;
   // Check type parameter bounds against forwarding stub target, if any.
@@ -2471,8 +2456,6 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
 
     if (forwarding_target != nullptr) {
       type_param = forwarding_target->TypeParameterAt(i);
-    } else if (dart_function.IsFactory()) {
-      type_param = Class::Handle(Z, dart_function.Owner()).TypeParameterAt(i);
     } else {
       type_param = dart_function.TypeParameterAt(i);
     }
@@ -4351,7 +4334,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   intptr_t type_args_len = 0;
   if (function.IsGeneric()) {
-    if (target.IsConstructor()) {
+    if (target.IsGenerativeConstructor()) {
       const auto& result_type = AbstractType::Handle(Z, function.result_type());
       ASSERT(result_type.IsFinalized());
       // Instantiate a flattened type arguments vector which
@@ -4368,10 +4351,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       ASSERT(parsed_function_->function_type_arguments() != nullptr);
       closure += LoadLocal(parsed_function_->function_type_arguments());
     }
-  } else if (target.IsFactory()) {
-    // Factories always take an extra implicit argument for
-    // type arguments even if their classes don't have type parameters.
-    closure += NullConstant();
   }
 
   // Push receiver.

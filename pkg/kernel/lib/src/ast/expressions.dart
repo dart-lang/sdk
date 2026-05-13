@@ -1550,7 +1550,7 @@ class Arguments extends TreeNode {
       positional = <Expression>[],
       named = <NamedExpression>[];
 
-  factory Arguments.forwarded(FunctionNode function, Library library) {
+  factory Arguments.forwarded(FunctionNode function) {
     return new Arguments(
       function.positionalParameters
           .map<Expression>((p) => new VariableGet(p))

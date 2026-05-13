@@ -318,17 +318,17 @@ class FormalParameters extends Parameters {
         t.bound?.build(library, TypeUse.typeParameterBound);
       }
     }
-    return new FunctionNode(
-        body,
-        typeParameters: typeParameters,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount,
-        returnType: returnType,
-        asyncMarker: asyncModifier.kind,
-      )
-      ..fileOffset = charOffset
-      ..fileEndOffset = fileEndOffset;
+    return extern.createFunctionNode(
+      body,
+      typeParameters: typeParameters,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      requiredParameterCount: requiredParameterCount,
+      returnType: returnType,
+      asyncMarker: asyncModifier.kind,
+      fileOffset: charOffset,
+      fileEndOffset: fileEndOffset,
+    );
   }
 
   @override
@@ -362,32 +362,6 @@ class CatchParameters extends Parameters {
   }
 }
 
-/// Returns a block like this:
-///
-///     {
-///       statement;
-///       body;
-///     }
-///
-/// If [body] is a [Block], it's returned with [statement] prepended to it.
-Block combineStatements(Statement statement, Statement body) {
-  if (body is Block) {
-    if (statement is Block) {
-      body.statements.insertAll(0, statement.statements);
-      setParents(statement.statements, body);
-    } else {
-      body.statements.insert(0, statement);
-      statement.parent = body;
-    }
-    return body;
-  } else {
-    return new Block(<Statement>[
-      if (statement is Block) ...statement.statements else statement,
-      body,
-    ])..fileOffset = statement.fileOffset;
-  }
-}
-
 /// DartDocTest(
 ///   debugName("myClassName", "myName"),
 ///   "myClassName.myName"
@@ -414,17 +388,6 @@ class Label {
 
   @override
   String toString() => "label($name)";
-}
-
-class ForInElements {
-  VariableDeclaration? explicitVariableDeclaration;
-  VariableDeclaration? syntheticVariableDeclaration;
-  Expression? syntheticAssignment;
-  Expression? expressionProblem;
-  Statement? expressionEffects;
-
-  VariableDeclaration get variable =>
-      (explicitVariableDeclaration ?? syntheticVariableDeclaration)!;
 }
 
 class Condition {

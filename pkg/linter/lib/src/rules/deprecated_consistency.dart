@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;

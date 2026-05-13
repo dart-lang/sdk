@@ -8,7 +8,6 @@
   (type $_InterfaceType <...>)
   (type $_Type <...>)
   (global $"\")\"_11" (import "$" "2") (ref $JSExternWrapper))
-  (global $"\"Attempt to execute code remove<...>\"" (import "$" "(") (ref $JSExternWrapper))
   (global $_InterfaceType (import "$" "0") (ref $_InterfaceType))
   (table $$.% (import "$" "%") 742 funcref)
   (table $$.' (import "$" "'") 20 funcref)
@@ -158,9 +157,6 @@
     if
       i32.const 2
       call_indirect $$.' 
-      global.get $"\"Attempt to execute code remove<...>\""
-      i32.const 3
-      call_indirect $$.' (param (ref $#Top))
       unreachable
     end
     local.get $var0

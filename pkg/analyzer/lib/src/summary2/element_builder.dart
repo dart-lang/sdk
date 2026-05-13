@@ -949,19 +949,13 @@ class ElementBuilder {
       }
     }
 
-    Iterable<ExecutableFragmentImpl> precedingFragmentsOldestFirst() {
-      return currentFragment.precedingFragments
-          .cast<ExecutableFragmentImpl>()
-          .toList()
-          .reversed;
-    }
-
     void growPrecedingFragmentsWithPositional({
       required int index,
       required FormalParameterFragmentImpl template,
     }) {
       FormalParameterFragmentImpl? previousSyntheticParameter;
-      for (var fragmentToGrow in precedingFragmentsOldestFirst()) {
+      var fragmentsToGrow = currentFragment.precedingFragments.reversed;
+      for (var fragmentToGrow in fragmentsToGrow) {
         var syntheticParameter = createSyntheticFragment(template);
 
         var newParameters = fragmentToGrow.formalParameters.toList();
@@ -977,7 +971,8 @@ class ElementBuilder {
       FormalParameterFragmentImpl currentParameter,
     ) {
       FormalParameterFragmentImpl? previousSyntheticParameter;
-      for (var fragmentToGrow in precedingFragmentsOldestFirst()) {
+      var fragmentsToGrow = currentFragment.precedingFragments.reversed;
+      for (var fragmentToGrow in fragmentsToGrow) {
         var syntheticParameter = createSyntheticFragment(currentParameter);
 
         fragmentToGrow.formalParameters = [
@@ -1101,9 +1096,7 @@ class ElementBuilder {
 
     // Grow all previous fragments if current fragment has more type parameters.
     if (previousTypeParameters.length < currentTypeParameters.length) {
-      var fragmentsToGrow = currentFragment.precedingFragments
-          .toList()
-          .reversed;
+      var fragmentsToGrow = currentFragment.precedingFragments.reversed;
       for (
         var i = previousTypeParameters.length;
         i < currentTypeParameters.length;
@@ -1252,10 +1245,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isFinal = node.finalKeyword != null;
     fragment.isInterface = node.interfaceKeyword != null;
     fragment.isMixinClass = node.mixinKeyword != null;
-    if (node.sealedKeyword != null) {
-      fragment.isAbstract = true;
-      fragment.isSealed = true;
-    }
+    fragment.isSealed = node.sealedKeyword != null;
     fragment.hasExtendsClause = node.extendsClause != null;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1288,10 +1278,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isInterface = node.interfaceKeyword != null;
     fragment.isMixinApplication = true;
     fragment.isMixinClass = node.mixinKeyword != null;
-    if (node.sealedKeyword != null) {
-      fragment.isAbstract = true;
-      fragment.isSealed = true;
-    }
+    fragment.isSealed = node.sealedKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
@@ -1731,8 +1718,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isAsynchronous = body.isAsynchronous;
     executableFragment.isExternal = node.externalKeyword != null;
     executableFragment.isGenerator = body.isGenerator;
-    executableFragment.isCompleteDeclaration =
-        executableFragment.isExternal || body is! EmptyFunctionBody;
+    executableFragment.isCompleteDeclaration = node.isCompleteDeclaration;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -1874,8 +1860,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isExternal =
         node.externalKeyword != null || node.body is NativeFunctionBody;
     executableFragment.isGenerator = node.body.isGenerator;
-    executableFragment.isCompleteDeclaration =
-        executableFragment.isExternal || node.body is! EmptyFunctionBody;
+    executableFragment.isCompleteDeclaration = node.isCompleteDeclaration;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -2298,27 +2283,6 @@ class _EnclosingContext {
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {
     typeParameters.add(fragment);
-  }
-}
-
-extension _ConstructorDeclarationImplExtension on ConstructorDeclarationImpl {
-  bool get isCompleteDeclaration {
-    if (externalKeyword != null) {
-      return true;
-    }
-
-    if (body is! EmptyFunctionBody) {
-      return true;
-    }
-
-    if (redirectedConstructor != null || initializers.isNotEmpty) {
-      return true;
-    }
-
-    return parameters.parameters.any((parameter) {
-      return parameter is FieldFormalParameterImpl ||
-          parameter is SuperFormalParameterImpl;
-    });
   }
 }
 

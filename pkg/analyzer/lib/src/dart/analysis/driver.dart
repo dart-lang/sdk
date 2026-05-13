@@ -39,7 +39,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/requirements.dart';
@@ -108,7 +109,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 631;
+  static const int DATA_VERSION = 632;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -2114,9 +2115,9 @@ class AnalysisDriver {
     var ownedFiles = this.ownedFiles;
     if (ownedFiles != null) {
       if (addedFiles.contains(file.path)) {
-        ownedFiles.addAdded(file.uri, this);
+        ownedFiles.addAdded(file.resource, this);
       } else {
-        ownedFiles.addKnown(file.uri, this);
+        ownedFiles.addKnown(file.resource, this);
       }
     }
   }
@@ -3003,24 +3004,41 @@ enum FileChangeKind { add, change, remove }
 
 /// Container that keeps track of file owners.
 class OwnedFiles {
-  /// Key: the absolute file URI.
+  /// Key: the file from the collection's resource provider.
   /// Value: the driver to which the file is added.
-  final Map<Uri, AnalysisDriver> addedFiles = {};
+  final Map<File, AnalysisDriver> addedFiles = {};
 
-  /// Key: the absolute file URI.
+  /// Key: the file from the collection's resource provider.
   /// Value: a driver in which this file is available via dependencies.
   /// This map does not contain any files that are in [addedFiles].
-  final Map<Uri, AnalysisDriver> knownFiles = {};
+  final Map<File, AnalysisDriver> knownFiles = {};
 
-  void addAdded(Uri uri, AnalysisDriver analysisDriver) {
-    addedFiles[uri] ??= analysisDriver;
-    knownFiles.remove(uri);
+  void addAdded(File file, AnalysisDriver analysisDriver) {
+    addedFiles[file] ??= analysisDriver;
+    knownFiles.remove(file);
   }
 
-  void addKnown(Uri uri, AnalysisDriver analysisDriver) {
-    if (!addedFiles.containsKey(uri)) {
-      knownFiles[uri] = analysisDriver;
+  void addKnown(File file, AnalysisDriver analysisDriver) {
+    if (!addedFiles.containsKey(file)) {
+      knownFiles[file] ??= analysisDriver;
     }
+  }
+
+  /// Return the files owned by [analysisDriver].
+  ///
+  /// The maps are intentionally append-only hints; each yielded result is
+  /// resolved through the current owner driver so stale entries are ignored.
+  List<FileState> filesFor(AnalysisDriver analysisDriver) {
+    return [
+      for (var map in [addedFiles, knownFiles])
+        for (var entry in map.entries)
+          if (identical(entry.value, analysisDriver))
+            ?analysisDriver.fsState.getExisting(entry.key),
+    ];
+  }
+
+  AnalysisDriver? ownerOf(File file) {
+    return addedFiles[file] ?? knownFiles[file];
   }
 }
 

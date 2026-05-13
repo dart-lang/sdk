@@ -164,7 +164,7 @@ namespace dart {
   V(FfiLibrary, ::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned,            \
     0x49ce5c4f)                                                                \
   V(FfiLibrary, ::, _storePointer, FfiStorePointer, 0xa08098b2)                \
-  V(FfiLibrary, ::, _fromAddress, FfiFromAddress, 0x941575ee)                  \
+  V(FfiLibrary, ::, _fromAddress, FfiFromAddress, 0x9415722d)                  \
   V(FfiLibrary, Pointer, get:address, FfiGetAddress, 0x7cc16ffe)               \
   V(FfiLibrary, Native, _addressOf, FfiNativeAddressOf, 0x7f8597d3)            \
   V(FfiLibrary, ::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8,      \

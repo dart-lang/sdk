@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,38 +19,35 @@ main() {
 @reflectiveTest
 class ConflictingTypeVariableAndClassTest extends PubPackageResolutionTest {
   test_conflict_on_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class T<T> {}
-''',
-      [error(diag.conflictingTypeVariableAndClass, 8, 1)],
-    );
+//      ^
+// [diag.conflictingTypeVariableAndClass] 'T' can't be used to name both a type parameter and the class in which the type parameter is defined.
+''');
   }
 }
 
 @reflectiveTest
 class ConflictingTypeVariableAndEnumTest extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E<E> {
+//     ^
+// [diag.conflictingTypeVariableAndEnum] 'E' can't be used to name both a type parameter and the enum in which the type parameter is defined.
   v
 }
-''',
-      [error(diag.conflictingTypeVariableAndEnum, 7, 1)],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class ConflictingTypeVariableAndExtensionTest extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension T<T> on String {}
-''',
-      [error(diag.conflictingTypeVariableAndExtension, 12, 1)],
-    );
+//          ^
+// [diag.conflictingTypeVariableAndExtension] 'T' can't be used to name both a type parameter and the extension in which the type parameter is defined.
+''');
   }
 }
 
@@ -59,23 +55,21 @@ extension T<T> on String {}
 class ConflictingTypeVariableAndExtensionTypeTest
     extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type T<T>(int it) {}
-''',
-      [error(diag.conflictingTypeVariableAndExtensionType, 17, 1)],
-    );
+//               ^
+// [diag.conflictingTypeVariableAndExtensionType] 'T' can't be used to name both a type parameter and the extension type in which the type parameter is defined.
+''');
   }
 }
 
 @reflectiveTest
 class ConflictingTypeVariableAndMixinTest extends PubPackageResolutionTest {
   test_conflict_on_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin T<T> {}
-''',
-      [error(diag.conflictingTypeVariableAndMixin, 8, 1)],
-    );
+//      ^
+// [diag.conflictingTypeVariableAndMixin] 'T' can't be used to name both a type parameter and the mixin in which the type parameter is defined.
+''');
   }
 }

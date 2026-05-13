@@ -3415,12 +3415,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     return instructions;
   }
 
-  const Class& klass = Class::ZoneHandle(Z, target.Owner());
-  if (target.IsGenerativeConstructor() || target.IsFactory()) {
-    // The VM requires a TypeArguments object as first parameter for
-    // every factory constructor.
-    ++argument_count;
-  }
+  ASSERT(!target.IsGenerativeConstructor());
 
   if (target.IsCachableIdempotent()) {
     return BuildCachableIdempotentCall(position, target);
@@ -3469,7 +3464,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   }
 
   Fragment instructions;
-  LocalVariable* instance_variable = nullptr;
+  const Class& klass = Class::ZoneHandle(Z, target.Owner());
 
   const bool special_case_unchecked_cast =
       klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
@@ -3482,38 +3477,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   const bool special_case =
       special_case_identical || special_case_unchecked_cast;
 
-  // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
-  // can appear, but the thing we're calling is not a static method, but a
-  // factory constructor.
-  // The `H.LookupStaticmethodByKernelProcedure` will potentially resolve to the
-  // forwarded constructor.
-  // In that case we'll make an instance and pass it as first argument.
-  //
-  // TODO(27590): Get rid of this after we're using core libraries compiled
-  // into Kernel.
   intptr_t type_args_len = 0;
-  if (target.IsGenerativeConstructor()) {
-    if (klass.NumTypeArguments() > 0) {
-      const TypeArguments& type_arguments =
-          PeekArgumentsInstantiatedType(klass);
-      instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      instructions += AllocateObject(position, klass, 1);
-    } else {
-      instructions += AllocateObject(position, klass, 0);
-    }
-
-    instance_variable = MakeTemporary();
-
-    instructions += LoadLocal(instance_variable);
-  } else if (target.IsFactory()) {
-    // The VM requires currently a TypeArguments object as first parameter for
-    // every factory constructor :-/ !
-    //
-    // TODO(27590): Get rid of this after we're using core libraries compiled
-    // into Kernel.
-    const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
-    instructions += TranslateInstantiatedTypeArguments(type_arguments);
-  } else if (!special_case) {
+  if (!special_case) {
     AlternativeReadingScope alt(&reader_);
     ReadUInt();                               // read argument count.
     intptr_t list_length = ReadListLength();  // read types list length.
@@ -4161,7 +4126,10 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(TokenPosition* p) {
                                   Symbols::_GrowableListLiteralFactory()));
   ASSERT(!factory_method.IsNull());
 
-  instructions += StaticCall(position, factory_method, 2, ICData::kStatic);
+  instructions += StaticCall(position, factory_method,
+                             /*argument_count=*/1, Array::null_array(),
+                             ICData::kStatic, /*result_type=*/nullptr,
+                             /*type_args_len=*/1);
   instructions += DropTempsPreserveTop(1);  // Instantiated type_arguments.
   return instructions;
 }
@@ -4211,8 +4179,10 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(TokenPosition* p) {
         Library::PrivateCoreLibName(Symbols::MapLiteralFactory()));
   }
 
-  return instructions +
-         StaticCall(position, factory_method, 2, ICData::kStatic);
+  return instructions + StaticCall(position, factory_method,
+                                   /*argument_count=*/1, Array::null_array(),
+                                   ICData::kStatic, /*result_type=*/nullptr,
+                                   /*type_args_len=*/2);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {

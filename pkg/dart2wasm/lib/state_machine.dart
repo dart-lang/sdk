@@ -620,12 +620,13 @@ class CatchVariables {
 }
 
 abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
-  final w.FunctionBuilder function;
+  final String functionName;
   StateMachineEntryAstCodeGenerator(
     Translator translator,
     Member enclosingMember,
-    this.function,
-  ) : super(translator, function.type, enclosingMember);
+    w.FunctionType signature,
+    this.functionName,
+  ) : super(translator, signature, enclosingMember);
 
   /// Generate the outer function.
   ///
@@ -644,13 +645,14 @@ abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
 
 abstract class ProcedureStateMachineEntryCodeGenerator
     extends StateMachineEntryAstCodeGenerator {
-  final Procedure member;
+  Procedure get member => enclosingMember as Procedure;
 
   ProcedureStateMachineEntryCodeGenerator(
-    Translator translator,
-    w.FunctionBuilder function,
-    this.member,
-  ) : super(translator, member, function);
+    super.translator,
+    super.member,
+    super.signature,
+    super.functionName,
+  );
 
   @override
   void generateInternal() {
@@ -676,13 +678,14 @@ abstract class LambdaStateMachineEntryCodeGenerator
     extends StateMachineEntryAstCodeGenerator {
   final Lambda lambda;
 
-  LambdaStateMachineEntryCodeGenerator(
-    Translator translator,
-    Member enclosingMember,
-    this.lambda,
-    Closures closures,
-  ) : super(translator, enclosingMember, lambda.function) {
-    this.closures = closures;
+  LambdaStateMachineEntryCodeGenerator(Translator translator, this.lambda)
+    : super(
+        translator,
+        lambda.enclosingMember,
+        lambda.callTarget.signature,
+        lambda.callTarget.name,
+      ) {
+    closures = lambda.enclosingMemberClosures;
   }
 
   @override

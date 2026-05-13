@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,50 +15,46 @@ main() {
 @reflectiveTest
 class ContinueLabelInvalidTest extends PubPackageResolutionTest {
   test_onBlock() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   L:
   {
     for (var i in []) {
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
       continue L;
+//    ^^^^^^^^^^^
+// [diag.continueLabelInvalid] The label used in a 'continue' statement must be defined on either a loop or a switch member.
     }
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.continueLabelInvalid, 50, 11),
-      ],
-    );
+''');
   }
 
   test_onSwitchStatement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   L: switch (x) {
     case 0:
       continue L;
+//    ^^^^^^^^^^^
+// [diag.continueLabelInvalid] The label used in a 'continue' statement must be defined on either a loop or a switch member.
   }
 }
-''',
-      [error(diag.continueLabelInvalid, 52, 11)],
-    );
+''');
   }
 
   test_onSwitchStatement_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(int x) {
   L: switch (x) {
     case 0:
       continue L;
+//    ^^^^^^^^^^^
+// [diag.continueLabelInvalid] The label used in a 'continue' statement must be defined on either a loop or a switch member.
   }
 }
-''',
-      [error(diag.continueLabelInvalid, 68, 11)],
-    );
+''');
   }
 }

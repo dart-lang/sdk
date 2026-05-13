@@ -112,7 +112,6 @@ extension A on int {}
 augment class A {}
 
 augment class A {}
-
 ''');
 
     configuration.withConstructors = false;
@@ -191,11 +190,12 @@ library
   }
 
   test_extension_documented_tripleSlash() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// aaa
 /// bbbb
 /// cc
-extension E on int {}''');
+extension E on int {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -261,7 +261,7 @@ library
   }
 
   test_extension_extendedType_recordType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on (int, String) {}
 ''');
     checkElementText(library, r'''
@@ -283,7 +283,7 @@ library
   }
 
   test_extension_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static int foo = 42;
 }
@@ -294,7 +294,7 @@ extension E on int {
   }
 
   test_extension_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   int get foo => 0;
 }
@@ -305,7 +305,7 @@ extension E on int {
   }
 
   test_extension_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   void foo() {}
 }
@@ -316,7 +316,7 @@ extension E on int {
   }
 
   test_extension_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   set foo(int _) {}
 }
@@ -327,7 +327,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static int foo = 42;
 }
@@ -339,7 +339,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   int get foo => 0;
 }
@@ -351,7 +351,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   void foo() {}
 }
@@ -363,7 +363,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   set foo(int _) {}
 }
@@ -377,10 +377,13 @@ extension E on int {
   test_extension_metadata() async {
     var library = await buildLibrary(r'''
 const a = null;
+
 class A {}
+
 @a
 @Object()
-extension E on A {}''');
+extension E on A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -388,14 +391,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class A (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:50) (firstTokenOffset:27) (offset:50)
+        #F3 extension E (nameOffset:52) (firstTokenOffset:29) (offset:52)
           element: <testLibrary>::@extension::E
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -599,8 +602,9 @@ library
   }
 
   test_extension_onDeclaration_class() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -617,7 +621,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F3 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
   classes
     isSimplyBounded class A
@@ -637,7 +641,7 @@ library
   }
 
   test_extension_onDeclaration_dynamic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on dynamic {}
 ''');
     checkElementText(library, r'''
@@ -659,8 +663,9 @@ library
   }
 
   test_extension_onDeclaration_enum() async {
-    var library = await buildLibrary('''
-enum A { foo; }
+    var library = await buildLibrary(r'''
+enum A { foo }
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -759,8 +764,9 @@ library
   }
 
   test_extension_onDeclaration_extensionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type A(Object? it) {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -770,7 +776,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:42) (firstTokenOffset:32) (offset:42)
+        #F1 extension E (nameOffset:43) (firstTokenOffset:33) (offset:43)
           element: <testLibrary>::@extension::E
       extensionTypes
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
@@ -828,8 +834,9 @@ library
   }
 
   test_extension_onDeclaration_futureOr() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'dart:async';
+
 extension E on FutureOr<int> {}
 ''');
     checkElementText(library, r'''
@@ -841,7 +848,7 @@ library
       libraryImports
         dart:async
       extensions
-        #F1 extension E (nameOffset:31) (firstTokenOffset:21) (offset:31)
+        #F1 extension E (nameOffset:32) (firstTokenOffset:22) (offset:32)
           element: <testLibrary>::@extension::E
   extensions
     extension E
@@ -853,8 +860,9 @@ library
   }
 
   test_extension_onDeclaration_mixin() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin A {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -864,7 +872,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F1 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
       mixins
         #F2 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -885,7 +893,7 @@ library
   }
 
   test_extension_onDeclaration_Never() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on Never {}
 ''');
     checkElementText(library, r'''
@@ -907,7 +915,7 @@ library
   }
 
   test_extension_onDeclaration_nullable() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int? {}
 ''');
     checkElementText(library, r'''
@@ -929,8 +937,9 @@ library
   }
 
   test_extension_onDeclaration_typedef() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef A = int;
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -940,7 +949,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:27) (firstTokenOffset:17) (offset:27)
+        #F1 extension E (nameOffset:28) (firstTokenOffset:18) (offset:28)
           element: <testLibrary>::@extension::E
       typeAliases
         #F2 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
@@ -961,7 +970,7 @@ library
   }
 
   test_extension_onDeclaration_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<X> on X {}
 ''');
     checkElementText(library, r'''
@@ -989,7 +998,7 @@ library
   }
 
   test_extension_onDeclaration_void() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on void {}
 ''');
     checkElementText(library, r'''
@@ -1011,7 +1020,7 @@ library
   }
 
   test_extension_typeParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on int {}
 ''');
     checkElementText(library, r'''
@@ -1411,7 +1420,7 @@ library
   }
 
   test_extension_typeParameters_bound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T extends num> on int {}
 ''');
     checkElementText(library, r'''
@@ -1440,7 +1449,7 @@ library
   }
 
   test_extension_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension on int {}
 ''');
     checkElementText(library, r'''
@@ -2027,10 +2036,11 @@ library
   }
 
   test_field_static_const_inferredType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static const x = 0;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2562,7 +2572,7 @@ library
   }
 
   test_getter_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   int get foo {}
 }
@@ -2611,7 +2621,7 @@ library
   }
 
   test_getter_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   T get foo {}
 }
@@ -2660,7 +2670,7 @@ library
   }
 
   test_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   void foo() {}
 }
@@ -3299,7 +3309,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   void foo() {}
 }
@@ -3338,7 +3348,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   void foo(T _) {}
 }

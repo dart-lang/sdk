@@ -348,6 +348,7 @@ ExportDirective
   }
 
   test_inLibrary_library_inSummary() async {
+    enableIndex = false;
     librarySummaryFiles = [
       await buildPackageFooSummary(files: {'lib/foo.dart': 'class F {}'}),
     ];

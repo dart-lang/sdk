@@ -161,7 +161,6 @@ dart:core:
   bool (referenced)
   int (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
-  Diagnostic (referenced)
   DiagnosticCode (referenced)
 package:_fe_analyzer_shared/src/base/source_range.dart:
   SourceRange (referenced)
@@ -193,6 +192,8 @@ package:analyzer/dart/element/type_provider.dart:
   TypeProvider (referenced)
 package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
+package:analyzer/diagnostic/diagnostic.dart:
+  Diagnostic (referenced)
 package:analyzer/instrumentation/service.dart:
   InstrumentationService (referenced)
 package:analyzer/src/dart/ast/ast.dart:

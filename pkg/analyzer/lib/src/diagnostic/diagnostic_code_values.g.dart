@@ -74,6 +74,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.augmentationModifierMissing,
   diag.augmentationOfDifferentDeclarationKind,
   diag.augmentationOfMixinApplicationClass,
+  diag.augmentationReturnTypeMismatch,
   diag.augmentationTypeParameterBound,
   diag.augmentationTypeParameterCount,
   diag.augmentationTypeParameterName,

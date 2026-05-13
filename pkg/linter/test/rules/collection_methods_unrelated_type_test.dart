@@ -295,6 +295,47 @@ class CollectionMethodsUnrelatedTypeSetTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.collection_methods_unrelated_type;
 
+  test_contains_extensionType_different_sameRepresentationType() async {
+    await assertNoDiagnostics(r'''
+void m(Set<E1> s, E2 e) {
+  s.contains(e);
+}
+extension type E1(int value) {}
+extension type E2(int value) {}
+''');
+  }
+
+  test_contains_extensionType_different_unrelatedRepresentationType() async {
+    await assertDiagnostics(
+      r'''
+void m(Set<E1> s, E2 e) {
+  s.contains(e);
+}
+extension type E1(int value) {}
+extension type E2(String value) {}
+''',
+      [lint(39, 1)],
+    );
+  }
+
+  test_contains_extensionType_representationType() async {
+    await assertNoDiagnostics(r'''
+void m(Set<int> s, E e) {
+  s.contains(e);
+}
+extension type E(int value) {}
+''');
+  }
+
+  test_contains_extensionType_same() async {
+    await assertNoDiagnostics(r'''
+void m(Set<E> s, E e) {
+  s.contains(e);
+}
+extension type E(int value) {}
+''');
+  }
+
   test_lookup_related_subtype() async {
     await assertNoDiagnostics('var x = <num>{}.lookup(1);');
   }

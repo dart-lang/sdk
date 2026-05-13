@@ -156,12 +156,11 @@ void foo46() {
   });
 }
 
-// TODO: support class type parameters via captured receiver
-class A /*<T>*/ {
+class A<T> {
   List<int> aField = [
     for (int i = 0; i < 10; ++i)
       () {
-        // print(T);
+        print(T);
         print(i);
         i += 2;
         return i;

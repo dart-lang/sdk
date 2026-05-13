@@ -15,32 +15,43 @@ main() {
 
 @reflectiveTest
 class OptionalParameterInOperatorTest extends PubPackageResolutionTest {
-  test_named() async {
+  test_optionalNamed() async {
     await assertErrorsInCode(
       r'''
 class A {
-  operator +({p}) {}
+  int operator +({Object? other}) => 0;
 }
 ''',
-      [error(diag.optionalParameterInOperator, 24, 1)],
+      [error(diag.optionalParameterInOperator, 28, 13)],
     );
   }
 
-  test_positional() async {
+  test_optionalPositional() async {
     await assertErrorsInCode(
       r'''
 class A {
-  operator +([p]) {}
+  int operator +([Object? other]) => 0;
 }
 ''',
-      [error(diag.optionalParameterInOperator, 24, 1)],
+      [error(diag.optionalParameterInOperator, 28, 13)],
     );
   }
 
-  test_single_required_parameter() async {
+  test_requiredNamed() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int operator +({required Object other}) => 0;
+}
+''',
+      [error(diag.optionalParameterInOperator, 28, 21)],
+    );
+  }
+
+  test_requiredPositional() async {
     await assertNoErrorsInCode(r'''
 class A {
-  operator +(p) {}
+  int operator +(Object other) => 0;
 }
 ''');
   }

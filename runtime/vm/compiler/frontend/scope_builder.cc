@@ -224,12 +224,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
             }
           }
         }
-      } else if (function.IsFactory()) {
-        LocalVariable* variable = MakeVariable(
-            TokenPosition::kNoSource, TokenPosition::kNoSource,
-            Symbols::TypeArgumentsParameter(), AbstractType::dynamic_type());
-        scope_->InsertParameterAt(pos++, variable);
-        result_->type_arguments_variable = variable;
       }
 
       ParameterTypeCheckMode type_check_mode =
@@ -1570,21 +1564,13 @@ void ScopeBuilder::VisitTypeParameterType() {
       function = function.parent_function();
     }
 
-    if (function.IsFactory()) {
-      // The type argument vector is passed as the very first argument to the
-      // factory constructor function.
-      HandleSpecialLoad(&result_->type_arguments_variable,
-                        Symbols::TypeArgumentsParameter(),
-                        LocalVariable::kNoKernelOffset);
-    } else {
-      // If the type parameter is a parameter to this or an enclosing function,
-      // we can read it directly from the function type arguments vector later.
-      // Otherwise, the type arguments vector we need is stored on the instance
-      // object, so we need to capture 'this'.
-      Class& parent_class = Class::Handle(Z, function.Owner());
-      if (index < parent_class.NumTypeParameters()) {
-        HandleLoadReceiver();
-      }
+    // If the type parameter is a parameter to this or an enclosing function,
+    // we can read it directly from the function type arguments vector later.
+    // Otherwise, the type arguments vector we need is stored on the instance
+    // object, so we need to capture 'this'.
+    Class& parent_class = Class::Handle(Z, function.Owner());
+    if (index < parent_class.NumTypeParameters()) {
+      HandleLoadReceiver();
     }
   }
 }

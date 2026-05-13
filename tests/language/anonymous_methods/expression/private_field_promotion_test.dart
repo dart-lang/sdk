@@ -43,7 +43,7 @@ class C {
   }
 }
 
-void testParameterlessPromotionsCarriedIn(C c) {
+void testParameterlessPromotionsCarriedInAndOut(C c) {
   if (c._x != null) {
     c._x.expectStaticType<Exactly<Object>>;
     // Inside the anonymous method, `this` refers to the same object as `c`, so
@@ -51,20 +51,29 @@ void testParameterlessPromotionsCarriedIn(C c) {
     c.=> _x.expectStaticType<Exactly<Object>>;
     c.=> this._x.expectStaticType<Exactly<Object>>;
   }
+  // The promotion is carried out again.
+  c._x.expectStaticType<Exactly<Object?>>;
+  if (c.=> _x is Object) {
+    c._x.expectStaticType<Exactly<Object>>;
+  }
+  if (c.=> this._x is Object) {
+    c._x.expectStaticType<Exactly<Object>>;
+  }
 }
 
-void testParameterfulPromotionsCarriedIn(C c) {
+void testParameterfulPromotionsNotCarriedIn(C c) {
   if (c._x != null) {
     c._x.expectStaticType<Exactly<Object>>;
-    // Inside the anonymous method, `p` refers to the same object as `c`, so
-    // `p._x` is promoted.
-    c.(p) => p._x.expectStaticType<Exactly<Object>>;
+    // Inside the anonymous method, `p` refers to the same object as `c`, but
+    // `p._x` is not promoted because `p` is treated like a normal local
+    // variable.
+    c.(p) => p._x.expectStaticType<Exactly<Object?>>;
   }
 }
 
 main() {
-  testParameterlessPromotionsCarriedIn(C(0));
-  testParameterfulPromotionsCarriedIn(C(0));
   C(0).testParameterlessRebindsThis();
   C(0).testParameterfulDoesNotRebindThis();
+  testParameterlessPromotionsCarriedInAndOut(C(0));
+  testParameterfulPromotionsNotCarriedIn(C(0));
 }

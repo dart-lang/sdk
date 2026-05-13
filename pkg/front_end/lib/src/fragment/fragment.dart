@@ -35,6 +35,7 @@ import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../kernel/body_builder_context.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';

@@ -46,7 +46,7 @@ Future<Null>? f() => null;
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
-augment Future<Null>? f() => null;
+augment Future<Null>? f();
 ''');
   }
 
@@ -63,7 +63,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment Future<Null>? get v => null;
+  augment Future<Null>? get v;
 }
 ''');
   }
@@ -81,7 +81,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment Future<Null>? f() => null;
+  augment Future<Null>? f();
 }
 ''');
   }
@@ -96,7 +96,7 @@ Future<Null>? get v => null;
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
-augment Future<Null>? get v => null;
+augment Future<Null>? get v;
 ''');
   }
 

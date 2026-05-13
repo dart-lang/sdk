@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,48 +16,42 @@ main() {
 class ExtensionTypeRepresentationDependsOnItselfTest
     extends PubPackageResolutionTest {
   test_depends_cycle2_direct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(B it) {}
+//             ^
+// [diag.extensionTypeRepresentationDependsOnItself] The extension type representation can't depend on itself.
 
 extension type B(A it) {}
-''',
-      [
-        error(diag.extensionTypeRepresentationDependsOnItself, 15, 1),
-        error(diag.extensionTypeRepresentationDependsOnItself, 42, 1),
-      ],
-    );
+//             ^
+// [diag.extensionTypeRepresentationDependsOnItself] The extension type representation can't depend on itself.
+''');
   }
 
   test_depends_cycle2_typeArgument() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(List<B> it) {}
+//             ^
+// [diag.extensionTypeRepresentationDependsOnItself] The extension type representation can't depend on itself.
 
 extension type B(List<A> it) {}
-''',
-      [
-        error(diag.extensionTypeRepresentationDependsOnItself, 15, 1),
-        error(diag.extensionTypeRepresentationDependsOnItself, 48, 1),
-      ],
-    );
+//             ^
+// [diag.extensionTypeRepresentationDependsOnItself] The extension type representation can't depend on itself.
+''');
   }
 
   test_depends_self_direct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(A it) {}
-''',
-      [error(diag.extensionTypeRepresentationDependsOnItself, 15, 1)],
-    );
+//             ^
+// [diag.extensionTypeRepresentationDependsOnItself] The extension type representation can't depend on itself.
+''');
   }
 
   test_depends_self_typeArgument() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(List<A> it) {}
-''',
-      [error(diag.extensionTypeRepresentationDependsOnItself, 15, 1)],
-    );
+//             ^
+// [diag.extensionTypeRepresentationDependsOnItself] The extension type representation can't depend on itself.
+''');
   }
 }

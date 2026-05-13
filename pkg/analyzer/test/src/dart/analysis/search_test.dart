@@ -94,8 +94,7 @@ class SearchTest extends PubPackageResolutionTest {
     Element element,
     String expected,
   ) async {
-    var searchedFiles = SearchedFiles();
-    var results = await driver.search.references(element, searchedFiles);
+    var results = await driver.search.references(element);
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
@@ -122,11 +121,7 @@ class SearchTest extends PubPackageResolutionTest {
     LibraryImport import,
     String expected,
   ) async {
-    var searchedFiles = SearchedFiles();
-    var results = await driver.search.referencesLibraryImport(
-      import,
-      searchedFiles,
-    );
+    var results = await driver.search.referencesLibraryImport(import);
     var actual = _getSearchResultsText2(results);
     if (actual != expected) {
       print(actual);
@@ -139,8 +134,7 @@ class SearchTest extends PubPackageResolutionTest {
     InterfaceElement element,
     String expected,
   ) async {
-    var searchedFiles = SearchedFiles();
-    var results = await driver.search.subTypes(element, searchedFiles);
+    var results = await driver.search.subTypes(element);
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
@@ -154,11 +148,7 @@ class SearchTest extends PubPackageResolutionTest {
     String name,
     String expected,
   ) async {
-    var searchedFiles = SearchedFiles();
-    var results = await driver.search.unresolvedMemberReferences(
-      name,
-      searchedFiles,
-    );
+    var results = await driver.search.unresolvedMemberReferences(name);
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       print(actual);
@@ -908,7 +898,6 @@ class A {}
       PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
     );
 
-    var myDriver = driverFor(myFile);
     var mySession = contextFor(myFile).currentSession;
     var libraryElementResult = await mySession.getLibraryByUri(
       'package:my/my.dart',
@@ -917,13 +906,10 @@ class A {}
 
     var A = libraryElementResult.element.getClass('A')!;
 
-    var searchedFiles = SearchedFiles();
-    searchedFiles.ownAnalyzed(myDriver.search);
-
     var testDriver = driverFor(testFile);
 
     // No references, but this is not the most important.
-    var references = await testDriver.search.references(A, searchedFiles);
+    var references = await testDriver.search.references(A);
     expect(references, isEmpty);
 
     // We should not add the file to known files. It is not in the
@@ -6001,7 +5987,7 @@ class B extends A<String> {}
     var element = findNode
         .namedArgument('p: null); // 1')
         .correspondingParameter!;
-    expect(driver.search.references(element, SearchedFiles()), completes);
+    expect(driver.search.references(element), completes);
   }
 
   test_searchReferences_PrefixElement() async {
@@ -6118,7 +6104,6 @@ package:test/part2.dart v2@16
   }
 
   test_searchReferences_private_declaredInPart() async {
-    String p = convertPath('$testPackageLibPath/lib.dart');
     String p1 = convertPath('$testPackageLibPath/part1.dart');
     String p2 = convertPath('$testPackageLibPath/part2.dart');
 
@@ -6135,7 +6120,6 @@ _C v1;
 ''';
     String code2 = 'part of lib; _C v2;';
 
-    newFile(p, code);
     newFile(p1, code1);
     newFile(p2, code2);
 
@@ -6957,34 +6941,28 @@ class F {}
     var a = findElement2.class_('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes = await driver.search.subtypes(
-      SearchedFiles(),
-      type: a,
-    );
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
     expect(subtypes, hasLength(3));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
     SubtypeResult c = subtypes.singleWhere((r) => r.name == 'C');
     SubtypeResult d = subtypes.singleWhere((r) => r.name == 'D');
 
-    expect(b.libraryUri, testUriStr);
-    expect(b.id, '$testUriStr;$testUriStr;B');
+    expect(b.library.resource, testFile);
+    expect(b.id, '${testFile.path};${testFile.path};B');
     expect(b.members, ['methodB']);
 
-    expect(c.libraryUri, testUriStr);
-    expect(c.id, '$testUriStr;$testUriStr;C');
+    expect(c.library.resource, testFile);
+    expect(c.id, '${testFile.path};${testFile.path};C');
     expect(c.members, ['methodC']);
 
-    expect(d.libraryUri, testUriStr);
-    expect(d.id, '$testUriStr;$testUriStr;D');
+    expect(d.library.resource, testFile);
+    expect(d.id, '${testFile.path};${testFile.path};D');
     expect(d.members, ['methodD']);
 
     // Search by 'id'.
     {
-      List<SubtypeResult> subtypes = await driver.search.subtypes(
-        SearchedFiles(),
-        subtype: b,
-      );
+      List<SubtypeResult> subtypes = await driver.search.subtypes(subtype: b);
       expect(subtypes, hasLength(1));
       SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
       expect(e.members, ['methodE']);
@@ -7004,9 +6982,7 @@ class F {}
         ..add(name: 'bbb', rootFolder: getFolder(bbbPackageRootPath)),
     );
 
-    var tUri = 'package:test/test.dart';
     var aUri = 'package:aaa/a.dart';
-    var bUri = 'package:bbb/b.dart';
 
     addTestFile(r'''
 import 'package:aaa/a.dart';
@@ -7040,26 +7016,23 @@ class A {
     var aClass = aLibraryResult.element.getClass('A')!;
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes = await driver.search.subtypes(
-      SearchedFiles(),
-      type: aClass,
-    );
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: aClass);
     expect(subtypes, hasLength(3));
 
     SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
     SubtypeResult t2 = subtypes.singleWhere((r) => r.name == 'T2');
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
 
-    expect(t1.libraryUri, tUri);
-    expect(t1.id, '$tUri;$tUri;T1');
+    expect(t1.library.resource, testFile);
+    expect(t1.id, '${testFile.path};${testFile.path};T1');
     expect(t1.members, ['method1']);
 
-    expect(t2.libraryUri, tUri);
-    expect(t2.id, '$tUri;$tUri;T2');
+    expect(t2.library.resource, testFile);
+    expect(t2.id, '${testFile.path};${testFile.path};T2');
     expect(t2.members, ['method2']);
 
-    expect(b.libraryUri, bUri);
-    expect(b.id, '$bUri;$bUri;B');
+    expect(b.library.resource, getFile(bbbFilePath));
+    expect(b.id, '$bbbFilePath;$bbbFilePath;B');
     expect(b.members, ['method1']);
   }
 
@@ -7091,8 +7064,7 @@ class C implements List {}
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
     var listElement = coreLibResult.element.getClass('List')!;
 
-    var searchedFiles = SearchedFiles();
-    var results = await driver.search.subTypes(listElement, searchedFiles);
+    var results = await driver.search.subTypes(listElement);
 
     void assertHasResult(String uriStr, String name, {bool not = false}) {
       var matcher = contains(
@@ -7129,10 +7101,7 @@ class A {}
 ''');
     var a = findElement2.class_('A');
 
-    List<SubtypeResult> subtypes = await driver.search.subtypes(
-      SearchedFiles(),
-      type: a,
-    );
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
     expect(subtypes, hasLength(2));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -7147,7 +7116,7 @@ class A {}
 class {}
 ''');
     var a = findElement2.libraryElement.classes.single;
-    var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
+    var subtypes = await driver.search.subtypes(type: a);
     expect(subtypes, isEmpty);
   }
 
@@ -7168,21 +7137,18 @@ enum E2 with A {
 class B {}
 ''');
 
-    var subtypes = await driver.search.subtypes(
-      SearchedFiles(),
-      type: findElement2.class_('A'),
-    );
+    var subtypes = await driver.search.subtypes(type: findElement2.class_('A'));
     expect(subtypes, hasLength(2));
 
     var resultE1 = subtypes.singleWhere((r) => r.name == 'E1');
     var resultE2 = subtypes.singleWhere((r) => r.name == 'E2');
 
-    expect(resultE1.libraryUri, testUriStr);
-    expect(resultE1.id, '$testUriStr;$testUriStr;E1');
+    expect(resultE1.library.resource, testFile);
+    expect(resultE1.id, '${testFile.path};${testFile.path};E1');
     expect(resultE1.members, ['methodE1']);
 
-    expect(resultE2.libraryUri, testUriStr);
-    expect(resultE2.id, '$testUriStr;$testUriStr;E2');
+    expect(resultE2.library.resource, testFile);
+    expect(resultE2.id, '${testFile.path};${testFile.path};E2');
     expect(resultE2.members, ['methodE2']);
   }
 
@@ -7199,21 +7165,18 @@ extension type E2(A it) implements A {
 }
 ''');
 
-    var subtypes = await driver.search.subtypes(
-      SearchedFiles(),
-      type: findElement2.class_('A'),
-    );
+    var subtypes = await driver.search.subtypes(type: findElement2.class_('A'));
     expect(subtypes, hasLength(2));
 
     var resultE1 = subtypes.singleWhere((r) => r.name == 'E1');
     var resultE2 = subtypes.singleWhere((r) => r.name == 'E2');
 
-    expect(resultE1.libraryUri, testUriStr);
-    expect(resultE1.id, '$testUriStr;$testUriStr;E1');
+    expect(resultE1.library.resource, testFile);
+    expect(resultE1.id, '${testFile.path};${testFile.path};E1');
     expect(resultE1.members, ['methodE1']);
 
-    expect(resultE2.libraryUri, testUriStr);
-    expect(resultE2.id, '$testUriStr;$testUriStr;E2');
+    expect(resultE2.library.resource, testFile);
+    expect(resultE2.id, '${testFile.path};${testFile.path};E2');
     expect(resultE2.members, ['methodE2']);
   }
 
@@ -7227,15 +7190,14 @@ extension type B(int it) implements A {
 ''');
 
     var subtypes = await driver.search.subtypes(
-      SearchedFiles(),
       type: findElement2.extensionType('A'),
     );
     expect(subtypes, hasLength(1));
 
     var B = subtypes.singleWhere((r) => r.name == 'B');
 
-    expect(B.libraryUri, testUriStr);
-    expect(B.id, '$testUriStr;$testUriStr;B');
+    expect(B.library.resource, testFile);
+    expect(B.id, '${testFile.path};${testFile.path};B');
     expect(B.members, ['methodB']);
   }
 
@@ -7258,22 +7220,22 @@ mixin M on A, B {
     var b = findElement2.class_('B');
 
     {
-      var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
+      var subtypes = await driver.search.subtypes(type: a);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');
-      expect(m.libraryUri, testUriStr);
-      expect(m.id, '$testUriStr;$testUriStr;M');
+      expect(m.library.resource, testFile);
+      expect(m.id, '${testFile.path};${testFile.path};M');
       expect(m.members, ['methodA', 'methodM']);
     }
 
     {
-      var subtypes = await driver.search.subtypes(SearchedFiles(), type: b);
+      var subtypes = await driver.search.subtypes(type: b);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');
-      expect(m.libraryUri, testUriStr);
-      expect(m.id, '$testUriStr;$testUriStr;M');
+      expect(m.library.resource, testFile);
+      expect(m.id, '${testFile.path};${testFile.path};M');
       expect(m.members, ['methodA', 'methodM']);
     }
   }
@@ -7302,8 +7264,7 @@ class NoMatchABCDEF {}
   }
 
   Future<List<Element>> _findClassMembers(String name) {
-    var searchedFiles = SearchedFiles();
-    return driver.search.classMembers(name, searchedFiles);
+    return driver.search.classMembers(name);
   }
 
   String _getDeclarationsText(

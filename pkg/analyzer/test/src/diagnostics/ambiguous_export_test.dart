@@ -6,10 +6,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousExportTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,13 +24,12 @@ class N {}
     newFile('$testPackageLibPath/lib2.dart', r'''
 class N {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 export 'lib2.dart';
-''',
-      [error(diag.ambiguousExport, 27, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.ambiguousExport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''');
   }
 
   test_library_extensions_bothExported() async {
@@ -38,20 +39,19 @@ extension E on String {}
     newFile('$testPackageLibPath/lib2.dart', r'''
 extension E on String {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 export 'lib2.dart';
-''',
-      [error(diag.ambiguousExport, 27, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.ambiguousExport] The name 'E' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''');
   }
 
   test_library_extensions_localAndExported() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 
 extension E on String {}

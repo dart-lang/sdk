@@ -135,15 +135,12 @@ enum E {
   }
 
   test_fieldDeclaration_instance_external() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 enum E {
   v;
   external int foo;
 }
-''',
-      [error(diag.nonFinalFieldInEnum, 29, 3)],
-    );
+''');
   }
 
   test_fieldDeclaration_instance_external_final() async {

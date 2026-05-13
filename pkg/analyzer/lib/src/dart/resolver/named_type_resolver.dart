@@ -14,13 +14,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope_context.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl, LocatableDiagnostic;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 

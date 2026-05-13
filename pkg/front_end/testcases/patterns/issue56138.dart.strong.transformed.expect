@@ -6,7 +6,8 @@ static method main() → void {
   try {
     {
       final synthesized Never #0#0 = throw "A";
-      if(!#0#0)
+      final const synthesized core::int #0#2 = #C1;
+      if(!#0#0.{core::List::length}{core::int}.{core::num::<=}(#C1){(core::num) → core::bool})
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
   }
@@ -15,4 +16,8 @@ static method main() → void {
     return;
   }
   throw "Missing exception";
+}
+
+constants  {
+  #C1 = 0
 }

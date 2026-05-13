@@ -16,31 +16,29 @@ main() {
 @reflectiveTest
 class ConflictingMethodAndFieldTest extends PubPackageResolutionTest {
   test_class_inSuper_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
 }
 class B extends A {
   foo() {}
+//^^^
+// [diag.conflictingMethodAndField] Class 'B' can't define method 'foo' and have field 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingMethodAndField, 49, 3)],
-    );
+''');
   }
 
   test_class_inSuper_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   get foo => 0;
 }
 class B extends A {
   foo() {}
+//^^^
+// [diag.conflictingMethodAndField] Class 'B' can't define method 'foo' and have field 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingMethodAndField, 50, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -98,22 +96,35 @@ augment class B {}
   }
 
   test_class_inSuper_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 class B extends A {
   foo() {}
+//^^^
+// [diag.conflictingMethodAndField] Class 'B' can't define method 'foo' and have field 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingMethodAndField, 50, 3)],
-    );
+''');
+  }
+
+  test_enum_inMixin_field() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+  final int foo = 0;
+//          ^^^
+// [diag.conflictingFieldAndMethod] Class 'E' can't define field 'foo' and have method 'M.foo' with the same name.
+}
+''');
   }
 
   test_enum_inMixin_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }
@@ -121,10 +132,10 @@ mixin M {
 enum E with M {
   v;
   void foo() {}
+//     ^^^
+// [diag.conflictingMethodAndField] Class 'E' can't define method 'foo' and have field 'M.foo' with the same name.
 }
-''',
-      [error(diag.conflictingMethodAndField, 61, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -183,8 +194,7 @@ augment enum E {}
   }
 
   test_enum_inMixin_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set foo(int _) {}
 }
@@ -192,14 +202,14 @@ mixin M {
 enum E with M {
   v;
   void foo() {}
+//     ^^^
+// [diag.conflictingMethodAndField] Class 'E' can't define method 'foo' and have field 'M.foo' with the same name.
 }
-''',
-      [error(diag.conflictingMethodAndField, 61, 3)],
-    );
+''');
   }
 
   test_extensionType_field_external() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   external int foo;
 }
@@ -211,7 +221,7 @@ extension type B(int it) implements A {
   }
 
   test_extensionType_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
@@ -223,7 +233,7 @@ extension type B(int it) implements A {
   }
 
   test_extensionType_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(int _) {}
 }

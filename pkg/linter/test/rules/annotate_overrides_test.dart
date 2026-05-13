@@ -26,7 +26,7 @@ abstract interface class HasLength {
   int get length;
 }
 
-abstract class C {
+abstract interface class C {
   int get length;
 }
 ''');
@@ -35,7 +35,7 @@ abstract class C {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class C implements HasLength {
+augment abstract interface class C implements HasLength {
   @override
   augment int get length => 42;
 }
@@ -86,7 +86,7 @@ class B extends A {
 part of 'a.dart';
 
 augment class B {
-  augment void a() {}
+  augment void a();
 }
 ''');
   }

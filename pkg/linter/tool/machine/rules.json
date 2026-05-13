@@ -2315,6 +2315,19 @@
     "sinceDartSdk": "2.16"
   },
   {
+    "name": "simple_directive_paths",
+    "description": "Use simple directive paths.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**PREFER** simple directive paths.\n\nUsing simple directive paths (avoiding redundant `./` or backtracking `../`\nsegments) makes the code cleaner, more consistent, and easier to read. It\nalso reduces the risk of confusion when resolving paths relative to the\nsource file.\n\n**BAD:**\n```dart\nimport '../src/bar.dart';\n```\n\n**GOOD:**\n```dart\nimport 'bar.dart';\n```",
+    "sinceDartSdk": "3.12"
+  },
+  {
     "name": "simplify_variable_pattern",
     "description": "Avoid unnecessary member names in variable patterns.",
     "categories": [
@@ -2324,7 +2337,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**AVOID** redundant member names in variable patterns.\n\nWhen a variable pattern declares a variable with the same name as a member\nof the matched type, the member name is redundant and can be omitted.\n\n**BAD:**\n```dart\nvoid f(Object o) {\n  if (o case String([!length!]: length)) {\n    print('string is $length characters long');\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid f(Object o) {\n  if (o case String(:var length)) {\n    print('string is $length characters long');\n  }\n}\n```",
+    "details": "**AVOID** redundant member names in variable patterns.\n\nWhen a variable pattern declares a variable with the same name as a member\nof the matched type, the member name is redundant and can be omitted.\n\n**BAD:**\n```dart\nvoid f(Object o) {\n  if (o case String([!length!]: var length)) {\n    print('string is $length characters long');\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid f(Object o) {\n  if (o case String(:var length)) {\n    print('string is $length characters long');\n  }\n}\n```",
     "sinceDartSdk": "3.11"
   },
   {
@@ -2667,6 +2680,20 @@
     "sinceDartSdk": "2.0"
   },
   {
+    "name": "unnecessary_const_in_enum_constructor",
+    "description": "Don't use an explicit `const` in a generative enum constructor.",
+    "categories": [
+      "brevity",
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Don't use an explicit `const` in a generative enum constructor. Generative\nenum constructors are implicitly `const`.\n\n**BAD:**\n```dart\nenum const E(final int i) {\n  a(1), b(2);\n}\n```\n\n```dart\nenum E {\n  a(1), b(2);\n\n  const E(this.i);\n\n  final int i;\n}\n```\n\n**GOOD:**\n```dart\nenum E(final int i) {\n  a(1), b(2);\n}\n```\n\n```dart\nenum E {\n  a(1), b(2);\n\n  E(this.i);\n\n  final int i;\n}\n```",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "unnecessary_constructor_name",
     "description": "Unnecessary `.new` constructor name.",
     "categories": [
@@ -2818,7 +2845,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "Avoid null aware operators for members defined in an extension on a nullable\ntype.\n\n**BAD:**\n\n```dart\nextension E on int? {\n  int m() => 1;\n}\nf(int? i) => i?.m();\n```\n\n**GOOD:**\n\n```dart\nextension E on int? {\n  int m() => 1;\n}\nf(int? i) => i.m();\n```",
     "sinceDartSdk": "2.18"
   },
@@ -2829,7 +2856,7 @@
       "brevity",
       "style"
     ],
-    "state": "experimental",
+    "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
@@ -2972,6 +2999,20 @@
     "fixStatus": "hasFix",
     "details": "Unnecessary `toList()` in spreads.\n\n**BAD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)).toList(),\n]\n```\n\n**GOOD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)),\n]\n```",
     "sinceDartSdk": "2.18"
+  },
+  {
+    "name": "unnecessary_type_name_in_constructor",
+    "description": "Don't use an explicit type name in a constructor.",
+    "categories": [
+      "brevity",
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Don't include the type name in a constructor declaration. It isn't\nnecessary, and the code is shorter and cleaner without it.\n\n**BAD:**\n```dart\nclass C {\n  C();\n  C.name();\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  new ();\n  new name();\n}\n```",
+    "sinceDartSdk": "3.13"
   },
   {
     "name": "unnecessary_unawaited",

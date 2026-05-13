@@ -812,7 +812,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
   }
 }
 
-class SpecParseCommandOutput extends CommandOutput {
+class SpecParseCommandOutput extends CommandOutput with _StaticErrorOutput {
   SpecParseCommandOutput(
     Command command,
     int exitCode,
@@ -840,10 +840,54 @@ class SpecParseCommandOutput extends CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
-    if (hasSyntaxError) return Expectation.syntaxError;
-    if (exitCode != 0) return Expectation.syntaxError;
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+    if (hasSyntaxError || exitCode != 0) return Expectation.syntaxError;
     return Expectation.pass;
   }
+
+  /// Parses the ANTLR parser's diagnostic output.
+  ///
+  /// For example: `void main() {(}` in 'foo.dart' yields
+  ///   Syntax error in foo.dart:
+  ///   line 1:14 no viable alternative at input '(}'
+  ///   Parsing failed
+  ///
+  /// The 'Syntax error' line is emitted once for each file with
+  /// a syntax error, and each error gets a 'line ...' message.
+  @override
+  void _parseErrors() {
+    var output = decodeUtf8(stderr);
+    var lines = output.split('\n');
+    String? currentPath;
+    var processCommand = command as ProcessCommand;
+    var fallbackPath = processCommand.arguments.firstWhere(
+      (arg) => arg.endsWith('.dart'),
+      orElse: () => '',
+    );
+    for (var line in lines) {
+      if (_pathRegExp.firstMatch(line) case var match?) {
+        currentPath = match[1];
+      } else if (_errorRegExp.firstMatch(line) case var match?) {
+        var lineNum = int.parse(match[1]!);
+        var column = int.parse(match[2]!) + 1; // ANTLR is 0-based.
+        var message = match[3]!;
+        addError(
+          StaticError(
+            ErrorSource.specParser,
+            message,
+            path: currentPath ?? fallbackPath,
+            line: lineNum,
+            column: column,
+          ),
+        );
+      }
+    }
+  }
+
+  static final RegExp _pathRegExp = .new(r"^Syntax error in (.*):$");
+  static final RegExp _errorRegExp = .new(r"^line (\d+):(\d+) (.*)$");
 }
 
 class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
@@ -1537,6 +1581,7 @@ mixin _StaticErrorOutput on CommandOutput {
       Compiler.dart2wasm: ErrorSource.web,
       Compiler.ddc: ErrorSource.web,
       Compiler.fasta: ErrorSource.cfe,
+      Compiler.specParser: ErrorSource.specParser,
     }[testCase.configuration.compiler]!;
 
     var expected = testCase.testFile.expectedErrors.where(

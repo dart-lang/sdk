@@ -606,7 +606,8 @@ extension type Instr(int value) {
 
   bool isFPImmOp() => (value & FPImmOp.FPImmMask) == FPImmOp.FPImmFixed;
   bool isFPIntCvtOp() =>
-      (value & FPIntCvtOp.FPIntCvtMask) == FPIntCvtOp.FPIntCvtFixed;
+      (value & FPIntCvtOp.FPIntCvtMask) ==
+      (FPIntCvtOp.FPIntCvtFixed & FPIntCvtOp.FPIntCvtMask);
   bool isFPOneSourceOp() =>
       (value & FPOneSourceOp.FPOneSourceMask) == FPOneSourceOp.FPOneSourceFixed;
   bool isFPTwoSourceOp() =>

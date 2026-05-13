@@ -21,28 +21,6 @@ namespace dart {
 
 // --- Message sending/receiving from native code ---
 
-class IsolateLeaveScope {
- public:
-  explicit IsolateLeaveScope(Isolate* current_isolate)
-      : saved_isolate_(current_isolate) {
-    if (current_isolate != nullptr) {
-      ASSERT(current_isolate == Isolate::Current());
-      Dart_ExitIsolate();
-    }
-  }
-  ~IsolateLeaveScope() {
-    if (saved_isolate_ != nullptr) {
-      Dart_Isolate I = reinterpret_cast<Dart_Isolate>(saved_isolate_);
-      Dart_EnterIsolate(I);
-    }
-  }
-
- private:
-  Isolate* saved_isolate_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateLeaveScope);
-};
-
 class DartApiCallScope : public ValueObject {
  public:
   DartApiCallScope() : active_(Dart::SetActiveApiCall()) {}
@@ -110,8 +88,6 @@ Dart_NewConcurrentNativePort(const char* name,
     return ILLEGAL_PORT;
   }
   ENTER_API_CALL_OR_RETURN(ILLEGAL_PORT);
-  // Start the native port without a current isolate.
-  IsolateLeaveScope saver(Isolate::Current());
 
   NativeMessageHandler* nmh =
       new NativeMessageHandler(name, handler, max_concurrency);
@@ -121,9 +97,6 @@ Dart_NewConcurrentNativePort(const char* name,
 
 DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   ENTER_API_CALL_OR_RETURN(false)
-
-  // Close the native port without a current isolate.
-  IsolateLeaveScope saver(Isolate::Current());
 
   PortHandler* handler = nullptr;
   const bool was_closed = PortMap::ClosePort(native_port_id, &handler);
@@ -148,7 +121,6 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
 
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate == nullptr || !isolate->is_service_isolate());
-  IsolateLeaveScope saver(isolate);
 
   // We only allow one isolate reload at a time.  If this turns out to be on the
   // critical path, we can change it to have a global datastructure which is

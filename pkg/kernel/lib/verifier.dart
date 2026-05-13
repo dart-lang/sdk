@@ -270,7 +270,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   // TODO(cstefantsova): Remove this method when the new variable model is
   //  supported.
   bool _isNewModelVariable(TreeNode node) {
-    return node is VariableDeclaration && node is! LegacyVariableDeclaration ||
+    return node is VariableDeclaration && node is! VariableStatement ||
         node is FunctionParameter;
   }
 
@@ -1142,11 +1142,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitVariableInitialization(VariableInitializationBase node) {
+  void visitVariableInitialization(VariableDeclaration node) {
     return _verifyVariableInitialization(node);
   }
 
-  void _verifyVariableInitialization(VariableInitializationBase node) {
+  void _verifyVariableInitialization(VariableDeclaration node) {
     enterTreeNode(node);
     TreeNode? parent = node.parent;
     if (parent is! Block &&
@@ -1178,11 +1178,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       }
     }
     exitTreeNode(node);
-  }
-
-  @override
-  void visitLocalVariable(LocalVariable node) {
-    declareVariable(node);
   }
 
   @override

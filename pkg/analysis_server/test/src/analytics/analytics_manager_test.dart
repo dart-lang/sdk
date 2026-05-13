@@ -39,7 +39,15 @@ void main() {
 @reflectiveTest
 class AnalyticsManagerTest with ResourceProviderMixin {
   final analytics = _MockAnalytics();
-  late final manager = AnalyticsManager(analytics);
+  late final manager = AnalyticsManager(
+    analytics,
+    environment: {
+      'DASH__IDE_NAME': 'ideName',
+      'DASH__IDE_VERSION': 'ideVersion',
+      'DASH__PLUGIN_NAME': 'pluginName',
+      'DASH__PLUGIN_VERSION': 'pluginVersion',
+    },
+  );
 
   Folder get testPackageRoot => getFolder('/home/package');
 
@@ -499,6 +507,10 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'clientId': clientId,
           'clientVersion': clientVersion,
           'duration': _IsPositiveInt(),
+          'ideName': 'ideName',
+          'ideVersion': 'ideVersion',
+          'pluginName': 'pluginName',
+          'pluginVersion': 'pluginVersion',
         },
       ),
     ]);

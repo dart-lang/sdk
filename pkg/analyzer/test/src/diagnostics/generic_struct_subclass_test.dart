@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,35 +15,29 @@ main() {
 @reflectiveTest
 class GenericStructSubclassTest extends PubPackageResolutionTest {
   test_genericStruct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S<T> extends Struct {
+//          ^
+// [diag.genericStructSubclass] The class 'S' can't extend 'Struct' or 'Union' because 'S' is generic.
   external Pointer notEmpty;
 }
-''',
-      [
-        error(diag.genericStructSubclass, 31, 1, messageContains: ["'S'"]),
-      ],
-    );
+''');
   }
 
   test_genericUnion() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S<T> extends Union {
+//          ^
+// [diag.genericStructSubclass] The class 'S' can't extend 'Struct' or 'Union' because 'S' is generic.
   external Pointer notEmpty;
 }
-''',
-      [
-        error(diag.genericStructSubclass, 31, 1, messageContains: ["'S'"]),
-      ],
-    );
+''');
   }
 
   test_validStruct() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S extends Struct {
   external Pointer notEmpty;

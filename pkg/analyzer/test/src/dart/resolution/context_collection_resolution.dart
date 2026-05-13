@@ -84,6 +84,10 @@ abstract class ContextResolutionTest
   MemoryByteStore _byteStore = _sharedByteStore;
 
   Map<String, String> _declaredVariables = {};
+
+  /// Whether indexing is enabled.
+  bool enableIndex = true;
+
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
   /// If not `null`, [resolveFile] will use the context that corresponds
@@ -121,7 +125,7 @@ abstract class ContextResolutionTest
     collection = AnalysisContextCollectionImpl(
       byteStore: _byteStore,
       declaredVariables: _declaredVariables,
-      enableIndex: true,
+      enableIndex: enableIndex,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       retainDataForTesting: retainDataForTesting,

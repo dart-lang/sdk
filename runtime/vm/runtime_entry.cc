@@ -1064,13 +1064,8 @@ DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
   intptr_t num_arguments = args_desc.Count();
 
   if (target.is_static()) {
-    if (target.IsFactory()) {
-      // Factory always takes type arguments via a positional parameter.
-      type_args_len = 0;
-    } else {
-      // Drop closure receiver.
-      --num_arguments;
-    }
+    // Drop closure receiver.
+    --num_arguments;
   } else {
     if (target.IsGenerativeConstructor()) {
       // Type arguments are not passed to a generative constructor.
@@ -2496,7 +2491,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   const Instance& arg = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(1));
   // IC data for static call is prepopulated with the statically known target.
-  ASSERT(ic_data.NumberOfChecksIs(1));
+  ASSERT(!ic_data.NumberOfChecksIs(0));
   const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
   target.EnsureHasCode();
   ASSERT(!target.IsNull() && target.HasCode());

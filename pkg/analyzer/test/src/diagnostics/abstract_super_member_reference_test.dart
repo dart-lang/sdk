@@ -2,22 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractSuperMemberReferenceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AbstractSuperMemberReferenceTest extends PubPackageResolutionTest {
   test_methodInvocation_mixin_implements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(int _) {}
 }
@@ -25,11 +25,11 @@ class A {
 mixin M implements A {
   void bar() {
     super.foo(0);
+//        ^^^
+// [diag.abstractSuperMemberReference] The method 'foo' is always abstract in the supertype.
   }
 }
-''',
-      [error(diag.abstractSuperMemberReference, 82, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -56,7 +56,7 @@ MethodInvocation
   }
 
   test_methodInvocation_mixinHasConcrete() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 mixin M {
@@ -92,8 +92,7 @@ MethodInvocation
   }
 
   test_methodInvocation_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void foo();
   noSuchMethod(im) => 42;
@@ -101,11 +100,11 @@ mixin A {
 
 class B extends Object with A {
   void foo() => super.foo(); // ref
+//                    ^^^
+// [diag.abstractSuperMemberReference] The method 'foo' is always abstract in the supertype.
   noSuchMethod(im) => 87;
 }
-''',
-      [error(diag.abstractSuperMemberReference, 107, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
@@ -127,8 +126,7 @@ MethodInvocation
   }
 
   test_methodInvocation_superHasAbstract() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo(int _);
 }
@@ -136,13 +134,13 @@ abstract class A {
 abstract class B extends A {
   void bar() {
     super.foo(0);
+//        ^^^
+// [diag.abstractSuperMemberReference] The method 'foo' is always abstract in the supertype.
   }
 
   void foo(int _) {} // does not matter
 }
-''',
-      [error(diag.abstractSuperMemberReference, 95, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -169,7 +167,7 @@ MethodInvocation
   }
 
   test_methodInvocation_superHasConcrete_mixinHasAbstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -205,7 +203,7 @@ MethodInvocation
   }
 
   test_methodInvocation_superHasNoSuchMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo();
   noSuchMethod(im) => 42;
@@ -237,7 +235,7 @@ MethodInvocation
   }
 
   test_methodInvocation_superSuperHasConcrete() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo() {}
 }
@@ -273,8 +271,7 @@ MethodInvocation
   }
 
   test_propertyAccess_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int get foo;
 }
@@ -282,11 +279,11 @@ abstract class A {
 abstract class B extends A {
   bar() {
     super.foo; // ref
+//        ^^^
+// [diag.abstractSuperMemberReference] The getter 'foo' is always abstract in the supertype.
   }
 }
-''',
-      [error(diag.abstractSuperMemberReference, 86, 3)],
-    );
+''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -304,8 +301,7 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_mixin_implements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -313,11 +309,11 @@ class A {
 mixin M implements A {
   void bar() {
     super.foo;
+//        ^^^
+// [diag.abstractSuperMemberReference] The getter 'foo' is always abstract in the supertype.
   }
 }
-''',
-      [error(diag.abstractSuperMemberReference, 81, 3)],
-    );
+''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -335,8 +331,7 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -344,11 +339,11 @@ mixin A {
 
 class B extends Object with A {
   int get foo => super.foo; // ref
+//                     ^^^
+// [diag.abstractSuperMemberReference] The getter 'foo' is always abstract in the supertype.
   noSuchMethod(im) => 2;
 }
-''',
-      [error(diag.abstractSuperMemberReference, 108, 3)],
-    );
+''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -366,7 +361,7 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_superHasNoSuchMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -394,8 +389,7 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_superImplements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -405,10 +399,10 @@ abstract class B implements A {
 
 class C extends B {
   int get foo => super.foo; // ref
+//                     ^^^
+// [diag.abstractSuperMemberReference] The getter 'foo' is always abstract in the supertype.
 }
-''',
-      [error(diag.abstractSuperMemberReference, 111, 3)],
-    );
+''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -426,7 +420,7 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_superSuperHasConcrete() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int get foo => 0;
 }
@@ -456,8 +450,7 @@ PropertyAccess
   }
 
   test_propertyAccess_method_tearOff_abstract() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -465,11 +458,11 @@ abstract class A {
 abstract class B extends A {
   void bar() {
     super.foo; // ref
+//        ^^^
+// [diag.abstractSuperMemberReference] The method 'foo' is always abstract in the supertype.
   }
 }
-''',
-      [error(diag.abstractSuperMemberReference, 90, 3)],
-    );
+''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -487,8 +480,7 @@ PropertyAccess
   }
 
   test_propertyAccess_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   set foo(int _);
 }
@@ -496,11 +488,11 @@ abstract class A {
 abstract class B extends A {
   void bar() {
     super.foo = 0;
+//        ^^^
+// [diag.abstractSuperMemberReference] The setter 'foo' is always abstract in the supertype.
   }
 }
-''',
-      [error(diag.abstractSuperMemberReference, 94, 3)],
-    );
+''');
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -529,8 +521,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_mixin_implements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(int _) {}
 }
@@ -538,11 +529,11 @@ class A {
 mixin M implements A {
   void bar() {
     super.foo = 0;
+//        ^^^
+// [diag.abstractSuperMemberReference] The setter 'foo' is always abstract in the supertype.
   }
 }
-''',
-      [error(diag.abstractSuperMemberReference, 81, 3)],
-    );
+''');
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -571,8 +562,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   set foo(int a);
   noSuchMethod(im) {}
@@ -580,11 +570,11 @@ mixin A {
 
 class B extends Object with A {
   set foo(int a) => super.foo = a; // ref
+//                        ^^^
+// [diag.abstractSuperMemberReference] The setter 'foo' is always abstract in the supertype.
   noSuchMethod(im) {}
 }
-''',
-      [error(diag.abstractSuperMemberReference, 111, 3)],
-    );
+''');
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -614,7 +604,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_superHasNoSuchMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(int a);
   noSuchMethod(im) => 1;
@@ -654,7 +644,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_superSuperHasConcrete() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void set foo(int _) {}
 }

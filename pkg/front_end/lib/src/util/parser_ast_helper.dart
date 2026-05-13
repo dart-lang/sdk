@@ -879,6 +879,7 @@ abstract class AbstractParserAstListener implements Listener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
@@ -886,6 +887,7 @@ abstract class AbstractParserAstListener implements Listener {
       ParserAstType.BEGIN,
       declarationKind: declarationKind,
       lastConsumed: lastConsumed,
+      augmentToken: augmentToken,
       externalToken: externalToken,
       constToken: constToken,
     );
@@ -5445,6 +5447,7 @@ class ExpressionStatementHandle extends ParserAstNode
 class FactoryBegin extends ParserAstNode {
   final DeclarationKind declarationKind;
   final Token lastConsumed;
+  final Token? augmentToken;
   final Token? externalToken;
   final Token? constToken;
 
@@ -5452,6 +5455,7 @@ class FactoryBegin extends ParserAstNode {
     ParserAstType type, {
     required this.declarationKind,
     required this.lastConsumed,
+    this.augmentToken,
     this.externalToken,
     this.constToken,
   }) : super("Factory", type);
@@ -5460,6 +5464,7 @@ class FactoryBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
     "declarationKind": declarationKind,
     "lastConsumed": lastConsumed,
+    "augmentToken": augmentToken,
     "externalToken": externalToken,
     "constToken": constToken,
   };

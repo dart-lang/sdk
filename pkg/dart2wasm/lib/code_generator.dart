@@ -8,6 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:front_end/src/api_prototype/external_effect.dart'
     show ExternalEffect;
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -1332,7 +1333,7 @@ abstract class AstCodeGenerator
     if (expression != null) {
       translateExpression(expression, returnType);
     } else {
-      translator.convertType(b, voidMarker, returnType);
+      _implicitReturn();
     }
 
     // If we are wrapped in a [TryFinally] node then we have to run finalizers
@@ -1666,7 +1667,7 @@ abstract class AstCodeGenerator
 
     // When calling `==` and the argument is potentially nullable, check if the
     // argument is `null`.
-    if (node.name.text == '==') {
+    if (node.name == equalsName) {
       assert(node.arguments.positional.length == 1);
       assert(node.arguments.named.isEmpty);
       final argument = node.arguments.positional[0];
@@ -1783,7 +1784,7 @@ abstract class AstCodeGenerator
     // accesses on constant lists (see https://dartbug.com/60313)
     if (singleTarget == null &&
         target.kind == ProcedureKind.Operator &&
-        target.name.text == '[]') {
+        target.name == indexGetName) {
       final receiver = node.receiver;
       if (receiver is ConstantExpression && receiver.constant is ListConstant) {
         singleTarget = translator.listBaseIndexOperator;
@@ -1872,6 +1873,9 @@ abstract class AstCodeGenerator
     }
 
     translator.callFunction(forwarder.function, b);
+    if (callShape.isIndexSet) {
+      b.ref_null(w.HeapType.none);
+    }
 
     return translator.topType;
   }
@@ -2073,6 +2077,11 @@ abstract class AstCodeGenerator
       b.ref_null(w.HeapType.none);
       return w.RefType(w.HeapType.none, nullable: true);
     }
+    if (selector.synthesizeNoReturn) {
+      assert(selector.signature.outputs.isEmpty);
+      b.unreachable();
+      return voidMarker;
+    }
 
     return translator.outputOrVoid(signature.outputs);
   }
@@ -2163,12 +2172,14 @@ abstract class AstCodeGenerator
     translateExpression(node.value, paramType);
     if (!preserved) {
       call(node.targetReference);
+      b.drop(); // Drop `null` from setter call.
       return voidMarker;
     }
     w.Local temp = addLocal(paramType);
     b.local_tee(temp);
 
     call(reference);
+    b.drop(); // Drop `null` from setter call.
     b.local_get(temp);
     return temp.type;
   }
@@ -2416,6 +2427,7 @@ abstract class AstCodeGenerator
         },
         useUncheckedEntry: useUncheckedEntry,
       );
+      b.drop(); // Drop `null` from setter call.
       if (preserved) {
         b.local_get(temp!);
         return temp!.type;
@@ -2450,6 +2462,7 @@ abstract class AstCodeGenerator
       b.local_tee(temp);
     }
     call(reference);
+    b.drop(); // Drop `null` from setter call.
     if (preserved) {
       b.local_get(temp!);
       return temp.type;
@@ -2495,7 +2508,7 @@ abstract class AstCodeGenerator
     Lambda lambda = closures.lambdas[functionNode]!;
     ClosureImplementation closure = translator.getClosure(
       functionNode,
-      lambda.function,
+      lambda.callTarget,
       b.moduleBuilder,
       ParameterInfo.fromLocalFunction(functionNode),
       "closure wrapper at ${functionNode.location}",
@@ -2595,12 +2608,12 @@ abstract class AstCodeGenerator
   ) {
     final closureStruct = representation.closureStruct;
     final closureStructRef = w.RefType.def(closureStruct, nullable: false);
-    final signature = closureTarget.signature;
+    final callTarget = closureTarget.callTarget;
+    assert(callTarget is AstCallTarget || callTarget is LambdaCallTarget);
+    final signature = callTarget.signature;
     final paramInfo = closureTarget.paramInfo;
-    final member = closureTarget.member;
-    final lambdaFunction = closureTarget.lambdaFunction;
 
-    if (lambdaFunction == null) {
+    if (callTarget is AstCallTarget) {
       if (paramInfo.takesContextOrReceiver) {
         translateExpression(node.receiver, closureStructRef);
         b.struct_get(closureStruct, FieldIndex.closureContext);
@@ -2609,21 +2622,15 @@ abstract class AstCodeGenerator
       } else {
         _visitArguments(node.arguments, signature, paramInfo, 0);
       }
-      return translator.outputOrVoid(
-        call(
-          translator.getFunctionEntry(member.reference, uncheckedEntry: false),
-        ),
-      );
-    } else {
-      assert(paramInfo.takesContextOrReceiver);
-      translateExpression(node.receiver, closureStructRef);
-      b.struct_get(closureStruct, FieldIndex.closureContext);
-      translator.convertType(b, closureContextFieldType, signature.inputs[0]);
-      _visitArguments(node.arguments, signature, paramInfo, 1);
-      return translator.outputOrVoid(
-        translator.callFunction(lambdaFunction, b),
-      );
+      return translator.outputOrVoid(translator.callTarget(callTarget, b));
     }
+
+    assert(paramInfo.takesContextOrReceiver);
+    translateExpression(node.receiver, closureStructRef);
+    b.struct_get(closureStruct, FieldIndex.closureContext);
+    translator.convertType(b, closureContextFieldType, signature.inputs[0]);
+    _visitArguments(node.arguments, signature, paramInfo, 1);
+    return translator.outputOrVoid(translator.callTarget(callTarget, b));
   }
 
   w.ValueType _generateClosureInvocation(
@@ -2691,13 +2698,12 @@ abstract class AstCodeGenerator
     Arguments arguments = node.arguments;
     _visitArguments(
       arguments,
-      lambda.function.type,
+      lambda.callTarget.signature,
       ParameterInfo.fromLocalFunction(decl.function),
       1,
     );
     b.comment("Local call of ${decl.variable.name}");
-    translator.callFunction(lambda.function, b);
-    return translator.outputOrVoid(lambda.function.type.outputs);
+    return translator.outputOrVoid(translator.callTarget(lambda.callTarget, b));
   }
 
   @override
@@ -3427,26 +3433,28 @@ CodeGenerator getMemberCodeGenerator(
   if (asyncMarker == AsyncMarker.SyncStar) {
     return SyncStarProcedureCodeGenerator(
       translator,
-      functionBuilder,
       procedure,
+      functionBuilder.type,
+      functionBuilder.name,
     );
   }
   assert(asyncMarker == AsyncMarker.Async);
-  return AsyncProcedureCodeGenerator(translator, functionBuilder, procedure);
+  return AsyncProcedureCodeGenerator(
+    translator,
+    procedure,
+    functionBuilder.type,
+    functionBuilder.name,
+  );
 }
 
-CodeGenerator getLambdaCodeGenerator(
-  Translator translator,
-  Lambda lambda,
-  Member enclosingMember,
-  Closures enclosingMemberClosures,
-) {
+CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda) {
+  final enclosingMember = lambda.enclosingMember;
   final enclosingClass = enclosingMember.enclosingClass;
   if (enclosingClass != null &&
       translator.classInfo[enclosingClass]!.isCyclic) {
     return UnreachableCodeGenerator(
       translator,
-      lambda.function.type,
+      lambda.callTarget.signature,
       enclosingMember,
     );
   }
@@ -3454,28 +3462,13 @@ CodeGenerator getLambdaCodeGenerator(
   final asyncMarker = lambda.functionNode.asyncMarker;
 
   if (asyncMarker == AsyncMarker.Async) {
-    return AsyncLambdaCodeGenerator(
-      translator,
-      enclosingMember,
-      lambda,
-      enclosingMemberClosures,
-    );
+    return AsyncLambdaCodeGenerator(translator, lambda);
   }
   if (asyncMarker == AsyncMarker.SyncStar) {
-    return SyncStarLambdaCodeGenerator(
-      translator,
-      enclosingMember,
-      lambda,
-      enclosingMemberClosures,
-    );
+    return SyncStarLambdaCodeGenerator(translator, lambda);
   }
   assert(asyncMarker == AsyncMarker.Sync);
-  return SynchronousLambdaCodeGenerator(
-    translator,
-    enclosingMember,
-    lambda,
-    enclosingMemberClosures,
-  );
+  return SynchronousLambdaCodeGenerator(translator, lambda);
 }
 
 /// Returns a [CodeGenerator] for the given member iff that member can be
@@ -3830,7 +3823,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       targetProcedure.reference,
       uncheckedEntry: false,
     );
-    final targetSignature = translator.signatureForDirectCall(target);
+    final callTarget = translator.directCallTarget(target);
 
     _initializeThis(reference);
 
@@ -3841,7 +3834,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     // Load the receiver
     final receiverLocal = paramLocals[argReceiverOffset];
     b.local_get(receiverLocal);
-    translator.convertType(b, receiverLocal.type, targetSignature.inputs[0]);
+    translator.convertType(
+      b,
+      receiverLocal.type,
+      callTarget.signature.inputs[0],
+    );
 
     // Load type parameters for target.
     final targetTypeParams = targetFunction.typeParameters;
@@ -3882,7 +3879,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     final targetPositionalParams = targetFunction.positionalParameters;
     for (int i = 0; i < targetParamInfo.positional.length; i++) {
       final targetParamType =
-          targetSignature.inputs[1 + targetParamInfo.typeParamCount + i];
+          callTarget.signature.inputs[1 + targetParamInfo.typeParamCount + i];
       if (i < callShape.positionalCount) {
         // Provided by the caller.
         final paramValue = paramLocals[argPositionalsOffset + i];
@@ -3918,7 +3915,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     final targetNamedParams = targetFunction.namedParameters;
     for (int i = 0; i < targetParamInfo.names.length; ++i) {
       final targetParamType =
-          targetSignature.inputs[1 +
+          callTarget.signature.inputs[1 +
               targetParamInfo.typeParamCount +
               targetParamInfo.positional.length +
               i];
@@ -3955,12 +3952,10 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       }
     }
 
-    call(target);
-    translator.convertType(
-      b,
-      translator.outputOrVoid(targetSignature.outputs),
-      translator.topType,
-    );
+    final outputs = translator.callTarget(callTarget, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(b, outputs.single, returnType);
+    }
     b.return_();
     b.end();
   }
@@ -4046,6 +4041,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       b.local_get(positionalArgLocal);
       translator.convertType(b, positionalArgLocal.type, setterInputs[1]);
       call(target);
+      b.drop(); // Drop `null` from setter call.
     }
 
     b.end(); // end function
@@ -4888,7 +4884,7 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
     if (initFunction == null) {
       // Statically initialized
       definition.read(translator, b);
-      // b.ref_cast(functionType.outputs.single as w.RefType);
+      translator.convertType(b, definition.type, returnType);
     } else {
       if (flag != null) {
         // Explicit initialization flag
@@ -4898,6 +4894,7 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
         b.else_();
         translator.callFunction(initFunction, b);
         b.end();
+        translator.convertType(b, definition.type, returnType);
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
@@ -4905,6 +4902,7 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
         b.br_on_non_null(block);
         translator.callFunction(initFunction, b);
         b.end();
+        translator.convertType(b, initFunction.type.outputs.single, returnType);
       }
     }
   }
@@ -5004,18 +5002,13 @@ class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
 
 class SynchronousLambdaCodeGenerator extends AstCodeGenerator {
   final Lambda lambda;
-  final Closures enclosingMemberClosures;
 
-  SynchronousLambdaCodeGenerator(
-    Translator translator,
-    Member enclosingMember,
-    this.lambda,
-    this.enclosingMemberClosures,
-  ) : super(translator, lambda.function.type, enclosingMember);
+  SynchronousLambdaCodeGenerator(Translator translator, this.lambda)
+    : super(translator, lambda.callTarget.signature, lambda.enclosingMember);
 
   @override
   void generateInternal() {
-    closures = enclosingMemberClosures;
+    closures = lambda.enclosingMemberClosures;
 
     setSourceMapSource(lambda.functionNodeSource);
 
@@ -6111,6 +6104,9 @@ abstract class CallTarget {
   /// Whether callers should synthesize a `null` return value.
   bool get synthesizeNullReturnValue => false;
 
+  /// Whether callee never returns and callers should emit `unreachable`.
+  bool get synthesizeNoReturn => false;
+
   /// Whether this call target supports inlining.
   bool get supportsInlining => false;
 
@@ -6146,6 +6142,9 @@ class AstCallTarget extends CallTarget {
       _translator.synthesizeNullReturnValue(_reference);
 
   @override
+  bool get synthesizeNoReturn => _translator.synthesizeNoReturn(_reference);
+
+  @override
   String get name => _translator.functions.getFunctionName(_reference);
 
   @override
@@ -6165,6 +6164,21 @@ class AstCallTarget extends CallTarget {
 
   @override
   w.BaseFunction get function => _translator.functions.getFunction(_reference);
+}
+
+class LambdaCallTarget extends CallTarget {
+  final Translator _translator;
+  final Lambda _lambda;
+
+  LambdaCallTarget(super.signature, this._translator, this._lambda);
+
+  @override
+  late final String name = _translator.functions.getLambdaFunctionName(_lambda);
+
+  @override
+  late final w.BaseFunction function = _translator.functions.getLambdaFunction(
+    _lambda,
+  );
 }
 
 /// Whether a `catch` guard has the right type to catch JS exceptions.

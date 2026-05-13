@@ -4475,6 +4475,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
@@ -4502,7 +4503,13 @@ class OutlineBuilder extends StackListenerImpl {
 
     pushDeclarationContext(declarationContext);
     _builderFactory.beginFactoryMethod();
-    push(Modifiers.from(externalToken: externalToken, constToken: constToken));
+    push(
+      Modifiers.from(
+        augmentToken: augmentToken,
+        externalToken: externalToken,
+        constToken: constToken,
+      ),
+    );
   }
 
   void _endFactoryMethod(

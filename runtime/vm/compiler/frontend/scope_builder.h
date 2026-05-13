@@ -181,8 +181,7 @@ struct FunctionScope {
 class ScopeBuildingResult : public ZoneObject {
  public:
   ScopeBuildingResult()
-      : type_arguments_variable(nullptr),
-        switch_variable(nullptr),
+      : switch_variable(nullptr),
         finally_return_variable(nullptr),
         setter_value(nullptr),
         raw_variable_counter_(0) {}
@@ -199,9 +198,6 @@ class ScopeBuildingResult : public ZoneObject {
   IntMap<LocalVariable*> locals;
   IntMap<LocalScope*> scopes;
   GrowableArray<FunctionScope> function_scopes;
-
-  // Only non-null for factory constructor functions.
-  LocalVariable* type_arguments_variable;
 
   // Non-nullptr when the function contains a switch statement.
   LocalVariable* switch_variable;

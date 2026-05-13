@@ -20,7 +20,7 @@ main() {
 
 abstract class ConstElementTest extends ElementsBaseTest {
   test_const_asExpression() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const num a = 0;
 const b = a as int;
 ''');
@@ -165,7 +165,9 @@ library
 
   test_const_cascadeExpression() async {
     var library = await buildLibrary(r'''
-const a = 0..isEven..abs();
+const a = 0
+  ..isEven
+  ..abs();
 ''');
     checkElementText(library, r'''
 library
@@ -183,21 +185,21 @@ library
                 staticType: int
               cascadeSections
                 PropertyAccess
-                  operator: .. @11
+                  operator: .. @14
                   propertyName: SimpleIdentifier
-                    token: isEven @13
+                    token: isEven @16
                     element: dart:core::@class::int::@getter::isEven
                     staticType: bool
                   staticType: bool
                 MethodInvocation
-                  operator: .. @19
+                  operator: .. @25
                   methodName: SimpleIdentifier
-                    token: abs @21
+                    token: abs @27
                     element: dart:core::@class::int::@method::abs
                     staticType: int Function()
                   argumentList: ArgumentList
-                    leftParenthesis: ( @24
-                    rightParenthesis: ) @25
+                    leftParenthesis: ( @30
+                    rightParenthesis: ) @31
                   staticInvokeType: int Function()
                   staticType: int
               staticType: int
@@ -339,12 +341,13 @@ library
   }
 
   test_const_constructor_inferred_args() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   final T t;
   const C(this.t);
   const C.named(this.t);
 }
+
 const Object x = const C(0);
 const Object y = const C.named(0);
 ''');
@@ -383,40 +386,40 @@ library
             #F8 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@getter::t
       topLevelVariables
-        #F9 hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:85) (firstTokenOffset:85) (offset:85)
+        #F9 hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:86) (firstTokenOffset:86) (offset:86)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @89
+              keyword: const @90
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @95
+                  name: C @96
                   element: <testLibrary>::@class::C
                   type: C<int>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
-                leftParenthesis: ( @96
+                leftParenthesis: ( @97
                 arguments
                   IntegerLiteral
-                    literal: 0 @97
+                    literal: 0 @98
                     staticType: int
-                rightParenthesis: ) @98
+                rightParenthesis: ) @99
               staticType: C<int>
-        #F10 hasInitializer isConst isOriginDeclaration isStatic y (nameOffset:114) (firstTokenOffset:114) (offset:114)
+        #F10 hasInitializer isConst isOriginDeclaration isStatic y (nameOffset:115) (firstTokenOffset:115) (offset:115)
           element: <testLibrary>::@topLevelVariable::y
           initializer: expression_1
             InstanceCreationExpression
-              keyword: const @118
+              keyword: const @119
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @124
+                  name: C @125
                   element: <testLibrary>::@class::C
                   type: C<int>
-                period: . @125
+                period: . @126
                 name: SimpleIdentifier
-                  token: named @126
+                  token: named @127
                   element: ConstructorMember
                     baseElement: <testLibrary>::@class::C::@constructor::named
                     substitution: {T: dynamic}
@@ -425,17 +428,17 @@ library
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {T: int}
               argumentList: ArgumentList
-                leftParenthesis: ( @131
+                leftParenthesis: ( @132
                 arguments
                   IntegerLiteral
-                    literal: 0 @132
+                    literal: 0 @133
                     staticType: int
-                rightParenthesis: ) @133
+                rightParenthesis: ) @134
               staticType: C<int>
       getters
-        #F11 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:85)
+        #F11 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
           element: <testLibrary>::@getter::x
-        #F12 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:114)
+        #F12 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
           element: <testLibrary>::@getter::y
   classes
     isSimplyBounded class C
@@ -517,6 +520,7 @@ library
 class A {
   A.named();
 }
+
 const v = A.named;
 ''');
     checkElementText(library, r'''
@@ -535,24 +539,24 @@ library
               typeNameOffset: 12
               periodOffset: 13
       topLevelVariables
-        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:31) (firstTokenOffset:31) (offset:31)
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             ConstructorReference
               constructorName: ConstructorName
                 type: NamedType
-                  name: A @35
+                  name: A @36
                   element: <testLibrary>::@class::A
                   type: null
-                period: . @36
+                period: . @37
                 name: SimpleIdentifier
-                  token: named @37
+                  token: named @38
                   element: <testLibrary>::@class::A::@constructor::named
                   staticType: null
                 element: <testLibrary>::@class::A::@constructor::named
               staticType: A Function()
       getters
-        #F4 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F4 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::v
   classes
     isSimplyBounded class A
@@ -942,12 +946,12 @@ library
   }
 
   test_const_functionExpression_typeArgumentTypes() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T>(T a) {}
 
 const void Function(int) v = f;
 ''');
-    checkElementText(library, '''
+    checkElementText(library, r'''
 library
   reference: <testLibrary>
   fragments
@@ -1180,7 +1184,7 @@ library
   }
 
   test_const_inference_downward_list() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class P<T> {
   const P();
 }
@@ -1193,10 +1197,7 @@ class P2<T> extends P<T> {
   const P2();
 }
 
-const List<P> values = [
-  P1(),
-  P2<int>(),
-];
+const List<P> values = [P1(), P2<int>()];
 ''');
     checkElementText(library, r'''
 library
@@ -1245,38 +1246,38 @@ library
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
-                      name: P1 @144
+                      name: P1 @141
                       element: <testLibrary>::@class::P1
                       type: P1<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@class::P1::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @146
-                    rightParenthesis: ) @147
+                    leftParenthesis: ( @143
+                    rightParenthesis: ) @144
                   staticType: P1<dynamic>
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
-                      name: P2 @152
+                      name: P2 @147
                       typeArguments: TypeArgumentList
-                        leftBracket: < @154
+                        leftBracket: < @149
                         arguments
                           NamedType
-                            name: int @155
+                            name: int @150
                             element: dart:core::@class::int
                             type: int
-                        rightBracket: > @158
+                        rightBracket: > @153
                       element: <testLibrary>::@class::P2
                       type: P2<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@class::P2::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
-                    leftParenthesis: ( @159
-                    rightParenthesis: ) @160
+                    leftParenthesis: ( @154
+                    rightParenthesis: ) @155
                   staticType: P2<int>
-              rightBracket: ] @163
+              rightBracket: ] @156
               staticType: List<P<dynamic>>
       getters
         #F11 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:131)
@@ -1343,6 +1344,7 @@ library
 class C {
   static const f = 1 + foo();
 }
+
 int foo() => 42;
 ''');
     checkElementText(library, r'''
@@ -1384,7 +1386,7 @@ library
             #F4 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::f
       functions
-        #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:46) (firstTokenOffset:42) (offset:46)
+        #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:47) (firstTokenOffset:43) (offset:47)
           element: <testLibrary>::@function::foo
   classes
     isSimplyBounded class C
@@ -1422,6 +1424,7 @@ library
 class C {
   final f = 1 + foo();
 }
+
 int foo() => 42;
 ''');
     checkElementText(library, r'''
@@ -1444,7 +1447,7 @@ library
             #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::f
       functions
-        #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:39) (firstTokenOffset:35) (offset:39)
+        #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:40) (firstTokenOffset:36) (offset:40)
           element: <testLibrary>::@function::foo
   classes
     isSimplyBounded class C
@@ -1475,8 +1478,10 @@ library
   }
 
   test_const_invalid_functionExpression() async {
-    var library = await buildLibrary('''
-const v = () { return 0; };
+    var library = await buildLibrary(r'''
+const v = () {
+  return 0;
+};
 ''');
     checkElementText(library, r'''
 library
@@ -1514,8 +1519,8 @@ library
   }
 
   test_const_invalid_functionExpression_assertInitializer() async {
-    var library = await buildLibrary('''
-class A  {
+    var library = await buildLibrary(r'''
+class A {
   const A() : assert((() => true)());
 }
 ''');
@@ -1529,10 +1534,10 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:13) (offset:19)
+            #F2 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 19
+              typeNameOffset: 18
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -1543,19 +1548,19 @@ library
           firstFragment: #F2
           constantInitializers
             AssertInitializer
-              assertKeyword: assert @25
-              leftParenthesis: ( @31
+              assertKeyword: assert @24
+              leftParenthesis: ( @30
               condition: SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
-              rightParenthesis: ) @46
+              rightParenthesis: ) @45
 ''');
   }
 
   test_const_invalid_functionExpression_assertInitializer_message() async {
-    var library = await buildLibrary('''
-class A  {
+    var library = await buildLibrary(r'''
+class A {
   const A() : assert(b, () => 0);
 }
 ''');
@@ -1569,10 +1574,10 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:13) (offset:19)
+            #F2 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 19
+              typeNameOffset: 18
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -1583,23 +1588,23 @@ library
           firstFragment: #F2
           constantInitializers
             AssertInitializer
-              assertKeyword: assert @25
-              leftParenthesis: ( @31
+              assertKeyword: assert @24
+              leftParenthesis: ( @30
               condition: SimpleIdentifier
-                token: b @32
+                token: b @31
                 element: <null>
                 staticType: InvalidType
-              comma: , @33
+              comma: , @32
               message: SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
-              rightParenthesis: ) @42
+              rightParenthesis: ) @41
 ''');
   }
 
   test_const_invalid_functionExpression_constructorFieldInitializer() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   final Object? foo;
   const A() : foo = (() => 0);
@@ -1660,8 +1665,12 @@ library
   }
 
   test_const_invalid_functionExpression_nested() async {
-    var library = await buildLibrary('''
-const v = () { return 0; } + 2;
+    var library = await buildLibrary(r'''
+const v =
+    () {
+      return 0;
+    } +
+    2;
 ''');
     checkElementText(library, r'''
 library
@@ -1699,7 +1708,7 @@ library
   }
 
   test_const_invalid_functionExpression_redirectingConstructorInvocation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(Object a, Object b);
   const A.named() : this(0, () => 0);
@@ -1767,10 +1776,11 @@ library
   }
 
   test_const_invalid_functionExpression_superConstructorInvocation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(Object a, Object b);
 }
+
 class B extends A {
   const B() : super(0, () => 0);
 }
@@ -1794,13 +1804,13 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                 #F4 requiredPositional isOriginDeclaration b (nameOffset:37) (firstTokenOffset:30) (offset:37)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
-        #F5 hasExtendsClause class B (nameOffset:49) (firstTokenOffset:43) (offset:49)
+        #F5 hasExtendsClause class B (nameOffset:50) (firstTokenOffset:44) (offset:50)
           element: <testLibrary>::@class::B
           constructors
-            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:65) (offset:71)
+            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:66) (offset:72)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              typeNameOffset: 71
+              typeNameOffset: 72
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -1826,18 +1836,18 @@ library
           firstFragment: #F6
           constantInitializers
             SuperConstructorInvocation
-              superKeyword: super @77
+              superKeyword: super @78
               argumentList: ArgumentList
-                leftParenthesis: ( @82
+                leftParenthesis: ( @83
                 arguments
                   IntegerLiteral
-                    literal: 0 @83
+                    literal: 0 @84
                     staticType: int
                   SimpleIdentifier
                     token: _notSerializableExpression @-1
                     element: <null>
                     staticType: null
-                rightParenthesis: ) @93
+                rightParenthesis: ) @94
               element: <testLibrary>::@class::A::@constructor::new
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
@@ -1906,7 +1916,7 @@ library
   }
 
   test_const_invalid_patternAssignment() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const v = (a,) = (0,);
 ''');
     checkElementText(library, r'''
@@ -2008,7 +2018,11 @@ library
 
   test_const_invalid_topLevel_switchExpression() async {
     var library = await buildLibrary(r'''
-const a = 0 + switch (true) {_ => 1};
+const a =
+    0 +
+    switch (true) {
+      _ => 1,
+    };
 ''');
     checkElementText(library, r'''
 library
@@ -2119,6 +2133,7 @@ library
 class C<K, V> {
   const C.named(K k, V v);
 }
+
 const V = const C<int, String>.named(1, '222');
 ''');
     checkElementText(library, r'''
@@ -2147,31 +2162,31 @@ library
                 #F6 requiredPositional isOriginDeclaration v (nameOffset:39) (firstTokenOffset:37) (offset:39)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::v
       topLevelVariables
-        #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:51) (firstTokenOffset:51) (offset:51)
+        #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:52) (firstTokenOffset:52) (offset:52)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @55
+              keyword: const @56
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @61
+                  name: C @62
                   typeArguments: TypeArgumentList
-                    leftBracket: < @62
+                    leftBracket: < @63
                     arguments
                       NamedType
-                        name: int @63
+                        name: int @64
                         element: dart:core::@class::int
                         type: int
                       NamedType
-                        name: String @68
+                        name: String @69
                         element: dart:core::@class::String
                         type: String
-                    rightBracket: > @74
+                    rightBracket: > @75
                   element: <testLibrary>::@class::C
                   type: C<int, String>
-                period: . @75
+                period: . @76
                 name: SimpleIdentifier
-                  token: named @76
+                  token: named @77
                   element: ConstructorMember
                     baseElement: <testLibrary>::@class::C::@constructor::named
                     substitution: {K: int, V: String}
@@ -2180,17 +2195,17 @@ library
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
-                leftParenthesis: ( @81
+                leftParenthesis: ( @82
                 arguments
                   IntegerLiteral
-                    literal: 1 @82
+                    literal: 1 @83
                     staticType: int
                   SimpleStringLiteral
-                    literal: '222' @85
-                rightParenthesis: ) @90
+                    literal: '222' @86
+                rightParenthesis: ) @91
               staticType: C<int, String>
       getters
-        #F8 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+        #F8 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -2238,6 +2253,7 @@ class C<K, V> {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const V = const C<int, String>.named(1, '222');
 ''');
     checkElementText(library, r'''
@@ -2249,31 +2265,31 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @27
+              keyword: const @28
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @33
+                  name: C @34
                   typeArguments: TypeArgumentList
-                    leftBracket: < @34
+                    leftBracket: < @35
                     arguments
                       NamedType
-                        name: int @35
+                        name: int @36
                         element: dart:core::@class::int
                         type: int
                       NamedType
-                        name: String @40
+                        name: String @41
                         element: dart:core::@class::String
                         type: String
-                    rightBracket: > @46
+                    rightBracket: > @47
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                period: . @47
+                period: . @48
                 name: SimpleIdentifier
-                  token: named @48
+                  token: named @49
                   element: ConstructorMember
                     baseElement: package:test/a.dart::@class::C::@constructor::named
                     substitution: {K: int, V: String}
@@ -2282,17 +2298,17 @@ library
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
-                leftParenthesis: ( @53
+                leftParenthesis: ( @54
                 arguments
                   IntegerLiteral
-                    literal: 1 @54
+                    literal: 1 @55
                     staticType: int
                   SimpleStringLiteral
-                    literal: '222' @57
-                rightParenthesis: ) @62
+                    literal: '222' @58
+                rightParenthesis: ) @63
               staticType: C<int, String>
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -2320,6 +2336,7 @@ class C<K, V> {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = const p.C<int, String>.named(1, '222');
 ''');
     checkElementText(library, r'''
@@ -2334,35 +2351,35 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @32
+              keyword: const @33
               constructorName: ConstructorName
                 type: NamedType
                   importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
+                    name: p @39
+                    period: . @40
                     element: <testLibraryFragment>::@prefix::p
-                  name: C @40
+                  name: C @41
                   typeArguments: TypeArgumentList
-                    leftBracket: < @41
+                    leftBracket: < @42
                     arguments
                       NamedType
-                        name: int @42
+                        name: int @43
                         element: dart:core::@class::int
                         type: int
                       NamedType
-                        name: String @47
+                        name: String @48
                         element: dart:core::@class::String
                         type: String
-                    rightBracket: > @53
+                    rightBracket: > @54
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                period: . @54
+                period: . @55
                 name: SimpleIdentifier
-                  token: named @55
+                  token: named @56
                   element: ConstructorMember
                     baseElement: package:test/a.dart::@class::C::@constructor::named
                     substitution: {K: int, V: String}
@@ -2371,17 +2388,17 @@ library
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
-                leftParenthesis: ( @60
+                leftParenthesis: ( @61
                 arguments
                   IntegerLiteral
-                    literal: 1 @61
+                    literal: 1 @62
                     staticType: int
                   SimpleStringLiteral
-                    literal: '222' @64
-                rightParenthesis: ) @69
+                    literal: '222' @65
+                rightParenthesis: ) @70
               staticType: C<int, String>
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -2406,6 +2423,7 @@ library
 class C<K, V> {
   const C();
 }
+
 const V = const C();
 ''');
     checkElementText(library, r'''
@@ -2428,25 +2446,25 @@ library
               typeName: C
               typeNameOffset: 24
       topLevelVariables
-        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:37) (firstTokenOffset:37) (offset:37)
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @41
+              keyword: const @42
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @47
+                  name: C @48
                   element: <testLibrary>::@class::C
                   type: C<dynamic, dynamic>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {K: dynamic, V: dynamic}
               argumentList: ArgumentList
-                leftParenthesis: ( @48
-                rightParenthesis: ) @49
+                leftParenthesis: ( @49
+                rightParenthesis: ) @50
               staticType: C<dynamic, dynamic>
       getters
-        #F6 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+        #F6 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -2485,6 +2503,7 @@ class A<T> {
   final T t;
   const A(this.t);
 }
+
 const Object a = const A(0);
 ''');
     checkElementText(library, r'''
@@ -2514,29 +2533,29 @@ library
             #F6 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::t
       topLevelVariables
-        #F7 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:60) (firstTokenOffset:60) (offset:60)
+        #F7 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:61) (firstTokenOffset:61) (offset:61)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @64
+              keyword: const @65
               constructorName: ConstructorName
                 type: NamedType
-                  name: A @70
+                  name: A @71
                   element: <testLibrary>::@class::A
                   type: A<int>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
-                leftParenthesis: ( @71
+                leftParenthesis: ( @72
                 arguments
                   IntegerLiteral
-                    literal: 0 @72
+                    literal: 0 @73
                     staticType: int
-                rightParenthesis: ) @73
+                rightParenthesis: ) @74
               staticType: A<int>
       getters
-        #F8 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+        #F8 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
           element: <testLibrary>::@getter::a
   classes
     isSimplyBounded class A
@@ -2589,6 +2608,7 @@ library
 class C<K, V> {
   const C();
 }
+
 const V = const C<int, String>();
 ''');
     checkElementText(library, r'''
@@ -2611,37 +2631,37 @@ library
               typeName: C
               typeNameOffset: 24
       topLevelVariables
-        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:37) (firstTokenOffset:37) (offset:37)
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @41
+              keyword: const @42
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @47
+                  name: C @48
                   typeArguments: TypeArgumentList
-                    leftBracket: < @48
+                    leftBracket: < @49
                     arguments
                       NamedType
-                        name: int @49
+                        name: int @50
                         element: dart:core::@class::int
                         type: int
                       NamedType
-                        name: String @54
+                        name: String @55
                         element: dart:core::@class::String
                         type: String
-                    rightBracket: > @60
+                    rightBracket: > @61
                   element: <testLibrary>::@class::C
                   type: C<int, String>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
-                leftParenthesis: ( @61
-                rightParenthesis: ) @62
+                leftParenthesis: ( @62
+                rightParenthesis: ) @63
               staticType: C<int, String>
       getters
-        #F6 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+        #F6 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -2682,6 +2702,7 @@ class C<K, V> {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const V = const C<int, String>();
 ''');
     checkElementText(library, r'''
@@ -2693,37 +2714,37 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @27
+              keyword: const @28
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @33
+                  name: C @34
                   typeArguments: TypeArgumentList
-                    leftBracket: < @34
+                    leftBracket: < @35
                     arguments
                       NamedType
-                        name: int @35
+                        name: int @36
                         element: dart:core::@class::int
                         type: int
                       NamedType
-                        name: String @40
+                        name: String @41
                         element: dart:core::@class::String
                         type: String
-                    rightBracket: > @46
+                    rightBracket: > @47
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
                 element: ConstructorMember
                   baseElement: package:test/a.dart::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
-                leftParenthesis: ( @47
-                rightParenthesis: ) @48
+                leftParenthesis: ( @48
+                rightParenthesis: ) @49
               staticType: C<int, String>
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -2751,6 +2772,7 @@ class C<K, V> {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = const p.C<int, String>();
 ''');
     checkElementText(library, r'''
@@ -2765,41 +2787,41 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @32
+              keyword: const @33
               constructorName: ConstructorName
                 type: NamedType
                   importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
+                    name: p @39
+                    period: . @40
                     element: <testLibraryFragment>::@prefix::p
-                  name: C @40
+                  name: C @41
                   typeArguments: TypeArgumentList
-                    leftBracket: < @41
+                    leftBracket: < @42
                     arguments
                       NamedType
-                        name: int @42
+                        name: int @43
                         element: dart:core::@class::int
                         type: int
                       NamedType
-                        name: String @47
+                        name: String @48
                         element: dart:core::@class::String
                         type: String
-                    rightBracket: > @53
+                    rightBracket: > @54
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
                 element: ConstructorMember
                   baseElement: package:test/a.dart::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
-                leftParenthesis: ( @54
-                rightParenthesis: ) @55
+                leftParenthesis: ( @55
+                rightParenthesis: ) @56
               staticType: C<int, String>
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -2824,6 +2846,7 @@ library
 class C {
   const C.named(bool a, int b, int c, {String d, double e});
 }
+
 const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 ''');
     checkElementText(library, r'''
@@ -2853,49 +2876,49 @@ library
                 #F7 optionalNamed isOriginDeclaration e (nameOffset:66) (firstTokenOffset:59) (offset:66)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::e
       topLevelVariables
-        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:79) (firstTokenOffset:79) (offset:79)
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:80) (firstTokenOffset:80) (offset:80)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @83
+              keyword: const @84
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @89
+                  name: C @90
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @90
+                period: . @91
                 name: SimpleIdentifier
-                  token: named @91
+                  token: named @92
                   element: <testLibrary>::@class::C::@constructor::named
                   staticType: null
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
-                leftParenthesis: ( @96
+                leftParenthesis: ( @97
                 arguments
                   BooleanLiteral
-                    literal: true @97
+                    literal: true @98
                     staticType: bool
                   IntegerLiteral
-                    literal: 1 @103
+                    literal: 1 @104
                     staticType: int
                   IntegerLiteral
-                    literal: 2 @106
+                    literal: 2 @107
                     staticType: int
                   NamedArgument
-                    name: d @109
-                    colon: : @110
+                    name: d @110
+                    colon: : @111
                     argumentExpression: SimpleStringLiteral
-                      literal: 'ccc' @112
+                      literal: 'ccc' @113
                   NamedArgument
-                    name: e @119
-                    colon: : @120
+                    name: e @120
+                    colon: : @121
                     argumentExpression: DoubleLiteral
-                      literal: 3.4 @122
+                      literal: 3.4 @123
                       staticType: double
-                rightParenthesis: ) @125
+                rightParenthesis: ) @126
               staticType: C
       getters
-        #F9 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+        #F9 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -2947,6 +2970,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const V = const C.named();
 ''');
     checkElementText(library, r'''
@@ -2958,28 +2982,28 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @27
+              keyword: const @28
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @33
+                  name: C @34
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @34
+                period: . @35
                 name: SimpleIdentifier
-                  token: named @35
+                  token: named @36
                   element: package:test/a.dart::@class::C::@constructor::named
                   staticType: null
                 element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
-                leftParenthesis: ( @40
-                rightParenthesis: ) @41
+                leftParenthesis: ( @41
+                rightParenthesis: ) @42
               staticType: C
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -3007,6 +3031,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = const p.C.named();
 ''');
     checkElementText(library, r'''
@@ -3021,32 +3046,32 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @32
+              keyword: const @33
               constructorName: ConstructorName
                 type: NamedType
                   importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
+                    name: p @39
+                    period: . @40
                     element: <testLibraryFragment>::@prefix::p
-                  name: C @40
+                  name: C @41
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @41
+                period: . @42
                 name: SimpleIdentifier
-                  token: named @42
+                  token: named @43
                   element: package:test/a.dart::@class::C::@constructor::named
                   staticType: null
                 element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
-                leftParenthesis: ( @47
-                rightParenthesis: ) @48
+                leftParenthesis: ( @48
+                rightParenthesis: ) @49
               staticType: C
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -3069,6 +3094,7 @@ library
   test_const_invokeConstructor_named_unresolved() async {
     var library = await buildLibrary(r'''
 class C {}
+
 const V = const C.named();
 ''');
     checkElementText(library, r'''
@@ -3085,28 +3111,28 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:17) (firstTokenOffset:17) (offset:17)
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @21
+              keyword: const @22
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @27
+                  name: C @28
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @28
+                period: . @29
                 name: SimpleIdentifier
-                  token: named @29
+                  token: named @30
                   element: <null>
                   staticType: null
                 element: <null>
               argumentList: ArgumentList
-                leftParenthesis: ( @34
-                rightParenthesis: ) @35
+                leftParenthesis: ( @35
+                rightParenthesis: ) @36
               staticType: C
       getters
-        #F4 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F4 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -3192,6 +3218,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = const p.C.named();
 ''');
     checkElementText(library, r'''
@@ -3206,32 +3233,32 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @32
+              keyword: const @33
               constructorName: ConstructorName
                 type: NamedType
                   importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
+                    name: p @39
+                    period: . @40
                     element: <testLibraryFragment>::@prefix::p
-                  name: C @40
+                  name: C @41
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @41
+                period: . @42
                 name: SimpleIdentifier
-                  token: named @42
+                  token: named @43
                   element: <null>
                   staticType: null
                 element: <null>
               argumentList: ArgumentList
-                leftParenthesis: ( @47
-                rightParenthesis: ) @48
+                leftParenthesis: ( @48
+                rightParenthesis: ) @49
               staticType: C
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -3252,9 +3279,11 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
-    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', r'''
+''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = const p.C.named();
 ''');
     checkElementText(library, r'''
@@ -3269,32 +3298,32 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @32
+              keyword: const @33
               constructorName: ConstructorName
                 type: NamedType
                   importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
+                    name: p @39
+                    period: . @40
                     element: <testLibraryFragment>::@prefix::p
-                  name: C @40
+                  name: C @41
                   element: <null>
                   type: InvalidType
-                period: . @41
+                period: . @42
                 name: SimpleIdentifier
-                  token: named @42
+                  token: named @43
                   element: <null>
                   staticType: null
                 element: <null>
               argumentList: ArgumentList
-                leftParenthesis: ( @47
-                rightParenthesis: ) @48
+                leftParenthesis: ( @48
+                rightParenthesis: ) @49
               staticType: InvalidType
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -3373,6 +3402,7 @@ library
   test_const_invokeConstructor_named_unresolved6() async {
     var library = await buildLibrary(r'''
 class C<T> {}
+
 const V = const C.named();
 ''');
     checkElementText(library, r'''
@@ -3392,28 +3422,28 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:20) (firstTokenOffset:20) (offset:20)
+        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @24
+              keyword: const @25
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @30
+                  name: C @31
                   element: <testLibrary>::@class::C
                   type: C<dynamic>
-                period: . @31
+                period: . @32
                 name: SimpleIdentifier
-                  token: named @32
+                  token: named @33
                   element: <null>
                   staticType: null
                 element: <null>
               argumentList: ArgumentList
-                leftParenthesis: ( @37
-                rightParenthesis: ) @38
+                leftParenthesis: ( @38
+                rightParenthesis: ) @39
               staticType: C<dynamic>
       getters
-        #F5 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+        #F5 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -3449,6 +3479,7 @@ library
 class C {
   const C();
 }
+
 const V = const C();
 ''');
     checkElementText(library, r'''
@@ -3466,23 +3497,23 @@ library
               typeName: C
               typeNameOffset: 18
       topLevelVariables
-        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:31) (firstTokenOffset:31) (offset:31)
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @35
+              keyword: const @36
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @41
+                  name: C @42
                   element: <testLibrary>::@class::C
                   type: C
                 element: <testLibrary>::@class::C::@constructor::new
               argumentList: ArgumentList
-                leftParenthesis: ( @42
-                rightParenthesis: ) @43
+                leftParenthesis: ( @43
+                rightParenthesis: ) @44
               staticType: C
       getters
-        #F4 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F4 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -3518,6 +3549,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const V = const C();
 ''');
     checkElementText(library, r'''
@@ -3529,23 +3561,23 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @27
+              keyword: const @28
               constructorName: ConstructorName
                 type: NamedType
-                  name: C @33
+                  name: C @34
                   element: package:test/a.dart::@class::C
                   type: C
                 element: package:test/a.dart::@class::C::@constructor::new
               argumentList: ArgumentList
-                leftParenthesis: ( @34
-                rightParenthesis: ) @35
+                leftParenthesis: ( @35
+                rightParenthesis: ) @36
               staticType: C
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -3573,6 +3605,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = const p.C();
 ''');
     checkElementText(library, r'''
@@ -3587,27 +3620,27 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @32
+              keyword: const @33
               constructorName: ConstructorName
                 type: NamedType
                   importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
+                    name: p @39
+                    period: . @40
                     element: <testLibraryFragment>::@prefix::p
-                  name: C @40
+                  name: C @41
                   element: package:test/a.dart::@class::C
                   type: C
                 element: package:test/a.dart::@class::C::@constructor::new
               argumentList: ArgumentList
-                leftParenthesis: ( @41
-                rightParenthesis: ) @42
+                leftParenthesis: ( @42
+                rightParenthesis: ) @43
               staticType: C
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -3675,9 +3708,11 @@ library
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() async {
-    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', r'''
+''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = const p.C();
 ''');
     checkElementText(library, r'''
@@ -3692,27 +3727,27 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             InstanceCreationExpression
-              keyword: const @32
+              keyword: const @33
               constructorName: ConstructorName
                 type: NamedType
                   importPrefix: ImportPrefixReference
-                    name: p @38
-                    period: . @39
+                    name: p @39
+                    period: . @40
                     element: <testLibraryFragment>::@prefix::p
-                  name: C @40
+                  name: C @41
                   element: <null>
                   type: InvalidType
                 element: <null>
               argumentList: ArgumentList
-                leftParenthesis: ( @41
-                rightParenthesis: ) @42
+                leftParenthesis: ( @42
+                rightParenthesis: ) @43
               staticType: InvalidType
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -3784,7 +3819,7 @@ library
   }
 
   test_const_isExpression() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = a is int;
 ''');
@@ -3856,6 +3891,7 @@ library
 class C {
   static const String F = '';
 }
+
 const int v = C.F.length;
 ''');
     checkElementText(library, r'''
@@ -3881,30 +3917,30 @@ library
             #F4 isCompleteDeclaration isOriginVariable isStatic F (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@getter::F
       topLevelVariables
-        #F5 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:52) (firstTokenOffset:52) (offset:52)
+        #F5 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_1
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: C @56
+                  token: C @57
                   element: <testLibrary>::@class::C
                   staticType: null
-                period: . @57
+                period: . @58
                 identifier: SimpleIdentifier
-                  token: F @58
+                  token: F @59
                   element: <testLibrary>::@class::C::@getter::F
                   staticType: String
                 element: <testLibrary>::@class::C::@getter::F
                 staticType: String
-              operator: . @59
+              operator: . @60
               propertyName: SimpleIdentifier
-                token: length @60
+                token: length @61
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
       getters
-        #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+        #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@getter::v
   classes
     isSimplyBounded class C
@@ -3955,6 +3991,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const int v = C.F.length;
 ''');
     checkElementText(library, r'''
@@ -3966,30 +4003,30 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
+        #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: C @31
+                  token: C @32
                   element: package:test/a.dart::@class::C
                   staticType: null
-                period: . @32
+                period: . @33
                 identifier: SimpleIdentifier
-                  token: F @33
+                  token: F @34
                   element: package:test/a.dart::@class::C::@getter::F
                   staticType: String
                 element: package:test/a.dart::@class::C::@getter::F
                 staticType: String
-              operator: . @34
+              operator: . @35
               propertyName: SimpleIdentifier
-                token: length @35
+                token: length @36
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@getter::v
   topLevelVariables
     hasInitializer isConst isOriginDeclaration isStatic v
@@ -4017,6 +4054,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const int v = p.C.F.length;
 ''');
     checkElementText(library, r'''
@@ -4031,37 +4069,37 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
+        #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:33) (firstTokenOffset:33) (offset:33)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PropertyAccess
               target: PropertyAccess
                 target: PrefixedIdentifier
                   prefix: SimpleIdentifier
-                    token: p @36
+                    token: p @37
                     element: <testLibraryFragment>::@prefix::p
                     staticType: null
-                  period: . @37
+                  period: . @38
                   identifier: SimpleIdentifier
-                    token: C @38
+                    token: C @39
                     element: package:test/a.dart::@class::C
                     staticType: null
                   element: package:test/a.dart::@class::C
                   staticType: null
-                operator: . @39
+                operator: . @40
                 propertyName: SimpleIdentifier
-                  token: F @40
+                  token: F @41
                   element: package:test/a.dart::@class::C::@getter::F
                   staticType: String
                 staticType: String
-              operator: . @41
+              operator: . @42
               propertyName: SimpleIdentifier
-                token: length @42
+                token: length @43
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@getter::v
   topLevelVariables
     hasInitializer isConst isOriginDeclaration isStatic v
@@ -4199,6 +4237,7 @@ const String S = 'abc';
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const v = S.length;
 ''');
     checkElementText(library, r'''
@@ -4210,23 +4249,23 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: S @27
+                token: S @28
                 element: package:test/a.dart::@getter::S
                 staticType: String
-              period: . @28
+              period: . @29
               identifier: SimpleIdentifier
-                token: length @29
+                token: length @30
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               element: dart:core::@class::String::@getter::length
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::v
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -4252,6 +4291,7 @@ const String S = 'abc';
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const v = p.S.length;
 ''');
     checkElementText(library, r'''
@@ -4266,30 +4306,30 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: p @32
+                  token: p @33
                   element: <testLibraryFragment>::@prefix::p
                   staticType: null
-                period: . @33
+                period: . @34
                 identifier: SimpleIdentifier
-                  token: S @34
+                  token: S @35
                   element: package:test/a.dart::@getter::S
                   staticType: String
                 element: package:test/a.dart::@getter::S
                 staticType: String
-              operator: . @35
+              operator: . @36
               propertyName: SimpleIdentifier
-                token: length @36
+                token: length @37
                 element: dart:core::@class::String::@getter::length
                 staticType: int
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::v
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -4314,6 +4354,7 @@ library
 class C {
   static int length() => 42;
 }
+
 const v = C.length;
 ''');
     checkElementText(library, r'''
@@ -4333,23 +4374,23 @@ library
             #F3 isCompleteDeclaration isOriginDeclaration isStatic length (nameOffset:23) (firstTokenOffset:12) (offset:23)
               element: <testLibrary>::@class::C::@method::length
       topLevelVariables
-        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:47) (firstTokenOffset:47) (offset:47)
+        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: C @51
+                token: C @52
                 element: <testLibrary>::@class::C
                 staticType: null
-              period: . @52
+              period: . @53
               identifier: SimpleIdentifier
-                token: length @53
+                token: length @54
                 element: <testLibrary>::@class::C::@method::length
                 staticType: int Function()
               element: <testLibrary>::@class::C::@method::length
               staticType: int Function()
       getters
-        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::v
   classes
     isSimplyBounded class C
@@ -4383,7 +4424,7 @@ library
   }
 
   test_const_list_if() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>[if (true) 1];
 ''');
     checkElementText(library, r'''
@@ -4442,7 +4483,7 @@ library
   }
 
   test_const_list_if_else() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>[if (true) 1 else 2];
 ''');
     checkElementText(library, r'''
@@ -4508,7 +4549,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const [1];
 ''');
     checkElementText(library, r'''
@@ -4552,8 +4593,10 @@ library
   }
 
   test_const_list_spread() async {
-    var library = await buildLibrary('''
-const Object x = const <int>[...<int>[1]];
+    var library = await buildLibrary(r'''
+const Object x = const <int>[
+  ...<int>[1],
+];
 ''');
     checkElementText(library, r'''
 library
@@ -4578,24 +4621,24 @@ library
               leftBracket: [ @28
               elements
                 SpreadElement
-                  spreadOperator: ... @29
+                  spreadOperator: ... @32
                   expression: ListLiteral
                     typeArguments: TypeArgumentList
-                      leftBracket: < @32
+                      leftBracket: < @35
                       arguments
                         NamedType
-                          name: int @33
+                          name: int @36
                           element: dart:core::@class::int
                           type: int
-                      rightBracket: > @36
-                    leftBracket: [ @37
+                      rightBracket: > @39
+                    leftBracket: [ @40
                     elements
                       IntegerLiteral
-                        literal: 1 @38
+                        literal: 1 @41
                         staticType: int
-                    rightBracket: ] @39
+                    rightBracket: ] @42
                     staticType: List<int>
-              rightBracket: ] @40
+              rightBracket: ] @45
               staticType: List<int>
       getters
         #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -4619,8 +4662,10 @@ library
   }
 
   test_const_list_spread_null_aware() async {
-    var library = await buildLibrary('''
-const Object x = const <int>[...?<int>[1]];
+    var library = await buildLibrary(r'''
+const Object x = const <int>[
+  ...?<int>[1],
+];
 ''');
     checkElementText(library, r'''
 library
@@ -4645,24 +4690,24 @@ library
               leftBracket: [ @28
               elements
                 SpreadElement
-                  spreadOperator: ...? @29
+                  spreadOperator: ...? @32
                   expression: ListLiteral
                     typeArguments: TypeArgumentList
-                      leftBracket: < @33
+                      leftBracket: < @36
                       arguments
                         NamedType
-                          name: int @34
+                          name: int @37
                           element: dart:core::@class::int
                           type: int
-                      rightBracket: > @37
-                    leftBracket: [ @38
+                      rightBracket: > @40
+                    leftBracket: [ @41
                     elements
                       IntegerLiteral
-                        literal: 1 @39
+                        literal: 1 @42
                         staticType: int
-                    rightBracket: ] @40
+                    rightBracket: ] @43
                     staticType: List<int>
-              rightBracket: ] @41
+              rightBracket: ] @46
               staticType: List<int>
       getters
         #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -4686,7 +4731,7 @@ library
   }
 
   test_const_map_if() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int, int>{if (true) 1: 2};
 ''');
     checkElementText(library, r'''
@@ -4758,7 +4803,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const {1: 1.0};
 ''');
     checkElementText(library, r'''
@@ -4808,8 +4853,10 @@ library
   }
 
   test_const_map_spread() async {
-    var library = await buildLibrary('''
-const Object x = const <int, int>{...<int, int>{1: 2}};
+    var library = await buildLibrary(r'''
+const Object x = const <int, int>{
+  ...<int, int>{1: 2},
+};
 ''');
     checkElementText(library, r'''
 library
@@ -4838,34 +4885,34 @@ library
               leftBracket: { @33
               elements
                 SpreadElement
-                  spreadOperator: ... @34
+                  spreadOperator: ... @37
                   expression: SetOrMapLiteral
                     typeArguments: TypeArgumentList
-                      leftBracket: < @37
+                      leftBracket: < @40
                       arguments
                         NamedType
-                          name: int @38
+                          name: int @41
                           element: dart:core::@class::int
                           type: int
                         NamedType
-                          name: int @43
+                          name: int @46
                           element: dart:core::@class::int
                           type: int
-                      rightBracket: > @46
-                    leftBracket: { @47
+                      rightBracket: > @49
+                    leftBracket: { @50
                     elements
                       MapLiteralEntry
                         key: IntegerLiteral
-                          literal: 1 @48
+                          literal: 1 @51
                           staticType: int
-                        separator: : @49
+                        separator: : @52
                         value: IntegerLiteral
-                          literal: 2 @51
+                          literal: 2 @54
                           staticType: int
-                    rightBracket: } @52
+                    rightBracket: } @55
                     isMap: true
                     staticType: Map<int, int>
-              rightBracket: } @53
+              rightBracket: } @58
               isMap: true
               staticType: Map<int, int>
       getters
@@ -4890,8 +4937,10 @@ library
   }
 
   test_const_map_spread_null_aware() async {
-    var library = await buildLibrary('''
-const Object x = const <int, int>{...?<int, int>{1: 2}};
+    var library = await buildLibrary(r'''
+const Object x = const <int, int>{
+  ...?<int, int>{1: 2},
+};
 ''');
     checkElementText(library, r'''
 library
@@ -4920,34 +4969,34 @@ library
               leftBracket: { @33
               elements
                 SpreadElement
-                  spreadOperator: ...? @34
+                  spreadOperator: ...? @37
                   expression: SetOrMapLiteral
                     typeArguments: TypeArgumentList
-                      leftBracket: < @38
+                      leftBracket: < @41
                       arguments
                         NamedType
-                          name: int @39
+                          name: int @42
                           element: dart:core::@class::int
                           type: int
                         NamedType
-                          name: int @44
+                          name: int @47
                           element: dart:core::@class::int
                           type: int
-                      rightBracket: > @47
-                    leftBracket: { @48
+                      rightBracket: > @50
+                    leftBracket: { @51
                     elements
                       MapLiteralEntry
                         key: IntegerLiteral
-                          literal: 1 @49
+                          literal: 1 @52
                           staticType: int
-                        separator: : @50
+                        separator: : @53
                         value: IntegerLiteral
-                          literal: 2 @52
+                          literal: 2 @55
                           staticType: int
-                    rightBracket: } @53
+                    rightBracket: } @56
                     isMap: true
                     staticType: Map<int, int>
-              rightBracket: } @54
+              rightBracket: } @59
               isMap: true
               staticType: Map<int, int>
       getters
@@ -5058,6 +5107,7 @@ class C {
   final x;
   const C({this.x: foo});
 }
+
 int foo() => 42;
 ''');
     checkElementText(library, r'''
@@ -5089,7 +5139,7 @@ library
             #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
       functions
-        #F6 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:53) (firstTokenOffset:49) (offset:53)
+        #F6 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:54) (firstTokenOffset:50) (offset:54)
           element: <testLibrary>::@function::foo
   classes
     isSimplyBounded class C
@@ -5652,8 +5702,9 @@ extension E on Object {
 }
 const a = const Object();
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
+
 const b = -a;
 ''');
     checkElementText(library, r'''
@@ -5665,19 +5716,19 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_0
             PrefixExpression
-              operator: - @27
+              operator: - @28
               operand: SimpleIdentifier
-                token: a @28
+                token: a @29
                 element: package:test/a.dart::@getter::a
                 staticType: Object
               element: package:test/a.dart::@extension::E::@method::unary-
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::b
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
@@ -5767,7 +5818,7 @@ library
   }
 
   void test_const_recordLiteral() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = (a, a: a);
 ''');
@@ -5840,7 +5891,7 @@ library
   }
 
   void test_const_recordLiteral_explicitConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = const (a, a: a);
 ''');
@@ -5918,6 +5969,7 @@ library
 class C {
   static const int F = 42;
 }
+
 const V = C.F;
 ''');
     checkElementText(library, r'''
@@ -5944,23 +5996,23 @@ library
             #F4 isCompleteDeclaration isOriginVariable isStatic F (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@getter::F
       topLevelVariables
-        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:45) (firstTokenOffset:45) (offset:45)
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:46) (firstTokenOffset:46) (offset:46)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_1
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: C @49
+                token: C @50
                 element: <testLibrary>::@class::C
                 staticType: null
-              period: . @50
+              period: . @51
               identifier: SimpleIdentifier
-                token: F @51
+                token: F @52
                 element: <testLibrary>::@class::C::@getter::F
                 staticType: int
               element: <testLibrary>::@class::C::@getter::F
               staticType: int
       getters
-        #F6 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+        #F6 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -6011,6 +6063,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const V = C.F;
 ''');
     checkElementText(library, r'''
@@ -6022,23 +6075,23 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: C @27
+                token: C @28
                 element: package:test/a.dart::@class::C
                 staticType: null
-              period: . @28
+              period: . @29
               identifier: SimpleIdentifier
-                token: F @29
+                token: F @30
                 element: package:test/a.dart::@class::C::@getter::F
                 staticType: int
               element: package:test/a.dart::@class::C::@getter::F
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -6066,6 +6119,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = p.C.F;
 ''');
     checkElementText(library, r'''
@@ -6080,30 +6134,30 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: p @32
+                  token: p @33
                   element: <testLibraryFragment>::@prefix::p
                   staticType: null
-                period: . @33
+                period: . @34
                 identifier: SimpleIdentifier
-                  token: C @34
+                  token: C @35
                   element: package:test/a.dart::@class::C
                   staticType: null
                 element: package:test/a.dart::@class::C
                 staticType: null
-              operator: . @35
+              operator: . @36
               propertyName: SimpleIdentifier
-                token: F @36
+                token: F @37
                 element: package:test/a.dart::@class::C::@getter::F
                 staticType: int
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -6128,6 +6182,7 @@ library
 class C {
   static int m(int a, String b) => 42;
 }
+
 const V = C.m;
 ''');
     checkElementText(library, r'''
@@ -6152,23 +6207,23 @@ library
                 #F5 requiredPositional isOriginDeclaration b (nameOffset:39) (firstTokenOffset:32) (offset:39)
                   element: <testLibrary>::@class::C::@method::m::@formalParameter::b
       topLevelVariables
-        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:57) (firstTokenOffset:57) (offset:57)
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:58) (firstTokenOffset:58) (offset:58)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: C @61
+                token: C @62
                 element: <testLibrary>::@class::C
                 staticType: null
-              period: . @62
+              period: . @63
               identifier: SimpleIdentifier
-                token: m @63
+                token: m @64
                 element: <testLibrary>::@class::C::@method::m
                 staticType: int Function(int, String)
               element: <testLibrary>::@class::C::@method::m
               staticType: int Function(int, String)
       getters
-        #F7 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+        #F7 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -6216,6 +6271,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const V = C.m;
 ''');
     checkElementText(library, r'''
@@ -6227,23 +6283,23 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: C @27
+                token: C @28
                 element: package:test/a.dart::@class::C
                 staticType: null
-              period: . @28
+              period: . @29
               identifier: SimpleIdentifier
-                token: m @29
+                token: m @30
                 element: package:test/a.dart::@class::C::@method::m
                 staticType: int Function(int, String)
               element: package:test/a.dart::@class::C::@method::m
               staticType: int Function(int, String)
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -6271,6 +6327,7 @@ class C {
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = p.C.m;
 ''');
     checkElementText(library, r'''
@@ -6285,30 +6342,30 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: p @32
+                  token: p @33
                   element: <testLibraryFragment>::@prefix::p
                   staticType: null
-                period: . @33
+                period: . @34
                 identifier: SimpleIdentifier
-                  token: C @34
+                  token: C @35
                   element: package:test/a.dart::@class::C
                   staticType: null
                 element: package:test/a.dart::@class::C
                 staticType: null
-              operator: . @35
+              operator: . @36
               propertyName: SimpleIdentifier
-                token: m @36
+                token: m @37
                 element: package:test/a.dart::@class::C::@method::m
                 staticType: int Function(int, String)
               staticType: int Function(int, String)
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -6329,11 +6386,13 @@ library
   }
 
   test_const_reference_staticMethod_ofExtension() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 extension E on A {
   static void f() {}
 }
+
 const x = E.f;
 ''');
     checkElementText(library, r'''
@@ -6350,29 +6409,29 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F3 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:44) (firstTokenOffset:32) (offset:44)
+            #F4 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:45) (firstTokenOffset:33) (offset:45)
               element: <testLibrary>::@extension::E::@method::f
       topLevelVariables
-        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:59) (firstTokenOffset:59) (offset:59)
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:61) (firstTokenOffset:61) (offset:61)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: E @63
+                token: E @65
                 element: <testLibrary>::@extension::E
                 staticType: null
-              period: . @64
+              period: . @66
               identifier: SimpleIdentifier
-                token: f @65
+                token: f @67
                 element: <testLibrary>::@extension::E::@method::f
                 staticType: void Function()
               element: <testLibrary>::@extension::E::@method::f
               staticType: void Function()
       getters
-        #F6 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+        #F6 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
           element: <testLibrary>::@getter::x
   classes
     isSimplyBounded class A
@@ -6530,6 +6589,7 @@ foo() {}
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const V = foo;
 ''');
     checkElementText(library, r'''
@@ -6541,15 +6601,15 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             SimpleIdentifier
-              token: foo @27
+              token: foo @28
               element: package:test/a.dart::@function::foo
               staticType: dynamic Function()
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -6575,6 +6635,7 @@ foo() {}
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const V = p.foo;
 ''');
     checkElementText(library, r'''
@@ -6589,23 +6650,23 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: p @32
+                token: p @33
                 element: <testLibraryFragment>::@prefix::p
                 staticType: null
-              period: . @33
+              period: . @34
               identifier: SimpleIdentifier
-                token: foo @34
+                token: foo @35
                 element: package:test/a.dart::@function::foo
                 staticType: dynamic Function()
               element: package:test/a.dart::@function::foo
               staticType: dynamic Function()
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -6700,6 +6761,7 @@ const A = 1;
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const B = A + 2;
 ''');
     checkElementText(library, r'''
@@ -6711,23 +6773,23 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
             BinaryExpression
               leftOperand: SimpleIdentifier
-                token: A @27
+                token: A @28
                 element: package:test/a.dart::@getter::A
                 staticType: int
-              operator: + @29
+              operator: + @30
               rightOperand: IntegerLiteral
-                literal: 2 @31
+                literal: 2 @32
                 staticType: int
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic B (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic B (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::B
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer B
@@ -6753,6 +6815,7 @@ const A = 1;
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const B = p.A + 2;
 ''');
     checkElementText(library, r'''
@@ -6767,31 +6830,31 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
             BinaryExpression
               leftOperand: PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: p @32
+                  token: p @33
                   element: <testLibraryFragment>::@prefix::p
                   staticType: null
-                period: . @33
+                period: . @34
                 identifier: SimpleIdentifier
-                  token: A @34
+                  token: A @35
                   element: package:test/a.dart::@getter::A
                   staticType: int
                 element: package:test/a.dart::@getter::A
                 staticType: int
-              operator: + @36
+              operator: + @37
               rightOperand: IntegerLiteral
-                literal: 2 @38
+                literal: 2 @39
                 staticType: int
               element: dart:core::@class::num::@method::+
               staticInvokeType: num Function(num)
               staticType: int
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic B (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic B (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::B
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer B
@@ -6814,8 +6877,11 @@ library
   test_const_reference_type() async {
     var library = await buildLibrary(r'''
 class C {}
+
 class D<T> {}
-enum E {a, b, c}
+
+enum E { a, b, c }
+
 typedef F(int a, String b);
 const vDynamic = dynamic;
 const vNull = Null;
@@ -6838,20 +6904,20 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 class D (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::D
           typeParameters
-            #F4 T (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F4 T (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: #E0 T
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       enums
-        #F6 enum E (nameOffset:30) (firstTokenOffset:25) (offset:30)
+        #F6 enum E (nameOffset:32) (firstTokenOffset:27) (offset:32)
           element: <testLibrary>::@enum::E
           fields
-            #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:33) (firstTokenOffset:33) (offset:33)
+            #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -6865,7 +6931,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:36) (firstTokenOffset:36) (offset:36)
+            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -6879,7 +6945,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:39) (firstTokenOffset:39) (offset:39)
+            #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -6893,7 +6959,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F10 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F10 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -6914,100 +6980,100 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F11 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F11 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F12 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F12 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::E::@getter::a
-            #F13 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F13 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::E::@getter::b
-            #F14 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F14 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::E::@getter::c
-            #F15 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F15 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E::@getter::values
       typeAliases
-        #F16 F (nameOffset:50) (firstTokenOffset:42) (offset:50)
+        #F16 F (nameOffset:55) (firstTokenOffset:47) (offset:55)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F17 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vDynamic (nameOffset:76) (firstTokenOffset:76) (offset:76)
+        #F17 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vDynamic (nameOffset:81) (firstTokenOffset:81) (offset:81)
           element: <testLibrary>::@topLevelVariable::vDynamic
           initializer: expression_4
             TypeLiteral
               type: NamedType
-                name: dynamic @87
+                name: dynamic @92
                 element: dynamic
                 type: dynamic
               staticType: Type
-        #F18 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNull (nameOffset:102) (firstTokenOffset:102) (offset:102)
+        #F18 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNull (nameOffset:107) (firstTokenOffset:107) (offset:107)
           element: <testLibrary>::@topLevelVariable::vNull
           initializer: expression_5
             TypeLiteral
               type: NamedType
-                name: Null @110
+                name: Null @115
                 element: dart:core::@class::Null
                 type: Null
               staticType: Type
-        #F19 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vObject (nameOffset:122) (firstTokenOffset:122) (offset:122)
+        #F19 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vObject (nameOffset:127) (firstTokenOffset:127) (offset:127)
           element: <testLibrary>::@topLevelVariable::vObject
           initializer: expression_6
             TypeLiteral
               type: NamedType
-                name: Object @132
+                name: Object @137
                 element: dart:core::@class::Object
                 type: Object
               staticType: Type
-        #F20 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vClass (nameOffset:146) (firstTokenOffset:146) (offset:146)
+        #F20 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vClass (nameOffset:151) (firstTokenOffset:151) (offset:151)
           element: <testLibrary>::@topLevelVariable::vClass
           initializer: expression_7
             TypeLiteral
               type: NamedType
-                name: C @155
+                name: C @160
                 element: <testLibrary>::@class::C
                 type: C
               staticType: Type
-        #F21 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vGenericClass (nameOffset:164) (firstTokenOffset:164) (offset:164)
+        #F21 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vGenericClass (nameOffset:169) (firstTokenOffset:169) (offset:169)
           element: <testLibrary>::@topLevelVariable::vGenericClass
           initializer: expression_8
             TypeLiteral
               type: NamedType
-                name: D @180
+                name: D @185
                 element: <testLibrary>::@class::D
                 type: D<dynamic>
               staticType: Type
-        #F22 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vEnum (nameOffset:189) (firstTokenOffset:189) (offset:189)
+        #F22 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vEnum (nameOffset:194) (firstTokenOffset:194) (offset:194)
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_9
             TypeLiteral
               type: NamedType
-                name: E @197
+                name: E @202
                 element: <testLibrary>::@enum::E
                 type: E
               staticType: Type
-        #F23 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vFunctionTypeAlias (nameOffset:206) (firstTokenOffset:206) (offset:206)
+        #F23 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vFunctionTypeAlias (nameOffset:211) (firstTokenOffset:211) (offset:211)
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_10
             TypeLiteral
               type: NamedType
-                name: F @227
+                name: F @232
                 element: <testLibrary>::@typeAlias::F
                 type: dynamic Function(int, String)
                   alias: <testLibrary>::@typeAlias::F
               staticType: Type
       getters
-        #F24 isCompleteDeclaration isOriginVariable isStatic vDynamic (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
+        #F24 isCompleteDeclaration isOriginVariable isStatic vDynamic (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
           element: <testLibrary>::@getter::vDynamic
-        #F25 isCompleteDeclaration isOriginVariable isStatic vNull (nameOffset:<null>) (firstTokenOffset:<null>) (offset:102)
+        #F25 isCompleteDeclaration isOriginVariable isStatic vNull (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
           element: <testLibrary>::@getter::vNull
-        #F26 isCompleteDeclaration isOriginVariable isStatic vObject (nameOffset:<null>) (firstTokenOffset:<null>) (offset:122)
+        #F26 isCompleteDeclaration isOriginVariable isStatic vObject (nameOffset:<null>) (firstTokenOffset:<null>) (offset:127)
           element: <testLibrary>::@getter::vObject
-        #F27 isCompleteDeclaration isOriginVariable isStatic vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:146)
+        #F27 isCompleteDeclaration isOriginVariable isStatic vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:151)
           element: <testLibrary>::@getter::vClass
-        #F28 isCompleteDeclaration isOriginVariable isStatic vGenericClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:164)
+        #F28 isCompleteDeclaration isOriginVariable isStatic vGenericClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:169)
           element: <testLibrary>::@getter::vGenericClass
-        #F29 isCompleteDeclaration isOriginVariable isStatic vEnum (nameOffset:<null>) (firstTokenOffset:<null>) (offset:189)
+        #F29 isCompleteDeclaration isOriginVariable isStatic vEnum (nameOffset:<null>) (firstTokenOffset:<null>) (offset:194)
           element: <testLibrary>::@getter::vEnum
-        #F30 isCompleteDeclaration isOriginVariable isStatic vFunctionTypeAlias (nameOffset:<null>) (firstTokenOffset:<null>) (offset:206)
+        #F30 isCompleteDeclaration isOriginVariable isStatic vFunctionTypeAlias (nameOffset:<null>) (firstTokenOffset:<null>) (offset:211)
           element: <testLibrary>::@getter::vFunctionTypeAlias
   classes
     isSimplyBounded class C
@@ -7195,6 +7261,7 @@ library
   test_const_reference_type_functionType() async {
     var library = await buildLibrary(r'''
 typedef F();
+
 class C {
   final f = <F>[];
 }
@@ -7206,17 +7273,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:19) (firstTokenOffset:13) (offset:19)
+        #F1 class C (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@class::C::@field::f
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@getter::f
       typeAliases
         #F5 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
@@ -7257,6 +7324,7 @@ typedef F(int a, String b);
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const vClass = C;
 const vEnum = E;
 const vFunctionTypeAlias = F;
@@ -7270,40 +7338,40 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vClass (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vClass (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::vClass
           initializer: expression_0
             TypeLiteral
               type: NamedType
-                name: C @32
+                name: C @33
                 element: package:test/a.dart::@class::C
                 type: C
               staticType: Type
-        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vEnum (nameOffset:41) (firstTokenOffset:41) (offset:41)
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vEnum (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_1
             TypeLiteral
               type: NamedType
-                name: E @49
+                name: E @50
                 element: package:test/a.dart::@enum::E
                 type: E
               staticType: Type
-        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vFunctionTypeAlias (nameOffset:58) (firstTokenOffset:58) (offset:58)
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vFunctionTypeAlias (nameOffset:59) (firstTokenOffset:59) (offset:59)
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_2
             TypeLiteral
               type: NamedType
-                name: F @79
+                name: F @80
                 element: package:test/a.dart::@typeAlias::F
                 type: dynamic Function(int, String)
                   alias: package:test/a.dart::@typeAlias::F
               staticType: Type
       getters
-        #F4 isCompleteDeclaration isOriginVariable isStatic vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F4 isCompleteDeclaration isOriginVariable isStatic vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::vClass
-        #F5 isCompleteDeclaration isOriginVariable isStatic vEnum (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+        #F5 isCompleteDeclaration isOriginVariable isStatic vEnum (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::vEnum
-        #F6 isCompleteDeclaration isOriginVariable isStatic vFunctionTypeAlias (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+        #F6 isCompleteDeclaration isOriginVariable isStatic vFunctionTypeAlias (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
           element: <testLibrary>::@getter::vFunctionTypeAlias
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer vClass
@@ -7357,6 +7425,7 @@ typedef F(int a, String b);
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const vClass = p.C;
 const vEnum = p.E;
 const vFunctionTypeAlias = p.F;
@@ -7373,52 +7442,52 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vClass (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vClass (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::vClass
           initializer: expression_0
             TypeLiteral
               type: NamedType
                 importPrefix: ImportPrefixReference
-                  name: p @37
-                  period: . @38
+                  name: p @38
+                  period: . @39
                   element: <testLibraryFragment>::@prefix::p
-                name: C @39
+                name: C @40
                 element: package:test/a.dart::@class::C
                 type: C
               staticType: Type
-        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vEnum (nameOffset:48) (firstTokenOffset:48) (offset:48)
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vEnum (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_1
             TypeLiteral
               type: NamedType
                 importPrefix: ImportPrefixReference
-                  name: p @56
-                  period: . @57
+                  name: p @57
+                  period: . @58
                   element: <testLibraryFragment>::@prefix::p
-                name: E @58
+                name: E @59
                 element: package:test/a.dart::@enum::E
                 type: E
               staticType: Type
-        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vFunctionTypeAlias (nameOffset:67) (firstTokenOffset:67) (offset:67)
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vFunctionTypeAlias (nameOffset:68) (firstTokenOffset:68) (offset:68)
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_2
             TypeLiteral
               type: NamedType
                 importPrefix: ImportPrefixReference
-                  name: p @88
-                  period: . @89
+                  name: p @89
+                  period: . @90
                   element: <testLibraryFragment>::@prefix::p
-                name: F @90
+                name: F @91
                 element: package:test/a.dart::@typeAlias::F
                 type: dynamic Function(int, String)
                   alias: package:test/a.dart::@typeAlias::F
               staticType: Type
       getters
-        #F4 isCompleteDeclaration isOriginVariable isStatic vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F4 isCompleteDeclaration isOriginVariable isStatic vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::vClass
-        #F5 isCompleteDeclaration isOriginVariable isStatic vEnum (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F5 isCompleteDeclaration isOriginVariable isStatic vEnum (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::vEnum
-        #F6 isCompleteDeclaration isOriginVariable isStatic vFunctionTypeAlias (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+        #F6 isCompleteDeclaration isOriginVariable isStatic vFunctionTypeAlias (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
           element: <testLibrary>::@getter::vFunctionTypeAlias
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer vClass
@@ -7560,6 +7629,7 @@ library
   test_const_reference_unresolved_prefix1() async {
     var library = await buildLibrary(r'''
 class C {}
+
 const V = C.foo;
 ''');
     checkElementText(library, r'''
@@ -7576,23 +7646,23 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:17) (firstTokenOffset:17) (offset:17)
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
-                token: C @21
+                token: C @22
                 element: <testLibrary>::@class::C
                 staticType: null
-              period: . @22
+              period: . @23
               identifier: SimpleIdentifier
-                token: foo @23
+                token: foo @24
                 element: <null>
                 staticType: InvalidType
               element: <null>
               staticType: InvalidType
       getters
-        #F4 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F4 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@getter::V
   classes
     isSimplyBounded class C
@@ -7621,11 +7691,12 @@ library
   }
 
   test_const_reference_unresolved_prefix2() async {
-    newFile('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', r'''
 class C {}
 ''');
     var library = await buildLibrary(r'''
 import 'foo.dart' as p;
+
 const V = p.C.foo;
 ''');
     checkElementText(library, r'''
@@ -7640,30 +7711,30 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @21
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:30) (firstTokenOffset:30) (offset:30)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: p @34
+                  token: p @35
                   element: <testLibraryFragment>::@prefix::p
                   staticType: null
-                period: . @35
+                period: . @36
                 identifier: SimpleIdentifier
-                  token: C @36
+                  token: C @37
                   element: package:test/foo.dart::@class::C
                   staticType: null
                 element: package:test/foo.dart::@class::C
                 staticType: null
-              operator: . @37
+              operator: . @38
               propertyName: SimpleIdentifier
-                token: foo @38
+                token: foo @39
                 element: <null>
                 staticType: InvalidType
               staticType: InvalidType
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F2 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::V
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
@@ -7684,7 +7755,7 @@ library
   }
 
   test_const_set_if() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>{if (true) 1};
 ''');
     checkElementText(library, r'''
@@ -7747,7 +7818,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const {1};
 ''');
     checkElementText(library, r'''
@@ -7792,8 +7863,10 @@ library
   }
 
   test_const_set_spread() async {
-    var library = await buildLibrary('''
-const Object x = const <int>{...<int>{1}};
+    var library = await buildLibrary(r'''
+const Object x = const <int>{
+  ...<int>{1},
+};
 ''');
     checkElementText(library, r'''
 library
@@ -7818,25 +7891,25 @@ library
               leftBracket: { @28
               elements
                 SpreadElement
-                  spreadOperator: ... @29
+                  spreadOperator: ... @32
                   expression: SetOrMapLiteral
                     typeArguments: TypeArgumentList
-                      leftBracket: < @32
+                      leftBracket: < @35
                       arguments
                         NamedType
-                          name: int @33
+                          name: int @36
                           element: dart:core::@class::int
                           type: int
-                      rightBracket: > @36
-                    leftBracket: { @37
+                      rightBracket: > @39
+                    leftBracket: { @40
                     elements
                       IntegerLiteral
-                        literal: 1 @38
+                        literal: 1 @41
                         staticType: int
-                    rightBracket: } @39
+                    rightBracket: } @42
                     isMap: false
                     staticType: Set<int>
-              rightBracket: } @40
+              rightBracket: } @45
               isMap: false
               staticType: Set<int>
       getters
@@ -7861,8 +7934,10 @@ library
   }
 
   test_const_set_spread_null_aware() async {
-    var library = await buildLibrary('''
-const Object x = const <int>{...?<int>{1}};
+    var library = await buildLibrary(r'''
+const Object x = const <int>{
+  ...?<int>{1},
+};
 ''');
     checkElementText(library, r'''
 library
@@ -7887,25 +7962,25 @@ library
               leftBracket: { @28
               elements
                 SpreadElement
-                  spreadOperator: ...? @29
+                  spreadOperator: ...? @32
                   expression: SetOrMapLiteral
                     typeArguments: TypeArgumentList
-                      leftBracket: < @33
+                      leftBracket: < @36
                       arguments
                         NamedType
-                          name: int @34
+                          name: int @37
                           element: dart:core::@class::int
                           type: int
-                      rightBracket: > @37
-                    leftBracket: { @38
+                      rightBracket: > @40
+                    leftBracket: { @41
                     elements
                       IntegerLiteral
-                        literal: 1 @39
+                        literal: 1 @42
                         staticType: int
-                    rightBracket: } @40
+                    rightBracket: } @43
                     isMap: false
                     staticType: Set<int>
-              rightBracket: } @41
+              rightBracket: } @46
               isMap: false
               staticType: Set<int>
       getters
@@ -8663,7 +8738,9 @@ const vIntLong2 = 0xFFFFFFFFFFFFFFFF;
 const vIntLong3 = 0x8000000000000000;
 const vDouble = 2.3;
 const vString = 'abc';
-const vStringConcat = 'aaa' 'bbb';
+const vStringConcat =
+    'aaa'
+    'bbb';
 const vStringInterpolation = 'aaa ${true} ${42} bbb';
 const vSymbol = #aaa.bbb.ccc;
 ''');
@@ -8743,45 +8820,45 @@ library
             AdjacentStrings
               strings
                 SimpleStringLiteral
-                  literal: 'aaa' @299
+                  literal: 'aaa' @303
                 SimpleStringLiteral
-                  literal: 'bbb' @305
+                  literal: 'bbb' @313
               staticType: String
               stringValue: aaabbb
-        #F12 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vStringInterpolation (nameOffset:318) (firstTokenOffset:318) (offset:318)
+        #F12 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vStringInterpolation (nameOffset:326) (firstTokenOffset:326) (offset:326)
           element: <testLibrary>::@topLevelVariable::vStringInterpolation
           initializer: expression_11
             StringInterpolation
               elements
                 InterpolationString
-                  contents: 'aaa  @341
-                InterpolationExpression
-                  leftBracket: ${ @346
-                  expression: BooleanLiteral
-                    literal: true @348
-                    staticType: bool
-                  rightBracket: } @352
-                InterpolationString
-                  contents:   @353
+                  contents: 'aaa  @349
                 InterpolationExpression
                   leftBracket: ${ @354
-                  expression: IntegerLiteral
-                    literal: 42 @356
-                    staticType: int
-                  rightBracket: } @358
+                  expression: BooleanLiteral
+                    literal: true @356
+                    staticType: bool
+                  rightBracket: } @360
                 InterpolationString
-                  contents:  bbb' @359
+                  contents:   @361
+                InterpolationExpression
+                  leftBracket: ${ @362
+                  expression: IntegerLiteral
+                    literal: 42 @364
+                    staticType: int
+                  rightBracket: } @366
+                InterpolationString
+                  contents:  bbb' @367
               staticType: String
               stringValue: null
-        #F13 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vSymbol (nameOffset:372) (firstTokenOffset:372) (offset:372)
+        #F13 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vSymbol (nameOffset:380) (firstTokenOffset:380) (offset:380)
           element: <testLibrary>::@topLevelVariable::vSymbol
           initializer: expression_12
             SymbolLiteral
-              poundSign: # @382
+              poundSign: # @390
               components
-                aaa @383
-                bbb @387
-                ccc @391
+                aaa @391
+                bbb @395
+                ccc @399
       getters
         #F14 isCompleteDeclaration isOriginVariable isStatic vNull (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::vNull
@@ -8805,9 +8882,9 @@ library
           element: <testLibrary>::@getter::vString
         #F24 isCompleteDeclaration isOriginVariable isStatic vStringConcat (nameOffset:<null>) (firstTokenOffset:<null>) (offset:283)
           element: <testLibrary>::@getter::vStringConcat
-        #F25 isCompleteDeclaration isOriginVariable isStatic vStringInterpolation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:318)
+        #F25 isCompleteDeclaration isOriginVariable isStatic vStringInterpolation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:326)
           element: <testLibrary>::@getter::vStringInterpolation
-        #F26 isCompleteDeclaration isOriginVariable isStatic vSymbol (nameOffset:<null>) (firstTokenOffset:<null>) (offset:372)
+        #F26 isCompleteDeclaration isOriginVariable isStatic vSymbol (nameOffset:<null>) (firstTokenOffset:<null>) (offset:380)
           element: <testLibrary>::@getter::vSymbol
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer vNull
@@ -9134,9 +9211,7 @@ library
     var library = await buildLibrary(r'''
 const String? a = '';
 
-const List<int?> b = [
-  a?.length,
-];
+const List<int?> b = [a?.length];
 ''');
     checkElementText(library, r'''
 library
@@ -9158,16 +9233,16 @@ library
               elements
                 PropertyAccess
                   target: SimpleIdentifier
-                    token: a @48
+                    token: a @45
                     element: <testLibrary>::@getter::a
                     staticType: String?
-                  operator: ?. @49
+                  operator: ?. @46
                   propertyName: SimpleIdentifier
-                    token: length @51
+                    token: length @48
                     element: dart:core::@class::String::@getter::length
                     staticType: int
                   staticType: int?
-              rightBracket: ] @59
+              rightBracket: ] @54
               staticType: List<int?>
       getters
         #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
@@ -9838,9 +9913,12 @@ library
   }
 
   test_const_topLevel_typedList_imported() async {
-    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {}
+''');
     var library = await buildLibrary(r'''
 import 'a.dart';
+
 const v = const <C>[];
 ''');
     checkElementText(library, r'''
@@ -9852,24 +9930,24 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             ListLiteral
-              constKeyword: const @27
+              constKeyword: const @28
               typeArguments: TypeArgumentList
-                leftBracket: < @33
+                leftBracket: < @34
                 arguments
                   NamedType
-                    name: C @34
+                    name: C @35
                     element: package:test/a.dart::@class::C
                     type: C
-                rightBracket: > @35
-              leftBracket: [ @36
-              rightBracket: ] @37
+                rightBracket: > @36
+              leftBracket: [ @37
+              rightBracket: ] @38
               staticType: List<C>
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::v
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -9890,9 +9968,12 @@ library
   }
 
   test_const_topLevel_typedList_importedWithPrefix() async {
-    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {}
+''');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
+
 const v = const <p.C>[];
 ''');
     checkElementText(library, r'''
@@ -9907,28 +9988,28 @@ library
         <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
-        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             ListLiteral
-              constKeyword: const @32
+              constKeyword: const @33
               typeArguments: TypeArgumentList
-                leftBracket: < @38
+                leftBracket: < @39
                 arguments
                   NamedType
                     importPrefix: ImportPrefixReference
-                      name: p @39
-                      period: . @40
+                      name: p @40
+                      period: . @41
                       element: <testLibraryFragment>::@prefix::p
-                    name: C @41
+                    name: C @42
                     element: package:test/a.dart::@class::C
                     type: C
-                rightBracket: > @42
-              leftBracket: [ @43
-              rightBracket: ] @44
+                rightBracket: > @43
+              leftBracket: [ @44
+              rightBracket: ] @45
               staticType: List<C>
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::v
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -10515,8 +10596,9 @@ library
   }
 
   test_constExpr_pushReference_enum_field() async {
-    var library = await buildLibrary('''
-enum E {a, b, c}
+    var library = await buildLibrary(r'''
+enum E { a, b, c }
+
 final vValue = E.a;
 final vValues = E.values;
 final vIndex = E.a.index;
@@ -10531,7 +10613,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -10545,7 +10627,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -10559,7 +10641,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -10598,27 +10680,27 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F7 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::a
-            #F8 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@enum::E::@getter::b
-            #F9 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F9 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@enum::E::@getter::c
             #F10 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F11 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vValue (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F11 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vValue (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::vValue
-        #F12 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vValues (nameOffset:43) (firstTokenOffset:43) (offset:43)
+        #F12 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vValues (nameOffset:46) (firstTokenOffset:46) (offset:46)
           element: <testLibrary>::@topLevelVariable::vValues
-        #F13 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vIndex (nameOffset:69) (firstTokenOffset:69) (offset:69)
+        #F13 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vIndex (nameOffset:72) (firstTokenOffset:72) (offset:72)
           element: <testLibrary>::@topLevelVariable::vIndex
       getters
-        #F14 isCompleteDeclaration isOriginVariable isStatic vValue (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F14 isCompleteDeclaration isOriginVariable isStatic vValue (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::vValue
-        #F15 isCompleteDeclaration isOriginVariable isStatic vValues (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+        #F15 isCompleteDeclaration isOriginVariable isStatic vValues (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
           element: <testLibrary>::@getter::vValues
-        #F16 isCompleteDeclaration isOriginVariable isStatic vIndex (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+        #F16 isCompleteDeclaration isOriginVariable isStatic vIndex (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
           element: <testLibrary>::@getter::vIndex
   enums
     isSimplyBounded enum E
@@ -10720,8 +10802,9 @@ library
   }
 
   test_constExpr_pushReference_enum_method() async {
-    var library = await buildLibrary('''
-enum E {a}
+    var library = await buildLibrary(r'''
+enum E { a }
+
 final vToString = E.a.toString();
 ''');
     checkElementText(library, r'''
@@ -10734,7 +10817,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -10765,15 +10848,15 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::a
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vToString (nameOffset:17) (firstTokenOffset:17) (offset:17)
+        #F7 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic vToString (nameOffset:20) (firstTokenOffset:20) (offset:20)
           element: <testLibrary>::@topLevelVariable::vToString
       getters
-        #F8 isCompleteDeclaration isOriginVariable isStatic vToString (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F8 isCompleteDeclaration isOriginVariable isStatic vToString (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@getter::vToString
   enums
     isSimplyBounded enum E
@@ -10829,7 +10912,7 @@ library
   }
 
   test_constExpr_pushReference_field_simpleIdentifier() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static const a = b;
   static const b = null;
@@ -10907,7 +10990,7 @@ library
   }
 
   test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static const a = m;
   static m() {}

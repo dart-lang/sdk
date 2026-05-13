@@ -678,6 +678,39 @@ ExtensionTypeDeclaration
     );
   }
 
+  test_members_constructor_augment_factory_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment factory E() => E(0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  augmentKeyword: augment
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: E
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    semicolon: ;
+''');
+  }
+
   test_members_field_augment() {
     var parseResult = parseStringWithErrors(r'''
 augment extension type E(int it) {

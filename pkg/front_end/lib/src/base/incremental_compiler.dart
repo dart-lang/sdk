@@ -54,8 +54,6 @@ import 'package:kernel/kernel.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
-        VariableGet,
-        VariableSet,
         VisitorDefault,
         VisitorVoidMixin;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
@@ -93,7 +91,12 @@ import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/dart_scope_calculator.dart' show DartScope, DartScopeBuilder2;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
-import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/internal_ast.dart'
+    show
+        VariableDeclarationImpl,
+        InternalVariableGet,
+        InternalVariableSet,
+        InternalVariable;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import '../source/check_helper.dart';
 import '../source/source_compilation_unit.dart' show SourceCompilationUnitImpl;
@@ -1937,7 +1940,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     isConst: true,
                     hasDeclaredInitializer: true,
                     initializer: def.value.initializer,
-                  )..fileOffset = def.value.fileOffset,
+                    fileOffset: def.value.fileOffset,
+                  ),
                 );
               } else if (def.value.isInitializingFormal ||
                   def.value.isSuperInitializingFormal) {
@@ -1954,7 +1958,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     def.key,
                     type: substitution.substituteType(def.value.type),
                     isConst: false,
-                  )..fileOffset = def.value.fileOffset,
+                    fileOffset: def.value.fileOffset,
+                  ),
                 );
               }
             } else if (existingType is DynamicType ||
@@ -2226,7 +2231,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           VariableDeclarationImpl variable = new VariableDeclarationImpl(
             def.key,
             type: def.value,
-          )..fileOffset = offsetToUse ?? libraryBuilder.library.fileOffset;
+            fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+          );
 
           if (isExtensionOrExtensionTypeInstanceMember &&
               isExtensionThisName(def.key) &&
@@ -2537,7 +2543,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
 // Coverage-ignore(suite): Not run.
 class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
-  final Set<VariableDeclarationImpl> knownButUnavailable = {};
+  final Set<InternalVariable> knownButUnavailable = {};
   final ClassHierarchy hierarchy;
 
   ExpressionEvaluationHelperImpl(
@@ -2555,8 +2561,8 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   @override
-  ExpressionInferenceResult? visitVariableGet(
-    VariableGet node,
+  ExpressionInferenceResult? visitInternalVariableGet(
+    InternalVariableGet node,
     DartType typeContext,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
@@ -2575,8 +2581,8 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   @override
-  ExpressionInferenceResult? visitVariableSet(
-    VariableSet node,
+  ExpressionInferenceResult? visitInternalVariableSet(
+    InternalVariableSet node,
     DartType typeContext,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
@@ -2596,7 +2602,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
     Expression node,
-    VariableDeclaration variable,
+    InternalVariable variable,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
     Uri fileUri,

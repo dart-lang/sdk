@@ -59,5 +59,22 @@ constructor (an unnamed constructor with no parameters).
 - The declaration of an enum introduces the static getter `values` and the
 instance getters `index` and `name`.
 
+## Kinds
+
+Each document highlight has an associated `kind` which allows clients to
+highlight reads and writes differently. The LSP spec says:
+
+> Symbol matches usually have a `DocumentHighlightKind` of `Read` or `Write`
+> whereas fuzzy or textual matches use `Text` as the kind.
+
+TypeScript (which we often try to be consistent with when expected behaviour
+isn't obvious, since the VS Code, LSP and TypeScript teams working closely
+together) uses `Read` and `Write` even for names of types, so we have followed
+that pattern.
+
+- `Write` - assignments (setters, variables, initializers), declarations, argument names
+- `Read` - getters, variable reads, references to types and parameters
+- `Text` - keywords like `for`, `break`, `return`
+
 [languageFidelity]: ../principles/language_fidelity.md
 [textDocument/documentHighlight]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_documentHighlight

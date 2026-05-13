@@ -345,12 +345,18 @@ class TestFile extends _TestFileBase {
     }
 
     var errorExpectations = <StaticError>[];
-    try {
-      errorExpectations.addAll(_parseExpectations(filePath));
-    } on FormatException catch (error) {
-      throw FormatException(
-        "Invalid error expectation syntax in $filePath:\n$error",
-      );
+
+    // The analyzer package also uses a similar syntax for expectations, but
+    // we don't want the test_runner to inadvertently think files containing
+    // those are static error tests.
+    if (!filePath.replaceAll('\\', '/').contains('/pkg/analyzer/')) {
+      try {
+        errorExpectations.addAll(_parseExpectations(filePath));
+      } on FormatException catch (error) {
+        throw FormatException(
+          "Invalid error expectation syntax in $filePath:\n$error",
+        );
+      }
     }
 
     return TestFile._(

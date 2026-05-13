@@ -46,7 +46,7 @@ Bytecode {
 ConstantPool {
   [0] = ObjectRef < dart:ffi::NativeFunction < FunctionType () -> dart:ffi::Void > >
   [1] = ObjectRef const 3735928559
-  [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 1, num-type-args 1, names []
   [3] = Reserved
   [4] = ClosureFunction 0
   [5] = FfiCall
@@ -107,7 +107,7 @@ Bytecode {
 ConstantPool {
   [0] = ObjectRef < dart:ffi::NativeFunction < FunctionType (dart:ffi::Int64) -> dart:ffi::Int32 > >
   [1] = ObjectRef const 3735928559
-  [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 1, num-type-args 1, names []
   [3] = Reserved
   [4] = ClosureFunction 0
   [5] = Type dart:core::int

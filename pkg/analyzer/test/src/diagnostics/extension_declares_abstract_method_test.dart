@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,52 +15,48 @@ main() {
 @reflectiveTest
 class ExtensionDeclaresAbstractMethodTest extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   bool get isPalindrome;
+//         ^^^^^^^^^^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
 }
-''',
-      [error(diag.extensionDeclaresAbstractMember, 35, 12)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   String reversed();
+//       ^^^^^^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
 }
-''',
-      [error(diag.extensionDeclaresAbstractMember, 33, 8)],
-    );
+''');
   }
 
   test_none() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {}
 ''');
   }
 
   test_operator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   String operator -(String otherString);
+//                ^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
 }
-''',
-      [error(diag.extensionDeclaresAbstractMember, 42, 1)],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   set length(int newLength);
+//    ^^^^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
 }
-''',
-      [error(diag.extensionDeclaresAbstractMember, 30, 6)],
-    );
+''');
   }
 }

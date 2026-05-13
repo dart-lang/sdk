@@ -233,7 +233,7 @@ transforms:
   date: 2020-09-14
   changes: []
 ''',
-      [error(diag.missingKey, 25, 43)],
+      [error(diag.missingOneOfMultipleKeys, 25, 43)],
     );
   }
 

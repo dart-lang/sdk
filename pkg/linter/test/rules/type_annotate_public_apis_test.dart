@@ -121,7 +121,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void f(x) { }
+  augment void f(x);
 }
 ''');
 
@@ -139,7 +139,7 @@ void f(x) { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment void f(x) { }
+augment void f(x);
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(23, 1)]);

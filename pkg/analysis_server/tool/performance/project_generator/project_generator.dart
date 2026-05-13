@@ -34,7 +34,9 @@ Future<void> runPubGet(Directory projectDir, YamlMap pubspec) async {
       pubspec['dependencies']?['flutter'] != null ||
       pubspec['dev_dependencies']?['flutter'] != null ||
       pubspec['dev_dependencies']?['flutter_test'] != null;
-  var sdk = isFlutter ? 'flutter' : 'dart';
+  var sdk = isFlutter
+      ? (Platform.isWindows ? 'flutter.bat' : 'flutter')
+      : 'dart';
   print('Fetching dependencies with `$sdk pub get` in ${projectDir.path}');
   var pubGetResult = await Process.run(sdk, [
     'pub',

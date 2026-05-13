@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class ExtensionOverrideWithoutAccessTest extends PubPackageResolutionTest {
   test_binaryExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   int operator +(int x) => x;
@@ -28,7 +27,7 @@ f(C c) {
   }
 
   test_call() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 extension E on C {
@@ -42,23 +41,22 @@ f(C c) {
   }
 
   test_expressionStatement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   void m() {}
 }
 f(C c) {
   E(c);
+//^^^^
+// [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
 }
-''',
-      [error(diag.extensionOverrideWithoutAccess, 57, 4)],
-    );
+''');
     assertTypeDynamic(findNode.extensionOverride('E(c)'));
   }
 
   test_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   int get g => 0;
@@ -70,7 +68,7 @@ f(C c) {
   }
 
   test_indexExpression_get() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   int operator [](int i) => 4;
@@ -82,7 +80,7 @@ f(C c) {
   }
 
   test_indexExpression_set() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   void operator []=(int i, int v) {}
@@ -94,7 +92,7 @@ f(C c) {
   }
 
   test_methodInvocation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   void m() {}
@@ -106,7 +104,7 @@ f(C c) {
   }
 
   test_prefixExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   int operator -() => 7;
@@ -118,7 +116,7 @@ f(C c) {
   }
 
   test_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   set s(int x) {}

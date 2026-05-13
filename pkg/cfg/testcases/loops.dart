@@ -41,4 +41,26 @@ void irreducible(int i) {
   }
 }
 
+int var63 = 28;
+int var68 = 44;
+
+void withTryBlock() {
+  var n = 43;
+  while (--n > 0) {
+    try {
+      var63++;
+      // Terminate block without reaching a loop backedge,
+      // so try body won't be included into the loop body
+      // through explicit predecessors of the backedge.
+      throw 'bye';
+    } on StackOverflowError {
+      rethrow;
+    } catch (_) {
+      // Load from 'var63' is considered loop invariant if
+      // loop body doesn't include try block body.
+      var68 = var63;
+    }
+  }
+}
+
 void main() {}

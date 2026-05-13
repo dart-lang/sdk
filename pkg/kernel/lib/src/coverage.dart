@@ -1034,18 +1034,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitVariableContext(VariableContext node) {
-    visited.add(NodeKind.VariableContext);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitScope(Scope node) {
-    visited.add(NodeKind.Scope);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitName(Name node) {
     visited.add(NodeKind.Name);
     node.visitChildren(this);
@@ -1348,14 +1336,12 @@ enum NodeKind {
   NominalParameter,
   PatternGuard,
   PatternSwitchCase,
-  Scope,
   StructuralParameter,
   Supertype,
   SwitchCase,
   SwitchExpressionCase,
   TypeVariable,
   Typedef,
-  VariableContext,
 }
 
 enum MemberKind { Constructor, Field, Procedure }

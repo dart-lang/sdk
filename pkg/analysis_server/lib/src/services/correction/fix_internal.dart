@@ -48,6 +48,7 @@ import 'package:analysis_server/src/services/correction/dart/change_type_annotat
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_enum.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_default_to_primary_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
@@ -63,6 +64,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_declaring_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_flutter_style_todo.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_for_each.dart';
@@ -80,6 +82,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_primary_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
@@ -152,6 +155,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_deprecated_n
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_container_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_extends_clause.dart';
@@ -329,6 +333,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.discardedFutures: [AddAsync.discardedFutures, WrapInUnawaited.new],
   diag.emptyCatches: [RemoveEmptyCatch.new],
   diag.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
+  diag.emptyContainerBodies: [RemoveEmptyContainerBody.new],
   diag.emptyStatements: [RemoveEmptyStatement.new, ReplaceWithBrackets.new],
   diag.eolAtEndOfFile: [AddEolAtEndOfFile.new],
   diag.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
@@ -478,6 +483,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unreachableFromMain: [RemoveUnusedElement.new],
   diag.unrelatedTypeEqualityChecksInExpression: [ReplaceWithIs.new],
   diag.useColoredBox: [ReplaceContainerWithColoredBox.new],
+  diag.useDeclaringParameters: [ConvertToDeclaringParameter.new],
   diag.useDecoratedBox: [ReplaceWithDecoratedBox.new],
   diag.useEnums: [ConvertClassToEnum.new],
   diag.useFullHexValuesForFlutterColors: [ReplaceWithEightDigitHex.new],
@@ -488,6 +494,10 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.useKeyInWidgetConstructors: [AddKeyToConstructors.new],
   diag.useNamedConstants: [ReplaceWithNamedConstant.new],
   diag.useNullAwareElements: [ConvertNullCheckToNullAwareElementOrEntry.new],
+  diag.usePrimaryConstructors: [
+    ConvertDefaultToPrimaryConstructor.new,
+    ConvertToPrimaryConstructor.new,
+  ],
   diag.useRawStrings: [ConvertToRawString.new],
   diag.useRethrowWhenPossible: [UseRethrow.new],
   diag.useStringInPartOfDirectives: [ReplaceWithPartOrUriEmpty.new],
@@ -1210,6 +1220,7 @@ final _builtInNonLintMultiGenerators = {
     // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
     ImportLibrary.forExtensionMember,
   ],
+  diag.uriDoesNotExist: [DataDriven.new],
   diag.useOfPrivateParameterName: [ChangeArgumentName.new],
   diag.wrongNumberOfTypeArguments: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],

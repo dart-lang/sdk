@@ -432,6 +432,8 @@ final class BoxedInt implements int {
   @pragma("wasm:intrinsic")
   external int operator ~();
   external int get bitLength;
+  external int get trailingZeroBitCount;
+  external int get oneBitCount;
 
   @override
   external String toString();

@@ -31,9 +31,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Capability_factory, 0, 1) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
+DEFINE_NATIVE_ENTRY(Capability_factory, 0, 0) {
   // Keep capability IDs less than 2^53 so web clients of the service
   // protocol can process it properly.
   //
@@ -57,10 +55,8 @@ DEFINE_NATIVE_ENTRY(Capability_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(0));
   if (isolate == nullptr) {
     ThrowCantRunWithoutIsolateError();
     UNREACHABLE();
@@ -1363,12 +1359,9 @@ static intptr_t GetTypedDataSizeOrThrow(const Instance& instance) {
   Exceptions::ThrowArgumentError(instance);
 }
 
-DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-
+DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, array_instance,
-                               arguments->NativeArgAt(1));
+                               arguments->NativeArgAt(0));
 
   Array& array = Array::Handle();
   intptr_t array_length;

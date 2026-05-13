@@ -6,7 +6,7 @@ import "dart:core" as core;
 [217]import "dart:js_interop";
 
 [259]extension type Foo(js_::JSObject /* erasure=dart._interceptors::JSObject */ _) implements js_::JSObject /* erasure=dart._interceptors::JSObject */ {
-[274]  abstract extension-type-member representation-field get [-1] [-1] _() → js_::JSObject /* erasure=dart._interceptors::JSObject */;
+[274]  abstract extension-type-member representation-field get [274] [274] _() → js_::JSObject /* erasure=dart._interceptors::JSObject */;
   get bar = self::Foo|get#bar;
   set bar = self::Foo|set#bar;
   constructor _ = self::Foo|constructor#_;

@@ -9,8 +9,9 @@ import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/dart/analysis/analysis_options.dart' as analyzer;
 import 'package:analyzer/src/dart/element/element.dart' as analyzer;
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:test/test.dart';
@@ -58,14 +59,14 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     int offset, {
     String? contextMessage,
   }) async {
-    var contextMessages = <analyzer.DiagnosticMessageImpl>[];
+    var contextMessages = <DiagnosticMessageImpl>[];
 
     await resolveTestCode('');
     var testSource = result.unit.declaredFragment!.source;
 
     if (contextMessage != null) {
       contextMessages.add(
-        analyzer.DiagnosticMessageImpl(
+        DiagnosticMessageImpl(
           filePath: testSource.fullName,
           offset: 53,
           length: 7,
