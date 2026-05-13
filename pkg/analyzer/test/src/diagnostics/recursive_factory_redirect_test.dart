@@ -2,146 +2,152 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecursiveFactoryRedirectTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RecursiveFactoryRedirectTest extends PubPackageResolutionTest {
   test_directSelfReference() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() = A;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [error(diag.recursiveFactoryRedirect, 26, 1)],
-    );
+''');
   }
 
   test_diverging() async {
     // Analysis should terminate even though the redirections don't reach a
     // fixed point.  (C<int> redirects to C<C<int>>, then to C<C<C<int>>>, and
     // so on).
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   const factory C() = C<C<T>>;
+//                    ^^^^^^^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 main() {
   const C<int>();
 }
-''',
-      [error(diag.recursiveFactoryRedirect, 35, 7)],
-    );
+''');
   }
 
   test_generic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: C, B, A.
   factory A() = C;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 class B<T> implements C<T> {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: C, B, A.
   factory B() = A;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 class C<T> implements A<T> {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'C' can't be a superinterface of itself: C, B, A.
   factory C() = B;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveFactoryRedirect, 45, 1),
-        error(diag.recursiveInterfaceInheritance, 56, 1),
-        error(diag.recursiveFactoryRedirect, 95, 1),
-        error(diag.recursiveInterfaceInheritance, 106, 1),
-        error(diag.recursiveFactoryRedirect, 145, 1),
-      ],
-    );
+''');
   }
 
   test_loop() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: C, B, A.
   factory A() = C;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 class B implements C {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: C, B, A.
   factory B() = A;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 class C implements A {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'C' can't be a superinterface of itself: C, B, A.
   factory C() = B;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveFactoryRedirect, 39, 1),
-        error(diag.recursiveInterfaceInheritance, 50, 1),
-        error(diag.recursiveFactoryRedirect, 83, 1),
-        error(diag.recursiveInterfaceInheritance, 94, 1),
-        error(diag.recursiveFactoryRedirect, 127, 1),
-      ],
-    );
+''');
   }
 
   test_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: C, B, A.
   factory A.nameA() = C.nameC;
+//                    ^^^^^^^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 class B implements C {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: C, B, A.
   factory B.nameB() = A.nameA;
+//                    ^^^^^^^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 class C implements A {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'C' can't be a superinterface of itself: C, B, A.
   factory C.nameC() = B.nameB;
+//                    ^^^^^^^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveFactoryRedirect, 45, 7),
-        error(diag.recursiveInterfaceInheritance, 62, 1),
-        error(diag.recursiveFactoryRedirect, 101, 7),
-        error(diag.recursiveInterfaceInheritance, 118, 1),
-        error(diag.recursiveFactoryRedirect, 157, 7),
-      ],
-    );
+''');
   }
 
   test_outsideCycle() async {
     // "A" references "C" which has cycle with "B". But we should not report
     // problem for "A" - it is not the part of a cycle.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() = C;
+//              ^
+// [diag.redirectToInvalidReturnType] The return type 'C' of the redirected constructor isn't a subtype of 'A'.
 }
 class B implements C {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: C, B.
   factory B() = C;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 class C implements A, B {
+//    ^
+// [diag.recursiveInterfaceInheritance] 'C' can't be a superinterface of itself: C, B.
   factory C() = B;
+//              ^
+// [diag.recursiveFactoryRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [
-        error(diag.redirectToInvalidReturnType, 26, 1),
-        error(diag.recursiveInterfaceInheritance, 37, 1),
-        error(diag.recursiveFactoryRedirect, 70, 1),
-        error(diag.recursiveInterfaceInheritance, 81, 1),
-        error(diag.recursiveFactoryRedirect, 117, 1),
-      ],
-    );
+''');
   }
 
   test_valid_redirect() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() = B;
 }

@@ -3,14 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SdkVersionGtGtGtOperatorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,23 +24,24 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
       '${ExperimentStatus.currentVersion.minor}';
 
   test_const_equals() async {
-    await verifyVersion('>=2.15.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.15.0'));
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 42 >>> 3;
 ''');
   }
 
   test_const_lessThan() async {
-    await verifyVersion(
-      '>=2.13.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.13.0'));
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 42 >>> 3;
-''',
-      expectedDiagnostics: [error(diag.sdkVersionGtGtGtOperator, 13, 3)],
-    );
+//           ^^^
+// [diag.sdkVersionGtGtGtOperator] The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions.
+''');
   }
 
   test_declaration_equals() async {
-    await verifyVersion('>=2.15.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.15.0'));
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator >>>(A a) => this;
 }
@@ -46,30 +49,29 @@ class A {
   }
 
   test_declaration_lessThan() async {
-    await verifyVersion(
-      '>=2.13.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.13.0'));
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator >>>(A a) => this;
+//           ^^^
+// [diag.sdkVersionGtGtGtOperator] The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionGtGtGtOperator, 23, 3)],
-    );
+''');
   }
 
   test_nonConst_equals() async {
-    await verifyVersion('>=2.15.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.15.0'));
+    await resolveTestCodeWithDiagnostics(r'''
 var a = 42 >>> 3;
 ''');
   }
 
   test_nonConst_lessThan() async {
-    await verifyVersion(
-      '>=2.13.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.13.0'));
+    await resolveTestCodeWithDiagnostics(r'''
 var a = 42 >>> 3;
-''',
-      expectedDiagnostics: [error(diag.sdkVersionGtGtGtOperator, 11, 3)],
-    );
+//         ^^^
+// [diag.sdkVersionGtGtGtOperator] The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions.
+''');
   }
 }

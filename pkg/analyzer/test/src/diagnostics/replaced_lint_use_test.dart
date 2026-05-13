@@ -4,17 +4,16 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart'
-    as diag
-    hide removedLint;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplacedLintUseTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -51,44 +50,31 @@ linter:
   }
 
   test_file() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: removed_lint
+//                  ^^^^^^^^^^^^
+// [diag.replacedLintUse] 'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
 
 void f() { }
-''',
-      [error(diag.replacedLintUse, 20, 12)],
-    );
+''');
   }
 
   test_line() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: removed_lint
+//         ^^^^^^^^^^^^
+// [diag.replacedLintUse] 'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
 void f() { }
-''',
-      [error(diag.replacedLintUse, 11, 12)],
-    );
+''');
   }
 
   test_messageText() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: removed_lint
+//                  ^^^^^^^^^^^^
+// [diag.replacedLintUse] 'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
 
 void f() { }
-''',
-      [
-        error(
-          diag.replacedLintUse,
-          20,
-          12,
-          messageContains: [
-            "'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'",
-          ],
-          correctionContains: "Replace 'removed_lint' with 'replacing_lint'.",
-        ),
-      ],
-    );
+''');
   }
 }

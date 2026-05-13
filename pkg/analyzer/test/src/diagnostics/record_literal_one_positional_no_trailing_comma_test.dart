@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecordLiteralOnePositionalNoTrailingCommaTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,40 +18,37 @@ main() {
 class RecordLiteralOnePositionalNoTrailingCommaTest
     extends PubPackageResolutionTest {
   test_argument_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) i) {
   f((''));
+//   ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type '(int,)'. 
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 24, 2)],
-    );
+''');
   }
 
   test_argument_notParenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) i) {
   f(1);
+//  ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type '(int,)'. 
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 23, 1)],
-    );
+''');
   }
 
   test_argument_parenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) i) {
   f((1));
+//  ^^^
+// [diag.recordLiteralOnePositionalNoTrailingCommaByType] A record literal with exactly one positional field requires a trailing comma.
 }
-''',
-      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 23, 3)],
-    );
+''');
   }
 
   test_argument_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) i) {
   f((1,));
 }
@@ -58,40 +56,37 @@ void f((int,) i) {
   }
 
   test_assignment_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) r) {
   r = ('');
+//    ^^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type '(int,)'.
 }
-''',
-      [error(diag.invalidAssignment, 25, 4)],
-    );
+''');
   }
 
   test_assignment_notParenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) r) {
   r = 1;
+//    ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type '(int,)'.
 }
-''',
-      [error(diag.invalidAssignment, 25, 1)],
-    );
+''');
   }
 
   test_assignment_parenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) r) {
   r = (1);
+//    ^^^
+// [diag.recordLiteralOnePositionalNoTrailingCommaByType] A record literal with exactly one positional field requires a trailing comma.
 }
-''',
-      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 25, 3)],
-    );
+''');
   }
 
   test_assignment_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) r) {
   r = (1,);
 }
@@ -99,89 +94,81 @@ void f((int,) r) {
   }
 
   test_declaration() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) r = (1);
-''',
-      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 11, 3)],
-    );
+//         ^^^
+// [diag.recordLiteralOnePositionalNoTrailingCommaByType] A record literal with exactly one positional field requires a trailing comma.
+''');
   }
 
   test_declaration_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) r = ('');
-''',
-      [error(diag.invalidAssignment, 12, 2)],
-    );
+//          ^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type '(int,)'.
+''');
   }
 
   test_declaration_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) r = (1,);
 ''');
   }
 
   test_return_blockBody_notParenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) f() {
   return 1;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int' can't be returned from the function 'f' because it has a return type of '(int,)'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 22, 1)],
-    );
+''');
   }
 
   test_return_blockBody_parenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) f() {
   return (1);
+//       ^^^
+// [diag.recordLiteralOnePositionalNoTrailingCommaByType] A record literal with exactly one positional field requires a trailing comma.
 }
-''',
-      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 22, 3)],
-    );
+''');
   }
 
   test_return_expressionBody_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) f() => ('');
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 14, 4)],
-    );
+//            ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'f' because it has a return type of '(int,)'.
+''');
   }
 
   test_return_expressionBody_notParenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) f() => 1;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 14, 1)],
-    );
+//            ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int' can't be returned from the function 'f' because it has a return type of '(int,)'.
+''');
   }
 
   test_return_expressionBody_parenthesized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) f() => (1);
-''',
-      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 14, 3)],
-    );
+//            ^^^
+// [diag.recordLiteralOnePositionalNoTrailingCommaByType] A record literal with exactly one positional field requires a trailing comma.
+''');
   }
 
   test_return_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) f() { return (''); }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 20, 4)],
-    );
+//                  ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'f' because it has a return type of '(int,)'.
+''');
   }
 
   test_return_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 (int,) f() { return (1,); }
 ''');
   }

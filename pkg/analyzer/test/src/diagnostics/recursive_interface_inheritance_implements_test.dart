@@ -6,10 +6,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecursiveInterfaceInheritanceImplementsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,51 +19,46 @@ main() {
 class RecursiveInterfaceInheritanceImplementsTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements A {}
-''',
-      [error(diag.recursiveInterfaceInheritanceImplements, 6, 1)],
-    );
+//    ^
+// [diag.recursiveInterfaceInheritanceImplements] 'A' can't implement itself.
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 augment class A implements A {}
-''',
-      [error(diag.recursiveInterfaceInheritanceImplements, 6, 1)],
-    );
+''');
   }
 
   test_class_tail() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements A {}
+//             ^
+// [diag.recursiveInterfaceInheritanceImplements] 'A' can't implement itself.
 class B implements A {}
-''',
-      [error(diag.recursiveInterfaceInheritanceImplements, 15, 1)],
-    );
+''');
   }
 
   test_classTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M {}
 class B = A with M implements B;
-''',
-      [error(diag.recursiveInterfaceInheritanceImplements, 28, 1)],
-    );
+//    ^
+// [diag.recursiveInterfaceInheritanceImplements] 'B' can't implement itself.
+''');
   }
 
   test_mixin() async {
     await assertErrorsInCode(
       r'''
 mixin A implements B {}
-mixin B implements A {}''',
+mixin B implements A {}
+''',
       [
         error(diag.recursiveInterfaceInheritance, 6, 1),
         error(diag.recursiveInterfaceInheritance, 30, 1),

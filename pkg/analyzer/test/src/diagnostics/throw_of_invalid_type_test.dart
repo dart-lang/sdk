@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ThrowOfInvalidTypeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ThrowOfInvalidTypeTest extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(dynamic a) {
   throw a;
 }
@@ -24,7 +25,7 @@ f(dynamic a) {
   }
 
   test_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a) {
   throw a;
 }
@@ -32,13 +33,12 @@ f(int a) {
   }
 
   test_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int? a) {
   throw a;
+//      ^
+// [diag.throwOfInvalidType] The type 'int?' of the thrown expression must be assignable to 'Object'.
 }
-''',
-      [error(diag.throwOfInvalidType, 20, 1)],
-    );
+''');
   }
 }

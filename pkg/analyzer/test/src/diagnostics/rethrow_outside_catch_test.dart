@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RethrowOutsideCatchTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RethrowOutsideCatchTest extends PubPackageResolutionTest {
   test_insideCatch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (e) {
     rethrow;
@@ -26,22 +27,21 @@ void f() {
   }
 
   test_insideCatch_insideClosure() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (e) {
     () {
       rethrow;
+//    ^^^^^^^
+// [diag.rethrowOutsideCatch] A rethrow must be inside of a catch clause.
     };
   }
 }
-''',
-      [error(diag.rethrowOutsideCatch, 47, 7)],
-    );
+''');
   }
 
   test_insideCatch_insideClosure_insideCatch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (e1) {
     () {
@@ -55,14 +55,13 @@ void f() {
   }
 
   test_withoutCatch() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   rethrow;
+//^^^^^^^
+// [diag.rethrowOutsideCatch] A rethrow must be inside of a catch clause.
 }
-''',
-      [error(diag.rethrowOutsideCatch, 13, 7)],
-    );
+''');
 
     var node = findNode.singleRethrowExpression;
     assertResolvedNodeText(node, r'''

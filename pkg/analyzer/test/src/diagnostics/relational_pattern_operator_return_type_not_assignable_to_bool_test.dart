@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
       RelationalPatternOperatorReturnTypeNotAssignableToBoolTest,
     );
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,7 +20,7 @@ main() {
 class RelationalPatternOperatorReturnTypeNotAssignableToBoolTest
     extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   dynamic operator >(_) => 42;
 }
@@ -31,44 +32,30 @@ void f(A x) {
   }
 
   test_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator >(_) => 42;
 }
 
 void f(A x) {
   if (x case > 0) {}
+//           ^
+// [diag.relationalPatternOperatorReturnTypeNotAssignableToBool] The return type of operators used in relational patterns must be assignable to 'bool'.
 }
-''',
-      [
-        error(
-          diag.relationalPatternOperatorReturnTypeNotAssignableToBool,
-          67,
-          1,
-        ),
-      ],
-    );
+''');
   }
 
   test_Object() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Object operator >(_) => 42;
 }
 
 void f(A x) {
   if (x case > 0) {}
+//           ^
+// [diag.relationalPatternOperatorReturnTypeNotAssignableToBool] The return type of operators used in relational patterns must be assignable to 'bool'.
 }
-''',
-      [
-        error(
-          diag.relationalPatternOperatorReturnTypeNotAssignableToBool,
-          70,
-          1,
-        ),
-      ],
-    );
+''');
   }
 }

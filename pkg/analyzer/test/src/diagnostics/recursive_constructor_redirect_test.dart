@@ -2,47 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecursiveConstructorRedirectTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RecursiveConstructorRedirectTest extends PubPackageResolutionTest {
   test_directSelfReference() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() : this();
+//      ^^^^^^
+// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [error(diag.recursiveConstructorRedirect, 18, 6)],
-    );
+''');
   }
 
   test_recursive() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.a() : this.b();
+//        ^^^^^^^^
+// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
   A.b() : this.a();
+//        ^^^^^^^^
+// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [
-        error(diag.recursiveConstructorRedirect, 20, 8),
-        error(diag.recursiveConstructorRedirect, 40, 8),
-      ],
-    );
+''');
   }
 
   test_valid_redirect() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.a() : this.b();
   A.b() : this.c();
