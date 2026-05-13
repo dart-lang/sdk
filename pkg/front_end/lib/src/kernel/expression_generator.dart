@@ -314,14 +314,15 @@ abstract class Generator {
     int fileOffset,
     List<TypeBuilder>? typeArguments,
   ) {
-    return new Instantiation(
+    return intern.createInstantiation(
       buildSimpleRead(),
       _helper.buildDartTypeArguments(
         typeArguments,
         TypeUse.tearOffTypeArgument,
         allowPotentiallyConstantType: true,
       ),
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
   }
 
   /// Returns a [TypeBuilder] for this subexpression instantiated with the
@@ -479,7 +480,7 @@ class VariableUseGenerator extends Generator {
   Expression _createWrite(int offset, Expression value) {
     _checkAssignment(offset);
     _helper.registerVariableAssignment(variable);
-    return intern.createVariableSet(offset, variable, value);
+    return intern.createVariableSet(variable, value, fileOffset: offset);
   }
 
   @override
@@ -981,8 +982,11 @@ class ThisPropertyAccessGenerator extends Generator {
   int get _nameOffset => fileOffset;
 
   Expression get _thisExpression => thisVariable != null
-      ? intern.createVariableGet(thisOffset ?? fileOffset, thisVariable!)
-      : intern.createThisExpression(thisOffset ?? fileOffset);
+      ? intern.createVariableGet(
+          thisVariable!,
+          fileOffset: thisOffset ?? fileOffset,
+        )
+      : intern.createThisExpression(fileOffset: thisOffset ?? fileOffset);
 
   @override
   Expression buildSimpleRead() {
@@ -1385,8 +1389,12 @@ class SuperPropertyAccessGenerator extends Generator {
       );
     } else {
       _helper.readInternalThisVariable();
-      return new SuperPropertyGet(new ThisExpression(), name, getter)
-        ..fileOffset = fileOffset;
+      return intern.createSuperPropertyGet(
+        intern.createThisExpression(fileOffset: fileOffset),
+        name,
+        getter,
+        fileOffset: fileOffset,
+      );
     }
   }
 
@@ -1406,8 +1414,13 @@ class SuperPropertyAccessGenerator extends Generator {
       );
     } else {
       _helper.readInternalThisVariable();
-      return new SuperPropertySet(new ThisExpression(), name, value, setter)
-        ..fileOffset = offset;
+      return intern.createSuperPropertySet(
+        intern.createThisExpression(fileOffset: fileOffset),
+        name,
+        setter,
+        value,
+        fileOffset: offset,
+      );
     }
   }
 
@@ -1808,7 +1821,7 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return intern.createIndexGet(
       fileOffset,
       receiver,
@@ -1820,7 +1833,7 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return intern.createIndexSet(
       fileOffset,
       receiver,
@@ -1853,7 +1866,7 @@ class ThisIndexedAccessGenerator extends Generator {
     bool voidContext = false,
   }) {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return new IfNullIndexSet(
       receiver: receiver,
       index: index,
@@ -1876,7 +1889,7 @@ class ThisIndexedAccessGenerator extends Generator {
     bool isPostIncDec = false,
   }) {
     _helper.readInternalThisVariable();
-    Expression receiver = intern.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset: fileOffset);
     return new CompoundIndexSet(
       receiver: receiver,
       index: index,
@@ -2313,7 +2326,7 @@ class StaticAccessGenerator extends Generator {
     if (target == null) {
       return _makeInvalidWrite();
     } else {
-      return new StaticSet(target, value)..fileOffset = offset;
+      return intern.createStaticSet(writeTarget!, value, fileOffset: offset);
     }
   }
 
@@ -4858,7 +4871,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   builtTypeArguments = unaliasTypes(builtTypeArguments)!;
 
                   tearOffExpression = intern.createInstantiation(
-                    token.charOffset,
+                    fileOffset: token.charOffset,
                     tearOffExpression,
                     builtTypeArguments,
                   );
@@ -6757,7 +6770,7 @@ class ThisAccessGenerator extends Generator {
         _helper.readInternalThisVariable();
         return _helper.thisVariable != null
             ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
-            : intern.createThisExpression(fileOffset);
+            : intern.createThisExpression(fileOffset: fileOffset);
       }
     } else {
       return _helper.buildProblem(
@@ -6829,7 +6842,7 @@ class ThisAccessGenerator extends Generator {
         return _helper.buildMethodInvocation(
           _helper.thisVariable != null
               ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
-              : intern.createThisExpression(fileOffset),
+              : intern.createThisExpression(fileOffset: fileOffset),
           name,
           selector.typeArguments,
           selector.arguments,
@@ -6888,7 +6901,7 @@ class ThisAccessGenerator extends Generator {
         offset,
         _helper.thisVariable != null
             ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
-            : intern.createThisExpression(fileOffset),
+            : intern.createThisExpression(fileOffset: fileOffset),
         typeArguments,
         arguments,
       );

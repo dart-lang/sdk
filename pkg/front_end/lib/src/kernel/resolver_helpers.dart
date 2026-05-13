@@ -301,12 +301,12 @@ class _InitializerBuilder {
                   ActualArguments arguments = initializer.arguments;
                   List<Expression> enumSyntheticArguments = [
                     intern.createVariableGet(
-                      formals[0].fileOffset,
                       formals[0].variable,
+                      fileOffset: formals[0].fileOffset,
                     )..parent = initializer.arguments,
                     intern.createVariableGet(
-                      formals[1].fileOffset,
                       formals[1].variable,
+                      fileOffset: formals[1].fileOffset,
                     )..parent = initializer.arguments,
                   ];
                   arguments.prependArguments([
@@ -651,12 +651,12 @@ class _InitializerBuilder {
             formals[1].name == "#name",
       );
       Expression indexExpression = intern.createVariableGet(
-        formals[0].fileOffset,
         formals[0].variable,
+        fileOffset: formals[0].fileOffset,
       );
       Expression nameExpression = intern.createVariableGet(
-        formals[1].fileOffset,
         formals[1].variable,
+        fileOffset: formals[1].fileOffset,
       );
       (argumentsOriginalOrder ??= []).insertAll(0, [
         new PositionalArgument(indexExpression),

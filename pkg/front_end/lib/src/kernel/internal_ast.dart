@@ -404,11 +404,12 @@ class ActualArguments extends TreeNode with InternalTreeNode {
     List<Expression> positionalArguments,
     List<NamedExpression> namedArguments,
   ) {
-    return new Arguments(
+    return extern.createArguments(
       positionalArguments,
       types: typeArguments,
       named: namedArguments,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -564,9 +565,10 @@ class DeferredCheck extends InternalExpression {
   VariableDeclaration variable;
   Expression expression;
 
-  DeferredCheck(this.variable, this.expression) {
+  DeferredCheck(this.variable, this.expression, {required int fileOffset}) {
     variable.parent = this;
     expression.parent = this;
+    this.fileOffset = fileOffset;
   }
 
   @override
@@ -1001,6 +1003,8 @@ class VariableDeclarationImpl extends VariableStatement
     bool isStaticLate = false,
     bool isWildcard = false,
     bool isLateFinalWithoutInitializer = false,
+    required int fileOffset,
+    int fileEqualsOffset = TreeNode.noOffset,
   }) : isImplicitlyTyped = type == null,
        isLocalFunction = isLocalFunction,
        super(
@@ -1021,6 +1025,8 @@ class VariableDeclarationImpl extends VariableStatement
        ) {
     this.isStaticLate = isStaticLate;
     this.isLateFinalWithoutInitializer = isLateFinalWithoutInitializer;
+    this.fileOffset = fileOffset;
+    this.fileEqualsOffset = fileEqualsOffset;
   }
 
   VariableDeclarationImpl.forEffect(Expression initializer)
@@ -1082,7 +1088,10 @@ class InternalLocalVariable extends TreeNode
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-  });
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1163,7 +1172,10 @@ class InternalPositionalParameter extends TreeNode
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-  });
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -1266,7 +1278,10 @@ class InternalNamedParameter extends TreeNode
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-  });
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -1388,7 +1403,10 @@ class InternalCatchVariable extends TreeNode
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-  });
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
 
   @override
   String toString() {
@@ -1435,7 +1453,10 @@ class InternalSyntheticVariable extends TreeNode
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-  });
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
 
   @override
   String toString() {
@@ -4942,15 +4963,18 @@ bool isPureExpression(Expression node) {
 /// This assumes that `isPureExpression(node)` is `true`.
 Expression clonePureExpression(Expression node) {
   if (node is ThisExpression) {
-    return new ThisExpression()..fileOffset = node.fileOffset;
+    return extern.createThisExpression(fileOffset: node.fileOffset);
   } else if (node is VariableGet) {
     assert(
       node.variable.isFinal && !node.variable.isLate,
       "Trying to clone VariableGet of non-final variable"
       " ${node.variable}.",
     );
-    return new VariableGet(node.variable, node.promotedType)
-      ..fileOffset = node.fileOffset;
+    return extern.createVariableGet(
+      node.variable,
+      promotedType: node.promotedType,
+      fileOffset: node.fileOffset,
+    );
   }
   // Coverage-ignore-block(suite): Not run.
   throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
@@ -5270,10 +5294,14 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   Reference fieldReference;
   Expression value;
 
-  ExtensionTypeRepresentationFieldInitializer(Procedure field, this.value)
-    : assert(field.stubKind == ProcedureStubKind.RepresentationField),
-      this.fieldReference = field.reference {
+  ExtensionTypeRepresentationFieldInitializer(
+    Procedure field,
+    this.value, {
+    required int fileOffset,
+  }) : assert(field.stubKind == ProcedureStubKind.RepresentationField),
+       this.fieldReference = field.reference {
     value.parent = this;
+    this.fileOffset = fileOffset;
   }
 
   @override

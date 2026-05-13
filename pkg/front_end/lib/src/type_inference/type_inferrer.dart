@@ -347,14 +347,18 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression variableGet;
       if (isClosureContextLoweringEnabled) {
         variableGet = intern.createVariableGet(
-          parameter.fileOffset,
           new InternalPositionalParameter(
             astVariable: parameter as PositionalParameter,
             isImplicitlyTyped: false,
+            fileOffset: parameter.fileOffset,
           ),
-        )..fileOffset = parameter.fileOffset;
+          fileOffset: parameter.fileOffset,
+        );
       } else {
-        variableGet = intern.createVariableGet(parameter.fileOffset, parameter);
+        variableGet = intern.createVariableGet(
+          parameter,
+          fileOffset: parameter.fileOffset,
+        );
       }
       arguments.add(new PositionalArgument(variableGet));
       positionalCount++;
@@ -371,17 +375,18 @@ class TypeInferrerImpl implements TypeInferrer {
         namedExpression = new NamedExpression(
           parameter.name!,
           intern.createVariableGet(
-            parameter.fileOffset,
             new InternalNamedParameter(
               astVariable: parameter as NamedParameter,
               isImplicitlyTyped: false,
-            )..fileOffset = parameter.fileOffset,
+              fileOffset: parameter.fileOffset,
+            ),
+            fileOffset: parameter.fileOffset,
           ),
         );
       } else {
         namedExpression = new NamedExpression(
           parameter.name!,
-          intern.createVariableGet(parameter.fileOffset, parameter),
+          intern.createVariableGet(parameter, fileOffset: parameter.fileOffset),
         );
       }
       arguments.add(new NamedArgument(namedExpression));

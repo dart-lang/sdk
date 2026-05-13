@@ -1940,7 +1940,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     isConst: true,
                     hasDeclaredInitializer: true,
                     initializer: def.value.initializer,
-                  )..fileOffset = def.value.fileOffset,
+                    fileOffset: def.value.fileOffset,
+                  ),
                 );
               } else if (def.value.isInitializingFormal ||
                   def.value.isSuperInitializingFormal) {
@@ -1957,7 +1958,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     def.key,
                     type: substitution.substituteType(def.value.type),
                     isConst: false,
-                  )..fileOffset = def.value.fileOffset,
+                    fileOffset: def.value.fileOffset,
+                  ),
                 );
               }
             } else if (existingType is DynamicType ||
@@ -2229,7 +2231,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           VariableDeclarationImpl variable = new VariableDeclarationImpl(
             def.key,
             type: def.value,
-          )..fileOffset = offsetToUse ?? libraryBuilder.library.fileOffset;
+            fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+          );
 
           if (isExtensionOrExtensionTypeInstanceMember &&
               isExtensionThisName(def.key) &&

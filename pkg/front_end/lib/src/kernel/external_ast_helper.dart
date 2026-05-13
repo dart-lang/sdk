@@ -22,6 +22,14 @@ ConstructorInvocation createConstructorInvocation(
     ..fileOffset = fileOffset;
 }
 
+// Coverage-ignore(suite): Not run.
+ConstructorTearOff createConstructorTearOff(
+  Member target, {
+  required int fileOffset,
+}) {
+  return new ConstructorTearOff(target)..fileOffset = fileOffset;
+}
+
 /// Creates a static invocation of [target] with the given arguments.
 StaticInvocation createStaticInvocation(
   Procedure target,
@@ -33,6 +41,10 @@ StaticInvocation createStaticInvocation(
     ..fileOffset = fileOffset;
 }
 
+StaticTearOff createStaticTearOff(Procedure target, {required int fileOffset}) {
+  return new StaticTearOff(target)..fileOffset = fileOffset;
+}
+
 /// Creates a super method invocation of [target] with the given arguments.
 SuperMethodInvocation createSuperMethodInvocation(
   Expression receiver,
@@ -42,6 +54,26 @@ SuperMethodInvocation createSuperMethodInvocation(
   required int fileOffset,
 }) {
   return new SuperMethodInvocation(receiver, name, arguments, target)
+    ..fileOffset = fileOffset;
+}
+
+SuperPropertyGet createSuperPropertyGet(
+  Expression receiver,
+  Name name,
+  Member target, {
+  required int fileOffset,
+}) {
+  return new SuperPropertyGet(receiver, name, target)..fileOffset = fileOffset;
+}
+
+SuperPropertySet createSuperPropertySet(
+  Expression receiver,
+  Name name,
+  Member target,
+  Expression value, {
+  required int fileOffset,
+}) {
+  return new SuperPropertySet(receiver, name, value, target)
     ..fileOffset = fileOffset;
 }
 
@@ -254,15 +286,18 @@ IsExpression createIsExpression(
 AsExpression createAsExpression(
   Expression operand,
   DartType type, {
-  required bool forNonNullableByDefault,
   bool isUnchecked = false,
   bool isCovarianceCheck = false,
+  bool isTypeError = false,
+  bool isForDynamic = false,
   required int fileOffset,
 }) {
   return new AsExpression(operand, type)
     ..fileOffset = fileOffset
     ..isUnchecked = isUnchecked
-    ..isCovarianceCheck = isCovarianceCheck;
+    ..isCovarianceCheck = isCovarianceCheck
+    ..isTypeError = isTypeError
+    ..isForDynamic = isForDynamic;
 }
 
 /// Creates a [NullCheck] of [expression].
@@ -282,9 +317,13 @@ BlockExpression createBlockExpression(
 
 /// Creates a throw of [expression] using the file offset of [expression] for
 /// the throw expression.
-Throw createThrow(Expression expression, {bool forErrorHandling = false}) {
+Throw createThrow(
+  Expression expression, {
+  bool forErrorHandling = false,
+  int? fileOffset,
+}) {
   return new Throw(expression)
-    ..fileOffset = expression.fileOffset
+    ..fileOffset = fileOffset ?? expression.fileOffset
     ..forErrorHandling = forErrorHandling;
 }
 
@@ -337,6 +376,13 @@ Arguments createArguments(
     ..fileOffset = fileOffset;
 }
 
+Arguments createArgumentsForwarded(
+  FunctionNode function, {
+  required int fileOffset,
+}) {
+  return new Arguments.forwarded(function)..fileOffset = fileOffset;
+}
+
 /// Creates a switch case for the case [expressions] and their corresponding
 /// file offsets in [expressionOffsets] with the given [body].
 SwitchCase createSwitchCase(
@@ -383,6 +429,14 @@ LabeledStatement createLabeledStatement(
   return new LabeledStatement(statement)..fileOffset = fileOffset;
 }
 
+InvalidExpression createInvalidExpression(
+  String message, {
+  Expression? expression,
+  required int fileOffset,
+}) {
+  return new InvalidExpression(message, expression)..fileOffset = fileOffset;
+}
+
 InvalidInitializer createInvalidInitializer(
   InvalidExpression expression, {
   bool isSuperInitializer = false,
@@ -392,6 +446,448 @@ InvalidInitializer createInvalidInitializer(
     ..fileOffset = expression.fileOffset
     ..isSuperInitializer = isSuperInitializer
     ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
+ConstantExpression createConstantExpression(
+  Constant constant,
+  DartType type, {
+  required int fileOffset,
+}) {
+  return new ConstantExpression(constant, type)..fileOffset = fileOffset;
+}
+
+AssertStatement createAssertStatement(
+  Expression condition, {
+  Expression? message,
+  required int conditionStartOffset,
+  required int conditionEndOffset,
+  required int fileOffset,
+}) {
+  return new AssertStatement(
+    condition,
+    message: message,
+    conditionStartOffset: conditionStartOffset,
+    conditionEndOffset: conditionEndOffset,
+  )..fileOffset = fileOffset;
+}
+
+// Coverage-ignore(suite): Not run.
+DynamicInvocation createDynamicInvocation(
+  DynamicAccessKind kind,
+  Expression receiver,
+  Name name,
+  Arguments arguments, {
+  int flags = 0,
+  required int fileOffset,
+}) {
+  return new DynamicInvocation(kind, receiver, name, arguments)
+    ..flags = flags
+    ..fileOffset = fileOffset;
+}
+
+// Coverage-ignore(suite): Not run.
+EqualsCall createEqualsCall(
+  Expression left,
+  Expression right, {
+  required FunctionType functionType,
+  required Procedure interfaceTarget,
+  required int fileOffset,
+}) {
+  return new EqualsCall(
+    left,
+    right,
+    functionType: functionType,
+    interfaceTarget: interfaceTarget,
+  )..fileOffset = fileOffset;
+}
+
+// TODO(johnniwinther): Should this require a type?
+VariableDeclaration createParameterVariable(
+  String? name, {
+  DartType type = const DynamicType(),
+  required int fileOffset,
+  bool isCovariantByDeclaration = false,
+  bool isCovariantByClass = false,
+  bool isLowered = false,
+  bool isSynthesized = false,
+  bool isFinal = false,
+  bool isRequired = false,
+  Expression? initializer,
+  bool hasDeclaredInitializer = false,
+}) {
+  return new VariableDeclaration(
+      name,
+      type: type,
+      isCovariantByDeclaration: isCovariantByDeclaration,
+      isLowered: isLowered,
+      isSynthesized: isSynthesized,
+      isFinal: isFinal,
+      isRequired: isRequired,
+      initializer: initializer,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+    )
+    ..fileOffset = fileOffset
+    ..isCovariantByClass = isCovariantByClass;
+}
+
+PositionalParameter createPositionalParameter({
+  String? cosmeticName,
+  required DartType type,
+  Expression? defaultValue,
+  bool isCovariantByDeclaration = false,
+  bool isRequired = false,
+  bool isInitializingFormal = false,
+  bool isSuperInitializingFormal = false,
+  bool isFinal = false,
+  bool hasDeclaredDefaultType = false,
+  bool isLowered = false,
+  bool isSynthesized = false,
+  bool isWildcard = false,
+  required int fileOffset,
+}) {
+  return new PositionalParameter(
+    cosmeticName: cosmeticName,
+    type: type,
+    defaultValue: defaultValue,
+    isCovariantByDeclaration: isCovariantByDeclaration,
+    isRequired: isRequired,
+    isInitializingFormal: isInitializingFormal,
+    isSuperInitializingFormal: isSuperInitializingFormal,
+    isFinal: isFinal,
+    hasDeclaredDefaultType: hasDeclaredDefaultType,
+    isLowered: isLowered,
+    isSynthesized: isSynthesized,
+    isWildcard: isWildcard,
+  )..fileOffset = fileOffset;
+}
+
+NamedParameter createNamedParameter({
+  required String parameterName,
+  required DartType type,
+  Expression? defaultValue,
+  bool isCovariantByDeclaration = false,
+  bool isRequired = false,
+  bool isInitializingFormal = false,
+  bool isSuperInitializingFormal = false,
+  bool isFinal = false,
+  bool hasDeclaredDefaultType = false,
+  bool isLowered = false,
+  bool isSynthesized = false,
+  bool isWildcard = false,
+  required int fileOffset,
+}) {
+  return new NamedParameter(
+    parameterName: parameterName,
+    type: type,
+    defaultValue: defaultValue,
+    isCovariantByDeclaration: isCovariantByDeclaration,
+    isRequired: isRequired,
+    isInitializingFormal: isInitializingFormal,
+    isSuperInitializingFormal: isSuperInitializingFormal,
+    isFinal: isFinal,
+    hasDeclaredDefaultType: hasDeclaredDefaultType,
+    isLowered: isLowered,
+    isSynthesized: isSynthesized,
+    isWildcard: isWildcard,
+  )..fileOffset = fileOffset;
+}
+
+CatchVariable createCatchVariable({
+  required String name,
+  required DartType? type,
+  bool isWildcard = false,
+  required int fileOffset,
+}) {
+  return new CatchVariable(name: name, type: type, isWildcard: isWildcard)
+    ..fileOffset = fileOffset;
+}
+
+FileUriExpression createFileUriExpression({
+  required Expression expression,
+  required Uri fileUri,
+  required int fileOffset,
+}) {
+  return new FileUriExpression(expression, fileUri)..fileOffset = fileOffset;
+}
+
+FileUriConstantExpression createFileUriConstantExpression(
+  Constant constant, {
+  DartType type = const DynamicType(),
+  required Uri fileUri,
+  required int fileOffset,
+}) {
+  return new FileUriConstantExpression(constant, type: type, fileUri: fileUri)
+    ..fileOffset = fileOffset;
+}
+
+// TODO(johnniwinther): Should [fileOffset] be required?
+Statement createEmptyStatement({int fileOffset = TreeNode.noOffset}) {
+  return new EmptyStatement()..fileOffset = fileOffset;
+}
+
+Constructor createConstructor(
+  FunctionNode function, {
+  required Name name,
+  Reference? reference,
+  bool isSynthetic = false,
+  required Uri fileUri,
+  required int fileOffset,
+  required int fileStartOffset,
+  required int fileEndOffset,
+}) {
+  return new Constructor(
+      function,
+      name: name,
+      reference: reference,
+      fileUri: fileUri,
+      isSynthetic: isSynthetic,
+    )
+    ..fileOffset = fileOffset
+    ..startFileOffset = fileStartOffset
+    ..fileEndOffset = fileEndOffset;
+}
+
+FunctionNode createFunctionNode(
+  Statement? body, {
+  List<TypeParameter>? typeParameters,
+  List<VariableDeclaration>? positionalParameters,
+  List<VariableDeclaration>? namedParameters,
+  int? requiredParameterCount,
+  DartType returnType = const DynamicType(),
+  required int fileOffset,
+  int? fileEndOffset,
+  AsyncMarker asyncMarker = AsyncMarker.Sync,
+  AsyncMarker? dartAsyncMarker,
+}) {
+  return new FunctionNode(
+      body,
+      typeParameters: typeParameters,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      returnType: returnType,
+      requiredParameterCount: requiredParameterCount,
+      asyncMarker: asyncMarker,
+      dartAsyncMarker: dartAsyncMarker,
+    )
+    ..fileOffset = fileOffset
+    ..fileEndOffset = fileEndOffset ?? fileOffset;
+}
+
+Procedure createProcedure(
+  Name name,
+  ProcedureKind kind,
+  FunctionNode function, {
+  Reference? reference,
+  ProcedureStubKind stubKind = ProcedureStubKind.Regular,
+  Member? stubTarget,
+  required Uri fileUri,
+  required int fileOffset,
+  int fileStartOffset = TreeNode.noOffset,
+  required int fileEndOffset,
+  bool isAbstract = false,
+  bool isExternal = false,
+  bool isStatic = false,
+  bool isConst = false,
+  bool isExtensionMember = false,
+  bool isExtensionTypeMember = false,
+  bool isSynthetic = false,
+}) {
+  return new Procedure(
+      name,
+      kind,
+      function,
+      stubKind: stubKind,
+      stubTarget: stubTarget,
+      fileUri: fileUri,
+      reference: reference,
+      isAbstract: isAbstract,
+      isExternal: isExternal,
+      isConst: isConst,
+      isStatic: isStatic,
+      isExtensionMember: isExtensionMember,
+      isExtensionTypeMember: isExtensionTypeMember,
+      isSynthetic: isSynthetic,
+    )
+    ..fileStartOffset = fileStartOffset
+    ..fileOffset = fileOffset
+    ..fileEndOffset = fileEndOffset;
+}
+
+ReturnStatement createReturnStatement(
+  Expression expression, {
+  int? fileOffset,
+}) {
+  return new ReturnStatement(expression)
+    ..fileOffset = fileOffset ?? expression.fileOffset;
+}
+
+Field createImmutableField(
+  Name name, {
+  required DartType type,
+  bool isLate = false,
+  bool isFinal = false,
+  bool isConst = false,
+  bool isStatic = false,
+  required Uri fileUri,
+  Reference? fieldReference,
+  Reference? getterReference,
+  bool isEnumElement = false,
+  required int fileOffset,
+  required int fileEndOffset,
+}) {
+  return new Field.immutable(
+      name,
+      type: type,
+      isLate: isLate,
+      isFinal: isFinal,
+      isConst: isConst,
+      isStatic: isStatic,
+      fileUri: fileUri,
+      fieldReference: fieldReference,
+      getterReference: getterReference,
+      isEnumElement: isEnumElement,
+    )
+    ..fileOffset = fileOffset
+    ..fileEndOffset = fileEndOffset;
+}
+
+Field createMutableField(
+  Name name, {
+  DartType type = const DynamicType(),
+  bool isLate = false,
+  bool isFinal = false,
+  bool isStatic = false,
+  required Uri fileUri,
+  Reference? fieldReference,
+  Reference? getterReference,
+  Reference? setterReference,
+  required int fileOffset,
+  required int fileEndOffset,
+  bool isInternalImplementation = false,
+}) {
+  return new Field.mutable(
+      name,
+      type: type,
+      isLate: isLate,
+      isFinal: isFinal,
+      isStatic: isStatic,
+      fileUri: fileUri,
+      fieldReference: fieldReference,
+      getterReference: getterReference,
+      setterReference: setterReference,
+    )
+    ..fileOffset = fileOffset
+    ..fileEndOffset = fileEndOffset
+    ..isInternalImplementation = isInternalImplementation;
+}
+
+FieldInitializer createFieldInitializer(
+  Field field,
+  Expression value, {
+  required int fileOffset,
+  required bool isSynthetic,
+}) {
+  return new FieldInitializer(field, value)
+    ..fileOffset = fileOffset
+    ..isSynthetic = isSynthetic;
+}
+
+StaticGet createStaticGet(Member member, {required int fileOffset}) {
+  return new StaticGet(member)..fileOffset = fileOffset;
+}
+
+StaticSet createStaticSet(
+  Member member,
+  Expression value, {
+  required int fileOffset,
+}) {
+  return new StaticSet(member, value)..fileOffset = fileOffset;
+}
+
+InstanceInvocation createInstanceInvocation(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name,
+  Arguments arguments, {
+  required Procedure interfaceTarget,
+  required FunctionType functionType,
+  required int fileOffset,
+}) {
+  return new InstanceInvocation(
+    kind,
+    receiver,
+    name,
+    arguments,
+    interfaceTarget: interfaceTarget,
+    functionType: functionType,
+  )..fileOffset = fileOffset;
+}
+
+InstanceGet createInstanceGet(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name, {
+  required Member interfaceTarget,
+  required DartType resultType,
+  required int fileOffset,
+}) {
+  return new InstanceGet(
+    kind,
+    receiver,
+    name,
+    interfaceTarget: interfaceTarget,
+    resultType: resultType,
+  )..fileOffset = fileOffset;
+}
+
+InstanceSet createInstanceSet(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name,
+  Expression value, {
+  required Member interfaceTarget,
+  required int fileOffset,
+}) {
+  return new InstanceSet(
+    kind,
+    receiver,
+    name,
+    value,
+    interfaceTarget: interfaceTarget,
+  )..fileOffset = fileOffset;
+}
+
+ThisExpression createThisExpression({required int fileOffset}) {
+  return new ThisExpression()..fileOffset = fileOffset;
+}
+
+TypeParameter createTypeParameter(String? name, {required int fileOffset}) {
+  return new TypeParameter(name)..fileOffset = fileOffset;
+}
+
+NamedExpression createNamedExpression(
+  String name,
+  Expression expression, {
+  int? fileOffset,
+}) {
+  return new NamedExpression(name, expression)
+    ..fileOffset = fileOffset ?? expression.fileOffset;
+}
+
+FunctionExpression createFunctionExpression(
+  FunctionNode function, {
+  required int fileOffset,
+}) {
+  return new FunctionExpression(function)..fileOffset = fileOffset;
+}
+
+// Coverage-ignore(suite): Not run.
+MapLiteralEntry createMapLiteralEntry(
+  Expression key,
+  Expression value, {
+  required int fileOffset,
+}) {
+  return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
 }
 
 /// Returns a block like this:
@@ -413,9 +909,10 @@ Block combineStatements(Statement statement, Statement body) {
     }
     return body;
   } else {
-    return new Block(<Statement>[
-      if (statement is Block) ...statement.statements else statement,
-      body,
-    ])..fileOffset = statement.fileOffset;
+    return createBlock(
+      [if (statement is Block) ...statement.statements else statement, body],
+      fileOffset: statement.fileOffset,
+      fileEndOffset: body.fileOffset,
+    );
   }
 }

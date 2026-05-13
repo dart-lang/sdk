@@ -827,7 +827,6 @@ class DelayedAsExpression extends AbstractDelayedExpression {
       return createAsExpression(
         operand,
         _type,
-        forNonNullableByDefault: true,
         isCovarianceCheck: true,
         fileOffset: fileOffset,
       );
@@ -840,7 +839,6 @@ class DelayedAsExpression extends AbstractDelayedExpression {
     return createAsExpression(
       operand,
       _type,
-      forNonNullableByDefault: true,
       isUnchecked: isUnchecked,
       fileOffset: fileOffset,
     );

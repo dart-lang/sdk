@@ -407,10 +407,10 @@ Expression createAwaitExpression(int fileOffset, Expression operand) {
 /// Return a representation of a block of [statements] at the given
 /// [fileOffset].
 Block createBlock(
-  int fileOffset,
-  int fileEndOffset,
-  List<Statement> statements,
-) {
+  List<Statement> statements, {
+  required int fileOffset,
+  required int fileEndOffset,
+}) {
   List<Statement>? copy;
   for (int i = 0; i < statements.length; i++) {
     Statement statement = statements[i];
@@ -486,7 +486,10 @@ Statement createDoStatement(
 
 /// Return a representation of an expression statement at the given
 /// [fileOffset] containing the [expression].
-Statement createExpressionStatement(int fileOffset, Expression expression) {
+Statement createExpressionStatement(
+  Expression expression, {
+  required int fileOffset,
+}) {
   return new ExpressionStatement(expression)..fileOffset = fileOffset;
 }
 
@@ -600,7 +603,7 @@ LabeledStatement createLabeledStatement(Statement statement) {
   return new LabeledStatement(statement)..fileOffset = statement.fileOffset;
 }
 
-Expression createThisExpression(int fileOffset) {
+Expression createThisExpression({required int fileOffset}) {
   return new ThisExpression()..fileOffset = fileOffset;
 }
 
@@ -717,7 +720,8 @@ VariableDeclaration createVariableDeclaration(
     isLocalFunction: isLocalFunction,
     isSynthesized: isSynthesized,
     hasDeclaredInitializer: initializer != null,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 VariableDeclarationImpl createVariableDeclarationForValue(
@@ -839,18 +843,18 @@ IndexSet createIndexSet(
 }
 
 InternalVariableGet createVariableGet(
-  int fileOffset,
-  VariableDeclaration variable,
-) {
+  VariableDeclaration variable, {
+  required int fileOffset,
+}) {
   return new InternalVariableGet(variable as InternalVariable)
     ..fileOffset = fileOffset;
 }
 
 InternalVariableSet createVariableSet(
-  int fileOffset,
   VariableDeclaration variable,
-  Expression value,
-) {
+  Expression value, {
+  required int fileOffset,
+}) {
   return new InternalVariableSet(variable as InternalVariable, value)
     ..fileOffset = fileOffset;
 }
@@ -914,6 +918,15 @@ StaticGet createStaticGet(int fileOffset, Member target) {
   return new StaticGet(target)..fileOffset = fileOffset;
 }
 
+StaticSet createStaticSet(
+  Member target,
+  Expression value, {
+  required int fileOffset,
+}) {
+  assert(target is Field || (target is Procedure && target.isSetter));
+  return new StaticSet(target, value)..fileOffset = fileOffset;
+}
+
 RedirectingFactoryTearOff createRedirectingFactoryTearOff(
   int fileOffset,
   Procedure procedure,
@@ -923,10 +936,10 @@ RedirectingFactoryTearOff createRedirectingFactoryTearOff(
 }
 
 Instantiation createInstantiation(
-  int fileOffset,
   Expression expression,
-  List<DartType> typeArguments,
-) {
+  List<DartType> typeArguments, {
+  required int fileOffset,
+}) {
   return new Instantiation(expression, typeArguments)..fileOffset = fileOffset;
 }
 
@@ -1103,6 +1116,20 @@ SwitchExpression createSwitchExpression(
   return new SwitchExpression(expression, cases)..fileOffset = fileOffset;
 }
 
+SwitchStatement createSwitchStatement(
+  Expression expression,
+  List<SwitchCase> cases, {
+  required int fileOffset,
+}) {
+  return new SwitchStatement(expression, cases)..fileOffset = fileOffset;
+}
+
+ContinueSwitchStatement createContinueSwitchStatement({
+  required int fileOffset,
+}) {
+  return new ContinueSwitchStatement(dummySwitchCase)..fileOffset = fileOffset;
+}
+
 PatternVariableDeclaration createPatternVariableDeclaration(
   int fileOffset,
   Pattern pattern,
@@ -1163,6 +1190,129 @@ DotShorthandPropertyGet createDotShorthandPropertyGet(
 }) {
   return new DotShorthandPropertyGet(name, nameOffset: nameOffset)
     ..fileOffset = fileOffset;
+}
+
+LocalVariable createLocalVariable({
+  required String? cosmeticName,
+  required DartType? type,
+  bool isFinal = false,
+  bool isConst = false,
+  bool isLate = false,
+  bool isWildcard = false,
+  required int fileOffset,
+}) {
+  return new LocalVariable(
+    cosmeticName: cosmeticName,
+    type: type,
+    isFinal: isFinal,
+    isConst: isConst,
+    isLate: isLate,
+    isWildcard: isWildcard,
+  )..fileOffset = fileOffset;
+}
+
+VariableInitialization createVariableInitialization({
+  required VariableDeclaration variable,
+  required Expression? initializer,
+  required bool hasDeclaredInitializer,
+  required int fileOffset,
+}) {
+  return new VariableInitialization(
+    variable: variable,
+    initializer: initializer,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+  )..fileOffset = fileOffset;
+}
+
+MapLiteralEntry createMapLiteralEntry(
+  Expression key,
+  Expression value, {
+  required int fileOffset,
+}) {
+  return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
+}
+
+NamedExpression createNamedExpression(
+  String name,
+  Expression value, {
+  required int fileOffset,
+}) {
+  return new NamedExpression(name, value)..fileOffset = fileOffset;
+}
+
+BlockExpression createBlockExpression(
+  Block body,
+  Expression value, {
+  required int fileOffset,
+}) {
+  return new BlockExpression(body, value)..fileOffset = fileOffset;
+}
+
+FunctionExpression createFunctionExpression(
+  FunctionNode function, {
+  required int fileOffset,
+}) {
+  return new FunctionExpression(function)..fileOffset = fileOffset;
+}
+
+// Coverage-ignore(suite): Not run.
+SyntheticVariable createSyntheticVariable({
+  required DartType type,
+  required int fileOffset,
+}) {
+  return new SyntheticVariable(type: type)..fileOffset = fileOffset;
+}
+
+// Coverage-ignore(suite): Not run.
+ForInStatement createForInStatement(
+  VariableDeclaration variable,
+  Expression expression,
+  Statement body, {
+  required bool isAsync,
+  required int fileOffset,
+  required int bodyOffset,
+}) {
+  return new ForInStatement(variable, expression, body, isAsync: isAsync)
+    ..fileOffset = fileOffset
+    ..bodyOffset = bodyOffset;
+}
+
+Let createLetForEffect({
+  required Expression effect,
+  required DartType effectType,
+  required Expression expression,
+}) {
+  return new Let(
+    createVariableDeclarationForValue(effect, type: effectType),
+    expression,
+  )..fileOffset = effect.fileOffset;
+}
+
+SuperPropertyGet createSuperPropertyGet(
+  Expression receiver,
+  Name name,
+  Member target, {
+  required int fileOffset,
+}) {
+  return new SuperPropertyGet(receiver, name, target)..fileOffset = fileOffset;
+}
+
+SuperPropertySet createSuperPropertySet(
+  Expression receiver,
+  Name name,
+  Member target,
+  Expression value, {
+  required int fileOffset,
+}) {
+  return new SuperPropertySet(receiver, name, value, target)
+    ..fileOffset = fileOffset;
+}
+
+ThisVariable createThisVariable({
+  required DartType type,
+  required int fileOffset,
+}) {
+  return new ThisVariable(type: type)..fileOffset = fileOffset;
 }
 
 class _VariablesDeclaration extends AuxiliaryStatement {

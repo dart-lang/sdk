@@ -7,14 +7,10 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
     show
-        CatchVariable,
         DartType,
         DynamicType,
         Expression,
         InvalidExpression,
-        NamedParameter,
-        NullLiteral,
-        PositionalParameter,
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
@@ -23,6 +19,7 @@ import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder_context.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/internal_ast.dart'
     show
         InternalCatchVariable,
@@ -46,33 +43,167 @@ import 'property_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
-abstract class ParameterBuilder {
-  TypeBuilder get type;
+/// A builder for a catch block parameter.
+class CatchParameterBuilder extends NamedBuilderImpl
+    with LookupResultMixin
+    implements ParameterVariableBuilder, InferredTypeListener {
+  @override
+  final int fileOffset;
 
-  /// The kind of this parameter, i.e. if it's required, positional optional,
-  /// or named optional.
-  FormalParameterKind get kind;
+  final Modifiers modifiers;
 
-  bool get isPositional;
+  @override
+  TypeBuilder type;
 
-  bool get isRequiredPositional;
+  @override
+  final String name;
 
-  bool get isNamed;
+  @override
+  final Uri fileUri;
 
-  bool get isRequiredNamed;
+  /// The variable declaration created for this catch parameter.
+  InternalVariable? _variable;
 
-  /// Whether this formal parameter is a wildcard variable.
-  bool get isWildcard;
+  /// If this is a wildcard variable, this holds the index used to create a
+  /// uniquely named kernel variable for it.
+  final int? _wildcardIndex;
 
-  String? get name;
+  final int? nameOffset;
 
-  int get fileOffset;
+  final bool isClosureContextLoweringEnabled;
 
-  VariableDeclaration build(SourceLibraryBuilder library);
+  CatchParameterBuilder({
+    required this.modifiers,
+    required this.type,
+    required this.name,
+    required this.fileOffset,
+    required this.fileUri,
+    Token? defaultValueToken,
+    int? wildcardIndex,
+    required this.nameOffset,
+    required this.isClosureContextLoweringEnabled,
+  }) : this._wildcardIndex = wildcardIndex {
+    type.registerInferredTypeListener(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get fullNameForErrors => name;
+
+  @override
+  NamedBuilder get getable => this;
+
+  @override
+  bool get isAssignable => false;
+
+  @override
+  bool get isConst => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLate => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNamed => false;
+
+  // Coverage-ignore(suite): Not run.
+  bool get isOptional => false;
+
+  // Coverage-ignore(suite): Not run.
+  // TODO(johnniwinther): This was previously named `isOptional` so we might
+  // have some uses that intended to use the now existing `isOptional` method.
+  bool get isOptionalPositional => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isPositional => false;
+
+  @override
+  bool get isPrimaryConstructorParameter => false;
+
+  @override
+  bool get isRequiredNamed => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRequiredPositional => true;
+
+  @override
+  bool get isWildcard => _wildcardIndex != null;
+
+  @override
+  FormalParameterKind get kind {
+    throw new UnsupportedError("${this.runtimeType}.kind");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get parent => null;
+
+  @override
+  NamedBuilder? get setable => isAssignable ? this : null;
+
+  @override
+  VariableDeclaration get variable => _variable!.asVariableDeclaration;
+
+  @override
+  VariableDeclaration build(SourceLibraryBuilder library) {
+    if (_variable == null) {
+      bool isTypeOmitted = type is OmittedTypeBuilder;
+      DartType? builtType = type.build(library, TypeUse.parameterType);
+      String variableName = _wildcardIndex != null
+          ? createWildcardFormalParameterName(_wildcardIndex)
+          : name;
+
+      if (isClosureContextLoweringEnabled) {
+        _variable = new InternalCatchVariable(
+          astVariable: extern.createCatchVariable(
+            name: variableName,
+            type: isTypeOmitted ? const DynamicType() : builtType,
+            isWildcard: isWildcard,
+            fileOffset: fileOffset,
+          ),
+          isImplicitlyTyped: isTypeOmitted,
+          fileOffset: fileOffset,
+        );
+      } else {
+        _variable = new VariableDeclarationImpl(
+          variableName,
+          // [VariableDeclarationImpl] uses `null` to signal an omitted type.
+          type: isTypeOmitted ? null : builtType,
+          isFinal: modifiers.isFinal,
+          isConst: false,
+          isInitializingFormal: false,
+          isSuperInitializingFormal: false,
+          isCovariantByDeclaration: false,
+          isRequired: isRequiredNamed,
+          hasDeclaredInitializer: false,
+          isLowered: false,
+          isSynthesized: false,
+          isWildcard: isWildcard,
+          fileOffset: fileOffset,
+        );
+      }
+    }
+    return _variable!.asVariableDeclaration;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void onInferredType(DartType type) {
+    if (_variable != null) {
+      _variable!.type = type;
+    }
+  }
+
+  @override
+  String toString() => '$runtimeType($name)';
 }
-
-abstract class ParameterVariableBuilder
-    implements ParameterBuilder, VariableBuilder {}
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
@@ -167,38 +298,11 @@ class FormalParameterBuilder extends NamedBuilderImpl
   }
 
   @override
-  bool get isWildcard => _wildcardIndex != null;
-
-  @override
   // Coverage-ignore(suite): Not run.
-  Builder? get parent => null;
+  String get fullNameForErrors => name;
 
   @override
-  bool get isRequiredPositional => kind.isRequiredPositional;
-
-  // TODO(johnniwinther): This was previously named `isOptional` so we might
-  // have some uses that intended to use the now existing `isOptional` method.
-  bool get isOptionalPositional => !isRequiredPositional;
-
-  @override
-  bool get isRequiredNamed => kind.isRequiredNamed;
-
-  @override
-  bool get isPositional => kind.isPositional;
-
-  @override
-  bool get isNamed => kind.isNamed;
-
-  bool get isOptional => kind.isOptional;
-
-  bool get isInitializingFormal => modifiers.isInitializingFormal;
-
-  bool get isSuperInitializingFormal => modifiers.isSuperInitializingFormal;
-
-  bool get isCovariantByDeclaration => modifiers.isCovariant;
-
-  @override
-  bool get isConst => modifiers.isConst;
+  NamedBuilder get getable => this;
 
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
@@ -210,14 +314,50 @@ class FormalParameterBuilder extends NamedBuilderImpl
       !isSuperInitializingFormal;
 
   @override
-  NamedBuilder get getable => this;
+  bool get isConst => modifiers.isConst;
+
+  bool get isCovariantByDeclaration => modifiers.isCovariant;
+
+  @override
+  bool get isFinal => variable.isFinal;
+
+  bool get isInitializingFormal => modifiers.isInitializingFormal;
+
+  @override
+  bool get isLate => variable.isLate;
+
+  @override
+  bool get isNamed => kind.isNamed;
+
+  bool get isOptional => kind.isOptional;
+
+  // TODO(johnniwinther): This was previously named `isOptional` so we might
+  // have some uses that intended to use the now existing `isOptional` method.
+  bool get isOptionalPositional => !isRequiredPositional;
+
+  @override
+  bool get isPositional => kind.isPositional;
+
+  @override
+  bool get isRequiredNamed => kind.isRequiredNamed;
+
+  @override
+  bool get isRequiredPositional => kind.isRequiredPositional;
+
+  bool get isSuperInitializingFormal => modifiers.isSuperInitializingFormal;
+
+  @override
+  bool get isWildcard => _wildcardIndex != null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get parent => null;
 
   @override
   NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  String get fullNameForErrors => name;
+  VariableDeclaration get variable => _variable!.asVariableDeclaration;
 
   @override
   VariableDeclaration build(SourceLibraryBuilder library) {
@@ -241,7 +381,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
           case FormalParameterKind.requiredPositional:
           case FormalParameterKind.optionalPositional:
             _variable = new InternalPositionalParameter(
-              astVariable: new PositionalParameter(
+              astVariable: extern.createPositionalParameter(
                 cosmeticName: variableName,
                 type: isTypeOmitted ? const DynamicType() : builtType,
                 defaultValue: null,
@@ -252,14 +392,16 @@ class FormalParameterBuilder extends NamedBuilderImpl
                 isLowered: isExtensionThis,
                 isSynthesized: name == noNameSentinel,
                 isWildcard: isWildcard,
-              )..fileOffset = fileOffset,
+                fileOffset: fileOffset,
+              ),
               isImplicitlyTyped: isTypeOmitted,
-            )..fileOffset = fileOffset;
+              fileOffset: fileOffset,
+            );
           case FormalParameterKind.requiredNamed:
           // Coverage-ignore(suite): Not run.
           case FormalParameterKind.optionalNamed:
             _variable = new InternalNamedParameter(
-              astVariable: new NamedParameter(
+              astVariable: extern.createNamedParameter(
                 parameterName: variableName!,
                 type: isTypeOmitted ? const DynamicType() : builtType,
                 defaultValue: null,
@@ -270,9 +412,11 @@ class FormalParameterBuilder extends NamedBuilderImpl
                 hasDeclaredDefaultType: hasDeclaredInitializer,
                 isSynthesized: name == noNameSentinel,
                 isWildcard: isWildcard,
-              )..fileOffset = fileOffset,
+                fileOffset: fileOffset,
+              ),
               isImplicitlyTyped: isTypeOmitted,
-            )..fileOffset = fileOffset;
+              fileOffset: fileOffset,
+            );
         }
       } else {
         _variable = new VariableDeclarationImpl(
@@ -289,119 +433,12 @@ class FormalParameterBuilder extends NamedBuilderImpl
           isLowered: isExtensionThis,
           isSynthesized: name == noNameSentinel,
           isWildcard: isWildcard,
-        )..fileOffset = fileOffset;
+          fileOffset: fileOffset,
+        );
       }
     }
     return _variable!.asVariableDeclaration;
   }
-
-  @override
-  VariableDeclaration get variable => _variable!.asVariableDeclaration;
-
-  @override
-  void onInferredType(DartType type) {
-    _variable?.type = type;
-  }
-
-  /// Creates the [FormalParameterBuilder] for a parameter used in the formal
-  /// parameters in a primary constructor.
-  ///
-  /// If [isDeclaring] is `true` the parameter is marked as an initializing
-  /// formal whose type is inferred. Otherwise the parameter is marked as
-  /// final primary constructor parameter.
-  ///
-  /// The created parameter replaces the original parameter in the primary
-  /// constructor declaration.
-  FormalParameterBuilder forPrimaryConstructor(
-    FragmentFactory builderFactory, {
-    required bool isDeclaring,
-  }) {
-    assert(_variable == null);
-    return new FormalParameterBuilder(
-      kind: kind,
-      modifiers: isDeclaring
-          ? (modifiers | Modifiers.InitializingFormal)
-          : (modifiers | Modifiers.Final),
-      type: isDeclaring
-          ? builderFactory.addInferableType(InferenceDefaultType.NullableObject)
-          : type,
-      name: name,
-      fileOffset: fileOffset,
-      nameOffset: nameOffset,
-      fileUri: fileUri,
-      isExtensionThis: isExtensionThis,
-      defaultValueToken: copyDefaultValueToken(),
-      hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
-      publicName: publicName,
-      wildcardIndex: _wildcardIndex,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-      isPrimaryConstructorParameter: !isDeclaring,
-    );
-  }
-
-  void finalizeInitializingFormal(
-    DeclarationBuilder declarationBuilder,
-    SourceConstructorBuilder constructorBuilder,
-    ClassHierarchyBase hierarchy,
-  ) {
-    String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
-    LookupResult? result = declarationBuilder.lookupLocalMember(fieldName);
-    Builder? fieldBuilder = result?.getable;
-    if (result is DuplicateMemberLookupResult) {
-      fieldBuilder = result.declarations.first;
-    }
-    if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.hasField) {
-      DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
-      fieldType = constructorBuilder.substituteFieldType(fieldType);
-      type.registerInferredType(fieldType);
-    } else {
-      type.registerInferredType(const DynamicType());
-    }
-  }
-
-  static bool _needsDefaultValuesBuiltAsOutlineExpressions(
-    SourceMemberBuilder memberBuilder,
-  ) {
-    // For modular compilation we need to include default values for optional
-    // and named parameters in several cases:
-    // * for const constructors to enable constant evaluation,
-    // * for instance methods because these might be needed to generated
-    //   noSuchMethod forwarders,
-    // * for generative constructors to support forwarding constructors
-    //   in mixin applications, and
-    // * for factories, to uphold the invariant that optional parameters always
-    //   have default values, even during modular compilation.
-    if (memberBuilder is SourceConstructorBuilder) {
-      return true;
-    } else if (memberBuilder is SourceFactoryBuilder) {
-      return true;
-    } else {
-      return memberBuilder.isClassInstanceMember;
-    }
-  }
-
-  /// Returns the [_defaultValueToken] field and clears it.
-  ///
-  /// This is used to transfer ownership of the token to the receiver. Tokens
-  /// need to be cleared during the outline phase to avoid holding the token
-  /// stream in memory.
-  Token? _takeDefaultValueToken() {
-    Token? initializerToken = _defaultValueToken;
-    _defaultValueToken = null;
-    return initializerToken;
-  }
-
-  /// Returns the [_defaultValueToken] field and without clearing it.
-  ///
-  /// This is used to copy ownership of the token to the receiver, such that
-  /// both this [FormalParameterBuilder] and the receiver owns a copy. Tokens
-  /// need to be cleared during the outline phase to avoid holding the token
-  /// stream in memory.
-  ///
-  /// This is used when creating primary constructor formal parameters, where
-  /// the default value should be used both to infer the field type and to
-  /// create the default value for the constructor parameter.
-  Token? copyDefaultValueToken() => _defaultValueToken;
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
@@ -443,19 +480,119 @@ class FormalParameterBuilder extends NamedBuilderImpl
         initializerWasInferred = true;
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
-        variable.initializer = new NullLiteral()..parent = variable;
+        variable.initializer = extern.createNullLiteral(fileOffset: fileOffset)
+          ..parent = variable;
       }
     }
   }
 
-  @override
-  bool get isFinal => variable.isFinal;
+  /// Returns the [_defaultValueToken] field and without clearing it.
+  ///
+  /// This is used to copy ownership of the token to the receiver, such that
+  /// both this [FormalParameterBuilder] and the receiver owns a copy. Tokens
+  /// need to be cleared during the outline phase to avoid holding the token
+  /// stream in memory.
+  ///
+  /// This is used when creating primary constructor formal parameters, where
+  /// the default value should be used both to infer the field type and to
+  /// create the default value for the constructor parameter.
+  Token? copyDefaultValueToken() => _defaultValueToken;
+
+  void finalizeInitializingFormal(
+    DeclarationBuilder declarationBuilder,
+    SourceConstructorBuilder constructorBuilder,
+    ClassHierarchyBase hierarchy,
+  ) {
+    String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
+    LookupResult? result = declarationBuilder.lookupLocalMember(fieldName);
+    Builder? fieldBuilder = result?.getable;
+    if (result is DuplicateMemberLookupResult) {
+      fieldBuilder = result.declarations.first;
+    }
+    if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.hasField) {
+      DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
+      fieldType = constructorBuilder.substituteFieldType(fieldType);
+      type.registerInferredType(fieldType);
+    } else {
+      type.registerInferredType(const DynamicType());
+    }
+  }
+
+  /// Creates the [FormalParameterBuilder] for a parameter used in the formal
+  /// parameters in a primary constructor.
+  ///
+  /// If [isDeclaring] is `true` the parameter is marked as an initializing
+  /// formal whose type is inferred. Otherwise the parameter is marked as
+  /// final primary constructor parameter.
+  ///
+  /// The created parameter replaces the original parameter in the primary
+  /// constructor declaration.
+  FormalParameterBuilder forPrimaryConstructor(
+    FragmentFactory builderFactory, {
+    required bool isDeclaring,
+  }) {
+    assert(_variable == null);
+    return new FormalParameterBuilder(
+      kind: kind,
+      modifiers: isDeclaring
+          ? (modifiers | Modifiers.InitializingFormal)
+          : (modifiers | Modifiers.Final),
+      type: isDeclaring
+          ? builderFactory.addInferableType(InferenceDefaultType.NullableObject)
+          : type,
+      name: name,
+      fileOffset: fileOffset,
+      nameOffset: nameOffset,
+      fileUri: fileUri,
+      isExtensionThis: isExtensionThis,
+      defaultValueToken: copyDefaultValueToken(),
+      hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+      publicName: publicName,
+      wildcardIndex: _wildcardIndex,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      isPrimaryConstructorParameter: !isDeclaring,
+    );
+  }
 
   @override
-  bool get isLate => variable.isLate;
+  void onInferredType(DartType type) {
+    _variable?.type = type;
+  }
 
   @override
   String toString() => '$runtimeType($name)';
+
+  /// Returns the [_defaultValueToken] field and clears it.
+  ///
+  /// This is used to transfer ownership of the token to the receiver. Tokens
+  /// need to be cleared during the outline phase to avoid holding the token
+  /// stream in memory.
+  Token? _takeDefaultValueToken() {
+    Token? initializerToken = _defaultValueToken;
+    _defaultValueToken = null;
+    return initializerToken;
+  }
+
+  static bool _needsDefaultValuesBuiltAsOutlineExpressions(
+    SourceMemberBuilder memberBuilder,
+  ) {
+    // For modular compilation we need to include default values for optional
+    // and named parameters in several cases:
+    // * for const constructors to enable constant evaluation,
+    // * for instance methods because these might be needed to generated
+    //   noSuchMethod forwarders,
+    // * for generative constructors to support forwarding constructors
+    //   in mixin applications, and
+    // * for factories, to uphold the invariant that optional parameters always
+    //   have default values, even during modular compilation.
+    if (memberBuilder is SourceConstructorBuilder) {
+      return true;
+    } else if (memberBuilder is SourceFactoryBuilder) {
+      return true;
+    } else {
+      return memberBuilder.isClassInstanceMember;
+    }
+  }
 }
 
 class FunctionTypeParameterBuilder implements ParameterBuilder {
@@ -471,13 +608,18 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   FunctionTypeParameterBuilder(this.kind, this.type, this.name);
 
   @override
+  int get fileOffset {
+    throw new UnsupportedError("${this.runtimeType}.fileOffset");
+  }
+
+  @override
   bool get isNamed => kind.isNamed;
 
   @override
-  bool get isRequiredNamed => kind.isRequiredNamed;
+  bool get isPositional => kind.isPositional;
 
   @override
-  bool get isPositional => kind.isPositional;
+  bool get isRequiredNamed => kind.isRequiredNamed;
 
   @override
   bool get isRequiredPositional => kind.isRequiredPositional;
@@ -487,171 +629,35 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   bool get isWildcard => false;
 
   @override
-  int get fileOffset {
-    throw new UnsupportedError("${this.runtimeType}.fileOffset");
-  }
-
-  @override
   VariableDeclaration build(SourceLibraryBuilder library) {
     throw new UnsupportedError("${this.runtimeType}.build");
   }
 }
 
-/// A builder for a catch block parameter.
-class CatchParameterBuilder extends NamedBuilderImpl
-    with LookupResultMixin
-    implements ParameterVariableBuilder, InferredTypeListener {
-  @override
-  final int fileOffset;
+abstract class ParameterBuilder {
+  int get fileOffset;
 
-  final Modifiers modifiers;
+  bool get isNamed;
 
-  @override
-  TypeBuilder type;
+  bool get isPositional;
 
-  @override
-  final String name;
+  bool get isRequiredNamed;
 
-  @override
-  final Uri fileUri;
+  bool get isRequiredPositional;
 
-  /// The variable declaration created for this catch parameter.
-  InternalVariable? _variable;
+  /// Whether this formal parameter is a wildcard variable.
+  bool get isWildcard;
 
-  /// If this is a wildcard variable, this holds the index used to create a
-  /// uniquely named kernel variable for it.
-  final int? _wildcardIndex;
+  /// The kind of this parameter, i.e. if it's required, positional optional,
+  /// or named optional.
+  FormalParameterKind get kind;
 
-  final int? nameOffset;
+  String? get name;
 
-  final bool isClosureContextLoweringEnabled;
+  TypeBuilder get type;
 
-  CatchParameterBuilder({
-    required this.modifiers,
-    required this.type,
-    required this.name,
-    required this.fileOffset,
-    required this.fileUri,
-    Token? defaultValueToken,
-    int? wildcardIndex,
-    required this.nameOffset,
-    required this.isClosureContextLoweringEnabled,
-  }) : this._wildcardIndex = wildcardIndex {
-    type.registerInferredTypeListener(this);
-  }
-
-  @override
-  bool get isWildcard => _wildcardIndex != null;
-
-  @override
-  FormalParameterKind get kind {
-    throw new UnsupportedError("${this.runtimeType}.kind");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? get parent => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRequiredPositional => true;
-
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): This was previously named `isOptional` so we might
-  // have some uses that intended to use the now existing `isOptional` method.
-  bool get isOptionalPositional => false;
-
-  @override
-  bool get isRequiredNamed => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isPositional => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isNamed => false;
-
-  // Coverage-ignore(suite): Not run.
-  bool get isOptional => false;
-
-  @override
-  bool get isConst => false;
-
-  @override
-  bool get isAssignable => false;
-
-  @override
-  NamedBuilder get getable => this;
-
-  @override
-  NamedBuilder? get setable => isAssignable ? this : null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String get fullNameForErrors => name;
-
-  @override
-  VariableDeclaration get variable => _variable!.asVariableDeclaration;
-
-  @override
-  VariableDeclaration build(SourceLibraryBuilder library) {
-    if (_variable == null) {
-      bool isTypeOmitted = type is OmittedTypeBuilder;
-      DartType? builtType = type.build(library, TypeUse.parameterType);
-      String variableName = _wildcardIndex != null
-          ? createWildcardFormalParameterName(_wildcardIndex)
-          : name;
-
-      if (isClosureContextLoweringEnabled) {
-        _variable = new InternalCatchVariable(
-          astVariable: new CatchVariable(
-            name: variableName,
-            type: isTypeOmitted ? const DynamicType() : builtType,
-            isWildcard: isWildcard,
-          ),
-          isImplicitlyTyped: isTypeOmitted,
-        );
-      } else {
-        _variable = new VariableDeclarationImpl(
-          variableName,
-          // [VariableDeclarationImpl] uses `null` to signal an omitted type.
-          type: isTypeOmitted ? null : builtType,
-          isFinal: modifiers.isFinal,
-          isConst: false,
-          isInitializingFormal: false,
-          isSuperInitializingFormal: false,
-          isCovariantByDeclaration: false,
-          isRequired: isRequiredNamed,
-          hasDeclaredInitializer: false,
-          isLowered: false,
-          isSynthesized: false,
-          isWildcard: isWildcard,
-        )..fileOffset = fileOffset;
-      }
-    }
-    return _variable!.asVariableDeclaration;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void onInferredType(DartType type) {
-    if (_variable != null) {
-      _variable!.type = type;
-    }
-  }
-
-  @override
-  String toString() => '$runtimeType($name)';
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isLate => false;
-
-  @override
-  bool get isPrimaryConstructorParameter => false;
+  VariableDeclaration build(SourceLibraryBuilder library);
 }
+
+abstract class ParameterVariableBuilder
+    implements ParameterBuilder, VariableBuilder {}

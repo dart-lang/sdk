@@ -1244,8 +1244,8 @@ class Resolver {
       assignedVariables.read(variable.astVariable);
     }
     return intern.createVariableGet(
-      fileOffset,
       variable as VariableDeclaration,
+      fileOffset: fileOffset,
     );
   }
 

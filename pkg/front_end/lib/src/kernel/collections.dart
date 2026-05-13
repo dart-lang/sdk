@@ -13,6 +13,7 @@ import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
+import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
 
 /// Base class for all control-flow elements.
@@ -1085,7 +1086,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
   CompilerContext compilerContext,
   Uri fileUri,
 ) {
-  return new MapLiteralEntry(
+  return extern.createMapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
       message: diag.expectedAfterButGot.withArguments(expected: ':'),
@@ -1094,6 +1095,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
       // TODO(danrubel): what is the length of the expression?
       length: noLength,
     ),
-    new NullLiteral()..fileOffset = element.fileOffset,
-  )..fileOffset = element.fileOffset;
+    extern.createNullLiteral(fileOffset: element.fileOffset),
+    fileOffset: element.fileOffset,
+  );
 }

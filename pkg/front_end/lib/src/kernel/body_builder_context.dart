@@ -30,6 +30,7 @@ import '../type_inference/type_inferrer.dart'
     show InferredConstructorInitializer, TypeInferrer, ConstructorContext;
 import '../util/helpers.dart';
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart' as intern;
 
 /// Interface that defines the interface between the [BodyBuilder] and the
 /// member/declaration whose AST is being built.
@@ -416,7 +417,10 @@ abstract class BodyBuilderContext {
   /// as a parameter in that case.
   ThisVariable? createInternalThisVariable() {
     return thisType != null && isDeclarationInstanceContext
-        ? new ThisVariable(type: thisType!)
+        ? intern.createThisVariable(
+            type: thisType!,
+            fileOffset: memberNameOffset,
+          )
         : null;
   }
 }

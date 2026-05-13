@@ -348,7 +348,7 @@ void _testInternalForInStatement() {
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableDeclaration: new VariableDeclarationImpl('e'),
+        variableDeclaration: new VariableDeclarationImpl('e', fileOffset: -1),
         error: null,
       ),
       new NullLiteral(),
@@ -367,6 +367,7 @@ for (var e in null) {}''',
         variableDeclaration: new VariableDeclarationImpl(
           'e',
           type: const VoidType(),
+          fileOffset: -1,
         ),
         error: null,
       ),
@@ -386,9 +387,12 @@ for (void e in null) {}''',
         pattern: new RecordPattern([
           new VariablePattern(
             const VoidType(),
-            new VariableDeclarationImpl('a'),
+            new VariableDeclarationImpl('a', fileOffset: -1),
           ),
-          new VariablePattern(null, new VariableDeclarationImpl('b')),
+          new VariablePattern(
+            null,
+            new VariableDeclarationImpl('b', fileOffset: -1),
+          ),
         ]),
         inOffset: -1,
       ),
@@ -405,7 +409,7 @@ for (var (void a, var b) in null) {}''',
   testStatement(
     new InternalForInStatement(
       new ExistingVariableForInElement(
-        variable: new VariableDeclarationImpl('a'),
+        variable: new VariableDeclarationImpl('a', fileOffset: -1),
         nameOffset: -1,
         inOffset: -1,
       ),
@@ -493,8 +497,8 @@ for (null in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclarationImpl('a'),
-          new VariableDeclarationImpl('b'),
+          new VariableDeclarationImpl('a', fileOffset: -1),
+          new VariableDeclarationImpl('b', fileOffset: -1),
         ],
         error: new InvalidExpression('error'),
       ),
@@ -512,8 +516,12 @@ for (var a, b in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclarationImpl('a', type: const VoidType()),
-          new VariableDeclarationImpl('b'),
+          new VariableDeclarationImpl(
+            'a',
+            type: const VoidType(),
+            fileOffset: -1,
+          ),
+          new VariableDeclarationImpl('b', fileOffset: -1),
         ],
         error: new InvalidExpression('error'),
       ),
@@ -834,8 +842,11 @@ void _testDeferredCheck() {
   VariableDeclaration check = new VariableDeclaration.forValue(
     new CheckLibraryIsLoaded(dependency),
   );
-  testExpression(new DeferredCheck(check, new IntLiteral(0)), '''
-let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
+  testExpression(
+    new DeferredCheck(check, new IntLiteral(0), fileOffset: TreeNode.noOffset),
+    '''
+let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''',
+  );
 }
 
 void _testFactoryConstructorInvocation() {
@@ -1162,7 +1173,7 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 void _testFunctionDeclarationImpl() {
   testStatement(
     new FunctionDeclarationImpl(
-      new VariableDeclarationImpl('foo'),
+      new VariableDeclarationImpl('foo', fileOffset: TreeNode.noOffset),
       new FunctionNode(new Block([])),
     ),
     '''
@@ -1384,10 +1395,17 @@ return 0;''');
 }
 
 void _testVariableDeclarationImpl() {
-  testStatement(new VariableDeclarationImpl('foo'), '''
-dynamic foo;''');
   testStatement(
-    new VariableDeclarationImpl('foo', initializer: new IntLiteral(0)),
+    new VariableDeclarationImpl('foo', fileOffset: TreeNode.noOffset),
+    '''
+dynamic foo;''',
+  );
+  testStatement(
+    new VariableDeclarationImpl(
+      'foo',
+      initializer: new IntLiteral(0),
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 dynamic foo = 0;''',
   );
@@ -1398,6 +1416,7 @@ dynamic foo = 0;''',
       initializer: new IntLiteral(0),
       isFinal: true,
       isRequired: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 required final void foo;''',
@@ -1408,16 +1427,8 @@ required final void foo;''',
       type: const VoidType(),
       initializer: new IntLiteral(0),
       isLate: true,
+      fileOffset: TreeNode.noOffset,
     ),
-    '''
-late void foo = 0;''',
-  );
-  testStatement(
-    new VariableDeclarationImpl(
-      'foo',
-      type: const VoidType(),
-      initializer: new IntLiteral(0),
-    )..lateGetter = new VariableDeclarationImpl('foo#getter'),
     '''
 late void foo = 0;''',
   );
@@ -1426,8 +1437,26 @@ late void foo = 0;''',
         'foo',
         type: const VoidType(),
         initializer: new IntLiteral(0),
+        fileOffset: TreeNode.noOffset,
       )
-      ..lateGetter = new VariableDeclarationImpl('foo#getter')
+      ..lateGetter = new VariableDeclarationImpl(
+        'foo#getter',
+        fileOffset: TreeNode.noOffset,
+      ),
+    '''
+late void foo = 0;''',
+  );
+  testStatement(
+    new VariableDeclarationImpl(
+        'foo',
+        type: const VoidType(),
+        initializer: new IntLiteral(0),
+        fileOffset: TreeNode.noOffset,
+      )
+      ..lateGetter = new VariableDeclarationImpl(
+        'foo#getter',
+        fileOffset: TreeNode.noOffset,
+      )
       ..lateType = const DynamicType(),
     '''
 late dynamic foo = 0;''',
@@ -1844,7 +1873,10 @@ void _testPropertyIncDec() {
 }
 
 void _testLocalIncDec() {
-  VariableDeclarationImpl variable = new VariableDeclarationImpl('foo');
+  VariableDeclarationImpl variable = new VariableDeclarationImpl(
+    'foo',
+    fileOffset: TreeNode.noOffset,
+  );
 
   testExpression(
     new LocalIncDec(

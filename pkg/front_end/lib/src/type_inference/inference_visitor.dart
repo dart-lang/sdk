@@ -3354,10 +3354,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       computePatternVariableDeclaration: () =>
           new PatternVariableDeclaration(
               pattern,
-              extern.createVariableGet(
-                loopVariable,
-                fileOffset: TreeNode.noOffset,
-              ),
+              extern.createVariableGet(loopVariable, fileOffset: inOffset),
               isFinal: false,
             )
             ..fileOffset = inOffset

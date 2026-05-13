@@ -26,7 +26,7 @@ import "dart:core" as core;
 [315]        [315] hoisted dynamic a;
 [318]        [318] hoisted dynamic b;
 [321]        {
-[-1]          [-1] final synthesized dynamic #1#0 = [-1] [-1] #t5;
+[321]          [321] final synthesized dynamic #1#0 = [321] [321] #t5;
 [314]          [314] final const synthesized core::int #1#3 = [314] [314] #C1;
 [321]          if([314] [314]![314]([314] [314] [314] [314] [314] [314] [314] [-1] [-1] #1#0 is core::List<dynamic> && [314] [314] [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C1 && [315]([315] let [315] final dynamic #t6 = [315] [315] a = [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[314]([314] 0){(core::int) → dynamic} in [-1] [-1] true) && [318]([318] let [318] final dynamic #t7 = [318] [318] b = [314] [314] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[314]([314] 1){(core::int) → dynamic} in [-1] [-1] true)))
 [321]            [321] [321] throw{for-error-handling} [321] [321] new core::StateError::• [321]([321] "Pattern matching error");

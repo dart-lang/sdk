@@ -158,7 +158,11 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       isThrowReachabilityError(object) ||
       isNewReachabilityErrorArgument(object) ||
       isNewReachabilityError(object) ||
-      object is BlockExpression;
+      object is BlockExpression ||
+      (object is NullLiteral &&
+          // Skip implicit initializers/default values.
+          (object.parent is VariableDeclaration || object.parent is Field) &&
+          object.fileOffset == object.parent?.fileOffset);
 
   @override
   ActualData<String> mergeData(

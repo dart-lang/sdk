@@ -17,6 +17,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
@@ -294,13 +295,12 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   }) {
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier.kind,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -333,7 +333,10 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
+      VariableDeclaration parameter = new VariableDeclarationImpl(
+        "#synthetic",
+        fileOffset: TreeNode.noOffset,
+      );
       function.positionalParameters.clear();
       function.positionalParameters.add(parameter);
       parameter.parent = function;
@@ -344,23 +347,22 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       ProcedureKind.Setter,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Setter,
-            function,
-            reference: references?.setterReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = _fragment.modifiers.isStatic
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Setter,
+      function,
+      reference: references?.setterReference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: _fragment.modifiers.isStatic,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
@@ -630,15 +632,14 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
           // Coverage-ignore(suite): Not run.
           _thisFormal.kind == FormalParameterKind.optionalPositional,
     );
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            typeParameters: typeParameters,
-            positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier.kind,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      typeParameters: typeParameters,
+      positionalParameters: [_thisFormal.build(libraryBuilder)],
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -659,7 +660,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
       VariableDeclaration thisParameter = function.positionalParameters[0];
-      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
+      VariableDeclaration parameter = new VariableDeclarationImpl(
+        "#synthetic",
+        fileOffset: TreeNode.noOffset,
+      );
       function.positionalParameters.clear();
       function.positionalParameters.add(thisParameter);
       function.positionalParameters.add(parameter);
@@ -688,23 +692,22 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       ProcedureKind.Setter,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Method,
-            function,
-            reference: references?.setterReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = true
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Method,
+      function,
+      reference: references?.setterReference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: true,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);

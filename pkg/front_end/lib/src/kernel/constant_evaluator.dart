@@ -531,9 +531,9 @@ class ConstantsTransformer extends RemovingTransformer {
     Expression left = transform(node.left);
     Expression right = transform(node.right);
     if (_isNull(left)) {
-      return new EqualsNull(right)..fileOffset = node.fileOffset;
+      return extern.createEqualsNull(right, fileOffset: node.fileOffset);
     } else if (_isNull(right)) {
-      return new EqualsNull(left)..fileOffset = node.fileOffset;
+      return extern.createEqualsNull(left, fileOffset: node.fileOffset);
     }
     node.left = left..parent = node;
     node.right = right..parent = node;
@@ -958,18 +958,20 @@ class ConstantsTransformer extends RemovingTransformer {
               patternGuard.pattern as ConstantPattern;
           expressionOffsets.add(constantPattern.fileOffset);
           expressions.add(
-            new ConstantExpression(
+            extern.createConstantExpression(
               constantPattern.value!,
               constantPattern.expressionType!,
-            )..fileOffset = constantPattern.expression.fileOffset,
+              fileOffset: constantPattern.expression.fileOffset,
+            ),
           );
         }
-        SwitchCase switchCase = new SwitchCase(
+        SwitchCase switchCase = extern.createSwitchCase(
           expressions,
           expressionOffsets,
           patternSwitchCase.body,
           isDefault: patternSwitchCase.isDefault,
-        )..fileOffset = patternSwitchCase.fileOffset;
+          fileOffset: patternSwitchCase.fileOffset,
+        );
         switchCases.add(switchCase);
         for (Statement labelUser in patternSwitchCase.labelUsers) {
           (labelUser as ContinueSwitchStatement).target = switchCase;
@@ -1288,8 +1290,9 @@ class ConstantsTransformer extends RemovingTransformer {
           if (node.parent is LabeledStatement) {
             target = node.parent as LabeledStatement;
           } else {
-            target = outerLabeledStatement = new LabeledStatement(
+            target = outerLabeledStatement = extern.createLabeledStatement(
               dummyStatement,
+              fileOffset: node.fileOffset,
             );
           }
           breakStatement = extern.createBreakStatement(
@@ -1378,8 +1381,10 @@ class ConstantsTransformer extends RemovingTransformer {
         // Coverage-ignore-block(suite): Not run.
         replacement = replacementStatements.first;
       } else {
-        replacement = new Block(replacementStatements)
-          ..fileOffset = node.fileOffset;
+        replacement = extern.createBlock(
+          replacementStatements,
+          fileOffset: node.fileOffset,
+        );
       }
     }
     if (outerLabeledStatement != null) {
@@ -1962,33 +1967,32 @@ class ConstantsTransformer extends RemovingTransformer {
             patternGuard.pattern as ConstantPattern;
         expressionOffsets.add(constantPattern.fileOffset);
         expressions.add(
-          new ConstantExpression(
+          extern.createConstantExpression(
             constantPattern.value!,
             constantPattern.expressionType!,
-          )..fileOffset = constantPattern.expression.fileOffset,
+            fileOffset: constantPattern.expression.fileOffset,
+          ),
         );
 
-        SwitchCase switchCase =
-            new SwitchCase(
-                expressions,
-                expressionOffsets,
-                extern.createBlock([
-                  extern.createExpressionStatement(
-                    extern.createVariableSet(
-                      valueVariable,
-                      switchExpressionCase.expression,
-                      fileOffset: switchExpressionCase.expression.fileOffset,
-                    ),
-                  ),
-                  extern.createBreakStatement(
-                    labeledStatement,
-                    fileOffset: switchExpressionCase.expression.fileOffset,
-                  ),
-                ], fileOffset: switchExpressionCase.fileOffset),
-                isDefault: false,
-              )
-              ..fileOffset = switchExpressionCase.fileOffset
-              ..fileOffset;
+        SwitchCase switchCase = extern.createSwitchCase(
+          expressions,
+          expressionOffsets,
+          extern.createBlock([
+            extern.createExpressionStatement(
+              extern.createVariableSet(
+                valueVariable,
+                switchExpressionCase.expression,
+                fileOffset: switchExpressionCase.expression.fileOffset,
+              ),
+            ),
+            extern.createBreakStatement(
+              labeledStatement,
+              fileOffset: switchExpressionCase.expression.fileOffset,
+            ),
+          ], fileOffset: switchExpressionCase.fileOffset),
+          isDefault: false,
+          fileOffset: switchExpressionCase.fileOffset,
+        );
         switchCases.add(switchCase);
       }
 
@@ -2455,22 +2459,25 @@ class ConstantsTransformer extends RemovingTransformer {
         constant.expression is InvalidExpression) {
       return constant.expression;
     }
-    ConstantExpression constantExpression = new ConstantExpression(
+    ConstantExpression constantExpression = extern.createConstantExpression(
       constant,
       node.getStaticType(staticTypeContext),
-    )..fileOffset = node.fileOffset;
+      fileOffset: node.fileOffset,
+    );
     if (node is FileUriExpression) {
-      return new FileUriConstantExpression(
+      return extern.createFileUriConstantExpression(
         constantExpression.constant,
         type: constantExpression.type,
         fileUri: node.fileUri,
-      )..fileOffset = node.fileOffset;
+        fileOffset: node.fileOffset,
+      );
     } else if (node is FileUriConstantExpression) {
-      return new FileUriConstantExpression(
+      return extern.createFileUriConstantExpression(
         constantExpression.constant,
         type: constantExpression.type,
         fileUri: node.fileUri,
-      )..fileOffset = node.fileOffset;
+        fileOffset: node.fileOffset,
+      );
     }
     return constantExpression;
   }
@@ -2763,21 +2770,30 @@ class ConstantEvaluator
             errorReporter.report(locatedMessage, contextMessages);
           }
           return new UnevaluatedConstant(
-            new InvalidExpression(message.problemMessage),
+            extern.createInvalidExpression(
+              message.problemMessage,
+              fileOffset: result.node.fileOffset,
+            ),
           );
         case _AbortDueToInvalidExpressionConstant():
           return new UnevaluatedConstant(
             // Create a new [InvalidExpression] without the expression, which
             // might now have lost the needed context. For instance references
             // to variables no longer in scope.
-            new InvalidExpression(result.node.message),
+            extern.createInvalidExpression(
+              result.node.message,
+              fileOffset: result.node.fileOffset,
+            ),
           );
         case _AbortDueToInvalidInitializerConstant():
           return new UnevaluatedConstant(
             // Create a new [InvalidExpression] without the expression, which
             // might now have lost the needed context. For instance references
             // to variables no longer in scope.
-            new InvalidExpression(result.node.message),
+            extern.createInvalidExpression(
+              result.node.message,
+              fileOffset: result.node.fileOffset,
+            ),
           );
       }
     }
@@ -2904,8 +2920,11 @@ class ConstantEvaluator
   Constant unevaluated(Expression original, Expression replacement) {
     replacement.fileOffset = original.fileOffset;
     return new UnevaluatedConstant(
-      new FileUriExpression(replacement, getFileUri(original)!)
-        ..fileOffset = original.fileOffset,
+      extern.createFileUriExpression(
+        expression: replacement,
+        fileUri: getFileUri(original)!,
+        fileOffset: original.fileOffset,
+      ),
     );
   }
 
@@ -3448,10 +3467,11 @@ class ConstantEvaluator
       // Coverage-ignore-block(suite): Not run.
       return unevaluated(
         node,
-        new ConstructorInvocation(
+        extern.createConstructorInvocation(
           constructor,
           unevaluatedArguments(positional, named, node.arguments.types),
           isConst: true,
+          fileOffset: node.fileOffset,
         ),
       );
     }
@@ -3796,11 +3816,12 @@ class ConstantEvaluator
           leaveLazy();
         }
         instanceBuilder!.asserts.add(
-          new AssertStatement(
+          extern.createAssertStatement(
             _wrap(condition),
             message: message,
             conditionStartOffset: statement.conditionStartOffset,
             conditionEndOffset: statement.conditionEndOffset,
+            fileOffset: statement.fileOffset,
           ),
         );
       } else {
@@ -3820,11 +3841,12 @@ class ConstantEvaluator
         if (shouldBeUnevaluated) {
           // Coverage-ignore-block(suite): Not run.
           instanceBuilder!.asserts.add(
-            new AssertStatement(
+            extern.createAssertStatement(
               _wrap(condition),
               message: _wrap(message),
               conditionStartOffset: statement.conditionStartOffset,
               conditionEndOffset: statement.conditionEndOffset,
+              fileOffset: statement.fileOffset,
             ),
           );
         } else if (message is StringConstant) {
@@ -3907,14 +3929,14 @@ class ConstantEvaluator
       // Coverage-ignore-block(suite): Not run.
       return unevaluated(
         node,
-        new DynamicInvocation(
-            node.kind,
-            _wrap(receiver),
-            node.name,
-            unevaluatedArguments(positionalArguments, {}, node.arguments.types),
-          )
-          ..fileOffset = node.fileOffset
-          ..flags = node.flags,
+        extern.createDynamicInvocation(
+          node.kind,
+          _wrap(receiver),
+          node.name,
+          unevaluatedArguments(positionalArguments, {}, node.arguments.types),
+          fileOffset: node.fileOffset,
+          flags: node.flags,
+        ),
       );
     }
 
@@ -4091,12 +4113,13 @@ class ConstantEvaluator
       // Coverage-ignore-block(suite): Not run.
       return unevaluated(
         node,
-        new EqualsCall(
+        extern.createEqualsCall(
           _wrap(left),
           _wrap(right),
           functionType: node.functionType,
           interfaceTarget: node.interfaceTarget,
-        )..fileOffset = node.fileOffset,
+          fileOffset: node.fileOffset,
+        ),
       );
     }
 
@@ -4111,7 +4134,7 @@ class ConstantEvaluator
     if (shouldBeUnevaluated) {
       return unevaluated(
         node,
-        new EqualsNull(_wrap(expression))..fileOffset = node.fileOffset,
+        extern.createEqualsNull(_wrap(expression), fileOffset: node.fileOffset),
       );
     }
 
@@ -4567,11 +4590,12 @@ class ConstantEvaluator
       leaveLazy();
       return unevaluated(
         node,
-        new ConditionalExpression(
+        extern.createConditionalExpression(
           _wrap(condition),
           _wrap(then),
           _wrap(otherwise),
-          env.substituteType(node.staticType),
+          staticType: env.substituteType(node.staticType),
+          fileOffset: node.fileOffset,
         ),
       );
     } else {
@@ -4626,12 +4650,13 @@ class ConstantEvaluator
       // Coverage-ignore-block(suite): Not run.
       return unevaluated(
         node,
-        new InstanceGet(
+        extern.createInstanceGet(
           node.kind,
           _wrap(receiver),
           node.name,
           resultType: node.resultType,
           interfaceTarget: node.interfaceTarget,
+          fileOffset: node.fileOffset,
         ),
       );
     } else if (receiver is NullConstant) {

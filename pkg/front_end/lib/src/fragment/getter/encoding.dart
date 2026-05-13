@@ -19,6 +19,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
@@ -293,13 +294,12 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   }) {
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier.kind,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -322,23 +322,22 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       ProcedureKind.Getter,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Getter,
-            function,
-            reference: references?.getterReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = _fragment.modifiers.isStatic
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Getter,
+      function,
+      reference: references?.getterReference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: _fragment.modifiers.isStatic,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
@@ -615,15 +614,14 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
           // Coverage-ignore(suite): Not run.
           _thisFormal.kind == FormalParameterKind.optionalPositional,
     );
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            typeParameters: typeParameters,
-            positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier.kind,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      typeParameters: typeParameters,
+      positionalParameters: [_thisFormal.build(libraryBuilder)],
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -646,23 +644,22 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       ProcedureKind.Getter,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Method,
-            function,
-            reference: references?.getterReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = true
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Method,
+      function,
+      reference: references?.getterReference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: true,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);

@@ -193,4 +193,21 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
     }
     return null;
   }
+
+  @override
+  ActualData<String>? mergeData(
+    ActualData<String> value1,
+    ActualData<String> value2,
+  ) {
+    // Prefer [VariableDeclaration] over [ConstantExpression]. This is done to
+    // avoid conflict between a parameter and its implicit initializer.
+    if (value1.object is ConstantExpression &&
+        value2.object is VariableDeclaration) {
+      return value2;
+    } else if (value2.object is ConstantExpression &&
+        value1.object is VariableDeclaration) {
+      return value1;
+    }
+    return super.mergeData(value1, value2);
+  }
 }

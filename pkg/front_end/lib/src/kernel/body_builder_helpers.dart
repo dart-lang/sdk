@@ -318,17 +318,17 @@ class FormalParameters extends Parameters {
         t.bound?.build(library, TypeUse.typeParameterBound);
       }
     }
-    return new FunctionNode(
-        body,
-        typeParameters: typeParameters,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount,
-        returnType: returnType,
-        asyncMarker: asyncModifier.kind,
-      )
-      ..fileOffset = charOffset
-      ..fileEndOffset = fileEndOffset;
+    return extern.createFunctionNode(
+      body,
+      typeParameters: typeParameters,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      requiredParameterCount: requiredParameterCount,
+      returnType: returnType,
+      asyncMarker: asyncModifier.kind,
+      fileOffset: charOffset,
+      fileEndOffset: fileEndOffset,
+    );
   }
 
   @override

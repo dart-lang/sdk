@@ -9,6 +9,7 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../codes/cfe_codes.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import 'compiler_context.dart';
 
 abstract class LookupResult {
@@ -66,7 +67,7 @@ abstract class LookupResult {
           CfeSeverity.error,
         )
         .plain;
-    return new InvalidExpression(text)..fileOffset = fileOffset;
+    return extern.createInvalidExpression(text, fileOffset: fileOffset);
   }
 
   static LookupResult? createResult(

@@ -19,6 +19,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
@@ -222,13 +223,12 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required bool isAbstractOrExternal,
     List<TypeParameter>? classTypeParameters,
   }) {
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier.kind,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -260,23 +260,22 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       _procedureKind,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            _procedureKind,
-            function,
-            reference: reference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = _fragment.modifiers.isStatic
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      _procedureKind,
+      function,
+      reference: reference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: _fragment.modifiers.isStatic,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
@@ -587,15 +586,14 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
           // Coverage-ignore(suite): Not run.
           _thisFormal.kind == FormalParameterKind.optionalPositional,
     );
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            typeParameters: typeParameters,
-            positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier.kind,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      typeParameters: typeParameters,
+      positionalParameters: [_thisFormal.build(libraryBuilder)],
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -627,23 +625,22 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       ProcedureKind.Method,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Method,
-            function,
-            reference: reference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = true
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Method,
+      function,
+      reference: reference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: true,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     if (!_isOperator) {
@@ -851,7 +848,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     Map<TypeParameter, DartType> substitutionMap = {};
     List<DartType> typeArguments = <DartType>[];
     for (TypeParameter typeParameter in procedure.function.typeParameters) {
-      TypeParameter newTypeParameter = new TypeParameter(typeParameter.name);
+      TypeParameter newTypeParameter = extern.createTypeParameter(
+        typeParameter.name,
+        fileOffset: typeParameter.fileOffset,
+      );
       typeParameters.add(newTypeParameter);
       typeArguments.add(
         substitutionMap[typeParameter] = new TypeParameterType(
@@ -903,13 +903,14 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
             isRequired: parameter.isRequired,
           )..fileOffset = parameter.fileOffset;
         case VariableDeclaration():
-          newParameter = new VariableDeclaration(
+          newParameter = extern.createParameterVariable(
             parameter.name,
             type: type,
             isFinal: parameter.isFinal,
             isLowered: parameter.isLowered,
             isRequired: parameter.isRequired,
-          )..fileOffset = parameter.fileOffset;
+            fileOffset: parameter.fileOffset,
+          );
       }
       _extensionTearOffParameterMap![parameter] = newParameter;
       return newParameter;
@@ -938,14 +939,14 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       if (position == 0) {
         /// Pass `this` as a captured variable.
         closurePositionalArguments.add(
-          new VariableGet(extensionThis)..fileOffset = fileOffset,
+          extern.createVariableGet(extensionThis, fileOffset: fileOffset),
         );
       } else {
         DartType type = substitution.substituteType(parameter.type);
         VariableDeclaration newParameter = copyParameter(parameter, type);
         closurePositionalParameters.add(newParameter);
         closurePositionalArguments.add(
-          new VariableGet(newParameter)..fileOffset = fileOffset,
+          extern.createVariableGet(newParameter, fileOffset: fileOffset),
         );
       }
     }
@@ -956,79 +957,75 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       VariableDeclaration newParameter = copyParameter(parameter, type);
       closureNamedParameters.add(newParameter);
       closureNamedArguments.add(
-        new NamedExpression(
+        extern.createNamedExpression(
           parameter.name!,
-          new VariableGet(newParameter)..fileOffset = fileOffset,
+          extern.createVariableGet(newParameter, fileOffset: fileOffset),
         ),
       );
     }
 
-    Statement closureBody = new ReturnStatement(
-      new StaticInvocation(
-          procedure,
-          new Arguments(
-            closurePositionalArguments,
-            types: typeArguments,
-            named: closureNamedArguments,
-          ),
-        )
+    Statement closureBody = extern.createReturnStatement(
+      extern.createStaticInvocation(
+        procedure,
+        extern.createArguments(
+          closurePositionalArguments,
+          types: typeArguments,
+          named: closureNamedArguments,
+          fileOffset: fileOffset,
+        ),
         // We need to use the fileStartOffset on the StaticInvocation to
         // avoid a possible "fake coverage miss" on the name of the
         // extension method.
-        ..fileOffset = fileStartOffset,
-    )..fileOffset = fileOffset;
+        fileOffset: fileStartOffset,
+      ),
+      fileOffset: fileOffset,
+    );
 
-    FunctionExpression closure =
-        new FunctionExpression(
-            new FunctionNode(
-                closureBody,
-                typeParameters: closureTypeParameters,
-                positionalParameters: closurePositionalParameters,
-                namedParameters: closureNamedParameters,
-                requiredParameterCount:
-                    procedure.function.requiredParameterCount - 1,
-                returnType: closureReturnType,
-              )
-              ..fileOffset = fileOffset
-              ..fileEndOffset = fileEndOffset,
-          )
-          // We need to use the fileStartOffset on the FunctionExpression to
-          // avoid a possible "fake coverage miss" on the name of the
-          // extension method.
-          ..fileOffset = fileStartOffset;
+    FunctionExpression closure = extern.createFunctionExpression(
+      extern.createFunctionNode(
+        closureBody,
+        typeParameters: closureTypeParameters,
+        positionalParameters: closurePositionalParameters,
+        namedParameters: closureNamedParameters,
+        requiredParameterCount: procedure.function.requiredParameterCount - 1,
+        returnType: closureReturnType,
+        fileOffset: fileOffset,
+        fileEndOffset: fileEndOffset,
+      ),
 
-    FunctionNode function =
-        new FunctionNode(
-            new ReturnStatement(closure)..fileOffset = fileOffset,
-            typeParameters: tearOffTypeParameters,
-            positionalParameters: [extensionThis],
-            requiredParameterCount: 1,
-            returnType: closure.function.computeFunctionType(
-              Nullability.nonNullable,
-            ),
-          )
-          ..fileOffset = fileOffset
-          ..fileEndOffset = fileEndOffset;
+      // We need to use the fileStartOffset on the FunctionExpression to
+      // avoid a possible "fake coverage miss" on the name of the
+      // extension method.
+      fileOffset: fileStartOffset,
+    );
+
+    FunctionNode function = extern.createFunctionNode(
+      extern.createReturnStatement(closure, fileOffset: fileOffset),
+      typeParameters: tearOffTypeParameters,
+      positionalParameters: [extensionThis],
+      requiredParameterCount: 1,
+      returnType: closure.function.computeFunctionType(Nullability.nonNullable),
+      fileOffset: fileOffset,
+      fileEndOffset: fileEndOffset,
+    );
 
     MemberName tearOffName = nameScheme.getProcedureMemberName(
       ProcedureKind.Getter,
       _fragment.name,
     );
-    Procedure tearOff =
-        new Procedure(
-            tearOffName.name,
-            ProcedureKind.Method,
-            function,
-            isStatic: true,
-            isExtensionMember: _isExtensionMember,
-            isExtensionTypeMember: _isExtensionTypeMember,
-            reference: tearOffReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileUri = _fragment.fileUri
-          ..fileOffset = fileOffset
-          ..fileStartOffset = _fragment.startOffset
-          ..fileEndOffset = fileEndOffset;
+    Procedure tearOff = extern.createProcedure(
+      tearOffName.name,
+      ProcedureKind.Method,
+      function,
+      isStatic: true,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+      reference: tearOffReference,
+      fileUri: _fragment.fileUri,
+      fileOffset: fileOffset,
+      fileStartOffset: _fragment.startOffset,
+      fileEndOffset: fileEndOffset,
+    );
     tearOffName.attachMember(tearOff);
     return tearOff;
   }
