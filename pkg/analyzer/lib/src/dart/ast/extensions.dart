@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
@@ -96,14 +95,6 @@ extension ArgumentListExtension on ArgumentList {
 }
 
 extension ConstructorDeclarationExtension on ConstructorDeclaration {
-  /// The offset and length to use as an error range for this constructor
-  /// declaration, accounting for named and unnamed constructors.
-  SourceRange get errorRange {
-    var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
-    var endEntity = name ?? startEntity;
-    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
-  }
-
   bool get isNonRedirectingGenerative {
     // Must be generative.
     if (externalKeyword != null || factoryKeyword != null) {
@@ -297,15 +288,6 @@ extension PatternFieldImplExtension on PatternFieldImpl {
     } else {
       return fieldNameName;
     }
-  }
-}
-
-extension PrimaryConstructorDeclarationExtension
-    on PrimaryConstructorDeclaration {
-  SourceRange get errorRange {
-    var startEntity = beginToken;
-    var endEntity = constructorName ?? beginToken;
-    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
 }
 

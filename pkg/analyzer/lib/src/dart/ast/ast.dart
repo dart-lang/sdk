@@ -26,6 +26,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -6891,6 +6892,10 @@ abstract final class ConstructorDeclaration implements ClassMember {
   @override
   ConstructorFragment? get declaredFragment;
 
+  /// The offset and length to use as an error range for this constructor
+  /// declaration, accounting for named and unnamed constructors.
+  SourceRange get errorRange;
+
   /// The token for the `external` keyword to this constructor declaration.
   Token? get externalKeyword;
 
@@ -7049,6 +7054,13 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   Token get endToken {
     return body.endToken;
+  }
+
+  @override
+  SourceRange get errorRange {
+    var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
+    var endEntity = name ?? startEntity;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
 
   @generated
@@ -26933,6 +26945,10 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
   /// Returns `null` if the AST structure hasn't been resolved.
   ConstructorFragment? get declaredFragment;
 
+  /// The offset and length to use as an error range for this constructor
+  /// declaration, accounting for named and unnamed constructors.
+  SourceRange get errorRange;
+
   /// The formal parameters of the constructor, including declaring.
   FormalParameterList get formalParameters;
 }
@@ -27012,6 +27028,14 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @override
   Token get endToken {
     return formalParameters.endToken;
+  }
+
+  @generated
+  @override
+  SourceRange get errorRange {
+    var startEntity = beginToken;
+    var endEntity = constructorName ?? beginToken;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
 
   @generated
