@@ -506,7 +506,7 @@ B0 = EntryBlock() dominates:(B11, B10)
   v3 = Parameter(compare)   # RA: R2 <- ()
   v4 = Parameter(isValidKey)   # RA: R3 <- ()
   ParallelMove output(R3 -> vloc:R10, R2 -> vloc:R9, R1 -> vloc:R6, R0 -> vloc:R5)
-  ParallelMove spill(R6 -> stack[0])
+  ParallelMove spill(R5 -> stack[0], R6 -> stack[1])
   ParallelMove input(vloc:R6 -> R0, NullConstant(null) -> R2, vloc:R5 -> R1)
   v9 = TypeTest(v2, v8, v1, Map<SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
   ParallelMove output(R7 -> vloc:R7)
@@ -527,12 +527,14 @@ B11 = TargetBlock() idom:B0
   ParallelMove input(vloc:R1 -> R1)
   v23 = AllocateObject SplayTreeMap<SplayTreeMap.from.K%, SplayTreeMap.from.V%>(v22)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[1])
+  ParallelMove spill(R0 -> stack[2])
   DirectCall SplayTreeMap.(v23, v3, v4)   # RA: R0 <- (R0, R9, R10) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   v29 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]
-  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
-  InterfaceCall Map.forEach(v2, v29)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
+  StoreInstanceField(#closure-field[0], v29, v1)   # RA: (R0, R3) temps: [R1, R2]
   ParallelMove output(stack[1] -> R1)
+  InterfaceCall Map.forEach(v2, v29)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R1)
   ParallelMove input(vloc:R1 -> R0)
   Return(v23)   # RA: (R0)
 
@@ -1784,7 +1786,7 @@ B0 = EntryBlock()
 
 --- closures
 B0 = EntryBlock()
-  v9 = Constant(null)
+  v11 = Constant(null)
   Parameter(a1)   # RA: R0 <- ()
   v2 = Parameter(a2)   # RA: R1 <- ()
   ParallelMove output(R1 -> vloc:R1)
@@ -1792,13 +1794,16 @@ B0 = EntryBlock()
   ParallelMove output(R0 -> vloc:R0)
   StoreInstanceField(#context-field:a2, v3, v2)   # RA: (R0, R1) temps: [R2, R3]
   ParallelMove output(R0 -> R1)
-  v6 = AllocateClosure(v3)   # RA: R0 <- (R1) temps: [R2, R3, R4]
-  ParallelMove output(R0 -> vloc:R5)
-  v7 = AllocateClosure(v3)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  v6 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
-  DirectCall foo2(v6, v7)   # RA: R0 <- (R5, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  StoreInstanceField(#closure-field[0], v6, v3)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove output(R0 -> R5)
+  v8 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  StoreInstanceField(#closure-field[0], v8, v3)   # RA: (R0, R1) temps: [R2, R3]
+  DirectCall foo2(v6, v8)   # RA: R0 <- (R5, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove input(NullConstant(null) -> R0)
-  Return(v9)   # RA: (R0)
+  Return(v11)   # RA: (R0)
 
 --- closure FunctionExpression(Null (dynamic _#wc0#formal) {
   print(a2);

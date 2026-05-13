@@ -330,18 +330,11 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateClosure(AllocateClosure instr) =>
-      InstructionConstraints(
-        AllocationStub.resultReg,
-        List<Constraint?>.generate(
-          instr.inputCount,
-          (int i) => anyLocationOrImmediate(instr.inputDefAt(i)),
-        ),
-        const [
-          AllocationStub.tagsReg,
-          AllocationStub.scratch1Reg,
-          AllocationStub.scratch2Reg,
-        ],
-      );
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
 
   @override
   InstructionConstraints? visitAllocateContext(AllocateContext instr) =>

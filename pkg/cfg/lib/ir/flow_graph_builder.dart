@@ -546,17 +546,16 @@ class FlowGraphBuilder {
   /// Append [AllocateClosure] to the graph.
   AllocateClosure addAllocateClosure(
     ClosureFunction function,
+    ClosureLayout closureLayout,
     CType type,
-    int inputCount,
   ) {
     final instr = AllocateClosure(
       graph,
       currentSourcePosition,
       function,
+      closureLayout,
       type,
-      inputCount: inputCount,
     );
-    popInputs(instr, 0, inputCount);
     push(instr);
     appendInstruction(instr);
     return instr;

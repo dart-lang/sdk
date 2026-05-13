@@ -56,6 +56,7 @@ class AstToIr extends ast.RecursiveVisitor {
     function.member,
     GlobalContext.instance.typeEnvironment,
   );
+  late final ClosureLayout _currentClosureLayout;
 
   Map<ast.LabeledStatement, JoinBlock>? labeledStatements;
   Map<ast.SwitchCase, JoinBlock>? switchCases;
@@ -85,6 +86,10 @@ class AstToIr extends ast.RecursiveVisitor {
       scopes,
       function,
     );
+    final f = function;
+    if (f is ClosureFunction) {
+      _currentClosureLayout = _computeClosureLayout(f);
+    }
   }
 
   /// Create [FlowGraph] for the body of the [function].
@@ -151,13 +156,34 @@ class AstToIr extends ast.RecursiveVisitor {
           if (function.hasClassTypeParameters) {
             if (function.hasReceiverParameter) {
               builder.addLoadLocal(localVarIndexer.receiver);
-            } else {
-              assert(_isCaptured(localVarIndexer.receiverDeclaration!));
-              throw 'Unimplemented _buildPrologue for class type parameters with captured receiver';
+              classTypeParameters = builder.addTypeParameters(
+                .classTypeParameters,
+              );
+            } else if (_isCaptured(localVarIndexer.receiverDeclaration!)) {
+              // Read captured receiver. Load context from closure
+              // as contexts are not defined yet.
+              final variable = localVarIndexer.receiverDeclaration!;
+              builder.addLoadLocal(localVarIndexer.closure);
+              builder.addLoadInstanceField(
+                CField(
+                  ClosureField(
+                    _currentClosureLayout.firstContextIndex +
+                        scopes
+                            .getCapturedContexts(
+                              function.functionNode!,
+                              enableAsserts: enableAsserts,
+                            )
+                            .indexOf(scopes.getVariableContext(variable)),
+                  ),
+                ),
+              );
+              builder.addLoadInstanceField(
+                localVarIndexer.contextField(variable),
+              );
+              classTypeParameters = builder.addTypeParameters(
+                .classTypeParameters,
+              );
             }
-            classTypeParameters = builder.addTypeParameters(
-              .classTypeParameters,
-            );
           }
       }
     }
@@ -819,16 +845,26 @@ class AstToIr extends ast.RecursiveVisitor {
       return;
     }
     if (node is ast.FunctionNode) {
-      var index = 0;
-      for (final context in scopes.getCapturedContexts(
-        node,
-        enableAsserts: enableAsserts,
-      )) {
-        assert(_isCapturedContext(context));
-        builder.addLoadLocal(localVarIndexer.closure);
-        builder.addLoadInstanceField(CField(ClosureField(index)));
-        localVarIndexer.defineContext(context, builder.pop());
-        ++index;
+      assert(function.functionNode == node);
+      if (function is ClosureFunction) {
+        var index = _currentClosureLayout.firstContextIndex;
+        for (final context in scopes.getCapturedContexts(
+          node,
+          enableAsserts: enableAsserts,
+        )) {
+          assert(_isCapturedContext(context));
+          assert(index < _currentClosureLayout.length);
+          builder.addLoadLocal(localVarIndexer.closure);
+          builder.addLoadInstanceField(CField(ClosureField(index)));
+          localVarIndexer.defineContext(context, builder.pop());
+          ++index;
+        }
+      } else {
+        assert(
+          scopes
+              .getCapturedContexts(node, enableAsserts: enableAsserts)
+              .isEmpty,
+        );
       }
     }
     final scope = scopes.getScope(node);
@@ -1763,18 +1799,82 @@ class AstToIr extends ast.RecursiveVisitor {
             as ClosureFunction;
     onLocalFunction(closureFunction);
 
-    // TODO: capture (parent) function type arguments and instantiator
-    // type arguments if needed.
+    final closureLayout = _computeClosureLayout(closureFunction);
+    final closure = builder.addAllocateClosure(
+      closureFunction,
+      closureLayout,
+      type,
+    );
+
+    if (closureLayout.hasClassTypeArgs) {
+      assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+      builder.push(closure);
+      builder.push(classTypeParameters!);
+      builder.addStoreInstanceField(
+        CField(ClosureField(closureLayout.classTypeArgsIndex)),
+      );
+    }
+
+    if (closureLayout.hasFunctionTypeArgs) {
+      assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+      builder.push(closure);
+      builder.push(functionTypeParameters!);
+      builder.addStoreInstanceField(
+        CField(ClosureField(closureLayout.functionTypeArgsIndex)),
+      );
+    }
 
     final contexts = scopes.getCapturedContexts(
       node.function,
       enableAsserts: enableAsserts,
     );
+    var index = closureLayout.firstContextIndex;
     for (final context in contexts) {
       assert(_isCapturedContext(context));
+      assert(index < closureLayout.length);
+      builder.push(closure);
       builder.push(localVarIndexer.contextDef(context));
+      // TODO: cache and reuse ClosureField objects.
+      builder.addStoreInstanceField(CField(ClosureField(index++)));
     }
-    builder.addAllocateClosure(closureFunction, type, contexts.length);
+  }
+
+  ClosureLayout _computeClosureLayout(ClosureFunction closureFunction) {
+    var hasDelayedTypeArgs = false;
+    var hasClassTypeArgs = false;
+    var hasFunctionTypeArgs = false;
+    switch (typeParametersStyle) {
+      case .separateFunctionAndClassTypeParameters:
+        hasDelayedTypeArgs = closureFunction.hasFunctionTypeParameters;
+
+        final visitor = _FindTypeParameters();
+        closureFunction.functionNode!
+            .computeFunctionType(ast.Nullability.nonNullable)
+            .accept(visitor);
+        hasClassTypeArgs = visitor.containsClassTypeParams;
+
+        hasFunctionTypeArgs = switch (closureFunction) {
+          LocalFunction() => closureFunction.hasGenericEnclosingFunction(),
+          TearOffFunction() => false,
+        };
+    }
+    final numContexts = switch (closureFunction) {
+      LocalFunction() =>
+        scopes
+            .getCapturedContexts(
+              closureFunction.functionNode!,
+              enableAsserts: enableAsserts,
+            )
+            .length,
+      TearOffFunction() =>
+        closureFunction.member.isInstanceMember ? /* receiver */ 1 : 0,
+    };
+    return ClosureLayout(
+      numContexts,
+      hasDelayedTypeArgs: hasDelayedTypeArgs,
+      hasClassTypeArgs: hasClassTypeArgs,
+      hasFunctionTypeArgs: hasFunctionTypeArgs,
+    );
   }
 
   @override
