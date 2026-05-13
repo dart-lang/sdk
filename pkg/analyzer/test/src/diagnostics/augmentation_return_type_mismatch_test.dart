@@ -23,13 +23,10 @@ class A {
 }
 
 augment class A {
-  augment String get foo => '';
+  augment String get foo;
 }
 ''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 61, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 79, 2),
-      ],
+      [error(diag.augmentationReturnTypeMismatch, 61, 6)],
     );
   }
 
@@ -41,7 +38,7 @@ class A {
 }
 
 augment class A {
-  augment int foo() => 0;
+  augment int foo();
 }
 ''',
       [error(diag.augmentationReturnTypeMismatch, 57, 3)],
@@ -55,7 +52,7 @@ class A {
 }
 
 augment class A {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
@@ -68,12 +65,12 @@ extension E on int {
 }
 
 augment extension E {
-  augment String get foo => '';
+  augment String get foo;
 }
 ''',
       [
         error(diag.augmentationReturnTypeMismatch, 76, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 94, 2),
+        error(diag.extensionDeclaresAbstractMember, 87, 3),
       ],
     );
   }
@@ -86,10 +83,13 @@ extension E on int {
 }
 
 augment extension E {
-  augment int foo() => 0;
+  augment int foo();
 }
 ''',
-      [error(diag.augmentationReturnTypeMismatch, 72, 3)],
+      [
+        error(diag.augmentationReturnTypeMismatch, 72, 3),
+        error(diag.extensionDeclaresAbstractMember, 76, 3),
+      ],
     );
   }
 
@@ -101,12 +101,12 @@ extension type A(int it) {
 }
 
 augment extension type A(int it) {
-  augment String get foo => '';
+  augment String get foo;
 }
 ''',
       [
+        error(diag.extensionTypeWithAbstractMember, 87, 23),
         error(diag.augmentationReturnTypeMismatch, 95, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 113, 2),
       ],
     );
   }
@@ -119,10 +119,13 @@ extension type A(int it) {
 }
 
 augment extension type A(int it) {
-  augment int foo() => 0;
+  augment int foo();
 }
 ''',
-      [error(diag.augmentationReturnTypeMismatch, 91, 3)],
+      [
+        error(diag.extensionTypeWithAbstractMember, 83, 18),
+        error(diag.augmentationReturnTypeMismatch, 91, 3),
+      ],
     );
   }
 
@@ -134,13 +137,10 @@ mixin M {
 }
 
 augment mixin M {
-  augment String get foo => '';
+  augment String get foo;
 }
 ''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 61, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 79, 2),
-      ],
+      [error(diag.augmentationReturnTypeMismatch, 61, 6)],
     );
   }
 
@@ -152,7 +152,7 @@ mixin M {
 }
 
 augment mixin M {
-  augment int foo() => 0;
+  augment int foo();
 }
 ''',
       [error(diag.augmentationReturnTypeMismatch, 57, 3)],
@@ -166,7 +166,7 @@ import 'dart:core' as core;
 
 int foo() => 0;
 
-augment core.int foo() => 0;
+augment core.int foo();
 ''');
   }
 
@@ -175,7 +175,7 @@ augment core.int foo() => 0;
       r'''
 void foo() {}
 
-augment int foo() => 0;
+augment int foo();
 ''',
       [error(diag.augmentationReturnTypeMismatch, 23, 3)],
     );
@@ -188,7 +188,7 @@ typedef IntAlias = int;
 
 void foo() {}
 
-augment IntAlias foo() => 0;
+augment IntAlias foo();
 ''',
       [error(diag.augmentationReturnTypeMismatch, 48, 8)],
     );
@@ -200,7 +200,7 @@ augment IntAlias foo() => 0;
 import 'dart:core' as core;
 void foo() {}
 
-augment core.int foo() => 0;
+augment core.int foo();
 ''',
       [error(diag.augmentationReturnTypeMismatch, 51, 8)],
     );
@@ -210,7 +210,7 @@ augment core.int foo() => 0;
     await assertNoErrorsInCode(r'''
 void foo() {}
 
-augment foo() {}
+augment foo();
 ''');
   }
 
@@ -218,7 +218,7 @@ augment foo() {}
     await assertNoErrorsInCode(r'''
 void foo() {}
 
-augment void foo() {}
+augment void foo();
 ''');
   }
 
@@ -228,7 +228,7 @@ typedef VoidAlias = void;
 
 void foo() {}
 
-augment VoidAlias foo() {}
+augment VoidAlias foo();
 ''');
   }
 
@@ -237,12 +237,9 @@ augment VoidAlias foo() {}
       r'''
 int get foo => 0;
 
-augment String get foo => '';
+augment String get foo;
 ''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 27, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 45, 2),
-      ],
+      [error(diag.augmentationReturnTypeMismatch, 27, 6)],
     );
   }
 }
