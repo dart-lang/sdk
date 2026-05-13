@@ -19,15 +19,14 @@ main() {
 @reflectiveTest
 class ConflictingStaticAndInstanceClassTest extends PubPackageResolutionTest {
   test_inClass_instanceMethod_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void foo() {}
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 40, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -47,63 +46,58 @@ augment class A {
   }
 
   test_inClass_staticGetter_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 3)],
-    );
+''');
   }
 
   test_inClass_staticGetter_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 3)],
-    );
+''');
   }
 
   test_inClass_staticGetter_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 3)],
-    );
+''');
   }
 
   test_inClass_staticMethod_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   test_inClass_staticMethod_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -123,191 +117,177 @@ augment class A {
   }
 
   test_inClass_staticMethod_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   test_inClass_staticSetter_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 23, 3)],
-    );
+''');
   }
 
   test_inClass_staticSetter_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 23, 3)],
-    );
+''');
   }
 
   test_inClass_staticSetter_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'C' can't define static member 'foo' and have instance member 'C.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 23, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceGetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 abstract class B implements A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 81, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceGetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 abstract class B implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 78, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
 abstract class B implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 74, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
 abstract class B implements A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 73, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(_) {}
 }
 abstract class B implements A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 77, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(_) {}
 }
 abstract class B implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 74, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(_) {}
 }
 abstract class B implements A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 73, 3)],
-    );
+''');
   }
 
   test_inMixin_instanceGetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 mixin A {
   int get foo => 0;
 }
 class B extends Object with A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 81, 3)],
-    );
+''');
   }
 
   test_inMixin_instanceGetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 mixin A {
   int get foo => 0;
 }
 class B extends Object with A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 78, 3)],
-    );
+''');
   }
 
   test_inMixin_instanceMethod_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
-mixin A {
+    await resolveTestCodeWithDiagnostics('''
+mixin M {
   void foo() {}
 }
-class B extends Object with A {
+class B extends Object with M {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'M.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 74, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -327,59 +307,55 @@ augment mixin A {
   }
 
   test_inMixin_instanceMethod_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void foo() {}
 }
 class B extends Object with A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 73, 3)],
-    );
+''');
   }
 
   test_inMixin_instanceSetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   set foo(_) {}
 }
 class B extends Object with A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 77, 3)],
-    );
+''');
   }
 
   test_inMixin_instanceSetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   set foo(_) {}
 }
 class B extends Object with A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 74, 3)],
-    );
+''');
   }
 
   test_inMixin_instanceSetter_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   set foo(_) {}
 }
 class B extends Object with A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 73, 3)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -399,236 +375,217 @@ augment mixin A {
   }
 
   test_inSuper_implicitObject_staticMethod_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static String runtimeType() => 'x';
+//              ^^^^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'runtimeType' and have instance member 'Object.runtimeType' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 26, 11)],
-    );
+''');
   }
 
   test_inSuper_implicitObject_staticMethod_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static String toString() => 'x';
+//              ^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'toString' and have instance member 'Object.toString' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 26, 8)],
-    );
+''');
   }
 
   test_inSuper_instanceGetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 class B extends A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 69, 3)],
-    );
+''');
   }
 
   test_inSuper_instanceGetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 class B extends A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 66, 3)],
-    );
+''');
   }
 
   test_inSuper_instanceMethod_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
-  int get foo => 0;
+  void foo() {}
 }
 class B extends A {
-  static void foo() {}
+  static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 66, 3)],
-    );
+''');
   }
 
   test_inSuper_instanceMethod_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 class B extends A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 62, 3)],
-    );
+''');
   }
 
   test_inSuper_instanceMethod_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 class B extends A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 61, 3)],
-    );
+''');
   }
 
   test_inSuper_instanceSetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 class B extends A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 65, 3)],
-    );
+''');
   }
 
   test_inSuper_instanceSetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 class B extends A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 62, 3)],
-    );
+''');
   }
 
   test_inSuper_instanceSetter_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 class B extends A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 61, 3)],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class ConflictingStaticAndInstanceEnumTest extends PubPackageResolutionTest {
   test_constant_hashCode() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, hashCode, b
+//   ^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'hashCode' and have instance member 'E.hashCode' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 14, 8)],
-    );
+''');
   }
 
   test_constant_index() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, index, b
+//   ^^^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'index' and have instance member 'E.index' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 14, 5)],
-    );
+''');
   }
 
   test_constant_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   foo;
+//^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 11, 3)],
-    );
+''');
   }
 
   test_constant_noSuchMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, noSuchMethod, b
+//   ^^^^^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'noSuchMethod' and have instance member 'E.noSuchMethod' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 14, 12)],
-    );
+''');
   }
 
   test_constant_runtimeType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, runtimeType, b
+//   ^^^^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'runtimeType' and have instance member 'E.runtimeType' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 14, 11)],
-    );
+''');
   }
 
   test_constant_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   foo;
+//^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 11, 3)],
-    );
+''');
   }
 
   test_constant_toString() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, toString, b
+//   ^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'toString' and have instance member 'E.toString' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 14, 8)],
-    );
+''');
   }
 
   test_field_dartCoreEnum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static final int hashCode = 0;
+//                 ^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'hashCode' and have instance member 'E.hashCode' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 33, 8)],
-    );
+''');
   }
 
   test_field_mixin_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }
@@ -636,15 +593,14 @@ mixin M {
 enum E with M {
   v;
   static final int foo = 0;
+//                 ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 73, 3)],
-    );
+''');
   }
 
   test_field_mixin_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
@@ -652,15 +608,14 @@ mixin M {
 enum E with M {
   v;
   static final int foo = 0;
+//                 ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 69, 3)],
-    );
+''');
   }
 
   test_field_mixin_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set foo(int _) {}
 }
@@ -668,78 +623,72 @@ mixin M {
 enum E with M {
   v;
   static final int foo = 0;
+//                 ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 73, 3)],
-    );
+''');
   }
 
   test_field_this_constant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   foo;
+//^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 11, 3)],
-    );
+''');
   }
 
   test_field_this_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static final int foo = 0;
+//                 ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 33, 3)],
-    );
+''');
   }
 
   test_field_this_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static final int foo = 0;
+//                 ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 33, 3)],
-    );
+''');
   }
 
   test_field_this_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static final int foo = 0;
+//                 ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   set foo(int _) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 33, 3)],
-    );
+''');
   }
 
   test_method_dartCoreEnum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static int hashCode() => 0;
+//           ^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'hashCode' and have instance member 'E.hashCode' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 8)],
-    );
+''');
   }
 
   test_method_mixin_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }
@@ -747,15 +696,14 @@ mixin M {
 enum E with M {
   v;
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 68, 3)],
-    );
+''');
   }
 
   test_method_mixin_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
@@ -763,15 +711,14 @@ mixin M {
 enum E with M {
   v;
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 64, 3)],
-    );
+''');
   }
 
   test_method_mixin_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set foo(int _) {}
 }
@@ -779,75 +726,70 @@ mixin M {
 enum E with M {
   v;
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 68, 3)],
-    );
+''');
   }
 
   test_staticGetter_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 31, 3)],
-    );
+''');
   }
 
   test_staticMethod_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 28, 3)],
-    );
+''');
   }
 
   test_staticMethod_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 28, 3)],
-    );
+''');
   }
 
   test_staticMethod_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   set foo(int _) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 28, 3)],
-    );
+''');
   }
 
   test_staticSetter_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'E' can't define static member 'foo' and have instance member 'E.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 3)],
-    );
+''');
   }
 }
 
@@ -855,617 +797,570 @@ enum E {
 class ConflictingStaticAndInstanceExtensionTypeTest
     extends PubPackageResolutionTest {
   test_inExtensionType_staticGetter_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 44, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticGetter_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int t) {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 43, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticGetter_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 44, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticMethod_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 41, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticMethod_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 41, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticMethod_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 41, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticSetter_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 40, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticSetter_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 40, 3)],
-    );
+''');
   }
 
   test_inExtensionType_staticSetter_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 40, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceGetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
 
 extension type B(int it) implements A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 107, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceGetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
 
 extension type B(int it) implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 104, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
 
 extension type B(int it) implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 104, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
 }
 
 extension type B(int it) implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 100, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
 }
 
 extension type B(int it) implements A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 99, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(_) {}
 }
 
 extension type B(int it) implements A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 103, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(_) {}
 }
 
 extension type B(int it) implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 100, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(_) {}
 }
 
 extension type B(int it) implements A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 99, 3)],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class ConflictingStaticAndInstanceMixinTest extends PubPackageResolutionTest {
   test_dartCoreEnum_index_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   static int index = 0;
+//           ^^^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'index' and have instance member 'Enum.index' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 31, 5)],
-    );
+''');
   }
 
   test_dartCoreEnum_index_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   static int get index => 0;
+//               ^^^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'index' and have instance member 'Enum.index' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 35, 5)],
-    );
+''');
   }
 
   test_dartCoreEnum_index_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   static int index() => 0;
+//           ^^^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'index' and have instance member 'Enum.index' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 31, 5)],
-    );
+''');
   }
 
   test_dartCoreEnum_index_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   static set index(int _) {}
+//           ^^^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'index' and have instance member 'Enum.index' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 31, 5)],
-    );
+''');
   }
 
   test_inConstraint_implicitObject_staticMethod_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static String runtimeType() => 'x';
+//              ^^^^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'runtimeType' and have instance member 'Object.runtimeType' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 26, 11)],
-    );
+''');
   }
 
   test_inConstraint_implicitObject_staticMethod_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static String toString() => 'x';
+//              ^^^^^^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'toString' and have instance member 'Object.toString' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 26, 8)],
-    );
+''');
   }
 
   test_inConstraint_instanceGetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 mixin M on A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 64, 3)],
-    );
+''');
   }
 
   test_inConstraint_instanceGetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 mixin M on A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 61, 3)],
-    );
+''');
   }
 
   test_inConstraint_instanceMethod_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 mixin M on A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 57, 3)],
-    );
+''');
   }
 
   test_inConstraint_instanceMethod_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 mixin M on A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 56, 3)],
-    );
+''');
   }
 
   test_inConstraint_instanceSetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 mixin M on A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 60, 3)],
-    );
+''');
   }
 
   test_inConstraint_instanceSetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 mixin M on A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 57, 3)],
-    );
+''');
   }
 
   test_inConstraint_instanceSetter_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 mixin M on A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 56, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceGetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 mixin M implements A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 72, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceGetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 mixin M implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 69, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 mixin M implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 69, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 mixin M implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 65, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceMethod_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 mixin M implements A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 64, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 mixin M implements A {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 68, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 mixin M implements A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 65, 3)],
-    );
+''');
   }
 
   test_inInterface_instanceSetter_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
 }
 mixin M implements A {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 64, 3)],
-    );
+''');
   }
 
   test_inMixin_staticGetter_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 3)],
-    );
+''');
   }
 
   test_inMixin_staticGetter_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 3)],
-    );
+''');
   }
 
   test_inMixin_staticGetter_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo => 0;
+//               ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 27, 3)],
-    );
+''');
   }
 
   test_inMixin_staticMethod_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   test_inMixin_staticMethod_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   test_inMixin_staticMethod_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   test_inMixin_staticSetter_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   int get foo => 0;
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 23, 3)],
-    );
+''');
   }
 
   test_inMixin_staticSetter_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 23, 3)],
-    );
+''');
   }
 
   test_inMixin_staticSetter_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(_) {}
+//           ^^^
+// [diag.conflictingStaticAndInstance] Class 'M' can't define static member 'foo' and have instance member 'M.foo' with the same name.
   set foo(_) {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 23, 3)],
-    );
+''');
   }
 }

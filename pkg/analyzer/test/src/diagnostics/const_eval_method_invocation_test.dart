@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,19 +15,18 @@ main() {
 @reflectiveTest
 class ConstEvalMethodInvocationTest extends PubPackageResolutionTest {
   test_function() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() {
   return 3;
 }
 const a = f();
-''',
-      [error(diag.constEvalMethodInvocation, 34, 3)],
-    );
+//        ^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
+''');
   }
 
   test_identical() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = identical(1, 1);
 ''');
   }

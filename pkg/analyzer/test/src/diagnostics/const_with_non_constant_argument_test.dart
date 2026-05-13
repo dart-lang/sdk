@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,23 +15,21 @@ main() {
 @reflectiveTest
 class ConstWithNonConstantArgumentTest extends PubPackageResolutionTest {
   test_annotation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int p);
 }
 var v = 42;
 @A(v)
+// ^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 main() {
 }
-''',
-      [error(diag.constWithNonConstantArgument, 45, 1)],
-    );
+''');
   }
 
   test_classShadowedBySetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Annotation {
   const Annotation(Object obj);
 }
@@ -41,32 +38,29 @@ class Bar {}
 
 class Foo {
   @Annotation(Bar)
+//            ^^^
+// [diag.undefinedIdentifier] Undefined name 'Bar'.
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   set Bar(int value) {}
 }
-''',
-      [
-        error(diag.constWithNonConstantArgument, 94, 3),
-        error(diag.undefinedIdentifier, 94, 3),
-      ],
-    );
+''');
   }
 
   test_enumConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a = 42;
 
 enum E {
   v(a);
+//  ^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   const E(_);
 }
-''',
-      [error(diag.constWithNonConstantArgument, 26, 1)],
-    );
+''');
   }
 
   test_enumConstant_constantContext() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v([]);
   const E(_);
@@ -75,20 +69,18 @@ enum E {
   }
 
   test_instanceCreation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(a);
 }
 f(p) { return const A(p); }
-''',
-      [error(diag.constWithNonConstantArgument, 48, 1)],
-    );
+//                    ^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+''');
   }
 
   test_issue47603() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final void Function() c;
   const C(this.c);
@@ -96,9 +88,9 @@ class C {
 
 void main() {
   const C(() {});
+//        ^^^^^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 }
-''',
-      [error(diag.constWithNonConstantArgument, 83, 5)],
-    );
+''');
   }
 }

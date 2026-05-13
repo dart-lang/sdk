@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,7 +16,7 @@ main() {
 class ConstantPatternWithNonConstantExpressionTest
     extends PubPackageResolutionTest {
   test_boolLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case true) {}
 }
@@ -35,7 +34,7 @@ GuardedPattern
   }
 
   test_class_field_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const a = 0;
 }
@@ -66,22 +65,21 @@ GuardedPattern
   }
 
   test_class_field_notConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static final a = 0;
 }
 
 void f(x) {
   if (x case A.a) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
 }
-''',
-      [error(diag.constantPatternWithNonConstantExpression, 60, 3)],
-    );
+''');
   }
 
   test_doubleLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 1.2) {}
 }
@@ -105,7 +103,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -147,7 +145,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -183,7 +181,7 @@ GuardedPattern
   }
 
   test_instanceCreation_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -214,7 +212,7 @@ GuardedPattern
   }
 
   test_intLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0) {}
 }
@@ -232,7 +230,7 @@ GuardedPattern
   }
 
   test_listLiteral_element_intLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const [0]) {}
 }
@@ -256,7 +254,7 @@ GuardedPattern
   }
 
   test_listLiteral_element_localVariable_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const [a]) {}
@@ -282,19 +280,18 @@ GuardedPattern
   }
 
   test_listLiteral_element_localVariable_notConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   final a = 0;
   if (x case const [a]) {}
+//                  ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
 }
-''',
-      [error(diag.constantPatternWithNonConstantExpression, 47, 1)],
-    );
+''');
   }
 
   test_localVariable_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case a) {}
@@ -314,19 +311,18 @@ GuardedPattern
   }
 
   test_localVariable_notConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   var a = 0;
   if (x case a) {}
+//           ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
 }
-''',
-      [error(diag.constantPatternWithNonConstantExpression, 38, 1)],
-    );
+''');
   }
 
   test_mapLiteral_entries_intLiteral_intLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0: 1}) {}
 }
@@ -356,7 +352,7 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_key_localVariable_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const {a: 1}) {}
@@ -388,19 +384,18 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_key_localVariable_notConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   final a = 0;
   if (x case const {a: 1}) {}
+//                  ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
 }
-''',
-      [error(diag.constantPatternWithNonConstantExpression, 47, 1)],
-    );
+''');
   }
 
   test_mapLiteral_entries_value_localVariable_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const {0: a}) {}
@@ -432,19 +427,18 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_value_localVariable_notConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   final a = 0;
   if (x case const {0: a}) {}
+//                     ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
 }
-''',
-      [error(diag.constantPatternWithNonConstantExpression, 50, 1)],
-    );
+''');
   }
 
   test_setLiteral_element_intLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0}) {}
 }
@@ -469,7 +463,7 @@ GuardedPattern
   }
 
   test_setLiteral_element_localVariable_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const {a}) {}
@@ -496,21 +490,20 @@ GuardedPattern
   }
 
   test_switch_constPattern_parameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(e, int a) {
   switch (e) {
     case const (3 + a):
+//                  ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
       break;
   }
 }
-''',
-      [error(diag.constantPatternWithNonConstantExpression, 54, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 void f(x) {
@@ -531,16 +524,15 @@ GuardedPattern
   }
 
   test_topLevelVariable_notConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = 0;
 
 void f(x) {
   if (x case a) {}
+//           ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
 }
-''',
-      [error(diag.constantPatternWithNonConstantExpression, 39, 1)],
-    );
+''');
 
     var node = findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
@@ -555,14 +547,13 @@ GuardedPattern
   }
 
   test_unresolvedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case foo) {}
+//           ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 }
-''',
-      [error(diag.undefinedIdentifier, 33, 3)],
-    );
+''');
 
     var node = findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''

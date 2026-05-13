@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,18 +15,17 @@ main() {
 @reflectiveTest
 class ConstructorBodyTest extends PubPackageResolutionTest {
   test_class_primaryConstructor_const_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const C() {
   this {}
+//     ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
 }
-''',
-      [error(diag.constPrimaryConstructorWithBlockBody, 25, 1)],
-    );
+''');
   }
 
   test_class_primaryConstructor_const_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const C() {
   this;
 }
@@ -35,7 +33,7 @@ class const C() {
   }
 
   test_class_primaryConstructor_const_emptyBody_hasAssert() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const C() {
   this : assert(true);
 }
@@ -43,121 +41,112 @@ class const C() {
   }
 
   test_class_primaryConstructor_const_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const C() {
   this => null;
+//     ^^
+// [diag.constPrimaryConstructorWithExpressionBody] The body part of a constant primary constructor can't have an expression body.
 }
-''',
-      [error(diag.constPrimaryConstructorWithExpressionBody, 25, 2)],
-    );
+''');
   }
 
   test_class_primaryConstructor_const_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const C() {}
 ''');
   }
 
   test_class_primaryConstructor_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   this => 0;
+//     ^^
+// [diag.primaryConstructorBodyWithExpressionBody] A primary constructor body can't use '=>'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithExpressionBody, 19, 2)],
-    );
+''');
   }
 
   test_class_primaryConstructor_modifier_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   this async {}
+//     ^^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'async'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithModifier, 19, 5)],
-    );
+''');
   }
 
   test_class_primaryConstructor_modifier_asyncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   this async* {}
+//     ^^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'async*'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithModifier, 19, 5)],
-    );
+''');
   }
 
   test_class_primaryConstructor_modifier_syncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   this sync* {}
+//     ^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'sync*'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithModifier, 19, 4)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constFactory_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
   const factory C.named() {
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
     return const C();
   }
 }
-''',
-      [error(diag.constFactory, 25, 5)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constFactory_emptyBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const factory C();
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
+//                 ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
-''',
-      [error(diag.constFactory, 12, 5), error(diag.missingFunctionBody, 29, 1)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constFactory_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const factory C() => null;
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
+//                     ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.constFactory, 12, 5),
-        error(diag.returnOfInvalidTypeFromConstructor, 33, 4),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constFactory_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external const factory C() {}
+//                       ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'C', is a potentially non-nullable type.
+//                           ^
+// [diag.externalFactoryWithBody] External factories can't have a body.
 }
-''',
-      [
-        error(diag.bodyMightCompleteNormally, 35, 1),
-        error(diag.externalFactoryWithBody, 39, 1),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constFactory_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external const factory C();
 }
@@ -165,21 +154,19 @@ class C {
   }
 
   test_class_secondaryConstructor_constFactory_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external const factory C() => null;
+//                           ^^
+// [diag.externalFactoryWithBody] External factories can't have a body.
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.externalFactoryWithBody, 39, 2),
-        error(diag.returnOfInvalidTypeFromConstructor, 42, 4),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constFactory_redirecting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
   const factory C.named() = C;
@@ -188,29 +175,27 @@ class C {
   }
 
   test_class_secondaryConstructor_constFactory_redirecting_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const factory C.named() = Unresolved;
+//                          ^^^^^^^^^^
+// [diag.redirectToNonClass] The name 'Unresolved' isn't a type and can't be used in a redirected constructor.
 }
-''',
-      [error(diag.redirectToNonClass, 38, 10)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constGenerative_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C() {}
+//          ^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [error(diag.constConstructorWithBody, 22, 1)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constGenerative_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
 }
@@ -218,7 +203,7 @@ class C {
   }
 
   test_class_secondaryConstructor_constGenerative_emptyBody_hasAssert() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C() : assert(true);
 }
@@ -226,36 +211,31 @@ class C {
   }
 
   test_class_secondaryConstructor_constGenerative_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
   const C.named() => C();
+//                ^^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                ^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
 }
-''',
-      [
-        error(diag.constConstructorWithBody, 41, 2),
-        error(diag.returnInGenerativeConstructor, 41, 7),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constGenerative_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external const C() {}
+//                   ^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 31, 1),
-        error(diag.constConstructorWithBody, 31, 1),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constGenerative_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external const C();
 }
@@ -263,38 +243,34 @@ class C {
   }
 
   test_class_secondaryConstructor_constGenerative_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external const C() => null;
+//                   ^^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                   ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 31, 2),
-        error(diag.constConstructorWithBody, 31, 2),
-        error(diag.returnInGenerativeConstructor, 31, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 34, 4),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constGenerativeRedirecting_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
   const C.named() : this() {}
+//                         ^
+// [diag.redirectingConstructorWithBody] Redirecting constructors can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [
-        error(diag.redirectingConstructorWithBody, 50, 1),
-        error(diag.constConstructorWithBody, 50, 1),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_constGenerativeRedirecting_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
   const C.named() : this();
@@ -303,38 +279,35 @@ class C {
   }
 
   test_class_secondaryConstructor_constGenerativeRedirecting_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
   const C.named() : this() => null;
+//                         ^^
+// [diag.redirectingConstructorWithBody] Redirecting constructors can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                         ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                            ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C.named' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.redirectingConstructorWithBody, 50, 2),
-        error(diag.constConstructorWithBody, 50, 2),
-        error(diag.returnInGenerativeConstructor, 50, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 53, 4),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_factory_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external factory C() {}
+//                 ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'C', is a potentially non-nullable type.
+//                     ^
+// [diag.externalFactoryWithBody] External factories can't have a body.
 }
-''',
-      [
-        error(diag.bodyMightCompleteNormally, 29, 1),
-        error(diag.externalFactoryWithBody, 33, 1),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_factory_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external factory C();
 }
@@ -342,32 +315,29 @@ class C {
   }
 
   test_class_secondaryConstructor_factory_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external factory C() => null;
+//                     ^^
+// [diag.externalFactoryWithBody] External factories can't have a body.
+//                        ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.externalFactoryWithBody, 33, 2),
-        error(diag.returnOfInvalidTypeFromConstructor, 36, 4),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external C() {}
+//             ^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
 }
-''',
-      [error(diag.externalMethodWithBody, 25, 1)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external C();
 }
@@ -375,34 +345,32 @@ class C {
   }
 
   test_class_secondaryConstructor_generative_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external C() => null;
+//             ^^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+//             ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 25, 2),
-        error(diag.returnInGenerativeConstructor, 25, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 28, 4),
-      ],
-    );
+''');
   }
 
   test_enum_primaryConstructor_const_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum const E() {
   v;
   this {}
+//     ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
 }
-''',
-      [error(diag.constPrimaryConstructorWithBlockBody, 29, 1)],
-    );
+''');
   }
 
   test_enum_primaryConstructor_const_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum const E() {
   v;
   this;
@@ -411,7 +379,7 @@ enum const E() {
   }
 
   test_enum_primaryConstructor_const_emptyBody_hasAssert() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum const E() {
   v;
   this : assert(true);
@@ -420,19 +388,18 @@ enum const E() {
   }
 
   test_enum_primaryConstructor_const_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum const E() {
   v;
   this => null;
+//     ^^
+// [diag.constPrimaryConstructorWithExpressionBody] The body part of a constant primary constructor can't have an expression body.
 }
-''',
-      [error(diag.constPrimaryConstructorWithExpressionBody, 29, 2)],
-    );
+''');
   }
 
   test_enum_primaryConstructor_const_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum const E() {
   v;
 }
@@ -440,124 +407,113 @@ enum const E() {
   }
 
   test_enum_primaryConstructor_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this => 0;
+//     ^^
+// [diag.constPrimaryConstructorWithExpressionBody] The body part of a constant primary constructor can't have an expression body.
 }
-''',
-      [error(diag.constPrimaryConstructorWithExpressionBody, 23, 2)],
-    );
+''');
   }
 
   test_enum_primaryConstructor_modifier_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this async {}
+//     ^^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'async'.
+//           ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
 }
-''',
-      [
-        error(diag.primaryConstructorBodyWithModifier, 23, 5),
-        error(diag.constPrimaryConstructorWithBlockBody, 29, 1),
-      ],
-    );
+''');
   }
 
   test_enum_primaryConstructor_modifier_asyncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this async* {}
+//     ^^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'async*'.
+//            ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
 }
-''',
-      [
-        error(diag.primaryConstructorBodyWithModifier, 23, 5),
-        error(diag.constPrimaryConstructorWithBlockBody, 30, 1),
-      ],
-    );
+''');
   }
 
   test_enum_primaryConstructor_modifier_syncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this sync* {}
+//     ^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'sync*'.
+//           ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
 }
-''',
-      [
-        error(diag.primaryConstructorBodyWithModifier, 23, 4),
-        error(diag.constPrimaryConstructorWithBlockBody, 29, 1),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constFactory_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   const factory E.named() {
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
     return v;
   }
 }
-''',
-      [error(diag.constFactory, 29, 5)],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constFactory_emptyBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   const factory E.named();
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
-''',
-      [error(diag.constFactory, 29, 5), error(diag.missingFunctionBody, 52, 1)],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constFactory_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   const factory E.named() => null;
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
+//                           ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.constFactory, 29, 5),
-        error(diag.returnOfInvalidTypeFromConstructor, 56, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constFactory_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   external const factory E.named() {}
+//                       ^^^^^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'E', is a potentially non-nullable type.
+//                                 ^
+// [diag.externalFactoryWithBody] External factories can't have a body.
 }
-''',
-      [
-        error(diag.bodyMightCompleteNormally, 52, 7),
-        error(diag.externalFactoryWithBody, 62, 1),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constFactory_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
@@ -567,48 +523,44 @@ enum E {
   }
 
   test_enum_secondaryConstructor_constFactory_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   external const factory E.named() => null;
+//                                 ^^
+// [diag.externalFactoryWithBody] External factories can't have a body.
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.externalFactoryWithBody, 62, 2),
-        error(diag.returnOfInvalidTypeFromConstructor, 65, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constFactory_redirecting() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   const factory E.named() = E;
+//                          ^
+// [diag.invalidReferenceToGenerativeEnumConstructor] Generative enum constructors can only be used to create an enum constant.
 }
-''',
-      [error(diag.invalidReferenceToGenerativeEnumConstructor, 55, 1)],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constGenerative_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E() {}
+//          ^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [error(diag.constConstructorWithBody, 26, 1)],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constGenerative_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
@@ -617,7 +569,7 @@ enum E {
   }
 
   test_enum_secondaryConstructor_constGenerative_emptyBody_hasAssert() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E() : assert(true);
@@ -626,40 +578,37 @@ enum E {
   }
 
   test_enum_secondaryConstructor_constGenerative_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   const E.named() => null;
+//        ^^^^^
+// [diag.unusedElement] The declaration 'E.named' isn't referenced.
+//                ^^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                   ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.unusedElement, 37, 5),
-        error(diag.constConstructorWithBody, 45, 2),
-        error(diag.returnInGenerativeConstructor, 45, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 48, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constGenerative_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external const E() {}
+//                   ^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 35, 1),
-        error(diag.constConstructorWithBody, 35, 1),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constGenerative_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external const E();
@@ -668,40 +617,36 @@ enum E {
   }
 
   test_enum_secondaryConstructor_constGenerative_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external const E() => null;
+//                   ^^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                   ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 35, 2),
-        error(diag.constConstructorWithBody, 35, 2),
-        error(diag.returnInGenerativeConstructor, 35, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 38, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constGenerativeRedirecting_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v1, v2.named();
   const E();
   const E.named() : this() {}
+//                         ^
+// [diag.redirectingConstructorWithBody] Redirecting constructors can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [
-        error(diag.redirectingConstructorWithBody, 67, 1),
-        error(diag.constConstructorWithBody, 67, 1),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_constGenerativeRedirecting_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v1, v2.named();
   const E();
@@ -711,41 +656,38 @@ enum E {
   }
 
   test_enum_secondaryConstructor_constGenerativeRedirecting_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v1, v2.named();
   const E();
   const E.named() : this() => null;
+//                         ^^
+// [diag.redirectingConstructorWithBody] Redirecting constructors can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                         ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                            ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.redirectingConstructorWithBody, 67, 2),
-        error(diag.constConstructorWithBody, 67, 2),
-        error(diag.returnInGenerativeConstructor, 67, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 70, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_factory_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   external factory E.named() {}
+//                 ^^^^^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'E', is a potentially non-nullable type.
+//                           ^
+// [diag.externalFactoryWithBody] External factories can't have a body.
 }
-''',
-      [
-        error(diag.bodyMightCompleteNormally, 46, 7),
-        error(diag.externalFactoryWithBody, 56, 1),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_factory_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
@@ -755,34 +697,31 @@ enum E {
   }
 
   test_enum_secondaryConstructor_factory_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
   external factory E.named() => null;
+//                           ^^
+// [diag.externalFactoryWithBody] External factories can't have a body.
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.externalFactoryWithBody, 56, 2),
-        error(diag.returnOfInvalidTypeFromConstructor, 59, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_primaryConstructor_const_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   this {}
+//     ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
 }
-''',
-      [error(diag.constPrimaryConstructorWithBlockBody, 40, 1)],
-    );
+''');
   }
 
   test_extensionType_primaryConstructor_const_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   this;
 }
@@ -790,7 +729,7 @@ extension type const E(int it) {
   }
 
   test_extensionType_primaryConstructor_const_emptyBody_hasAssert() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   this : assert(true);
 }
@@ -798,120 +737,111 @@ extension type const E(int it) {
   }
 
   test_extensionType_primaryConstructor_const_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   this => null;
+//     ^^
+// [diag.constPrimaryConstructorWithExpressionBody] The body part of a constant primary constructor can't have an expression body.
 }
-''',
-      [error(diag.constPrimaryConstructorWithExpressionBody, 40, 2)],
-    );
+''');
   }
 
   test_extensionType_primaryConstructor_const_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 ''');
   }
 
   test_extensionType_primaryConstructor_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int x) {
   this => 0;
+//     ^^
+// [diag.primaryConstructorBodyWithExpressionBody] A primary constructor body can't use '=>'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithExpressionBody, 33, 2)],
-    );
+''');
   }
 
   test_extensionType_primaryConstructor_modifier_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int x) {
   this async {}
+//     ^^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'async'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithModifier, 33, 5)],
-    );
+''');
   }
 
   test_extensionType_primaryConstructor_modifier_asyncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int x) {
   this async* {}
+//     ^^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'async*'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithModifier, 33, 5)],
-    );
+''');
   }
 
   test_extensionType_primaryConstructor_modifier_syncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int x) {
   this sync* {}
+//     ^^^^
+// [diag.primaryConstructorBodyWithModifier] A primary constructor body can't have the modifier 'sync*'.
 }
-''',
-      [error(diag.primaryConstructorBodyWithModifier, 33, 4)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constFactory_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const factory E.named() {
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
     return const E(0);
   }
 }
-''',
-      [error(diag.constFactory, 35, 5)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constFactory_emptyBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const factory E.named();
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
-''',
-      [error(diag.constFactory, 35, 5), error(diag.missingFunctionBody, 58, 1)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constFactory_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const factory E.named() => null;
+//^^^^^
+// [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
+//                           ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.constFactory, 35, 5),
-        error(diag.returnOfInvalidTypeFromConstructor, 62, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constFactory_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external const factory E.named() {}
+//                       ^^^^^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'E', is a potentially non-nullable type.
+//                                 ^
+// [diag.externalFactoryWithBody] External factories can't have a body.
 }
-''',
-      [
-        error(diag.bodyMightCompleteNormally, 58, 7),
-        error(diag.externalFactoryWithBody, 68, 1),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constFactory_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external const factory E.named();
 }
@@ -919,21 +849,19 @@ extension type const E(int it) {
   }
 
   test_extensionType_secondaryConstructor_constFactory_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external const factory E.named() => null;
+//                                 ^^
+// [diag.externalFactoryWithBody] External factories can't have a body.
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.externalFactoryWithBody, 68, 2),
-        error(diag.returnOfInvalidTypeFromConstructor, 71, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constFactory_redirecting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const factory E.named(int i) = E;
 }
@@ -941,18 +869,17 @@ extension type const E(int it) {
   }
 
   test_extensionType_secondaryConstructor_constGenerative_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const E.named() : it = 0 {}
+//                         ^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [error(diag.constConstructorWithBody, 60, 1)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constGenerative_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const E.named() : it = 0;
 }
@@ -960,7 +887,7 @@ extension type const E(int it) {
   }
 
   test_extensionType_secondaryConstructor_constGenerative_emptyBody_hasAssert() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const E.named() : it = 0, assert(true);
 }
@@ -968,35 +895,30 @@ extension type const E(int it) {
   }
 
   test_extensionType_secondaryConstructor_constGenerative_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const E.named() : it = 0 => E(0);
+//                         ^^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                         ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
 }
-''',
-      [
-        error(diag.constConstructorWithBody, 60, 2),
-        error(diag.returnInGenerativeConstructor, 60, 8),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constGenerative_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external const E.named() {}
+//                         ^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 60, 1),
-        error(diag.constConstructorWithBody, 60, 1),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constGenerative_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external const E.named();
 }
@@ -1004,37 +926,33 @@ extension type const E(int it) {
   }
 
   test_extensionType_secondaryConstructor_constGenerative_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external const E.named() => null;
+//                         ^^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                         ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                            ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 60, 2),
-        error(diag.constConstructorWithBody, 60, 2),
-        error(diag.returnInGenerativeConstructor, 60, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 63, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constGenerativeRedirecting_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const E.named() : this(0) {}
+//                          ^
+// [diag.redirectingConstructorWithBody] Redirecting constructors can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
-''',
-      [
-        error(diag.redirectingConstructorWithBody, 61, 1),
-        error(diag.constConstructorWithBody, 61, 1),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_constGenerativeRedirecting_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const E.named() : this(0);
 }
@@ -1042,37 +960,34 @@ extension type const E(int it) {
   }
 
   test_extensionType_secondaryConstructor_constGenerativeRedirecting_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const E.named() : this(0) => null;
+//                          ^^
+// [diag.redirectingConstructorWithBody] Redirecting constructors can't have a body.
+// [diag.constConstructorWithBody] Const constructors can't have a body.
+//                          ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                             ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.redirectingConstructorWithBody, 61, 2),
-        error(diag.constConstructorWithBody, 61, 2),
-        error(diag.returnInGenerativeConstructor, 61, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 64, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_factory_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external factory E.named() {}
+//                 ^^^^^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'E', is a potentially non-nullable type.
+//                           ^
+// [diag.externalFactoryWithBody] External factories can't have a body.
 }
-''',
-      [
-        error(diag.bodyMightCompleteNormally, 52, 7),
-        error(diag.externalFactoryWithBody, 62, 1),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_factory_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external factory E.named();
 }
@@ -1080,32 +995,29 @@ extension type const E(int it) {
   }
 
   test_extensionType_secondaryConstructor_factory_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   external factory E.named() => null;
+//                           ^^
+// [diag.externalFactoryWithBody] External factories can't have a body.
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.externalFactoryWithBody, 62, 2),
-        error(diag.returnOfInvalidTypeFromConstructor, 65, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_generative_external_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   external E.named() {}
+//                   ^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
 }
-''',
-      [error(diag.externalMethodWithBody, 48, 1)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_generative_external_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   external E.named();
 }
@@ -1113,17 +1025,16 @@ extension type E(int it) {
   }
 
   test_extensionType_secondaryConstructor_generative_external_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   external E.named() => null;
+//                   ^^
+// [diag.externalMethodWithBody] An external or native method can't have a body.
+//                   ^^^^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.named' because it has a return type of 'E'.
 }
-''',
-      [
-        error(diag.externalMethodWithBody, 48, 2),
-        error(diag.returnInGenerativeConstructor, 48, 8),
-        error(diag.returnOfInvalidTypeFromConstructor, 51, 4),
-      ],
-    );
+''');
   }
 }

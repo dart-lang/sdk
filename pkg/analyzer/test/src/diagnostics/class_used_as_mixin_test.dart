@@ -16,14 +16,13 @@ main() {
 @reflectiveTest
 class ClassUsedAsMixinTest extends PubPackageResolutionTest {
   test_coreLib() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Bar with Comparable<int> {
+//             ^^^^^^^^^^^^^^^
+// [diag.classUsedAsMixin] The class 'Comparable' can't be used as a mixin because it's neither a mixin class nor a mixin.
   int compareTo(int x) => 0;
 }
-''',
-      [error(diag.classUsedAsMixin, 15, 15)],
-    );
+''');
   }
 
   test_coreLib_dartCoreEnum() async {
@@ -48,7 +47,7 @@ abstract class B = Object with Enum;
   }
 
   test_coreLib_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class Bar with Comparable<int> {
   int compareTo(int x) => 0;
@@ -57,56 +56,52 @@ class Bar with Comparable<int> {
   }
 
   test_inside() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo {}
 class Bar with Foo {}
-''',
-      [error(diag.classUsedAsMixin, 28, 3)],
-    );
+//             ^^^
+// [diag.classUsedAsMixin] The class 'Foo' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_inside_class_hasGenerativeConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() {}
 }
 class B extends Object with A {}
-''',
-      [error(diag.classUsedAsMixin, 49, 1)],
-    );
+//                          ^
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_inside_classTypeAlias_hasGenerativeConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() {}
 }
 class B = Object with A;
-''',
-      [error(diag.classUsedAsMixin, 43, 1)],
-    );
+//                    ^
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_inside_enum_hasGenerativeConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() {}
 }
 
 enum E with A {
+//          ^
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
   v
 }
-''',
-      [error(diag.classUsedAsMixin, 34, 1)],
-    );
+''');
   }
 
   test_inside_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class Foo {}
 class Bar with Foo {}
@@ -114,7 +109,7 @@ class Bar with Foo {}
   }
 
   test_inside_mixinClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class Foo {}
 class Bar with Foo {}
 ''');
@@ -125,13 +120,12 @@ class Bar with Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
-''',
-      [error(diag.classUsedAsMixin, 34, 3)],
-    );
+//             ^^^
+// [diag.classUsedAsMixin] The class 'Foo' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_outside_language219() async {
@@ -140,7 +134,7 @@ class Bar with Foo {}
 class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
 ''');
@@ -151,14 +145,13 @@ class Bar with Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 import 'foo.dart';
 class Bar with Foo {}
-''',
-      [error(diag.classUsedAsMixin, 50, 3)],
-    );
+//             ^^^
+// [diag.classUsedAsMixin] The class 'Foo' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_outside_mixinClass() async {
@@ -166,7 +159,7 @@ class Bar with Foo {}
 mixin class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
 ''');
@@ -178,13 +171,12 @@ class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with FooTypedef {}
-''',
-      [error(diag.classUsedAsMixin, 34, 10)],
-    );
+//             ^^^^^^^^^^
+// [diag.classUsedAsMixin] The class 'Foo' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_outside_viaTypedef_inside_language219() async {
@@ -194,7 +186,7 @@ class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with FooTypedef {}
 ''');
@@ -206,7 +198,7 @@ mixin class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with FooTypedef {}
 ''');
@@ -217,14 +209,13 @@ class Bar with FooTypedef {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
-''',
-      [error(diag.classUsedAsMixin, 60, 10)],
-    );
+//             ^^^^^^^^^^
+// [diag.classUsedAsMixin] The class 'Foo' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_outside_viaTypedef_outside_language219() async {
@@ -233,7 +224,7 @@ class Bar with FooTypedef {}
 class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
@@ -245,7 +236,7 @@ class Bar with FooTypedef {}
 mixin class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}

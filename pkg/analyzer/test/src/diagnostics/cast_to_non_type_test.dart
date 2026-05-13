@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,14 +15,13 @@ main() {
 @reflectiveTest
 class CastToNonTypeTest extends PubPackageResolutionTest {
   test_variable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var A = 0;
-f(String s) { var x = s as A; }''',
-      [
-        error(diag.unusedLocalVariable, 29, 1),
-        error(diag.castToNonType, 38, 1),
-      ],
-    );
+f(String s) { var x = s as A; }
+//                ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//                         ^
+// [diag.castToNonType] The name 'A' isn't a type, so it can't be used in an 'as' expression.
+''');
   }
 }

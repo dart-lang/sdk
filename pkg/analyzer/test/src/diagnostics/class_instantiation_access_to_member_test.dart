@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +15,7 @@ main() {
 @reflectiveTest
 class ClassInstantiationAccessToMemberTest extends PubPackageResolutionTest {
   test_alias() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   int i = 1;
 }
@@ -25,14 +23,13 @@ class A<T> {
 typedef TA<T> = A<T>;
 
 var x = TA<int>.i;
-''',
-      [error(diag.classInstantiationAccessToInstanceMember, 60, 9)],
-    );
+//      ^^^^^^^^^
+// [diag.classInstantiationAccessToInstanceMember] The instance member 'i' can't be accessed on a class instantiation.
+''');
   }
 
   test_extensionMember() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E on A {
@@ -40,77 +37,72 @@ extension E on A {
 }
 
 var x = A<int>.i;
-''',
-      [error(diag.classInstantiationAccessToUnknownMember, 63, 8)],
-    );
+//      ^^^^^^^^
+// [diag.classInstantiationAccessToUnknownMember] The class 'A' doesn't have a constructor named 'i'.
+''');
   }
 
   test_instanceMember() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   int i = 1;
 }
 
 var x = A<int>.i;
-''',
-      [error(diag.classInstantiationAccessToInstanceMember, 37, 8)],
-    );
+//      ^^^^^^^^
+// [diag.classInstantiationAccessToInstanceMember] The instance member 'i' can't be accessed on a class instantiation.
+''');
   }
 
   test_instanceSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   set i(int value) {}
 }
 
 void foo() {
   A<int>.i = 7;
+//^^^^^^^^
+// [diag.classInstantiationAccessToInstanceMember] The instance member 'i' can't be accessed on a class instantiation.
 }
-''',
-      [error(diag.classInstantiationAccessToInstanceMember, 53, 8)],
-    );
+''');
   }
 
   test_staticMember() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   static int i = 1;
 }
 
 var x = A<int>.i;
-''',
-      [error(diag.classInstantiationAccessToStaticMember, 44, 8)],
-    );
+//      ^^^^^^^^
+// [diag.classInstantiationAccessToStaticMember] The static member 'i' can't be accessed on a class instantiation.
+''');
   }
 
   test_staticSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   static set i(int value) {}
 }
 
 void bar() {
   A<int>.i = 7;
+//^^^^^^^^
+// [diag.classInstantiationAccessToStaticMember] The static member 'i' can't be accessed on a class instantiation.
 }
-''',
-      [error(diag.classInstantiationAccessToStaticMember, 60, 8)],
-    );
+''');
   }
 
   test_syntheticIdentifier() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
 
 var x = A<int>.;
-''',
-      [error(diag.missingIdentifier, 42, 1)],
-    );
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
   }
 }
