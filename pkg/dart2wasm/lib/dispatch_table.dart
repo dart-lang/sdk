@@ -5,6 +5,7 @@
 import 'dart:math' show min;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/table_selector.dart';
 import 'package:vm/metadata/unreachable.dart';
@@ -110,7 +111,8 @@ class SelectorInfo {
   /// returns are subtypes (resp. supertypes) of the types in the signature.
   w.FunctionType _computeSignature() {
     var nameIndex = paramInfo.nameIndex;
-    final int returnCount = (isSetter || isIndexSetter) ? 0 : 1;
+    final bool isSetterOrIndexSetter = (isSetter || isIndexSetter);
+    final int returnCount = isSetterOrIndexSetter ? 0 : 1;
     List<Set<w.ValueType>> inputSets = List.generate(
       1 + paramInfo.paramCount,
       (_) => {},
@@ -215,7 +217,7 @@ class SelectorInfo {
       outputs.clear();
       synthesizeNullReturnValue = true;
     } else {
-      synthesizeNullReturnValue = false;
+      synthesizeNullReturnValue = isSetterOrIndexSetter;
     }
     return translator.typesBuilder.defineFunction([
       inputs[0],
@@ -444,7 +446,7 @@ class DispatchTable {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
     bool isSetter = target.isSetter;
-    bool isIndexSetter = member.name.text == '[]=';
+    bool isIndexSetter = member.name == indexSetName;
     ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId

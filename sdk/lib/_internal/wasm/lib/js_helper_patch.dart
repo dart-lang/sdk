@@ -455,11 +455,12 @@ WasmI32 _wasmI8ArrayGet(WasmExternRef? ref, WasmI32 index) {
 }
 
 @pragma("wasm:weak-export", "\$wasmI8ArraySet")
-void _wasmI8ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
+WasmVoid _wasmI8ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
   final array = unsafeCastOpaque<WasmArray<WasmI8>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
   );
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
+  return WasmVoid();
 }
 
 @pragma("wasm:export", "\$wasmI16ArrayGet")
@@ -471,11 +472,12 @@ WasmI32 _wasmI16ArrayGet(WasmExternRef? ref, WasmI32 index) {
 }
 
 @pragma("wasm:export", "\$wasmI16ArraySet")
-void _wasmI16ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
+WasmVoid _wasmI16ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
   final array = unsafeCastOpaque<WasmArray<WasmI16>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
   );
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
+  return WasmVoid();
 }
 
 @pragma("wasm:weak-export", "\$wasmI32ArrayGet")
@@ -487,11 +489,12 @@ WasmI32 _wasmI32ArrayGet(WasmExternRef? ref, WasmI32 index) {
 }
 
 @pragma("wasm:weak-export", "\$wasmI32ArraySet")
-void _wasmI32ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
+WasmVoid _wasmI32ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
   final array = unsafeCastOpaque<WasmArray<WasmI32>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
   );
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
+  return WasmVoid();
 }
 
 @pragma("wasm:weak-export", "\$wasmF32ArrayGet")
@@ -503,11 +506,12 @@ WasmF32 _wasmF32ArrayGet(WasmExternRef? ref, WasmI32 index) {
 }
 
 @pragma("wasm:weak-export", "\$wasmF32ArraySet")
-void _wasmF32ArraySet(WasmExternRef? ref, WasmI32 index, WasmF32 value) {
+WasmVoid _wasmF32ArraySet(WasmExternRef? ref, WasmI32 index, WasmF32 value) {
   final array = unsafeCastOpaque<WasmArray<WasmF32>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
   );
   array[index.toIntUnsigned()] = value;
+  return WasmVoid();
 }
 
 @pragma("wasm:weak-export", "\$wasmF64ArrayGet")
@@ -519,9 +523,10 @@ WasmF64 _wasmF64ArrayGet(WasmExternRef? ref, WasmI32 index) {
 }
 
 @pragma("wasm:weak-export", "\$wasmF64ArraySet")
-void _wasmF64ArraySet(WasmExternRef? ref, WasmI32 index, WasmF64 value) {
+WasmVoid _wasmF64ArraySet(WasmExternRef? ref, WasmI32 index, WasmF64 value) {
   final array = unsafeCastOpaque<WasmArray<WasmF64>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
   );
   array[index.toIntUnsigned()] = value;
+  return WasmVoid();
 }

@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
@@ -1507,11 +1508,8 @@ class Translator with KernelNodes {
       }
       if (to != voidMarker) {
         // This can happen e.g. when a `return;` is guaranteed to be never taken
-        // but TFA didn't remove the dead code. In that case we synthesize a
-        // dummy value.
-        getDummyValuesCollectorForModule(
-          b.moduleBuilder,
-        ).instantiateLocalDummyValue(b, to);
+        // but TFA didn't remove the dead code.
+        b.unreachable();
         return;
       }
     }
@@ -1956,7 +1954,7 @@ class Translator with KernelNodes {
       // If [node] is a parameter of a `operator==` method, then the argument to
       // it cannot be nullable.
       final member = node.parent!.parent;
-      if (member is Procedure && member.name.text == '==') {
+      if (member is Procedure && member.name == equalsName) {
         return coreTypes.objectNonNullableRawType;
       }
       // The type argument of a static type is not required to conform
@@ -2721,11 +2719,14 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(targetIndex == target.signature.inputs.length);
     assert(argNameIndex == argNames.length);
 
-    translator.convertType(
-      b,
-      translator.callTarget(target, b).single,
-      translator.outputOrVoid(trampoline.type.outputs),
-    );
+    final outputs = translator.callTarget(target, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(
+        b,
+        outputs.single,
+        translator.outputOrVoid(trampoline.type.outputs),
+      );
+    }
     b.end();
   }
 }
@@ -2912,11 +2913,17 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       inputIdx += 1;
     }
 
-    translator.convertType(
-      b,
-      translator.callTarget(target, b).single,
-      translator.outputOrVoid(function.type.outputs),
-    );
+    final outputs = translator.callTarget(target, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(
+        b,
+        outputs.single,
+        translator.outputOrVoid(function.type.outputs),
+      );
+    } else if (function.type.outputs.isNotEmpty) {
+      assert(target.synthesizeNullReturnValue);
+      b.ref_null(w.HeapType.none);
+    }
 
     b.end(); // end function
   }

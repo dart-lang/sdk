@@ -8,6 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:front_end/src/api_prototype/external_effect.dart'
     show ExternalEffect;
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -1332,7 +1333,7 @@ abstract class AstCodeGenerator
     if (expression != null) {
       translateExpression(expression, returnType);
     } else {
-      translator.convertType(b, voidMarker, returnType);
+      _implicitReturn();
     }
 
     // If we are wrapped in a [TryFinally] node then we have to run finalizers
@@ -1666,7 +1667,7 @@ abstract class AstCodeGenerator
 
     // When calling `==` and the argument is potentially nullable, check if the
     // argument is `null`.
-    if (node.name.text == '==') {
+    if (node.name == equalsName) {
       assert(node.arguments.positional.length == 1);
       assert(node.arguments.named.isEmpty);
       final argument = node.arguments.positional[0];
@@ -1783,7 +1784,7 @@ abstract class AstCodeGenerator
     // accesses on constant lists (see https://dartbug.com/60313)
     if (singleTarget == null &&
         target.kind == ProcedureKind.Operator &&
-        target.name.text == '[]') {
+        target.name == indexGetName) {
       final receiver = node.receiver;
       if (receiver is ConstantExpression && receiver.constant is ListConstant) {
         singleTarget = translator.listBaseIndexOperator;
@@ -1872,6 +1873,9 @@ abstract class AstCodeGenerator
     }
 
     translator.callFunction(forwarder.function, b);
+    if (callShape.isIndexSet) {
+      b.ref_null(w.HeapType.none);
+    }
 
     return translator.topType;
   }
@@ -2163,12 +2167,14 @@ abstract class AstCodeGenerator
     translateExpression(node.value, paramType);
     if (!preserved) {
       call(node.targetReference);
+      b.drop(); // Drop `null` from setter call.
       return voidMarker;
     }
     w.Local temp = addLocal(paramType);
     b.local_tee(temp);
 
     call(reference);
+    b.drop(); // Drop `null` from setter call.
     b.local_get(temp);
     return temp.type;
   }
@@ -2416,6 +2422,7 @@ abstract class AstCodeGenerator
         },
         useUncheckedEntry: useUncheckedEntry,
       );
+      b.drop(); // Drop `null` from setter call.
       if (preserved) {
         b.local_get(temp!);
         return temp!.type;
@@ -2450,6 +2457,7 @@ abstract class AstCodeGenerator
       b.local_tee(temp);
     }
     call(reference);
+    b.drop(); // Drop `null` from setter call.
     if (preserved) {
       b.local_get(temp!);
       return temp.type;
@@ -3810,7 +3818,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       targetProcedure.reference,
       uncheckedEntry: false,
     );
-    final targetSignature = translator.signatureForDirectCall(target);
+    final callTarget = translator.directCallTarget(target);
 
     _initializeThis(reference);
 
@@ -3821,7 +3829,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     // Load the receiver
     final receiverLocal = paramLocals[argReceiverOffset];
     b.local_get(receiverLocal);
-    translator.convertType(b, receiverLocal.type, targetSignature.inputs[0]);
+    translator.convertType(
+      b,
+      receiverLocal.type,
+      callTarget.signature.inputs[0],
+    );
 
     // Load type parameters for target.
     final targetTypeParams = targetFunction.typeParameters;
@@ -3862,7 +3874,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     final targetPositionalParams = targetFunction.positionalParameters;
     for (int i = 0; i < targetParamInfo.positional.length; i++) {
       final targetParamType =
-          targetSignature.inputs[1 + targetParamInfo.typeParamCount + i];
+          callTarget.signature.inputs[1 + targetParamInfo.typeParamCount + i];
       if (i < callShape.positionalCount) {
         // Provided by the caller.
         final paramValue = paramLocals[argPositionalsOffset + i];
@@ -3898,7 +3910,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     final targetNamedParams = targetFunction.namedParameters;
     for (int i = 0; i < targetParamInfo.names.length; ++i) {
       final targetParamType =
-          targetSignature.inputs[1 +
+          callTarget.signature.inputs[1 +
               targetParamInfo.typeParamCount +
               targetParamInfo.positional.length +
               i];
@@ -3935,12 +3947,10 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       }
     }
 
-    call(target);
-    translator.convertType(
-      b,
-      translator.outputOrVoid(targetSignature.outputs),
-      translator.topType,
-    );
+    final outputs = translator.callTarget(callTarget, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(b, outputs.single, returnType);
+    }
     b.return_();
     b.end();
   }
@@ -4026,6 +4036,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       b.local_get(positionalArgLocal);
       translator.convertType(b, positionalArgLocal.type, setterInputs[1]);
       call(target);
+      b.drop(); // Drop `null` from setter call.
     }
 
     b.end(); // end function
@@ -4868,7 +4879,7 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
     if (initFunction == null) {
       // Statically initialized
       definition.read(translator, b);
-      // b.ref_cast(functionType.outputs.single as w.RefType);
+      translator.convertType(b, definition.type, returnType);
     } else {
       if (flag != null) {
         // Explicit initialization flag
@@ -4878,6 +4889,7 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
         b.else_();
         translator.callFunction(initFunction, b);
         b.end();
+        translator.convertType(b, definition.type, returnType);
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
@@ -4885,6 +4897,7 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
         b.br_on_non_null(block);
         translator.callFunction(initFunction, b);
         b.end();
+        translator.convertType(b, initFunction.type.outputs.single, returnType);
       }
     }
   }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'closures.dart';
@@ -272,7 +273,8 @@ class FunctionCollector {
 
   bool synthesizeNullReturnValue(Reference target) {
     final member = target.asMember;
-    if (member is! Procedure) return false;
+    if (target.isSetter) return true;
+    if (member.name == indexSetName) return true;
 
     final returnType = translator.typeOfReturnValue(member);
     final wasmType = translator.translateType(returnType);
@@ -756,9 +758,7 @@ w.FunctionType makeFunctionTypeForBody(
       translator.translateType(translator.typeOfCheckedParameterVariable(p)),
   ];
 
-  final hasNoReturnValue =
-      member is Procedure && (member.isSetter || member.name.text == '[]=') ||
-      synthesizeNullReturnValue;
+  final hasNoReturnValue = synthesizeNullReturnValue;
   final outputs = [
     if (!hasNoReturnValue)
       translator.translateReturnType(translator.typeOfReturnValue(member)),
@@ -796,16 +796,13 @@ w.FunctionType _makeDynamicSignature(
       ], []);
 
     case MethodCallShape():
-      return translator.typesBuilder.defineFunction(
-        [
-          nullableReceiver ? translator.topType : translator.topTypeNonNullable,
-          for (int i = 0; i < shape.typeCount; ++i)
-            translator.translateType(translator.types.typeType),
-          for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
-          for (int i = 0; i < shape.named.length; ++i) translator.topType,
-        ],
-        [translator.topType],
-      );
+      return translator.typesBuilder.defineFunction([
+        nullableReceiver ? translator.topType : translator.topTypeNonNullable,
+        for (int i = 0; i < shape.typeCount; ++i)
+          translator.translateType(translator.types.typeType),
+        for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
+        for (int i = 0; i < shape.named.length; ++i) translator.topType,
+      ], shape.isIndexSet ? [] : [translator.topType]);
   }
 }
 
@@ -850,7 +847,13 @@ w.FunctionType _makeFunctionType(
 
   if (member is Field && !member.isInstanceMember) {
     final fieldType = translator.translateTypeOfField(member);
-    if (target.isImplicitGetter || target.isStaticFieldInitializer) {
+    if (target.isImplicitGetter) {
+      return translator.typesBuilder.defineFunction(
+        const [],
+        synthesizeNullReturnValue ? [] : [fieldType],
+      );
+    }
+    if (target.isStaticFieldInitializer) {
       return translator.typesBuilder.defineFunction(const [], [fieldType]);
     }
     assert(target.isImplicitSetter);
@@ -878,11 +881,8 @@ w.FunctionType _makeFunctionType(
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  final hasNoReturnValue =
-      target.isSetter || member.name.text == '[]=' || synthesizeNullReturnValue;
+  final hasNoReturnValue = target.isSetter || synthesizeNullReturnValue;
   if (hasNoReturnValue) {
-    // Setters and []= are the only functions without any returned values. All
-    // other functions can return values (even `void` returning functions).
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
@@ -909,6 +909,8 @@ final class MethodCallShape extends CallShape {
   final List<String> named;
 
   MethodCallShape(super.name, this.typeCount, this.positionalCount, this.named);
+
+  bool get isIndexSet => name == indexSetName;
 
   @override
   bool get isGetter => false;
