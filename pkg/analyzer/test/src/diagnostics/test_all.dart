@@ -170,6 +170,7 @@ import 'constant_pattern_never_matches_value_type_test.dart'
     as constant_pattern_never_matches_value_type;
 import 'constant_pattern_with_non_constant_expression_test.dart'
     as constant_pattern_with_non_constant_expression;
+import 'constructor_already_complete_test.dart' as constructor_already_complete;
 import 'constructor_body_test.dart' as constructor_body;
 import 'continue_label_invalid_test.dart' as continue_label_invalid;
 import 'could_not_infer_test.dart' as could_not_infer;
@@ -356,6 +357,7 @@ import 'for_in_of_invalid_element_type_test.dart'
     as for_in_of_invalid_element_type;
 import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
 import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
+import 'function_already_complete_test.dart' as function_already_complete;
 import 'function_typed_parameter_var_test.dart' as function_typed_parameter_var;
 import 'generic_function_type_cannot_be_bound_test.dart'
     as generic_function_type_cannot_be_bound;
@@ -1067,6 +1069,7 @@ main() {
     const_with_undefined_constructor.main();
     constant_pattern_never_matches_value_type.main();
     constant_pattern_with_non_constant_expression.main();
+    constructor_already_complete.main();
     constructor_body.main();
     continue_label_invalid.main();
     could_not_infer.main();
@@ -1189,6 +1192,7 @@ main() {
     for_in_of_invalid_element_type.main();
     for_in_of_invalid_type.main();
     for_in_with_const_variable.main();
+    function_already_complete.main();
     function_typed_parameter_var.main();
     generic_function_type_cannot_be_bound.main();
     generic_struct_subclass.main();

@@ -369,6 +369,8 @@ conflicting_constructor_and_static_setter:
   since: 2.15
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+constructor_already_complete:
+  status: needsEvaluation
 conflicting_field_and_method:
   status: noFix
   notes: |-
@@ -825,6 +827,8 @@ for_in_of_invalid_type:
   status: hasFix
 for_in_with_const_variable:
   status: noFix
+function_already_complete:
+  status: needsEvaluation
 generic_function_type_cannot_be_bound:
   status: noFix
 generic_function_type_cannot_be_type_argument:

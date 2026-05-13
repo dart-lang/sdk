@@ -173,7 +173,7 @@ class A {
   int foo = 0;
 }
 augment class A {
-  augment int get foo => 0;
+  augment int get foo;
 }
 ''');
   }
@@ -229,7 +229,7 @@ class A {
   void foo() {}
 }
 augment class A {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
@@ -255,7 +255,7 @@ class A {
   int foo = 0;
 }
 augment class A {
-  augment set foo(int _) {}
+  augment set foo(int _);
 }
 ''');
   }

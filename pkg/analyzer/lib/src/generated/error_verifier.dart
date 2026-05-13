@@ -660,6 +660,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
 
+    if (fragment.isAugmentation && fragment.isCompleteDeclaration) {
+      var precedingComplete = fragment.nearestPrecedingCompleteFragment;
+      if (precedingComplete != null) {
+        diagnosticReporter.report(
+          diag.constructorAlreadyComplete
+              .withContextMessages([
+                ?precedingComplete.contextMessageAt(
+                  "The complete declaration is here.",
+                ),
+              ])
+              .at(node.augmentKeyword!),
+        );
+      }
+    }
+
     _withEnclosingExecutable(
       element,
       () {
@@ -1130,6 +1145,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = fragment.element;
 
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+    _checkForFunctionAlreadyComplete(
+      augmentKeyword: node.augmentKeyword,
+      fragment: fragment,
+    );
     _checkForAugmentationTypeParameters(
       fragment: fragment,
       firstTypeParameters: element.firstFragment.typeParameters,
@@ -1380,6 +1399,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = fragment.element;
 
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+    _checkForFunctionAlreadyComplete(
+      augmentKeyword: node.augmentKeyword,
+      fragment: fragment,
+    );
     _checkForAugmentationTypeParameters(
       fragment: fragment,
       firstTypeParameters: element.firstFragment.typeParameters,
@@ -4482,6 +4505,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             );
           }
         }
+      }
+    }
+  }
+
+  void _checkForFunctionAlreadyComplete({
+    required Token? augmentKeyword,
+    required FragmentImpl fragment,
+  }) {
+    if (augmentKeyword != null && fragment.isCompleteDeclaration) {
+      var precedingComplete = fragment.nearestPrecedingCompleteFragment;
+      if (precedingComplete != null) {
+        diagnosticReporter.report(
+          diag.functionAlreadyComplete
+              .withContextMessages([
+                ?precedingComplete.contextMessageAt(
+                  "The complete declaration is here.",
+                ),
+              ])
+              .at(augmentKeyword),
+        );
       }
     }
   }

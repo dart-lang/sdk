@@ -4405,6 +4405,14 @@ CompileTimeErrorCode:
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
+  constructorAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete."
+    correctionMessage: "Try removing the body, initializers, or initializing formal or super formal parameters from the augmentation, or removing the body, initializers, or initializing formal or super formal parameters from the preceding declaration."
+    hasPublishedDocs: false
   defaultListConstructor:
     type: compileTimeError
     parameters: none
@@ -5006,6 +5014,14 @@ CompileTimeErrorCode:
         C(this.f) {}
       }
       ```
+  functionAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The augmentation can't provide a body because the function or member is already complete."
+    correctionMessage: "Try removing the body from the augmentation, or removing the body from the preceding declaration."
+    hasPublishedDocs: false
   duplicateNamedArgument:
     type: compileTimeError
     parameters:

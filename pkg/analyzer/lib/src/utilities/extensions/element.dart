@@ -265,18 +265,30 @@ extension FormalParameterElementImplExtension on FormalParameterElementImpl {
 extension FragmentImplExtension on FragmentImpl {
   DiagnosticMessageImpl? contextMessageAt(String message) {
     var libraryFragment = this.libraryFragment;
-    var nameOffset = this.nameOffset;
-    var name = this.name;
-    if (libraryFragment != null && nameOffset != null && name != null) {
-      return DiagnosticMessageImpl(
-        filePath: libraryFragment.source.fullName,
-        message: message,
-        offset: nameOffset,
-        length: name.length,
-        url: null,
-      );
+    if (libraryFragment == null) {
+      return null;
     }
-    return null;
+
+    var (:offset, :length) = switch (this) {
+      ConstructorFragmentImpl fragment => (
+        offset: fragment.nameOffset ?? fragment.typeNameOffset,
+        length: fragment.nameOffset != null
+            ? fragment.name.length
+            : fragment.typeName?.length,
+      ),
+      _ => (offset: nameOffset, length: name?.length),
+    };
+    if (offset == null || length == null) {
+      return null;
+    }
+
+    return DiagnosticMessageImpl(
+      filePath: libraryFragment.source.fullName,
+      message: message,
+      offset: offset,
+      length: length,
+      url: null,
+    );
   }
 }
 

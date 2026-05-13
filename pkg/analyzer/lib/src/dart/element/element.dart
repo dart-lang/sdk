@@ -4503,6 +4503,13 @@ abstract class FragmentImpl implements Fragment {
     return null;
   }
 
+  /// The nearest preceding fragment in the augmentation chain that is complete.
+  FragmentImpl? get nearestPrecedingCompleteFragment {
+    return precedingFragments.firstWhereOrNull((fragment) {
+      return fragment.isCompleteDeclaration;
+    });
+  }
+
   @override
   FragmentImpl? get nextFragment;
 

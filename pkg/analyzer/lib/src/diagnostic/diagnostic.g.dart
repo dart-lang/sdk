@@ -2801,6 +2801,24 @@ constPrimaryConstructorWithExpressionBody = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments
+constructorAlreadyComplete = DiagnosticWithoutArgumentsImpl(
+  name: 'declaration_already_complete',
+  problemMessage:
+      "The augmentation can't provide a body, initializers, or initializing "
+      "formal or super formal parameters because the constructor is already "
+      "complete.",
+  correctionMessage:
+      "Try removing the body, initializers, or initializing formal or super "
+      "formal parameters from the augmentation, or removing the body, "
+      "initializers, or initializing formal or super formal parameters from "
+      "the preceding declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'constructor_already_complete',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments constructorWithReturnType =
     DiagnosticWithoutArgumentsImpl(
       name: 'constructor_with_return_type',
@@ -6440,6 +6458,21 @@ const DiagnosticWithoutArguments forInWithConstVariable =
       uniqueName: 'for_in_with_const_variable',
       expectedTypes: [],
     );
+
+/// No parameters.
+const DiagnosticWithoutArguments
+functionAlreadyComplete = DiagnosticWithoutArgumentsImpl(
+  name: 'declaration_already_complete',
+  problemMessage:
+      "The augmentation can't provide a body because the function or member is "
+      "already complete.",
+  correctionMessage:
+      "Try removing the body from the augmentation, or removing the body "
+      "from the preceding declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'function_already_complete',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const DiagnosticWithoutArguments
