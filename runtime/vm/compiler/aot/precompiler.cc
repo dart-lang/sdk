@@ -835,7 +835,8 @@ void Precompiler::CollectCallbackFields() {
               dispatcher = subcls.GetInvocationDispatcher(
                   field_name, args_desc,
                   UntaggedFunction::kInvokeFieldDispatcher,
-                  /* create_if_absent = */ true);
+                  /* create_if_absent = */ true,
+                  field.is_dynamically_callable());
               if (FLAG_trace_precompiler) {
                 THR_Print("Added invoke-field-dispatcher for %s to %s\n",
                           field_name.ToCString(), subcls.ToCString());
@@ -1329,7 +1330,8 @@ void Precompiler::AddClosureCall(const String& call_selector,
       Function::Handle(Z, cache_class.GetInvocationDispatcher(
                               call_selector, arguments_descriptor,
                               UntaggedFunction::kInvokeFieldDispatcher,
-                              true /* create_if_absent */));
+                              /* create_if_absent = */ true,
+                              /* is_dynamically_callable = */ true));
   AddFunction(dispatcher, RetainReasons::kInvokeFieldDispatcher);
 }
 
@@ -1757,7 +1759,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
             function.kind() == UntaggedFunction::kRegularFunction;
         if (is_getter || is_setter || is_regular) {
           selector2 = Function::CreateDynamicInvocationForwarderName(selector);
-          if (IsSent(selector2)) {
+          bool generate_dynamic_forwarder = false;
+          if (function.is_dynamically_callable()) {
+            generate_dynamic_forwarder = true;
+          } else if (IsSent(selector2)) {
             if (function.kind() == UntaggedFunction::kImplicitGetter ||
                 function.kind() == UntaggedFunction::kImplicitSetter) {
               field = function.accessor_field();
@@ -1765,22 +1770,16 @@ void Precompiler::CheckForNewDynamicFunctions() {
             } else if (!found_metadata) {
               metadata = kernel::ProcedureAttributesOf(function, Z);
             }
-
-            if (is_getter) {
-              if (metadata.getter_called_dynamically) {
-                function2 = function.GetDynamicInvocationForwarder(selector2);
-                AddFunction(function2,
-                            RetainReasons::kDynamicInvocationForwarder);
-                functions_called_dynamically_.Insert(function2);
-              }
-            } else {
-              if (metadata.method_or_setter_called_dynamically) {
-                function2 = function.GetDynamicInvocationForwarder(selector2);
-                AddFunction(function2,
-                            RetainReasons::kDynamicInvocationForwarder);
-                functions_called_dynamically_.Insert(function2);
-              }
-            }
+            generate_dynamic_forwarder =
+                is_getter ? metadata.getter_called_dynamically
+                          : metadata.method_or_setter_called_dynamically;
+          }
+          if (generate_dynamic_forwarder) {
+            function2 = function.GetDynamicInvocationForwarder(selector2);
+            ASSERT(function.is_dynamically_callable() ==
+                   function2.is_dynamically_callable());
+            AddFunction(function2, RetainReasons::kDynamicInvocationForwarder);
+            functions_called_dynamically_.Insert(function2);
           }
         }
       }

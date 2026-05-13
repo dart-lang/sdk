@@ -524,6 +524,9 @@ namespace dart {
   V(dyn_module_extendable, "dyn-module:extendable")                            \
   V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
   V(dyn_module_can_be_used_as_type, "dyn-module:can-be-used-as-type")          \
+  V(dyn_module_dynamically_callable, "dyn-module:dynamically-callable")        \
+  V(dyn_module_implicitly_dynamically_callable,                                \
+    "dyn-module:implicitly-dynamically-callable")                              \
   V(executable, "executable")                                                  \
   V(external_effect, "external-effect")                                        \
   V(get, "get")                                                                \

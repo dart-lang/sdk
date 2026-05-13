@@ -180,7 +180,8 @@ class Interpreter {
                     ObjectPtr* call_top,
                     const KBCInstr** pc,
                     ObjectPtr** FP,
-                    ObjectPtr** SP);
+                    ObjectPtr** SP,
+                    bool check_dynamic_call = false);
 
   bool CopyParameters(Thread* thread,
                       const KBCInstr** pc,

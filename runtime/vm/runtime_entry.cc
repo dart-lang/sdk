@@ -2293,7 +2293,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           dispatcher_name, arguments_descriptor,
-          UntaggedFunction::kInvokeFieldDispatcher, create_if_absent));
+          UntaggedFunction::kInvokeFieldDispatcher, create_if_absent,
+          getter.is_dynamically_callable()));
   ASSERT(!create_if_absent || !target_function.IsNull());
   if (FLAG_trace_ic) {
     OS::PrintErr(
@@ -2333,7 +2334,8 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
             *demangled, args_descriptor,
-            UntaggedFunction::kNoSuchMethodDispatcher, create_if_absent));
+            UntaggedFunction::kNoSuchMethodDispatcher, create_if_absent,
+            /* is_dynamically_callable = */ true));
     if (FLAG_trace_ic) {
       OS::PrintErr(
           "NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
@@ -3585,19 +3587,23 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
       // If there is a function with the target name but mismatched arguments
-      // we need to call `receiver.noSuchMethod()`.
+      // we need to call `receiver.noSuchMethod()`. Similarly, if there is a
+      // function that we aren't allowed to invoke because the target function
+      // was not dynamically-callable from a dynamic module.
       if (cls.EnsureIsFinalized(thread) == Error::null()) {
         function = Resolver::ResolveDynamicFunction(zone, cls, target_name);
       }
       if (!function.IsNull()) {
-        ASSERT(!function.AreValidArguments(args_desc, nullptr));
+        ASSERT(!function.is_dynamically_callable() ||
+               !function.AreValidArguments(args_desc, nullptr));
         break;  // mismatch, invoke noSuchMethod
       }
       if (is_dynamic_call) {
         function =
             Resolver::ResolveDynamicFunction(zone, cls, demangled_target_name);
         if (!function.IsNull()) {
-          ASSERT(!function.AreValidArguments(args_desc, nullptr));
+          ASSERT(!function.is_dynamically_callable() ||
+                 !function.AreValidArguments(args_desc, nullptr));
           break;  // mismatch, invoke noSuchMethod
         }
       }

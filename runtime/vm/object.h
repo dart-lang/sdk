@@ -1830,10 +1830,12 @@ class Class : public Object {
   intptr_t FindInvocationDispatcherFunctionIndex(const Function& needle) const;
   FunctionPtr InvocationDispatcherFunctionFromIndex(intptr_t idx) const;
 
-  FunctionPtr GetInvocationDispatcher(const String& target_name,
-                                      const Array& args_desc,
-                                      UntaggedFunction::Kind kind,
-                                      bool create_if_absent) const;
+  FunctionPtr GetInvocationDispatcher(
+      const String& target_name,
+      const Array& args_desc,
+      UntaggedFunction::Kind kind,
+      bool create_if_absent,
+      bool is_dynamically_callable = false) const;
 
   FunctionPtr GetRecordFieldGetter(const String& getter_name) const;
 
@@ -2094,7 +2096,8 @@ class Class : public Object {
 
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
-                                         UntaggedFunction::Kind kind) const;
+                                         UntaggedFunction::Kind kind,
+                                         bool is_dynamically_callable) const;
 
   FunctionPtr CreateRecordFieldGetter(const String& getter_name) const;
 
@@ -4178,6 +4181,8 @@ class Function : public Object {
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
+  // dynamically_callable: host function or dynamic forwarder that can be
+  //                       invoked dynamically from a dynamic module.
 
 // Bits that are set when function is created, don't have to worry about
 // concurrent updates.
@@ -4195,7 +4200,8 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)                                    \
-  V(IsExtensionTypeMember, is_extension_type_member)
+  V(IsExtensionTypeMember, is_extension_type_member)                           \
+  V(IsDynamicallyCallable, is_dynamically_callable)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
 #define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)
@@ -4500,6 +4506,13 @@ class Field : public Object {
   }
   bool has_deeply_immutable_type() const {
     return untag()->kind_bits_.Read<HasDeeplyImmutableTypeBit>();
+  }
+
+  void set_is_dynamically_callable(bool value) const {
+    untag()->kind_bits_.UpdateBool<IsDynamicallyCallableBit>(value);
+  }
+  bool is_dynamically_callable() const {
+    return untag()->kind_bits_.Read<IsDynamicallyCallableBit>();
   }
 
 #if defined(DART_DYNAMIC_MODULES)
@@ -4911,6 +4924,10 @@ class Field : public Object {
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
                NoSanitizeThreadBit::kNextBit>;
+  using IsDynamicallyCallableBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               HasDeeplyImmutableTypeBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
