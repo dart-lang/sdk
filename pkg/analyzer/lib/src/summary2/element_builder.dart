@@ -16,7 +16,6 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:collection/collection.dart';
 
 class ElementBuilder {
   final LibraryBuilder libraryBuilder;
