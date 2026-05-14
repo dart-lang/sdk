@@ -490,6 +490,19 @@ class C {
     );
   }
 
+  test_immutableInstantiation_nonConstConstructor() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@Immutable('')
+class A {
+  A();
+}
+''',
+      [lint(60, 1)],
+    );
+  }
+
   test_implementsImmutable() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';
