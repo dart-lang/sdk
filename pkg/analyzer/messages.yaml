@@ -5022,6 +5022,22 @@ CompileTimeErrorCode:
     problemMessage: "The augmentation can't provide a body because the function or member is already complete."
     correctionMessage: "Try removing the body from the augmentation, or removing the body from the preceding declaration."
     hasPublishedDocs: false
+  functionNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the function, method, getter, or setter
+    experiment: augmentations
+    problemMessage: "The function or member '#name' must have a body after all augmentations are applied."
+    correctionMessage: "Try adding a body to the introductory declaration, or providing an augmentation with a body."
+    hasPublishedDocs: false
+  factoryNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the factory constructor
+    experiment: augmentations
+    problemMessage: "The factory constructor '#name' must have a body or redirection after all augmentations are applied."
+    correctionMessage: "Try adding a body or redirection to the introductory declaration, or providing an augmentation with a body or redirection."
+    hasPublishedDocs: false
   duplicateNamedArgument:
     type: compileTimeError
     parameters:
@@ -6864,6 +6880,7 @@ CompileTimeErrorCode:
       extension type `E` is abstract:
 
       ```dart
+      %language=3.5
       extension type E(String s) {
         [!void m();!]
       }

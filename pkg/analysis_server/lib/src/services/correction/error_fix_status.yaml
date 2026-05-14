@@ -371,6 +371,10 @@ conflicting_constructor_and_static_setter:
     The fix is to rename one of the two, but we can't know what name to use.
 constructor_already_complete:
   status: needsEvaluation
+function_not_complete_after_augmentations:
+  status: needsEvaluation
+factory_not_complete_after_augmentations:
+  status: needsEvaluation
 conflicting_field_and_method:
   status: noFix
   notes: |-

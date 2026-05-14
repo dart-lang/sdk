@@ -170,7 +170,6 @@ import 'constant_pattern_never_matches_value_type_test.dart'
     as constant_pattern_never_matches_value_type;
 import 'constant_pattern_with_non_constant_expression_test.dart'
     as constant_pattern_with_non_constant_expression;
-import 'constructor_already_complete_test.dart' as constructor_already_complete;
 import 'constructor_body_test.dart' as constructor_body;
 import 'continue_label_invalid_test.dart' as continue_label_invalid;
 import 'could_not_infer_test.dart' as could_not_infer;
@@ -259,6 +258,7 @@ import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'equal_keys_in_map_pattern_test.dart' as equal_keys_in_map_pattern;
 import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
+import 'executable_body_test.dart' as executable_body;
 import 'expected_one_list_pattern_type_arguments_test.dart'
     as expected_one_list_pattern_type_arguments;
 import 'expected_one_list_type_arguments_test.dart'
@@ -282,8 +282,6 @@ import 'extends_type_alias_expands_to_type_parameter_test.dart'
 import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
     as extension_conflicting_static_and_instance;
-import 'extension_declares_abstract_method_test.dart'
-    as extension_declares_abstract_method;
 import 'extension_declares_constructor_test.dart'
     as extension_declares_constructor;
 import 'extension_declares_field_test.dart' as extension_declares_field;
@@ -319,11 +317,8 @@ import 'extension_type_representation_depends_on_itself_test.dart'
     as extension_type_representation_depends_on_itself;
 import 'extension_type_representation_type_bottom_test.dart'
     as extension_type_representation_type_bottom;
-import 'extension_type_with_abstract_member_test.dart'
-    as extension_type_with_abstract_member;
 import 'external_field_constructor_initializer_test.dart'
     as external_field_constructor_initializer;
-import 'external_method_with_body_test.dart' as external_method_with_body;
 import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
@@ -357,7 +352,6 @@ import 'for_in_of_invalid_element_type_test.dart'
     as for_in_of_invalid_element_type;
 import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
 import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
-import 'function_already_complete_test.dart' as function_already_complete;
 import 'function_typed_parameter_var_test.dart' as function_typed_parameter_var;
 import 'generic_function_type_cannot_be_bound_test.dart'
     as generic_function_type_cannot_be_bound;
@@ -1071,7 +1065,6 @@ main() {
     const_with_undefined_constructor.main();
     constant_pattern_never_matches_value_type.main();
     constant_pattern_with_non_constant_expression.main();
-    constructor_already_complete.main();
     constructor_body.main();
     continue_label_invalid.main();
     could_not_infer.main();
@@ -1135,6 +1128,7 @@ main() {
     equal_keys_in_const_map.main();
     equal_keys_in_map_pattern.main();
     equal_keys_in_map.main();
+    executable_body.main();
     expected_one_list_pattern_type_arguments.main();
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
@@ -1151,7 +1145,6 @@ main() {
     extends_type_alias_expands_to_type_parameter.main();
     extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
-    extension_declares_abstract_method.main();
     extension_declares_constructor.main();
     extension_declares_field.main();
     extension_declares_member_of_object.main();
@@ -1170,9 +1163,7 @@ main() {
     extension_type_inherited_member_conflict.main();
     extension_type_representation_depends_on_itself.main();
     extension_type_representation_type_bottom.main();
-    extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();
-    external_method_with_body.main();
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
@@ -1194,7 +1185,6 @@ main() {
     for_in_of_invalid_element_type.main();
     for_in_of_invalid_type.main();
     for_in_with_const_variable.main();
-    function_already_complete.main();
     function_typed_parameter_var.main();
     generic_function_type_cannot_be_bound.main();
     generic_struct_subclass.main();

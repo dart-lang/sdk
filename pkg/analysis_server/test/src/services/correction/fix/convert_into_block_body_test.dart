@@ -76,13 +76,15 @@ enum E {
 ''');
   }
 
-  test_extenstionTypeWithAbstractMember_getter() async {
+  test_extensionTypeWithAbstractMember_getter() async {
     await resolveTestCode('''
+// @dart = 3.5
 extension type A(int it) {
   int get g;
 }
 ''');
     await assertHasFix('''
+// @dart = 3.5
 extension type A(int it) {
   int get g {
     // TODO: implement g
@@ -92,13 +94,15 @@ extension type A(int it) {
 ''');
   }
 
-  test_extenstionTypeWithAbstractMember_method() async {
+  test_extensionTypeWithAbstractMember_method() async {
     await resolveTestCode('''
+// @dart = 3.5
 extension type A(int it) {
   void f();
 }
 ''');
     await assertHasFix('''
+// @dart = 3.5
 extension type A(int it) {
   void f() {
     // TODO: implement f

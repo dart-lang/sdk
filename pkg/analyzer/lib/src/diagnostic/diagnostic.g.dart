@@ -5815,6 +5815,25 @@ const DiagnosticWithoutArguments factoryConstructorNewName =
       expectedTypes: [],
     );
 
+/// Parameters:
+/// String name: the name of the factory constructor
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+factoryNotCompleteAfterAugmentations = DiagnosticWithArguments(
+  name: 'factory_not_complete_after_augmentations',
+  problemMessage:
+      "The factory constructor '{0}' must have a body or redirection after all "
+      "augmentations are applied.",
+  correctionMessage:
+      "Try adding a body or redirection to the introductory declaration, or "
+      "providing an augmentation with a body or redirection.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'factory_not_complete_after_augmentations',
+  withArguments: _withArgumentsFactoryNotCompleteAfterAugmentations,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments factoryTopLevelDeclaration =
     DiagnosticWithoutArgumentsImpl(
@@ -6472,6 +6491,25 @@ functionAlreadyComplete = DiagnosticWithoutArgumentsImpl(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'function_already_complete',
   expectedTypes: [],
+);
+
+/// Parameters:
+/// String name: the name of the function, method, getter, or setter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+functionNotCompleteAfterAugmentations = DiagnosticWithArguments(
+  name: 'function_not_complete_after_augmentations',
+  problemMessage:
+      "The function or member '{0}' must have a body after all augmentations are "
+      "applied.",
+  correctionMessage:
+      "Try adding a body to the introductory declaration, or providing an "
+      "augmentation with a body.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'function_not_complete_after_augmentations',
+  withArguments: _withArgumentsFunctionNotCompleteAfterAugmentations,
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -19335,6 +19373,14 @@ LocatableDiagnostic _withArgumentsExtraPositionalArgumentsCouldBeNamed({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsFactoryNotCompleteAfterAugmentations({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.factoryNotCompleteAfterAugmentations, [
+    name,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsFfiNativeUnexpectedNumberOfParameters({
   required int expected,
   required int actual,
@@ -19474,6 +19520,14 @@ LocatableDiagnostic _withArgumentsForInOfInvalidType({
   return LocatableDiagnosticImpl(diag.forInOfInvalidType, [
     expressionType,
     expectedType,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsFunctionNotCompleteAfterAugmentations({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.functionNotCompleteAfterAugmentations, [
+    name,
   ]);
 }
 

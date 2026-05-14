@@ -1639,6 +1639,7 @@ extensionDeclaresAbstractMember:
   problemMessage: "Extensions can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
   script: |
+    // @dart=3.5
     extension E on int {
       void method();
     }
@@ -1656,6 +1657,7 @@ extensionDeclaresAbstractMember:
     have a body:
 
     ```dart
+    %language=3.5
     extension E on String {
       int [!a!]();
     }

@@ -686,6 +686,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
+    _checkForFactoryBodyCompleteness(node);
+
     _withEnclosingExecutable(
       element,
       () {
@@ -1160,6 +1162,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       augmentKeyword: node.augmentKeyword,
       fragment: fragment,
     );
+    _checkForFunctionBodyCompleteness(
+      node: node,
+      nameToken: node.name,
+      fragment: fragment,
+    );
     _checkForAugmentationTypeParameters(
       fragment: fragment,
       firstTypeParameters: element.firstFragment.typeParameters,
@@ -1414,6 +1421,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       augmentKeyword: node.augmentKeyword,
       fragment: fragment,
     );
+    _checkForFunctionBodyCompleteness(
+      node: node,
+      nameToken: node.name,
+      fragment: fragment,
+    );
+    _checkForExtensionDeclaresAbstractMember(node);
     _checkForAugmentationTypeParameters(
       fragment: fragment,
       firstTypeParameters: element.firstFragment.typeParameters,
@@ -4088,6 +4101,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _typeProvider.isNonSubtypableClass(type.element);
   }
 
+  void _checkForExtensionDeclaresAbstractMember(MethodDeclarationImpl node) {
+    if (_featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
+
+    if (_enclosingExtension == null) {
+      return;
+    }
+
+    // Static members without bodies are already reported by the parser.
+    if (node.isStatic) {
+      return;
+    }
+
+    if (node.isAbstract) {
+      diagnosticReporter.report(
+        diag.extensionDeclaresAbstractMember.at(node.name),
+      );
+    }
+  }
+
   void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
     if (node.parent?.parent is! ExtensionDeclaration) {
       return;
@@ -4359,6 +4393,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeWithAbstractMember(
     ExtensionTypeDeclarationImpl node,
   ) {
+    if (_featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
     for (var member in node.body.members) {
       if (member is MethodDeclarationImpl && !member.isStatic) {
         if (member.isAbstract) {
@@ -4393,6 +4430,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     return false;
+  }
+
+  void _checkForFactoryBodyCompleteness(ConstructorDeclarationImpl node) {
+    if (!_featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
+
+    // Report only on the introductory declaration.
+    if (node.augmentKeyword != null) {
+      return;
+    }
+
+    if (node.factoryKeyword == null) {
+      return;
+    }
+
+    var element = node.declaredFragment!.element;
+    if (element.fragments.any((f) => f.isCompleteDeclaration)) {
+      return;
+    }
+
+    if (element.fragments.length == 1) {
+      diagnosticReporter.report(
+        diag.factoryWithoutBody.atSourceRange(node.errorRange),
+      );
+    } else {
+      diagnosticReporter.report(
+        diag.factoryNotCompleteAfterAugmentations
+            .withArguments(name: node.declaredFragment!.name)
+            .atSourceRange(node.errorRange),
+      );
+    }
   }
 
   /// Verify that the given field formal [parameter] is in a constructor
@@ -4538,6 +4607,75 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               .at(augmentKeyword),
         );
       }
+    }
+  }
+
+  void _checkForFunctionBodyCompleteness({
+    required AstNode node,
+    required Token nameToken,
+    required ExecutableFragmentImpl fragment,
+  }) {
+    if (!_featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
+
+    // Report only on the introductory declaration.
+    if (fragment.isAugmentation) {
+      return;
+    }
+
+    var element = fragment.element;
+    var enclosingElement = element.enclosingElement;
+
+    // Instance members are validated for the whole interface.
+    if (!element.isStatic) {
+      if (enclosingElement is ClassElement ||
+          enclosingElement is EnumElement ||
+          enclosingElement is MixinElement) {
+        return;
+      }
+    }
+
+    var name = element.name;
+    if (name == null) {
+      return;
+    }
+
+    if (element.fragments.any((f) => f.isCompleteDeclaration)) {
+      return;
+    }
+
+    if (element.fragments.length == 1) {
+      switch (enclosingElement) {
+        case ExtensionElement() when !element.isStatic:
+          diagnosticReporter.report(
+            diag.extensionDeclaresAbstractMember.at(nameToken),
+          );
+        case ExtensionTypeElement() when !element.isStatic:
+          diagnosticReporter.report(
+            diag.extensionTypeWithAbstractMember
+                .withArguments(
+                  methodName: name,
+                  extensionTypeName: enclosingElement.name!,
+                )
+                .at(node),
+          );
+        case _:
+          var body = switch (node) {
+            MethodDeclaration(:var body) => body,
+            FunctionDeclaration(:var functionExpression) =>
+              functionExpression.body,
+            _ => throw StateError('Unexpected node type: ${node.runtimeType}'),
+          };
+          var errorToken = (body as EmptyFunctionBody).semicolon;
+          diagnosticReporter.report(diag.missingFunctionBody.at(errorToken));
+      }
+    } else {
+      diagnosticReporter.report(
+        diag.functionNotCompleteAfterAugmentations
+            .withArguments(name: name)
+            .at(nameToken),
+      );
     }
   }
 

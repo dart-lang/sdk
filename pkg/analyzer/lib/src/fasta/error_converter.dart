@@ -361,7 +361,8 @@ class FastaErrorReporter {
       // Reported by [ErrorVerifier].
       if (sharedCode == SharedCode.externalFactoryWithBody ||
           sharedCode == SharedCode.redirectingConstructorWithBody ||
-          sharedCode == SharedCode.externalMethodWithBody) {
+          sharedCode == SharedCode.externalMethodWithBody ||
+          sharedCode == SharedCode.extensionDeclaresAbstractMember) {
         return;
       }
       var diagnosticCode = sharedAnalyzerCodes[sharedCode.index];
