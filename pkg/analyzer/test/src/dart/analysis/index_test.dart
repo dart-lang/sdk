@@ -62,6 +62,33 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
     expect(actual, expected);
   }
 
+  test_analyzer_diagnosticCode() async {
+    var diagnosticFile = newFile('$testPackageLibPath/diagnostic.dart', r'''
+const myDiagnosticCode = 0;
+''');
+
+    var diagnosticLibrary = await libraryElementForFile(diagnosticFile);
+    var element = diagnosticLibrary.topLevelVariables.firstWhere(
+      (v) => v.name == 'myDiagnosticCode',
+    );
+
+    newFile('$testPackageLibPath/helper.dart', r'''
+import 'diagnostic.dart';
+''');
+
+    await _indexTestUnit(r'''
+import 'helper.dart';
+
+void f() {
+  '// [diag.myDiagnosticCode] message';
+}
+''');
+
+    assertElementIndexText(element, r'''
+46 4:13 |myDiagnosticCode| IS_REFERENCED_BY qualified
+''');
+  }
+
   test_ClassElement_emptyBody() async {
     await _indexTestUnit(r'''
 class C;

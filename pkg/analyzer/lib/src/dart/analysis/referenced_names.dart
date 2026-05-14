@@ -212,6 +212,10 @@ class _LocalNameScope {
 }
 
 class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
+  static final RegExp _analyzerExpectedDiagnosticPattern = RegExp(
+    r'//[ \t]*\[diag\.([a-zA-Z0-9_]+)\]',
+  );
+
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
 
@@ -373,6 +377,16 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
     // Do add the name.
     names.add(name);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    var lexeme = node.literal.lexeme;
+    var matches = _analyzerExpectedDiagnosticPattern.allMatches(lexeme);
+    for (var match in matches) {
+      names.add(match.group(1)!);
+    }
+    super.visitSimpleStringLiteral(node);
   }
 
   @override

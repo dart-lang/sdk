@@ -324,7 +324,7 @@ class _IndexAssembler {
 
   /// Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
-    unit.accept(_IndexContributor(this));
+    unit.accept(_IndexContributor(this, unit));
 
     // Sort strings and set IDs.
     List<_StringInfo> stringInfoList = stringMap.values.toList(growable: false);
@@ -506,9 +506,20 @@ class _IndexAssembler {
 
 /// Visits a resolved AST and adds relationships into the [assembler].
 class _IndexContributor extends GeneralizingAstVisitor {
-  final _IndexAssembler assembler;
+  static final _expectationPattern = RegExp(
+    r'//[ \t]*\[diag\.([a-zA-Z0-9_]+)\]',
+  );
 
-  _IndexContributor(this.assembler);
+  final _IndexAssembler assembler;
+  final CompilationUnit unit;
+
+  /// Caches the diagnostic library if the unit being indexed is an analyzer
+  /// test file. This enables synthetic indexing of expectation comments
+  /// embedded in string literals (e.g. `// [diag.foo]`).
+  late final LibraryElementImpl? _analyzerDiagnosticLibrary =
+      _findAnalyzerDiagnosticLibrary();
+
+  _IndexContributor(this.assembler, this.unit);
 
   /// Record that the name [node] has a relation of the given [kind].
   void recordNameRelation(
@@ -1173,6 +1184,32 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    // Index analyzer diagnostic expectations inside string literals.
+    if (_analyzerDiagnosticLibrary case var diagnosticLibrary?) {
+      var lexeme = node.literal.lexeme;
+      var matches = _expectationPattern.allMatches(lexeme);
+      var tokenOffset = node.literal.offset;
+      for (var match in matches) {
+        var name = match.group(1)!;
+        var start = (match.end - 1) - name.length;
+        var element = diagnosticLibrary.exportNamespace.get2(name);
+        if (element is GetterElement) {
+          recordRelationOffset(
+            element.variable,
+            IndexRelationKind.IS_REFERENCED_BY,
+            tokenOffset + start,
+            name.length,
+            true,
+          );
+        }
+      }
+    }
+
+    super.visitSimpleStringLiteral(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     if (node.constructorName != null) {
@@ -1315,6 +1352,35 @@ class _IndexContributor extends GeneralizingAstVisitor {
       implementsClause: node.implementsClause,
       memberNodes: node.body.members,
     );
+  }
+
+  LibraryElementImpl? _findAnalyzerDiagnosticLibrary() {
+    var unitLibrary = unit.declaredFragment!.element;
+
+    var uriStr = unitLibrary.uri.toString();
+    var isAnalyzerTest =
+        uriStr.startsWith('package:test/') ||
+        uriStr.contains('/pkg/analyzer/test/');
+    if (!isAnalyzerTest) {
+      return null;
+    }
+
+    if (unitLibrary is LibraryElementImpl) {
+      var elementFactory = unitLibrary.session.elementFactory;
+      var diagnosticLibrary = elementFactory.libraryOfUri(
+        Uri.parse('package:analyzer/src/diagnostic/diagnostic.dart'),
+      );
+      if (diagnosticLibrary != null) {
+        return diagnosticLibrary;
+      }
+      diagnosticLibrary = elementFactory.libraryOfUri(
+        Uri.parse('package:test/diagnostic.dart'),
+      );
+      if (diagnosticLibrary != null) {
+        return diagnosticLibrary;
+      }
+    }
+    return null;
   }
 
   /// If the given [constructor] is a synthetic constructor created for a

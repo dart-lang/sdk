@@ -1498,6 +1498,34 @@ class C {
 ''');
   }
 
+  test_searchReferences_analyzer_diagnosticCode() async {
+    var diagnosticFile = newFile('$testPackageLibPath/diagnostic.dart', r'''
+const myDiagnosticCode = 0;
+''');
+
+    var diagnosticLibrary = await libraryElementForFile(diagnosticFile);
+    var element = diagnosticLibrary.topLevelVariables.firstWhere(
+      (v) => v.name == 'myDiagnosticCode',
+    );
+
+    newFile('$testPackageLibPath/helper.dart', r'''
+import 'diagnostic.dart';
+''');
+
+    await resolveTestCode(r'''
+import 'helper.dart';
+
+void f() {
+  '// [diag.myDiagnosticCode]';
+}
+''');
+
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@28
+  46 4:13 |myDiagnosticCode| REFERENCE qualified
+''');
+  }
+
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_searchReferences_class_constructor_declaredInAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
