@@ -22,7 +22,7 @@ class RecordLiteralOnePositionalNoTrailingCommaTest
 void f((int,) i) {
   f((''));
 //   ^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type '(int,)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type '(int,)'.
 }
 ''');
   }
@@ -32,7 +32,7 @@ void f((int,) i) {
 void f((int,) i) {
   f(1);
 //  ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type '(int,)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type '(int,)'.
 }
 ''');
   }

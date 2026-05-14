@@ -77,7 +77,7 @@ main() {
 //    ^
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 //          ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'NotA Function()' can't be assigned to the parameter type 'F<A>'. 
+// [diag.argumentTypeNotAssignable] The argument type 'NotA Function()' can't be assigned to the parameter type 'F<A>'.
 }
 ''');
   }
@@ -207,7 +207,7 @@ void g(num cb(Object a, Object b)) {}
 void main() {
   g(f);
 //  ^
-// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(Object, Object)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(Object, Object)'.
 }
 ''');
   }
@@ -222,7 +222,7 @@ void g(num cb(Object a, Object b)) {}
 void main() {
   g(a.f);
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(Object, Object)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(Object, Object)'.
 }
 ''');
   }
@@ -234,7 +234,7 @@ void g(int cb(Object a, Object b)) {}
 void main() {
   g(f);
 //  ^
-// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(Object, Object)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(Object, Object)'.
 }
 ''');
   }
@@ -250,7 +250,7 @@ void g(int cb(Object a, Object b)) {}
 void main() {
   g(C().m);
 //  ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(Object, Object)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(Object, Object)'.
 }
 ''');
   }
@@ -312,7 +312,7 @@ class Foo<T extends Pattern> {
 main() {
   new Foo<String>().method(42);
 //                         ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }
 ''');
   }
@@ -364,7 +364,7 @@ class C<P extends num> {
 
 var c = C([]);
 //        ^^
-// [diag.argumentTypeNotAssignable] The argument type 'List<dynamic>' can't be assigned to the parameter type 'Iterable<num>'. 
+// [diag.argumentTypeNotAssignable] The argument type 'List<dynamic>' can't be assigned to the parameter type 'Iterable<num>'.
 ''');
   }
 }

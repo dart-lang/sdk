@@ -30,7 +30,7 @@ class _A {}
 f() {
   g((_A a) {});
 //  ^^^^^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'Null Function(_A)' can't be assigned to the parameter type 'dynamic Function(_A)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'Null Function(_A)' can't be assigned to the parameter type 'dynamic Function(_A)'.
 }''');
     // The name _A is private to the library it's defined in, so this is a type
     // mismatch. Furthermore, the error message should mention both _A and the
@@ -45,7 +45,7 @@ extension type const A(String _) {}
 
 @A(0)
 // ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 void f() {}
 ''');
   }
@@ -57,7 +57,7 @@ class A {
 }
 @A.fromInt('0')
 //         ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 main() {}
 ''');
   }
@@ -69,7 +69,7 @@ class A<T> {
 }
 @A<int>.fromInt('0')
 //              ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 main() {
 }''');
   }
@@ -92,7 +92,7 @@ class A {
 }
 @A('0')
 // ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 main() {
 }''');
   }
@@ -105,7 +105,7 @@ class A {
 f(A a) {
   a + '0';
 //    ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -118,10 +118,10 @@ class A {
 void f(A a, A? aq) {
   a == 0;
 //     ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'A?'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'A?'.
   aq == 1;
 //      ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'A?'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'A?'.
   aq == aq;
   aq == null;
 }
@@ -137,7 +137,7 @@ Predicate<String> f() => (String s) => false;
 void main() {
   f().call(3);
 //         ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -155,7 +155,7 @@ main() {
   A a = new A();
   a..  ma().mb(0);
 //             ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -167,7 +167,7 @@ class A {
 main() {
   const A(42);
 //        ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'int' can't be assigned to a parameter of type 'String' in a const constructor.
 }''');
   }
@@ -180,7 +180,7 @@ class A {
 class B extends A {
   const B() : super(42);
 //                  ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -190,7 +190,7 @@ m() {
   num y = 1;
   n(y);
 //  ^
-// [diag.argumentTypeNotAssignable] The argument type 'num' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'num' can't be assigned to the parameter type 'int'.
 }
 n(int x) {}
 ''');
@@ -202,7 +202,7 @@ m() {
   int? y;
   n(y);
 //  ^
-// [diag.argumentTypeNotAssignable] The argument type 'int?' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 n(int x) {}
 ''');
@@ -223,7 +223,7 @@ n(int i) {}
 enum E {
   v(0);
 //  ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'int' can't be assigned to a parameter of type 'String' in a const constructor.
   const E(String a);
 }
@@ -270,7 +270,7 @@ class C<T> {
 var g = C<int>.new;
 var x = g('Hello');
 //        ^^^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 ''');
   }
 
@@ -299,7 +299,7 @@ void f<T>(T a) {}
 var g = f<int>;
 var x = g('Hello');
 //        ^^^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 ''');
   }
 
@@ -330,7 +330,7 @@ void f<T>(Iterable<T> Function() g, void Function(T) h) {
 main() {
   (int x) {} ('');
 //            ^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -340,7 +340,7 @@ m() {
   var a = new A();
   a.n(() => 0);
 //    ^^^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'void Function()' can't be assigned to the parameter type 'void Function(int)'. 
+// [diag.argumentTypeNotAssignable] The argument type 'void Function()' can't be assigned to the parameter type 'void Function(int)'.
 }
 class A {
   n(void f(int i)) {}
@@ -406,7 +406,7 @@ class A {
 f(A a) {
   a['0'];
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -419,13 +419,13 @@ class A {
 f(A a) {
   a['0'] += 0;
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
   ++a['0'];
 //    ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
   a['0']++;
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -437,7 +437,7 @@ class A {
 f(A a) {
   a['0'] = 0;
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -450,13 +450,13 @@ class A {
 f(A a) {
   a['0'] += 0;
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
   ++a['0'];
 //    ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
   a['0']++;
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -466,7 +466,7 @@ m() {
   var i = '';
   n(i);
 //  ^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }
 n(int i) {}
 ''');
@@ -480,7 +480,7 @@ class A {
 f(A a) {
   a('0');
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -493,7 +493,7 @@ main() {
   A a = new A();
   a('0');
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -502,7 +502,7 @@ main() {
 a(b(int p)) {
   b('0');
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -512,7 +512,7 @@ class A<K, V> {
   m(f(K k), V v) {
     f(v);
 //    ^
-// [diag.argumentTypeNotAssignable] The argument type 'V' can't be assigned to the parameter type 'K'. 
+// [diag.argumentTypeNotAssignable] The argument type 'V' can't be assigned to the parameter type 'K'.
   }
 }''');
   }
@@ -524,7 +524,7 @@ void funBool(bool b) {}
 main() {
   acceptFunOptBool(funBool);
 //                 ^^^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'void Function(bool)' can't be assigned to the parameter type 'void Function([bool])'. 
+// [diag.argumentTypeNotAssignable] The argument type 'void Function(bool)' can't be assigned to the parameter type 'void Function([bool])'.
 }''');
   }
 
@@ -537,7 +537,7 @@ class C {
 main() {
   acceptFunOptBool(C.funBool);
 //                 ^^^^^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'void Function(bool)' can't be assigned to the parameter type 'void Function([bool])'. 
+// [diag.argumentTypeNotAssignable] The argument type 'void Function(bool)' can't be assigned to the parameter type 'void Function([bool])'.
 }''');
   }
 
@@ -549,7 +549,7 @@ class A<T> {
 f(A<String> a) {
   a.m(1);
 //    ^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -559,7 +559,7 @@ f({String p = ''}) {}
 main() {
   f(p: 42);
 //     ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -569,7 +569,7 @@ f([String p = '']) {}
 main() {
   f(42);
 //  ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -579,7 +579,7 @@ f(String p) {}
 main() {
   f(42);
 //  ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -589,7 +589,7 @@ typedef A<T>(T p);
 f(A<int> a) {
   a('1');
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -601,7 +601,7 @@ main() {
   A a = getA();
   a('1');
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -611,7 +611,7 @@ typedef A(int p);
 f(A a) {
   a('1');
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -632,7 +632,7 @@ main() {
   Map<int, int> m = <int, int>{};
   m['x'] = 0;
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }
 ''');
   }
@@ -644,7 +644,7 @@ main() {
   Map<int, int> m = <int, int>{};
   m['x'] ??= 0;
 //  ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }
 ''');
   }
@@ -657,7 +657,7 @@ class A<T> {
 main() {
   new A<String>(42);
 //              ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -669,7 +669,7 @@ class A {
 main() {
   new A(42);
 //      ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 
@@ -681,7 +681,7 @@ class A {
 main() {
   new A(42);
 //      ^^
-// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 

@@ -77,7 +77,7 @@ final class _ExpectedDiagnosticsUpdater {
           length: contextMessage.length,
           caretLength: presentation.caretLength,
           includeExplicitLocation: presentation.includeExplicitLocation,
-          message: _toPosixPaths(contextMessage.messageText(includeUrl: false)),
+          message: _messageText(contextMessage),
         ),
       );
     }
@@ -103,9 +103,7 @@ final class _ExpectedDiagnosticsUpdater {
         caretLength: presentation.caretLength,
         includeExplicitLocation: presentation.includeExplicitLocation,
         contextRefs: contextRefs,
-        message: _toPosixPaths(
-          diagnostic.problemMessage.messageText(includeUrl: false),
-        ),
+        message: _messageText(diagnostic.problemMessage),
       ),
     );
   }
@@ -252,6 +250,11 @@ final class _ExpectedDiagnosticsUpdater {
       }
     }
     return buffer.toString();
+  }
+
+  static String _messageText(DiagnosticMessage message) {
+    var text = message.messageText(includeUrl: false);
+    return _toPosixPaths(text).trim();
   }
 
   static String _toPosixPaths(String message) {

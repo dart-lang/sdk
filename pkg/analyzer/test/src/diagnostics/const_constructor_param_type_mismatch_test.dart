@@ -54,7 +54,7 @@ class A {
 foo(x) => 1;
 var v = const A(foo);
 //              ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'dynamic Function(dynamic)' can't be assigned to the parameter type 'Int2String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'dynamic Function(dynamic)' can't be assigned to the parameter type 'Int2String'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'dynamic Function(dynamic)' can't be assigned to a parameter of type 'String Function(int)' in a const constructor.
 ''');
   }
@@ -212,7 +212,7 @@ class C {
 const A u = const A();
 var v = const C(u);
 //              ^
-// [diag.argumentTypeNotAssignable] The argument type 'A' can't be assigned to the parameter type 'B'. 
+// [diag.argumentTypeNotAssignable] The argument type 'A' can't be assigned to the parameter type 'B'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'A' can't be assigned to a parameter of type 'B' in a const constructor.
 ''');
   }
@@ -229,7 +229,7 @@ class A {
 int foo(String x) => 1;
 var v = const A(foo);
 //              ^^^
-// [diag.argumentTypeNotAssignable] The argument type 'int Function(String)' can't be assigned to the parameter type 'Int2String'. 
+// [diag.argumentTypeNotAssignable] The argument type 'int Function(String)' can't be assigned to the parameter type 'Int2String'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'int Function(String)' can't be assigned to a parameter of type 'String Function(int)' in a const constructor.
 ''');
   }
@@ -242,7 +242,7 @@ class A {
 }
 var v = const A('foo');
 //              ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
 ''');
   }
@@ -266,7 +266,7 @@ class A<T> {
 }
 var v = const A<int>('foo');
 //                   ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
 ''');
   }
@@ -278,7 +278,7 @@ class A {
 }
 var v = const A('foo');
 //              ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'. 
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 // [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
 ''');
   }
