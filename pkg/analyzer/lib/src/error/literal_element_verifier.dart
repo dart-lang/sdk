@@ -239,7 +239,6 @@ class LiteralElementVerifier {
     if (_errorVerifier.checkForUseOfVoidResult(expression)) {
       return;
     }
-
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
@@ -342,7 +341,6 @@ class LiteralElementVerifier {
     if (_errorVerifier.checkForUseOfVoidResult(expression)) {
       return;
     }
-
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
