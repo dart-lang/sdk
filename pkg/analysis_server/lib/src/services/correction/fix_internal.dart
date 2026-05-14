@@ -966,6 +966,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.varAsTypeName: [ReplaceVarWithDynamic.new],
   diag.varReturnType: [RemoveVar.new],
   diag.wrongSeparatorForPositionalParameter: [ReplaceColonWithEquals.new],
+  diag.unawaitedReturnInTryBlock: [AddAwait.return_],
   diag.unexpectedSeparatorInNumber: [RemoveUnexpectedUnderscores.new],
   diag.deadNullAwareExpression: [RemoveDeadIfNull.new],
   diag.invalidNullAwareElement: [ReplaceWithNotNullAwareElementOrEntry.entry],

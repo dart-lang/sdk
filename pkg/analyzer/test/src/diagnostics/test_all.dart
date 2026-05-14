@@ -867,6 +867,8 @@ import 'type_parameter_supertype_of_its_bound_test.dart'
 import 'type_test_with_non_type_test.dart' as type_test_with_non_type;
 import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
+import 'unawaited_return_in_try_block_test.dart'
+    as unawaited_return_in_try_block;
 import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
@@ -1516,6 +1518,7 @@ main() {
     type_parameter_supertype_of_its_bound.main();
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
+    unawaited_return_in_try_block.main();
     undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();

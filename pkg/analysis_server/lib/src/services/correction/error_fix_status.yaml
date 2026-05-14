@@ -1607,6 +1607,8 @@ unchecked_use_of_nullable_value_in_spread:
   status: hasFix
 unchecked_use_of_nullable_value_in_yield_each:
   status: hasFix
+unawaited_return_in_try_block:
+  status: hasFix
 undefined_annotation:
   status: hasFix
 undefined_class:

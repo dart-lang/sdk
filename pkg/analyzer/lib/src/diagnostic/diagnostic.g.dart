@@ -15779,6 +15779,18 @@ typeTestWithUndefinedName = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments unawaitedReturnInTryBlock =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'unawaited_return_in_try_block',
+      problemMessage:
+          "Returning a 'Future' without 'await' inside a try block.",
+      correctionMessage: "Try adding an 'await'.",
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'unawaited_return_in_try_block',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments
 uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
   name: 'unchecked_use_of_nullable_value',

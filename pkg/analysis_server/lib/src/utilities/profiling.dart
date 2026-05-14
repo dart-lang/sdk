@@ -105,10 +105,10 @@ class _WindowsProcessProfiler extends ProcessProfiler {
       ]);
 
       if (result.exitCode != 0) {
-        return Future.value();
+        return await Future.value();
       }
 
-      return Future.value(_parse(result.stdout as String));
+      return await Future.value(_parse(result.stdout as String));
     } catch (e) {
       return Future.error(e);
     }

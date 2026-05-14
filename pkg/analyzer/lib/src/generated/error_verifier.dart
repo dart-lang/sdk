@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -35,6 +36,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessage, DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/async_return_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/const_argument_verifier.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
@@ -216,6 +218,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   final DiagnosticReporter diagnosticReporter;
 
+  /// The visitor used to detect async return await.
+  late final AsyncReturnVisitor _asyncReturnVisitor;
+
   /// The current library that is being analyzed.
   final LibraryElementImpl _currentLibrary;
 
@@ -324,6 +329,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       typeSystem: typeSystem,
       diagnosticReporter: diagnosticReporter,
       strictCasts: strictCasts,
+    );
+    _asyncReturnVisitor = AsyncReturnVisitor(
+      withinTryBlock: true,
+      reportAtToken: _reportUnawaitedReturnInTryBlock,
+      typeProvider: _typeProvider,
+      typeSystem: typeSystem,
     );
   }
 
@@ -1778,6 +1789,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingExecutable._returnsWithout.add(node);
     } else {
       _enclosingExecutable._returnsWith.add(node);
+      _reportMissingAwaitInTryBlock(node);
     }
     _returnTypeVerifier.verifyReturnStatement(node);
     super.visitReturnStatement(node);
@@ -7344,6 +7356,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diag.multipleCombinators.atOffset(offset: offset, length: length),
       );
     }
+  }
+
+  void _reportMissingAwaitInTryBlock(ReturnStatement node) {
+    node.accept(_asyncReturnVisitor);
+  }
+
+  Diagnostic _reportUnawaitedReturnInTryBlock(Token token) {
+    return diagnosticReporter.report(diag.unawaitedReturnInTryBlock.at(token));
   }
 
   void _validateConstructorBodyAllowed({
