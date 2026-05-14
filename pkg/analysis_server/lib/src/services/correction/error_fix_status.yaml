@@ -2165,7 +2165,7 @@ implicit_call_tearoffs:
 implicit_reopen:
   status: hasFix
 initialize_in_field_declaration:
-  status: needsFix
+  status: hasFix
 invalid_case_patterns:
   status: hasFix
 invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type:

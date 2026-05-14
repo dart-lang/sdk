@@ -1243,6 +1243,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Move this doc comment to a library directive',
   );
+  static const moveInitializationToFieldDeclaration = FixKind(
+    'dart.fix.moveInitializationToFieldDeclaration',
+    DartFixKindPriority.standard,
+    "Move the initialization to the field's declaration",
+  );
+  static const moveInitializationToFieldDeclarationMulti = FixKind(
+    'dart.fix.moveInitializationToFieldDeclaration.multi',
+    DartFixKindPriority.standard,
+    "Move initialization to the field's declaration everywhere",
+  );
   static const moveTypeArgumentsToClass = FixKind(
     'dart.fix.moveTypeArgumentsToClass',
     DartFixKindPriority.standard,
