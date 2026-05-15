@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class AssignmentExpressionResolutionTest extends PubPackageResolutionTest {
   test_compound_plus_int_context_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   a += f();
@@ -57,7 +57,7 @@ AssignmentExpression
   }
 
   test_compound_plus_int_context_int_complex() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(List<int> a) {
   a[0] += f();
@@ -110,7 +110,7 @@ AssignmentExpression
   }
 
   test_compound_plus_int_context_int_promoted() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(num a) {
   if (a is int) {
@@ -150,7 +150,7 @@ AssignmentExpression
   }
 
   test_compound_plus_int_context_int_promoted_with_subsequent_demotion() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(num a, bool b) {
   if (a is int) {
@@ -209,7 +209,7 @@ SimpleIdentifier
   }
 
   test_dynamicIdentifier_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   a += 0;
 }
@@ -237,7 +237,7 @@ AssignmentExpression
   }
 
   test_dynamicIdentifier_identifier_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   a.foo += 0;
 }
@@ -273,7 +273,7 @@ AssignmentExpression
   }
 
   test_dynamicIdentifier_identifier_identifier_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   a.foo.bar += 0;
 }
@@ -316,7 +316,7 @@ AssignmentExpression
   }
 
   test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart=3.3
 f(Object? o1, Object? o2, List<num> listNum) {
   if (o1 is Iterable<int>? && o2 is Iterable<num>) {
@@ -351,7 +351,7 @@ AssignmentExpression
 var v = 0;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as prefix;
 
 void f() {
@@ -389,7 +389,7 @@ AssignmentExpression
   }
 
   test_indexExpression_cascade_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -429,7 +429,7 @@ AssignmentExpression
   }
 
   test_indexExpression_dynamicTarget_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   a[0] += 1;
 }
@@ -466,7 +466,7 @@ AssignmentExpression
   }
 
   test_indexExpression_instance_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -509,7 +509,7 @@ AssignmentExpression
   }
 
   test_indexExpression_instance_compound_double_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   num operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -552,7 +552,7 @@ AssignmentExpression
   }
 
   test_indexExpression_instance_ifNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? operator[](int? index) => 0;
   operator[]=(int? index, num? _) {}
@@ -595,7 +595,7 @@ AssignmentExpression
   }
 
   test_indexExpression_instance_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   operator[]=(int index, num _) {}
 }
@@ -637,7 +637,7 @@ AssignmentExpression
   }
 
   test_indexExpression_nullShorting_assignable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   B get b;
 }
@@ -688,8 +688,7 @@ AssignmentExpression
   }
 
   test_indexExpression_nullShorting_notAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   B get b;
 }
@@ -698,10 +697,10 @@ abstract class B {
 }
 test(A? a, String s) {
   a?.b[s] = null;
+//          ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'int'.
 }
-''',
-      [error(diag.invalidAssignment, 121, 4)],
-    );
+''');
 
     var node = findNode.assignment('= null');
     assertResolvedNodeText(node, r'''
@@ -742,7 +741,7 @@ AssignmentExpression
   }
 
   test_indexExpression_super_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -786,7 +785,7 @@ AssignmentExpression
   }
 
   test_indexExpression_this_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -828,17 +827,15 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved1_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int c) {
   a[b] = c;
+//^
+// [diag.undefinedIdentifier] Undefined name 'a'.
+//  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 }
-''',
-      [
-        error(diag.undefinedIdentifier, 18, 1),
-        error(diag.undefinedIdentifier, 20, 1),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -874,17 +871,15 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved2_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a, int c) {
   a[b] = c;
+// ^^^
+// [diag.undefinedOperator] The operator '[]=' isn't defined for the type 'int'.
+//  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 }
-''',
-      [
-        error(diag.undefinedOperator, 26, 3),
-        error(diag.undefinedIdentifier, 27, 1),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -920,18 +915,17 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved3_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   operator[]=(int index, num _) {}
 }
 
 void f(A a, int c) {
   a[b] = c;
+//  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 }
-''',
-      [error(diag.undefinedIdentifier, 73, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -967,31 +961,28 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved_missing_type_parameter_name() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
    void b< extends int>();
+//         ^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 }
 void f(A a) {
   a.b[0] = 0;
+//   ^^^
+// [diag.undefinedOperator] The operator '[]=' isn't defined for the type 'void Function< extends int>()'.
 }
-''',
-      [
-        error(diag.missingIdentifier, 30, 7),
-        error(diag.undefinedOperator, 67, 3),
-      ],
-    );
+''');
   }
 
   test_indexExpression_unresolvedTarget_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   a[0] += 1;
+//^
+// [diag.undefinedIdentifier] Undefined name 'a'.
 }
-''',
-      [error(diag.undefinedIdentifier, 13, 1)],
-    );
+''');
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -1024,19 +1015,16 @@ AssignmentExpression
   }
 
   test_left_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super = 0;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   }
 }
-''',
-      [
-        error(diag.missingAssignableSelector, 27, 5),
-        error(diag.illegalAssignmentToNonAssignable, 27, 5),
-      ],
-    );
+''');
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -1059,17 +1047,14 @@ AssignmentExpression
   }
 
   test_notLValue_binaryExpression_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a, int b, double c) {
   a + b += c;
+//^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 35, 5),
-        error(diag.missingAssignableSelector, 35, 5),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= c');
 
@@ -1105,17 +1090,14 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a, int b, double c) {
   (a + b) += c;
+//^^^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 35, 7),
-        error(diag.missingAssignableSelector, 35, 7),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= c');
 
@@ -1155,17 +1137,15 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a, double b) {
   (a + 0) = b;
+// ^
+// [diag.patternTypeMismatchInIrrefutableContext] The matched value of type 'double' isn't assignable to the required type 'int'.
+//   ^
+// [diag.expectedToken] Expected to find ')'.
 }
-''',
-      [
-        error(diag.patternTypeMismatchInIrrefutableContext, 29, 1),
-        error(diag.expectedToken, 31, 1),
-      ],
-    );
+''');
 
     var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
@@ -1189,18 +1169,15 @@ PatternAssignment
   }
 
   test_notLValue_parenthesized_simple_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(int a, double b) {
   (a + 0) = b;
+//^^^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 44, 7),
-        error(diag.missingAssignableSelector, 44, 7),
-      ],
-    );
+''');
 
     var node = findNode.assignment('= b');
     assertResolvedNodeText(node, r'''
@@ -1238,17 +1215,14 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_compound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(num x, int y) {
   x++ += y;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 25, 3),
-        error(diag.missingAssignableSelector, 25, 3),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= y');
 
@@ -1282,17 +1256,14 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_compound_ifNull() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(num x, int y) {
   x++ ??= y;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 25, 3),
-        error(diag.missingAssignableSelector, 25, 3),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= y');
 
@@ -1326,17 +1297,14 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(num x, int y) {
   x++ = y;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 25, 3),
-        error(diag.missingAssignableSelector, 25, 3),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= y');
 
@@ -1370,17 +1338,14 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_compound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(num x, int y) {
   ++x += y;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 25, 3),
-        error(diag.missingAssignableSelector, 25, 3),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= y');
 
@@ -1414,17 +1379,14 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_compound_ifNull() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(num x, int y) {
   ++x ??= y;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 25, 3),
-        error(diag.missingAssignableSelector, 25, 3),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= y');
 
@@ -1458,17 +1420,14 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(num x, int y) {
   ++x = y;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [
-        error(diag.illegalAssignmentToNonAssignable, 25, 3),
-        error(diag.missingAssignableSelector, 25, 3),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('= y');
 
@@ -1504,16 +1463,15 @@ AssignmentExpression
   test_notLValue_typeLiteral_class_ambiguous_simple() async {
     newFile('$testPackageLibPath/a.dart', 'class C {}');
     newFile('$testPackageLibPath/b.dart', 'class C {}');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 import 'b.dart';
 void f() {
   C = 0;
+//^
+// [diag.ambiguousImport] The name 'C' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
-''',
-      [error(diag.ambiguousImport, 47, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('C = 0');
 
@@ -1540,16 +1498,15 @@ AssignmentExpression
   }
 
   test_notLValue_typeLiteral_class_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 void f() {
   C = 0;
+//^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 25, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('C = 0');
 
@@ -1574,7 +1531,7 @@ AssignmentExpression
   }
 
   test_nullAware_context() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int? a) {
   a ??= f();
@@ -1612,7 +1569,7 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_instance_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   set x(num _) {}
@@ -1654,7 +1611,7 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_instance_ifNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? get x => 0;
   set x(num? _) {}
@@ -1696,7 +1653,7 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_instance_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
 }
@@ -1737,18 +1694,17 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_instanceGetter_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
 }
 
 void f(A a) {
   a.x = 2;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 49, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -2220,7 +2176,7 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_static_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set x(num _) {}
 }
@@ -2261,18 +2217,17 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_staticGetter_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get x => 0;
 }
 
 void f() {
   A.x = 2;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 53, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -2309,7 +2264,7 @@ AssignmentExpression
 int get x => 0;
 set x(num _) {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 
 void f() {
@@ -2348,7 +2303,7 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_typeAlias_static_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get x => 0;
   static set x(int _) {}
@@ -2392,14 +2347,13 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_unresolved1_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int c) {
   a.b = c;
+//^
+// [diag.undefinedIdentifier] Undefined name 'a'.
 }
-''',
-      [error(diag.undefinedIdentifier, 18, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('a.b = c');
 
@@ -2433,14 +2387,14 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_unresolved2_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a, int c) {
   a.b += c;
+//  ^
+// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'int'.
+// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
 }
-''',
-      [error(diag.undefinedGetter, 27, 1), error(diag.undefinedSetter, 27, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('a.b += c');
 
@@ -2474,7 +2428,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_cascade_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   set x(num _) {}
@@ -2511,7 +2465,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_forwardingStub() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
 }
@@ -2562,7 +2516,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_instance_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   set x(num _) {}
@@ -2607,7 +2561,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_instance_fromMixins_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M1 {
   int get x => 0;
   set x(num _) {}
@@ -2660,7 +2614,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_instance_ifNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? get x => 0;
   set x(num? _) {}
@@ -2705,7 +2659,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_instance_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
 }
@@ -2749,7 +2703,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_nullShorting_assignable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   B get b;
 }
@@ -2797,8 +2751,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_nullShorting_notAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   B get b;
 }
@@ -2807,10 +2760,10 @@ abstract class B {
 }
 test(A? a) {
   a?.b.setter = null;
+//              ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'int'.
 }
-''',
-      [error(diag.invalidAssignment, 103, 4)],
-    );
+''');
 
     var node = findNode.assignment('= null');
     assertResolvedNodeText(node, r'''
@@ -2967,14 +2920,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FFFF_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int bar}) r) {
   r.foo += 0;
+//  ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '({int bar})'.
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({int bar})'.
 }
-''',
-      [error(diag.undefinedGetter, 28, 3), error(diag.undefinedSetter, 28, 3)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3009,14 +2962,13 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FFFF_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int bar}) r) {
   r.foo = 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({int bar})'.
 }
-''',
-      [error(diag.undefinedSetter, 28, 3)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3051,18 +3003,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_FFFT_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int bar}) {
   set foo(int _) {}
 }
 
 void f(({int bar}) r) {
   r.foo += 0;
+//  ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '({int bar})'.
 }
-''',
-      [error(diag.undefinedGetter, 80, 3)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3097,7 +3048,7 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_FFFT_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int bar}) {
   set foo(int _) {}
 }
@@ -3140,18 +3091,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FTFF_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int bar}) {
   int get foo => 0;
 }
 
 void f(({int bar}) r) {
   r.foo += 0;
+//  ^^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E'.
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 80, 3)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3186,18 +3136,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FTFF_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int bar}) {
   int get foo => 0;
 }
 
 void f(({int bar}) r) {
   r.foo = 0;
+//  ^^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E'.
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 80, 3)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3232,7 +3181,7 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_FTFT_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3276,7 +3225,7 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_FTFT_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3320,14 +3269,13 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TFFF_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo, String bar}) r) {
   r.foo += 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 40, 3)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3362,14 +3310,13 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TFFF_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo, String bar}) r) {
   r.foo = 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 40, 3)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3404,18 +3351,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TFFT_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int foo, String bar}) {
   set foo(int _) {}
 }
 
 void f(({int foo, String bar}) r) {
   r.foo += 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 104, 3)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3450,18 +3396,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TFFT_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int foo, String bar}) {
   set foo(int _) {}
 }
 
 void f(({int foo, String bar}) r) {
   r.foo = 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 104, 3)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3496,18 +3441,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TTFF_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
 
 void f(({int foo, String bar}) r) {
   r.foo += 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 104, 3)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3542,18 +3486,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TTFF_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
 
 void f(({int foo, String bar}) r) {
   r.foo = 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 104, 3)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3588,8 +3531,7 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TTFT_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3597,10 +3539,10 @@ extension E on ({int foo, String bar}) {
 
 void f(({int foo, String bar}) r) {
   r.foo += 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 124, 3)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3635,8 +3577,7 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TTFT_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3644,10 +3585,10 @@ extension E on ({int foo, String bar}) {
 
 void f(({int foo, String bar}) r) {
   r.foo = 0;
+//  ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
 }
-''',
-      [error(diag.undefinedSetter, 124, 3)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3682,14 +3623,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FFFF_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$4 += 0;
+//  ^^
+// [diag.undefinedGetter] The getter '$4' isn't defined for the type '(int, String)'.
+// [diag.undefinedSetter] The setter '$4' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedGetter, 30, 2), error(diag.undefinedSetter, 30, 2)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3724,14 +3665,13 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FFFF_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$4 = 0;
+//  ^^
+// [diag.undefinedSetter] The setter '$4' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedSetter, 30, 2)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3766,18 +3706,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FTFF_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   int get $3 => 0;
 }
 
 void f((int, String) r) {
   r.$3 += 0;
+//  ^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named '$3' in class 'E'.
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 83, 2)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3812,18 +3751,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FTFF_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   int get $3 => 0;
 }
 
 void f((int, String) r) {
   r.$3 = 0;
+//  ^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named '$3' in class 'E'.
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 83, 2)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3858,14 +3796,13 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_TFFF_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$1 += 0;
+//  ^^
+// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedSetter, 30, 2)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3900,14 +3837,13 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_TFFF_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$1 = 0;
+//  ^^
+// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedSetter, 30, 2)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3942,18 +3878,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_positional_TFFT_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   set $1(int _) {}
 }
 
 void f((int, String) r) {
   r.$1 += 0;
+//  ^^
+// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedSetter, 83, 2)],
-    );
+''');
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3988,18 +3923,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_positional_TFFT_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   set $1(int _) {}
 }
 
 void f((int, String) r) {
   r.$1 = 0;
+//  ^^
+// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedSetter, 83, 2)],
-    );
+''');
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -4030,7 +3964,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_super_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
   int get x => 0;
@@ -4075,7 +4009,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_this_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   set x(num _) {}
@@ -4115,14 +4049,13 @@ AssignmentExpression
   }
 
   test_propertyAccess_unresolved1_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int c) {
   (a).b = c;
+// ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
 }
-''',
-      [error(diag.undefinedIdentifier, 19, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('(a).b = c');
 
@@ -4159,14 +4092,13 @@ AssignmentExpression
   }
 
   test_propertyAccess_unresolved2_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a, int c) {
   (a).b = c;
+//    ^
+// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
 }
-''',
-      [error(diag.undefinedSetter, 29, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('(a).b = c');
 
@@ -4203,16 +4135,15 @@ AssignmentExpression
   }
 
   test_right_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f(Object a) {
     a = super;
+//      ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 39, 5)],
-    );
+''');
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -4235,7 +4166,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_fieldInstance_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   num x = 0;
 
@@ -4268,7 +4199,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_fieldStatic_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static num x = 0;
 
@@ -4301,18 +4232,17 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterInstance_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   num get x => 0;
 
   void f() {
     x = 2;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'C'.
   }
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 46, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4337,18 +4267,17 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterStatic_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   static num get x => 0;
 
   void f() {
     x = 2;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'C'.
   }
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 53, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4373,16 +4302,15 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterTopLevel_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int get x => 0;
 
 void f() {
   x = 2;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [error(diag.assignmentToFinal, 30, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4407,8 +4335,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_importPrefix_hasSuperSetter_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:math' as x;
 
 class A {
@@ -4418,11 +4345,11 @@ class A {
 class B extends A {
   void f() {
     x = 2;
+//  ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'x' refers to an import prefix, so it must be followed by '.'.
   }
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 85, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4447,16 +4374,15 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_importPrefix_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:math' as x;
 
 main() {
   x = 2;
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'x' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 37, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4481,7 +4407,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariable_compound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   num x = 0;
@@ -4512,7 +4438,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariable_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   num x = 0;
@@ -4543,16 +4469,15 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariableConst_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   // ignore:unused_local_variable
   const num x = 1;
   x = 2;
+//^
+// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
 }
-''',
-      [error(diag.assignmentToConst, 66, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4577,16 +4502,15 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariableFinal_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   // ignore:unused_local_variable
   final num x = 1;
   x = 2;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 66, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4611,7 +4535,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(num? x) {
   x ??= 0;
 }
@@ -4640,18 +4564,17 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_ifNull2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B extends A {}
 class C extends A {}
 
 void f(B? x) {
   x ??= C();
+//      ^^^
+// [diag.invalidAssignment] A value of type 'C' can't be assigned to a variable of type 'B?'.
 }
-''',
-      [error(diag.invalidAssignment, 77, 3)],
-    );
+''');
 
     var assignment = findNode.assignment('x ??=');
 
@@ -4684,14 +4607,13 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_ifNull_notAssignableType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(double? a, int b) {
   a ??= b;
+//      ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'double?'.
 }
-''',
-      [error(diag.invalidAssignment, 35, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('a ??=');
 
@@ -4717,22 +4639,22 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_refineType_int_double() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x += 1.2;
+//     ^^^
+// [diag.invalidAssignment] A value of type 'double' can't be assigned to a variable of type 'int'.
   x -= 1.2;
+//     ^^^
+// [diag.invalidAssignment] A value of type 'double' can't be assigned to a variable of type 'int'.
   x *= 1.2;
+//     ^^^
+// [diag.invalidAssignment] A value of type 'double' can't be assigned to a variable of type 'int'.
   x %= 1.2;
+//     ^^^
+// [diag.invalidAssignment] A value of type 'double' can't be assigned to a variable of type 'int'.
 }
-''',
-      [
-        error(diag.invalidAssignment, 23, 3),
-        error(diag.invalidAssignment, 35, 3),
-        error(diag.invalidAssignment, 47, 3),
-        error(diag.invalidAssignment, 59, 3),
-      ],
-    );
+''');
     assertType(findNode.assignment('+='), 'double');
     assertType(findNode.assignment('-='), 'double');
     assertType(findNode.assignment('*='), 'double');
@@ -4740,7 +4662,7 @@ void f(int x) {
   }
 
   test_simpleIdentifier_parameter_compound_refineType_int_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x += 1;
   x -= 1;
@@ -4757,7 +4679,7 @@ void f(int x) {
   }
 
   test_simpleIdentifier_parameter_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   x = 2;
 }
@@ -4786,7 +4708,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_simple_context() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x is double) {
     x = 1;
@@ -4817,14 +4739,13 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_simple_notAssignableType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x = true;
+//    ^^^^
+// [diag.invalidAssignment] A value of type 'bool' can't be assigned to a variable of type 'int'.
 }
-''',
-      [error(diag.invalidAssignment, 22, 4)],
-    );
+''');
 
     var assignment = findNode.assignment('x = true');
 
@@ -4849,15 +4770,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameterFinal_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.10
 void f(final int x) {
   x = 2;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 40, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4882,25 +4802,23 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_staticGetter_superSetter_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set x(num _) {}
 }
 
 class B extends A {
   static int get x => 1;
+//               ^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'x' and have instance member 'A.x' with the same name.
 
   void f() {
     x = 2;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'B'.
   }
 }
-''',
-      [
-        error(diag.conflictingStaticAndInstance, 68, 1),
-        error(diag.assignmentToFinalNoSetter, 94, 1),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -5223,7 +5141,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topGetter_topSetter_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int get x => 0;
 set x(num _) {}
 
@@ -5255,10 +5173,11 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topGetter_topSetter_compound_ifNull2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   x ??= C();
+//      ^^^
+// [diag.invalidAssignment] A value of type 'C' can't be assigned to a variable of type 'B?'.
 }
 
 class A {}
@@ -5267,9 +5186,7 @@ class C extends A {}
 
 B? get x => B();
 set x(B? _) {}
-''',
-      [error(diag.invalidAssignment, 19, 3)],
-    );
+''');
 
     var assignment = findNode.assignment('x ??=');
 
@@ -5302,7 +5219,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topGetter_topSetter_fromClass_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int get x => 0;
 set x(num _) {}
 
@@ -5336,7 +5253,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topLevelVariable_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 num x = 0;
 
 void f() {
@@ -5367,16 +5284,15 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topLevelVariable_simple_notAssignableType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 0;
 
 void f() {
   x = true;
+//    ^^^^
+// [diag.invalidAssignment] A value of type 'bool' can't be assigned to a variable of type 'int'.
 }
-''',
-      [error(diag.invalidAssignment, 29, 4)],
-    );
+''');
 
     var assignment = findNode.assignment('x = true');
 
@@ -5401,16 +5317,15 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topLevelVariableFinal_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final num x = 0;
 
 void f() {
   x = 2;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
-''',
-      [error(diag.assignmentToFinal, 31, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -5435,14 +5350,13 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_typeLiteral_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int += 3;
+//^^^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 13, 3)],
-    );
+''');
 
     var assignment = findNode.assignment('int += 3');
 
@@ -5467,14 +5381,13 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_typeLiteral_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int = 0;
+//^^^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 13, 3)],
-    );
+''');
 
     var assignment = findNode.assignment('int = 0');
 
@@ -5499,14 +5412,13 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_unresolved_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   x += 1;
+//^
+// [diag.undefinedIdentifier] Undefined name 'x'.
 }
-''',
-      [error(diag.undefinedIdentifier, 13, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x += 1');
 
@@ -5531,14 +5443,13 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_unresolved_simple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   x = a;
+//^
+// [diag.undefinedIdentifier] Undefined name 'x'.
 }
-''',
-      [error(diag.undefinedIdentifier, 18, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = a');
 
@@ -5567,7 +5478,7 @@ AssignmentExpression
 @reflectiveTest
 class InferenceUpdate3Test extends PubPackageResolutionTest {
   test_ifNull_contextIsConvertedToATypeUsingGreatestClosure() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1<T> extends A {}
 class B2<T> extends A {}
@@ -5608,7 +5519,7 @@ f(Object? o, C2<double> c2) {
   }
 
   test_ifNull_contextNotUsedIfLhsDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(Object? o1, Object? o2, int? i) {
   if (o1 is int? && o2 is double?) {
     o1 = (o2 ??= i);
@@ -5640,7 +5551,7 @@ f(Object? o1, Object? o2, int? i) {
   }
 
   test_ifNull_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}

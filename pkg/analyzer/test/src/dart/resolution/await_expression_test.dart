@@ -2,75 +2,70 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AwaitExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AwaitExpressionResolutionTest extends PubPackageResolutionTest {
   test_future() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Future<int> a) async {
   await a;
 }
 ''');
-
     assertType(findNode.awaitExpression('await a'), 'int');
   }
 
   test_futureOr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 f(FutureOr<int> a) async {
   await a;
 }
 ''');
-
     assertType(findNode.awaitExpression('await a'), 'int');
   }
 
   test_futureOrQ() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 f(FutureOr<int>? a) async {
   await a;
 }
 ''');
-
     assertType(findNode.awaitExpression('await a'), 'int?');
   }
 
   test_futureQ() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Future<int>? a) async {
   await a;
 }
 ''');
-
     assertType(findNode.awaitExpression('await a'), 'int?');
   }
 
   test_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() async {
     await super;
+//        ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 39, 5)],
-    );
-
+''');
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
 AwaitExpression
@@ -83,7 +78,7 @@ AwaitExpression
   }
 
   test_super_property() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() async {
     await super.hashCode;
@@ -110,14 +105,13 @@ AwaitExpression
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   await unresolved;
+//      ^^^^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'unresolved'.
 }
-''',
-      [error(diag.undefinedIdentifier, 25, 10)],
-    );
+''');
 
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
@@ -132,16 +126,15 @@ AwaitExpression
   }
 
   test_unresolved_prefixedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
 
 void f() async {
   await prefix.unresolved;
+//             ^^^^^^^^^^
+// [diag.undefinedPrefixedName] The name 'unresolved' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
 }
-''',
-      [error(diag.undefinedPrefixedName, 63, 10)],
-    );
+''');
 
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
@@ -164,14 +157,13 @@ AwaitExpression
   }
 
   test_unresolved_propertyAccess() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   await 0.isEven.unresolved;
+//               ^^^^^^^^^^
+// [diag.undefinedGetter] The getter 'unresolved' isn't defined for the type 'bool'.
 }
-''',
-      [error(diag.undefinedGetter, 34, 10)],
-    );
+''');
 
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
