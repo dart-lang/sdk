@@ -2,37 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OverrideOnNonOverridingFieldTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class OverrideOnNonOverridingFieldTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   @override
   int? foo;
+//     ^^^
+// [diag.overrideOnNonOverridingField] The field doesn't override an inherited getter or setter.
 }
-''',
-      [error(diag.overrideOnNonOverridingField, 29, 3)],
-    );
+''');
   }
 
   test_class_extends() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get a => 0;
   void set b(_) {}
+//         ^
+// [context 1] The setter being overridden.
   int c = 0;
 }
 class B extends A {
@@ -40,22 +41,15 @@ class B extends A {
   final int a = 1;
   @override
   int b = 0;
+//    ^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.b' ('void Function(int)') isn't a valid override of 'A.b' ('void Function(dynamic)').
   @override
   int c = 0;
-}''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          131,
-          1,
-          contextMessages: [message(testFile, 39, 1)],
-        ),
-      ],
-    );
+}''');
   }
 
   test_class_extends_primaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int get foo;
 }
@@ -64,7 +58,7 @@ class B(@override final int foo) extends A;
   }
 
   test_class_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get a => 0;
 }
@@ -75,28 +69,22 @@ class B implements A {
   }
 
   test_class_implements_overriddenSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void set b(_) {}
+//         ^
+// [context 1] The setter being overridden.
 }
 class B implements A {
   @override
   int b = 0;
-}''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          72,
-          1,
-          contextMessages: [message(testFile, 21, 1)],
-        ),
-      ],
-    );
+//    ^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.b' ('void Function(int)') isn't a valid override of 'A.b' ('void Function(dynamic)').
+}''');
   }
 
   test_class_implements_overrideIsFinal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int c = 0;
 }
@@ -107,48 +95,45 @@ class B implements A {
   }
 
   test_class_implements_primaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A(final int foo);
 class B(@override final int foo) implements A;
 ''');
   }
 
   test_class_primaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A(@override final int foo);
-''',
-      [error(diag.overrideOnNonOverridingField, 28, 3)],
-    );
+//                          ^^^
+// [diag.overrideOnNonOverridingField] The field doesn't override an inherited getter or setter.
+''');
   }
 
   test_class_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   @override
   static int foo = 1;
+//           ^^^
+// [diag.overrideOnNonOverridingField] The field doesn't override an inherited getter or setter.
 }
-''',
-      [error(diag.overrideOnNonOverridingField, 35, 3)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   @override
   final int foo = 0;
+//          ^^^
+// [diag.overrideOnNonOverridingField] The field doesn't override an inherited getter or setter.
 }
-''',
-      [error(diag.overrideOnNonOverridingField, 38, 3)],
-    );
+''');
   }
 
   test_enum_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get a => 0;
   void set b(int _) {}
@@ -166,7 +151,7 @@ enum E implements A {
   }
 
   test_enum_with() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get a => 0;
   void set b(int _) {}

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,132 +15,111 @@ main() {
 @reflectiveTest
 class InvalidUseOfCovariantTest extends PubPackageResolutionTest {
   test_class_primaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A(covariant var int a);
 ''');
   }
 
   test_functionExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Function f = (covariant int x) {};
-''',
-      [error(diag.invalidUseOfCovariant, 14, 9)],
-    );
+//            ^^^^^^^^^
+// [diag.invalidUseOfCovariant] The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields.
+''');
   }
 
   test_functionType_inFunctionTypedParameterOfInstanceMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void m(void p(covariant int)) {}
+//              ^^^^^^^^^
+// [diag.invalidUseOfCovariant] The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields.
 }
-''',
-      [error(diag.invalidUseOfCovariant, 26, 9)],
-    );
+''');
   }
 
   test_functionType_inParameterOfInstanceMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void m(void Function(covariant int) p) {}
+//                     ^^^^^^^^^
+// [diag.invalidUseOfCovariant] The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields.
 }
-''',
-      [error(diag.invalidUseOfCovariant, 33, 9)],
-    );
+''');
   }
 
   test_functionType_inTypeAlias() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef F = void Function(covariant int);
-''',
-      [error(diag.invalidUseOfCovariant, 26, 9)],
-    );
+//                        ^^^^^^^^^
+// [diag.invalidUseOfCovariant] The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields.
+''');
   }
 
   test_functionType_inTypeArgument() async {
-    await assertErrorsInCode(
-      '''
+    // TODO(srawlins): Recover better from this situation (`covariant` in
+    // parameter in type argument).
+    await resolveTestCodeWithDiagnostics('''
 List<void Function(covariant int)> a = [];
+//                 ^^^^^^^^^
+// [diag.invalidUseOfCovariant] The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields.
 }
-''',
-      [
-        error(diag.invalidUseOfCovariant, 19, 9),
-        // TODO(srawlins): Recover better from this situation (`covariant` in
-        // parameter in type argument).
-        error(diag.expectedExecutable, 43, 1),
-      ],
-    );
+// [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
+''');
   }
 
   test_functionType_inTypeParameterBound() async {
-    await assertErrorsInCode(
-      '''
+    // TODO(srawlins): Recover better from this situation (`covariant` in
+    // parameter in bound).
+    await resolveTestCodeWithDiagnostics('''
 void foo<T extends void Function(covariant int)>() {}
+//                               ^^^^^^^^^
+// [diag.invalidUseOfCovariant] The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields.
 }
-''',
-      [
-        error(diag.invalidUseOfCovariant, 33, 9),
-        // TODO(srawlins): Recover better from this situation (`covariant` in
-        // parameter in bound).
-        error(diag.expectedExecutable, 54, 1),
-      ],
-    );
+// [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
+''');
   }
 
   test_localFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void foo() {
   void f(covariant int x) {}
+//     ^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
+//       ^^^^^^^^^
+// [diag.invalidUseOfCovariant] The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields.
 }
-''',
-      [
-        error(diag.unusedElement, 20, 1),
-        error(diag.invalidUseOfCovariant, 22, 9),
-      ],
-    );
+''');
   }
 
   test_staticFunction() async {
-    await assertErrorsInCode(
-      '''
+    // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
+    await resolveTestCodeWithDiagnostics('''
 class C {
   static void m(covariant int x) {}
+//              ^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
 }
-''',
-      [
-        // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(diag.extraneousModifier, 26, 9),
-      ],
-    );
+''');
   }
 
   test_staticFunction_onMixin() async {
-    await assertErrorsInCode(
-      '''
+    // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
   static void m(covariant int x) {}
+//              ^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
 }
-''',
-      [
-        // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(diag.extraneousModifier, 26, 9),
-      ],
-    );
+''');
   }
 
   test_topLevelFunction() async {
-    await assertErrorsInCode(
-      '''
+    // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
+    await resolveTestCodeWithDiagnostics('''
 void f(covariant int x) {}
-''',
-      [
-        // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(diag.extraneousModifier, 7, 9),
-      ],
-    );
+//     ^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
+''');
   }
 }

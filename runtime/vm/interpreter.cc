@@ -44,6 +44,16 @@ DEFINE_FLAG(uint64_t,
             100 * MB,
             "Maximum size in bytes of the interpreter trace file");
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+constexpr bool kDefaultCheckDynamicCalls = true;
+#else
+constexpr bool kDefaultCheckDynamicCalls = false;
+#endif
+DEFINE_FLAG(bool,
+            check_dynamic_calls,
+            kDefaultCheckDynamicCalls,
+            "Whether to check dynamic calls from dynamic modules.");
+
 // InterpreterSetjmpBuffer are linked together, and the last created one
 // is referenced by the Interpreter. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -873,7 +883,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
                                                  ObjectPtr* top,
                                                  const KBCInstr** pc,
                                                  ObjectPtr** FP,
-                                                 ObjectPtr** SP) {
+                                                 ObjectPtr** SP,
+                                                 bool check_dynamic_call) {
   ObjectPtr null_value = Object::null();
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
@@ -906,14 +917,32 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 
   if (target != Function::null()) {
     lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
-    top[0] = target;
-    return Invoke(thread, call_base, top, pc, FP, SP);
+
+    if (check_dynamic_call) {
+      // Ensure the function can be called dynamically from a dynamic module.
+      // TODO(b/448095881): don't perform this check repeatedly, consider
+      // splitting the lookup-cache to separately track dynamic calls.
+      Zone* zone = thread->zone();
+      const Function& target_func = Function::Handle(zone, target);
+      if (!target_func.is_dynamically_callable() &&
+          !target_func.is_declared_in_bytecode()) {
+        target = Function::null();
+        top[4] = null_value;
+      }
+    }
+
+    if (target != Function::null()) {
+      top[0] = target;
+      return Invoke(thread, call_base, top, pc, FP, SP);
+    }
   }
 
-  // The miss handler should only fail to return a function in AOT mode,
-  // in which case we need to call DRT_InvokeNoSuchMethod, which
-  // walks the receiver appropriately in this case.
-#if defined(DART_PRECOMPILED_RUNTIME)
+  // Technically, the miss handler should only fail to return a function in AOT
+  // mode, in which case we need to call DRT_InvokeNoSuchMethod, which walks the
+  // receiver appropriately in this case.
+  //
+  // When a target is found, we may still reach this point in either AOT or JIT
+  // if the member is not dynamically-callable.
 
   // The receiver, name, and argument descriptor are already in the appropriate
   // places on the stack from the previous call.
@@ -955,9 +984,6 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     **SP = result;
     pp_ = InterpreterHelpers::FrameBytecode(*FP)->untag()->object_pool();
   }
-#else
-  UNREACHABLE();
-#endif
 
   return true;
 }
@@ -2475,8 +2501,11 @@ SwitchDispatchNoSingleStep:
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       StringPtr target_name = String::RawCast(LOAD_CONSTANT(kidx));
       argdesc_ = Array::RawCast(LOAD_CONSTANT(kidx + 1));
-      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                        &SP)) {
+
+      // TODO(b/448095881): track when caller is declared in a dynamic module.
+      bool caller_in_dynamic_module = FLAG_check_dynamic_calls;
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP, &SP,
+                        /*check_dynamic_call=*/caller_in_dynamic_module)) {
         HANDLE_EXCEPTION;
       }
       CHECK_SINGLE_STEPPING;

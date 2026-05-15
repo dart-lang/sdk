@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,70 +15,61 @@ main() {
 @reflectiveTest
 class IllegalAsyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
   test_function_nonStream() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() async* {}
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 0, 3)],
-    );
+// [diag.illegalAsyncGeneratorReturnType][column 1][length 3] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
+''');
   }
 
   test_function_stream() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Stream<void> f() async* {}
 ''');
   }
 
   test_function_subtypeOfStream() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class SubStream<T> implements Stream<T> {}
 SubStream<int> f() async* {}
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 52, 14)],
-    );
+// [diag.illegalAsyncGeneratorReturnType][column 1][length 14] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
+''');
   }
 
   test_function_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() async* {}
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 0, 4)],
-    );
+// [diag.illegalAsyncGeneratorReturnType][column 1][length 4] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
+''');
   }
 
   test_method_nonStream() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int f() async* {}
+//^^^
+// [diag.illegalAsyncGeneratorReturnType] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
 }
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 12, 3)],
-    );
+''');
   }
 
   test_method_subtypeOfStream() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class SubStream<T> implements Stream<T> {}
 class C {
   SubStream<int> f() async* {}
+//^^^^^^^^^^^^^^
+// [diag.illegalAsyncGeneratorReturnType] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
 }
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 64, 14)],
-    );
+''');
   }
 
   test_method_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void f() async* {}
+//^^^^
+// [diag.illegalAsyncGeneratorReturnType] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
 }
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 12, 4)],
-    );
+''');
   }
 }

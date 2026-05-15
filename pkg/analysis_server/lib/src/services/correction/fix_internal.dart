@@ -131,6 +131,7 @@ import 'package:analysis_server/src/services/correction/dart/make_variable_nulla
 import 'package:analysis_server/src/services/correction/dart/merge_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_doc_comment_to_library_directive.dart';
+import 'package:analysis_server/src/services/correction/dart/move_initialization_to_field_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
@@ -341,6 +342,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.hashAndEquals: [CreateMethod.equalityOrHashCode],
   diag.implicitCallTearoffs: [AddExplicitCall.new],
   diag.implicitReopen: [AddReopen.new],
+  diag.initializeInFieldDeclaration: [MoveInitializationToFieldDeclaration.new],
   diag.invalidCasePatterns: [AddConst.new],
   diag.leadingNewlinesInMultilineStrings: [AddLeadingNewlineToString.new],
   diag.libraryAnnotations: [MoveAnnotationToLibraryDirective.new],
@@ -966,6 +968,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.varAsTypeName: [ReplaceVarWithDynamic.new],
   diag.varReturnType: [RemoveVar.new],
   diag.wrongSeparatorForPositionalParameter: [ReplaceColonWithEquals.new],
+  diag.unawaitedReturnInTryBlock: [AddAwait.return_],
   diag.unexpectedSeparatorInNumber: [RemoveUnexpectedUnderscores.new],
   diag.deadNullAwareExpression: [RemoveDeadIfNull.new],
   diag.invalidNullAwareElement: [ReplaceWithNotNullAwareElementOrEntry.entry],

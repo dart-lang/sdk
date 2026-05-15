@@ -16,133 +16,120 @@ main() {
 @reflectiveTest
 class ImplementsDisallowedClassTest extends PubPackageResolutionTest {
   test_class_bool() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements bool {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 4)],
-    );
+//                 ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'bool'.
+''');
   }
 
   test_class_dartCoreEnum_abstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {}
 ''');
   }
 
   test_class_dartCoreEnum_language216_abstract() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.16
 abstract class A implements Enum {}
-''',
-      [error(diag.implementsDisallowedClass, 44, 4)],
-    );
+//                          ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.
+''');
   }
 
   test_class_dartCoreEnum_language216_concrete() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.16
 class A implements Enum {}
-''',
-      [error(diag.implementsDisallowedClass, 35, 4)],
-    );
+//                 ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.
+''');
   }
 
   test_class_double() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements double {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 6)],
-    );
+//                 ^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'double'.
+''');
   }
 
   test_class_FutureOr() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class A implements FutureOr {}
-''',
-      [error(diag.implementsDisallowedClass, 40, 8)],
-    );
+//                 ^^^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'FutureOr<dynamic>'.
+''');
   }
 
   test_class_FutureOr_typeArgument() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class A implements FutureOr<int> {}
-''',
-      [error(diag.implementsDisallowedClass, 40, 13)],
-    );
+//                 ^^^^^^^^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'FutureOr<int>'.
+''');
   }
 
   test_class_FutureOr_typedef() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 typedef F = FutureOr<void>;
 class A implements F {}
-''',
-      [error(diag.implementsDisallowedClass, 68, 1)],
-    );
+//                 ^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'F'.
+''');
   }
 
   test_class_FutureOr_typeVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class A<T> implements FutureOr<T> {}
-''',
-      [error(diag.implementsDisallowedClass, 43, 11)],
-    );
+//                    ^^^^^^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'FutureOr<T>'.
+''');
   }
 
   test_class_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements int {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 3)],
-    );
+//                 ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'int'.
+''');
   }
 
   test_class_Null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements Null {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 4)],
-    );
+//                 ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Null'.
+''');
   }
 
   test_class_num() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements num {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 3)],
-    );
+//                 ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'num'.
+''');
   }
 
   test_class_Record() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements Record {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 6)],
-    );
+//                 ^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Record'.
+''');
   }
 
   test_class_String() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements String {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 6)],
-    );
+//                 ^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'String'.
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -164,172 +151,156 @@ augment class A implements String {}
   }
 
   test_class_String_num() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements String, num {}
-''',
-      [
-        error(diag.implementsDisallowedClass, 19, 6),
-        error(diag.implementsDisallowedClass, 27, 3),
-      ],
-    );
+//                 ^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'String'.
+//                         ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'num'.
+''');
   }
 
   test_classTypeAlias_bool() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class M {}
 class C = A with M implements bool;
-''',
-      [error(diag.implementsDisallowedClass, 52, 4)],
-    );
+//                            ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'bool'.
+''');
   }
 
   test_classTypeAlias_dartCoreEnum_abstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class M {}
 abstract class A = Object with M implements Enum;
 ''');
   }
 
   test_classTypeAlias_dartCoreEnum_language216_abstract() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.16
 mixin M {}
 abstract class A = Object with M implements Enum;
-''',
-      [error(diag.implementsDisallowedClass, 71, 4)],
-    );
+//                                          ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.
+''');
   }
 
   test_classTypeAlias_dartCoreEnum_language216_concrete() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.16
 mixin M {}
 class A = Object with M implements Enum;
-''',
-      [error(diag.implementsDisallowedClass, 62, 4)],
-    );
+//                                 ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.
+''');
   }
 
   test_classTypeAlias_double() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class M {}
 class C = A with M implements double;
-''',
-      [error(diag.implementsDisallowedClass, 52, 6)],
-    );
+//                            ^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'double'.
+''');
   }
 
   test_classTypeAlias_FutureOr() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class A {}
 class M {}
 class C = A with M implements FutureOr;
-''',
-      [error(diag.implementsDisallowedClass, 73, 8)],
-    );
+//                            ^^^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'FutureOr<dynamic>'.
+''');
   }
 
   test_classTypeAlias_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class M {}
 class C = A with M implements int;
-''',
-      [error(diag.implementsDisallowedClass, 52, 3)],
-    );
+//                            ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'int'.
+''');
   }
 
   test_classTypeAlias_Null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class M {}
 class C = A with M implements Null;
-''',
-      [error(diag.implementsDisallowedClass, 52, 4)],
-    );
+//                            ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Null'.
+''');
   }
 
   test_classTypeAlias_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class M {}
 class C = A with M implements num;
-''',
-      [error(diag.implementsDisallowedClass, 52, 3)],
-    );
+//                            ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'num'.
+''');
   }
 
   test_classTypeAlias_String() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class M {}
 class C = A with M implements String;
-''',
-      [error(diag.implementsDisallowedClass, 52, 6)],
-    );
+//                            ^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'String'.
+''');
   }
 
   test_classTypeAlias_String_num() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class M {}
 class C = A with M implements String, num;
-''',
-      [
-        error(diag.implementsDisallowedClass, 52, 6),
-        error(diag.implementsDisallowedClass, 60, 3),
-      ],
-    );
+//                            ^^^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'String'.
+//                                    ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'num'.
+''');
   }
 
   test_enum_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E implements int {
+//                ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'int'.
   v
 }
-''',
-      [error(diag.implementsDisallowedClass, 18, 3)],
-    );
+''');
   }
 
   test_mixin_dartCoreEnum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M implements Enum {}
 ''');
   }
 
   test_mixin_dartCoreEnum_language216() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.16
 mixin M implements Enum {}
-''',
-      [error(diag.implementsDisallowedClass, 35, 4)],
-    );
+//                 ^^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.
+''');
   }
 
   test_mixin_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M implements int {}
-''',
-      [error(diag.implementsDisallowedClass, 19, 3)],
-    );
+//                 ^^^
+// [diag.implementsDisallowedClass] Classes and mixins can't implement 'int'.
+''');
 
     var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''

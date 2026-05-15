@@ -81,10 +81,6 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    await channel.sendRequest(
-      protocol.AnalysisSetContextRootsParams([contextRoot]),
-    );
-
     // Create a broadcast Stream of notifications, so that we can have multiple
     // StreamQueues listening.
     var notifications = channel.notifications.asBroadcastStream();
@@ -94,14 +90,19 @@ plugins:
           .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
           .where((p) => p.file == filePath),
     );
-    var analysisErrorsParams = await analysisErrorsParamsQueue.next;
-    expect(analysisErrorsParams.errors, isEmpty);
-
     var pluginErrorParamsQueue = StreamQueue(
       notifications
           .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
           .map((n) => protocol.PluginErrorParams.fromNotification(n)),
     );
+
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var analysisErrorsParams = await analysisErrorsParamsQueue.next;
+    expect(analysisErrorsParams.errors, isEmpty);
+
     var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);
     expect(pluginErrorParams.message, 'Bad state: A message.');
@@ -154,13 +155,6 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    await channel.sendRequest(
-      protocol.AnalysisSetContextRootsParams([contextRoot]),
-    );
-    await channel.sendRequest(
-      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
-    );
-
     // Create a broadcast Stream of notifications, so that we can have multiple
     // StreamQueues listening.
     var notifications = channel.notifications.asBroadcastStream();
@@ -170,14 +164,24 @@ plugins:
           .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
           .where((p) => p.file == filePath),
     );
-    var analysisErrorsParams = await analysisErrorsParamsQueue.next;
-    expect(analysisErrorsParams.errors.single, isNotNull);
-
     var pluginErrorParamsQueue = StreamQueue(
       notifications
           .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
           .map((n) => protocol.PluginErrorParams.fromNotification(n)),
     );
+
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    // Wait for initial analysis to complete and populate `_recentState`.
+    var analysisErrorsParams = await analysisErrorsParamsQueue.next;
+    expect(analysisErrorsParams.errors.single, isNotNull);
+
+    await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
+
     var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);
     expect(pluginErrorParams.message, 'Bad state: A message.');
@@ -201,9 +205,19 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
+    var analysisErrorsParamsQueue = StreamQueue(
+      channel.notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+          .where((p) => p.file == filePath),
+    );
+
     await channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
     );
+
+    // Wait for initial analysis to complete and populate `_recentState`.
+    await analysisErrorsParamsQueue.next;
 
     var response = await channel.sendRequest(
       protocol.EditGetFixesParams(filePath, 'bool b = '.length),

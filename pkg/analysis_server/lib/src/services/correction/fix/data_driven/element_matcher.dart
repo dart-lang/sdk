@@ -211,6 +211,12 @@ class _MatcherBuilder {
       _buildFromExtensionOverride(node);
     } else if (node is FunctionDeclaration) {
       _addMatcher(components: [node.name.lexeme], kinds: []);
+    } else if (node is ImportDirective) {
+      _addMatcher(
+        components: [node.uri.stringValue ?? ''],
+        kinds: [ElementKind.libraryKind],
+        node: node,
+      );
     } else if (node is Literal) {
       var parent = node.parent;
       if (parent is NamedArgument) {

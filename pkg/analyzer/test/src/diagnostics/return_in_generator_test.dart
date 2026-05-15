@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnInGeneratorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ReturnInGeneratorTest extends PubPackageResolutionTest {
   test_async() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() async {
   return 0;
 }
@@ -24,18 +25,17 @@ f() async {
   }
 
   test_asyncStar_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() async* {
   return 0;
+//^^^^^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 }
-''',
-      [error(diag.returnInGenerator, 15, 6)],
-    );
+''');
   }
 
   test_asyncStar_blockBody_noValue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Stream<int> f() async* {
   return;
 }
@@ -43,16 +43,15 @@ Stream<int> f() async* {
   }
 
   test_asyncStar_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() async* => 0;
-''',
-      [error(diag.returnInGenerator, 11, 2)],
-    );
+//         ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
+''');
   }
 
   test_sync() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   return 0;
 }
@@ -60,18 +59,17 @@ f() {
   }
 
   test_syncStar_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() sync* {
   return 0;
+//^^^^^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 }
-''',
-      [error(diag.returnInGenerator, 14, 6)],
-    );
+''');
   }
 
   test_syncStar_blockBody_noValue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Iterable<int> f() sync* {
   return;
 }
@@ -79,11 +77,10 @@ Iterable<int> f() sync* {
   }
 
   test_syncStar_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() sync* => 0;
-''',
-      [error(diag.returnInGenerator, 10, 2)],
-    );
+//        ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
+''');
   }
 }

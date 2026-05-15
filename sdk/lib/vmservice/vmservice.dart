@@ -476,7 +476,8 @@ class VMService extends MessageRouter {
         _serverMessageHandler(opcode, sendPort, enable, silenceOutput);
         return;
       }
-      if (message case [int opcode, int portId, SendPort sendPort, String name]
+      if (message
+          case [int opcode, int portId, SendPort sendPort, String name, ...]
           when opcode == Constants.ISOLATE_STARTUP_MESSAGE_ID ||
               opcode == Constants.ISOLATE_SHUTDOWN_MESSAGE_ID) {
         // This is a message informing us of the birth or death of an
@@ -802,8 +803,12 @@ RawReceivePort boot() {
 
 @pragma('vm:entry-point', !bool.fromEnvironment('dart.vm.product'))
 // ignore: unused_element
-void _registerIsolate(int port_id, SendPort sp, String name) =>
-    VMService().runningIsolates.isolateStartup(port_id, sp, name);
+void _registerIsolate(
+  int port_id,
+  SendPort sp,
+  String name,
+  bool isSystemIsolate,
+) => VMService().runningIsolates.isolateStartup(port_id, sp, name);
 
 /// Notify the VM that the service is running.
 @pragma("vm:external-name", "VMService_OnStart")

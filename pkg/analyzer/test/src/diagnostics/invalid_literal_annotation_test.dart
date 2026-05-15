@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +21,7 @@ class InvalidLiteralAnnotationTest extends PubPackageResolutionTest {
   }
 
   test_constConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
@@ -32,7 +31,7 @@ class A {
   }
 
   test_constPrimaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class const A() {
   @literal
@@ -42,7 +41,7 @@ class const A() {
   }
 
   test_extensionType_constConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 extension type const E(int i) {
   @literal
@@ -52,28 +51,26 @@ extension type const E(int i) {
   }
 
   test_nonConstConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
+// ^^^^^^^
+// [diag.invalidLiteralAnnotation] Only const constructors can have the `@literal` annotation.
   A() {}
 }
-''',
-      [error(diag.invalidLiteralAnnotation, 46, 7)],
-    );
+''');
   }
 
   test_nonConstPrimaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A() {
   @literal
+// ^^^^^^^
+// [diag.invalidLiteralAnnotation] Only const constructors can have the `@literal` annotation.
   this;
 }
-''',
-      [error(diag.invalidLiteralAnnotation, 48, 7)],
-    );
+''');
   }
 }

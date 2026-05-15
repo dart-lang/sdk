@@ -2,34 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedCatchStackTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnusedCatchStackTest extends PubPackageResolutionTest {
   test_on_unusedStack() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   try {
   } on String catch (exception, stackTrace) {
+//                              ^^^^^^^^^^
+// [diag.unusedCatchStack] The stack trace variable 'stackTrace' isn't used and can be removed.
   }
 }
-''',
-      [error(diag.unusedCatchStack, 49, 10)],
-    );
+''');
   }
 
   test_on_usedStack() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   try {
   } on String catch (exception, stackTrace) {
@@ -40,20 +40,19 @@ main() {
   }
 
   test_unusedStack() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   try {
   } catch (exception, stackTrace) {
+//                    ^^^^^^^^^^
+// [diag.unusedCatchStack] The stack trace variable 'stackTrace' isn't used and can be removed.
   }
 }
-''',
-      [error(diag.unusedCatchStack, 39, 10)],
-    );
+''');
   }
 
   test_usedStack() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   try {
   } catch (exception, stackTrace) {

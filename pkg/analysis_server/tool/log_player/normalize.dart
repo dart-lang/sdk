@@ -144,6 +144,6 @@ String normalizeLog(File input, List<ContextRoot> contextRoots) {
     }
   }
 
-  // Now normalize the full content.
-  return normalizer.normalize(content);
+  // Normalize each entry in the log.
+  return '${original.entries.map((entry) => normalizer.normalize(entry.map)).join('\n')}\n';
 }

@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstRewriteImplicitCallReferenceTest);
     defineReflectiveTests(AstRewriteMethodInvocationTest);
     defineReflectiveTests(AstRewritePrefixedIdentifierTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
 
     // TODO(srawlins): Add AstRewriteInstanceCreationExpressionTest test, likely
     // moving many test cases from ConstructorReferenceResolutionTest,
@@ -26,7 +27,7 @@ main() {
 @reflectiveTest
 class AstRewriteImplicitCallReferenceTest extends PubPackageResolutionTest {
   test_assignment_indexExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -78,7 +79,7 @@ ImplicitCallReference
   }
 
   test_conditional_else() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 abstract class C extends A {
   void call();
@@ -110,7 +111,7 @@ ConditionalExpression
   }
 
   test_conditional_then() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 abstract class C extends A {
   void call();
@@ -142,7 +143,7 @@ ConditionalExpression
   }
 
   test_explicitTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   T call<T>(T t) => t;
 }
@@ -176,20 +177,18 @@ ImplicitCallReference
   }
 
   test_ifNull_lhs() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 abstract class C extends A {
   void call();
 }
 
 void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
-''',
-      [
-        error(diag.deadCode, 127, 4),
-        error(diag.deadNullAwareExpression, 130, 1),
-      ],
-    );
+//                                                          ^^^^
+// [diag.deadCode] Dead code.
+//                                                             ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+''');
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.
     // Therefore the type of `c ?? a` should be `A`.
@@ -213,7 +212,7 @@ BinaryExpression
   }
 
   test_ifNull_rhs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -246,7 +245,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_element() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -269,7 +268,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_forElement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -294,7 +293,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_ifElement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -319,7 +318,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_ifElement_else() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -345,7 +344,7 @@ ImplicitCallReference
   }
 
   test_parenthesized_cascade_target() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call();
   void m();
@@ -384,7 +383,7 @@ ImplicitCallReference
   }
 
   test_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   C get c;
   void call(int t) => t;
@@ -416,7 +415,7 @@ ImplicitCallReference
   }
 
   test_propertyAccess() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   C get c;
   void call(int t) => t;
@@ -455,7 +454,7 @@ ImplicitCallReference
   }
 
   test_setOrMapLiteral_element() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -478,7 +477,7 @@ ImplicitCallReference
   }
 
   test_setOrMapLiteral_mapLiteralEntry_key() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -501,7 +500,7 @@ ImplicitCallReference
   }
 
   test_setOrMapLiteral_mapLiteralEntry_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -524,7 +523,7 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -547,7 +546,7 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
@@ -569,7 +568,7 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeVariable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
@@ -589,7 +588,7 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeVariable2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
@@ -609,15 +608,14 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeVariable2_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
 Function f<X extends A, Y extends X?>(Y y) => y;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 75, 1)],
-    );
+//                                            ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Y' can't be returned from the function 'f' because it has a return type of 'Function'.
+''');
 
     // Verify that no ImplicitCallReference was inserted.
     var node = findNode.expressionFunctionBody('y;').expression;
@@ -630,15 +628,14 @@ SimpleIdentifier
   }
 
   test_simpleIdentifier_typeVariable_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
 Function f<X extends A>(X? x) => x;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 62, 1)],
-    );
+//                               ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'X?' can't be returned from the function 'f' because it has a return type of 'Function'.
+''');
 
     // Verify that no ImplicitCallReference was inserted.
     var node = findNode.expressionFunctionBody('x;').expression;
@@ -657,7 +654,7 @@ class AstRewriteMethodInvocationTest extends PubPackageResolutionTest
 
 mixin AstRewriteMethodInvocationTestCases on PubPackageResolutionTest {
   test_targetNull_cascade() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -684,7 +681,7 @@ MethodInvocation
   }
 
   test_targetNull_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A(int a);
 }
@@ -732,7 +729,7 @@ InstanceCreationExpression
   }
 
   test_targetNull_extension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E<T> on A {
@@ -743,7 +740,6 @@ f(A a) {
   E<int>(a).foo();
 }
 ''');
-
     var node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
@@ -774,14 +770,13 @@ ExtensionOverride
   }
 
   test_targetNull_function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void A<T, U>(int a) {}
 
 f() {
   A<int, String>(0);
 }
 ''');
-
     var node = findNode.methodInvocation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
 MethodInvocation
@@ -820,7 +815,7 @@ MethodInvocation
   }
 
   test_targetNull_typeAlias_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A(int _);
 }
@@ -831,7 +826,6 @@ void f() {
   X<int, String>(0);
 }
 ''');
-
     var node = findNode.instanceCreation('X<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -870,17 +864,15 @@ InstanceCreationExpression
   }
 
   test_targetNull_typeAlias_Never() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef X = Never;
 
 void f() {
   X(0);
+//^
+// [diag.invocationOfNonFunction] 'X' isn't a function.
 }
-''',
-      [error(diag.invocationOfNonFunction, 33, 1)],
-    );
-
+''');
     // Not rewritten.
     findNode.methodInvocation('X(0)');
   }
@@ -892,14 +884,13 @@ class A<T> {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A.named(0);
 }
 ''');
-
     var node = findNode.instanceCreation('A.named(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -943,24 +934,15 @@ class A<T> {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A.named<int>(0);
+//              ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'prefix.A.named' doesn't have type parameters.
 }
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          50,
-          5,
-          messageContains: ["The constructor 'prefix.A.named'"],
-        ),
-      ],
-    );
-
+''');
     var node = findNode.instanceCreation('named<int>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -1012,24 +994,15 @@ class A<T> {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A.new<int>(0);
+//            ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'prefix.A.new' doesn't have type parameters.
 }
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          48,
-          5,
-          messageContains: ["The constructor 'prefix.A.new'"],
-        ),
-      ],
-    );
-
+''');
     var node = findNode.instanceCreation('new<int>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -1083,14 +1056,13 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.foo.bar(0);
 }
 ''');
-
     var node = findNode.methodInvocation('bar(0);');
     assertResolvedNodeText(node, r'''
 MethodInvocation
@@ -1133,14 +1105,13 @@ class A<T> {
 typedef X<T> = A<T>;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
   prefix.X.named(0);
 }
 ''');
-
     var node = findNode.instanceCreation('X.named(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -1178,7 +1149,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named(T a);
 }
@@ -1221,25 +1192,17 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A.named(int a);
 }
 
 f() {
   A.named<int, String>(0);
+//       ^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'A.named' doesn't have type parameters.
 }
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          52,
-          13,
-          messageContains: ["The constructor 'A.named'"],
-        ),
-      ],
-    );
+''');
 
     // TODO(scheglov): Move type arguments
     var node = findNode.instanceCreation('named<int, String>(0);');
@@ -1287,25 +1250,17 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor_typeArguments_new() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A.new(int a);
 }
 
 f() {
   A.new<int, String>(0);
+//     ^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'A.new' doesn't have type parameters.
 }
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          48,
-          13,
-          messageContains: ["The constructor 'A.new'"],
-        ),
-      ],
-    );
+''');
 
     // TODO(scheglov): Move type arguments
     var node = findNode.instanceCreation('new<int, String>(0);');
@@ -1353,7 +1308,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_staticMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo(int a) {}
 }
@@ -1362,7 +1317,6 @@ f() {
   A.foo(0);
 }
 ''');
-
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 MethodInvocation
@@ -1395,14 +1349,13 @@ class A<T, U> {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A<int, String>(0);
 }
 ''');
-
     var node = findNode.instanceCreation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -1453,14 +1406,13 @@ extension E<T> on A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f(prefix.A a) {
   prefix.E<int>(a).foo();
 }
 ''');
-
     var node = findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
@@ -1499,7 +1451,7 @@ ExtensionOverride
 void A<T, U>(int a) {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
@@ -1550,7 +1502,7 @@ MethodInvocation
   }
 
   test_targetSimpleIdentifier_typeAlias_interfaceType_constructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named(T a);
 }
@@ -1598,16 +1550,15 @@ InstanceCreationExpression
 @reflectiveTest
 class AstRewritePrefixedIdentifierTest extends PubPackageResolutionTest {
   test_constructorReference_inAssignment_onLeftSide() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 void f() {
   C.new = 1;
+//  ^^^
+// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedSetter, 27, 3)],
-    );
+''');
 
     var identifier = findNode.prefixed('C.new');
     // The left side of the assignment is resolved by
@@ -1619,7 +1570,7 @@ void f() {
   }
 
   test_constructorReference_inAssignment_onRightSide() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 Function? f;

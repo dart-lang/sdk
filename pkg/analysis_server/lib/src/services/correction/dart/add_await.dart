@@ -14,19 +14,18 @@ class AddAwait extends ResolvedCorrectionProducer {
   final _CorrectionKind _correctionKind;
 
   AddAwait.argumentType({required super.context})
-    : _correctionKind = _CorrectionKind.argumentType;
+    : _correctionKind = .argumentType;
 
   AddAwait.assignment({required super.context})
-    : _correctionKind = _CorrectionKind.invalidAssignment;
+    : _correctionKind = .invalidAssignment;
 
-  AddAwait.forIn({required super.context})
-    : _correctionKind = _CorrectionKind.forIn;
+  AddAwait.forIn({required super.context}) : _correctionKind = .forIn;
 
-  AddAwait.nonBool({required super.context})
-    : _correctionKind = _CorrectionKind.nonBool;
+  AddAwait.nonBool({required super.context}) : _correctionKind = .nonBool;
 
-  AddAwait.unawaited({required super.context})
-    : _correctionKind = _CorrectionKind.unawaited;
+  AddAwait.return_({required super.context}) : _correctionKind = .return_;
+
+  AddAwait.unawaited({required super.context}) : _correctionKind = .unawaited;
 
   @override
   CorrectionApplicability get applicability =>
@@ -48,23 +47,23 @@ class AddAwait extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     switch (_correctionKind) {
-      case _CorrectionKind.argumentType:
+      case .argumentType:
         if (_isValidFutureType(
           expectedTypeFromExp: (exp) => exp.argumentType,
         )) {
           await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
-      case _CorrectionKind.invalidAssignment:
+      case .invalidAssignment:
         if (_isValidFutureType(
           expectedTypeFromExp: (exp) => exp.assignmentType,
         )) {
           await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
-      case _CorrectionKind.nonBool:
+      case .nonBool:
         if (_isValidFutureType(isValid: (type) => type.isDartCoreBool)) {
           await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
-      case _CorrectionKind.unawaited:
+      case .unawaited:
         if (node is CascadeExpression) {
           // If this is the target of a cascade, than adding `await` is not
           // necesarily correct because parentheses may be needed.
@@ -87,7 +86,7 @@ class AddAwait extends ResolvedCorrectionProducer {
         ) when parent is! CascadeExpression) {
           await _addAwait(builder, offset: offset);
         }
-      case _CorrectionKind.forIn:
+      case .forIn:
         if (node.parent case ForEachPartsWithDeclaration(
           :var iterable,
           :var parent,
@@ -110,6 +109,17 @@ class AddAwait extends ResolvedCorrectionProducer {
             );
           }
         }
+      case .return_:
+        var node = this.node;
+        int offset;
+        if (node case ReturnStatement(:var expression?)) {
+          offset = expression.offset;
+        } else if (node case ExpressionFunctionBody(:var expression)) {
+          offset = expression.offset;
+        } else {
+          return;
+        }
+        await _addAwait(builder, offset: offset);
     }
   }
 
@@ -183,6 +193,7 @@ enum _CorrectionKind {
   nonBool,
   unawaited,
   forIn,
+  return_,
 }
 
 extension on Expression {

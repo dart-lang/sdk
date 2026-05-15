@@ -1564,6 +1564,10 @@ class ElementAnnotationImpl
   /// factory.
   static const String _factoryVariableName = 'factory';
 
+  /// The name of the class used to mark a class and its subclasses as being
+  /// immutable.
+  static const String _immutableClassName = 'Immutable';
+
   /// The name of the top-level variable used to mark a class and its subclasses
   /// as being immutable.
   static const String _immutableVariableName = 'immutable';
@@ -1793,7 +1797,9 @@ class ElementAnnotationImpl
   bool get isFactory => _isPackageMetaGetter(_factoryVariableName);
 
   @override
-  bool get isImmutable => _isPackageMetaGetter(_immutableVariableName);
+  bool get isImmutable =>
+      _isPackageMetaGetter(_immutableVariableName) ||
+      _isPackageMetaConstructor(_immutableClassName);
 
   @override
   bool get isInternal => _isPackageMetaGetter(_internalVariableName);
@@ -1947,6 +1953,10 @@ class ElementAnnotationImpl
 
   bool _isDartCoreGetter(String name) {
     return _isTopGetter(libraryName: 'dart.core', name: name);
+  }
+
+  bool _isPackageMetaConstructor(String className) {
+    return _isConstructor(libraryName: _metaLibName, className: className);
   }
 
   bool _isPackageMetaGetter(String name) {
@@ -4501,6 +4511,13 @@ abstract class FragmentImpl implements Fragment {
       }
     }
     return null;
+  }
+
+  /// The nearest preceding fragment in the augmentation chain that is complete.
+  FragmentImpl? get nearestPrecedingCompleteFragment {
+    return precedingFragments.firstWhereOrNull((fragment) {
+      return fragment.isCompleteDeclaration;
+    });
   }
 
   @override

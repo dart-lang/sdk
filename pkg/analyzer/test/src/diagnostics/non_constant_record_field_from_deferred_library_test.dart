@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantRecordFieldFromDeferredLibraryTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -20,13 +21,12 @@ class NonConstantRecordFieldFromDeferredLibraryTest
     newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' deferred as a;
 var v = const (a.c, );
-''',
-      [error(diag.nonConstantRecordFieldFromDeferredLibrary, 51, 1)],
-    );
+//               ^
+// [diag.nonConstantRecordFieldFromDeferredLibrary] Constant values from a deferred library can't be used as fields in a 'const' record literal.
+''');
   }
 
   test_const_notDeferred() async {
@@ -34,7 +34,7 @@ var v = const (a.c, );
 const int c = 1;
 const int d = 2;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' as a;
 var v = const (a.c, d: a.d);
 ''');
@@ -44,7 +44,7 @@ var v = const (a.c, d: a.d);
     newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' deferred as a;
 var v = (a.c, );
 ''');

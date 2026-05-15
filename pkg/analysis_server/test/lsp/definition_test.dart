@@ -659,6 +659,18 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_extension() async {
+    var contents = '''
+var _ = StringEx^tension('').x();
+
+extension [!StringExtension!] on String {
+  void x() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_field_underscore() async {
     var contents = '''
 class A {

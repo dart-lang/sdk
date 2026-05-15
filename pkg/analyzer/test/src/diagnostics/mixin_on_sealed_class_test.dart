@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinOnSealedClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -34,17 +35,15 @@ import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:foo/foo.dart';
 mixin Bar on Foo {}
-''',
-      [error(diag.mixinOnSealedClass, 31, 19)],
-    );
+// [diag.mixinOnSealedClass][column 1][length 19] The class 'Foo' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have 'Foo' as a superclass.
+''');
   }
 
   test_withinLibrary_OK() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 mixin Bar on Foo {}

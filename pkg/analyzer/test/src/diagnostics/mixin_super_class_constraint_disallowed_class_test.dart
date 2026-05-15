@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinSuperClassConstraintDisallowedClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,19 +18,18 @@ main() {
 class MixinSuperClassConstraintDisallowedClassTest
     extends PubPackageResolutionTest {
   test_dartCoreEnum() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {}
 ''');
   }
 
   test_dartCoreEnum_language216() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.16
 mixin M on Enum {}
-''',
-      [error(diag.mixinSuperClassConstraintDisallowedClass, 27, 4)],
-    );
+//         ^^^^
+// [diag.mixinSuperClassConstraintDisallowedClass] 'Enum' can't be used as a superclass constraint.
+''');
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
@@ -56,18 +56,15 @@ augment mixin A on int {}
 ''');
 
     await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.mixinSuperClassConstraintDisallowedClass, 37, 3),
-    ]);
+    await assertErrorsInFile2(b, []);
   }
 
   test_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on int {}
-''',
-      [error(diag.mixinSuperClassConstraintDisallowedClass, 11, 3)],
-    );
+//         ^^^
+// [diag.mixinSuperClassConstraintDisallowedClass] 'int' can't be used as a superclass constraint.
+''');
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrivateCollisionInMixinApplicationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,7 +23,7 @@ mixin A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C implements A {}
@@ -37,7 +38,7 @@ mixin class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C implements A {}
@@ -56,14 +57,13 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A, B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 49, 1)],
-    );
+//                             ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_mixinAndMixin_indirect() async {
@@ -77,15 +77,14 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A {}
 class D extends C with B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 74, 1)],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_mixinAndMixin_indirect_mixinClass() async {
@@ -99,15 +98,14 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A {}
 class D extends C with B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 74, 1)],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_mixinAndMixin_mixinClass() async {
@@ -121,14 +119,13 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A, B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 49, 1)],
-    );
+//                             ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_mixinAndMixin_withoutExtends() async {
@@ -142,14 +139,13 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C with A, B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 34, 1)],
-    );
+//              ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_mixinAndMixin_withoutExtends_mixinClass() async {
@@ -163,14 +159,13 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C with A, B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 34, 1)],
-    );
+//              ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_staticAndInstanceElement() async {
@@ -184,7 +179,7 @@ mixin B {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A, B {}
@@ -202,7 +197,7 @@ mixin class B {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A, B {}
@@ -220,7 +215,7 @@ mixin B {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A, B {}
@@ -238,7 +233,7 @@ mixin class B {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends Object with A, B {}
@@ -256,14 +251,13 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends A with B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 41, 1)],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_superclassAndMixin_getter2_mixinClass() async {
@@ -277,14 +271,13 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends A with B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 41, 1)],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_superclassAndMixin_method2() async {
@@ -298,14 +291,13 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends A with B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 41, 1)],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_superclassAndMixin_method2_mixinClass() async {
@@ -319,48 +311,49 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends A with B {}
-''',
-      [error(diag.privateCollisionInMixinApplication, 41, 1)],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_superclassAndMixin_sameLibrary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin A {
   void _foo() {}
+//     ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
 }
 
 mixin B {
   void _foo() {}
+//     ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
 }
 
 class C extends Object with A, B {}
-''',
-      [error(diag.unusedElement, 17, 4), error(diag.unusedElement, 47, 4)],
-    );
+''');
   }
 
   test_class_superclassAndMixin_sameLibrary_mixinClass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin class A {
   void _foo() {}
+//     ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
 }
 
 mixin class B {
   void _foo() {}
+//     ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
 }
 
 class C extends Object with A, B {}
-''',
-      [error(diag.unusedElement, 23, 4), error(diag.unusedElement, 59, 4)],
-    );
+''');
   }
 
   test_class_superclassAndMixin_setter2() async {
@@ -374,21 +367,13 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends A with B {}
-''',
-      [
-        error(
-          diag.privateCollisionInMixinApplication,
-          41,
-          1,
-          messageContains: ["'_foo'"],
-        ),
-      ],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_class_superclassAndMixin_setter2_mixinClass() async {
@@ -402,21 +387,13 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C extends A with B {}
-''',
-      [
-        error(
-          diag.privateCollisionInMixinApplication,
-          41,
-          1,
-          messageContains: ["'_foo'"],
-        ),
-      ],
-    );
+//                     ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_classTypeAlias_mixinAndMixin() async {
@@ -430,14 +407,13 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C = Object with A, B;
-''',
-      [error(diag.privateCollisionInMixinApplication, 43, 1)],
-    );
+//                       ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_classTypeAlias_mixinAndMixin_indirect() async {
@@ -451,15 +427,14 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C = Object with A;
 class D = C with B;
-''',
-      [error(diag.privateCollisionInMixinApplication, 60, 1)],
-    );
+//               ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_classTypeAlias_mixinAndMixin_indirect_mixinClass() async {
@@ -473,15 +448,14 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C = Object with A;
 class D = C with B;
-''',
-      [error(diag.privateCollisionInMixinApplication, 60, 1)],
-    );
+//               ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_classTypeAlias_mixinAndMixin_mixinClass() async {
@@ -495,14 +469,13 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C = Object with A, B;
-''',
-      [error(diag.privateCollisionInMixinApplication, 43, 1)],
-    );
+//                       ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_classTypeAlias_superclassAndMixin() async {
@@ -516,14 +489,13 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C = A with B;
-''',
-      [error(diag.privateCollisionInMixinApplication, 35, 1)],
-    );
+//               ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_classTypeAlias_superclassAndMixin_mixinClass() async {
@@ -537,14 +509,13 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class C = A with B;
-''',
-      [error(diag.privateCollisionInMixinApplication, 35, 1)],
-    );
+//               ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
+''');
   }
 
   test_enum_getter_mixinAndMixin() async {
@@ -558,16 +529,15 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 enum E with A, B {
+//             ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
   v
 }
-''',
-      [error(diag.privateCollisionInMixinApplication, 33, 1)],
-    );
+''');
   }
 
   test_enum_method_interfaceAndMixin_same() async {
@@ -577,7 +547,7 @@ mixin A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 mixin B implements A {}
@@ -598,16 +568,15 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 enum E with A, B {
+//             ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
   v
 }
-''',
-      [error(diag.privateCollisionInMixinApplication, 33, 1)],
-    );
+''');
   }
 
   test_enum_method_staticAndInstanceElement() async {
@@ -621,7 +590,7 @@ mixin B {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 enum E with A, B {
@@ -641,22 +610,14 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 enum E with A, B {
+//             ^
+// [diag.privateCollisionInMixinApplication] The private name '_foo', defined by 'B', conflicts with the same name defined by 'A'.
   v
 }
-''',
-      [
-        error(
-          diag.privateCollisionInMixinApplication,
-          33,
-          1,
-          messageContains: ["'_foo'"],
-        ),
-      ],
-    );
+''');
   }
 }

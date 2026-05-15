@@ -108,6 +108,20 @@ var x = C([]);
     );
   }
 
+  test_listLiteral_noConst_instantiationAnnotation() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@Immutable('')
+class C {
+  const C(List<Object> p);
+}
+var x = C([]);
+''',
+      [lint(97, 2)],
+    );
+  }
+
   test_listLiteral_notConstable_noConst() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';

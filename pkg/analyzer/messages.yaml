@@ -4405,6 +4405,14 @@ CompileTimeErrorCode:
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
+  constructorAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete."
+    correctionMessage: "Try removing the body, initializers, or initializing formal or super formal parameters from the augmentation, or removing the body, initializers, or initializing formal or super formal parameters from the preceding declaration."
+    hasPublishedDocs: false
   defaultListConstructor:
     type: compileTimeError
     parameters: none
@@ -5006,6 +5014,30 @@ CompileTimeErrorCode:
         C(this.f) {}
       }
       ```
+  functionAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The augmentation can't provide a body because the function or member is already complete."
+    correctionMessage: "Try removing the body from the augmentation, or removing the body from the preceding declaration."
+    hasPublishedDocs: false
+  functionNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the function, method, getter, or setter
+    experiment: augmentations
+    problemMessage: "The function or member '#name' must have a body after all augmentations are applied."
+    correctionMessage: "Try adding a body to the introductory declaration, or providing an augmentation with a body."
+    hasPublishedDocs: false
+  factoryNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the factory constructor
+    experiment: augmentations
+    problemMessage: "The factory constructor '#name' must have a body or redirection after all augmentations are applied."
+    correctionMessage: "Try adding a body or redirection to the introductory declaration, or providing an augmentation with a body or redirection."
+    hasPublishedDocs: false
   duplicateNamedArgument:
     type: compileTimeError
     parameters:
@@ -6848,6 +6880,7 @@ CompileTimeErrorCode:
       extension type `E` is abstract:
 
       ```dart
+      %language=3.5
       extension type E(String s) {
         [!void m();!]
       }
@@ -24542,6 +24575,50 @@ ScannerErrorCode:
     removedIn: "2.6"
     problemMessage: Unable to get content of '#p0'.
     hasPublishedDocs: false
+  unawaitedReturnInTryBlock:
+    type: staticWarning
+    parameters: none
+    problemMessage: "Returning a 'Future' without 'await' inside a try block."
+    correctionMessage: "Try adding an 'await'."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `Future` is returned from within
+      a `try` block, in an `async` function, without awaiting the returned `Future`.
+
+      #### Example
+
+      The following code produces this diagnostic because the `Future` returned
+      from `futureString` is returned without using `await`. This can lead to
+      unexpected behavior because exceptions thrown by the `Future` won't be
+      caught by the `catch` block.
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        try {
+          [!return!] value;
+        } catch (e) {
+          print(e);
+          return 'default';
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Add `await` before the returned `Future`:
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        try {
+          return await value;
+        } catch (e) {
+          print(e);
+          return 'default';
+        }
+      }
+      ```
   unexpectedDollarInString:
     type: syntacticError
     parameters: none

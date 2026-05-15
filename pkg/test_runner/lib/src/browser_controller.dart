@@ -433,7 +433,7 @@ class Chrome extends Browser {
       // is spawned. Handy for debugging tests.
       // args.add("--auto-open-devtools-for-tabs");
 
-      return startBrowserProcess(_binary, args);
+      return await startBrowserProcess(_binary, args);
     } catch (e) {
       _logEvent("Starting chrome failed with $e");
       return false;
@@ -579,7 +579,7 @@ class Firefox extends Browser {
       var args = ["-profile", userDir.path, "-no-remote", "-new-instance", url];
       var environment = Map<String, String>.from(Platform.environment);
       environment["MOZ_CRASHREPORTER_DISABLE"] = "1";
-      return startBrowserProcess(_binary, args, environment: environment);
+      return await startBrowserProcess(_binary, args, environment: environment);
     } catch (e) {
       _logEvent("Starting firefox failed with $e");
       return false;

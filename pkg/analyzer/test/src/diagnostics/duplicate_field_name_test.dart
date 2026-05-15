@@ -19,7 +19,7 @@ class DuplicateFieldName_RecordLiteralTest extends PubPackageResolutionTest {
     await resolveTestCodeWithDiagnostics(r'''
 var r = (a: 1, a: 2);
 //       ^
-// [context 1] The first 
+// [context 1] The first
 //             ^
 // [diag.duplicateFieldName][context 1] The field name 'a' is already used in this record.
 ''');
@@ -39,7 +39,7 @@ class DuplicateFieldName_RecordTypeAnnotationTest
     await resolveTestCodeWithDiagnostics(r'''
 void f(({int a, int a}) r) {}
 //           ^
-// [context 1] The first 
+// [context 1] The first
 //                  ^
 // [diag.duplicateFieldName][context 1] The field name 'a' is already used in this record.
 ''');
@@ -49,7 +49,7 @@ void f(({int a, int a}) r) {}
     await resolveTestCodeWithDiagnostics(r'''
 void f((int a, int a) r) {}
 //          ^
-// [context 1] The first 
+// [context 1] The first
 //                 ^
 // [diag.duplicateFieldName][context 1] The field name 'a' is already used in this record.
 ''');
@@ -59,7 +59,7 @@ void f((int a, int a) r) {}
     await resolveTestCodeWithDiagnostics(r'''
 void f((int a, {int a}) r) {}
 //          ^
-// [context 1] The first 
+// [context 1] The first
 //                  ^
 // [diag.duplicateFieldName][context 1] The field name 'a' is already used in this record.
 ''');
@@ -69,7 +69,7 @@ void f((int a, {int a}) r) {}
     await resolveTestCodeWithDiagnostics(r'''
 void f(({int _, int _}) r) {}
 //           ^
-// [context 1] The first 
+// [context 1] The first
 // [diag.invalidFieldNamePrivate] Record field names can't be private.
 //                  ^
 // [diag.duplicateFieldName][context 1] The field name '_' is already used in this record.
@@ -90,7 +90,7 @@ void f((int _, int _) r) {}
 
 void f((int _, int _) r) {}
 //          ^
-// [context 1] The first 
+// [context 1] The first
 // [diag.invalidFieldNamePrivate] Record field names can't be private.
 //                 ^
 // [diag.duplicateFieldName][context 1] The field name '_' is already used in this record.

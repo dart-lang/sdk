@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReadWriteTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -20,7 +21,7 @@ class ReadWriteTest extends PubPackageResolutionTest {
   bool get retainDataForTesting => true;
 
   test_final_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 void f(final x) {
   x;
@@ -30,7 +31,7 @@ void f(final x) {
   }
 
   test_final_definitelyAssigned_read_prefixNegate() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 void f(final x) {
   -x;
@@ -40,134 +41,124 @@ void f(final x) {
   }
 
   test_final_definitelyAssigned_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 void f(final x) {
   x += 1;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 36, 1)],
-    );
+''');
     _assertAssigned('x +=', assigned: true, unassigned: false);
   }
 
   test_final_definitelyAssigned_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 void f(final x) {
   x++;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 36, 1)],
-    );
+''');
     _assertAssigned('x++', assigned: true, unassigned: false);
   }
 
   test_final_definitelyAssigned_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 void f(final x) {
   ++x;
+//  ^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 38, 1)],
-    );
+''');
     _assertAssigned('x;', assigned: true, unassigned: false);
   }
 
   test_final_definitelyAssigned_write() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 void f(final x) {
   x = 0;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 36, 1)],
-    );
+''');
     _assertAssigned('x =', assigned: true, unassigned: false);
   }
 
   test_final_definitelyAssigned_write_forEachLoop_identifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 void f(final x) {
   for (x in [0, 1, 2]) {
+//     ^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
     x;
   }
 }
-''',
-      [error(diag.assignmentToFinalLocal, 41, 1)],
-    );
+''');
     _assertAssigned('x in', assigned: true, unassigned: false);
   }
 
   test_final_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final x;
   x; // 0
+//^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
   x();
+//^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
 }
-''',
-      [
-        error(diag.readPotentiallyUnassignedFinal, 24, 1),
-        error(diag.readPotentiallyUnassignedFinal, 34, 1),
-      ],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
     _assertAssigned('x()', assigned: false, unassigned: true);
   }
 
   test_final_definitelyUnassigned_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final x;
   x += 1;
+//^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
 }
-''',
-      [error(diag.readPotentiallyUnassignedFinal, 58, 1)],
-    );
+''');
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
 
   test_final_definitelyUnassigned_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final x;
   x++;
+//^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
 }
-''',
-      [error(diag.readPotentiallyUnassignedFinal, 58, 1)],
-    );
+''');
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
 
   test_final_definitelyUnassigned_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final x;
   ++x; // 0
+//  ^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
 }
-''',
-      [error(diag.readPotentiallyUnassignedFinal, 60, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_final_definitelyUnassigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final x;
@@ -178,90 +169,79 @@ void f() {
   }
 
   test_final_neither_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   final x;
   if (b) x = 0;
   x; // 0
+//^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
 }
-''',
-      [error(diag.readPotentiallyUnassignedFinal, 46, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
   test_final_neither_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   final x;
   if (b) x = 0;
   x += 1;
+//^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [
-        error(diag.assignmentToFinalLocal, 80, 1),
-        error(diag.readPotentiallyUnassignedFinal, 80, 1),
-      ],
-    );
+''');
     _assertAssigned('x +=', assigned: false, unassigned: false);
   }
 
   test_final_neither_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   final x;
   if (b) x = 0;
   x++;
+//^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [
-        error(diag.assignmentToFinalLocal, 80, 1),
-        error(diag.readPotentiallyUnassignedFinal, 80, 1),
-      ],
-    );
+''');
     _assertAssigned('x++', assigned: false, unassigned: false);
   }
 
   test_final_neither_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   final x;
   if (b) x = 0;
   ++x; // 0
+//  ^
+// [diag.readPotentiallyUnassignedFinal] The final variable 'x' can't be read because it's potentially unassigned at this point.
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [
-        error(diag.assignmentToFinalLocal, 82, 1),
-        error(diag.readPotentiallyUnassignedFinal, 82, 1),
-      ],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
   test_final_neither_write() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   final x;
   if (b) x = 0;
   x = 1;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
 }
-''',
-      [error(diag.assignmentToFinalLocal, 80, 1)],
-    );
+''');
     _assertAssigned('x = 1', assigned: false, unassigned: false);
   }
 
   test_lateFinal_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late final x;
   x = 0;
@@ -272,122 +252,114 @@ void f() {
   }
 
   test_lateFinal_definitelyAssigned_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
   x = 0;
   x += 1;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 72, 1)],
-    );
+''');
     _assertAssigned('x +=', assigned: true, unassigned: false);
   }
 
   test_lateFinal_definitelyAssigned_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
   x = 0;
   x++;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 72, 1)],
-    );
+''');
     _assertAssigned('x++', assigned: true, unassigned: false);
   }
 
   test_lateFinal_definitelyAssigned_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
   x = 0;
   ++x; // 0
+//  ^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 74, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
   }
 
   test_lateFinal_definitelyAssigned_write() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
   x = 0;
   x = 1;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 72, 1)],
-    );
+''');
     _assertAssigned('x = 1', assigned: true, unassigned: false);
   }
 
   test_lateFinal_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late final x;
   x; // 0
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 29, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_lateFinal_definitelyUnassigned_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
   x += 1;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 63, 1)],
-    );
+''');
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
 
   test_lateFinal_definitelyUnassigned_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
   x++;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 63, 1)],
-    );
+''');
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
 
   test_lateFinal_definitelyUnassigned_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
   ++x; // 0
+//  ^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 65, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_lateFinal_definitelyUnassigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final x;
@@ -398,7 +370,7 @@ void f() {
   }
 
   test_lateFinal_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   late final x;
   if (b) x = 0;
@@ -409,7 +381,7 @@ void f(bool b) {
   }
 
   test_lateFinal_neither_readWrite_compoundAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final x;
@@ -421,7 +393,7 @@ void f(bool b) {
   }
 
   test_lateFinal_neither_readWrite_postfixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final x;
@@ -433,7 +405,7 @@ void f(bool b) {
   }
 
   test_lateFinal_neither_readWrite_prefixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final x;
@@ -445,7 +417,7 @@ void f(bool b) {
   }
 
   test_lateFinal_neither_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final x;
@@ -457,7 +429,7 @@ void f(bool b) {
   }
 
   test_lateFinalNullable_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late final int? x;
   x = 0;
@@ -468,131 +440,120 @@ void f() {
   }
 
   test_lateFinalNullable_definitelyAssigned_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
   x = 0;
   x += 1;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 77, 1)],
-    );
+''');
     _assertAssigned('x +=', assigned: true, unassigned: false);
   }
 
   test_lateFinalNullable_definitelyAssigned_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
   x = 0;
   x++;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 77, 1)],
-    );
+''');
     _assertAssigned('x++', assigned: true, unassigned: false);
   }
 
   test_lateFinalNullable_definitelyAssigned_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
   x = 0;
   ++x; // 0
+//  ^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 79, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
   }
 
   test_lateFinalNullable_definitelyAssigned_write() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
   x = 0;
   x = 1;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 77, 1)],
-    );
+''');
     _assertAssigned('x = 1', assigned: true, unassigned: false);
   }
 
   test_lateFinalNullable_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late final int? x;
   x; // 0
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 34, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_lateFinalNullable_definitelyUnassigned_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
   x += 1;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
+//  ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [
-        error(diag.definitelyUnassignedLateLocalVariable, 68, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 70, 2),
-      ],
-    );
+''');
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
 
   test_lateFinalNullable_definitelyUnassigned_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
   x++;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
+// ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [
-        error(diag.definitelyUnassignedLateLocalVariable, 68, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 69, 2),
-      ],
-    );
+''');
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
 
   test_lateFinalNullable_definitelyUnassigned_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
   ++x; // 0
+//^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
+//  ^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [
-        error(diag.definitelyUnassignedLateLocalVariable, 70, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 68, 2),
-      ],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_lateFinalNullable_definitelyUnassigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late final int? x;
@@ -603,7 +564,7 @@ void f() {
   }
 
   test_lateFinalNullable_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   late final int? x;
   if (b) x = 0;
@@ -614,52 +575,49 @@ void f(bool b) {
   }
 
   test_lateFinalNullable_neither_readWrite_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final int? x;
   if (b) x = 0;
   x += 1;
+//  ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 92, 2)],
-    );
+''');
     _assertAssigned('x +=', assigned: false, unassigned: false);
   }
 
   test_lateFinalNullable_neither_readWrite_postfixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final int? x;
   if (b) x = 0;
   x++;
+// ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 91, 2)],
-    );
+''');
     _assertAssigned('x++', assigned: false, unassigned: false);
   }
 
   test_lateFinalNullable_neither_readWrite_prefixIncrement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final int? x;
   if (b) x = 0;
   ++x; // 0
+//^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 90, 2)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
   test_lateFinalNullable_neither_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late final int? x;
@@ -671,7 +629,7 @@ void f(bool b) {
   }
 
   test_lateFinalPotentiallyNonNullable_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) {
   late final T x;
   x = t;
@@ -682,35 +640,33 @@ void f<T>(T t) {
   }
 
   test_lateFinalPotentiallyNonNullable_definitelyAssigned_write() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t, T t2) {
   // ignore:unused_local_variable
   late final T x;
   x = t;
   x = t2;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 86, 1)],
-    );
+''');
     _assertAssigned('x = t2', assigned: true, unassigned: false);
   }
 
   test_lateFinalPotentiallyNonNullable_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {
   late final T x;
   x; // 0
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 34, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_lateFinalPotentiallyNonNullable_definitelyUnassigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) {
   // ignore:unused_local_variable
   late final T x;
@@ -721,7 +677,7 @@ void f<T>(T t) {
   }
 
   test_lateFinalPotentiallyNonNullable_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(bool b, T t) {
   late final T x;
   if (b) x = t;
@@ -732,7 +688,7 @@ void f<T>(bool b, T t) {
   }
 
   test_lateFinalPotentiallyNonNullable_neither_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(bool b, T t, T t2) {
   // ignore:unused_local_variable
   late final T x;
@@ -744,7 +700,7 @@ void f<T>(bool b, T t, T t2) {
   }
 
   test_lateNullable_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int? x;
   x = 0;
@@ -755,20 +711,19 @@ void f() {
   }
 
   test_lateNullable_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int? x;
   x; // 0
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 28, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_lateNullable_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   late int? x;
   if (b) x = 0;
@@ -779,7 +734,7 @@ void f(bool b) {
   }
 
   test_latePotentiallyNonNullable_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) {
   late T x;
   x = t;
@@ -790,20 +745,19 @@ void f<T>(T t) {
   }
 
   test_latePotentiallyNonNullable_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {
   late T x;
   x; // 0
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 28, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_latePotentiallyNonNullable_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(bool b, T t) {
   late T x;
   if (b) x = t;
@@ -814,7 +768,7 @@ void f<T>(bool b, T t) {
   }
 
   test_lateVar_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late var x;
   x = 0;
@@ -825,7 +779,7 @@ void f() {
   }
 
   test_lateVar_definitelyAssigned_readWrite_compoundAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late var x;
@@ -837,7 +791,7 @@ void f() {
   }
 
   test_lateVar_definitelyAssigned_readWrite_postfixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late var x;
@@ -849,7 +803,7 @@ void f() {
   }
 
   test_lateVar_definitelyAssigned_readWrite_prefixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late var x;
@@ -861,7 +815,7 @@ void f() {
   }
 
   test_lateVar_definitelyAssigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   late var x;
@@ -873,20 +827,19 @@ void f() {
   }
 
   test_lateVar_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late var x;
   x; // 0
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'x' is definitely unassigned at this point.
 }
-''',
-      [error(diag.definitelyUnassignedLateLocalVariable, 27, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_lateVar_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   late var x;
   if (b) x = 0;
@@ -897,7 +850,7 @@ void f(bool b) {
   }
 
   test_lateVar_neither_readWrite_compoundAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late var x;
@@ -909,7 +862,7 @@ void f(bool b) {
   }
 
   test_lateVar_neither_readWrite_postfixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late var x;
@@ -921,7 +874,7 @@ void f(bool b) {
   }
 
   test_lateVar_neither_readWrite_prefixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late var x;
@@ -933,7 +886,7 @@ void f(bool b) {
   }
 
   test_lateVar_neither_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   late var x;
@@ -945,7 +898,7 @@ void f(bool b) {
   }
 
   test_notNullable_write_forEachLoop_identifier() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int x;
   for (x in [0, 1, 2]) {
@@ -958,7 +911,7 @@ void f() {
   }
 
   test_nullable_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x;
 }
@@ -967,7 +920,7 @@ void f(int? x) {
   }
 
   test_nullable_definitelyAssigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x = 0;
 }
@@ -976,7 +929,7 @@ void f(int? x) {
   }
 
   test_nullable_definitelyUnassigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int? x;
   x; // 0
@@ -986,7 +939,7 @@ void f() {
   }
 
   test_nullable_definitelyUnassigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   int? x;
@@ -997,7 +950,7 @@ void f() {
   }
 
   test_nullable_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int? x;
   if (b) x = 0;
@@ -1008,7 +961,7 @@ void f(bool b) {
   }
 
   test_nullable_neither_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   int? x;
@@ -1020,7 +973,7 @@ void f(bool b) {
   }
 
   test_potentiallyNonNullable_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T x) {
   x; // 0
 }
@@ -1029,7 +982,7 @@ void f<T>(T x) {
   }
 
   test_potentiallyNonNullable_definitelyAssigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T x, T t) {
   x = t;
 }
@@ -1038,20 +991,19 @@ void f<T>(T x, T t) {
   }
 
   test_potentiallyNonNullable_definitelyUnassigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {
   T x;
   x; // 0
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'x' must be assigned before it can be used.
 }
-''',
-      [error(diag.notAssignedPotentiallyNonNullableLocalVariable, 23, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
   test_potentiallyNonNullable_definitelyUnassigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) {
   // ignore:unused_local_variable
   T x;
@@ -1062,21 +1014,20 @@ void f<T>(T t) {
   }
 
   test_potentiallyNonNullable_neither_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(bool b, T t) {
   T x;
   if (b) x = t;
   x; // 0
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'x' must be assigned before it can be used.
 }
-''',
-      [error(diag.notAssignedPotentiallyNonNullableLocalVariable, 50, 1)],
-    );
+''');
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
   test_potentiallyNonNullable_neither_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(bool b, T t, T t2) {
   // ignore:unused_local_variable
   T x;
@@ -1088,7 +1039,7 @@ void f<T>(bool b, T t, T t2) {
   }
 
   test_var_definitelyAssigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   x;
 }
@@ -1097,7 +1048,7 @@ void f(x) {
   }
 
   test_var_definitelyAssigned_readWrite_compoundAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   x += 1;
 }
@@ -1106,7 +1057,7 @@ void f(x) {
   }
 
   test_var_definitelyAssigned_readWrite_postfixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   x++;
 }
@@ -1115,7 +1066,7 @@ void f(x) {
   }
 
   test_var_definitelyAssigned_readWrite_prefixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   ++x;
 }
@@ -1124,7 +1075,7 @@ void f(x) {
   }
 
   test_var_definitelyAssigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   x = 0;
 }
@@ -1133,7 +1084,7 @@ void f(x) {
   }
 
   test_var_definitelyUnassigned_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var x;
   x; // 0
@@ -1143,7 +1094,7 @@ void f() {
   }
 
   test_var_definitelyUnassigned_readWrite_compoundAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   var x;
@@ -1154,7 +1105,7 @@ void f() {
   }
 
   test_var_definitelyUnassigned_readWrite_postfixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   var x;
@@ -1165,7 +1116,7 @@ void f() {
   }
 
   test_var_definitelyUnassigned_readWrite_prefixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   var x;
@@ -1176,7 +1127,7 @@ void f() {
   }
 
   test_var_definitelyUnassigned_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   var x;
@@ -1187,7 +1138,7 @@ void f() {
   }
 
   test_var_neither_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   var x;
   if (b) x = 0;
@@ -1198,7 +1149,7 @@ void f(bool b) {
   }
 
   test_var_neither_readWrite_compoundAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   var x;
@@ -1206,11 +1157,11 @@ void f(bool b) {
   x += 1;
 }
 ''');
-    _assertAssigned('x += 1', assigned: false, unassigned: false);
+    _assertAssigned('x +=', assigned: false, unassigned: false);
   }
 
   test_var_neither_readWrite_postfixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   var x;
@@ -1222,7 +1173,7 @@ void f(bool b) {
   }
 
   test_var_neither_readWrite_prefixIncrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   var x;
@@ -1234,7 +1185,7 @@ void f(bool b) {
   }
 
   test_var_neither_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   // ignore:unused_local_variable
   var x;

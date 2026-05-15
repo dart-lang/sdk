@@ -73,12 +73,6 @@ class LogNormalizer {
 
     var uri = Uri.file(inputPath);
     var uriString = uri.toString();
-    // VS Code always encodes colons in the path part so we need to handle
-    //  file:///c:/foo and
-    //  file:///c%3A/foo
-    var uriStringWithEncodedColons = uri
-        .replace(path: uri.path.replaceAll(':', '%3A'))
-        .toString();
 
     void addWithQuotesAndTrailingSlash(
       String input,
@@ -99,12 +93,6 @@ class LogNormalizer {
     // during replacement so if the regex matches variations, we need to be able
     // to find them here.
 
-    // TODO(dantup): If a client json encodes slightly differently to Dart, the
-    //  encoded version here might not be a match. Perhaps we should instead
-    //  build RegExp's here that handle encoded/unencoded versions of each
-    //  character that might be different (and fold the special case for colon
-    //  from above into it).
-
     // Paths
     var pathSeparators = ['/', r'\'];
     addWithQuotesAndTrailingSlash(
@@ -122,16 +110,6 @@ class LogNormalizer {
       uriReplacement,
     );
     addWithQuotesAndTrailingSlash(uriString, uriSeparators, uriReplacement);
-    addWithQuotesAndTrailingSlash(
-      _jsonEncode(uriStringWithEncodedColons),
-      uriSeparators,
-      uriReplacement,
-    );
-    addWithQuotesAndTrailingSlash(
-      uriStringWithEncodedColons,
-      uriSeparators,
-      uriReplacement,
-    );
 
     // Reset the cached pattern so it's built on the next call to normalize.
     _replacementPattern = null;
@@ -171,9 +149,10 @@ class LogNormalizer {
     );
   }
 
-  /// Returns the given [json] string after replacing any known paths with
-  /// placeholders.
-  String normalize(String json) {
+  /// Returns the given value (object, map, literal) as a JSON string with
+  /// file/URIs normalized.
+  String normalize(Object? value) {
+    var json = jsonEncode(_canonicalizeObject(value));
     if (_replacements.isEmpty) return json;
 
     // Build a single regex that matches any of the replacements.
@@ -202,6 +181,49 @@ class LogNormalizer {
       denormalizedReplacements.putIfAbsent(value, () => key);
     }
     return denormalizedReplacements;
+  }
+
+  /// A 'toEncodable' implementation for [JsonEncoder] that will canonicalize
+  /// any input URIs to remove unnecessary escaping (such as colons and
+  /// ampersands) from the client.
+  ///
+  /// This is done during JSON serialization for performance. Our normalization
+  /// regex is built as a set of literals and there are many combinations of
+  /// encoded/unencoded characters that would balloon the number of patterns.
+  Object? _canonicalizeObject(Object? value) {
+    if (value is String) {
+      return _canonicalizeString(value);
+    }
+
+    if (value is List<Object?>) {
+      return value.map(_canonicalizeObject).toList();
+    }
+
+    if (value is Map<Object?, Object?>) {
+      return {
+        for (var MapEntry(:key, :value) in value.entries)
+          _canonicalizeObject(key): _canonicalizeObject(value),
+      };
+    }
+
+    return value;
+  }
+
+  /// Canonicalize [value] to remove unnecessary escaping (such as colons and
+  /// ampersands) from the client.
+  String _canonicalizeString(String value) {
+    if (!value.startsWith('file:')) {
+      return value;
+    }
+
+    var uri = Uri.tryParse(value);
+    if (uri == null) {
+      return value;
+    }
+
+    // Extract the path and then re-encode as a file URI in Dart. The encoding
+    // will then match what we put into the replacement map.
+    return Uri.file(uri.toFilePath()).toString();
   }
 
   /// Returns a JSON-encoded version of [inputString] without the surrounding

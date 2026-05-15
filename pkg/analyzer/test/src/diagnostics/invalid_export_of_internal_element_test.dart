@@ -138,12 +138,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:dart.my/src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 38)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 38] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_internalIsInGenfiles() async {
@@ -152,12 +150,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:dart.my/src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 38)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 38] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_internalIsInLibSrc() async {
@@ -166,12 +162,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:dart.my/src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 38)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 38] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 }
 
@@ -251,12 +245,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:test/src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 35)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 35] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   @override
@@ -266,12 +258,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:test/src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 35)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 35] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 }
 
@@ -334,12 +324,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'package:test/src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 35)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 35] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 }
 
@@ -356,7 +344,7 @@ import 'package:meta/meta.dart';
 class Two {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' hide One;
 ''');
   }
@@ -368,12 +356,10 @@ import 'package:meta/meta.dart';
 class Two {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' hide Two;
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 31)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 31] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_indirectlyViaFunction_messageText() async {
@@ -383,23 +369,10 @@ import 'package:meta/meta.dart';
 IntFunc func() => (int x) => x;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show func;
-''',
-      [
-        error(
-          diag.invalidExportOfInternalElementIndirectly,
-          0,
-          32,
-          messageContains: [
-            "The member 'IntFunc' can't be exported",
-            "indirectly exported as part of the signature of 'func'",
-          ],
-          correctionContains: "Try using a hide clause to hide 'func'",
-        ),
-      ],
-    );
+// [diag.invalidExportOfInternalElementIndirectly][column 1][length 32] The member 'IntFunc' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of 'func'.
+''');
   }
 
   void test_indirectlyViaFunction_parameter() async {
@@ -409,12 +382,10 @@ import 'package:meta/meta.dart';
 int func(IntFunc f, int x) => f(x);
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show func;
-''',
-      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
-    );
+// [diag.invalidExportOfInternalElementIndirectly][column 1][length 32] The member 'IntFunc' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of 'func'.
+''');
   }
 
   void test_indirectlyViaFunction_parameter_generic() async {
@@ -424,12 +395,10 @@ import 'package:meta/meta.dart';
 int func(IntFunc f, int x) => f(x);
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show func;
-''',
-      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
-    );
+// [diag.invalidExportOfInternalElementIndirectly][column 1][length 32] The member 'IntFunc' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of 'func'.
+''');
   }
 
   void test_indirectlyViaFunction_parameter_generic_typeArg() async {
@@ -439,12 +408,10 @@ import 'package:meta/meta.dart';
 int func(IntFunc<num> f, int x) => f(x);
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show func;
-''',
-      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
-    );
+// [diag.invalidExportOfInternalElementIndirectly][column 1][length 32] The member 'IntFunc' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of 'func'.
+''');
   }
 
   void test_indirectlyViaFunction_returnType() async {
@@ -454,12 +421,10 @@ import 'package:meta/meta.dart';
 IntFunc func() => (int x) => x;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show func;
-''',
-      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
-    );
+// [diag.invalidExportOfInternalElementIndirectly][column 1][length 32] The member 'IntFunc' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of 'func'.
+''');
   }
 
   void test_indirectlyViaFunction_typeArgument_bounded() async {
@@ -469,12 +434,10 @@ import 'package:meta/meta.dart';
 void func<T extends IntFunc>() {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show func;
-''',
-      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
-    );
+// [diag.invalidExportOfInternalElementIndirectly][column 1][length 32] The member 'IntFunc' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of 'func'.
+''');
   }
 
   void test_indirectlyViaFunction_typeArgument_unbounded() async {
@@ -484,7 +447,7 @@ import 'package:meta/meta.dart';
 void func<T>() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show func;
 ''');
   }
@@ -495,12 +458,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 22)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_noCombinators_indirectExport() async {
@@ -513,12 +474,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 22)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_noCombinators_library() async {
@@ -529,12 +488,10 @@ library foo;
 import 'package:meta/meta.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 22)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'foo' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_noCombinators_library_notInternal() async {
@@ -542,7 +499,7 @@ export 'src/foo.dart';
 library foo;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart';
 ''');
   }
@@ -552,7 +509,7 @@ export 'src/foo.dart';
 class One {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart';
 ''');
   }
@@ -563,12 +520,10 @@ import 'package:meta/meta.dart';
 @internal int x = 0;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart';
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 22)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'x' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_showCombinator_internalNotShown() async {
@@ -578,7 +533,7 @@ import 'package:meta/meta.dart';
 class Two {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show Two;
 ''');
   }
@@ -590,11 +545,9 @@ import 'package:meta/meta.dart';
 class Two {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show One;
-''',
-      [error(diag.invalidExportOfInternalElement, 0, 31)],
-    );
+// [diag.invalidExportOfInternalElement][column 1][length 31] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 }

@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorBodyTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -109,6 +112,7 @@ class C {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -119,6 +123,18 @@ class C {
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
+  }
+
+  test_class_secondaryConstructor_constFactory_emptyBody_language305() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.5
+class C {
+  const factory C();
+}
+''',
+      [error(diag.constFactory, 27, 5), error(diag.missingFunctionBody, 44, 1)],
+    );
   }
 
   test_class_secondaryConstructor_constFactory_expressionBody() async {
@@ -326,6 +342,182 @@ class C {
 ''');
   }
 
+  test_class_secondaryConstructor_factory_factoryHead_named_augmentation_hasBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory named();
+  augment factory named() => throw 0;
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_factoryHead_named_augmentation_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory named();
+//^^^^^^^^^^^^^
+// [diag.factoryNotCompleteAfterAugmentations] The factory constructor 'named' must have a body or redirection after all augmentations are applied.
+  augment factory named();
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_factoryHead_named_external_noBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  external factory named();
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_factoryHead_named_hasBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory named() => throw 0;
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_factoryHead_named_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory named();
+//^^^^^^^^^^^^^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_factoryHead_unnamed_augmentation_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory ();
+//^^^^^^^
+// [diag.factoryNotCompleteAfterAugmentations] The factory constructor 'new' must have a body or redirection after all augmentations are applied.
+  augment factory ();
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_factoryHead_unnamed_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory ();
+//^^^^^^^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_named_augmentation_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory A.named();
+//        ^^^^^^^
+// [diag.factoryNotCompleteAfterAugmentations] The factory constructor 'named' must have a body or redirection after all augmentations are applied.
+  augment factory A.named();
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_named_external_noBody_language305() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.5
+class A {
+  external factory A.named();
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_named_hasBody_language305() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.5
+class A {
+  factory A.named() => throw 0;
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_named_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory A.named();
+//        ^^^^^^^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_named_noBody_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {
+  factory A.named();
+//                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_unnamed_augmentation_hasBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._();
+  factory A();
+  augment factory A() => A._();
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_unnamed_hasBody_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A._();
+  factory A() => A._();
+//        ^
+// [context 1] The complete declaration is here.
+  augment factory A() => A._();
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_unnamed_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory A();
+//        ^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_unnamed_noBody_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {
+  factory A();
+//           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_factory_typeName_unnamed_redirecting_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A._();
+  factory A() = A._;
+//        ^
+// [context 1] The complete declaration is here.
+  augment factory A() => A._();
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
   test_class_secondaryConstructor_generative_external_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -354,6 +546,100 @@ class C {
 // [diag.returnInGenerativeConstructor] Constructors can't return values.
 //                ^^^^
 // [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_generative_unnamed_assertInitializer_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A() : assert(true);
+//^
+// [context 1] The complete declaration is here.
+  augment A() {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_generative_unnamed_augmentation_hasBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A();
+  augment A() {}
+}
+''');
+  }
+
+  test_class_secondaryConstructor_generative_unnamed_augmentation_hasBody_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+  augment A() {}
+//        ^
+// [context 1] The complete declaration is here.
+  augment A() {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_generative_unnamed_fieldFormalParameter_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int x;
+  A(this.x);
+//^
+// [context 1] The complete declaration is here.
+  augment A() {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_generative_unnamed_fieldInitializer_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int x;
+  A() : x = 0;
+//^
+// [context 1] The complete declaration is here.
+  augment A() {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  test_class_secondaryConstructor_generative_unnamed_hasBody_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A() {}
+//^
+// [context 1] The complete declaration is here.
+  augment A() {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  @SkippedTest() // TODO(scheglov): implement augmentation
+  test_class_secondaryConstructor_generative_unnamed_superFormalParameter_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(super.x);
+//^
+// [context 1] The complete declaration is here.
+  augment B(int x) {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
 }
 ''');
   }
@@ -470,6 +756,7 @@ enum E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -482,6 +769,20 @@ enum E {
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
+  }
+
+  test_enum_secondaryConstructor_constFactory_emptyBody_language305() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.5
+enum E {
+  v;
+  const E();
+  const factory E.named();
+}
+''',
+      [error(diag.constFactory, 44, 5), error(diag.missingFunctionBody, 67, 1)],
+    );
   }
 
   test_enum_secondaryConstructor_constFactory_expressionBody() async {
@@ -804,6 +1105,7 @@ extension type const E(int it) {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
@@ -814,6 +1116,18 @@ extension type const E(int it) {
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
+  }
+
+  test_extensionType_secondaryConstructor_constFactory_emptyBody_language305() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.5
+extension type const E(int it) {
+  const factory E.named();
+}
+''',
+      [error(diag.constFactory, 50, 5), error(diag.missingFunctionBody, 73, 1)],
+    );
   }
 
   test_extensionType_secondaryConstructor_constFactory_expressionBody() async {

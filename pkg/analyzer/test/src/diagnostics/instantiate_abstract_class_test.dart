@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,114 +15,104 @@ main() {
 @reflectiveTest
 class InstantiateAbstractClassTest extends PubPackageResolutionTest {
   test_const_generic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {
   const A();
 }
 void f() {
   var a = const A<int>();
-}''',
-      [
-        error(diag.unusedLocalVariable, 54, 1),
-        error(diag.instantiateAbstractClass, 64, 6),
-      ],
-    );
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//              ^^^^^^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
+}''');
 
     assertType(findNode.instanceCreation('const A<int>'), 'A<int>');
   }
 
   test_const_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   const A();
 }
 void f() {
   A a = const A();
-}''',
-      [
-        error(diag.unusedLocalVariable, 49, 1),
-        error(diag.instantiateAbstractClass, 59, 1),
-      ],
-    );
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//            ^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
+}''');
   }
 
   test_new_generic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {}
 void f() {
   new A<int>();
+//    ^^^^^^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 40, 6)],
-    );
+''');
 
     assertType(findNode.instanceCreation('new A<int>'), 'A<int>');
   }
 
   test_new_interfaceTypeTypedef() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {}
 typedef B = A;
 void f() {
   new B();
+//    ^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 52, 1)],
-    );
+''');
   }
 
   test_new_nonGeneric() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {}
 void f() {
   new A();
+//    ^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 37, 1)],
-    );
+''');
   }
 
   test_noKeyword_generic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {}
 void f() {
   A<int>();
+//^^^^^^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 36, 6)],
-    );
+''');
 
     assertType(findNode.instanceCreation('A<int>'), 'A<int>');
   }
 
   test_noKeyword_interfaceTypeTypedef() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {}
 typedef B = A;
 void f() {
   B();
+//^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 48, 1)],
-    );
+''');
   }
 
   test_noKeyword_nonGeneric() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {}
 void f() {
   A();
+//^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 33, 1)],
-    );
+''');
   }
 }

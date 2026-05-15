@@ -3920,7 +3920,8 @@ void Class::AddInvocationDispatcher(const String& target_name,
 FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
                                            const Array& args_desc,
                                            UntaggedFunction::Kind kind,
-                                           bool create_if_absent) const {
+                                           bool create_if_absent,
+                                           bool is_dynamically_callable) const {
   ASSERT(kind == UntaggedFunction::kNoSuchMethodDispatcher ||
          kind == UntaggedFunction::kInvokeFieldDispatcher ||
          kind == UntaggedFunction::kDynamicInvocationForwarder);
@@ -3951,7 +3952,8 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
   if (!function.IsNull()) return function.ptr();
 
   // Otherwise create it & add it.
-  function = CreateInvocationDispatcher(target_name, args_desc, kind);
+  function = CreateInvocationDispatcher(target_name, args_desc, kind,
+                                        is_dynamically_callable);
   AddInvocationDispatcher(target_name, args_desc, function);
   return function.ptr();
 }
@@ -3959,7 +3961,8 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
 FunctionPtr Class::CreateInvocationDispatcher(
     const String& target_name,
     const Array& args_desc,
-    UntaggedFunction::Kind kind) const {
+    UntaggedFunction::Kind kind,
+    bool is_dynamically_callable) const {
   ASSERT(target_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -4026,6 +4029,7 @@ FunctionPtr Class::CreateInvocationDispatcher(
   invocation.set_is_visible(false);
   invocation.set_is_reflectable(false);
   invocation.set_saved_args_desc(args_desc);
+  invocation.set_is_dynamically_callable(is_dynamically_callable);
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   invocation.SetSignature(signature);
@@ -28004,7 +28008,10 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&
-        (pragma_name != Symbols::dyn_module_extendable().ptr())) {
+        (pragma_name != Symbols::dyn_module_extendable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_dynamically_callable().ptr()) &&
+        (pragma_name !=
+         Symbols::dyn_module_implicitly_dynamically_callable().ptr())) {
       continue;
     }
     *reusable_field_handle = IG->object_store()->pragma_options();

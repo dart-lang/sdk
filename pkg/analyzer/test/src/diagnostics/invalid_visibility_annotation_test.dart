@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,39 +21,36 @@ class InvalidVisibilityAnnotationTest extends PubPackageResolutionTest {
   }
 
   test_fields_multipleMixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a = 0, b = 0;
+// ^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibilityAnnotation] The member '_a' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedField] The value of the field '_a' isn't used.
 }
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 46, 17),
-        error(diag.unusedField, 68, 2),
-      ],
-    );
+''');
   }
 
   test_fields_multiplePrivate() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a = 0, _b = 0;
+// ^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibilityAnnotation] The member '_a' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+// [diag.invalidVisibilityAnnotation] The member '_b' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedField] The value of the field '_a' isn't used.
+//                               ^^
+// [diag.unusedField] The value of the field '_b' isn't used.
 }
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 46, 17),
-        error(diag.invalidVisibilityAnnotation, 46, 17),
-        error(diag.unusedField, 68, 2),
-        error(diag.unusedField, 76, 2),
-      ],
-    );
+''');
   }
 
   test_fields_multiplePublic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int a = 0, b = 0;
@@ -63,20 +59,19 @@ class C {
   }
 
   test_primaryConstructor_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C._() {
   @visibleForTesting
+// ^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibilityAnnotation] The member '_' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
   this;
 }
-''',
-      [error(diag.invalidVisibilityAnnotation, 50, 17)],
-    );
+''');
   }
 
   test_primaryConstructor_public() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C.named() {
   @visibleForTesting
@@ -86,139 +81,114 @@ class C.named() {
   }
 
   test_privateClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting class _C {}
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 58, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_C' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedElement] The declaration '_C' isn't referenced.
+''');
   }
 
   test_privateEnum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting enum _E {a, b}
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_E' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
 void f(_E e) => e == _E.a || e == _E.b;
-''',
-      [error(diag.invalidVisibilityAnnotation, 34, 17)],
-    );
+''');
   }
 
   test_privateExtensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting extension type _E(int i) {}
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 67, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_E' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                                ^^
+// [diag.unusedElement] The declaration '_E' isn't referenced.
+''');
   }
 
   test_privateField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a = 1;
+// ^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibilityAnnotation] The member '_a' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedField] The value of the field '_a' isn't used.
 }
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 46, 17),
-        error(diag.unusedField, 68, 2),
-      ],
-    );
+''');
   }
 
   test_privateMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting void _m() {}
+// ^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibilityAnnotation] The member '_m' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                        ^^
+// [diag.unusedElement] The declaration '_m' isn't referenced.
 }
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 46, 17),
-        error(diag.unusedElement, 69, 2),
-      ],
-    );
+''');
   }
 
   test_privateMixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting mixin _M {}
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 58, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_M' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedElement] The declaration '_M' isn't referenced.
+''');
   }
 
   test_privateTopLevelFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting void _f() {}
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 57, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_f' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                      ^^
+// [diag.unusedElement] The declaration '_f' isn't referenced.
+''');
   }
 
   test_privateTopLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1;
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 58, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_a' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedElement] The declaration '_a' isn't referenced.
+''');
   }
 
   test_privateTypedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting typedef _T = Function();
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 60, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_T' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                         ^^
+// [diag.unusedElement] The declaration '_T' isn't referenced.
+''');
   }
 
   test_secondaryConstructor_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting
+// ^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibilityAnnotation] The member '_' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
   C._() {}
 }
-''',
-      [error(diag.invalidVisibilityAnnotation, 46, 17)],
-    );
+''');
   }
 
   test_secondaryConstructor_public() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting
@@ -228,42 +198,37 @@ class C {
   }
 
   test_topLevelVariable_multipleMixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, b = 2;
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 58, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_a' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedElement] The declaration '_a' isn't referenced.
+''');
   }
 
   test_topLevelVariable_multiplePrivate() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, _b = 2;
-''',
-      [
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.invalidVisibilityAnnotation, 34, 17),
-        error(diag.unusedElement, 58, 2),
-        error(diag.unusedElement, 66, 2),
-      ],
-    );
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_a' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_b' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                       ^^
+// [diag.unusedElement] The declaration '_a' isn't referenced.
+//                               ^^
+// [diag.unusedElement] The declaration '_b' isn't referenced.
+''');
   }
 
   test_topLevelVariable_multiplePublic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final a = 1, b = 2;
 ''');
   }
 
   test_valid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting void f() {}
 @visibleForTesting enum E {a, b, c}

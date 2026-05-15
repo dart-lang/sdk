@@ -180,6 +180,8 @@ import 'move_annotation_to_library_directive_test.dart'
     as move_annotation_to_library_directive;
 import 'move_doc_comment_to_library_directive_test.dart'
     as move_doc_comment_to_library_directive;
+import 'move_initialization_to_field_declaration_test.dart'
+    as move_initialization_to_field_declaration;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
 import 'pubspec/test_all.dart' as pubspec;
@@ -485,6 +487,7 @@ void main() {
     merge_combinators.main();
     move_annotation_to_library_directive.main();
     move_doc_comment_to_library_directive.main();
+    move_initialization_to_field_declaration.main();
     move_type_arguments_to_class.main();
     organize_imports.main();
     pubspec.main();

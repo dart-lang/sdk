@@ -83,7 +83,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
             ? ChangeAnnotations.requireConfirmation
             : ChangeAnnotations.include,
       );
-      return sendWorkspaceEditToClient(edit);
+      return await sendWorkspaceEditToClient(edit);
     } finally {
       progress.end();
     }

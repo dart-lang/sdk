@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -24,19 +23,17 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
 
   test_greaterThanLatest() async {
     var latestVersion = ExperimentStatus.currentVersion;
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 15] The language version override can't specify a version greater than the latest known language version: 3.13.
 class A {}
-''',
-      [error(diag.invalidLanguageVersionOverrideGreater, 0, 15)],
-    );
+''');
     _assertUnitLanguageVersion(package: latestVersion, override: null);
   }
 
   test_greaterThanPackage() async {
     _configureTestPackageLanguageVersion('2.5');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.12
 int? a;
 ''');
@@ -48,7 +45,7 @@ int? a;
 
   test_lessThanPackage() async {
     _configureTestPackageLanguageVersion('2.19');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.18
 class A {}
 ''');

@@ -2,41 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantRecordFieldTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonConstantRecordFieldTest extends PubPackageResolutionTest {
   test_const_namedField() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 var v = const (a: a);
-''',
-      [error(diag.nonConstantRecordField, 31, 1)],
-    );
+//                ^
+// [diag.nonConstantRecordField] The fields in a const record literal must be constants.
+''');
   }
 
   test_const_positionalField() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 var v = const (a, );
-''',
-      [error(diag.nonConstantRecordField, 28, 1)],
-    );
+//             ^
+// [diag.nonConstantRecordField] The fields in a const record literal must be constants.
+''');
   }
 
   test_nonConst() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 var v = (a, );
 ''');

@@ -387,7 +387,57 @@ void f() {
 ''');
   }
 
-  Future<void> test_flutter_to_material_package_IconButton() async {
+  Future<void> test_flutter_to_material_package_IconButton_deprecated() async {
+    newFile('$workspaceRootPath/p/lib/flutter.dart', '''
+  class Widget {
+  }
+''');
+    newFile('$workspaceRootPath/p/lib/material.dart', '''
+ @deprecated
+ library;
+ class IconButton {
+    const IconButton();
+ }
+ ''');
+
+    newFile('$workspaceRootPath/p2/lib/material.dart', '''
+ class IconButton {
+    const IconButton();
+ }
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by material from package p2'
+    date: 2023-11-09
+    library: 'package:p/material.dart'
+    changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p2/material.dart'
+''');
+
+    await resolveTestCode('''
+import 'package:p/material.dart';
+
+void f(IconButton button) {
+}
+''');
+
+    await assertHasFix('''
+import 'package:p2/material.dart';
+
+void f(IconButton button) {
+}
+''');
+  }
+
+  Future<void> test_flutter_to_material_package_IconButton_removed() async {
     newFile('$workspaceRootPath/p/lib/flutter.dart', '''
   class Widget {
   }

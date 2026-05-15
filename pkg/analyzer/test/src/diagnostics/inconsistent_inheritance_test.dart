@@ -82,8 +82,7 @@ augment abstract class C implements B {}
   }
 
   test_class_augmentWithMixin_sameFile() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class I {
   String foo();
 }
@@ -93,20 +92,18 @@ mixin M {
 }
 
 class A implements I {}
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': M.foo (int Function()), I.foo (String Function()).
 
 augment class A with M {}
-''',
-      [
-        error(diag.inconsistentInheritance, 75, 1),
-        error(diag.inconsistentInheritance, 108, 1),
-      ],
-    );
+//            ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': M.foo (int Function()), I.foo (String Function()).
+''');
   }
 
   /// https://github.com/dart-lang/sdk/issues/47026
   test_class_covariantInSuper_withTwoUnrelated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class D1 {}
 class D2 {}
 class D implements D1, D2 {}
@@ -115,14 +112,13 @@ class A { void m(covariant D d) {} }
 abstract class B1 { void m(D1 d1); }
 abstract class B2 { void m(D2 d2); }
 class C extends A implements B1, B2 {}
-''',
-      [error(diag.inconsistentInheritance, 171, 1)],
-    );
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(D)), B1.m (void Function(D1)), B2.m (void Function(D2)).
+''');
   }
 
   test_class_parameterType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m(int i);
 }
@@ -130,14 +126,13 @@ abstract class B {
   void m(String s);
 }
 abstract class C implements A, B {}
-''',
-      [error(diag.inconsistentInheritance, 94, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_class_parameterType_inheritedFromBase() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m(int i);
 }
@@ -145,14 +140,13 @@ abstract class B {
   void m(String s);
 }
 abstract class C extends B implements A {}
-''',
-      [error(diag.inconsistentInheritance, 94, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': B.m (void Function(String)), A.m (void Function(int)).
+''');
   }
 
   test_class_parameterType_inheritedInInterface() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m(int i);
 }
@@ -161,14 +155,13 @@ abstract class B {
 }
 abstract class B2 extends B {}
 abstract class C implements A, B2 {}
-''',
-      [error(diag.inconsistentInheritance, 125, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_class_parameterType_inheritedInInterface_andMixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void m(int i);
 }
@@ -177,14 +170,13 @@ abstract class B {
 }
 abstract class B2 extends B {}
 abstract class C extends Object with A implements B2 {}
-''',
-      [error(diag.inconsistentInheritance, 116, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_class_parameterType_inheritedInInterface_andMixinApplication() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void m(int i);
 }
@@ -193,14 +185,13 @@ abstract class B {
 }
 abstract class B2 extends B {}
 abstract class C = Object with A implements B2;
-''',
-      [error(diag.inconsistentInheritance, 116, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_class_parameterType_mixedIntoInterface() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m(int i);
 }
@@ -209,14 +200,13 @@ mixin B {
 }
 abstract class B2 extends Object with B {}
 abstract class C implements A, B2 {}
-''',
-      [error(diag.inconsistentInheritance, 128, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_class_parameterType_mixedIntoInterface_andMixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void m(int i);
 }
@@ -225,14 +215,13 @@ mixin B {
 }
 abstract class B2 extends Object with B {}
 abstract class C extends Object with A implements B2 {}
-''',
-      [error(diag.inconsistentInheritance, 119, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_class_parameterType_twoConflictingInterfaces() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m(int i);
 }
@@ -243,14 +232,13 @@ abstract class C {
   void n(String s);
 }
 abstract class D implements A, B, C {}
-''',
-      [error(diag.inconsistentInheritance, 135, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_class_requiredParameters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m();
 }
@@ -258,14 +246,13 @@ abstract class B {
   void m(int y);
 }
 abstract class C implements A, B {}
-''',
-      [error(diag.inconsistentInheritance, 86, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function()), B.m (void Function(int)).
+''');
   }
 
   test_class_returnType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int m();
 }
@@ -273,14 +260,13 @@ abstract class B {
   String m();
 }
 abstract class C implements A, B {}
-''',
-      [error(diag.inconsistentInheritance, 82, 1)],
-    );
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (int Function()), B.m (String Function()).
+''');
   }
 
   test_enum_returnType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int foo();
 }
@@ -290,14 +276,13 @@ abstract class B {
 }
 
 enum E implements A, B {v}
-''',
-      [error(diag.inconsistentInheritance, 78, 1)],
-    );
+//   ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (int Function()), B.foo (String Function()).
+''');
   }
 
   test_enum_returnType_augmentation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int foo();
 }
@@ -307,21 +292,19 @@ abstract class B {
 }
 
 enum E implements A {v}
+//   ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (int Function()), B.foo (String Function()).
 
 augment enum E implements B {
+//           ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (int Function()), B.foo (String Function()).
   augment v;
 }
-''',
-      [
-        error(diag.inconsistentInheritance, 78, 1),
-        error(diag.inconsistentInheritance, 111, 1),
-      ],
-    );
+''');
   }
 
   test_mixin_implements_parameterType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m(int i);
 }
@@ -329,14 +312,13 @@ abstract class B {
   void m(String s);
 }
 mixin M implements A, B {}
-''',
-      [error(diag.inconsistentInheritance, 85, 1)],
-    );
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_mixin_implements_requiredParameters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m();
 }
@@ -344,14 +326,13 @@ abstract class B {
   void m(int y);
 }
 mixin M implements A, B {}
-''',
-      [error(diag.inconsistentInheritance, 77, 1)],
-    );
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function()), B.m (void Function(int)).
+''');
   }
 
   test_mixin_implements_returnType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int m();
 }
@@ -359,14 +340,13 @@ abstract class B {
   String m();
 }
 mixin M implements A, B {}
-''',
-      [error(diag.inconsistentInheritance, 73, 1)],
-    );
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (int Function()), B.m (String Function()).
+''');
   }
 
   test_mixin_on_parameterType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m(int i);
 }
@@ -374,14 +354,13 @@ abstract class B {
   void m(String s);
 }
 mixin M on A, B {}
-''',
-      [error(diag.inconsistentInheritance, 85, 1)],
-    );
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function(int)), B.m (void Function(String)).
+''');
   }
 
   test_mixin_on_requiredParameters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void m();
 }
@@ -389,14 +368,13 @@ abstract class B {
   void m(int y);
 }
 mixin M on A, B {}
-''',
-      [error(diag.inconsistentInheritance, 77, 1)],
-    );
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (void Function()), B.m (void Function(int)).
+''');
   }
 
   test_mixin_on_returnType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int m();
 }
@@ -404,13 +382,13 @@ abstract class B {
   String m();
 }
 mixin M on A, B {}
-''',
-      [error(diag.inconsistentInheritance, 73, 1)],
-    );
+//    ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'm': A.m (int Function()), B.m (String Function()).
+''');
   }
 
   test_overrideWithDynamicParameterType_inheritsAndInterface() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   void m(int i) {}
 }
@@ -426,7 +404,7 @@ class C extends B implements I {
   }
 
   test_overrideWithDynamicParameterType_mixinAndInterface() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin B {
   void m(int i) {}
 }

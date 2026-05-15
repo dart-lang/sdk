@@ -1,16 +1,18 @@
 // Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license[diff_block_end]
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedLabelTest);
     defineReflectiveTests(UnusedLabelTest_Language219);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -24,36 +26,34 @@ class UnusedLabelTest_Language219 extends PubPackageResolutionTest
 
 mixin UnusedLabelTestCases on PubPackageResolutionTest {
   test_unused_inSwitch() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(x) {
   switch (x) {
     label: case 0:
+//  ^^^^^^
+// [diag.unusedLabel] The label 'label' isn't used.
       break;
     default:
       break;
   }
 }
-''',
-      [error(diag.unusedLabel, 26, 6)],
-    );
+''');
   }
 
   test_unused_onWhile() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(condition()) {
   label: while (condition()) {
+//^^^^^^
+// [diag.unusedLabel] The label 'label' isn't used.
     break;
   }
 }
-''',
-      [error(diag.unusedLabel, 19, 6)],
-    );
+''');
   }
 
   test_used_inSwitch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(x) {
   switch (x) {
     label: case 0:
@@ -66,7 +66,7 @@ f(x) {
   }
 
   test_used_onWhile() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(condition()) {
   label: while (condition()) {
     break label;

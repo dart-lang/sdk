@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,35 +15,32 @@ main() {
 @reflectiveTest
 class InvalidModifierOnConstructorTest extends PubPackageResolutionTest {
   test_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() async {}
+//    ^^^^^
+// [diag.invalidModifierOnConstructor] The modifier 'async' can't be applied to the body of a constructor.
 }
-''',
-      [error(diag.invalidModifierOnConstructor, 16, 5)],
-    );
+''');
   }
 
   test_asyncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() async* {}
+//    ^^^^^
+// [diag.invalidModifierOnConstructor] The modifier 'async' can't be applied to the body of a constructor.
 }
-''',
-      [error(diag.invalidModifierOnConstructor, 16, 5)],
-    );
+''');
   }
 
   test_syncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() sync* {}
+//    ^^^^
+// [diag.invalidModifierOnConstructor] The modifier 'sync' can't be applied to the body of a constructor.
 }
-''',
-      [error(diag.invalidModifierOnConstructor, 16, 4)],
-    );
+''');
   }
 }

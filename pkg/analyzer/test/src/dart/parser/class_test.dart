@@ -879,6 +879,53 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_factory_unnamed_noBody() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  factory A();
+}
+''');
+    parseResult.assertExpectedDiagnostics();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed_noBody_language305() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.5
+class A {
+  factory A();
+//           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+    parseResult.assertExpectedDiagnostics();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_constructor_typeName_factory_unnamed_withoutPrimaryConstructors() {
     var parseResult = parseStringWithErrors(r'''
 // @dart = 3.10

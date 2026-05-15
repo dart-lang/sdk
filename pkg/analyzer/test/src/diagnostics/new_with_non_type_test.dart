@@ -2,30 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewWithNonTypeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NewWithNonTypeTest extends PubPackageResolutionTest {
   test_functionTypeAlias() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef F = void Function();
 
 void foo() {
   new F();
+//    ^
+// [diag.newWithNonType] The name 'F' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 49, 1)],
-    );
+''');
 
     var node = findNode.namedType('F()');
     assertResolvedNodeText(node, r'''
@@ -40,28 +40,26 @@ NamedType
     newFile('$testPackageLibPath/lib.dart', '''
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as lib;
 void f() {
   new lib.A();
+//        ^
+// [diag.newWithNonType] The name 'A' isn't a class.
 }
 lib.B b = lib.B();
-''',
-      [error(diag.newWithNonType, 47, 1)],
-    );
+''');
   }
 
   test_local() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var A = 0;
 void f() {
   new A();
+//    ^
+// [diag.newWithNonType] The name 'A' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 28, 1)],
-    );
+''');
 
     var node = findNode.namedType('A()');
     assertResolvedNodeText(node, r'''
@@ -73,15 +71,14 @@ NamedType
   }
 
   test_local_withTypeArguments() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var A = 0;
 void f() {
   new A<int>();
+//    ^
+// [diag.newWithNonType] The name 'A' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 28, 1)],
-    );
+''');
 
     var node = findNode.namedType('A<int>()');
     assertResolvedNodeText(node, r'''
@@ -101,27 +98,25 @@ NamedType
   }
 
   test_malformed_constructor_call() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C.x();
 }
 main() {
   new C.x.y();
+//    ^^^
+// [diag.newWithNonType] The name 'x' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 36, 3)],
-    );
+''');
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void foo<T>() {
   new T();
+//    ^
+// [diag.newWithNonType] The name 'T' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 22, 1)],
-    );
+''');
   }
 }

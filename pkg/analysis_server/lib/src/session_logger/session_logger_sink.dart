@@ -29,7 +29,7 @@ final class SessionLoggerFileSink extends SessionLoggerSink {
 
   @override
   void writeLogEntry(JsonMap entry) {
-    var jsonString = _normalizer.normalize(json.encode(entry));
+    var jsonString = _normalizer.normalize(entry);
     _sink.writeln(jsonString);
   }
 }
@@ -221,7 +221,7 @@ sealed class SessionLoggerSink {
 
   /// Returns the given [entry] after normalizing any paths in it.
   JsonMap _normalize(JsonMap entry) {
-    var normalizedJsonString = _normalizer.normalize(json.encode(entry));
+    var normalizedJsonString = _normalizer.normalize(entry);
     return json.decode(normalizedJsonString) as JsonMap;
   }
 }

@@ -1937,7 +1937,6 @@ extension E on String { typedef A = B Function(C, D);
       error(diag.typedefInClass, 24, 7),
       error(diag.missingConstFinalVarOrType, 32, 1),
       error(diag.expectedToken, 36, 1),
-      error(diag.extensionDeclaresAbstractMember, 38, 8),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

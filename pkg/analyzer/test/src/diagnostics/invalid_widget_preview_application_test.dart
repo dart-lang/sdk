@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,123 +23,114 @@ class InvalidWidgetPreviewApplicationTest extends PubPackageResolutionTest {
 
   // @Preview cannot be applied to constructors of abstract classes.
   test_invalidAbstractClassConstructors() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 abstract class B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   B();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 133, 7)],
-    );
+''');
   }
 
   // @Preview application must invoke the `Preview` constructor.
   test_invalidAnnotationApplication() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B extends StatelessWidget {
   @Preview
+//^^^^^^^^
+// [diag.noAnnotationConstructorArguments] Annotation creation must have arguments.
   B();
 }
-''',
-      [error(diag.noAnnotationConstructorArguments, 123, 8)],
-    );
+''');
   }
 
   // @Preview cannot be applied to external constructors.
   test_invalidExternalConstructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   external B();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 124, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to external functions.
   test_invalidExternalStaticFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   external static Widget foo();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 124, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to external top-level functions.
   test_invalidExternalTopLevelFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 @Preview()
+// [diag.invalidWidgetPreviewApplication][column 2][length 7] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
 external Widget foo();
-''',
-      [error(diag.invalidWidgetPreviewApplication, 88, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to instance members of classes.
   test_invalidInstanceMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   Widget foo() {
     return Text('Foo');
   }
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 100, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to nested functions.
   test_invalidNestedFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 Widget foo() {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   Widget nested() {
     return Text('Foo');
   }
   return nested();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 105, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to enum members.
   test_invalidParentContext_enumMember() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widget_previews.dart';
 
 enum B {
@@ -149,17 +139,16 @@ enum B {
   c;
 
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   const B();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 76, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to extension methods.
   test_invalidParentContext_extensionMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -168,17 +157,16 @@ class Foo extends StatelessWidget {
 
 extension E on Foo {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   Widget invalidExtensionPreview() => Text('Invalid');
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 150, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to extension type members.
   test_invalidParentContext_extensionTypeMember() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -189,17 +177,16 @@ class Foo extends StatelessWidget {
 
 extension type FooExtensionType(Foo foo) {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   Widget invalidExtensionTypePreview() => Text('Invalid');
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 237, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to extension type members.
   test_invalidParentContext_mixinMember() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -210,159 +197,149 @@ class Foo extends StatelessWidget {
 
 mixin PreviewMixin {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   Widget invalidMixinPreview() => Text('Invalid');
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 215, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to constructors of private classes.
   test_invalidPrivateClass_constructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class _B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   _B();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 160, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to factory constructors of private classes.
   test_invalidPrivateClass_factoryConstructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class _B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   factory _B.foo() => throw '';
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 160, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to instance members of private classes.
   test_invalidPrivateClass_instanceMember() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class _B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   static Widget bar() => Text('Bar');
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 160, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to private static functions.
   test_invalidPrivateClassStatic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   static Widget _foo() {
+//              ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
     return Text('Foo');
   }
 }
-''',
-      [
-        error(diag.invalidWidgetPreviewApplication, 124, 7),
-        error(diag.unusedElement, 150, 4),
-      ],
-    );
+''');
   }
 
   // @Preview cannot be applied to private factory constructors.
   test_invalidPrivateConstructor_factory() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   factory B._foo() => B();
 
   B();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 159, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to private generative constructors.
   test_invalidPrivateConstructor_generative() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   B._();
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 159, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to private primary constructors.
   test_invalidPrivateConstructor_primary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 class B._() extends StatelessWidget {
   @Preview()
+// ^^^^^^^
+// [diag.invalidWidgetPreviewApplication] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
   this;
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 163, 7)],
-    );
+''');
   }
 
   // @Preview cannot be applied to private top-level functions.
   test_invalidPrivateTopLevel() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
 @Preview()
+// [diag.invalidWidgetPreviewApplication][column 2][length 7] The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions.
 Widget _foo() {
   return Text('Foo');
 }
-''',
-      [error(diag.invalidWidgetPreviewApplication, 123, 7)],
-    );
+''');
   }
 
   // Ensure that @Preview can be applied to public factory constructors of
   // abstract Widget subtypes.
   test_validAbstractClassFactoryConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -385,7 +362,7 @@ class C extends B {
 
   // Ensure that constant instances of @Preview(...) can be applied.
   test_validAnnotationConstant() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
@@ -399,7 +376,7 @@ Widget bar() => Text('Bar');
   // Ensure that @Preview can be applied to public factory constructors of
   // Widget subtypes, including those with optional parameters.
   test_validClassFactoryConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -418,7 +395,7 @@ class B extends StatelessWidget {
   // Ensure that @Preview can be applied to public constructors of Widget
   // subtypes, including those with optional parameters.
   test_validClassGenerativeConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -435,7 +412,7 @@ class B extends StatelessWidget {
   // Ensure that @Preview can be applied to public primary constructors of
   // Widget subtypes, including those with optional parameters.
   test_validClassPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -449,7 +426,7 @@ class B({super.key}) extends StatelessWidget {
   // Ensure that @Preview can be applied to public static functions that are
   // defined in public classes and that return Widget or WidgetBuilder.
   test_validClassStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -472,7 +449,7 @@ class B extends StatelessWidget {
   // Ensure that @Preview can be applied to public top-level functions that
   // return a Widget or WidgetBuilder.
   test_validTopLevel() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
@@ -491,7 +468,7 @@ WidgetBuilder bar() {
   // Ensure that @Preview can be applied to functions that explicitly return a
   // subtype of Widget.
   test_validTopLevel_widgetSubtype() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 

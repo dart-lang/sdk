@@ -33,22 +33,14 @@ class A.named() {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   A.named();
+//^^^^^^^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'A.named' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [
-        error(
-          diag.invalidUseOfVisibleForTestingMember,
-          33,
-          7,
-          messageContains: ['A.named'],
-        ),
-      ],
-    );
+''');
   }
 
   test_export_hide() async {
@@ -61,7 +53,7 @@ class A {}
 class B {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart' hide A;
 ''');
   }
@@ -76,7 +68,7 @@ class A {}
 class B {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart' show A;
 ''');
   }
@@ -153,15 +145,14 @@ extension E on List {
   int m() => 1;
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   E([]).m();
+//      ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'm' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 39, 1)],
-    );
+''');
   }
 
   test_functionInExtension_fromTestDirectory() async {
@@ -190,15 +181,14 @@ class A {
   int get a => 7;
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   A().a;
+//    ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'a' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 37, 1)],
-    );
+''');
   }
 
   test_getter_inObjectPattern() async {
@@ -233,7 +223,7 @@ class A {}
 class B {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' hide A;
 
 void f(B _) {}
@@ -250,17 +240,15 @@ class A {}
 class B {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' show A;
+//                   ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'A' can only be used within 'package:test/a.dart' or a test.
 
 void f(A _) {}
-''',
-      [
-        error(diag.invalidUseOfVisibleForTestingMember, 21, 1),
-        error(diag.invalidUseOfVisibleForTestingMember, 32, 1),
-      ],
-    );
+//     ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'A' can only be used within 'package:test/a.dart' or a test.
+''');
   }
 
   test_method() async {
@@ -272,13 +260,12 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() => A().a();
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 36, 1)],
-    );
+//              ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'a' can only be used within 'package:test/lib1.dart' or a test.
+''');
   }
 
   test_method_fromOverride_visibleForOverriding() async {
@@ -291,7 +278,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 class B extends A {
   void a() => super.a();
@@ -308,15 +295,14 @@ extension type E(int i) {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   E(1).m();
+//     ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'm' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 38, 1)],
-    );
+''');
   }
 
   test_methodInExtensionType_fromTestDirectory() async {
@@ -347,15 +333,14 @@ mixin A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f(A a) {
   a.m();
+//  ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'm' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 38, 1)],
-    );
+''');
   }
 
   test_namedConstructor() async {
@@ -367,22 +352,14 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   A.forTesting();
+//^^^^^^^^^^^^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'A.forTesting' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [
-        error(
-          diag.invalidUseOfVisibleForTestingMember,
-          33,
-          12,
-          messageContains: ['A.forTesting'],
-        ),
-      ],
-    );
+''');
   }
 
   test_protectedAndForTesting_usedAsProtected() async {
@@ -395,7 +372,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 class B extends A {
   void b() => A().a();
@@ -432,15 +409,14 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   A().b = 6;
+//    ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'b' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 37, 1)],
-    );
+''');
   }
 
   test_topLevelFunction() async {
@@ -450,15 +426,14 @@ import 'package:meta/meta.dart';
 int f() => 1;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void g() {
   f();
+//^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'f' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 33, 1)],
-    );
+''');
   }
 
   test_topLevelVariable() async {
@@ -468,15 +443,14 @@ import 'package:meta/meta.dart';
 int a = 7;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   a;
+//^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'a' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 33, 1)],
-    );
+''');
   }
 
   test_unnamedConstructor() async {
@@ -488,14 +462,13 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 void f() {
   A();
+//^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'A' can only be used within 'package:test/lib1.dart' or a test.
 }
-''',
-      [error(diag.invalidUseOfVisibleForTestingMember, 33, 1)],
-    );
+''');
   }
 }

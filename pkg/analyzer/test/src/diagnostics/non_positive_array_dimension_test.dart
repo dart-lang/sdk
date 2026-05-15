@@ -2,49 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonPositiveArrayDimensionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonPositiveArrayDimensionTest extends PubPackageResolutionTest {
   test_multi_negative() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array.multi([-1])
+//              ^^
+// [diag.nonPositiveArrayDimension] Array dimensions must be positive numbers.
   external Array<Uint8> a0;
 }
-''',
-      [error(diag.nonPositiveArrayDimension, 74, 2)],
-    );
+''');
   }
 
   test_multi_oneOfMany() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array.multi([1, 2, 3, -4, 5, 6])
+//                       ^^
+// [diag.nonPositiveArrayDimension] Array dimensions must be positive numbers.
   external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 }
-''',
-      [error(diag.nonPositiveArrayDimension, 83, 2)],
-    );
+''');
   }
 
   test_multi_positive() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
@@ -55,35 +54,33 @@ final class MyStruct extends Struct {
   }
 
   test_multi_zero() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array.multi([0])
+//              ^
+// [diag.nonPositiveArrayDimension] Array dimensions must be positive numbers.
   external Array<Uint8> a0;
 }
-''',
-      [error(diag.nonPositiveArrayDimension, 74, 1)],
-    );
+''');
   }
 
   test_single_negative() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array(-12)
+//       ^^^
+// [diag.nonPositiveArrayDimension] Array dimensions must be positive numbers.
   external Array<Uint8> a0;
 }
-''',
-      [error(diag.nonPositiveArrayDimension, 67, 3)],
-    );
+''');
   }
 
   test_single_positive() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
@@ -94,16 +91,15 @@ final class MyStruct extends Struct {
   }
 
   test_single_zero() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array(0)
+//       ^
+// [diag.nonPositiveArrayDimension] Array dimensions must be positive numbers.
   external Array<Uint8> a0;
 }
-''',
-      [error(diag.nonPositiveArrayDimension, 67, 1)],
-    );
+''');
   }
 }

@@ -2,118 +2,108 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantListElementTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class NonConstantListElementTest extends PubPackageResolutionTest
-    with NonConstantListElementTestCases {}
-
-mixin NonConstantListElementTestCases on PubPackageResolutionTest {
+class NonConstantListElementTest extends PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = const [if (1 < 0) 0 else a];
-''',
-      [error(diag.nonConstantListElement, 54, 1)],
-    );
+//                               ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = const [if (1 < 0) a else 0];
-''',
-      [error(diag.nonConstantListElement, 47, 1)],
-    );
+//                        ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = const [if (1 > 0) 0 else a];
-''',
-      [error(diag.nonConstantListElement, 54, 1)],
-    );
+//                               ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = const [if (1 > 0) a else 0];
-''',
-      [error(diag.nonConstantListElement, 47, 1)],
-    );
+//                        ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_ifElement_thenFalse_constThen() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = const [if (1 < 0) a];
 ''');
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = const [if (1 < 0) a];
-''',
-      [error(diag.nonConstantListElement, 47, 1)],
-    );
+//                        ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_ifElement_thenTrue_constThen() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = const [if (1 > 0) a];
 ''');
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = const [if (1 > 0) a];
-''',
-      [error(diag.nonConstantListElement, 47, 1)],
-    );
+//                        ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_topVar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = const [a];
-''',
-      [error(diag.nonConstantListElement, 36, 1)],
-    );
+//             ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_topVar_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 var v = const [a + 1];
-''',
-      [error(diag.nonConstantListElement, 36, 1)],
-    );
+//             ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_nonConst_topVar() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;
 var v = [a];
 ''');

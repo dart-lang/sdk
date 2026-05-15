@@ -6,18 +6,20 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapValueTypeNotAssignableTest);
     defineReflectiveTests(MapValueTypeNotAssignableWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MapValueTypeNotAssignableTest extends PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 const dynamic b = 0;
 var v = const <bool, int>{if (1 < 0) true: a else false: b};
@@ -25,135 +27,126 @@ var v = const <bool, int>{if (1 < 0) true: a else false: b};
   }
 
   test_const_ifElement_thenElseFalse_intString_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <bool, int>{if (1 < 0) true: a else false: b};
-''',
-      [error(diag.mapValueTypeNotAssignable, 101, 1)],
-    );
+//                                                       ^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_const_ifElement_thenFalse_intString_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = const <bool, int>{if (1 < 0) true: a};
 ''');
   }
 
   test_const_ifElement_thenFalse_intString_value() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <bool, int>{if (1 < 0) true: 'a'};
-''',
-      [error(diag.mapValueTypeNotAssignable, 43, 3)],
-    );
+//                                         ^^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_const_ifElement_thenTrue_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = const <bool, int>{if (true) true: a};
 ''');
   }
 
   test_const_ifElement_thenTrue_intString_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = const <bool, int>{if (true) true: a};
-''',
-      [error(diag.mapValueTypeNotAssignable, 65, 1)],
-    );
+//                                        ^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_const_ifElement_thenTrue_notConst() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 var v = const <bool, int>{if (1 < 2) true: a};
-''',
-      [error(diag.nonConstantMapValue, 56, 1)],
-    );
+//                                         ^
+// [diag.nonConstantMapValue] The values in a const map literal must be constant.
+''');
   }
 
   test_const_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = const <bool, int>{true: a};
 ''');
   }
 
   test_const_intNull_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = null;
 var v = const <bool, int>{true: a};
-''',
-      [error(diag.mapValueTypeNotAssignableNullability, 56, 1)],
-    );
+//                              ^
+// [diag.mapValueTypeNotAssignableNullability] The element type 'Null' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_const_intNull_value() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <bool, int>{true: null};
-''',
-      [error(diag.mapValueTypeNotAssignableNullability, 32, 4)],
-    );
+//                              ^^^^
+// [diag.mapValueTypeNotAssignableNullability] The element type 'Null' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_const_intQuestion_null_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = null;
 var v = const <bool, int?>{true: a};
 ''');
   }
 
   test_const_intQuestion_null_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <bool, int?>{true: null};
 ''');
   }
 
   test_const_intString_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = const <bool, int>{true: a};
-''',
-      [error(diag.mapValueTypeNotAssignable, 55, 1)],
-    );
+//                              ^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_const_intString_value() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <bool, int>{true: 'a'};
-''',
-      [error(diag.mapValueTypeNotAssignable, 32, 3)],
-    );
+//                              ^^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_const_spread_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <bool, int>{...{true: 1}};
 ''');
   }
 
   test_const_spread_intString_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = const <bool, int>{...{true: a}};
-''',
-      [error(diag.mapValueTypeNotAssignable, 59, 1)],
-    );
+//                                  ^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_nonConst_ifElement_thenElseFalse_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 const dynamic b = 0;
 var v = <bool, int>{if (1 < 0) true: a else false: b};
@@ -161,7 +154,7 @@ var v = <bool, int>{if (1 < 0) true: a else false: b};
   }
 
   test_nonConst_ifElement_thenElseFalse_intString_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = <bool, int>{if (1 < 0) true: a else false: b};
@@ -169,68 +162,65 @@ var v = <bool, int>{if (1 < 0) true: a else false: b};
   }
 
   test_nonConst_ifElement_thenFalse_intString_value() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = <bool, int>{if (1 < 0) true: 'a'};
-''',
-      [error(diag.mapValueTypeNotAssignable, 37, 3)],
-    );
+//                                   ^^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_nonConst_ifElement_thenTrue_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = <bool, int>{if (true) true: a};
 ''');
   }
 
   test_nonConst_ifElement_thenTrue_intString_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = <bool, int>{if (true) true: a};
 ''');
   }
 
   test_nonConst_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = <bool, int>{true: a};
 ''');
   }
 
   test_nonConst_intString_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = <bool, int>{true: a};
 ''');
   }
 
   test_nonConst_intString_value() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = <bool, int>{true: 'a'};
-''',
-      [error(diag.mapValueTypeNotAssignable, 26, 3)],
-    );
+//                        ^^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_nonConst_spread_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = <bool, int>{...{true: 1}};
 ''');
   }
 
   test_nonConst_spread_intString() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = <bool, int>{...{true: 'a'}};
-''',
-      [error(diag.mapValueTypeNotAssignable, 30, 3)],
-    );
+//                            ^^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
   }
 
   test_nonConst_spread_intString_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = <bool, int>{...{true: a}};
 ''');

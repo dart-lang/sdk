@@ -2801,6 +2801,24 @@ constPrimaryConstructorWithExpressionBody = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments
+constructorAlreadyComplete = DiagnosticWithoutArgumentsImpl(
+  name: 'declaration_already_complete',
+  problemMessage:
+      "The augmentation can't provide a body, initializers, or initializing "
+      "formal or super formal parameters because the constructor is already "
+      "complete.",
+  correctionMessage:
+      "Try removing the body, initializers, or initializing formal or super "
+      "formal parameters from the augmentation, or removing the body, "
+      "initializers, or initializing formal or super formal parameters from "
+      "the preceding declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'constructor_already_complete',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments constructorWithReturnType =
     DiagnosticWithoutArgumentsImpl(
       name: 'constructor_with_return_type',
@@ -5797,6 +5815,25 @@ const DiagnosticWithoutArguments factoryConstructorNewName =
       expectedTypes: [],
     );
 
+/// Parameters:
+/// String name: the name of the factory constructor
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+factoryNotCompleteAfterAugmentations = DiagnosticWithArguments(
+  name: 'factory_not_complete_after_augmentations',
+  problemMessage:
+      "The factory constructor '{0}' must have a body or redirection after all "
+      "augmentations are applied.",
+  correctionMessage:
+      "Try adding a body or redirection to the introductory declaration, or "
+      "providing an augmentation with a body or redirection.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'factory_not_complete_after_augmentations',
+  withArguments: _withArgumentsFactoryNotCompleteAfterAugmentations,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments factoryTopLevelDeclaration =
     DiagnosticWithoutArgumentsImpl(
@@ -6440,6 +6477,40 @@ const DiagnosticWithoutArguments forInWithConstVariable =
       uniqueName: 'for_in_with_const_variable',
       expectedTypes: [],
     );
+
+/// No parameters.
+const DiagnosticWithoutArguments
+functionAlreadyComplete = DiagnosticWithoutArgumentsImpl(
+  name: 'declaration_already_complete',
+  problemMessage:
+      "The augmentation can't provide a body because the function or member is "
+      "already complete.",
+  correctionMessage:
+      "Try removing the body from the augmentation, or removing the body "
+      "from the preceding declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'function_already_complete',
+  expectedTypes: [],
+);
+
+/// Parameters:
+/// String name: the name of the function, method, getter, or setter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+functionNotCompleteAfterAugmentations = DiagnosticWithArguments(
+  name: 'function_not_complete_after_augmentations',
+  problemMessage:
+      "The function or member '{0}' must have a body after all augmentations are "
+      "applied.",
+  correctionMessage:
+      "Try adding a body to the introductory declaration, or providing an "
+      "augmentation with a body.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'function_not_complete_after_augmentations',
+  withArguments: _withArgumentsFunctionNotCompleteAfterAugmentations,
+  expectedTypes: [ExpectedType.string],
+);
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -15746,6 +15817,18 @@ typeTestWithUndefinedName = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments unawaitedReturnInTryBlock =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'unawaited_return_in_try_block',
+      problemMessage:
+          "Returning a 'Future' without 'await' inside a try block.",
+      correctionMessage: "Try adding an 'await'.",
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'unawaited_return_in_try_block',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments
 uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
   name: 'unchecked_use_of_nullable_value',
@@ -19290,6 +19373,14 @@ LocatableDiagnostic _withArgumentsExtraPositionalArgumentsCouldBeNamed({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsFactoryNotCompleteAfterAugmentations({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.factoryNotCompleteAfterAugmentations, [
+    name,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsFfiNativeUnexpectedNumberOfParameters({
   required int expected,
   required int actual,
@@ -19429,6 +19520,14 @@ LocatableDiagnostic _withArgumentsForInOfInvalidType({
   return LocatableDiagnosticImpl(diag.forInOfInvalidType, [
     expressionType,
     expectedType,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsFunctionNotCompleteAfterAugmentations({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.functionNotCompleteAfterAugmentations, [
+    name,
   ]);
 }
 

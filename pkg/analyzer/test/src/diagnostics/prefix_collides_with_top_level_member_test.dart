@@ -6,131 +6,102 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixCollidesWithTopLevelMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PrefixCollidesWithTopLevelMemberTest extends PubPackageResolutionTest {
   test_library_functionTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 typedef foo = void Function();
-''',
-      [
-        error(diag.unusedImport, 7, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          22,
-          3,
-          contextMessages: [message(testFile, 35, 3)],
-        ),
-      ],
-    );
+//      ^^^
+// [context 1] The first definition of this name.
+''');
   }
 
   test_library_no_collision() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
 void bar() {}
-''',
-      [error(diag.unusedImport, 7, 11)],
-    );
+''');
   }
 
   test_library_topLevelFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 void foo() {}
-''',
-      [
-        error(diag.unusedImport, 7, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          22,
-          3,
-          contextMessages: [message(testFile, 32, 3)],
-        ),
-      ],
-    );
+//   ^^^
+// [context 1] The first definition of this name.
+''');
   }
 
   test_library_topLevelGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 int get foo => 0;
-''',
-      [
-        error(diag.unusedImport, 7, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          22,
-          3,
-          contextMessages: [message(testFile, 35, 3)],
-        ),
-      ],
-    );
+//      ^^^
+// [context 1] The first definition of this name.
+''');
   }
 
   test_library_topLevelSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 set foo(int _) {}
-''',
-      [
-        error(diag.unusedImport, 7, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          22,
-          3,
-          contextMessages: [message(testFile, 31, 3)],
-        ),
-      ],
-    );
+//  ^^^
+// [context 1] The first definition of this name.
+''');
   }
 
   test_library_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 var foo = 0;
-''',
-      [
-        error(diag.unusedImport, 7, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          22,
-          3,
-          contextMessages: [message(testFile, 31, 3)],
-        ),
-      ],
-    );
+//  ^^^
+// [context 1] The first definition of this name.
+''');
   }
 
   test_library_type() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 class foo {}
-''',
-      [
-        error(diag.unusedImport, 7, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          22,
-          3,
-          contextMessages: [message(testFile, 33, 3)],
-        ),
-      ],
-    );
+//    ^^^
+// [context 1] The first definition of this name.
+''');
   }
 
   test_part_topLevelFunction_inLibrary() async {
@@ -161,22 +132,17 @@ import 'dart:math' as foo;
 part 'test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 void foo() {}
-''',
-      [
-        error(diag.unusedImport, 25, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          40,
-          3,
-          contextMessages: [message(testFile, 50, 3)],
-        ),
-      ],
-    );
+//   ^^^
+// [context 1] The first definition of this name.
+''');
   }
 
   test_part_topLevelFunction_inPart2() async {

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RedirectTypeAliasExpandsToTypeParameterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,8 +18,7 @@ main() {
 class RedirectTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
   test_generic_typeParameter_withArgument_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements C {
   A.named();
 }
@@ -27,44 +27,42 @@ typedef B<T> = T;
 
 class C {
   factory C() = B<A>.named;
+//              ^
+// [diag.redirectToTypeAliasExpandsToTypeParameter] A redirecting constructor can't redirect to a type alias that expands to a type parameter.
 }
-''',
-      [error(diag.redirectToTypeAliasExpandsToTypeParameter, 84, 1)],
-    );
+''');
   }
 
   test_generic_typeParameter_withArgument_unnamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements C {}
 
 typedef B<T> = T;
 
 class C {
   factory C() = B<A>;
+//              ^
+// [diag.redirectToTypeAliasExpandsToTypeParameter] A redirecting constructor can't redirect to a type alias that expands to a type parameter.
 }
-''',
-      [error(diag.redirectToTypeAliasExpandsToTypeParameter, 70, 1)],
-    );
+''');
   }
 
   test_generic_typeParameter_withoutArgument_unnamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements C {}
 
 typedef B<T> = T;
 
 class C {
   factory C() = B;
+//              ^
+// [diag.redirectToTypeAliasExpandsToTypeParameter] A redirecting constructor can't redirect to a type alias that expands to a type parameter.
 }
-''',
-      [error(diag.redirectToTypeAliasExpandsToTypeParameter, 70, 1)],
-    );
+''');
   }
 
   test_notGeneric_class_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements C {
   A.named();
 }
@@ -78,7 +76,7 @@ class C {
   }
 
   test_notGeneric_class_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements C {}
 
 typedef B = A;

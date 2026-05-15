@@ -6,49 +6,48 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolExpressionTest);
     defineReflectiveTests(NonBoolExpressionWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonBoolExpressionTest extends PubPackageResolutionTest {
   test_functionType_bool() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool makeAssertion() => true;
 f() {
   assert(makeAssertion);
+//       ^^^^^^^^^^^^^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 45, 13)],
-    );
+''');
   }
 
   test_functionType_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int makeAssertion() => 1;
 f() {
   assert(makeAssertion);
+//       ^^^^^^^^^^^^^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 41, 13)],
-    );
+''');
   }
 
   test_interfaceType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   assert(0);
+//       ^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 15, 1)],
-    );
+''');
   }
 }
 

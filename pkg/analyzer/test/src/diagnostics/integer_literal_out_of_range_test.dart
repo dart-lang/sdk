@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,52 +15,34 @@ main() {
 @reflectiveTest
 class IntegerLiteralOutOfRangeTest extends PubPackageResolutionTest {
   test_hex() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
-''',
-      [
-        error(
-          diag.integerLiteralOutOfRange,
-          8,
-          26,
-          messageContains: [RegExp('0xFFFF_FFFF_FFFF_FFFF_FFFF')],
-        ),
-      ],
-    );
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.integerLiteralOutOfRange] The integer literal 0xFFFF_FFFF_FFFF_FFFF_FFFF can't be represented in 64 bits.
+''');
   }
 
   test_negative() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = -9223372036854775809;
-''',
-      [error(diag.integerLiteralOutOfRange, 9, 19)],
-    );
+//       ^^^^^^^^^^^^^^^^^^^
+// [diag.integerLiteralOutOfRange] The integer literal -9223372036854775809 can't be represented in 64 bits.
+''');
   }
 
   test_positive() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 9223372036854775808;
-''',
-      [error(diag.integerLiteralOutOfRange, 8, 19)],
-    );
+//      ^^^^^^^^^^^^^^^^^^^
+// [diag.integerLiteralOutOfRange] The integer literal 9223372036854775808 can't be represented in 64 bits.
+''');
   }
 
   test_separators() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 9_223_372_036_854_775_808;
-''',
-      [
-        error(
-          diag.integerLiteralOutOfRange,
-          8,
-          25,
-          messageContains: [RegExp('9_223_372_036_854_775_808')],
-        ),
-      ],
-    );
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.integerLiteralOutOfRange] The integer literal 9_223_372_036_854_775_808 can't be represented in 64 bits.
+''');
   }
 }

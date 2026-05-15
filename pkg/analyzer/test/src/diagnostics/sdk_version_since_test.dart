@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SdkVersionSinceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -26,17 +28,16 @@ import 'dart:_internal';
 class A({@Since('2.15') int? foo});
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A(foo: 0);
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
-    );
+''');
   }
 
   test_class_constructor_formalParameter_default() async {
@@ -48,17 +49,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A(foo: 0);
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
-    );
+''');
   }
 
   test_class_constructor_formalParameter_optionalNamed() async {
@@ -70,17 +70,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A(foo: 0);
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
-    );
+''');
   }
 
   test_class_constructor_formalParameter_optionalPositional() async {
@@ -92,17 +91,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A(42);
+//  ^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 2)],
-    );
+''');
   }
 
   test_class_constructor_named_instanceCreation() async {
@@ -115,17 +113,16 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A<int>.named();
+//       ^^^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 5)],
-    );
+''');
   }
 
   test_class_constructor_named_tearOff() async {
@@ -138,17 +135,16 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A<int>.named;
+//       ^^^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 5)],
-    );
+''');
   }
 
   test_class_constructor_primary_instanceCreation() async {
@@ -161,17 +157,16 @@ class A() {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A();
+//^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
-    );
+''');
   }
 
   test_class_constructor_unnamed_instanceCreation() async {
@@ -184,17 +179,16 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A<int>();
+//^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
-    );
+''');
   }
 
   test_class_field_originPrimaryConstructor() async {
@@ -204,17 +198,16 @@ import 'dart:_internal';
 class A({@Since('2.15') final int foo = 0});
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a.foo;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
-    );
+''');
   }
 
   test_class_field_read() async {
@@ -227,21 +220,19 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
   a.foo;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [
-        error(diag.sdkVersionSince, 40, 3),
-        error(diag.sdkVersionSince, 49, 3),
-      ],
-    );
+''');
   }
 
   test_class_field_readWrite() async {
@@ -254,21 +245,19 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo += 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
   a.foo += 0;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [
-        error(diag.sdkVersionSince, 40, 3),
-        error(diag.sdkVersionSince, 54, 3),
-      ],
-    );
+''');
   }
 
   test_class_field_write() async {
@@ -281,21 +270,19 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo = 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
   a.foo = 0;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [
-        error(diag.sdkVersionSince, 40, 3),
-        error(diag.sdkVersionSince, 53, 3),
-      ],
-    );
+''');
   }
 
   test_class_getter() async {
@@ -308,21 +295,19 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
   a.foo;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [
-        error(diag.sdkVersionSince, 40, 3),
-        error(diag.sdkVersionSince, 49, 3),
-      ],
-    );
+''');
   }
 
   test_class_getterSetter_readWrite_both() async {
@@ -337,17 +322,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a.foo += 0;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
-    );
+''');
   }
 
   test_class_getterSetter_readWrite_getter() async {
@@ -361,17 +345,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a.foo += 0;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
-    );
+''');
   }
 
   test_class_getterSetter_readWrite_setter() async {
@@ -385,17 +368,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a.foo += 0;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
-    );
+''');
   }
 
   test_class_indexRead() async {
@@ -408,17 +390,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a[0];
+// ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 37, 1)],
-    );
+''');
   }
 
   test_class_indexWrite() async {
@@ -431,17 +412,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a[0] = 0;
+// ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 37, 1)],
-    );
+''');
   }
 
   test_class_instanceCreation_prefixed() async {
@@ -452,17 +432,16 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo' as foo;
 
 void f() {
   foo.A<int>();
+//    ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 44, 1)],
-    );
+''');
   }
 
   test_class_instanceCreation_unprefixed() async {
@@ -473,17 +452,16 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   A<int>();
+//^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
-    );
+''');
   }
 
   test_class_method_call_functionExpressionInvocation() async {
@@ -496,17 +474,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a();
+// ^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 37, 2)],
-    );
+''');
   }
 
   test_class_method_formalParameter_optionalNamed() async {
@@ -520,17 +497,16 @@ void foo(
 }) {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   foo(0, bar: 1);
+//       ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 3)],
-    );
+''');
   }
 
   test_class_method_formalParameter_optionalPositional() async {
@@ -544,17 +520,16 @@ void foo(
 ]) {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   foo(0, 42);
+//       ^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 2)],
-    );
+''');
   }
 
   test_class_method_methodInvocation() async {
@@ -567,17 +542,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a.foo();
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
-    );
+''');
   }
 
   test_class_method_methodTearOff_prefixedIdentifier() async {
@@ -590,17 +564,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   a.foo;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
-    );
+''');
 
     var node = findNode.prefixed('.foo');
     assertResolvedNodeText(node, r'''
@@ -629,17 +602,16 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 3)],
-    );
+''');
 
     var node = findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
@@ -671,21 +643,19 @@ class A {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo = 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
   a.foo = 0;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [
-        error(diag.sdkVersionSince, 40, 3),
-        error(diag.sdkVersionSince, 53, 3),
-      ],
-    );
+''');
   }
 
   test_class_typeAnnotation_prefixed() async {
@@ -696,15 +666,14 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo' as foo;
 
 void f(foo.A<int> a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 1)],
-    );
+//         ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+''');
   }
 
   test_class_typeAnnotation_unprefixed() async {
@@ -715,15 +684,14 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A<int> a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
-    );
+//     ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+''');
   }
 
   test_constraints_exact_equal() async {
@@ -734,7 +702,8 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('2.15.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '2.15.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
@@ -749,7 +718,8 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('2.16.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '2.16.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
@@ -764,15 +734,14 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion(
-      '2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
-    );
+//     ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '2.14.0' don't guarantee it.
+''');
   }
 
   test_constraints_greater_equal() async {
@@ -783,7 +752,8 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('>2.15.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>2.15.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
@@ -798,7 +768,8 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('>=2.15.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.15.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
@@ -813,7 +784,10 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('>=2.15.0-pre', '''
+    writeTestPackagePubspecYamlFile(
+      pubspecYamlContent(sdkVersion: '>=2.15.0-pre'),
+    );
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
@@ -828,7 +802,8 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('>=2.16.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.16.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
@@ -843,15 +818,14 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
-    );
+//     ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+''');
   }
 
   test_enum_constant() async {
@@ -865,21 +839,21 @@ enum E {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   E.v2;
+//  ^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 2)],
-    );
+''');
   }
 
   test_enum_index_onConcreteEnum() async {
-    await verifyVersion('>=2.12.0', '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.12.0'));
+    await resolveTestCodeWithDiagnostics('''
 enum E { v }
 
 void f(E e) {
@@ -889,18 +863,16 @@ void f(E e) {
   }
 
   test_enum_index_onDartCoreEnum() async {
-    await verifyVersion(
-      '>=2.12.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.12.0'));
+    await resolveTestCodeWithDiagnostics('''
 void f(Enum e) {
+//     ^^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.14.0, but constraints '>=2.12.0' don't guarantee it.
   e.index;
+//  ^^^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.14.0, but constraints '>=2.12.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [
-        error(diag.sdkVersionSince, 7, 4),
-        error(diag.sdkVersionSince, 21, 5),
-      ],
-    );
+''');
   }
 
   test_enum_index_onDartCoreEnum_fromOtherLibrary() async {
@@ -908,17 +880,16 @@ void f(Enum e) {
 Enum get myEnum => throw 0;
 ''');
 
-    await verifyVersion(
-      '>=2.12.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.12.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 void f() {
   myEnum.index;
+//       ^^^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.14.0, but constraints '>=2.12.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 5)],
-    );
+''');
   }
 
   test_enum_typeAnnotation() async {
@@ -931,15 +902,14 @@ enum E {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(E a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
-    );
+//     ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+''');
   }
 
   test_extension_getter() async {
@@ -952,17 +922,16 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   0.foo;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
-    );
+''');
   }
 
   test_extension_itself_extensionOverride_methodInvocation() async {
@@ -975,17 +944,16 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   E(0).foo();
+//     ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
-    );
+''');
   }
 
   test_extension_itself_methodInvocation() async {
@@ -998,17 +966,16 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   0.foo();
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
-    );
+''');
   }
 
   test_extension_method_methodInvocation() async {
@@ -1021,17 +988,16 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   0.foo();
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
-    );
+''');
   }
 
   test_extension_setter() async {
@@ -1044,17 +1010,16 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   0.foo = 1;
+//  ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
-    );
+''');
   }
 
   test_functionTypeAlias() async {
@@ -1065,15 +1030,14 @@ import 'dart:_internal';
 typedef void X(int _);
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(X a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
-    );
+//     ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+''');
   }
 
   test_genericTypeAlias() async {
@@ -1084,15 +1048,14 @@ import 'dart:_internal';
 typedef X = List<int>;
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(X a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
-    );
+//     ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+''');
   }
 
   test_mixin_typeAnnotation() async {
@@ -1103,15 +1066,14 @@ import 'dart:_internal';
 mixin M<T> {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(M<int> a) {}
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
-    );
+//     ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+''');
   }
 
   test_topLevelFunction_prefixed() async {
@@ -1122,17 +1084,16 @@ import 'dart:_internal';
 void bar() {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo' as foo;
 
 void f() {
   foo.bar();
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 44, 3)],
-    );
+''');
   }
 
   test_topLevelFunction_unprefixed() async {
@@ -1143,17 +1104,16 @@ import 'dart:_internal';
 void foo() {}
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   foo();
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 3)],
-    );
+''');
   }
 
   test_topLevelVariable_prefixed() async {
@@ -1164,17 +1124,16 @@ import 'dart:_internal';
 const v = 0;
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo' as foo;
 
 void f() {
   foo.v;
+//    ^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 44, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_unprefixed() async {
@@ -1185,17 +1144,16 @@ import 'dart:_internal';
 const v = 0;
 ''');
 
-    await verifyVersion(
-      '>=2.14.0',
-      '''
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f() {
   v;
+//^
+// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
 }
-''',
-      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
-    );
+''');
   }
 
   void _addDartFooLibrary(String content) {

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RefutablePatternInIrrefutableContextTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,14 +18,13 @@ main() {
 class RefutablePatternInIrrefutableContextTest
     extends PubPackageResolutionTest {
   test_declaration_constantPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (0) = 0;
+//     ^
+// [diag.refutablePatternInIrrefutableContext] Refutable patterns can't be used in an irrefutable context.
 }
-''',
-      [error(diag.refutablePatternInIrrefutableContext, 18, 1)],
-    );
+''');
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -48,17 +48,15 @@ PatternVariableDeclaration
   }
 
   test_declaration_logicalOrPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (_ || _) = 0;
+//     ^^^^^^
+// [diag.refutablePatternInIrrefutableContext] Refutable patterns can't be used in an irrefutable context.
+//       ^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [
-        error(diag.refutablePatternInIrrefutableContext, 18, 6),
-        error(diag.deadCode, 20, 4),
-      ],
-    );
+''');
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -86,14 +84,13 @@ PatternVariableDeclaration
   }
 
   test_declaration_nullCheckPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   var (_?) = x;
+//     ^^
+// [diag.refutablePatternInIrrefutableContext] Refutable patterns can't be used in an irrefutable context.
 }
-''',
-      [error(diag.refutablePatternInIrrefutableContext, 24, 2)],
-    );
+''');
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -119,14 +116,13 @@ PatternVariableDeclaration
   }
 
   test_declaration_relationalPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (> 0) = 0;
+//     ^^^
+// [diag.refutablePatternInIrrefutableContext] Refutable patterns can't be used in an irrefutable context.
 }
-''',
-      [error(diag.refutablePatternInIrrefutableContext, 18, 3)],
-    );
+''');
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''

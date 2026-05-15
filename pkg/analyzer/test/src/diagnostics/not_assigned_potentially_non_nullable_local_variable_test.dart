@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
       NotInitializedPotentiallyNonNullableLocalVariableTest,
     );
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,45 +20,44 @@ main() {
 class NotInitializedPotentiallyNonNullableLocalVariableTest
     extends PubPackageResolutionTest {
   test_assignment_leftExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   List<int> v;
   v[0] = (v = [1, 2])[1];
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
   v;
 }
-''',
-      [_notAssignedError(28, 1)],
-    );
+''');
   }
 
   test_assignment_leftLocal_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   v += 1;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
   v;
 }
-''',
-      [_notAssignedError(22, 1)],
-    );
+''');
   }
 
   test_assignment_leftLocal_compound_assignInRight() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   v += (v = v);
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(22, 1), _notAssignedError(32, 1)],
-    );
+''');
   }
 
   test_assignment_leftLocal_pure_eq() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   v = 0;
@@ -67,52 +67,50 @@ void f() {
   }
 
   test_assignment_leftLocal_pure_eq_self() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   v = v;
+//    ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(26, 1)],
-    );
+''');
   }
 
   test_assignment_leftLocal_pure_questionEq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   v ??= 0;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+//      ^^
+// [diag.deadCode] Dead code.
+//      ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
-''',
-      [
-        _notAssignedError(22, 1),
-        error(diag.deadCode, 28, 2),
-        error(diag.deadNullAwareExpression, 28, 1),
-      ],
-    );
+''');
   }
 
   test_assignment_leftLocal_pure_questionEq_self() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   v ??= v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+//      ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+//      ^^
+// [diag.deadCode] Dead code.
+//      ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
-''',
-      [
-        _notAssignedError(22, 1),
-        error(diag.deadCode, 28, 2),
-        error(diag.deadNullAwareExpression, 28, 1),
-        _notAssignedError(28, 1),
-      ],
-    );
+''');
   }
 
   test_basic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   v = 0;
@@ -122,37 +120,37 @@ void f() {
   }
 
   test_binaryExpression_ifNull_left() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   (v = 0) ?? 0;
+//        ^^^^
+// [diag.deadCode] Dead code.
+//           ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
   v;
 }
-''',
-      [error(diag.deadCode, 30, 4), error(diag.deadNullAwareExpression, 33, 1)],
-    );
+''');
   }
 
   test_binaryExpression_ifNull_right() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   int v;
   a ?? (v = 0);
+//  ^^^^^^^^^^
+// [diag.deadCode] Dead code.
+//     ^^^^^^^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [
-        error(diag.deadCode, 29, 10),
-        error(diag.deadNullAwareExpression, 32, 7),
-        _notAssignedError(43, 1),
-      ],
-    );
+''');
   }
 
   test_binaryExpression_logicalAnd_left() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   ((v = 0) >= 0) && c;
@@ -162,20 +160,19 @@ void f(bool c) {
   }
 
   test_binaryExpression_logicalAnd_right() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   c && ((v = 0) >= 0);
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(51, 1)],
-    );
+''');
   }
 
   test_binaryExpression_logicalOr_left() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   ((v = 0) >= 0) || c;
@@ -185,20 +182,19 @@ void f(bool c) {
   }
 
   test_binaryExpression_logicalOr_right() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   c || ((v = 0) >= 0);
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(51, 1)],
-    );
+''');
   }
 
   test_binaryExpression_plus_left() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int v;
   (v = 0) + 1;
@@ -208,7 +204,7 @@ main() {
   }
 
   test_binaryExpression_plus_right() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int v;
   1 + (v = 0);
@@ -218,7 +214,7 @@ main() {
   }
 
   test_conditional_both() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool b) {
   int v;
   b ? (v = 1) : (v = 2);
@@ -228,33 +224,31 @@ f(bool b) {
   }
 
   test_conditional_else() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool b) {
   int v;
   b ? 1 : (v = 2);
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(42, 1)],
-    );
+''');
   }
 
   test_conditional_then() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool b) {
   int v;
   b ? (v = 1) : 2;
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(42, 1)],
-    );
+''');
   }
 
   test_conditionalExpression_condition() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int v;
   (v = 0) >= 0 ? 1 : 2;
@@ -264,7 +258,7 @@ main() {
   }
 
   test_doWhile_break_afterAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   do {
@@ -278,8 +272,7 @@ void f(bool b) {
   }
 
   test_doWhile_break_beforeAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   do {
@@ -287,15 +280,14 @@ void f(bool b) {
     v = 0;
   } while (b);
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(79, 1)],
-    );
+''');
   }
 
   test_doWhile_breakOuterFromInner() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2, v3;
   L1: do {
@@ -309,45 +301,42 @@ void f(bool b) {
   } while (b);
   v1;
   v3;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v3' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(168, 2)],
-    );
+''');
   }
 
   test_doWhile_condition() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v1, v2;
   do {
     v1; // assigned in the condition, but not yet
+//  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v1' must be assigned before it can be used.
   } while ((v1 = 0) + (v2 = 0) >= 0);
   v2;
 }
-''',
-      [_notAssignedError(36, 2)],
-    );
+''');
   }
 
   test_doWhile_condition_break() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   do {
     if (b) break;
   } while ((v = 0) >= 0);
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(79, 1)],
-    );
+''');
   }
 
   test_doWhile_condition_break_continue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b1, b2) {
   int v1, v2, v3, v4, v5, v6;
   do {
@@ -359,24 +348,24 @@ void f(bool b1, b2) {
     v4 = 0; // not visible
     v5 = 0; // not visible
   } while ((v6 = v1 + v2 + v4) == 0); // has break => v6 is not visible outside
+//                         ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v4' must be assigned before it can be used.
   v1;
   v3;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v3' must be assigned before it can be used.
   v5;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v5' must be assigned before it can be used.
   v6;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v6' must be assigned before it can be used.
 }
-''',
-      [
-        _notAssignedError(360, 2),
-        _notAssignedError(421, 2),
-        _notAssignedError(427, 2),
-        _notAssignedError(433, 2),
-      ],
-    );
+''');
   }
 
   test_doWhile_condition_continue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2, v3, v4;
   do {
@@ -385,18 +374,19 @@ void f(bool b) {
     v2 = 0; // not visible
     v3 = 0; // not visible
   } while ((v4 = v1 + v2) == 0); // no break => v4 visible outside
+//                    ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
   v1;
   v3;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v3' must be assigned before it can be used.
   v4;
 }
-''',
-      [_notAssignedError(200, 2), _notAssignedError(253, 2)],
-    );
+''');
   }
 
   test_doWhile_continue_beforeAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   do {
@@ -404,14 +394,14 @@ void f(bool b) {
     v = 0;
   } while (b);
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(82, 1)],
-    );
+''');
   }
 
   test_doWhile_true_assignInBreak() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   do {
@@ -427,52 +417,48 @@ void f(bool b) {
 
   test_extensionType_hasImplements() async {
     // Extension types are always potentially non-nullable.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) implements int {}
 
 void f() {
   E v;
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(64, 1)],
-    );
+''');
   }
 
   test_extensionType_noImplements() async {
     // Extension types are always potentially non-nullable.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {}
 
 void f() {
   E v;
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(49, 1)],
-    );
+''');
   }
 
   test_for_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   for (; b;) {
     v = 0;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(58, 1)],
-    );
+''');
   }
 
   test_for_break() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   for (; b;) {
@@ -481,15 +467,17 @@ void f(bool b) {
     v2 = 0;
   }
   v1;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v1' must be assigned before it can be used.
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(94, 2), _notAssignedError(100, 2)],
-    );
+''');
   }
 
   test_for_break_updaters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   for (; b; v1 + v2) {
@@ -502,7 +490,7 @@ void f(bool b) {
   }
 
   test_for_condition() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   for (; (v = 0) >= 0;) {
@@ -514,8 +502,7 @@ void f() {
   }
 
   test_for_continue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   for (; b;) {
@@ -524,81 +511,82 @@ void f(bool b) {
     v2 = 0;
   }
   v1;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v1' must be assigned before it can be used.
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(97, 2), _notAssignedError(103, 2)],
-    );
+''');
   }
 
   test_for_continue_updaters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   for (; b; v1 + v2) {
+//               ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
     v1 = 0;
     if (b) continue;
     v2 = 0;
   }
 }
-''',
-      [_notAssignedError(48, 2)],
-    );
+''');
   }
 
   test_for_initializer_expression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   for (v = 0;;) {
     v;
   }
   v;
+//^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 51, 2)],
-    );
+''');
   }
 
   test_for_initializer_variable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   for (var t = (v = 0);;) {
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 't' isn't used.
     v;
   }
   v;
+//^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.unusedLocalVariable, 31, 1), error(diag.deadCode, 61, 2)],
-    );
+''');
   }
 
   test_for_updaters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2, v3, v4;
+//            ^^
+// [diag.unusedLocalVariable] The value of the local variable 'v3' isn't used.
   for (; b; v1 = 0, v2 = 0, v3 = 0, v4) {
+//                                  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v4' must be assigned before it can be used.
     v1;
+//  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v1' must be assigned before it can be used.
   }
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 31, 2),
-        _notAssignedError(75, 2),
-        _notAssignedError(85, 2),
-        _notAssignedError(95, 2),
-      ],
-    );
+''');
   }
 
   test_for_updaters_afterBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   for (; b; v) {
@@ -609,8 +597,7 @@ void f(bool b) {
   }
 
   test_forEach() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   List<int> v1;
   int v2;
@@ -619,15 +606,14 @@ void f() {
   }
   v1;
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(97, 2)],
-    );
+''');
   }
 
   test_forEach_break() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   for (var _ in [0, 1, 2]) {
@@ -636,16 +622,17 @@ void f(bool b) {
     v2 = 0;
   }
   v1;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v1' must be assigned before it can be used.
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(108, 2), _notAssignedError(114, 2)],
-    );
+''');
   }
 
   test_forEach_continue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   for (var _ in [0, 1, 2]) {
@@ -654,16 +641,17 @@ void f(bool b) {
     v2 = 0;
   }
   v1;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v1' must be assigned before it can be used.
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(111, 2), _notAssignedError(117, 2)],
-    );
+''');
   }
 
   test_functionExpression_closure_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v1, v2;
 
@@ -672,16 +660,15 @@ void f() {
   [0, 1, 2].forEach((t) {
     v1;
     v2;
+//  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
   });
 }
-''',
-      [_notAssignedError(75, 2)],
-    );
+''');
   }
 
   test_functionExpression_closure_write() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
 
@@ -690,107 +677,108 @@ void f() {
   });
 
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(67, 1)],
-    );
+''');
   }
 
   test_functionExpression_localFunction_local() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 
   v = 0;
 
   void f() {
+//     ^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
     int v; // 1
     v;
+//  ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 17, 1),
-        error(diag.unusedElement, 38, 1),
-        _notAssignedError(64, 1),
-      ],
-    );
+''');
   }
 
   test_functionExpression_localFunction_local2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v1;
 
   v1 = 0;
 
   void f() {
+//     ^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
     int v2, v3;
     v2 = 0;
     v1;
     v2;
     v3;
+//  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v3' must be assigned before it can be used.
   }
 }
-''',
-      [error(diag.unusedElement, 40, 1), _notAssignedError(94, 2)],
-    );
+''');
   }
 
   test_functionExpression_localFunction_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v1, v2;
 
   v1 = 0;
 
   void f() {
+//     ^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
     v1;
     v2;
+//  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
   }
 
   v2 = 0;
 }
-''',
-      [error(diag.unusedElement, 44, 1), _notAssignedError(62, 2)],
-    );
+''');
   }
 
   test_functionExpression_localFunction_write() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
 
   void f() {
+//     ^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
     v = 0;
   }
 
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [error(diag.unusedElement, 28, 1), _notAssignedError(52, 1)],
-    );
+''');
   }
 
   test_futureOr_questionArgument_none() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 f() {
   FutureOr<int?> v;
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 45, 1)],
-    );
+''');
   }
 
   test_hasInitializer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   int v = 0;
   v;
@@ -799,7 +787,7 @@ f() {
   }
 
   test_if_condition() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int v;
   if ((v = 0) >= 0) {
@@ -813,58 +801,58 @@ main() {
   }
 
   test_if_condition_false() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   if (false) {
+// [diag.deadCode][column 14][length 77] Dead code.
     // not assigned
   } else {
     v = 0;
   }
   v;
 }
-''',
-      [error(diag.deadCode, 33, 25)],
-    );
+''');
   }
 
   test_if_condition_logicalAnd() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b, int i) {
   int v;
   if (b && (v = i) > 0) {
     v;
   } else {
     v;
+//  ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(81, 1), _notAssignedError(90, 1)],
-    );
+''');
   }
 
   test_if_condition_logicalOr() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b, int i) {
   int v;
   if (b || (v = i) > 0) {
     v;
+//  ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
   } else {
     v;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(63, 1), _notAssignedError(90, 1)],
-    );
+''');
   }
 
   test_if_condition_notFalse() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   if (!false) {
@@ -876,24 +864,22 @@ void f() {
   }
 
   test_if_condition_notTrue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   if (!true) {
+// [diag.deadCode][column 14][length 77] Dead code.
     // not assigned
   } else {
     v = 0;
   }
   v;
 }
-''',
-      [error(diag.deadCode, 33, 25)],
-    );
+''');
   }
 
   test_if_condition_true() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   if (true) {
@@ -905,22 +891,21 @@ void f() {
   }
 
   test_if_then() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   if (c) {
     v = 0;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(54, 1)],
-    );
+''');
   }
 
   test_if_thenElse_all() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   if (c) {
@@ -936,8 +921,7 @@ void f(bool c) {
   }
 
   test_if_thenElse_else() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   if (c) {
@@ -946,15 +930,14 @@ void f(bool c) {
     v = 0;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(85, 1)],
-    );
+''');
   }
 
   test_if_thenElse_then() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   int v;
   if (c) {
@@ -963,14 +946,14 @@ void f(bool c) {
     // not assigned
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(85, 1)],
-    );
+''');
   }
 
   test_late() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   late int v;
 
@@ -985,42 +968,39 @@ f() {
   }
 
   test_noInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   int v;
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(17, 1)],
-    );
+''');
   }
 
   test_noInitializer_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f<T>() {
   T v;
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(18, 1)],
-    );
+''');
   }
 
   test_notUsed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   int v;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
   }
 
   test_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   int? v;
   v;
@@ -1029,8 +1009,7 @@ f() {
   }
 
   test_switch_case1_default() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int e) {
   int v;
   switch (e) {
@@ -1044,15 +1023,14 @@ void f(int e) {
       v = 0;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(157, 1)],
-    );
+''');
   }
 
   test_switch_case1_default_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(int e) {
   int v;
@@ -1067,15 +1045,14 @@ void f(int e) {
       v = 0;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(173, 1)],
-    );
+''');
   }
 
   test_switch_case2_default() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int e) {
   int v1, v2;
   switch (e) {
@@ -1090,15 +1067,14 @@ void f(int e) {
   }
   v1;
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(157, 2)],
-    );
+''');
   }
 
   test_switch_case2_default_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(int e) {
   int v1, v2;
@@ -1114,15 +1090,14 @@ void f(int e) {
   }
   v1;
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(173, 2)],
-    );
+''');
   }
 
   test_switch_case_default_break() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b, int e) {
   int v1, v2;
   switch (e) {
@@ -1138,15 +1113,14 @@ void f(bool b, int e) {
   }
   v1;
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(199, 2)],
-    );
+''');
   }
 
   test_switch_case_default_break_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(bool b, int e) {
   int v1, v2;
@@ -1163,10 +1137,10 @@ void f(bool b, int e) {
   }
   v1;
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(215, 2)],
-    );
+''');
   }
 
   test_switch_case_default_continue() async {
@@ -1175,7 +1149,7 @@ void f(bool b, int e) {
     // removed from the unassigned set in the `breakState`. And if there is a
     // case when it is not assigned, then the variable will be left unassigned
     // in the `breakState`.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int e) {
   int v;
   switch (e) {
@@ -1198,7 +1172,7 @@ void f(int e) {
     // removed from the unassigned set in the `breakState`. And if there is a
     // case when it is not assigned, then the variable will be left unassigned
     // in the `breakState`.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(int e) {
   int v;
@@ -1217,8 +1191,7 @@ void f(int e) {
   }
 
   test_switch_case_noDefault() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int e) {
   int v;
   switch (e) {
@@ -1227,15 +1200,14 @@ void f(int e) {
       break;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(84, 1)],
-    );
+''');
   }
 
   test_switch_case_noDefault_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(int e) {
   int v;
@@ -1245,14 +1217,14 @@ void f(int e) {
       break;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(100, 1)],
-    );
+''');
   }
 
   test_switch_expression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   switch (v = 0) {}
@@ -1262,7 +1234,7 @@ void f() {
   }
 
   test_switch_expression_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f() {
   int v;
@@ -1273,48 +1245,45 @@ void f() {
   }
 
   test_syntheticPatternVariable_orPattern_inIfCase() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case <int>[var a || var a] when a > 0) {
+//                       ^^^^^^^^
+// [diag.deadCode] Dead code.
     a;
   }
 }
-''',
-      [error(diag.deadCode, 45, 8)],
-    );
+''');
   }
 
   test_syntheticPatternVariable_orPattern_inSwitchExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     <int>[var a || var a] when a > 0 => a,
+//              ^^^^^^^^
+// [diag.deadCode] Dead code.
     _ => 0,
   });
 }
-''',
-      [error(diag.deadCode, 52, 8)],
-    );
+''');
   }
 
   test_syntheticPatternVariable_orPattern_inSwitchStatement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a || var a] when a > 0:
+//                   ^^^^^^^^
+// [diag.deadCode] Dead code.
       a;
   }
 }
-''',
-      [error(diag.deadCode, 56, 8)],
-    );
+''');
   }
 
   test_syntheticPatternVariable_switchCasesSharingABody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a] when a > 0:
@@ -1326,8 +1295,7 @@ void f(Object? x) {
   }
 
   test_tryCatch_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1336,14 +1304,14 @@ void f() {
     // not assigned
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(81, 1)],
-    );
+''');
   }
 
   test_tryCatch_body_catch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1360,7 +1328,7 @@ void g() {}
   }
 
   test_tryCatch_body_catchRethrow() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1374,8 +1342,7 @@ void f() {
   }
 
   test_tryCatch_catch() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1384,15 +1351,14 @@ void f() {
     v = 0;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(81, 1)],
-    );
+''');
   }
 
   test_tryCatchFinally_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1403,15 +1369,14 @@ void f() {
     // not assigned
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(115, 1)],
-    );
+''');
   }
 
   test_tryCatchFinally_catch() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1422,14 +1387,14 @@ void f() {
     // not assigned
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(115, 1)],
-    );
+''');
   }
 
   test_tryCatchFinally_finally() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1445,8 +1410,7 @@ void f() {
   }
 
   test_tryCatchFinally_useInFinally() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   int x;
   try {
@@ -1456,17 +1420,17 @@ f() {
     x = 1;
   } finally {
     x; // BAD
+//  ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'x' must be assigned before it can be used.
   }
 }
 
 void g() {}
-''',
-      [_notAssignedError(114, 1)],
-    );
+''');
   }
 
   test_tryFinally_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1480,7 +1444,7 @@ void f() {
   }
 
   test_tryFinally_finally() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   try {
@@ -1494,40 +1458,37 @@ void f() {
   }
 
   test_type_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   dynamic v;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 16, 1)],
-    );
+''');
   }
 
   test_type_dynamicImplicit() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   var v;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_type_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   void v;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 13, 1)],
-    );
+''');
   }
 
   test_while_condition() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   while ((v = 0) >= 0) {
@@ -1539,8 +1500,7 @@ void f() {
   }
 
   test_while_condition_notTrue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   while (b) {
@@ -1548,14 +1508,14 @@ void f(bool b) {
     v;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(64, 1)],
-    );
+''');
   }
 
   test_while_true_break_afterAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   while (true) {
@@ -1572,8 +1532,7 @@ void f(bool b) {
   }
 
   test_while_true_break_beforeAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   while (true) {
@@ -1582,15 +1541,14 @@ void f(bool b) {
     v;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(85, 1)],
-    );
+''');
   }
 
   test_while_true_break_if() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   while (true) {
@@ -1602,16 +1560,16 @@ void f(bool b) {
       break;
     }
     v;
+//  ^^
+// [diag.deadCode] Dead code.
   }
   v;
 }
-''',
-      [error(diag.deadCode, 131, 2)],
-    );
+''');
   }
 
   test_while_true_break_if2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   var v;
   while (true) {
@@ -1627,8 +1585,7 @@ void f(bool b) {
   }
 
   test_while_true_break_if3() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2;
   while (true) {
@@ -1644,15 +1601,14 @@ void f(bool b) {
     v1;
   }
   v2;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v2' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(190, 2)],
-    );
+''');
   }
 
   test_while_true_breakOuterFromInner() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v1, v2, v3;
   L1: while (true) {
@@ -1667,15 +1623,14 @@ void f(bool b) {
   }
   v1;
   v3;
+//^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v3' must be assigned before it can be used.
 }
-''',
-      [_notAssignedError(193, 2)],
-    );
+''');
   }
 
   test_while_true_continue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int v;
   while (true) {
@@ -1683,18 +1638,16 @@ void f(bool b) {
     v = 0;
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+//^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [
-        error(diag.deadCode, 81, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 81, 1),
-      ],
-    );
+''');
   }
 
   test_while_true_noBreak() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int v;
   while (true) {
@@ -1702,20 +1655,11 @@ void f() {
     // So, we don't exit the loop.
   }
   v;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+//^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [
-        error(diag.deadCode, 114, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 114, 1),
-      ],
-    );
-  }
-
-  ExpectedDiagnostic _notAssignedError(int offset, int length) {
-    return error(
-      diag.notAssignedPotentiallyNonNullableLocalVariable,
-      offset,
-      length,
-    );
+''');
   }
 }

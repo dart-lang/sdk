@@ -104,6 +104,12 @@ class ReplacedBy extends Change<_Data> {
         return result;
       }
     }
+    if (node is ImportDirective) {
+      var uri = node.uri as SimpleStringLiteral;
+      return _Data(
+        range.startOffsetEndOffset(uri.contentsOffset, uri.contentsEnd),
+      );
+    }
     var sourceRange = _rangeWithTarget(node, fix);
     if (sourceRange != null) {
       return _Data(sourceRange);

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,36 +15,31 @@ main() {
 @reflectiveTest
 class AugmentationReturnTypeMismatchTest extends PubPackageResolutionTest {
   test_class_getter_int_String() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 
 augment class A {
-  augment String get foo => '';
+  augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
 }
-''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 61, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 79, 2),
-      ],
-    );
+''');
   }
 
   test_class_method_void_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 
 augment class A {
-  augment int foo() => 0;
+  augment int foo();
+//        ^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.
 }
-''',
-      [error(diag.augmentationReturnTypeMismatch, 57, 3)],
-    );
+''');
   }
 
   test_class_method_void_void() async {
@@ -55,108 +49,93 @@ class A {
 }
 
 augment class A {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
 
   test_extension_getter_int_String() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
 }
 
 augment extension E {
-  augment String get foo => '';
+  augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
 }
-''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 76, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 94, 2),
-      ],
-    );
+''');
   }
 
   test_extension_method_void_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
 }
 
 augment extension E {
-  augment int foo() => 0;
+  augment int foo();
+//        ^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.
 }
-''',
-      [error(diag.augmentationReturnTypeMismatch, 72, 3)],
-    );
+''');
   }
 
   test_extensionType_getter_int_String() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
 
 augment extension type A(int it) {
-  augment String get foo => '';
+  augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
 }
-''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 95, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 113, 2),
-      ],
-    );
+''');
   }
 
   test_extensionType_method_void_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
 }
 
 augment extension type A(int it) {
-  augment int foo() => 0;
+  augment int foo();
+//        ^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.
 }
-''',
-      [error(diag.augmentationReturnTypeMismatch, 91, 3)],
-    );
+''');
   }
 
   test_mixin_getter_int_String() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }
 
 augment mixin M {
-  augment String get foo => '';
+  augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
 }
-''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 61, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 79, 2),
-      ],
-    );
+''');
   }
 
   test_mixin_method_void_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
 
 augment mixin M {
-  augment int foo() => 0;
+  augment int foo();
+//        ^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.
 }
-''',
-      [error(diag.augmentationReturnTypeMismatch, 57, 3)],
-    );
+''');
   }
 
   test_topLevelFunction_int_int_withImportPrefix() async {
@@ -166,51 +145,48 @@ import 'dart:core' as core;
 
 int foo() => 0;
 
-augment core.int foo() => 0;
+augment core.int foo();
 ''');
   }
 
   test_topLevelFunction_void_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 
-augment int foo() => 0;
-''',
-      [error(diag.augmentationReturnTypeMismatch, 23, 3)],
-    );
+augment int foo();
+//      ^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.
+''');
   }
 
   test_topLevelFunction_void_int_viaTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef IntAlias = int;
 
 void foo() {}
 
-augment IntAlias foo() => 0;
-''',
-      [error(diag.augmentationReturnTypeMismatch, 48, 8)],
-    );
+augment IntAlias foo();
+//      ^^^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'IntAlias' must be the same as the introductory declaration's return type 'void'.
+''');
   }
 
   test_topLevelFunction_void_int_withImportPrefix() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 void foo() {}
 
-augment core.int foo() => 0;
-''',
-      [error(diag.augmentationReturnTypeMismatch, 51, 8)],
-    );
+augment core.int foo();
+//      ^^^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.
+''');
   }
 
   test_topLevelFunction_void_nothing() async {
     await assertNoErrorsInCode(r'''
 void foo() {}
 
-augment foo() {}
+augment foo();
 ''');
   }
 
@@ -218,7 +194,7 @@ augment foo() {}
     await assertNoErrorsInCode(r'''
 void foo() {}
 
-augment void foo() {}
+augment void foo();
 ''');
   }
 
@@ -228,21 +204,17 @@ typedef VoidAlias = void;
 
 void foo() {}
 
-augment VoidAlias foo() {}
+augment VoidAlias foo();
 ''');
   }
 
   test_topLevelGetter_int_String() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 
-augment String get foo => '';
-''',
-      [
-        error(diag.augmentationReturnTypeMismatch, 27, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 45, 2),
-      ],
-    );
+augment String get foo;
+//      ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
+''');
   }
 }
