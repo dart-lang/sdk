@@ -87,6 +87,8 @@ class TemplateContext {
       return node.parent;
     } else if (node.parent is ArgumentList) {
       return node.parent?.parent;
+    } else if (node is ImportDirective) {
+      return node;
     } else if (node is InstanceCreationExpression ||
         node is InvocationExpression) {
       return node;
