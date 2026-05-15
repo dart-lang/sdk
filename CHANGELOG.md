@@ -11,12 +11,12 @@ bound to 3.13 or greater (`sdk: '^3.13.0'`).
 #### Primary constructors
 
 The primary constructors feature is a brevity feature. There are no new
-semantics, but it allows us to express declarations in a less verbose way.
+semantics, but it lets you express declarations in a less verbose way.
 
-This feature allows one constructor and a set of instance variables to be
-specified in the header of a declaration.
+This feature lets you specify one constructor and a set of instance variables
+in the header of a declaration.
 
-Currently a declaration with a constructor and some fields is written as:
+Currently, you write a declaration with a constructor and some fields as:
 
 ```dart
 // Current syntax.
@@ -33,8 +33,8 @@ Now you can write:
 class Point(var int x, var int y);
 ```
 
-If a primary constructor needs an initializer list or a body, they can be
-specified inside the class using the `this` body syntax:
+If a primary constructor needs an initializer list, a body, or both,
+you can specify them inside the class using the `this` body syntax:
 
 ```dart
 class Point(var int x, var int y) {
@@ -46,17 +46,18 @@ class Point(var int x, var int y) {
 
 As part of this feature, you can also use the `new` and `factory` keywords to
 declare constructors in the class body without repeating the class name:
+
 ```dart
 class Point {
   int x, y;
 
-  // Equivalent to Point(this.x, this.y)
+  // Equivalent to `Point(this.x, this.y)`:
   new(this.x, this.y);
 
-  // Equivalent to Point.origin()
+  // Equivalent to `Point.origin()`:
   new origin() : x = 0, y = 0;
 
-  // Equivalent to factory Point.clone(Point other)
+  // Equivalent to `factory Point.clone(Point other)`:
   factory clone(Point other) => Point(other.x, other.y);
 }
 ```
@@ -70,31 +71,34 @@ To learn more about the feature, check out the
 
 #### `dart:async`
 
-- Added `Future.pause` as alternative to `Future.delayed` with no callback.
-- Added `List.unmodifiableOf` with better typing than `List.unmodifiable`.
-- Added `Map.unmodifiableOf` with better typing than `Map.unmodifiable`.
+- Added `Future.pause` as an alternative to `Future.delayed` with no callback.
 
 #### `dart:core`
 
+- Added `List.unmodifiableOf` with better typing than `List.unmodifiable`.
+- Added `Map.unmodifiableOf` with better typing than `Map.unmodifiable`.
 - Added two getters on `int` for efficient bit-counting:
   `trailingZeroBitCount` (ctz) and `oneBitCount` (popcount). On native
   platforms they operate on the full 64-bit two's-complement
-  representation; on the web they operate on the least-significant 32
-  bits. See [#52673](https://github.com/dart-lang/sdk/issues/52673).
+  representation; on the web they operate on the least-significant 32 bits.
+  For more details, see SDK issue [#52673][].
+
+[#52673]: https://github.com/dart-lang/sdk/issues/52673
 
 #### `dart:io`
 
 - The cookie-date parser now uses the correct algorithm again.
   A change to the parsing made it only accept the formats that
-  cookie-dates _should_ have, but the RFC specifies a very
+  cookie dates _should_ have, but the RFC specifies a very
   permissive algorithm for what should be accepted.
 
-- **Breaking change**: Added `InterfaceAddress`, a subtype of `InternetAddress`
-  that exposes `prefixLength` field and `broadcast` getter for network interface
-  addresses. `NetworkInterface.addresses` now returns `List<InterfaceAddress>`
+- **Breaking change**:
+  Added `InterfaceAddress`, a subtype of `InternetAddress` that exposes a
+  `prefixLength` field and a `broadcast` getter for network interface addresses.
+  `NetworkInterface.addresses` now returns `List<InterfaceAddress>`
   instead of `List<InternetAddress>`. Code that implements `NetworkInterface`
-  and overrides `addresses` will need to update the return type. See [#63216][]
-  for more details.
+  and overrides `addresses` will need to update the return type.
+  For more details, see SDK issue [#63216][].
 
 [#63216]: https://github.com/dart-lang/sdk/issues/63216
 
@@ -106,7 +110,7 @@ To learn more about the feature, check out the
   check that the wrapped function is a `T`. Otherwise, this type argument is
   purely descriptive and intended for increased static type safety. Importantly,
   the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
-  See [#56905][] for more details.
+  For more details, see SDK issue [#54557][].
 
 [#54557]: https://github.com/dart-lang/sdk/issues/54557
 
@@ -116,12 +120,12 @@ To learn more about the feature, check out the
 
 These changes are not language versioned and affect formatting all code:
 
-* Fix bug where some collections or arguments might split unnecessarily.
+- Fix a bug where some collections or arguments might split unnecessarily.
 
-* Don't add a blank line before a comment at the end of a compilation unit or
+- Don't add a blank line before a comment at the end of a compilation unit or
   braced body.
 
-* Format extension type representation clauses the same way primary constructor
+- Format extension type representation clauses the same way primary constructor
   formal parameter lists are formatted:
 
   ```dart
@@ -137,13 +141,13 @@ These changes are not language versioned and affect formatting all code:
   ) implements JSFunction {}
   ```
 
-* When trailing commas are preserved, don't insert a newline before the `;` in
+- When trailing commas are preserved, don't insert a newline before the `;` in
   an enum with members unless there actually is a trailing comma.
   (Fix by @Barbirosha.)
 
-These changes are language versioned and only affect code at 3.13 or higher:
+These changes are [language versioned][] and only affect code at 3.13 or higher:
 
-* Support block-formatting parameter lists:
+- Support block formatting parameter lists:
 
   ```dart
   // Before:
@@ -162,7 +166,7 @@ These changes are language versioned and only affect code at 3.13 or higher:
   );
   ```
 
-* Allow `as`, `is`, and `is!` expressions to be block formatted:
+- Allow `as`, `is`, and `is!` expressions to be block formatted:
 
   ```dart
   // Before:
@@ -182,7 +186,7 @@ These changes are language versioned and only affect code at 3.13 or higher:
   ) as Type;
   ```
 
-* Force blank lines around a mixin or extension type declaration if it doesn't
+- Force blank lines around a mixin or extension type declaration if it doesn't
   have a `;` body:
 
   ```dart
@@ -202,6 +206,8 @@ These changes are language versioned and only affect code at 3.13 or higher:
   int below;
   ```
 
+[language versioned]: https://dart.dev/to/language-version
+
 ## 3.12.0
 
 **Released on:** Unreleased
@@ -213,7 +219,7 @@ These changes are language versioned and only affect code at 3.13 or higher:
 Dart now supports [private named parameters][]. Before 3.12, it was an error to
 have a named parameter that starts with an underscore:
 
-[private named parameters]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/2509-private-named-parameters/feature-specification.md
+[private named parameters]: https://dart.dev/to/private-named-parameters
 
 ```dart
 class Point {
@@ -223,8 +229,8 @@ class Point {
 }
 ```
 
-That means that when you wanted to initialize a *private* field from a named
-parameter, you had to write an explicit initializer list:
+This means that, before 3.12, initializing a _private_ field from
+a named parameter required an explicit initializer list:
 
 ```dart
 class Point {
@@ -235,8 +241,8 @@ class Point {
 }
 ```
 
-All the initializer list is doing is scraping off the `_`. In Dart 3.12, the
-language will do that for you. Now you can write:
+All the initializer list is doing is removing the leading `_`.
+In Dart 3.12, the language does that for you. Now you can write:
 
 ```dart
 class Point {
@@ -245,11 +251,11 @@ class Point {
 }
 ```
 
-It behaves exactly like the previous example. The initialized fields are
+This code behaves exactly like the previous example. The initialized fields are
 private, but the argument names written at the call site are public:
 
 ```dart
-main() {
+void main() {
   print(Point(x: 1, y: 2));
 }
 ```
@@ -258,12 +264,12 @@ main() {
 
 #### `dart:core`
 
-- The Dart VM's implementation of `RegExp` has been updated to include support
-  for modifier spans and duplicate named capture groups.
+- The Dart VM's `RegExp` implementation now supports
+  modifier spans and duplicate named capture groups.
 
 #### `dart:js_interop`
 
-- **Breaking Change in extension name of `isA`**: `isA` is moved from
+- **Breaking change in extension name of `isA`**: `isA` is moved from
   `JSAnyUtilityExtension` to `NullableObjectUtilExtension` to support
   type-checking any `Object?`. `isA<JSObject>()` also now handles JS objects
   with no prototypes correctly and `isA<JSAny>()` does a non-trivial check to
@@ -272,12 +278,13 @@ main() {
   the supertype `Object?`, this change is only breaking if users referred to the
   extension name directly, either through applying the extension directly or
   through using `show`/`hide` directives.
-- `isA<JSExportedDartFunction>()` now checks if the function is actually a JS
-  wrapper function that is returned from `Function.toJS` or
-  `Function.toJSCaptureThis`.
+
+- `isA<JSExportedDartFunction>()` now checks whether the function is
+  actually a JS wrapper function that is returned from
+  `Function.toJS` or `Function.toJSCaptureThis`.
 
 - Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
-  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
+  and `JSIteratorResult` types to model JavaScript's [iteration protocols][].
   `JSArray` and `JSString` now implement `JSIterable`.
 
 - Added extension types to provide `Iterable.toJSIterable`,
@@ -291,25 +298,24 @@ main() {
 
 #### Analyzer
 
-- The new `simple_directive_paths` lint and its associated fix
+- The new [`simple_directive_paths`][] lint and its associated fix
   flag and simplify unnecessarily complex `import` and `export` paths,
   such as those containing redundant `./` or backtracking `../` segments.
 
   Use `dart fix --code=simple_directive_paths` (with either `--dry-run` or
   `--apply`) to bulk fix existing lint violations.
-- The `prefer_initializing_formals` lint rule will report named parameters
-  which could be private named parameters, if the package's Dart SDK constraint
-  is set to enable the language feature (for example, `sdk: ^3.12.0`).
+- The `prefer_initializing_formals` lint rule highlights named parameters
+  that could be private named parameters.
 
   Use `dart fix --code=prefer_initializing_formals` (with either `--dry-run` or
   `--apply`) to bulk fix existing lint violations.
-- The `avoid_final_parameters` lint violations can now be fixed with `dart fix
-  --code=avoid_final_parameters` (with either `--dry-run` or `--apply`).
-- The analyzer now warns when a function which contains a parameter which is
-  annotated with `@mustBeConst` is torn off.
+- Violations of the `avoid_final_parameters` lint can now be
+  fixed with `dart fix --code=avoid_final_parameters`.
+- The analyzer now warns when a function that contains a
+  parameter annotated with `@mustBeConst` is torn off.
 - The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
-  interop types in the type in a catch clause and instructs users to use `isA`
-  for type checks instead.
+  interop types used in a catch clause's on-type and instructs users to
+  use `isA` for type checks instead.
 - Analyzer plugins: Initial support for 'print debugging' via new sections in
   the "Plugins" Insights (Diagnostics) page. When a plugin is computing lint
   and warning diagnostics, `print` calls are now redirected to the analysis
@@ -323,14 +329,16 @@ main() {
   files. The improvement is greater for systems with slower disk access.
 - Various other improvements to analysis performance.
 
+[`simple_directive_paths`]: https://dart.dev/lints/simple_directive_paths
+
 #### Pub
 
-- `dart pub cache repair` now by default only repairs the packages referenced
-  by the current projects pubspec.lock. For the old behavior of repairing all
-  packages use the `--all` flag.
+- `dart pub cache repair` now, by default, only repairs the
+  packages referenced by the current project's `pubspec.lock` file.
+  For the old behavior of repairing all packages, use the `--all` flag.
 - `dart pub add` and `dart pub unpack` now accept `@` as an alternative to `:`
-  for seperating a package name from its version constraint.
-- Git dependencies now support LFS.
+  for separating a package name from its version constraint.
+- Git dependencies now support Git Large File Storage (LFS).
 
 #### dart2wasm
 
@@ -504,7 +512,7 @@ There are no language changes in this release.
   Supported if the Dart SDK constraint of the containing package is 3.11.0 or
   higher.
 
-- New commmand `dart pub cache gc` for reclaiming disk space from your pub
+- New command `dart pub cache gc` for reclaiming disk space from your pub
   cache.
 
   It works by removing packages from your pub cache that are not referenced by
@@ -604,7 +612,7 @@ This is a patch release that:
    [Dart-Code/Dart-Code#61978])
 - Enables hiding `Running build hooks` in `dart run` with `--verbosity=error`.
   (issue [dart-lang/sdk#61996])
-- Fixes an issue with test_with_coverage and build hooks in dev depencencies.
+- Fixes an issue with `test_with_coverage` and build hooks in dev dependencies.
   (issue [dart-lang/tools#2237])
 - Fixes an issue where a crash could occur when evaluating expressions
   after a recompilation (issue [flutter/flutter#178740]).
