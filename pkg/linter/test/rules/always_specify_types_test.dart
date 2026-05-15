@@ -28,20 +28,6 @@ final Foo1 foo = Foo1();
 ''');
   }
 
-  test_34() async {
-    // https://github.com/dart-lang/linter/issues/851
-    await assertNoDiagnostics(r'''
-import 'package:meta/meta.dart';
-void f() {
-  g<dynamic>();
-  g();
-}
-
-@optionalTypeArgs
-void g<T>() {}
-''');
-  }
-
   test_catchVariable_omitted() async {
     // https://codereview.chromium.org/1427223002/
     await assertNoDiagnostics(r'''
@@ -491,6 +477,34 @@ void f() {
 ''',
       [lint(18, 3)],
     );
+  }
+
+  test_function_optionalTypeArgs() async {
+    // https://github.com/dart-lang/linter/issues/851
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f() {
+  g<dynamic>();
+  g();
+}
+
+@optionalTypeArgs
+void g<T>() {}
+''');
+  }
+
+  test_function_optionalTypeArgs_withBound() async {
+    // https://github.com/dart-lang/linter/issues/851
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f() {
+  g<Object>();
+  g();
+}
+
+@optionalTypeArgs
+void g<T extends Object>() {}
+''');
   }
 
   test_function_parameterType_explicit() async {
