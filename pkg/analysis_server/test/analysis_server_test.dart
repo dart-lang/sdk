@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -22,6 +24,7 @@ import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/unified_analytics.dart';
+import 'package:watcher/watcher.dart';
 
 import 'constants.dart';
 
@@ -43,6 +46,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   late MockServerChannel channel;
   late ErrorNotifier errorNotifier;
   late LegacyAnalysisServer server;
+  late _WatcherMessageRecorder _watcherMessages;
 
   void setUp() {
     channel = MockServerChannel(printMessages: debugPrintCommunication);
@@ -52,6 +56,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     errorNotifier = ErrorNotifier();
+    _watcherMessages = _WatcherMessageRecorder();
     server = LegacyAnalysisServer(
       channel,
       resourceProvider,
@@ -61,6 +66,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       errorNotifier,
       SessionLogger(),
+      messageSchedulerListener: _watcherMessages,
     );
     errorNotifier.server = server;
   }
@@ -69,74 +75,41 @@ class AnalysisServerTest with ResourceProviderMixin {
     var projectRoot = convertPath('/test');
     var outsideFilePath = convertPath('/outside/log.txt');
 
-    server.serverServices = {ServerService.STATUS};
-
     newFolder(projectRoot);
     await server.setAnalysisRoots('0', [projectRoot], []);
     await server.onAnalysisComplete;
-    channel.notificationsReceived.clear();
+    _watcherMessages.events.clear();
 
     var outsideFile = newFile(outsideFilePath, 'initial');
     outsideFile.writeAsStringSync('updated');
 
     await pumpEventQueue(times: 2000);
 
-    var startedAnalysis = channel.notificationsReceived.any((notification) {
-      if (notification.event != serverNotificationStatus) {
-        return false;
-      }
-      var params = ServerStatusParams.fromNotification(
-        notification,
-        clientUriConverter: server.uriConverter,
-      );
-      return params.analysis?.isAnalyzing ?? false;
-    });
-    expect(startedAnalysis, isFalse);
+    expect(_watcherMessages.events, isEmpty);
   }
 
   Future<void> test_watchEvents_keepsDartFileChanges() async {
     var projectRoot = convertPath('/test');
     var dartFilePath = convertPath('/test/lib/a.dart');
 
-    server.serverServices = {ServerService.STATUS};
-
     newFolder(convertPath('/test/lib'));
     newFile(dartFilePath, 'void f() {}');
 
     await server.setAnalysisRoots('0', [projectRoot], []);
     await server.onAnalysisComplete;
+    _watcherMessages.events.clear();
 
-    channel.notificationsReceived.clear();
-
-    getFile(dartFilePath).writeAsStringSync('void f() {');
+    getFile(dartFilePath).writeAsStringSync('void f() {}\nvoid g() {}');
     await pumpEventQueue(times: 2000);
-    await server.onAnalysisComplete;
 
-    var startedAnalysis = channel.notificationsReceived.any((notification) {
-      if (notification.event != serverNotificationStatus) {
-        return false;
-      }
-      var params = ServerStatusParams.fromNotification(
-        notification,
-        clientUriConverter: server.uriConverter,
-      );
-      return params.analysis?.isAnalyzing ?? false;
-    });
-    expect(startedAnalysis, isTrue);
-
-    var driver = server.getAnalysisDriver(dartFilePath)!;
-    var errorsResult = await driver.getErrors(dartFilePath);
-    expect(errorsResult, isA<ErrorsResult>());
-    var resolvedErrorsResult = errorsResult as ErrorsResult;
-    expect(resolvedErrorsResult.errors, isNotEmpty);
+    expect(_watcherMessages.events.map((e) => e.path), contains(dartFilePath));
   }
 
-  Future<void> test_watchEvents_outsideContextEventDoesNotBlockFollowingDartEvent() async {
+  Future<void>
+  test_watchEvents_outsideContextEventDoesNotBlockFollowingDartEvent() async {
     var projectRoot = convertPath('/test');
     var dartFilePath = convertPath('/test/lib/a.dart');
     var outsideFilePath = convertPath('/outside/log.txt');
-
-    server.serverServices = {ServerService.STATUS};
 
     newFolder(convertPath('/test/lib'));
     newFile(dartFilePath, 'void f() {}');
@@ -144,31 +117,16 @@ class AnalysisServerTest with ResourceProviderMixin {
 
     await server.setAnalysisRoots('0', [projectRoot], []);
     await server.onAnalysisComplete;
-    channel.notificationsReceived.clear();
+    _watcherMessages.events.clear();
 
     getFile(outsideFilePath).writeAsStringSync('updated');
-    getFile(dartFilePath).writeAsStringSync('void f() {');
+    getFile(dartFilePath).writeAsStringSync('void f() {}\nvoid g() {}');
 
     await pumpEventQueue(times: 2000);
-    await server.onAnalysisComplete;
 
-    var startedAnalysis = channel.notificationsReceived.any((notification) {
-      if (notification.event != serverNotificationStatus) {
-        return false;
-      }
-      var params = ServerStatusParams.fromNotification(
-        notification,
-        clientUriConverter: server.uriConverter,
-      );
-      return params.analysis?.isAnalyzing ?? false;
-    });
-    expect(startedAnalysis, isTrue);
-
-    var driver = server.getAnalysisDriver(dartFilePath)!;
-    var errorsResult = await driver.getErrors(dartFilePath);
-    expect(errorsResult, isA<ErrorsResult>());
-    var resolvedErrorsResult = errorsResult as ErrorsResult;
-    expect(resolvedErrorsResult.errors, isNotEmpty);
+    var paths = _watcherMessages.events.map((e) => e.path).toList();
+    expect(paths, contains(dartFilePath));
+    expect(paths, isNot(contains(outsideFilePath)));
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50496
@@ -470,4 +428,44 @@ analyzer:
     var file = newFile('$packagePath/lib/$name.dart', content);
     return file.parent;
   }
+}
+
+/// A [MessageSchedulerListener] that records every [WatcherMessage] that
+/// reaches the scheduler.
+class _WatcherMessageRecorder implements MessageSchedulerListener {
+  final List<WatchEvent> events = [];
+
+  @override
+  void addActiveMessage(ScheduledMessage message) {
+    if (message is WatcherMessage) {
+      events.add(message.event);
+    }
+  }
+
+  @override
+  void addPendingMessage(ScheduledMessage message) {}
+
+  @override
+  void cancelActiveMessage(ScheduledMessage message) {}
+
+  @override
+  void cancelPendingMessage(ScheduledMessage message) {}
+
+  @override
+  void endProcessingMessages() {}
+
+  @override
+  void messageCompleted(
+    ScheduledMessage message, {
+    lsp.Either2<int, String>? id,
+  }) {}
+
+  @override
+  void pauseProcessingMessages(int newPauseCount) {}
+
+  @override
+  void resumeProcessingMessages(int newPauseCount) {}
+
+  @override
+  void startProcessingMessages() {}
 }
