@@ -129,6 +129,9 @@ class MemberDuplicateDefinitionVerifier {
           for (var field in member.fields.variables) {
             var fieldFragment = field.declaredFragment!;
             fieldFragment as FieldFragmentImpl;
+            if (fieldFragment.isAugmentation) {
+              continue;
+            }
             var fieldElement = fieldFragment.element;
             _checkDuplicateIdentifier(
               member.isStatic ? staticScope : instanceScope,

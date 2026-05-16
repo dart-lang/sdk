@@ -113,8 +113,6 @@ augment class A {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int foo = 0;
-//           ^^^
-// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
 augment class A {
   augment int foo = 0;
@@ -128,8 +126,6 @@ augment class A {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo => 0;
-//               ^^^
-// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
 augment class A {
   augment int foo = 0;
@@ -143,8 +139,6 @@ augment class A {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
-//            ^^^
-// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
 augment class A {
   augment int foo = 0;
@@ -158,8 +152,6 @@ augment class A {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _) {}
-//           ^^^
-// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
 augment class A {
   augment int foo = 0;
