@@ -155,14 +155,11 @@ class A {
   void foo() {}
 //     ^^^
 // [context 1] The declaration being augmented.
-// [context 2] The first definition of this name.
 }
 augment class A {
   augment int foo = 0;
 //^^^^^^^
 // [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a field.
-//            ^^^
-// [diag.duplicateDefinition][context 2] The name 'foo' is already defined.
 }
 ''');
   }
@@ -281,7 +278,6 @@ class A {
   A.foo();
 //  ^^^
 // [context 1] The declaration being augmented.
-// [diag.conflictingConstructorAndStaticField] 'foo' can't be used to name both a constructor and a static field in this class.
 }
 augment class A {
   augment static int foo = 0;
@@ -297,14 +293,11 @@ class A {
   static void foo() {}
 //            ^^^
 // [context 1] The declaration being augmented.
-// [context 2] The first definition of this name.
 }
 augment class A {
   augment static int foo = 0;
 //^^^^^^^
 // [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a field.
-//                   ^^^
-// [diag.duplicateDefinition][context 2] The name 'foo' is already defined.
 }
 ''');
   }

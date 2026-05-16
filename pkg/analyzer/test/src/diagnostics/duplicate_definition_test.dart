@@ -37,29 +37,16 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_field_field_augment() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int foo = 0;
+}
 
 augment class A {
   augment int foo = 42;
 }
 ''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-class A {
-  int foo = 0;
-}
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
   }
 
   test_instance_field_field_field() async {
@@ -79,36 +66,20 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_field_field_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int foo = 0;
+//    ^^^
+// [context 1] The first definition of this name.
+}
 
 augment class A {
   int foo = 42;
+//    ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-class A {
-  int foo = 0;
-}
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertErrorsInResult([
-      error(
-        diag.duplicateDefinition,
-        46,
-        3,
-        contextMessages: [message(testFile, 32, 3)],
-      ),
-    ]);
   }
 
   test_instance_field_getter() async {
@@ -181,6 +152,18 @@ class C {
 ''');
   }
 
+  test_instance_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class C {
+  int get foo;
+}
+
+augment abstract class C {
+  augment int foo = 0;
+}
+''');
+  }
+
   test_instance_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -194,7 +177,6 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -202,20 +184,23 @@ class C {
 }
 
 augment class C {
-  augment int get foo => 0;
+  augment int get foo;
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   int get foo => 0;
+//        ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class C {
   int get foo => 0;
+//        ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -310,7 +295,6 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -318,20 +302,23 @@ class A {
 }
 
 augment class A {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
+//     ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class A {
   void foo() {}
+//     ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -349,20 +336,22 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_setter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
+//     ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class A {
   set foo(_) {}
+//    ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_operator_operator_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -370,20 +359,23 @@ class A {
 }
 
 augment class A {
-  augment int operator +(int _) => 0;
+  augment int operator +(int _);
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_operator_operator_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator +(int _) => 0;
+//             ^
+// [context 1] The first definition of this name.
 }
 
 augment class A {
   int operator +(int _) => 0;
+//             ^
+// [diag.duplicateDefinition][context 1] The name '+' is already defined.
 }
 ''');
   }
@@ -461,6 +453,18 @@ class A(var int _, var int _);
 ''');
   }
 
+  test_instance_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class C {
+  void set foo(int _);
+}
+
+augment abstract class C {
+  augment int foo = 0;
+}
+''');
+  }
+
   test_instance_setter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -511,15 +515,18 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_method_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(_) {}
+//    ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class A {
   void foo() {}
+//     ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -537,7 +544,6 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -545,7 +551,7 @@ class C {
 }
 
 augment class C {
-  augment void set foo(_) {}
+  augment void set foo(_);
 }
 ''');
   }
@@ -564,15 +570,18 @@ class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   void set foo(_) {}
+//         ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class C {
   void set foo(_) {}
+//         ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -660,6 +669,18 @@ class C {
 ''');
   }
 
+  test_static_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static int get foo => 0;
+}
+
+augment class A {
+  augment static int foo = 0;
+}
+''');
+  }
+
   test_static_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -673,7 +694,6 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -681,20 +701,23 @@ class A {
 }
 
 augment class A {
-  augment static int get foo => 0;
+  augment static int get foo;
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo => 0;
+//               ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class A {
   static int get foo => 0;
+//               ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -747,7 +770,6 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -755,20 +777,23 @@ class A {
 }
 
 augment class A {
-  augment static void foo() {}
+  augment static void foo();
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
+//            ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class A {
   static void foo() {}
+//            ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -782,6 +807,18 @@ class C {
   static set foo(_) {}
 //           ^^^
 // [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+}
+''');
+  }
+
+  test_static_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void set foo(_) {}
+}
+
+augment class A {
+  augment static int foo = 0;
 }
 ''');
   }
@@ -821,7 +858,6 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -829,20 +865,23 @@ class A {
 }
 
 augment class A {
-  augment static void set foo(_) {}
+  augment static void set foo(_);
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void set foo(_) {}
+//                ^^^
+// [context 1] The first definition of this name.
 }
 
 augment class A {
   static void set foo(_) {}
+//                ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -928,6 +967,19 @@ enum E {
 ''');
   }
 
+  test_instance_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  int get foo => 0;
+}
+
+augment enum E {;
+  augment final int foo = 0;
+}
+''');
+  }
+
   test_instance_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -942,7 +994,6 @@ enum E {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -951,21 +1002,24 @@ enum E {
 }
 
 augment enum E {;
-  augment int get foo => 0;
+  augment int get foo;
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   int get foo => 0;
+//        ^^^
+// [context 1] The first definition of this name.
 }
 
 augment enum E {;
   int get foo => 0;
+//        ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1022,7 +1076,6 @@ enum E {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1031,21 +1084,24 @@ enum E {
 }
 
 augment enum E {;
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void foo() {}
+//     ^^^
+// [context 1] The first definition of this name.
 }
 
 augment enum E {;
   void foo() {}
+//     ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1147,6 +1203,19 @@ enum E(final int _, final int _) {
 ''');
   }
 
+  test_instance_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  void set foo(int _) {}
+}
+
+augment enum E {;
+  augment final int foo = 0;
+}
+''');
+  }
+
   test_instance_setter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1185,7 +1254,6 @@ enum E {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1194,21 +1262,24 @@ enum E {
 }
 
 augment enum E {;
-  augment void set foo(_) {}
+  augment void set foo(_);
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void set foo(_) {}
+//         ^^^
+// [context 1] The first definition of this name.
 }
 
 augment enum E {;
   void set foo(_) {}
+//         ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1327,6 +1398,19 @@ enum E {
 ''');
   }
 
+  test_static_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static int get foo => 0;
+}
+
+augment enum E {;
+  augment static int foo = 0;
+}
+''');
+  }
+
   test_static_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1341,7 +1425,6 @@ enum E {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1350,21 +1433,24 @@ enum E {
 }
 
 augment enum E {;
-  augment static int get foo => 0;
+  augment static int get foo;
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static int get foo => 0;
+//               ^^^
+// [context 1] The first definition of this name.
 }
 
 augment enum E {;
   static int get foo => 0;
+//               ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1421,7 +1507,6 @@ enum E {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1430,21 +1515,24 @@ enum E {
 }
 
 augment enum E {;
-  augment static void foo() {}
+  augment static void foo();
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo() {}
+//            ^^^
+// [context 1] The first definition of this name.
 }
 
 augment enum E {;
   static void foo() {}
+//            ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1459,6 +1547,19 @@ enum E {
   static set foo(_) {}
 //           ^^^
 // [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+}
+''');
+  }
+
+  test_static_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static void set foo(_) {}
+}
+
+augment enum E {;
+  augment static int foo = 0;
 }
 ''');
   }
@@ -1501,7 +1602,6 @@ enum E {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1510,21 +1610,24 @@ enum E {
 }
 
 augment enum E {;
-  augment static void set foo(_) {}
+  augment static void set foo(_);
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void set foo(_) {}
+//                ^^^
+// [context 1] The first definition of this name.
 }
 
 augment enum E {;
   static void set foo(_) {}
+//                ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1564,6 +1667,20 @@ extension E on A {
 ''');
   }
 
+  test_instance_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  int get foo => 0;
+}
+
+augment extension E {
+  augment int foo = 0;
+//            ^^^
+// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
+}
+''');
+  }
+
   test_instance_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -1578,7 +1695,6 @@ extension E on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -1586,20 +1702,23 @@ extension E on int {
 }
 
 augment extension E {
-  augment int get foo => 0;
+  augment int get foo;
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
+//        ^^^
+// [context 1] The first definition of this name.
 }
 
 augment extension E {
   int get foo => 0;
+//        ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1656,7 +1775,6 @@ extension E on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -1664,20 +1782,23 @@ extension E on int {
 }
 
 augment extension E {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
+//     ^^^
+// [context 1] The first definition of this name.
 }
 
 augment extension E {
   void foo() {}
+//     ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1692,6 +1813,20 @@ extension E on A {
   set foo(_) {}
 //    ^^^
 // [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+}
+''');
+  }
+
+  test_instance_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  void set foo(int _) {}
+}
+
+augment extension E {
+  augment int foo = 0;
+//            ^^^
+// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
 ''');
   }
@@ -1734,7 +1869,6 @@ extension E on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -1742,20 +1876,23 @@ extension E on int {
 }
 
 augment extension E {
-  augment void set foo(_) {}
+  augment void set foo(_);
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void set foo(_) {}
+//         ^^^
+// [context 1] The first definition of this name.
 }
 
 augment extension E {
   void set foo(_) {}
+//         ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1826,6 +1963,18 @@ extension E on A {
 ''');
   }
 
+  test_static_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static int get foo => 0;
+}
+
+augment extension E {
+  augment static int foo = 0;
+}
+''');
+  }
+
   test_static_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -1840,7 +1989,6 @@ extension E on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -1848,20 +1996,23 @@ extension E on int {
 }
 
 augment extension E {
-  augment static int get foo => 0;
+  augment static int get foo;
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static int get foo => 0;
+//               ^^^
+// [context 1] The first definition of this name.
 }
 
 augment extension E {
   static int get foo => 0;
+//               ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1918,7 +2069,6 @@ extension E on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -1926,20 +2076,23 @@ extension E on int {
 }
 
 augment extension E {
-  augment static void foo() {}
+  augment static void foo();
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void foo() {}
+//            ^^^
+// [context 1] The first definition of this name.
 }
 
 augment extension E {
   static void foo() {}
+//            ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -1954,6 +2107,18 @@ extension E on A {
   static set foo(_) {}
 //           ^^^
 // [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+}
+''');
+  }
+
+  test_static_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static void set foo(_) {}
+}
+
+augment extension E {
+  augment static int foo = 0;
 }
 ''');
   }
@@ -1995,7 +2160,6 @@ extension E on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -2003,20 +2167,23 @@ extension E on int {
 }
 
 augment extension E {
-  augment static void set foo(_) {}
+  augment static void set foo(_);
 }
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void set foo(_) {}
+//                ^^^
+// [context 1] The first definition of this name.
 }
 
 augment extension E {
   static void set foo(_) {}
+//                ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
   }
@@ -2036,6 +2203,20 @@ extension E on A {}
 
 @reflectiveTest
 class DuplicateDefinitionExtensionTypeTest extends PubPackageResolutionTest {
+  test_instance_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  int get foo => 0;
+}
+
+augment extension type E(int it) {
+  augment int foo = 0;
+//            ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+}
+''');
+  }
+
   test_instance_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
@@ -2142,6 +2323,20 @@ extension type E(int it) {
 ''');
   }
 
+  test_instance_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  void set foo(int _) {}
+}
+
+augment extension type E(int it) {
+  augment int foo = 0;
+//            ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+}
+''');
+  }
+
   test_instance_setter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
@@ -2238,6 +2433,18 @@ extension type E(int it) {
 ''');
   }
 
+  test_static_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  static int get foo => 0;
+}
+
+augment extension type E(int it) {
+  augment static int foo = 0;
+}
+''');
+  }
+
   test_static_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
@@ -2308,6 +2515,18 @@ extension type E(int it) {
   static set foo(_) {}
 //           ^^^
 // [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+}
+''');
+  }
+
+  test_static_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  static void set foo(_) {}
+}
+
+augment extension type E(int it) {
+  augment static int foo = 0;
 }
 ''');
   }
@@ -2422,6 +2641,18 @@ mixin M {
 ''');
   }
 
+  test_instance_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  int get foo => 0;
+}
+
+augment mixin M {
+  augment int foo = 0;
+}
+''');
+  }
+
   test_instance_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
@@ -2483,61 +2714,32 @@ mixin M {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment mixin A {
-  augment void foo() {}
-}
-''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void foo() {}
 }
+
+augment mixin A {
+  augment void foo();
+}
 ''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    await resolveTestCodeWithDiagnostics(r'''
+mixin A {
+  void foo() {}
+//     ^^^
+// [context 1] The first definition of this name.
+}
 
 augment mixin A {
   void foo() {}
+//     ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
 }
 ''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-mixin A {
-  void foo() {}
-}
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertErrorsInResult([
-      error(
-        diag.duplicateDefinition,
-        47,
-        3,
-        contextMessages: [message(testFile, 33, 3)],
-      ),
-    ]);
   }
 
   test_instance_method_setter() async {
@@ -2549,6 +2751,18 @@ mixin M {
   set foo(_) {}
 //    ^^^
 // [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+}
+''');
+  }
+
+  test_instance_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  void set foo(int _) {}
+}
+
+augment mixin M {
+  augment int foo = 0;
 }
 ''');
   }
@@ -2649,6 +2863,18 @@ mixin M {
 ''');
   }
 
+  test_static_getter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static int get foo => 0;
+}
+
+augment mixin M {
+  augment static int foo = 0;
+}
+''');
+  }
+
   test_static_getter_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
@@ -2719,6 +2945,18 @@ mixin M {
   static set foo(_) {}
 //           ^^^
 // [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+}
+''');
+  }
+
+  test_static_setter_field_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static void set foo(_) {}
+}
+
+augment mixin M {
+  augment static int foo = 0;
 }
 ''');
   }
@@ -3834,25 +4072,11 @@ class A {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
 augment class A {}
 ''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-class A {}
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
   }
 
   test_class_library_part() async {
@@ -4013,25 +4237,11 @@ mixin A {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
+mixin A {}
 augment mixin A {}
 ''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-mixin A {}
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
   }
 
   test_mixin_library_part() async {
@@ -4062,6 +4272,24 @@ mixin A {}
       ]);
   }
 
+  test_topLevelVariable() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int foo = 0;
+//  ^^^
+// [context 1] The first definition of this name.
+int foo = 42;
+//  ^^^
+// [diag.duplicateDefinition][context 1] The name 'foo' is already defined.
+''');
+  }
+
+  test_topLevelVariable_topLevelVariable_augment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int foo = 0;
+augment int foo = 42;
+''');
+  }
+
   test_typedef_interfaceType() async {
     await resolveTestCodeWithDiagnostics('''
 typedef A = List<int>;
@@ -4071,54 +4299,5 @@ typedef A = List<int>;
 //      ^
 // [diag.duplicateDefinition][context 1] The name 'A' is already defined.
 ''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_variable_variable_augment() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment int foo = 42;
-''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-int foo = 0;
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_variable_variable_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-int foo = 42;
-''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-int foo = 0;
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertErrorsInResult([
-      error(
-        diag.duplicateDefinition,
-        26,
-        3,
-        contextMessages: [message(testFile, 20, 3)],
-      ),
-    ]);
   }
 }
