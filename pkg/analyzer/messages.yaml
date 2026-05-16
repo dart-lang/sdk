@@ -4632,13 +4632,13 @@ CompileTimeErrorCode:
   dotShorthandMissingContext:
     type: compileTimeError
     parameters: none
-    problemMessage: "A dot shorthand can't be used with a context type that doesn't have a static scope."
+    problemMessage: "A dot shorthand can't be used when the context type isn't a class, enum, mixin, extension, or extension type."
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a dot shorthand is used with a
-      context type that doesn't have a static scope.
+      context type that isn't a class, enum, mixin, extension, or extension type.
 
       #### Example
 
@@ -4654,9 +4654,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If you want to use a dot shorthand, then provide a context type that has a 
-      static scope (such as a class or enum), which in this example means 
-      adding the explicit type `E` to the local variable:
+      If you want to use a dot shorthand, then provide a valid context type, 
+      which in this example means adding the explicit type `E` to the local variable:
 
       ```dart
       void f() {
