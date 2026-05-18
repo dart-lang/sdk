@@ -732,12 +732,15 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   @override
   void visitEmptyStatement(EmptyStatement node) => node.visitChildren(this);
   @override
-  void visitVariableDeclaration(VariableDeclaration node) =>
+  void defaultVariableDeclaration(VariableDeclaration node) =>
       node.visitChildren(this);
   @override
   void visitReturnStatement(ReturnStatement node) => node.visitChildren(this);
   @override
   void visitYieldStatement(YieldStatement node) => node.visitChildren(this);
+  @override
+  void visitLegacyVariableStatement(LegacyVariableStatement node) =>
+      node.visitChildren(this);
 
   @override
   void visitLet(Let node) => node.visitChildren(this);

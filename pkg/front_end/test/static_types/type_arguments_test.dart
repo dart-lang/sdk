@@ -65,12 +65,10 @@ class TypeArgumentsVisitor extends VerifyingAnalysis {
           'AssertStatement',
           uri: astUri,
         );
-        InterfaceType variableDeclarationType = interface.createInterfaceType(
-          'VariableDeclaration',
+        InterfaceType variableStatementType = interface.createInterfaceType(
+          'VariableStatement',
           uri: astUri,
         );
-        InterfaceType variableInitializationType = interface
-            .createInterfaceType('VariableDeclaration', uri: astUri);
         DartType typeArgument = receiver.arguments.types.single;
         if (interface.isSubtypeOf(typeArgument, expressionType) &&
             typeArgument != expressionType) {
@@ -93,28 +91,15 @@ class TypeArgumentsVisitor extends VerifyingAnalysis {
             }
           } else if (interface.isSubtypeOf(
             typeArgument,
-            variableDeclarationType,
+            variableStatementType,
           )) {
             // [VariableDeclaration] is used as an exclusive member of, for
             // instance, `FunctionNode.positionalParameters`.
-            if (typeArgument != variableDeclarationType) {
+            if (typeArgument != variableStatementType) {
               registerError(
                 node,
                 "map().toList() with type argument "
-                "${typeArgument} instead of ${variableDeclarationType}",
-              );
-            }
-          } else if (interface.isSubtypeOf(
-            typeArgument,
-            variableInitializationType,
-          )) {
-            // [VariableInitialization] is used as an exclusive member of, for
-            // instance, `ForStatement.variableInitializations`.
-            if (typeArgument != variableInitializationType) {
-              registerError(
-                node,
-                "map().toList() with type argument "
-                "${typeArgument} instead of ${variableInitializationType}",
+                "${typeArgument} instead of ${variableStatementType}",
               );
             }
           } else if (typeArgument != statementType) {

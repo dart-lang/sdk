@@ -836,8 +836,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitVariableStatement(VariableStatement node, Node other) {
-    return strategy.checkVariableStatement(this, node, other);
+  bool visitLegacyVariableStatement(LegacyVariableStatement node, Node other) {
+    return strategy.checkLegacyVariableStatement(this, node, other);
   }
 
   @override
@@ -858,6 +858,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   @override
   bool visitCatch(Catch node, Node other) {
     return strategy.checkCatch(this, node, other);
+  }
+
+  @override
+  bool visitLegacyVariable(LegacyVariable node, Node other) {
+    return strategy.checkLegacyVariable(this, node, other);
   }
 
   @override
@@ -1306,8 +1311,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     if (a is LabeledStatement) {
       return b is LabeledStatement;
     }
-    if (a is VariableStatement) {
-      return b is VariableStatement && a.name == b.name;
+    if (a is LegacyVariable) {
+      return b is LegacyVariable && a.name == b.name;
     }
     if (a is StructuralParameter) {
       return b is StructuralParameter && a.name == b.name;
@@ -5904,41 +5909,20 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkVariableStatement(
+  bool checkLegacyVariableStatement(
     EquivalenceVisitor visitor,
-    VariableStatement? node,
+    LegacyVariableStatement? node,
     Object? other,
   ) {
     if (identical(node, other)) return true;
-    if (node is! VariableStatement) return false;
-    if (other is! VariableStatement) return false;
-    if (!visitor.checkDeclarations(node, other, '')) {
-      return false;
-    }
+    if (node is! LegacyVariableStatement) return false;
+    if (other is! LegacyVariableStatement) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkVariableStatement_fileEqualsOffset(visitor, node, other)) {
+    if (!checkLegacyVariableStatement_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableStatement_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_name(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_flags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_type(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_binaryOffsetNoTag(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_initializer(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_fileOffset(visitor, node, other)) {
+    if (!checkLegacyVariableStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -5993,12 +5977,6 @@ class EquivalenceStrategy {
     if (!checkVariableInitialization_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableInitialization_binaryOffsetNoTag(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_fileEqualsOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkVariableInitialization_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6051,6 +6029,47 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkCatch_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkLegacyVariable(
+    EquivalenceVisitor visitor,
+    LegacyVariable? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! LegacyVariable) return false;
+    if (other is! LegacyVariable) return false;
+    if (!visitor.checkDeclarations(node, other, '')) {
+      return false;
+    }
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkLegacyVariable_fileEqualsOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_type(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_binaryOffsetNoTag(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_initializer(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -13259,83 +13278,18 @@ class EquivalenceStrategy {
     return checkStatement_fileOffset(visitor, node, other);
   }
 
-  bool checkVariableStatement_fileEqualsOffset(
+  bool checkLegacyVariableStatement_variable(
     EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
+    LegacyVariableStatement node,
+    LegacyVariableStatement other,
   ) {
-    return visitor.checkValues(
-      node.fileEqualsOffset,
-      other.fileEqualsOffset,
-      'fileEqualsOffset',
-    );
+    return visitor.checkNodes(node.variable, other.variable, 'variable');
   }
 
-  bool checkVariableStatement_annotations(
+  bool checkLegacyVariableStatement_fileOffset(
     EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkLists(
-      node.annotations,
-      other.annotations,
-      visitor.checkNodes,
-      'annotations',
-    );
-  }
-
-  bool checkVariableStatement_name(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkValues(node.name, other.name, 'name');
-  }
-
-  bool checkVariableStatement_flags(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkVariableStatement_type(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkNodes(node.type, other.type, 'type');
-  }
-
-  bool checkVariableStatement_binaryOffsetNoTag(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkValues(
-      node.binaryOffsetNoTag,
-      other.binaryOffsetNoTag,
-      'binaryOffsetNoTag',
-    );
-  }
-
-  bool checkVariableStatement_initializer(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkNodes(
-      node.initializer,
-      other.initializer,
-      'initializer',
-    );
-  }
-
-  bool checkVariableStatement_fileOffset(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
+    LegacyVariableStatement node,
+    LegacyVariableStatement other,
   ) {
     return checkStatement_fileOffset(visitor, node, other);
   }
@@ -13420,30 +13374,6 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkVariableInitialization_binaryOffsetNoTag(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkValues(
-      node.binaryOffsetNoTag,
-      other.binaryOffsetNoTag,
-      'binaryOffsetNoTag',
-    );
-  }
-
-  bool checkVariableInitialization_fileEqualsOffset(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkValues(
-      node.fileEqualsOffset,
-      other.fileEqualsOffset,
-      'fileEqualsOffset',
-    );
-  }
-
   bool checkVariableInitialization_fileOffset(
     EquivalenceVisitor visitor,
     VariableInitialization node,
@@ -13513,6 +13443,87 @@ class EquivalenceStrategy {
     EquivalenceVisitor visitor,
     Catch node,
     Catch other,
+  ) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkLegacyVariable_fileEqualsOffset(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return visitor.checkValues(
+      node.fileEqualsOffset,
+      other.fileEqualsOffset,
+      'fileEqualsOffset',
+    );
+  }
+
+  bool checkLegacyVariable_annotations(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return visitor.checkLists(
+      node.annotations,
+      other.annotations,
+      visitor.checkNodes,
+      'annotations',
+    );
+  }
+
+  bool checkLegacyVariable_name(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return visitor.checkValues(node.name, other.name, 'name');
+  }
+
+  bool checkLegacyVariable_flags(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkLegacyVariable_type(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return visitor.checkNodes(node.type, other.type, 'type');
+  }
+
+  bool checkLegacyVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return visitor.checkValues(
+      node.binaryOffsetNoTag,
+      other.binaryOffsetNoTag,
+      'binaryOffsetNoTag',
+    );
+  }
+
+  bool checkLegacyVariable_initializer(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
+    );
+  }
+
+  bool checkLegacyVariable_fileOffset(
+    EquivalenceVisitor visitor,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return checkTreeNode_fileOffset(visitor, node, other);
   }

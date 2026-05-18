@@ -135,7 +135,8 @@ class NodeCreator {
     }
     _neededLabeledStatements.clear();
     statement = Block([
-      ..._neededVariableDeclarations,
+      for (VariableDeclaration neededVariable in _neededVariableDeclarations)
+        VariableStatement(neededVariable),
       ..._neededFunctionDeclarations,
       statement,
     ]);
@@ -385,6 +386,7 @@ class NodeCreator {
         case NodeKind.PatternSwitchCase:
         case NodeKind.SwitchExpressionCase:
         case NodeKind.TypeVariable:
+        case NodeKind.LegacyVariable:
           throw new UnimplementedError('Expected in body node $kind.');
         case NodeKind.Class:
           _needLibrary().addClass(node as Class);
@@ -919,11 +921,8 @@ class NodeCreator {
         return IsExpression(_createExpression(), _createDartType())
           ..fileOffset = _needFileOffset();
       case ExpressionKind.Let:
-        return Let(
-          _createStatementFromKind(StatementKind.VariableStatement)
-              as VariableDeclaration,
-          _createExpression(),
-        )..fileOffset = _needFileOffset();
+        return Let(_createVariableDeclaration(), _createExpression())
+          ..fileOffset = _needFileOffset();
       case ExpressionKind.ListConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
           () =>
@@ -1474,13 +1473,16 @@ class NodeCreator {
               ForStatement([], null, [], _createStatement())
                 ..fileOffset = _needFileOffset(),
           () => ForStatement(
-            [_createVariableDeclaration()],
+            [VariableStatement(_createVariableDeclaration())],
             _createExpression(),
             [_createExpression()],
             _createStatement(),
           )..fileOffset = _needFileOffset(),
           () => ForStatement(
-            [_createVariableDeclaration(), _createVariableDeclaration()],
+            [
+              VariableStatement(_createVariableDeclaration()),
+              VariableStatement(_createVariableDeclaration()),
+            ],
             _createExpression(),
             [_createExpression(), _createExpression()],
             _createStatement(),
@@ -1539,15 +1541,19 @@ class NodeCreator {
       case StatementKind.TryFinally:
         return TryFinally(_createStatement(), _createStatement())
           ..fileOffset = _needFileOffset();
-      case StatementKind.VariableStatement:
+      case StatementKind.LegacyVariableStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => VariableDeclaration('foo')..fileOffset = _needFileOffset(),
-          () =>
-              VariableDeclaration('foo', initializer: _createExpression())
-                ..fileOffset = _needFileOffset(),
-          () =>
-              VariableDeclaration('foo', type: _createDartType())
-                ..fileOffset = _needFileOffset(),
+          () => VariableStatement(
+            VariableDeclaration('foo')..fileOffset = _needFileOffset(),
+          )..fileOffset = _needFileOffset(),
+          () => VariableStatement(
+            VariableDeclaration('foo', initializer: _createExpression())
+              ..fileOffset = _needFileOffset(),
+          )..fileOffset = _needFileOffset(),
+          () => VariableStatement(
+            VariableDeclaration('foo', type: _createDartType())
+              ..fileOffset = _needFileOffset(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.WhileStatement:
         return WhileStatement(_createExpression(), _createStatement())
@@ -1608,8 +1614,7 @@ class NodeCreator {
   /// If there are any pending [VariableDeclaration] nodes, one of these is
   /// created.
   VariableDeclaration _createVariableDeclaration() {
-    return _createStatementFromKind(StatementKind.VariableStatement)
-        as VariableDeclaration;
+    return VariableDeclaration('foo');
   }
 
   /// Creates a [DartType] node.
@@ -2128,6 +2133,17 @@ class NodeCreator {
           _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
           _createExpression(),
         )..fileOffset = _needFileOffset();
+      case NodeKind.LegacyVariable:
+        return _createOneOf(_pendingNodes, kind, index, [
+          () => VariableDeclaration('foo')..fileOffset = _needFileOffset(),
+
+          () =>
+              VariableDeclaration('foo', initializer: _createExpression())
+                ..fileOffset = _needFileOffset(),
+          () =>
+              VariableDeclaration('foo', type: _createDartType())
+                ..fileOffset = _needFileOffset(),
+        ]);
       case NodeKind.TypeVariable:
         throw new UnimplementedError("Unimplemented support for kind $kind.");
     }

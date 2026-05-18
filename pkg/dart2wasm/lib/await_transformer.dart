@@ -91,7 +91,8 @@ class _AwaitTransformer extends Transformer {
       Statement newBody = transformer.transform(body);
 
       final List<Statement> newStatements = [
-        ...transformer.expressionTransformer.variables,
+        for (final variable in transformer.expressionTransformer.variables)
+          VariableStatement(variable),
         ...transformer.statements,
       ];
 
@@ -248,13 +249,13 @@ class _AwaitTransformer extends Transformer {
     List<List<Statement>> initEffects = List<List<Statement>>.generate(length, (
       int i,
     ) {
-      VariableDeclaration decl = stmt.variables[i];
+      VariableStatement decl = stmt.variables[i];
       List<Statement> statements = <Statement>[];
-      if (decl.initializer != null) {
-        decl.initializer = expressionTransformer.rewrite(
-          decl.initializer!,
+      if (decl.variable.initializer != null) {
+        decl.variable.initializer = expressionTransformer.rewrite(
+          decl.variable.initializer!,
           statements,
-        )..parent = decl;
+        )..parent = decl.variable;
       }
       isSimple = isSimple && statements.isEmpty;
       return statements;
@@ -345,23 +346,31 @@ class _AwaitTransformer extends Transformer {
     List<Statement> updates = <Statement>[];
     List<Statement> newBody = <Statement>[body];
     for (int i = 0; i < stmt.variables.length; ++i) {
-      VariableDeclaration decl = stmt.variables[i];
+      VariableStatement decl = stmt.variables[i];
       temps.add(
-        VariableDeclaration(null, type: decl.type, isSynthesized: true),
+        VariableDeclaration(
+          null,
+          type: decl.variable.type,
+          isSynthesized: true,
+        ),
       );
       loopBody.add(decl);
       if (decl.initializer != null) {
         initializers.addAll(initEffects[i]);
         initializers.add(
-          ExpressionStatement(VariableSet(decl, decl.initializer!)),
+          ExpressionStatement(VariableSet(decl.variable, decl.initializer!)),
         );
         decl.initializer = null;
       }
       updates.add(
-        ExpressionStatement(VariableSet(decl, VariableGet(temps.last))),
+        ExpressionStatement(
+          VariableSet(decl.variable, VariableGet(temps.last)),
+        ),
       );
       newBody.add(
-        ExpressionStatement(VariableSet(temps.last, VariableGet(decl))),
+        ExpressionStatement(
+          VariableSet(temps.last, VariableGet(decl.variable)),
+        ),
       );
     }
     // Add the updates to their guarded list of statements.
@@ -387,7 +396,10 @@ class _AwaitTransformer extends Transformer {
     loopBody.add(IfStatement(cond, Block(newBody), BreakStatement(labeled)));
     labeled.body = WhileStatement(BoolLiteral(true), Block(loopBody))
       ..parent = labeled;
-    return Block(<Statement>[...temps, labeled]);
+    return Block(<Statement>[
+      for (VariableDeclaration temp in temps) VariableStatement(temp),
+      labeled,
+    ]);
   }
 
   @override
@@ -537,19 +549,21 @@ class _AwaitTransformer extends Transformer {
     }
 
     return Block([
-      continuationVar,
-      exceptionVar,
-      stackTraceVar,
+      VariableStatement(continuationVar),
+      VariableStatement(exceptionVar),
+      VariableStatement(stackTraceVar),
       TryFinally(body, finalizer),
     ]);
   }
 
   @override
-  TreeNode visitVariableDeclaration(VariableDeclaration stmt) {
-    final initializer = stmt.initializer;
+  TreeNode visitLegacyVariableStatement(LegacyVariableStatement stmt) {
+    final initializer = stmt.variable.initializer;
     if (initializer != null) {
-      stmt.initializer = expressionTransformer.rewrite(initializer, statements)
-        ..parent = stmt;
+      stmt.variable.initializer = expressionTransformer.rewrite(
+        initializer,
+        statements,
+      )..parent = stmt.variable;
     }
     return stmt;
   }
@@ -1256,7 +1270,7 @@ class _ExpressionTransformer extends Transformer {
       // <body's statements>
       //
       // and return the body's value.
-      statements.add(variable);
+      statements.add(VariableStatement(variable));
       var index = nameIndex;
       seenAwait = false;
       variable.initializer = transform(variable.initializer!)

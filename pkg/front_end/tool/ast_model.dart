@@ -32,7 +32,7 @@ Uri computePackageConfig(Uri repoDir) =>
 /// defining its identity.
 const Map<String, String?> _declarativeClassesNames = const {
   // TODO(johnniwinther): This should be [VariableDeclaration].
-  'VariableStatement': 'name',
+  'LegacyVariable': 'name',
   'TypeParameter': 'name',
   'StructuralParameter': 'name',
   'LabeledStatement': null,
@@ -151,7 +151,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'SyntheticVariable': {
     'variableInitialization': FieldRule(isDeclaration: false),
   },
-  'VariableStatement': {'_name': FieldRule(name: 'name')},
+  'LegacyVariable': {'_name': FieldRule(name: 'name')},
   'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
   'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},

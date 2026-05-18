@@ -278,11 +278,11 @@ class _WasmTransformer extends Transformer {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  defaultVariableDeclaration(VariableDeclaration node) {
     if (!node.isFinal) {
       _implicitFinalVariables.add(node);
     }
-    return super.visitVariableDeclaration(node);
+    return super.defaultVariableDeclaration(node);
   }
 
   @override
@@ -440,7 +440,8 @@ class _WasmTransformer extends Transformer {
         resultType: elementType,
       )..fileOffset = stmt.bodyOffset);
 
-    Block body = Block([variable, stmt.body])..fileOffset = stmt.fileOffset;
+    Block body = Block([VariableStatement(variable), stmt.body])
+      ..fileOffset = stmt.fileOffset;
 
     Statement forStatement = ForStatement(
       const [],
@@ -479,8 +480,8 @@ class _WasmTransformer extends Transformer {
     }
 
     return Block([
-      iterator,
-      if (isAsync) jumpSentinel,
+      VariableStatement(iterator),
+      if (isAsync) VariableStatement(jumpSentinel),
       forStatement,
     ]).accept<TreeNode>(this);
   }
@@ -883,17 +884,17 @@ class _WasmTransformer extends Transformer {
 
     return FunctionNode(
       Block([
-        pausedVar,
-        cancelCompleterVar,
-        isDoneVar,
-        onCancelCallbackVar,
-        onResumeCallbackVar,
+        VariableStatement(pausedVar),
+        VariableStatement(cancelCompleterVar),
+        VariableStatement(isDoneVar),
+        VariableStatement(onCancelCallbackVar),
+        VariableStatement(onResumeCallbackVar),
 
         // var controller = StreamController<T>(sync: true, onCancel: onCancelCallback, onResume: onResumeCallback);
-        controllerVar,
+        VariableStatement(controllerVar),
 
         // var #body = ...;
-        bodyVar,
+        VariableStatement(bodyVar),
 
         // controller.onListen = ...;
         ExpressionStatement(setControllerOnListen),
@@ -1346,7 +1347,7 @@ class PushPopWasmArrayTransformer {
     }
 
     final List<Statement> arrayGrowStatements = [
-      newArrayVariable,
+      VariableStatement(newArrayVariable),
       ExpressionStatement(newArrayCopy),
       arrayFieldUpdate,
     ];
@@ -1475,7 +1476,7 @@ class PushPopWasmArrayTransformer {
       isFinal: true,
       type: elementType,
     );
-    blockStatements.add(arrayGetVariable);
+    blockStatements.add(VariableStatement(arrayGetVariable));
 
     // array[length] = null
     if (elementIsNullable) {

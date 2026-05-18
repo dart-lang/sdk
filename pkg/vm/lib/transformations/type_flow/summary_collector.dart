@@ -409,7 +409,7 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  defaultVariableDeclaration(VariableDeclaration node) {
     final int index = numVariables;
     varDeclarations.add(node);
     varIndex[node] = index;
@@ -2600,7 +2600,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitForStatement(ForStatement node) {
-    node.variables.forEach(visitVariableDeclaration);
+    node.variables.forEach((v) => defaultVariableDeclaration(v.variable));
     final List<Join?> joins = _insertJoinsForModifiedVariables(node, false);
     final trueState = _cloneVariableValues(_variableValues);
     final falseState = _cloneVariableValues(_variableValues);
@@ -2808,15 +2808,22 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
-  TypeExpr? visitVariableDeclaration(VariableDeclaration node) {
-    node.annotations.forEach(_visitAnnotation);
-    final initializer = node.initializer;
+  TypeExpr? visitLegacyVariableStatement(LegacyVariableStatement node) {
+    defaultVariableDeclaration(node.variable);
+    return null;
+  }
+
+  TypeExpr? defaultVariableDeclaration(VariableDeclaration node) {
+    final variable = node.variable;
+    variable.annotations.forEach(_visitAnnotation);
+    final initializer = variable.initializer;
     final TypeExpr initialValue = initializer == null
-        ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
+        ? ((variable.type.nullability == Nullability.nonNullable ||
+                  variable.isLate)
               ? emptyType
               : _nullType)
         : _visit(initializer);
-    _declareVariable(node, initialValue);
+    _declareVariable(variable, initialValue);
     return null;
   }
 
@@ -2886,7 +2893,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitLocalInitializer(LocalInitializer node) {
-    visitVariableDeclaration(node.variable);
+    defaultVariableDeclaration(node.variable);
     return null;
   }
 

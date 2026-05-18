@@ -778,11 +778,14 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     }
     if (!_isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
-      List<Statement> statements = [thisVariable];
+      VariableStatement thisVariableStatement = extern.createVariableStatement(
+        thisVariable,
+      );
+      List<Statement> statements = [thisVariableStatement];
       _ExtensionTypeInitializerToStatementConverter visitor =
           new _ExtensionTypeInitializerToStatementConverter(
             statements,
-            thisVariable,
+            thisVariableStatement,
           );
       for (Initializer initializer in _initializers) {
         initializer.accept(visitor);
@@ -847,12 +850,12 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
 class _ExtensionTypeInitializerToStatementConverter
     implements InitializerVisitor<void> {
-  VariableDeclaration thisVariable;
+  VariableStatement thisVariableStatement;
   final List<Statement> statements;
 
   _ExtensionTypeInitializerToStatementConverter(
     this.statements,
-    this.thisVariable,
+    this.thisVariableStatement,
   );
 
   @override
@@ -866,7 +869,7 @@ class _ExtensionTypeInitializerToStatementConverter
       statements.add(
         extern.createExpressionStatement(
           extern.createVariableSet(
-            thisVariable,
+            thisVariableStatement.variable,
             extern.createStaticInvocation(
               node.target,
               node.arguments.toArguments(
@@ -884,9 +887,10 @@ class _ExtensionTypeInitializerToStatementConverter
       );
       return;
     } else if (node is ExtensionTypeRepresentationFieldInitializer) {
-      thisVariable
-        ..initializer = (node.value..parent = thisVariable)
+      thisVariableStatement.variable
+        ..initializer = (node.value..parent = thisVariableStatement.variable)
         ..fileOffset = node.fileOffset;
+      thisVariableStatement.fileOffset = node.fileOffset;
       return;
     }
     // Coverage-ignore-block(suite): Not run.
@@ -898,9 +902,10 @@ class _ExtensionTypeInitializerToStatementConverter
   @override
   // Coverage-ignore(suite): Not run.
   void visitFieldInitializer(FieldInitializer node) {
-    thisVariable
-      ..initializer = (node.value..parent = thisVariable)
+    thisVariableStatement.variable
+      ..initializer = (node.value..parent = thisVariableStatement.variable)
       ..fileOffset = node.fileOffset;
+    thisVariableStatement.fileOffset = node.fileOffset;
   }
 
   @override
@@ -917,7 +922,7 @@ class _ExtensionTypeInitializerToStatementConverter
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    statements.add(node.variable);
+    statements.add(extern.createVariableStatement(node.variable));
   }
 
   @override

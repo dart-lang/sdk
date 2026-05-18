@@ -3726,7 +3726,7 @@ class BinaryBuilder {
 
       // 9.62% (6.92% - 12.64%).
       case Tag.VariableDeclaration:
-        return _readVariableDeclaration();
+        return _readVariableStatement();
 
       // 9.28% (6.69% - 11.18%).
       case Tag.EmptyStatement:
@@ -3826,7 +3826,7 @@ class BinaryBuilder {
   Statement _readForStatement() {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
-    List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
+    List<VariableStatement> variables = readAndPushVariableStatementList();
     Expression? condition = readExpressionOption();
     List<Expression> updates = readExpressionList();
     Statement body = readStatement();
@@ -3931,7 +3931,12 @@ class BinaryBuilder {
     )..fileOffset = offset;
   }
 
-  Statement _readVariableDeclaration() {
+  VariableStatement _readVariableStatement() {
+    VariableDeclaration variable = _readVariableDeclaration();
+    return new VariableStatement(variable)..fileOffset = variable.fileOffset;
+  }
+
+  VariableDeclaration _readVariableDeclaration() {
     VariableDeclaration variable = readVariableDeclaration();
     variableStack.add(variable); // Will be popped by the enclosing scope.
     return variable;
@@ -4425,6 +4430,16 @@ class BinaryBuilder {
 
   NamedExpression readNamedExpression() {
     return new NamedExpression(readStringReference(), readExpression());
+  }
+
+  List<VariableStatement> readAndPushVariableStatementList() {
+    List<VariableDeclaration> list = readAndPushVariableDeclarationList();
+    return new List.generate(
+      list.length,
+      (int index) =>
+          new VariableStatement(list[index])
+            ..fileOffset = list[index].fileOffset,
+    );
   }
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {

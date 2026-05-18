@@ -2210,10 +2210,10 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkVariableStatement_binaryOffsetNoTag(
+  bool checkLegacyVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
-    VariableDeclaration node,
-    VariableDeclaration other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return true;
   }

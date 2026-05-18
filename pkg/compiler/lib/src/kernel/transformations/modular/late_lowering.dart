@@ -312,8 +312,8 @@ class LateLowering {
     if (!_shouldLowerVariable(variable)) return variable;
 
     // A [VariableDeclaration] being used as a statement must be a direct child
-    // of a [Block].
-    if (variable.parent is! Block) return variable;
+    // of a [VariableStatement].
+    if (variable.parent is! VariableStatement) return variable;
 
     return _variableCell(variable);
   }
@@ -604,11 +604,11 @@ class LateLowering {
         VariableGet resultRead() =>
             VariableGet(result)..fileOffset = fileOffset;
         return Block([
-          value,
+          VariableStatement(value),
           IfStatement(
             _callIsSentinel(valueRead(), fileOffset),
             Block([
-              result,
+              VariableStatement(result),
               ExpressionStatement(
                 StaticInvocation(
                   _coreTypes.lateInitializeOnceCheck,
@@ -653,7 +653,7 @@ class LateLowering {
         )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
         return Block([
-          value,
+          VariableStatement(value),
           IfStatement(
             _callIsSentinel(valueRead(), fileOffset),
             ExpressionStatement(

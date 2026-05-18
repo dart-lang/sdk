@@ -3345,14 +3345,14 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
-      VariableDeclaration node = peek() as VariableDeclaration;
+      VariableStatement node = peek() as VariableStatement;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
 
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
       assignedVariables.storeInfo(
-        (node.variable as InternalVariable).astVariable,
+        (node.variable.variable as InternalVariable).astVariable,
         assignedVariablesInfo!,
       );
     }
@@ -3404,7 +3404,7 @@ class BodyBuilderImpl extends StackListenerImpl
       name = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    VariableDeclaration variableInitialization;
+    Statement variableInitialization;
     InternalVariable internalVariable;
     if (isClosureContextLoweringEnabled) {
       internalVariable = new InternalLocalVariable(
@@ -3428,20 +3428,22 @@ class BodyBuilderImpl extends StackListenerImpl
         fileOffset: offsetForToken(equalsToken),
       );
     } else {
-      variableInitialization = internalVariable = new VariableDeclarationImpl(
-        name,
-        forSyntheticToken: identifier.token.isSynthetic,
-        initializer: initializer,
-        type: currentLocalVariableType,
-        isFinal: isFinal,
-        isConst: isConst,
-        isLate: isLate,
-        isRequired: isRequired,
-        hasDeclaredInitializer: initializer != null,
-        isStaticLate: isFinal && initializer == null,
-        isWildcard: isWildcard,
-        fileOffset: identifier.nameOffset,
-        fileEqualsOffset: offsetForToken(equalsToken),
+      variableInitialization = intern.createVariableStatement(
+        internalVariable = new VariableDeclarationImpl(
+          name,
+          forSyntheticToken: identifier.token.isSynthetic,
+          initializer: initializer,
+          type: currentLocalVariableType,
+          isFinal: isFinal,
+          isConst: isConst,
+          isLate: isLate,
+          isRequired: isRequired,
+          hasDeclaredInitializer: initializer != null,
+          isStaticLate: isFinal && initializer == null,
+          isWildcard: isWildcard,
+          fileOffset: identifier.nameOffset,
+          fileEqualsOffset: offsetForToken(equalsToken),
+        ),
       );
     }
     assignedVariables.declare(internalVariable.astVariable);
@@ -3530,15 +3532,16 @@ class BodyBuilderImpl extends StackListenerImpl
       push(node);
       return;
     }
-    VariableDeclaration variableInitialization = node as VariableDeclaration;
-    variableInitialization.fileOffset = nameToken.charOffset;
+    VariableStatement variableInitialization = node as VariableStatement;
+    variableInitialization.variable.fileOffset =
+        variableInitialization.fileOffset = nameToken.charOffset;
     push(variableInitialization);
 
     // Avoid adding the local identifier to scope if it's a wildcard.
     // TODO(kallentu): Emit better error on lookup, rather than not adding it to
     // the scope.
     if (!(libraryFeatures.wildcardVariables.isEnabled &&
-        variableInitialization.isWildcard)) {
+        variableInitialization.variable.isWildcard)) {
       declareVariable(variableInitialization.variable, _localScope);
     }
   }
@@ -3586,23 +3589,20 @@ class BodyBuilderImpl extends StackListenerImpl
         push(node);
         return;
       }
-      VariableDeclaration variableInitialization = node as VariableDeclaration;
+      VariableStatement variableInitialization = node as VariableStatement;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
-          variableInitialization.addAnnotation(annotations[i]);
+          variableInitialization.variable.addAnnotation(annotations[i]);
         }
-        _registerSingleTargetAnnotations(variableInitialization);
-        // (variablesWithMetadata ??= <VariableDeclaration>[]).add(
-        //   variableInitialization,
-        // );
+        _registerSingleTargetAnnotations(variableInitialization.variable);
       }
       push(variableInitialization);
     } else {
-      List<VariableDeclaration>? variables =
-          const FixedNullableList<VariableDeclaration>().popNonNullable(
+      List<VariableStatement>? variables =
+          const FixedNullableList<VariableStatement>().popNonNullable(
             stack,
             count,
-            dummyVariableDeclaration,
+            dummyVariableStatement,
           );
       constantContext = pop() as ConstantContext;
       currentLocalVariableType = pop(NullValues.Type) as DartType?;
@@ -3613,11 +3613,13 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
       if (annotations != null) {
-        VariableDeclaration first = variables.first;
+        VariableStatement first = variables.first;
         for (int i = 0; i < annotations.length; i++) {
-          first.addAnnotation(annotations[i]);
+          first.variable.addAnnotation(annotations[i]);
         }
-        _registerMultiTargetAnnotations(variables);
+        _registerMultiTargetAnnotations(
+          variables.map((v) => v.variable).toList(),
+        );
       }
       push(intern.variablesDeclaration(variables, uri));
     }
@@ -3722,7 +3724,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  List<VariableDeclaration>? _buildForLoopVariableDeclarations(
+  List<VariableStatement>? _buildForLoopVariableDeclarations(
     variableOrExpression,
   ) {
     // TODO(ahe): This can be simplified now that we have the events
@@ -3730,40 +3732,40 @@ class BodyBuilderImpl extends StackListenerImpl
     if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
-    if (variableOrExpression is VariableDeclaration) {
+    if (variableOrExpression is VariableStatement) {
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
-      variableOrExpression.isLate = false;
-      return <VariableDeclaration>[variableOrExpression];
+      variableOrExpression.variable.isLate = false;
+      return [variableOrExpression];
     } else if (variableOrExpression is Expression) {
       VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
         variableOrExpression,
       );
-      return <VariableDeclaration>[variable];
+      return [intern.createVariableStatement(variable)];
     } else if (variableOrExpression is ExpressionStatement) {
       // Coverage-ignore-block(suite): Not run.
       VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
         variableOrExpression.expression,
       );
-      return <VariableDeclaration>[variable];
+      return [intern.createVariableStatement(variable)];
     } else if (intern.isVariablesDeclaration(variableOrExpression)) {
       return intern.variablesDeclarationExtractDeclarations(
         variableOrExpression,
       );
     } else if (variableOrExpression is List<Object>) {
       // Coverage-ignore-block(suite): Not run.
-      List<VariableDeclaration> variables = <VariableDeclaration>[];
+      List<VariableStatement> variables = [];
       for (Object v in variableOrExpression) {
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
     } else if (variableOrExpression is PatternVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
-      return <VariableDeclaration>[];
+      return [];
     } else if (variableOrExpression is ParserRecovery) {
-      return <VariableDeclaration>[];
+      return [];
     } else if (variableOrExpression == null) {
-      return <VariableDeclaration>[];
+      return [];
     }
     return null;
   }
@@ -3794,8 +3796,10 @@ class BodyBuilderImpl extends StackListenerImpl
       // If the declaration is of the form `for (final x in ...)`, then we may
       // have erroneously set the `isStaticLate` flag, so un-set it.
       Object? declaration = peek();
-      if (declaration is VariableDeclarationImpl) {
-        declaration.isStaticLate = false;
+      if (declaration case VariableStatement(
+        :VariableDeclarationImpl variable,
+      )) {
+        variable.isStaticLate = false;
       }
     } else {
       // This is matched by the call to [deferNode] in [endForStatement] or
@@ -3967,10 +3971,12 @@ class BodyBuilderImpl extends StackListenerImpl
         .popNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
+    List<VariableStatement>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
-      variables = pop() as List<VariableDeclaration>; // Internal variables.
+      variables = (pop() as List<VariableDeclaration>)
+          .map(intern.createVariableStatement)
+          .toList(); // Internal variables.
       intermediateVariables = pop() as List<VariableDeclaration>;
     } else {
       variables = _buildForLoopVariableDeclarations(variableOrExpression)!;
@@ -4086,10 +4092,12 @@ class BodyBuilderImpl extends StackListenerImpl
         .deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
+    List<VariableStatement>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
-      variables = pop() as List<VariableDeclaration>;
+      variables = (pop() as List<VariableDeclaration>)
+          .map(intern.createVariableStatement)
+          .toList(); // Internal variables.
       intermediateVariables = pop() as List<VariableDeclaration>;
     } else {
       variables = _buildForLoopVariableDeclarations(variableOrExpression);
@@ -4132,7 +4140,13 @@ class BodyBuilderImpl extends StackListenerImpl
       result = intern.createBlock(
         fileOffset: result.fileOffset,
         fileEndOffset: result.fileOffset,
-        <Statement>[variableOrExpression, ...intermediateVariables!, result],
+        [
+          variableOrExpression,
+          for (VariableDeclaration intermediateVariable
+              in intermediateVariables!)
+            intern.createVariableStatement(intermediateVariable),
+          result,
+        ],
       );
     }
     if (variableOrExpression is ParserRecovery) {
@@ -8358,46 +8372,46 @@ class BodyBuilderImpl extends StackListenerImpl
       lvalue.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
-      lvalue.isLate = false;
+      lvalue.variable.isLate = false;
       InvalidExpression? error;
-      if (lvalue.isConst) {
+      if (lvalue.variable.isConst) {
         // Coverage-ignore-block(suite): Not run.
         error = buildProblem(
           message: diag.forInLoopWithConstVariable,
           fileUri: uri,
           fileOffset: lvalue.fileOffset,
-          length: lvalue.cosmeticName!.length,
+          length: lvalue.variable.cosmeticName!.length,
         );
         // As a recovery step, remove the const flag, to not confuse the
         // constant evaluator further in the pipeline.
-        lvalue.isConst = false;
+        lvalue.variable.isConst = false;
       }
       return new VariableInitializationForInElement(
         variableInitialization: lvalue,
         error: error,
       );
-    } else if (lvalue is VariableDeclaration) {
+    } else if (lvalue is LegacyVariableStatement) {
       // Variable initializers are not supported. An error has already been
       // reported by the parser.
-      lvalue.initializer = null;
-      lvalue.hasDeclaredInitializer = false;
+      lvalue.variable.initializer = null;
+      lvalue.variable.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
-      lvalue.isLate = false;
+      lvalue.variable.isLate = false;
       InvalidExpression? error;
-      if (lvalue.isConst) {
+      if (lvalue.variable.isConst) {
         error = buildProblem(
           message: diag.forInLoopWithConstVariable,
           fileUri: uri,
           fileOffset: lvalue.fileOffset,
-          length: lvalue.cosmeticName!.length,
+          length: lvalue.variable.cosmeticName!.length,
         );
         // As a recovery step, remove the const flag, to not confuse the
         // constant evaluator further in the pipeline.
-        lvalue.isConst = false;
+        lvalue.variable.isConst = false;
       }
       return new SingleVariableDeclarationForInElement(
-        variableDeclaration: lvalue,
+        variableStatement: lvalue,
         error: error,
       );
     } else if (lvalue is Generator) {

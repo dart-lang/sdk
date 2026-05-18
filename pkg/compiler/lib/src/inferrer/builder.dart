@@ -939,7 +939,14 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  TypeInformation? visitVariableDeclaration(ir.VariableDeclaration node) {
+  TypeInformation? visitLegacyVariableStatement(
+    ir.LegacyVariableStatement node,
+  ) {
+    return defaultVariableDeclaration(node.variable);
+  }
+
+  @override
+  TypeInformation? defaultVariableDeclaration(ir.VariableDeclaration node) {
     assert(
       node.parent is! ir.FunctionNode,
       "Unexpected parameter declaration.",
@@ -2457,7 +2464,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
   @override
   Null visitForStatement(ir.ForStatement node) {
-    for (ir.VariableDeclaration variable in node.variables) {
+    for (ir.VariableStatement variable in node.variables) {
       visit(variable);
     }
     return handleLoop(node, _localsMap.getJumpTargetForFor(node), () {

@@ -158,7 +158,7 @@ Statement createGetterWithInitializerWithRecheck(
           new Not(createIsSetRead()..fileOffset = fileOffset)
             ..fileOffset = fileOffset,
           new Block(<Statement>[
-            temp,
+            new VariableStatement(temp)..fileOffset = temp.fileOffset,
             new IfStatement(
               createIsSetRead()..fileOffset = fileOffset,
               new ExpressionStatement(exception)..fileOffset = fileOffset,

@@ -28,7 +28,7 @@ sealed class VariableBase extends TreeNode implements Annotatable {
 abstract interface class IVariable implements TreeNode {
   abstract DartType type;
   abstract String? cosmeticName;
-  abstract VariableDeclaration? variableInitialization;
+  abstract VariableInitialization? variableInitialization;
   abstract Expression? initializer;
   abstract VariableContext context;
   abstract bool isFinal;
@@ -74,14 +74,14 @@ abstract interface class IVariable implements TreeNode {
 
 /// The root of the sealed hierarchy of non-type variables.
 sealed class VariableDeclaration extends VariableBase
-    implements IVariable, Statement, ContextConsumer {
+    implements IVariable, ContextConsumer {
   /// Static type of the variable.
   @override
   abstract DartType type;
 
   /// Initialization node for the variable, if available.
   @override
-  abstract VariableDeclaration? variableInitialization;
+  abstract VariableInitialization? variableInitialization;
 
   /// Derived from [variableInitialization], if available.
   @override
@@ -136,7 +136,7 @@ sealed class VariableDeclaration extends VariableBase
     bool isHoisted,
     bool hasDeclaredInitializer,
     bool isWildcard,
-  }) = VariableStatement;
+  }) = LegacyVariable;
 
   factory VariableDeclaration.forValue(
     Expression? initializer, {
@@ -148,7 +148,7 @@ sealed class VariableDeclaration extends VariableBase
     bool isRequired,
     bool isLowered,
     DartType type,
-  }) = VariableStatement.forValue;
+  }) = LegacyVariable.forValue;
 
   VariableDeclaration.empty();
 
@@ -188,6 +188,12 @@ sealed class VariableDeclaration extends VariableBase
   VariableDeclaration get asVariableDeclaration => this;
 
   abstract String? name;
+
+  @override
+  R accept<R>(VariableVisitor<R> visitor);
+
+  @override
+  R accept1<R, A>(VariableVisitor1<R, A> visitor, A arg);
 }
 
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
@@ -202,7 +208,7 @@ class LocalVariable extends VariableDeclaration {
   DartType type;
 
   @override
-  VariableDeclaration? variableInitialization;
+  VariableInitialization? variableInitialization;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -319,9 +325,8 @@ class LocalVariable extends VariableDeclaration {
   }
 
   @override
-  bool get hasDeclaredInitializer {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get hasDeclaredInitializer =>
+      variableInitialization!.hasDeclaredInitializer;
 
   @override
   void set hasDeclaredInitializer(bool value) {
@@ -377,10 +382,10 @@ class LocalVariable extends VariableDeclaration {
   }
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitLocalVariable(this);
+  R accept<R>(VariableVisitor<R> v) => v.visitLocalVariable(this);
 
   @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
       v.visitLocalVariable(this, arg);
 
   @override
@@ -538,12 +543,12 @@ class CatchVariable extends VariableDeclaration {
   }
 
   @override
-  VariableDeclaration? get variableInitialization {
+  VariableInitialization? get variableInitialization {
     throw new UnsupportedError("${this.runtimeType}.variableInitialization");
   }
 
   @override
-  void set variableInitialization(VariableDeclaration? value) {
+  void set variableInitialization(VariableInitialization? value) {
     throw new UnsupportedError("${this.runtimeType}.variableInitialization=");
   }
 
@@ -693,10 +698,10 @@ class CatchVariable extends VariableDeclaration {
   bool get isAssignable => false;
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitCatchVariable(this);
+  R accept<R>(VariableVisitor<R> v) => v.visitCatchVariable(this);
 
   @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
       v.visitCatchVariable(this, arg);
 
   @override
@@ -719,9 +724,7 @@ class CatchVariable extends VariableDeclaration {
   }
 
   @override
-  Expression? get initializer {
-    throw new UnsupportedError("${this.runtimeType}.initializer");
-  }
+  Expression? get initializer => null;
 
   @override
   void set initializer(Expression? value) {
@@ -842,10 +845,10 @@ sealed class FunctionParameter extends VariableDeclaration {
 
   /// Function parameters don't have initializers, only default values.
   @override
-  VariableDeclaration? get variableInitialization => null;
+  VariableInitialization? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableDeclaration? value) {}
+  void set variableInitialization(VariableInitialization? value) {}
 
   @override
   Expression? get initializer => defaultValue;
@@ -1063,10 +1066,10 @@ class PositionalParameter extends FunctionParameter {
   }
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitPositionalParameter(this);
+  R accept<R>(VariableVisitor<R> v) => v.visitPositionalParameter(this);
 
   @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
       v.visitPositionalParameter(this, arg);
 
   @override
@@ -1210,10 +1213,10 @@ class NamedParameter extends FunctionParameter {
   }
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitNamedParameter(this);
+  R accept<R>(VariableVisitor<R> v) => v.visitNamedParameter(this);
 
   @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
       v.visitNamedParameter(this, arg);
 
   @override
@@ -1304,10 +1307,10 @@ class ThisVariable extends VariableDeclaration {
   void set cosmeticName(String? value) {}
 
   @override
-  VariableDeclaration? get variableInitialization => null;
+  VariableInitialization? get variableInitialization => null;
 
   @override
-  void set variableInitialization(VariableDeclaration? value) {}
+  void set variableInitialization(VariableInitialization? value) {}
 
   @override
   DartType type;
@@ -1465,10 +1468,10 @@ class ThisVariable extends VariableDeclaration {
   }
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitThisVariable(this);
+  R accept<R>(VariableVisitor<R> v) => v.visitThisVariable(this);
 
   @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
       v.visitThisVariable(this, arg);
 
   @override
@@ -1588,7 +1591,7 @@ class SyntheticVariable extends VariableDeclaration {
   DartType type;
 
   @override
-  VariableDeclaration? variableInitialization;
+  VariableInitialization? variableInitialization;
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
@@ -1741,10 +1744,10 @@ class SyntheticVariable extends VariableDeclaration {
   }
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitSyntheticVariable(this);
+  R accept<R>(VariableVisitor<R> v) => v.visitSyntheticVariable(this);
 
   @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
       v.visitSyntheticVariable(this, arg);
 
   @override

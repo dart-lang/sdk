@@ -1183,7 +1183,7 @@ class TypeCheckingVisitor
 
   @override
   void visitForStatement(ForStatement node) {
-    node.variables.forEach(_handleVariableInitialization);
+    node.variables.forEach(_handleVariableStatement);
     if (node.condition != null) {
       node.condition = checkExpressionAndAssignability(
         node.condition!,
@@ -1257,19 +1257,29 @@ class TypeCheckingVisitor
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _handleVariableInitialization(node);
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    _handleVariableInitialization(node);
-  }
-
-  void _handleVariableInitialization(VariableDeclaration node) {
     if (node.initializer != null) {
       node.initializer = checkExpressionAndAssignability(
         node.initializer!,
         node.type,
+      );
+    }
+  }
+
+  @override
+  void visitLegacyVariableStatement(LegacyVariableStatement node) {
+    _handleVariableStatement(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    _handleVariableStatement(node);
+  }
+
+  void _handleVariableStatement(VariableStatement node) {
+    if (node.initializer != null) {
+      node.initializer = checkExpressionAndAssignability(
+        node.initializer!,
+        node.variable.type,
       );
     }
   }

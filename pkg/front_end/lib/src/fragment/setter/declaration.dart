@@ -18,7 +18,6 @@ import '../../builder/metadata_builder.dart';
 import '../../builder/property_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
-import '../../kernel/external_ast_helper.dart';
 import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
@@ -332,13 +331,13 @@ class RegularSetterDeclaration
         // Add them as local variable to put them in scope of the body.
         List<Statement> statements = <Statement>[];
         for (FormalParameterBuilder parameter in declaredFormals) {
-          statements.add(parameter.variable);
+          statements.add(extern.createVariableStatement(parameter.variable));
         }
         statements.add(body);
-        body = createBlock(statements, fileOffset: fileOffset);
+        body = extern.createBlock(statements, fileOffset: fileOffset);
       }
-      body = createBlock([
-        createExpressionStatement(
+      body = extern.createBlock([
+        extern.createExpressionStatement(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
             message: diag.setterWithWrongNumberOfFormals,

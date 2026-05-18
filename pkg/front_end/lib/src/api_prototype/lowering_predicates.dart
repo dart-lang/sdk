@@ -339,7 +339,7 @@ Expression? getLateFieldInitializer(Member node) {
             return staticSet.value;
           }
         } else if (block.statements.isNotEmpty &&
-            block.statements.first is VariableDeclaration) {
+            block.statements.first is VariableStatement) {
           // We have
           //
           //    get field {
@@ -353,9 +353,9 @@ Expression? getLateFieldInitializer(Member node) {
           //    }
           //
           // in case `<init>` is the initializer.
-          VariableDeclaration variableDeclaration =
-              block.statements.first as VariableDeclaration;
-          return variableDeclaration.initializer;
+          VariableStatement variableStatement =
+              block.statements.first as VariableStatement;
+          return variableStatement.variable.initializer;
         }
       }
       return null;

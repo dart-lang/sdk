@@ -607,7 +607,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForStatement(ForStatement node) {
-    List<VariableDeclaration> variables = node.variables.map(clone).toList();
+    List<VariableStatement> variables = node.variables.map(clone).toList();
     return new ForStatement(
       variables,
       cloneOptional(node.condition),
@@ -792,10 +792,16 @@ class CloneVisitorNotMembers
   }
 
   @override
-  TreeNode visitVariableStatement(VariableStatement node) {
+  TreeNode visitLegacyVariableStatement(VariableStatement node) {
+    return new LegacyVariableStatement(clone(node.variable))
+      ..fileOffset = _cloneFileOffset(node.fileOffset);
+  }
+
+  @override
+  TreeNode visitLegacyVariable(LegacyVariable node) {
     return setVariableClone(
       node,
-      new VariableStatement(
+      new LegacyVariable(
           node.name,
           initializer: cloneOptional(node.initializer),
           type: visitType(node.type),
@@ -821,8 +827,7 @@ class CloneVisitorNotMembers
       ..flags = node.flags
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(clone).toList()
-          : const <Expression>[]
-      ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset);
+          : const <Expression>[];
   }
 
   @override

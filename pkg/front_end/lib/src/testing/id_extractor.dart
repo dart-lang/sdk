@@ -334,7 +334,7 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     if (node.name != null && node.parent is! FunctionDeclaration) {
       // Skip synthetic variables and function declaration variables.
       computeForNode(

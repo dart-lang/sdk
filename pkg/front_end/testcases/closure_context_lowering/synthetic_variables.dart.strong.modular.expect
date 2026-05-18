@@ -14,7 +14,7 @@ static method test(positional-parameter list) → dynamic/* scope=[
   s := "";
   for /* scope=[
     #ctx3: not-captured VariableContext([
-      SyntheticVariable
+      synthetic-variable #t1;
     ]),
   ] */ (synthetic-variable #t1 in list) {
     s = #t1;

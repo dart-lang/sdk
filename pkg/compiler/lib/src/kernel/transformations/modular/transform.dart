@@ -77,7 +77,7 @@ class _ModularTransformer extends Transformer {
   }
 
   @override
-  TreeNode visitVariableDeclaration(VariableDeclaration node) {
+  TreeNode defaultVariableDeclaration(VariableDeclaration node) {
     node.transformChildren(this);
     return _lateLowering.transformVariableDeclaration(node, _currentMember);
   }

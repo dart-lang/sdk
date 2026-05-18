@@ -899,12 +899,12 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  defaultVariableDeclaration(VariableDeclaration node) {
     final inferredType = _typeFlowAnalysis.capturedVariableType(node);
     if (inferredType != null) {
       _setInferredType(node, inferredType);
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariableDeclaration(node);
   }
 
   @override

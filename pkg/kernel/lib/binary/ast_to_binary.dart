@@ -20,6 +20,7 @@ class BinaryPrinter
         TreeVisitorExperimentExclusionMixin<void>,
         DartTypeVisitorExperimentExclusionMixin<void>,
         StatementVisitorExperimentExclusionMixin<void>,
+        VariableVisitorExperimentExclusionMixin<void>,
         ExpressionVisitorExperimentExclusionMixin<void>
     implements Visitor<void>, BinarySink {
   final VariableIndexer Function() _newVariableIndexer;
@@ -2358,7 +2359,7 @@ class BinaryPrinter
     variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
-    writeVariableDeclarationList(node.variables);
+    writeVariableStatementList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
     writeNode(node.body);
@@ -2480,6 +2481,10 @@ class BinaryPrinter
     writeVariableDeclaration(node);
   }
 
+  void writeVariableStatement(VariableStatement node) {
+    writeVariableDeclaration(node.variable);
+  }
+
   void writeVariableDeclaration(VariableDeclaration node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
@@ -2495,6 +2500,10 @@ class BinaryPrinter
     // Declare the variable after its initializer. It is not in scope in its
     // own initializer.
     (_variableIndexer ??= _newVariableIndexer()).declare(node);
+  }
+
+  void writeVariableStatementList(List<VariableStatement> nodes) {
+    writeList(nodes, writeVariableStatement);
   }
 
   void writeVariableDeclarationList(List<VariableDeclaration> nodes) {

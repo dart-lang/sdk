@@ -85,7 +85,7 @@ class DebugPrinter extends VisitorDefault<void>
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     openNode(node, '${node.runtimeType}', {
       'name': '${node.name ?? '--unnamed--'}',
       'isFinal': '${node.isFinal}',

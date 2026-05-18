@@ -322,8 +322,15 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitVariableDeclaration(ir.VariableDeclaration node) {
-    _handleVariableDeclaration(node, SimpleVariableUse.localType);
+  EvaluationComplexity visitLegacyVariableStatement(
+    ir.LegacyVariableStatement node,
+  ) {
+    return defaultVariableDeclaration(node.variable);
+  }
+
+  @override
+  EvaluationComplexity defaultVariableDeclaration(ir.VariableDeclaration node) {
+    _handleVariableDeclaration(node.variable, SimpleVariableUse.localType);
     return const EvaluationComplexity.lazy();
   }
 
@@ -505,9 +512,9 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
       // Loop variables that have not been captured yet can safely be flagged as
       // non-mutated, because no nested function can observe the mutation.
-      for (ir.VariableDeclaration variable in node.variables) {
-        if (!_capturedVariables.contains(variable)) {
-          _mutatedVariables.remove(variable);
+      for (ir.VariableStatement variableDeclaration in node.variables) {
+        if (!_capturedVariables.contains(variableDeclaration.variable)) {
+          _mutatedVariables.remove(variableDeclaration.variable);
         }
       }
 
@@ -522,12 +529,12 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
       });
 
       // See if we have declared loop variables that need to be boxed.
-      for (ir.VariableDeclaration variable in node.variables) {
+      for (ir.VariableStatement variableDeclaration in node.variables) {
         // Non-mutated variables should not be boxed.  The _mutatedVariables set
         // gets cleared when `enterNewScope` returns, so check it here.
-        if (_capturedVariables.contains(variable) &&
-            _mutatedVariables.contains(variable)) {
-          boxedLoopVariables.add(variable);
+        if (_capturedVariables.contains(variableDeclaration.variable) &&
+            _mutatedVariables.contains(variableDeclaration.variable)) {
+          boxedLoopVariables.add(variableDeclaration.variable);
         }
       }
     });

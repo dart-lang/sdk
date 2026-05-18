@@ -916,3 +916,7 @@ Expression createVariableSet(
     return new VariableSet(variable, value)..fileOffset = fileOffset;
   }
 }
+
+VariableStatement createVariableStatement(VariableDeclaration variable) {
+  return new VariableStatement(variable)..fileOffset = variable.fileOffset;
+}

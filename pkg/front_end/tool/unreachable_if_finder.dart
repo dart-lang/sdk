@@ -128,9 +128,9 @@ class EffectivelyFinal extends RecursiveVisitor {
   EffectivelyFinal._();
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     unwritten.add(node);
-    super.visitVariableDeclaration(node);
+    super.defaultVariableDeclaration(node);
   }
 
   @override

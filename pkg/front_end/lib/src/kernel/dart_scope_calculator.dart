@@ -376,9 +376,9 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     if (node.isHoisted) hoistedUnwritten.add(node);
-    super.visitVariableDeclaration(node);
+    super.defaultVariableDeclaration(node);
     // Declare it after.
     scopes.last.add(node);
   }

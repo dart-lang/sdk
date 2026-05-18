@@ -270,7 +270,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   // TODO(cstefantsova): Remove this method when the new variable model is
   //  supported.
   bool _isNewModelVariable(TreeNode node) {
-    return node is VariableDeclaration && node is! VariableStatement ||
+    return node is VariableDeclaration && node is! LegacyVariable ||
         node is FunctionParameter;
   }
 
@@ -1137,37 +1137,36 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    return _verifyVariableInitialization(node);
+  void visitLegacyVariableStatement(LegacyVariableStatement node) {
+    _verifyVariableStatement(node);
+    super.visitLegacyVariableStatement(node);
   }
 
   @override
-  void visitVariableInitialization(VariableDeclaration node) {
-    return _verifyVariableInitialization(node);
+  void visitVariableInitialization(VariableInitialization node) {
+    _verifyVariableStatement(node);
+    super.visitVariableInitialization(node);
   }
 
-  void _verifyVariableInitialization(VariableDeclaration node) {
-    enterTreeNode(node);
+  void _verifyVariableStatement(VariableStatement node) {
     TreeNode? parent = node.parent;
-    if (parent is! Block &&
-        !(parent is Catch && parent.body != node) &&
-        !(parent is FunctionNode && parent.body != node) &&
-        parent is! FunctionDeclaration &&
-        !(parent is ForStatement && parent.body != node) &&
-        !(parent is ForInStatement && parent.body != node) &&
-        parent is! Let &&
-        parent is! LocalInitializer &&
-        parent is! Typedef) {
+    if (parent is! Block && !(parent is ForStatement && parent.body != node)) {
       problem(
         node,
-        "VariableDeclaration must be a direct child of a Block, "
+        "VariableStatement must be a direct child of a Block or ForStatement, "
         "not ${parent.runtimeType}.",
       );
     }
-    TreeNode? oldParent = enterParent(node);
-    _visitAnnotations(node.annotations);
-    node.initializer?.accept(this);
-    exitParent(oldParent);
+  }
+
+  @override
+  void defaultVariableDeclaration(VariableDeclaration node) {
+    return _verifyVariableDeclaration(node);
+  }
+
+  void _verifyVariableDeclaration(VariableDeclaration node) {
+    enterTreeNode(node);
+    visitChildren(node);
     declareVariable(node.variable);
     if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
       Expression? initializer = node.initializer;

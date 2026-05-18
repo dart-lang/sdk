@@ -137,7 +137,7 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     final loop = ForStatement(
       // initializers: _i = 0
-      [indexVariable],
+      [VariableStatement(indexVariable)],
       // condition: _i < _length
       InstanceInvocation(
         InstanceAccessKind.Instance,
@@ -170,7 +170,11 @@ class ListFactorySpecializer extends BaseSpecializer {
     )..fileOffset = node.fileOffset;
 
     return BlockExpression(
-      Block([?lengthVariable, listVariable, loop]),
+      Block([
+        if (lengthVariable != null) VariableStatement(lengthVariable!),
+        VariableStatement(listVariable),
+        loop,
+      ]),
       VariableGet(listVariable)..fileOffset = node.fileOffset,
     );
   }
@@ -316,7 +320,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
 
   Statement run() {
     Statement body = cloneInContext(function.body!);
-    return Block([parameter, body]);
+    return Block([VariableStatement(parameter), body]);
   }
 
   @override
