@@ -209,6 +209,7 @@ disassembler_sources = [
   "assembler/disassembler_arm64.cc",
   "assembler/disassembler_kbc.cc",
   "assembler/disassembler_kbc.h",
+  "assembler/disassembler_loong64.cc",
   "assembler/disassembler_riscv.cc",
   "assembler/disassembler_x86.cc",
 ]

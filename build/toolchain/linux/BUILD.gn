@@ -15,6 +15,7 @@ declare_args() {
   arm64_toolchain_prefix = ""
   riscv32_toolchain_prefix = ""
   riscv64_toolchain_prefix = ""
+  loong64_toolchain_prefix = ""
 }
 
 if (use_rbe) {
@@ -46,6 +47,8 @@ if (use_rbe) {
 
 # Google's clang does not work for alpine, use alpine's system clang
 if (dart_sysroot == "alpine") {
+  rebased_clang_dir = "/usr/bin"
+} else if (host_cpu == "loong64") {
   rebased_clang_dir = "/usr/bin"
 } else if (host_cpu == "arm64") {
   rebased_clang_dir =
@@ -296,6 +299,27 @@ gcc_toolchain_suite("riscv64") {
   is_clang = false
 }
 
+gcc_toolchain_suite("loong64") {
+  prefix = "loongarch64-linux-gnu-"
+  if (loong64_toolchain_prefix != "") {
+    prefix = loong64_toolchain_prefix
+  }
+
+  cc = "${gcc_compiler_prefix}${prefix}gcc"
+  cxx = "${gcc_compiler_prefix}${prefix}g++"
+  asm = "${gcc_compiler_prefix}${prefix}gcc"
+
+  ar = "${prefix}ar"
+  ld = "${link_prefix}${prefix}g++"
+  readelf = "${prefix}readelf"
+  nm = "${prefix}nm"
+  strip = "${prefix}strip"
+
+  toolchain_cpu = "loong64"
+  toolchain_os = "linux"
+  is_clang = false
+}
+
 gcc_toolchain_suite("clang_riscv64") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
@@ -314,6 +338,28 @@ gcc_toolchain_suite("clang_riscv64") {
   llvm_objcopy = "${prefix}/llvm-objcopy"
 
   toolchain_cpu = "riscv64"
+  toolchain_os = "linux"
+  is_clang = true
+}
+
+gcc_toolchain_suite("clang_loong64") {
+  prefix = rebased_clang_dir
+  cc = "${compiler_prefix}${prefix}/clang"
+  cxx = "${compiler_prefix}${prefix}/clang++"
+  asm = "${assembler_prefix}${prefix}/clang"
+
+  if (use_rbe) {
+    cc = "${cc} --target=loongarch64-linux-gnu"
+    cxx = "${cxx} --target=loongarch64-linux-gnu"
+  }
+
+  readelf = "${prefix}/llvm-readelf"
+  nm = "${prefix}/llvm-nm"
+  ar = "${prefix}/llvm-ar"
+  ld = "${link_prefix}${prefix}/clang++"
+  llvm_objcopy = "${prefix}/llvm-objcopy"
+
+  toolchain_cpu = "loong64"
   toolchain_os = "linux"
   is_clang = true
 }

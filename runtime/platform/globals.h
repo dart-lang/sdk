@@ -225,6 +225,9 @@ struct simd128_value_t {
 #else
 #error Unknown XLEN
 #endif
+#elif defined(__loongarch64)
+#define HOST_ARCH_LOONG64 1
+#define ARCH_IS_64_BIT 1
 #else
 #error Architecture was not detected as supported by Dart.
 #endif
@@ -333,7 +336,8 @@ struct simd128_value_t {
 
 #if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_X64) &&                  \
     !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64) &&               \
-    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64) &&          \
+    !defined(TARGET_ARCH_LOONG64)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_ARM)
 #define TARGET_ARCH_ARM 1
@@ -347,6 +351,8 @@ struct simd128_value_t {
 #define TARGET_ARCH_RISCV32 1
 #elif defined(HOST_ARCH_RISCV64)
 #define TARGET_ARCH_RISCV64 1
+#elif defined(HOST_ARCH_LOONG64)
+#define TARGET_ARCH_LOONG64 1
 #else
 #error Automatic target architecture detection failed.
 #endif
@@ -356,7 +362,7 @@ struct simd128_value_t {
     defined(TARGET_ARCH_RISCV32)
 #define TARGET_ARCH_IS_32_BIT 1
 #elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                \
-    defined(TARGET_ARCH_RISCV64)
+    defined(TARGET_ARCH_RISCV64) || defined(TARGET_ARCH_LOONG64)
 #define TARGET_ARCH_IS_64_BIT 1
 #else
 #error Automatic target architecture detection failed.
@@ -369,7 +375,7 @@ struct simd128_value_t {
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_RISCV64)
+    defined(TARGET_ARCH_RISCV64) || defined(TARGET_ARCH_LOONG64)
 #if !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #error Mismatched Host/Target architectures.
 #endif  // !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
@@ -411,6 +417,10 @@ struct simd128_value_t {
 #elif defined(TARGET_ARCH_RISCV64)
 #if !defined(HOST_ARCH_RISCV64)
 #define DART_INCLUDE_SIMULATOR 1
+#endif
+#elif defined(TARGET_ARCH_LOONG64)
+#if !defined(HOST_ARCH_LOONG64)
+#error LoongArch64 simulator is not implemented.
 #endif
 #else
 #error Unknown architecture.
@@ -731,6 +741,8 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #define kHostArchitectureName "riscv32"
 #elif defined(HOST_ARCH_RISCV64)
 #define kHostArchitectureName "riscv64"
+#elif defined(HOST_ARCH_LOONG64)
+#define kHostArchitectureName "loong64"
 #elif defined(HOST_ARCH_X64)
 #define kHostArchitectureName "x64"
 #else
@@ -747,6 +759,8 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #define kTargetArchitectureName "riscv32"
 #elif defined(TARGET_ARCH_RISCV64)
 #define kTargetArchitectureName "riscv64"
+#elif defined(TARGET_ARCH_LOONG64)
+#define kTargetArchitectureName "loong64"
 #elif defined(TARGET_ARCH_X64)
 #define kTargetArchitectureName "x64"
 #else

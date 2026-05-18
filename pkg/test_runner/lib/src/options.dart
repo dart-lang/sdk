@@ -1190,6 +1190,7 @@ final Map<String, String> sanitizerEnvironmentVariables = (() {
   final relativePath = {
     Abi.linuxX64: "buildtools/linux-x64/clang/bin/llvm-symbolizer",
     Abi.linuxArm64: "buildtools/linux-arm64/clang/bin/llvm-symbolizer",
+    Abi.linuxLoong64: "buildtools/linux-loong64/clang/bin/llvm-symbolizer",
     Abi.macosX64: "buildtools/mac-x64/clang/bin/llvm-symbolizer",
     Abi.macosArm64: "buildtools/mac-arm64/clang/bin/llvm-symbolizer",
     Abi.windowsX64: "buildtools\\win-x64\\clang\\bin\\llvm-symbolizer.exe",

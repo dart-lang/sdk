@@ -86,6 +86,7 @@ ARCH_FAMILY = {
     'simx64c': 'arm',
     'riscv32': 'riscv',
     'riscv64': 'riscv',
+    'loong64': 'loongarch',
 }
 
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
@@ -287,6 +288,8 @@ def HostArchitectures():
         return ['x64', 'x86', 'ia32']
     if m in ['riscv64']:
         return ['riscv64']
+    if m in ['loongarch64', 'loong64']:
+        return ['loong64']
     raise Exception('Failed to determine host architectures for %s %s',
                     platform.machine(), platform.system())
 

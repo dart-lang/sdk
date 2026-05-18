@@ -326,7 +326,8 @@ enum QemuConfig {
   arm._('qemu-arm', '/usr/arm-linux-gnueabihf/'),
   arm64._('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
   riscv32._('qemu-riscv32', '/usr/riscv32-linux-gnu/'),
-  riscv64._('qemu-riscv64', '/usr/riscv64-linux-gnu/');
+  riscv64._('qemu-riscv64', '/usr/riscv64-linux-gnu/'),
+  loong64._('qemu-loongarch64', '/usr/loongarch64-linux-gnu/');
 
   static const all = <Architecture, QemuConfig>{
     Architecture.ia32: QemuConfig.ia32,
@@ -338,6 +339,7 @@ enum QemuConfig {
     Architecture.arm64c: QemuConfig.arm64,
     Architecture.riscv32: QemuConfig.riscv32,
     Architecture.riscv64: QemuConfig.riscv64,
+    Architecture.loong64: QemuConfig.loong64,
   };
 
   final String executable;

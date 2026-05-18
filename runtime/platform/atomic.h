@@ -166,6 +166,8 @@ inline void StoreStoreFence() {
   __asm__ __volatile__("fence w,w" : : : "memory");
 #elif defined(HOST_ARCH_RISCV64) && defined(__GNUC__)
   __asm__ __volatile__("fence w,w" : : : "memory");
+#elif defined(HOST_ARCH_LOONG64) && defined(__GNUC__)
+  __asm__ __volatile__("dbar 0" : : : "memory");
 #else
   // GCC warns that TSAN doesn't understand thread fences.
 #if defined(__GNUC__) && !defined(__clang__)

@@ -735,6 +735,7 @@ enum Architecture {
   simarm64c._('simarm64c', isSimulator: true),
   riscv32._('riscv32'),
   riscv64._('riscv64'),
+  loong64._('loong64'),
   simriscv32._('simriscv32', isSimulator: true),
   simriscv64._('simriscv64', isSimulator: true);
 
@@ -801,6 +802,9 @@ enum Architecture {
         return riscv32;
       case "riscv64":
         return riscv64;
+      case "loongarch64":
+      case "loong64":
+        return loong64;
     }
 
     throw "Unknown host architecture: $arch";

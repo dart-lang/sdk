@@ -78,15 +78,21 @@ def HostCpuForArch(arch):
     if arch in ['ia32']:
         candidates = ['x86']
     elif arch in ['x64', 'x64c', 'simx64', 'simx64c']:
-        candidates = ['x64', 'arm64']
+        candidates = ['x64', 'arm64', 'riscv64', 'loong64']
     elif arch in ['arm', 'simarm']:
-        candidates = ['arm', 'x86', 'riscv32', 'arm64', 'x64', 'riscv64']
+        candidates = [
+            'arm', 'x86', 'riscv32', 'arm64', 'x64', 'riscv64', 'loong64'
+        ]
     elif arch in ['arm64', 'arm64c', 'simarm64', 'simarm64c']:
-        candidates = ['arm64', 'x64', 'riscv64']
+        candidates = ['arm64', 'x64', 'riscv64', 'loong64']
     elif arch in ['riscv32', 'simriscv32']:
-        candidates = ['riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64']
+        candidates = [
+            'riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64', 'loong64'
+        ]
     elif arch in ['riscv64', 'simriscv64']:
-        candidates = ['riscv64', 'arm64', 'x64']
+        candidates = ['riscv64', 'arm64', 'x64', 'loong64']
+    elif arch in ['loong64']:
+        candidates = ['loong64']
     else:
         raise Exception("Unknown Dart architecture: %s" % arch)
 
@@ -115,6 +121,8 @@ def TargetCpuForArch(arch):
         return 'riscv32'
     elif arch.startswith('riscv64'):
         return 'riscv64'
+    elif arch.startswith('loong64'):
+        return 'loong64'
 
     # Simulators
     if arch.endswith('_x64'):
@@ -126,7 +134,7 @@ def TargetCpuForArch(arch):
     elif arch in ['simarm', 'simriscv32']:
         candidates = ['arm', 'riscv32', 'x86']
     elif arch in ['simx64', 'simx64c', 'simarm64', 'simarm64c', 'simriscv64']:
-        candidates = ['arm64', 'riscv64', 'x64']
+        candidates = ['arm64', 'riscv64', 'x64', 'loong64']
     else:
         raise Exception("Unknown Dart architecture: %s" % arch)
 
@@ -183,7 +191,7 @@ def UseSysroot(args, gn_args):
     if not gn_args['is_clang']:
         return False
     # Fuchsia's Linux sysroot doesn't support RISCV32
-    if gn_args['target_cpu'] in ['riscv32']:
+    if gn_args['target_cpu'] in ['riscv32', 'loong64']:
         return False
     # Otherwise use the sysroot.
     return True
@@ -305,7 +313,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
 
         toolchain = ToolchainPrefix(args)
         if toolchain:
-            for arch in ['ia32', 'x64', 'arm', 'arm64', 'riscv32', 'riscv64']:
+            for arch in ['ia32', 'x64', 'arm', 'arm64', 'riscv32', 'riscv64', 'loong64']:
                 prefix = ParseStringMap(arch, toolchain)
                 if prefix != None:
                     gn_args[arch + '_toolchain_prefix'] = prefix
@@ -753,6 +761,7 @@ def RunTests():
     ExpectEquals(TargetCpuForArch("simarm64_arm64"), "arm64")
     ExpectEquals(TargetCpuForArch("simarm64_riscv64"), "riscv64")
     ExpectEquals(TargetCpuForArch("x64"), "x64")
+    ExpectEquals(TargetCpuForArch("loong64"), "loong64")
     ExpectEquals(TargetCpuForArch("simx64"), host_arch)
     ExpectEquals(TargetCpuForArch("simx64_x64"), "x64")
     ExpectEquals(TargetCpuForArch("simx64_arm64"), "arm64")
@@ -765,6 +774,7 @@ def RunTests():
     ExpectEquals(DartTargetCpuForArch("simarm64_arm64"), "arm64")
     ExpectEquals(DartTargetCpuForArch("simarm64_riscv64"), "arm64")
     ExpectEquals(DartTargetCpuForArch("x64"), "x64")
+    ExpectEquals(DartTargetCpuForArch("loong64"), "loong64")
     ExpectEquals(DartTargetCpuForArch("simx64"), "x64")
     ExpectEquals(DartTargetCpuForArch("simx64_x64"), "x64")
     ExpectEquals(DartTargetCpuForArch("simx64_arm64"), "x64")

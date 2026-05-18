@@ -355,6 +355,7 @@ class TestConfiguration {
     // Keep consistent with DEPS.
     const clangHostFolderName = {
       Abi.linuxArm64: 'linux-arm64',
+      Abi.linuxLoong64: 'linux-loong64',
       Abi.linuxX64: 'linux-x64',
     };
     final hostFolderName = clangHostFolderName[Abi.current()];

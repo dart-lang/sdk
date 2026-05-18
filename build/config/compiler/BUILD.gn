@@ -358,6 +358,9 @@ config("compiler") {
         } else if (current_cpu == "riscv64") {
           cflags += [ "--target=riscv64-linux-gnu" ]
           ldflags += [ "--target=riscv64-linux-gnu" ]
+        } else if (current_cpu == "loong64") {
+          cflags += [ "--target=loongarch64-linux-gnu" ]
+          ldflags += [ "--target=loongarch64-linux-gnu" ]
         } else if (current_cpu == "x64") {
           cflags += [ "--target=x86_64-linux-gnu" ]
           ldflags += [ "--target=x86_64-linux-gnu" ]
@@ -449,7 +452,7 @@ config("compiler") {
     if (is_linux && host_cpu == "arm64") {
       toolchain_stamp_file =
           "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
-    } else if (is_linux) {
+    } else if (is_linux && host_cpu != "loong64") {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
     } else if ((is_mac || is_ios) && host_cpu == "arm64") {
@@ -459,8 +462,10 @@ config("compiler") {
       toolchain_stamp_file =
           "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
-    toolchain_cipd_version = read_file(toolchain_stamp_file, "json")
-    defines = [ "TOOLCHAIN_VERSION=${toolchain_cipd_version.instance_id}" ]
+    if (defined(toolchain_stamp_file)) {
+      toolchain_cipd_version = read_file(toolchain_stamp_file, "json")
+      defines = [ "TOOLCHAIN_VERSION=${toolchain_cipd_version.instance_id}" ]
+    }
 
     if (is_linux) {
       if (current_cpu == "riscv64") {

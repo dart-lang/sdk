@@ -21,6 +21,9 @@ if (is_linux) {
     } else if (target_cpu == "riscv64") {
       debian_arch = "riscv64"
       lib_dir = "//buildtools/sysroot/focal/lib/riscv64-linux-gnu/"
+    } else if (target_cpu == "loong64") {
+      debian_arch = "loong64"
+      lib_dir = "//buildtools/sysroot/focal/lib/loongarch64-linux-gnu/"
     } else {
       assert(false, "Don't know Debian name for $target_cpu")
     }

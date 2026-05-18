@@ -193,6 +193,9 @@ bool LoadedElf::ReadHeader() {
               "Architecture mismatch.");
 #elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   CHECK_ERROR(header_.machine == dart::elf::EM_RISCV, "Architecture mismatch.");
+#elif defined(TARGET_ARCH_LOONG64)
+  CHECK_ERROR(header_.machine == dart::elf::EM_LOONGARCH,
+              "Architecture mismatch.");
 #else
 #error Unsupported architecture architecture.
 #endif

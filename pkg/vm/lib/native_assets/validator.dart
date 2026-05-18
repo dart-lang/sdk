@@ -176,6 +176,7 @@ class NativeAssetsValidator {
     'linux_arm',
     'linux_arm64',
     'linux_ia32',
+    'linux_loong64',
     'linux_riscv32',
     'linux_riscv64',
     'linux_x64',

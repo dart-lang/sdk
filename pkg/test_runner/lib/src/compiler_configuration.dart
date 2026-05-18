@@ -932,6 +932,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   bool get _isSimRiscv64 =>
       _configuration.architecture == Architecture.simriscv64;
 
+  bool get _isLoong64 => _configuration.architecture == Architecture.loong64;
+
   @override
   bool get _isAot => true;
 
@@ -1054,11 +1056,17 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         clang64 = "clang_x64";
       } else if (Architecture.host == Architecture.arm64) {
         clang64 = "clang_arm64";
+      } else if (Architecture.host == Architecture.loong64) {
+        clang64 = "clang_loong64";
       }
       if (_isAndroid) {
         if (_isArm || _isIA32) {
           exec = "$buildDir/$clang32/gen_snapshot";
-        } else if (_isArm64 || _isX64 || _isArmX64 || _isRiscv64) {
+        } else if (_isArm64 ||
+            _isX64 ||
+            _isArmX64 ||
+            _isRiscv64 ||
+            _isLoong64) {
           exec = "$buildDir/$clang64/gen_snapshot";
         } else {
           // Guaranteed by package:test_runner/src/configuration.dart's
@@ -1193,6 +1201,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         cc = 'riscv32-linux-gnu-gcc';
       } else if (_isSimRiscv64 || (_isRiscv64 && _configuration.useQemu)) {
         cc = 'riscv64-linux-gnu-gcc';
+      } else if (_isLoong64 && _configuration.useQemu) {
+        cc = 'loongarch64-linux-gnu-gcc';
       } else {
         cc = 'gcc';
       }
@@ -1232,6 +1242,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.riscv64:
         case Architecture.simriscv64:
           target = ['-arch', 'riscv64'];
+          break;
+        case Architecture.loong64:
+          target = ['-arch', 'loong64'];
           break;
         default:
           throw 'Unhandled architecture: ${_configuration.architecture}';

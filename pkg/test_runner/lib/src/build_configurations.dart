@@ -112,6 +112,7 @@ List<String> _selectBuildTargets(Configuration inner) {
         Architecture.x64c,
         Architecture.simarm64,
         Architecture.simarm64c,
+        Architecture.loong64,
       ].contains(inner.architecture) &&
       [System.linux, System.android].contains(inner.system)) {
     result.add('analyze_snapshot');

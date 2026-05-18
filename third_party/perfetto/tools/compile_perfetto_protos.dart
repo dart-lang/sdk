@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 final hostArch = switch (Abi.current()) {
   Abi.linuxArm => 'arm',
   Abi.macosArm64 || Abi.linuxArm64 => 'arm64',
+  Abi.linuxLoong64 => 'loong64',
   Abi.macosX64 || Abi.linuxX64 => 'x64',
   _ => throw 'Unsupported platform',
 };

@@ -40,6 +40,7 @@ List<String> compilerFlagsForFile(String filepath) {
   if (filepath.contains("_arm.")) arch = "ARM";
   if (filepath.contains("_arm64.")) arch = "ARM64";
   if (filepath.contains("_riscv.")) arch = "RISCV64";
+  if (filepath.contains("_loong64.")) arch = "LOONG64";
   // Skipping IA32 because it neither has a simulator nor works with crossword
   // and the host architecture is fixed.
 

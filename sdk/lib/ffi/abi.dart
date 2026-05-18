@@ -70,6 +70,9 @@ class Abi {
   /// The application binary interface for linux on 64-bit RISC-V.
   static const linuxRiscv64 = _linuxRiscv64;
 
+  /// The application binary interface for linux on LoongArch64.
+  static const linuxLoong64 = _linuxLoong64;
+
   /// The application binary interface for MacOS on the Arm64 architecture.
   static const macosArm64 = _macosArm64;
 
@@ -106,6 +109,7 @@ class Abi {
     linuxX64,
     linuxRiscv32,
     linuxRiscv64,
+    linuxLoong64,
     macosArm64,
     macosX64,
     windowsArm64,
@@ -150,6 +154,7 @@ class Abi {
   static const _linuxX64 = Abi._(_Architecture.x64, _OS.linux);
   static const _linuxRiscv32 = Abi._(_Architecture.riscv32, _OS.linux);
   static const _linuxRiscv64 = Abi._(_Architecture.riscv64, _OS.linux);
+  static const _linuxLoong64 = Abi._(_Architecture.loong64, _OS.linux);
   static const _macosArm64 = Abi._(_Architecture.arm64, _OS.macos);
   static const _macosX64 = Abi._(_Architecture.x64, _OS.macos);
   static const _windowsArm64 = Abi._(_Architecture.arm64, _OS.windows);
@@ -158,7 +163,7 @@ class Abi {
 }
 
 /// The hardware architectures the Dart VM runs on.
-enum _Architecture { arm, arm64, ia32, x64, riscv32, riscv64 }
+enum _Architecture { arm, arm64, ia32, x64, riscv32, riscv64, loong64 }
 
 /// The operating systems the Dart VM runs on.
 enum _OS { android, fuchsia, ios, linux, macos, windows }

@@ -32,6 +32,8 @@ class CPU : public AllStatic {
 #include "vm/cpu_arm64.h"
 #elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 #include "vm/cpu_riscv.h"
+#elif defined(TARGET_ARCH_LOONG64)
+#include "vm/cpu_loong64.h"
 #else
 #error Unknown architecture.
 #endif
