@@ -119,6 +119,8 @@ class AstToIr extends ast.RecursiveVisitor {
         if (builder.hasOpenBlock) {
           builder.addReturn();
         }
+      case MethodExtractor():
+        throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
       case RegularFunction() || GetterFunction() || SetterFunction():
         _enterScope(functionNode);
         _translateNode(functionNode?.body);
@@ -717,7 +719,7 @@ class AstToIr extends ast.RecursiveVisitor {
   void visitInstanceTearOff(ast.InstanceTearOff node) {
     final interfaceTarget = functionRegistry.getFunction(
       node.interfaceTarget,
-      isTearOff: true,
+      isMethodExtractor: true,
     );
     _translateNode(node.receiver);
     if (_handleUnreachableExpression(1)) return;

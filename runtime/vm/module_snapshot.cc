@@ -91,6 +91,7 @@ class ModuleSnapshot : public AllStatic {
     kImplicitGetter,
     kImplicitSetter,
     kFieldInitializer,
+    kMethodExtractor,
   };
 
   // Object pool entry kinds in the module snapshots.
@@ -486,6 +487,7 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
       function_name_ = static_cast<StringPtr>(d->ReadRef());
       switch (kind) {
         case ModuleSnapshot::kRegular:
+        case ModuleSnapshot::kMethodExtractor:
           break;
         case ModuleSnapshot::kGetter:
         case ModuleSnapshot::kImplicitGetter:
@@ -520,6 +522,10 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
         if (function_.IsNull()) {
           FATAL("Unable to find function %s in %s", function_name_.ToCString(),
                 owner_.ToCString());
+        }
+        if (kind == ModuleSnapshot::kMethodExtractor) {
+          function_name_ = Field::GetterName(function_name_);
+          function_ = function_.GetMethodExtractor(function_name_);
         }
       }
       d->AssignRefPreLoad(function_);

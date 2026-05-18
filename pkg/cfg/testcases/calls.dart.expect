@@ -243,7 +243,7 @@ B29 = TargetBlock() idom:B20
 B31 = JoinBlock(B29, B28) idom:B20
   Goto(B22)
 B22 = JoinBlock(B31, B19) idom:B0
-  v42 = InterfaceCall tear-off A.foo1(v1)
+  v42 = InterfaceCall method-extractor A.foo1(v1)
   DirectCall print(v42)
   Return(v17)
 

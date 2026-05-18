@@ -98,6 +98,7 @@ enum FunctionKind {
   implicitGetter,
   implicitSetter,
   fieldInitializer,
+  methodExtractor,
 }
 
 /// Object pool entry kinds in the module snapshots.
@@ -566,6 +567,7 @@ final class FunctionRefSerializationCluster extends SerializationCluster {
         ImplicitFieldGetter() => FunctionKind.implicitGetter,
         ImplicitFieldSetter() => FunctionKind.implicitSetter,
         FieldInitializerFunction() => FunctionKind.fieldInitializer,
+        MethodExtractor() => FunctionKind.methodExtractor,
         GetterFunction() => FunctionKind.getter,
         SetterFunction() => FunctionKind.setter,
         ClosureFunction() =>

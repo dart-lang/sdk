@@ -186,4 +186,27 @@ void main() {
       same(func),
     );
   });
+
+  test('method-extractor', () {
+    final member = coreTypes.index.getProcedure('dart:core', 'List', 'add');
+    final func =
+        functionRegistry.getFunction(member, isMethodExtractor: true)
+            as MethodExtractor;
+    expect(func.member, same(member));
+    expect(func.hasReceiverParameter, isTrue);
+    expect(func.hasClosureParameter, isFalse);
+    expect(func.hasClassTypeParameters, isTrue);
+    expect(func.hasFunctionTypeParameters, isFalse);
+    final returnType = func.returnType;
+    expect(returnType is StaticType, isTrue);
+    expect(
+      returnType.dartType,
+      equals(member.function.computeFunctionType(.nonNullable)),
+    );
+    expect(
+      functionRegistry.getFunction(member, isMethodExtractor: true),
+      same(func),
+    );
+    expect(functionRegistry.getFunction(member), isNot(same(func)));
+  });
 }
