@@ -57,7 +57,8 @@ group("runtime") {
 
   # The following dependencies allow dartdev to start the resident frontend
   # server and DDS.
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
+      dart_target_arch != "loong64") {
     deps += [
       "runtime/bin:dartaotruntime",
       "runtime/bin:dartaotruntime_product",
@@ -147,7 +148,8 @@ group("create_platform_sdk") {
 
 group("dart2js") {
   import("runtime/runtime_args.gni")
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
+      dart_target_arch != "loong64") {
     deps = [
       ":runtime_precompiled",
       "utils/compiler:dart2js_sdk_aot",
@@ -194,7 +196,8 @@ group("dartanalyzer") {
 
 group("ddc") {
   import("runtime/runtime_args.gni")
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
+      dart_target_arch != "loong64") {
     deps = [
       ":runtime_precompiled",
       "utils/bazel:kernel_worker_aot",

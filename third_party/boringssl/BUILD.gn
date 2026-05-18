@@ -48,7 +48,7 @@ all_sources = bcm_internal_headers + bcm_sources + crypto_internal_headers +
               crypto_sources + ssl_internal_headers + ssl_sources + pki_sources
 all_headers = crypto_headers + ssl_headers + pki_headers + pki_internal_headers
 
-if (is_msan) {
+if (is_msan || current_cpu == "loong64") {
   # MSan instrumentation is incompatible with assembly optimizations.
   # BoringSSL's GAS-compatible assembly knows how to detect MSan, but the NASM
   # assembly does not, so we check for MSan explicitly.
@@ -77,7 +77,7 @@ source_set("boringssl") {
   sources = rebase_path(all_sources, ".", "src")
   public = rebase_path(all_headers, ".", "src")
 
-  if (is_win) {
+  if (is_win || current_cpu == "loong64") {
     configs += [ ":no_asm_config" ]
   } else {
     deps = [ ":boringssl_asm" ]

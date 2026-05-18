@@ -598,6 +598,13 @@ inline intx_t sign_extend(int64_t x) {
   return static_cast<intx_t>(x);
 }
 
+inline Register ConcreteRegister(Register r) {
+  return r;
+}
+#define LINK_REGISTER RA
+
 }  // namespace dart
+
+#undef R
 
 #endif  // RUNTIME_VM_CONSTANTS_LOONG64_H_

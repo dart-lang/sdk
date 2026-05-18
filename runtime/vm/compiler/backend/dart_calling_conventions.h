@@ -9,6 +9,7 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#include <functional>
 #include <utility>
 
 #include "platform/globals.h"

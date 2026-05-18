@@ -111,7 +111,8 @@ class ArgumentAllocator : public ValueObject {
       cpu_regs_used = CallingConventions::kNumArgRegs;
     }
 #endif
-#if defined(TARGET_ARCH_RISCV64) || defined(TARGET_ARCH_RISCV32)
+#if defined(TARGET_ARCH_RISCV64) || defined(TARGET_ARCH_RISCV32) ||           \
+    defined(TARGET_ARCH_LOONG64)
     if (is_first_vararg) {
       // Block all FPU registers.
       BlockAllFpuRegisters();
@@ -195,7 +196,7 @@ class ArgumentAllocator : public ValueObject {
           NativeFpuRegistersLocation(payload_type, payload_type, reg);
     }
 
-#if defined(TARGET_ARCH_RISCV64)
+#if defined(TARGET_ARCH_RISCV64) || defined(TARGET_ARCH_LOONG64)
     // After using up F registers, start bitcasting to X registers.
     if (HasAvailableCpuRegisters(1)) {
       const Register reg = AllocateCpuRegister();
@@ -480,7 +481,8 @@ class ArgumentAllocator : public ValueObject {
   }
 #endif  // defined(TARGET_ARCH_ARM64)
 
-#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64) ||           \
+    defined(TARGET_ARCH_LOONG64)
   // See RISC-V ABIs Specification
   // https://github.com/riscv-non-isa/riscv-elf-psabi-doc/releases
   const NativeLocation& AllocateCompound(const NativeCompoundType& payload_type,
@@ -928,7 +930,8 @@ static const NativeLocation& CompoundResultLocation(
 }
 #endif  // defined(TARGET_ARCH_ARM64)
 
-#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64) ||           \
+    defined(TARGET_ARCH_LOONG64)
 static const NativeLocation& CompoundResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type,
@@ -944,7 +947,8 @@ static const NativeLocation& CompoundResultLocation(
   }
   return PointerToMemoryResultLocation(zone, payload_type);
 }
-#endif  // defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+#endif  // defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64) ||
+        // defined(TARGET_ARCH_LOONG64)
 
 // Location for the result of a C signature function.
 static const NativeLocation& ResultLocation(Zone* zone,

@@ -438,6 +438,8 @@ void InvokeEmitter(
 
 #elif defined(TARGET_ARCH_RISCV64)
 
+#elif defined(TARGET_ARCH_LOONG64)
+
 #else
 #error Unknown architecture.
 #endif

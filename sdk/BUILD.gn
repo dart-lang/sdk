@@ -39,6 +39,12 @@ declare_args() {
   dart_include_wasm_opt = true
 }
 
+# Loong64 VM execution is currently JIT-capable, but the AOT assembler and
+# precompiler backend are not complete enough to build SDK AOT snapshots.
+_dart_target_has_aot = dart_target_arch != "ia32" &&
+                       dart_target_arch != "x86" &&
+                       dart_target_arch != "loong64"
+
 # The directory layout of the SDK is as follows:
 #
 # ..dart-sdk/
@@ -122,7 +128,7 @@ _platform_sdk_snapshots = [ [
       "../utils/analysis_server",
       "analysis_server",
     ] ]
-if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+if (_dart_target_has_aot) {
   _platform_sdk_snapshots += [
     [
       "analysis_server_aot_product",
@@ -196,7 +202,7 @@ if ((dart_target_arch == "x64" || dart_target_arch == "arm64") &&
       ] ]
 }
 
-if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+if (_dart_target_has_aot) {
   _full_sdk_snapshots =
       _platform_sdk_snapshots + [
         [
@@ -378,7 +384,7 @@ if (target_os != current_os && target_os == "fuchsia") {
   }
 }
 
-if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+if (_dart_target_has_aot) {
   copy("copy_dart") {
     visibility = [ ":create_common_sdk" ]
     deps = [ "../runtime/bin:dart" ]
@@ -910,7 +916,7 @@ group("create_common_sdk") {
   # We do not support AOT on ia32 and should therefore not add the
   # dart native compilation files since there is no AOT compiler/runtime
   # available.
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  if (_dart_target_has_aot) {
     public_deps += [ ":group_dart2native" ]
   }
 }
@@ -940,7 +946,7 @@ group("create_full_sdk") {
     ":copy_full_sdk_snapshots",
   ]
 
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  if (_dart_target_has_aot) {
     public_deps += [
       ":copy_dart2wasm_platform",
       ":copy_dart2wasm_snapshot",
@@ -950,8 +956,7 @@ group("create_full_sdk") {
     }
   }
 
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
-      dart_target_arch != "arm") {
+  if (_dart_target_has_aot && dart_target_arch != "arm") {
     # Do not include gen_snapshot binaries for cross-compilation into
     # SDK, but add them as a dependency, so that they are built.
     public_deps += [

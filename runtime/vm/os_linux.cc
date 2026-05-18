@@ -295,6 +295,8 @@ class JitDumpCodeObserver : public CodeObserver {
     return EM_AARCH64;
 #elif TARGET_ARCH_RISCV32 || TARGET_ARCH_RISCV64
     return EM_RISCV;
+#elif TARGET_ARCH_LOONG64
+    return EM_LOONGARCH;
 #else
     UNREACHABLE();
     return 0;
@@ -523,7 +525,7 @@ int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
-    defined(TARGET_ARCH_RISCV64)
+    defined(TARGET_ARCH_RISCV64) || defined(TARGET_ARCH_LOONG64)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;
