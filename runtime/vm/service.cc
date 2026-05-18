@@ -1886,14 +1886,13 @@ static ObjectPtr LookUpObjectByServiceId(
 
   ASSERT(thread->isolate() != nullptr);
   const Isolate& isolate = *thread->isolate();
-  if (id_zone_part_of_service_id >= isolate.NumServiceIdZones()) {
+  RingServiceIdZone* id_zone =
+      isolate.GetServiceIdZone(id_zone_part_of_service_id);
+  if (id_zone == nullptr) {
     *kind = ObjectIdRing::kInvalid;
     return Object::null();
   }
-
-  RingServiceIdZone& id_zone =
-      *isolate.GetServiceIdZone(id_zone_part_of_service_id);
-  return id_zone.GetObjectForId(object_part_of_service_id, kind);
+  return id_zone->GetObjectForId(object_part_of_service_id, kind);
 }
 
 static ObjectPtr LookupClassMembers(Thread* thread,
@@ -5425,7 +5424,7 @@ static void DeleteIdZone(Thread* thread, JSONStream* js) {
 
   intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
   ASSERT(id_zone_id != -1);
-  ASSERT(id_zone_id < isolate->NumServiceIdZones());
+  ASSERT(isolate->GetServiceIdZone(id_zone_id) != nullptr);
 
   isolate->DeleteServiceIdZone(id_zone_id);
 

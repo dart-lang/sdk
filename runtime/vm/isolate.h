@@ -25,6 +25,7 @@
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
 #include "vm/handles.h"
+#include "vm/hash_map.h"
 #include "vm/heap/verifier.h"
 #include "vm/intrusive_dlist.h"
 #include "vm/megamorphic_cache_table.h"
@@ -1334,7 +1335,14 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   RingServiceIdZone* GetServiceIdZone(intptr_t zone_id) const;
 
-  intptr_t NumServiceIdZones() const;
+  template <typename F>
+  void ForEachServiceIdZone(F callback) const {
+    if (service_id_zones_ == nullptr) return;
+    auto it = service_id_zones_->GetIterator();
+    while (auto* pair = it.Next()) {
+      callback(pair->value);
+    }
+  }
 #endif  // !defined(PRODUCT)
 
   FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
@@ -1644,8 +1652,13 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_ = nullptr;
 
-  // The array of Service ID zones is created lazily.
-  MallocGrowableArray<RingServiceIdZone*>* service_id_zones_;
+  // The map of Service ID zones is created lazily.
+  MallocDirectChainedHashMap<IntKeyRawPointerValueTrait<RingServiceIdZone*>>*
+      service_id_zones_;
+
+  // Monotonically increasing counter used to assign unique IDs to non-default
+  // Service ID zones.
+  intptr_t next_service_id_zone_id_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
