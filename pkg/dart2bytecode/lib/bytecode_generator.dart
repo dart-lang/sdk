@@ -2382,6 +2382,12 @@ class BytecodeGenerator extends RecursiveVisitor {
     int initializedPosition,
   ) {
     bool isCaptured = locals.isCaptured(variable);
+    // Don't add initializing formals or wildcards.
+    if (variable.isInitializingFormal ||
+        variable.isSuperInitializingFormal ||
+        variable.isWildcard) {
+      return;
+    }
     asm.localVariableTable.declareVariable(
       asm.offset,
       isCaptured,
@@ -5035,6 +5041,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     );
 
     _generateNode(node.expression);
+    // Add a pause point after the body prior to the sync/async machinery.
+    asm.emitSourcePosition();
 
     if (enclosingFunction!.dartAsyncMarker == AsyncMarker.AsyncStar) {
       Procedure addMethod = node.isYieldStar

@@ -656,7 +656,6 @@ class BytecodeAssembler {
 
   @pragma('vm:prefer-inline')
   void emitStoreFieldTOS(int rd) {
-    emitSourcePosition();
     _emitInstructionD(Opcode.kStoreFieldTOS, rd);
   }
 
