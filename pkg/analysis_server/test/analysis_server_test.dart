@@ -71,64 +71,6 @@ class AnalysisServerTest with ResourceProviderMixin {
     errorNotifier.server = server;
   }
 
-  Future<void> test_watchEvents_ignoresFilesOutsideAnalyzedContext() async {
-    var projectRoot = convertPath('/test');
-    var outsideFilePath = convertPath('/outside/log.txt');
-
-    newFolder(projectRoot);
-    await server.setAnalysisRoots('0', [projectRoot], []);
-    await server.onAnalysisComplete;
-    _watcherMessages.events.clear();
-
-    var outsideFile = newFile(outsideFilePath, 'initial');
-    outsideFile.writeAsStringSync('updated');
-
-    await pumpEventQueue(times: 2000);
-
-    expect(_watcherMessages.events, isEmpty);
-  }
-
-  Future<void> test_watchEvents_keepsDartFileChanges() async {
-    var projectRoot = convertPath('/test');
-    var dartFilePath = convertPath('/test/lib/a.dart');
-
-    newFolder(convertPath('/test/lib'));
-    newFile(dartFilePath, 'void f() {}');
-
-    await server.setAnalysisRoots('0', [projectRoot], []);
-    await server.onAnalysisComplete;
-    _watcherMessages.events.clear();
-
-    getFile(dartFilePath).writeAsStringSync('void f() {}\nvoid g() {}');
-    await pumpEventQueue(times: 2000);
-
-    expect(_watcherMessages.events.map((e) => e.path), contains(dartFilePath));
-  }
-
-  Future<void>
-  test_watchEvents_outsideContextEventDoesNotBlockFollowingDartEvent() async {
-    var projectRoot = convertPath('/test');
-    var dartFilePath = convertPath('/test/lib/a.dart');
-    var outsideFilePath = convertPath('/outside/log.txt');
-
-    newFolder(convertPath('/test/lib'));
-    newFile(dartFilePath, 'void f() {}');
-    newFile(outsideFilePath, 'initial');
-
-    await server.setAnalysisRoots('0', [projectRoot], []);
-    await server.onAnalysisComplete;
-    _watcherMessages.events.clear();
-
-    getFile(outsideFilePath).writeAsStringSync('updated');
-    getFile(dartFilePath).writeAsStringSync('void f() {}\nvoid g() {}');
-
-    await pumpEventQueue(times: 2000);
-
-    var paths = _watcherMessages.events.map((e) => e.path).toList();
-    expect(paths, contains(dartFilePath));
-    expect(paths, isNot(contains(outsideFilePath)));
-  }
-
   /// See https://github.com/dart-lang/sdk/issues/50496
   Future<void> test_caching_mixin_superInvokedNames_setter_change() async {
     var lib = convertPath('/lib');
@@ -413,6 +355,64 @@ analyzer:
       expect(response.id, equals('my22'));
       expect(response.error, isNotNull);
     });
+  }
+
+  Future<void> test_watchEvents_ignoresFilesOutsideAnalyzedContext() async {
+    var projectRoot = convertPath('/test');
+    var outsideFilePath = convertPath('/outside/log.txt');
+
+    newFolder(projectRoot);
+    await server.setAnalysisRoots('0', [projectRoot], []);
+    await server.onAnalysisComplete;
+    _watcherMessages.events.clear();
+
+    var outsideFile = newFile(outsideFilePath, 'initial');
+    outsideFile.writeAsStringSync('updated');
+
+    await pumpEventQueue(times: 2000);
+
+    expect(_watcherMessages.events, isEmpty);
+  }
+
+  Future<void> test_watchEvents_keepsDartFileChanges() async {
+    var projectRoot = convertPath('/test');
+    var dartFilePath = convertPath('/test/lib/a.dart');
+
+    newFolder(convertPath('/test/lib'));
+    newFile(dartFilePath, 'void f() {}');
+
+    await server.setAnalysisRoots('0', [projectRoot], []);
+    await server.onAnalysisComplete;
+    _watcherMessages.events.clear();
+
+    getFile(dartFilePath).writeAsStringSync('void f() {}\nvoid g() {}');
+    await pumpEventQueue(times: 2000);
+
+    expect(_watcherMessages.events.map((e) => e.path), contains(dartFilePath));
+  }
+
+  Future<void>
+  test_watchEvents_outsideContextEventDoesNotBlockFollowingDartEvent() async {
+    var projectRoot = convertPath('/test');
+    var dartFilePath = convertPath('/test/lib/a.dart');
+    var outsideFilePath = convertPath('/outside/log.txt');
+
+    newFolder(convertPath('/test/lib'));
+    newFile(dartFilePath, 'void f() {}');
+    newFile(outsideFilePath, 'initial');
+
+    await server.setAnalysisRoots('0', [projectRoot], []);
+    await server.onAnalysisComplete;
+    _watcherMessages.events.clear();
+
+    getFile(outsideFilePath).writeAsStringSync('updated');
+    getFile(dartFilePath).writeAsStringSync('void f() {}\nvoid g() {}');
+
+    await pumpEventQueue(times: 2000);
+
+    var paths = _watcherMessages.events.map((e) => e.path).toList();
+    expect(paths, contains(dartFilePath));
+    expect(paths, isNot(contains(outsideFilePath)));
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
