@@ -155,6 +155,55 @@ void main() {
     expect(StringType().isSubtypeOf(StaticType(comparableType)), isTrue);
   });
 
+  test('record', () {
+    final dartType1 = ast.RecordType(
+      [coreTypes.intNonNullableRawType, coreTypes.stringNullableRawType],
+      [],
+      .nonNullable,
+    );
+    final recordType1 = RecordType(dartType1);
+    expect(recordType1.kind, equals(TypeKind.recordType));
+    expect(recordType1.dartType, equals(dartType1));
+    expect(recordType1.hashCode, equals(RecordType(dartType1).hashCode));
+    expect(recordType1.isNullable, isFalse);
+    expect(recordType1.toNonNullableType, equals(recordType1));
+
+    final dartType2 = ast.RecordType(
+      [coreTypes.intNonNullableRawType],
+      [ast.NamedType('foo', coreTypes.boolNonNullableRawType)],
+      .nonNullable,
+    );
+    final recordType2 = RecordType(dartType2);
+    expect(recordType2.kind, equals(TypeKind.recordType));
+    expect(recordType2.dartType, equals(dartType2));
+    expect(recordType2.hashCode, equals(RecordType(dartType2).hashCode));
+    expect(recordType2.isNullable, isFalse);
+    expect(recordType2.toNonNullableType, equals(recordType2));
+
+    expect(recordType1.isSubtypeOf(IntType()), isFalse);
+    expect(recordType1.isSubtypeOf(DoubleType()), isFalse);
+    expect(recordType1.isSubtypeOf(BoolType()), isFalse);
+    expect(recordType1.isSubtypeOf(StringType()), isFalse);
+    expect(recordType1.isSubtypeOf(ObjectType()), isTrue);
+    expect(recordType1.isSubtypeOf(TopType()), isTrue);
+    expect(recordType1.isSubtypeOf(NullType()), isFalse);
+    expect(recordType1.isSubtypeOf(NeverType()), isFalse);
+    expect(recordType1.isSubtypeOf(recordType2), isFalse);
+
+    final recordType3 = RecordType(
+      ast.RecordType(
+        [coreTypes.intNullableRawType, coreTypes.objectNullableRawType],
+        [],
+        .nonNullable,
+      ),
+    );
+    expect(recordType1.isSubtypeOf(recordType3), isTrue);
+    expect(
+      recordType1.isSubtypeOf(StaticType(coreTypes.recordNonNullableRawType)),
+      isTrue,
+    );
+  });
+
   test('object', () {
     final objectDartType = coreTypes.objectNonNullableRawType;
     expect(ObjectType(), equals(ObjectType(objectDartType)));

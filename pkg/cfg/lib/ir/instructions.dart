@@ -1392,6 +1392,24 @@ final class AllocateMapLiteral extends Definition with CanThrow, Pure {
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateMapLiteral(this);
 }
 
+/// Allocate a new Record literal with given elements.
+final class AllocateRecordLiteral extends Definition with CanThrow, Pure {
+  @override
+  final RecordType type;
+
+  AllocateRecordLiteral(
+    super.graph,
+    super.sourcePosition,
+    this.type, {
+    required super.inputCount,
+  }) : assert(inputCount == type.numFields);
+
+  Definition elementAt(int index) => inputDefAt(index);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateRecordLiteral(this);
+}
+
 /// Interpolate given objects into a String.
 final class StringInterpolation extends Definition
     with CanThrow, HasSideEffects {
@@ -1753,6 +1771,19 @@ final class SetListElement extends Instruction
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
+}
+
+/// Allocate a Record instance of given type.
+final class AllocateRecord extends Definition
+    with CanThrow, Pure, BackendInstruction {
+  @override
+  final RecordType type;
+
+  AllocateRecord(super.graph, super.sourcePosition, this.type)
+    : super(inputCount: 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateRecord(this);
 }
 
 /// Base class for boxing instructions.

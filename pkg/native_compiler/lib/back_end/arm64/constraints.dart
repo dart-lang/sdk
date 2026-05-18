@@ -361,6 +361,14 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
+  InstructionConstraints? visitAllocateRecord(AllocateRecord instr) =>
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
+
+  @override
   InstructionConstraints? visitBoxInt(BoxInt instr) =>
       const InstructionConstraints(
         anyCpuRegister,

@@ -9,6 +9,7 @@ import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
+import 'package:cfg/ir/types.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/src/printer.dart' as ast_printer show AstPrinter;
@@ -63,6 +64,7 @@ enum PredefinedClusters {
   closureFunctionRefs,
   closureRefs,
   argumentsDescriptorRefs,
+  recordShapeRefs,
   ints,
   doubles,
   lists,
@@ -320,6 +322,7 @@ class SnapshotSerializer {
     ArgumentsShape() => getPredefinedCluster(
       PredefinedClusters.argumentsDescriptorRefs,
     ),
+    RecordShape() => getPredefinedCluster(PredefinedClusters.recordShapeRefs),
     // Constants.
     String() => getPredefinedCluster(
       OneByteStringSerializationCluster.isOneByteString(obj)
@@ -385,6 +388,7 @@ class SnapshotSerializer {
     .closureFunctionRefs => ClosureFunctionRefSerializationCluster(),
     .closureRefs => ClosureRefSerializationCluster(),
     .argumentsDescriptorRefs => ArgumentsDescriptorRefSerializationCluster(),
+    .recordShapeRefs => RecordShapeRefSerializationCluster(),
     .oneByteStrings => OneByteStringSerializationCluster(),
     .twoByteStrings => TwoByteStringSerializationCluster(),
     .privateNames => PrivateNameSerializationCluster(),
@@ -393,14 +397,14 @@ class SnapshotSerializer {
     .lists => ListSerializationCluster(),
     .maps => MapSerializationCluster(),
     .sets => SetSerializationCluster(),
-    .records => throw 'Unimplemented cluster $clusterId',
+    .records => RecordSerializationCluster(),
     .instantiatedClosures => throw 'Unimplemented cluster $clusterId',
     .typeParameters =>
       throw 'Unimplemented cluster $clusterId', // TypeParametersSerializationCluster(),
     .typeArguments => TypeArgumentsSerializationCluster(),
     .interfaceTypes => InterfaceTypeSerializationCluster(),
     .functionTypes => FunctionTypeSerializationCluster(),
-    .recordTypes => throw 'Unimplemented cluster $clusterId',
+    .recordTypes => RecordTypeSerializationCluster(),
     .typeParameterTypes => TypeParameterTypeSerializationCluster(),
     .codes => CodeSerializationCluster(),
     .icDatas => ICDataSerializationCluster(),
@@ -680,6 +684,33 @@ final class ArgumentsDescriptorRefSerializationCluster
       serializer.writeUint(args.positional);
       serializer.writeUint(args.named.length);
       for (final name in args.named) {
+        serializer.writeRefId(name);
+      }
+    }
+  }
+}
+
+final class RecordShapeRefSerializationCluster extends SerializationCluster {
+  final List<RecordShape> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final shape = object as RecordShape;
+    _objects.add(shape);
+    for (final name in shape.named) {
+      serializer.push(name);
+    }
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.recordShapeRefs.index);
+    serializer.writeUint(_objects.length);
+    for (final shape in _objects) {
+      serializer.assignRef(shape);
+      serializer.writeUint(shape.positional);
+      serializer.writeUint(shape.named.length);
+      for (final name in shape.named) {
         serializer.writeRefId(name);
       }
     }
@@ -971,6 +1002,56 @@ final class SetSerializationCluster extends SerializationCluster {
   }
 }
 
+/// Serialization cluster for constant records.
+final class RecordSerializationCluster extends SerializationCluster {
+  final List<ast.RecordConstant> _objects = [];
+  final List<RecordShape> _shapes = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final record = object as ast.RecordConstant;
+    final shape = RecordType(record.recordType).shape;
+    _objects.add(record);
+    _shapes.add(shape);
+    serializer.push(shape);
+    for (final e in record.positional) {
+      serializer.push(e);
+    }
+    for (final e in record.named.values) {
+      serializer.push(e);
+    }
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.records.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final record in _objects) {
+      serializer.assignRef(record);
+      serializer.writeUint(record.positional.length + record.named.length);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (var i = 0, n = _objects.length; i < n; ++i) {
+      final record = _objects[i];
+      final shape = _shapes[i];
+      serializer.writeRefId(shape);
+      for (final e in record.positional) {
+        serializer.writeRefId(e);
+      }
+      for (final name in shape.named) {
+        serializer.writeRefId(record.named[name]!);
+      }
+    }
+  }
+}
+
 final class InstanceSerializationCluster extends SerializationCluster {
   final ast.Class _cls;
   final List<ast.InstanceConstant> _objects = [];
@@ -1217,6 +1298,54 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
       serializer.writeUint(
         1 /* implicit closure parameter */ + type.requiredParameterCount,
       );
+    }
+  }
+}
+
+final class RecordTypeSerializationCluster extends SerializationCluster {
+  final List<ast.RecordType> _objects = [];
+  final List<RecordShape> _shapes = [];
+  final List<ast.ListConstant> _fieldTypes = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final type = object as ast.RecordType;
+    final shape = RecordType(type.withDeclaredNullability(.nonNullable)).shape;
+    final fieldTypes = getListConstant([
+      ...type.positional,
+      for (final nt in type.named) nt.type,
+    ]);
+    _objects.add(type);
+    _shapes.add(shape);
+    _fieldTypes.add(fieldTypes);
+    serializer.push(shape);
+    serializer.push(fieldTypes);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.recordTypes.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final type in _objects) {
+      serializer.assignRef(type);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (var i = 0, n = _objects.length; i < n; ++i) {
+      final type = _objects[i];
+      final shape = _shapes[i];
+      final fieldTypes = _fieldTypes[i];
+      serializer.writeUint(
+        type.declaredNullability == ast.Nullability.nullable ? 1 : 0,
+      );
+      serializer.writeRefId(shape);
+      serializer.writeRefId(fieldTypes);
     }
   }
 }

@@ -118,3 +118,16 @@ class ClosureLayout {
         (hasFunctionTypeArgs ? 1 : 0);
   }
 }
+
+/// Field of the record object.
+final class RecordField extends SyntheticField {
+  final RecordShape shape;
+  final int index;
+
+  RecordField(this.shape, this.index)
+    : super(
+        '#record-field[$index${index >= shape.positional ? ':${shape.named[index - shape.positional]}' : ''}]',
+        type: const ast.DynamicType(),
+        isFinal: true,
+      );
+}

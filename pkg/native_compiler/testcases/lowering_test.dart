@@ -65,6 +65,13 @@ void mapLiterals<S, T>(S key, T Function() value, S key2, T value2) {
   print({key: value(), key2: value2});
 }
 
+void recordLiterals<T>(int a, String b, T c) {
+  print((a,));
+  print((a, b, c));
+  print((foo: b, bar: c));
+  print((a, foo: b, bar: c));
+}
+
 void stringInterpolation(int x, String s, Object o) {
   print('$o');
   print('Hey, x=$x, s=$s, o=$o');

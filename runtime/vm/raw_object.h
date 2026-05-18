@@ -57,6 +57,8 @@ class InterfaceTypeDeserializationCluster;
 class ListDeserializationCluster;
 class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
+class RecordDeserializationCluster;
+class RecordTypeDeserializationCluster;
 class SetDeserializationCluster;
 class SubtypeTestCacheDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
@@ -3088,6 +3090,8 @@ class UntaggedRecordType : public UntaggedAbstractType {
   VISIT_TO(field_types)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  friend class module_snapshot::RecordTypeDeserializationCluster;
 };
 
 class UntaggedTypeParameter : public UntaggedAbstractType {
@@ -3644,6 +3648,7 @@ class UntaggedRecord : public UntaggedInstance {
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data, shape)
 
+  friend class module_snapshot::RecordDeserializationCluster;
   friend void UpdateLengthField(intptr_t, ObjectPtr,
                                 ObjectPtr);  // shape_
 };

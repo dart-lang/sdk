@@ -298,6 +298,10 @@ abstract base class CodeGenerator extends Pass
       throw 'Unexpected AllocateMapLiteral (should be lowered)';
 
   @override
+  void visitAllocateRecordLiteral(AllocateRecordLiteral instr) =>
+      throw 'Unexpected AllocateRecordLiteral (should be lowered)';
+
+  @override
   void visitStringInterpolation(StringInterpolation instr) =>
       throw 'Unexpected StringInterpolation (should be lowered)';
 }

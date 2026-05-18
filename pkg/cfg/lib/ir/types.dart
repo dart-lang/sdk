@@ -38,6 +38,7 @@ enum TypeKind {
   doubleType,
   boolType,
   stringType,
+  recordType,
   objectType,
   nullType,
   neverType,
@@ -191,6 +192,60 @@ final class StringType extends CType {
 
   @override
   String toString() => 'String';
+}
+
+/// Shape of the Dart record.
+/// Records with the same shape are compatible wrt field access.
+final class RecordShape {
+  // Number of positional fields.
+  final int positional;
+  // Named fields (sorted lexicographically).
+  final List<String> named;
+
+  const RecordShape(this.positional, this.named);
+
+  @override
+  String toString() =>
+      'Record[$positional${named.isNotEmpty ? ', named: $named' : ''}]';
+
+  @override
+  bool operator ==(Object other) =>
+      other is RecordShape &&
+      this.positional == other.positional &&
+      listEquals(this.named, other.named);
+
+  @override
+  int get hashCode =>
+      finalizeHash(combineHash(positional.hashCode, listHashCode(named)));
+}
+
+/// Non-nullable Dart record type.
+final class RecordType extends CType {
+  @override
+  TypeKind get kind => TypeKind.recordType;
+
+  @override
+  final ast.RecordType dartType;
+
+  late final shape = RecordShape(dartType.positional.length, [
+    for (final namedType in dartType.named) namedType.name,
+  ]);
+
+  RecordType(this.dartType) : assert(dartType.nullability == .nonNullable);
+
+  int get numFields => dartType.positional.length + dartType.named.length;
+
+  @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
+
+  @override
+  bool get canBeFuture => false;
+
+  @override
+  String toString() => dartType.getDisplayString();
 }
 
 /// Dart `Object` type.

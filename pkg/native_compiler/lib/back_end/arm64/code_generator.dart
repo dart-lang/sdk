@@ -1462,6 +1462,50 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitAllocateRecord(AllocateRecord instr) {
+    final instanceSize = roundUp(
+      vmOffsets.Record_elementsStartOffset +
+          instr.type.numFields * objectLayout.compressedWordSize,
+      objectAlignment(wordSize),
+    );
+    final resultReg = AllocationStub.resultReg;
+    assert(outputReg(instr) == resultReg);
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for AllocateRecord slow path',
+      );
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      AllocationStub.tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.RecordCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      AllocationStub.tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: true,
+    );
+    final fieldReg = AllocationStub.scratch1Reg;
+    _asm.loadFromPool(fieldReg, instr.type.shape);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Record_shape_offset),
+    );
+    _asm.bind(done);
+  }
+
+  @override
   void visitBoxInt(BoxInt instr) {
     var operandReg = inputReg(instr, 0);
     final tagsReg = temporaryReg(instr, 0);
