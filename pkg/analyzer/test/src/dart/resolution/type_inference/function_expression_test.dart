@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -18,33 +17,31 @@ main() {
 @reflectiveTest
 class FunctionExpressionTest extends PubPackageResolutionTest {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 FutureOr<void> Function() v = () async {
   return 0;
+//       ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'Future<void>' function, as required by the closure's context.
 };
-''',
-      [error(diag.returnOfInvalidTypeFromClosure, 72, 1)],
-    );
+''');
     _assertReturnType('() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<void> Function() v = () async {
   return 0;
+//       ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'Future<void>' function, as required by the closure's context.
 };
-''',
-      [error(diag.returnOfInvalidTypeFromClosure, 48, 1)],
-    );
+''');
     _assertReturnType('() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_objectQ() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object? Function() v = () async {
@@ -87,7 +84,7 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_async_blockBody_objectQ2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object? Function() v = () async {
@@ -98,14 +95,14 @@ Object? Function() v = () async {
   }
 
   test_contextFunctionType_returnType_async_expressionBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<num> Function() v = () async => 0;
 ''');
     _assertReturnType('() async =>', 'Future<int>');
   }
 
   test_contextFunctionType_returnType_async_expressionBody2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Future<int> Function() v = () async => foo();
@@ -140,14 +137,14 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_async_expressionBody3() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> Function() v = () async => Future.value(0);
 ''');
     _assertReturnType('() async =>', 'Future<int>');
   }
 
   test_contextFunctionType_returnType_async_expressionBody_object() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object Function() v = () async => foo();
@@ -182,7 +179,7 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_async_expressionBody_objectQ() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object? Function() v = () async => foo();
@@ -217,7 +214,7 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_asyncStar_blockBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream<num> Function() v = () async* {
   yield 0;
 };
@@ -226,7 +223,7 @@ Stream<num> Function() v = () async* {
   }
 
   test_contextFunctionType_returnType_asyncStar_blockBody2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Stream<int> Function() v = () async* {
@@ -270,7 +267,7 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_sync_blockBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 num Function() v = () {
   return 0;
 };
@@ -279,7 +276,7 @@ num Function() v = () {
   }
 
   test_contextFunctionType_returnType_sync_blockBody2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 int Function() v = () {
@@ -321,26 +318,25 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_sync_blockBody_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void Function() v = () {
   return 0;
+//       ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'void' function, as required by the closure's context.
 };
-''',
-      [error(diag.returnOfInvalidTypeFromClosure, 34, 1)],
-    );
+''');
     _assertReturnType('() {', 'void');
   }
 
   test_contextFunctionType_returnType_sync_expressionBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 num Function() v = () => 0;
 ''');
     _assertReturnType('() =>', 'int');
   }
 
   test_contextFunctionType_returnType_sync_expressionBody2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 int Function() v = () => foo();
@@ -374,7 +370,7 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_syncStar_blockBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<num> Function() v = () sync* {
   yield 0;
 };
@@ -383,7 +379,7 @@ Iterable<num> Function() v = () sync* {
   }
 
   test_contextFunctionType_returnType_syncStar_blockBody2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Iterable<int> Function() v = () sync* {
@@ -427,7 +423,7 @@ FunctionExpression
   }
 
   test_downward_argumentType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> items) {
   items.forEach((item) {
     item;
@@ -466,7 +462,7 @@ FunctionExpression
   }
 
   test_downward_argumentType_Never() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo(void Function(Never) a) {}
 
 main() {
@@ -530,14 +526,13 @@ FunctionExpression
   }
 
   test_generic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   final v = <T>(T a) => <T>[a];
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 19, 1)],
-    );
+''');
 
     var node = findNode.functionExpression('<T>(');
     assertResolvedNodeText(node, r'''
@@ -589,7 +584,7 @@ FunctionExpression
   }
 
   test_location_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final v = () => 42;
 }
@@ -614,7 +609,7 @@ FunctionExpression
   }
 
   test_location_topLevelVariable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 final v = () => 42;
 ''');
 
@@ -748,7 +743,7 @@ var v = (bool b) {
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 
 main() {
@@ -770,7 +765,7 @@ main() {
 enum E { a, b }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as p;
 
 main() {
@@ -793,7 +788,7 @@ main() {
 enum E { a, b }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 import 'a.dart' as p;
 
@@ -812,7 +807,7 @@ main() {
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_language219() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 enum E { a, b }
 
@@ -856,7 +851,7 @@ var v = (bool b) {
   }
 
   test_noContext_returnType_sync_blockBody_nullable_switch() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   (int a) {
     switch (a) {
@@ -870,7 +865,7 @@ main() {
   }
 
   test_noContext_returnType_sync_blockBody_nullable_switch_language219() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 main() {
   (int a) {
@@ -974,14 +969,13 @@ var v = () sync* {
   }
 
   test_targetBoundedByFunctionType_argumentTypeMismatch() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int test<T extends int Function(int)>(T Function() createT) {
   return createT()('');
+//                 ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 81, 2)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation("('')");
     assertResolvedNodeText(node, r'''FunctionExpressionInvocation
@@ -1009,7 +1003,7 @@ int test<T extends int Function(int)>(T Function() createT) {
   }
 
   test_targetBoundedByFunctionType_ok() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int test<T extends int Function(int)>(T Function() createT) {
   return createT()(0);
 }

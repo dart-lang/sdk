@@ -2,30 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportPrefixResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ImportPrefixResolutionTest extends PubPackageResolutionTest {
   test_asExpression_expressionStatement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
 
 main() {
   p; // use
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 38, 1)],
-    );
+''');
 
     var node = findNode.simple('p; // use');
     assertResolvedNodeText(node, r'''
@@ -37,19 +37,17 @@ SimpleIdentifier
   }
 
   test_asExpression_forIn_iterable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
 
 main() {
   for (var x in p) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//              ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 47, 1),
-        error(diag.prefixIdentifierNotFollowedByDot, 52, 1),
-      ],
-    );
+''');
 
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -76,8 +74,7 @@ ForStatement
   }
 
   test_asExpression_instanceCreation_argument() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
 
 class C<T> {
@@ -86,13 +83,12 @@ class C<T> {
 
 main() {
   var x = new C(p);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//              ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 66, 1),
-        error(diag.prefixIdentifierNotFollowedByDot, 76, 1),
-      ],
-    );
+''');
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -122,7 +118,7 @@ InstanceCreationExpression
   }
 
   test_asPrefix_methodInvocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 
 main() {
@@ -156,8 +152,7 @@ extension ExtendedString2 on String {
 
     // Import prefixes named `_` provide access to non-private extensions
     // in the imported library but are non-binding.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as _;
 import 'b.dart' as _;
 
@@ -165,13 +160,10 @@ f() {
   ''.stringExt;
   ''.stringExt2;
   _.a;
+//^
+// [diag.undefinedIdentifier] Undefined name '_'.
 }
-''',
-      [
-        // String extensions are found but `_` is not bound.
-        error(diag.undefinedIdentifier, 86, 1),
-      ],
-    );
+''');
   }
 
   test_wildcardResolution_preWildcards() async {
@@ -189,7 +181,7 @@ extension ExtendedString on String {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 

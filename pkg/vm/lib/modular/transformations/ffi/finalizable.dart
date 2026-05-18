@@ -78,8 +78,10 @@ mixin FinalizableTransformer on Transformer {
       final possiblyUninitialized = entry.key;
       final alwaysInitialized = entry.value;
       addPossiblyUninitializedTo!.statements.insert(
-        addPossiblyUninitializedTo.statements.indexOf(possiblyUninitialized),
-        alwaysInitialized,
+        addPossiblyUninitializedTo.statements.indexOf(
+          possiblyUninitialized.parent as VariableStatement,
+        ),
+        VariableStatement(alwaysInitialized),
       );
     }
     assert(_currentScope == scope);
@@ -269,8 +271,8 @@ mixin FinalizableTransformer on Transformer {
   }
 
   @override
-  TreeNode visitVariableDeclaration(VariableDeclaration node) {
-    node = super.visitVariableDeclaration(node) as VariableDeclaration;
+  TreeNode defaultVariableDeclaration(VariableDeclaration node) {
+    node = super.defaultVariableDeclaration(node) as VariableDeclaration;
     if (_currentScope == null) {
       // Global variable.
       return node;
@@ -559,7 +561,10 @@ mixin FinalizableTransformer on Transformer {
       isSynthesized: true,
     );
     return BlockExpression(
-      Block(<Statement>[resultVariable, ..._reachabilityFences(declarations)]),
+      Block(<Statement>[
+        VariableStatement(resultVariable),
+        ..._reachabilityFences(declarations),
+      ]),
       VariableGet(resultVariable),
     );
   }
@@ -642,11 +647,11 @@ class FindCaptures extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     if (_isFinalizable(node.type)) {
       _currentScope.addDeclaration(node);
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariableDeclaration(node);
   }
 
   @override
@@ -740,6 +745,7 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     VariableDeclaration possiblyUninitialized,
     VariableDeclaration nullableValue,
   ) {
+    assert(possiblyUninitialized.parent is VariableStatement);
     _possiblyUninitializedDeclarations[possiblyUninitialized] = nullableValue;
     addDeclaration(possiblyUninitialized);
   }

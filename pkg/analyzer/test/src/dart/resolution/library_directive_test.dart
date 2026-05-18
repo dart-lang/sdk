@@ -5,17 +5,19 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryDirectiveResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LibraryDirectiveResolutionTest extends PubPackageResolutionTest {
   test_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library foo.bar;
 ''');
 
@@ -34,7 +36,7 @@ LibraryDirective
   }
 
   test_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library;
 ''');
 

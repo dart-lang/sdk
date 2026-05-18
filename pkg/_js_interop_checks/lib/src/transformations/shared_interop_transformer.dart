@@ -371,7 +371,9 @@ class SharedInteropTransformer extends Transformer {
       type: dartType,
       isSynthesized: true,
     )..fileOffset = invocation.fileOffset;
-    block.add(dartInstance);
+    block.add(
+      VariableStatement(dartInstance)..fileOffset = invocation.fileOffset,
+    );
 
     var jsExporter = VariableDeclaration(
       '#jsExporter',
@@ -379,7 +381,9 @@ class SharedInteropTransformer extends Transformer {
       type: ExtensionType(_jsObject, Nullability.nonNullable),
       isSynthesized: true,
     )..fileOffset = invocation.fileOffset;
-    block.add(jsExporter);
+    block.add(
+      VariableStatement(jsExporter)..fileOffset = invocation.fileOffset,
+    );
 
     for (var MapEntry(key: exportName, value: exports) in exportMap.entries) {
       ExpressionStatement setProperty(
@@ -460,7 +464,9 @@ class SharedInteropTransformer extends Transformer {
           type: ExtensionType(_jsObject, Nullability.nonNullable),
           isSynthesized: true,
         )..fileOffset = invocation.fileOffset;
-        block.add(getSetMap);
+        block.add(
+          VariableStatement(getSetMap)..fileOffset = invocation.fileOffset,
+        );
         var (:getter, :setter) = _exportChecker.getGetterSetter(exports);
         if (getter != null) {
           final resultType = _staticInteropMockValidator.typeParameterResolver

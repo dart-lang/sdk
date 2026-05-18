@@ -956,8 +956,8 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitVariableStatement(VariableStatement node) {
-    visited.add(StatementKind.VariableStatement);
+  void visitLegacyVariableStatement(LegacyVariableStatement node) {
+    visited.add(StatementKind.LegacyVariableStatement);
     node.visitChildren(this);
   }
 
@@ -982,6 +982,12 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitCatch(Catch node) {
     visited.add(NodeKind.Catch);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitLegacyVariable(LegacyVariable node) {
+    visited.add(NodeKind.LegacyVariable);
     node.visitChildren(this);
   }
 
@@ -1324,6 +1330,7 @@ enum NodeKind {
   Extension,
   ExtensionTypeDeclaration,
   FunctionNode,
+  LegacyVariable,
   Library,
   LibraryDependency,
   LibraryPart,
@@ -1462,6 +1469,7 @@ enum StatementKind {
   IfCaseStatement,
   IfStatement,
   LabeledStatement,
+  LegacyVariableStatement,
   PatternSwitchStatement,
   PatternVariableDeclaration,
   ReturnStatement,
@@ -1469,7 +1477,6 @@ enum StatementKind {
   TryCatch,
   TryFinally,
   VariableInitialization,
-  VariableStatement,
   WhileStatement,
   YieldStatement,
 }

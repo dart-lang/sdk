@@ -368,6 +368,8 @@ abstract class MetadataRepository<T> {
   static bool isSupported(Node node) {
     return !(node is MapLiteralEntry ||
         node is Catch ||
-        (node is Block && node.parent is BlockExpression));
+        (node is Block && node.parent is BlockExpression) ||
+        // TODO(johnniwinther): Support
+        node is LegacyVariableStatement);
   }
 }

@@ -898,7 +898,7 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(ast.VariableDeclaration node) {
+  void defaultVariableDeclaration(ast.VariableDeclaration node) {
     final variable = node.variable;
     if (node.isConst) return;
     if (node.isLate) {
@@ -922,8 +922,13 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   @override
+  void visitLegacyVariableStatement(ast.LegacyVariableStatement node) {
+    defaultVariableDeclaration(node.variable);
+  }
+
+  @override
   void visitVariableInitialization(ast.VariableInitialization node) {
-    visitVariableDeclaration(node);
+    defaultVariableDeclaration(node.variable);
   }
 
   @override

@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class FieldPromotionTest extends PubPackageResolutionTest {
   test_cascaded_invocation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final Object? _field;
   C(this._field);
@@ -47,7 +47,7 @@ FunctionExpressionInvocation
   }
 
   test_cascaded_propertyAccess() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final Object? _field;
   C(this._field);
@@ -81,7 +81,7 @@ MethodInvocation
   }
 
   test_cascaded_propertyAccess_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final Object? _field;
   C(this._field);
@@ -125,7 +125,7 @@ PropertyAccess
     // getter or a non-final field (either of which would prevent promotion). So
     // the implementation goes ahead and prevents promotion even if there's no
     // implementation yet, to reduce churn for the user.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class B {
   abstract int? _foo;
 }
@@ -162,7 +162,7 @@ PrefixedIdentifier
   }
 
   test_class_field_invocation_prefixedIdentifier_nullability() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final void Function()? _foo;
   C(this._foo);
@@ -198,7 +198,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_invocation_prefixedIdentifier_returnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? Function() _foo;
   C(this._foo);
@@ -234,7 +234,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_invocation_propertyAccess_nullability() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final void Function()? _foo;
   C(this._foo);
@@ -274,7 +274,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_invocation_propertyAccess_returnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? Function() _foo;
   C(this._foo);
@@ -314,7 +314,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_invocation_simpleIdentifier_nullability() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final void Function()? _foo;
   C(this._foo);
@@ -347,7 +347,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_invocation_simpleIdentifier_returnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? Function() _foo;
   C(this._foo);
@@ -380,7 +380,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_invocation_superPropertyAccess_nullability() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final void Function()? _foo;
   C(this._foo);
@@ -419,7 +419,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_invocation_superPropertyAccess_returnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? Function() _foo;
   C(this._foo);
@@ -458,7 +458,7 @@ FunctionExpressionInvocation
   }
 
   test_class_field_notFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int? _foo;
   C(this._foo);
@@ -488,7 +488,7 @@ PrefixedIdentifier
   }
 
   test_class_field_notPrivate() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int? foo;
   C(this.foo);
@@ -518,7 +518,7 @@ PrefixedIdentifier
   }
 
   test_class_field_read_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? _foo;
   C(this._foo);
@@ -548,7 +548,7 @@ PrefixedIdentifier
   }
 
   test_class_field_read_propertyAccess() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? _foo;
   C(this._foo);
@@ -581,7 +581,7 @@ PropertyAccess
   }
 
   test_class_field_read_propertyAccess_super() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? _foo;
   C(this._foo);
@@ -613,7 +613,7 @@ PropertyAccess
   }
 
   test_class_field_read_simpleIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int? _foo;
   C(this._foo);
@@ -635,7 +635,7 @@ SimpleIdentifier
   }
 
   test_class_getter_read() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   int? get _foo;
 }
@@ -670,7 +670,7 @@ PrefixedIdentifier
     // synthetic constructors weren't properly built for them, leading to bogus
     // error messages when constructing them.  This is a regression test to
     // ensure that mistake doesn't happen again.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
   // ignore:unused_field
   int? _x = 43;
@@ -685,7 +685,7 @@ void f() {
   }
 
   test_enum_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E {
   v(null);
   final int? _foo;
@@ -716,7 +716,7 @@ PrefixedIdentifier
   }
 
   test_extensionType_field_representation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int? _it) {}
 
 void f(A a) {
@@ -744,7 +744,7 @@ PrefixedIdentifier
 
   test_external_field() async {
     // External final fields should not be promotable.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   external final int? _field;
 }
@@ -785,7 +785,7 @@ class D extends C {
   D(super.foo);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'other.dart';
 
 class C {
@@ -835,7 +835,7 @@ class D extends C {
   D(super.foo);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'other.dart';
 
 class C {
@@ -870,7 +870,7 @@ PrefixedIdentifier
   }
 
   test_language219() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 class C {
   final int? _foo;
@@ -909,7 +909,7 @@ PropertyAccess
     // `noSuchMethod` getter will be synthesized.  In the example below,
     // `c._foo` is not promotable because class D contains a `noSuchMethod`
     // getter for `_foo`.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M on C {}
 class C {
   final int? _foo;
@@ -943,7 +943,7 @@ PrefixedIdentifier
   }
 
   test_super_get() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   final int? _i;
   B(this._i);
@@ -1017,7 +1017,7 @@ Block
   }
 
   test_super_get_inGenericClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B<T extends Object> {
   final T? _t;
   B(this._t);
@@ -1099,7 +1099,7 @@ Block
   }
 
   test_super_getAndInvoke() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   final int? Function() _f;
   B(this._f);
@@ -1201,7 +1201,7 @@ Block
   }
 
   test_super_getAndInvoke_inGenericClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B<T extends Object> {
   final T? Function() _f;
   B(this._f);

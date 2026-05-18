@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LogicalAndPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LogicalAndPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case int _ && double _) {}
 }
@@ -44,7 +45,7 @@ LogicalAndPattern
   }
 
   test_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case int _ && double _:
@@ -75,17 +76,15 @@ LogicalAndPattern
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (a && b) = 0;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 18, 1),
-        error(diag.unusedLocalVariable, 23, 1),
-      ],
-    );
+''');
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement

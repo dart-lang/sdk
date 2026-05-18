@@ -302,7 +302,7 @@ Statement createExpressionStatement(
 
 ForElement createForElement(
   int fileOffset,
-  List<VariableDeclaration> variables,
+  List<VariableStatement> variables,
   Expression? condition,
   List<Expression> updates,
   Expression body,
@@ -363,7 +363,7 @@ ForInStatement createForInStatement(
 
 ForMapEntry createForMapEntry(
   int fileOffset,
-  List<VariableDeclaration> variables,
+  List<VariableStatement> variables,
   Expression? condition,
   List<Expression> updates,
   MapLiteralEntry body,
@@ -375,7 +375,7 @@ ForMapEntry createForMapEntry(
 /// Return a representation of a for statement.
 Statement createForStatement(
   int fileOffset,
-  List<VariableDeclaration>? variables,
+  List<VariableStatement>? variables,
   Expression? condition,
   List<Expression> updaters,
   Statement body,
@@ -810,7 +810,7 @@ PatternForElement createPatternForElement(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
-  required List<VariableDeclaration> variables,
+  required List<VariableStatement> variables,
   required Expression? condition,
   required List<Expression> updates,
   required Expression body,
@@ -829,7 +829,7 @@ PatternForMapEntry createPatternForMapEntry(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
-  required List<VariableDeclaration> variableInitializations,
+  required List<VariableStatement> variableInitializations,
   required Expression? condition,
   required List<Expression> updates,
   required MapLiteralEntry body,
@@ -1240,6 +1240,10 @@ InternalVariableSet createVariableSet(
     ..fileOffset = fileOffset;
 }
 
+VariableStatement createVariableStatement(VariableDeclaration variable) {
+  return new VariableStatement(variable)..fileOffset = variable.fileOffset;
+}
+
 /// Return a representation of a while statement at the given [fileOffset]
 /// consisting of the given [condition] and [body].
 Statement createWhileStatement(
@@ -1291,13 +1295,13 @@ bool isThisExpression(Object node) =>
 bool isVariablesDeclaration(Object? node) => node is _VariablesDeclaration;
 
 _VariablesDeclaration variablesDeclaration(
-  List<VariableDeclaration> declarations,
+  List<VariableStatement> declarations,
   Uri uri,
 ) {
   return new _VariablesDeclaration(declarations, uri);
 }
 
-List<VariableDeclaration> variablesDeclarationExtractDeclarations(
+List<VariableStatement> variablesDeclarationExtractDeclarations(
   Object? variablesDeclaration,
 ) {
   return (variablesDeclaration as _VariablesDeclaration).declarations;
@@ -1306,9 +1310,13 @@ List<VariableDeclaration> variablesDeclarationExtractDeclarations(
 Statement wrapVariables(Statement statement) {
   if (statement is _VariablesDeclaration) {
     return new Block(
-      new List<Statement>.of(statement.declarations, growable: true),
+      new List<Statement>.generate(
+        statement.declarations.length,
+        (int index) => statement.declarations[index],
+        growable: true,
+      ),
     )..fileOffset = statement.fileOffset;
-  } else if (statement is VariableDeclaration) {
+  } else if (statement is VariableStatement) {
     return new Block(<Statement>[statement])..fileOffset = statement.fileOffset;
   } else {
     return statement;
@@ -1316,7 +1324,7 @@ Statement wrapVariables(Statement statement) {
 }
 
 class _VariablesDeclaration extends AuxiliaryStatement {
-  final List<VariableDeclaration> declarations;
+  final List<VariableStatement> declarations;
   final Uri uri;
 
   _VariablesDeclaration(this.declarations, this.uri) {
@@ -1348,7 +1356,7 @@ class _VariablesDeclaration extends AuxiliaryStatement {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        declarations[index],
+        declarations[index].variable,
         includeModifiersAndType: index == 0,
       );
     }

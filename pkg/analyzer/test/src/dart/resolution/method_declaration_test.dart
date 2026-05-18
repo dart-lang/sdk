@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MethodDeclarationResolutionTest extends PubPackageResolutionTest {
   test_formalParameterScope_defaultValue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static const foo = 0;
 
@@ -35,7 +36,7 @@ SimpleIdentifier
   }
 
   test_formalParameterScope_type() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class a {}
 
 class B {
@@ -63,7 +64,7 @@ SimpleIdentifier
   }
 
   test_formalParameterScope_wildcardVariable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var _ = 1;
   void m(int? _) {
@@ -82,16 +83,15 @@ SimpleIdentifier
   }
 
   test_wildCardMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   _() {}
+//^
+// [diag.unusedElement] The declaration '_' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 12, 1)],
-    );
+''');
 
-    var node = findNode.methodDeclaration('_');
+    var node = findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   name: _
@@ -109,19 +109,18 @@ MethodDeclaration
   }
 
   test_wildCardMethod_preWildCards() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 class C {
   _() {}
+//^
+// [diag.unusedElement] The declaration '_' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 56, 1)],
-    );
+''');
 
-    var node = findNode.methodDeclaration('_');
+    var node = findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   name: _
@@ -139,7 +138,7 @@ MethodDeclaration
   }
 
   test_wildcardMethodTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int _ = 0;
 

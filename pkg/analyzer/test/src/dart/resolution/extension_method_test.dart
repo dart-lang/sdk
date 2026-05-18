@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,6 +14,7 @@ main() {
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -42,37 +43,35 @@ extension E on Object {
   ];
 
   test_constructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E {
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^
+// [diag.expectedTypeName] Expected a type name.
   E() {}
+//^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
 }
-''',
-      [
-        error(diag.expectedToken, 10, 1),
-        error(diag.expectedTypeName, 12, 1),
-        error(diag.extensionDeclaresConstructor, 16, 1),
-      ],
-    );
+''');
   }
 
   test_factory() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E {
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^
+// [diag.expectedTypeName] Expected a type name.
   factory S() {}
+//^^^^^^^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
 }
-''',
-      [
-        error(diag.expectedToken, 10, 1),
-        error(diag.expectedTypeName, 12, 1),
-        error(diag.extensionDeclaresConstructor, 16, 7),
-      ],
-    );
+''');
   }
 
   test_fromPlatform() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:test2';
 
 f(Object o) {
@@ -82,7 +81,7 @@ f(Object o) {
   }
 
   test_metadata() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const int ann = 1;
 class C {}
 @ann
@@ -101,7 +100,7 @@ Annotation
   }
 
   test_multipleExtensions_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E1 on C {}
 extension E2 on C {}
@@ -109,7 +108,7 @@ extension E2 on C {}
   }
 
   test_this_type_interface() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   void foo() {
     this;
@@ -125,7 +124,7 @@ ThisExpression
   }
 
   test_this_type_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T> on T {
   void foo() {
     this;
@@ -141,7 +140,7 @@ ThisExpression
   }
 
   test_this_type_typeParameter_withBound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T extends Object> on T {
   void foo() {
     this;
@@ -163,16 +162,15 @@ extension E on C {
   int a = 1;
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' hide E;
 
 f(C c) {
   c.a;
+//  ^
+// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedGetter, 40, 1)],
-    );
+''');
   }
 
   test_visibility_notShown() async {
@@ -182,16 +180,15 @@ extension E on C {
   int a = 1;
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' show C;
 
 f(C c) {
   c.a;
+//  ^
+// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedGetter, 40, 1)],
-    );
+''');
   }
 
   test_visibility_private() async {
@@ -201,16 +198,15 @@ extension E on C {
   int _a = 1;
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart';
 
 f(C c) {
   c._a;
+//  ^^
+// [diag.undefinedGetter] The getter '_a' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedGetter, 33, 2)],
-    );
+''');
   }
 
   test_visibility_shadowed_byClass() async {
@@ -220,7 +216,7 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart';
 
 class E {}
@@ -255,7 +251,7 @@ extension E on Object {
 class E {}
 class A {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart';
 import 'lib2.dart';
 
@@ -287,17 +283,16 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart';
 
 f(C c) {
   double E = 2.71;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'E' isn't used.
   c.a;
 }
-''',
-      [error(diag.unusedLocalVariable, 38, 1)],
-    );
+''');
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
 PrefixedIdentifier
@@ -316,19 +311,18 @@ PrefixedIdentifier
   }
 
   test_visibility_shadowed_byLocal_local() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   int get a => 1;
 }
 f(C c) {
   double E = 2.71;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'E' isn't used.
   c.a;
 }
-''',
-      [error(diag.unusedLocalVariable, 68, 1)],
-    );
+''');
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
 PrefixedIdentifier
@@ -353,7 +347,7 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart';
 
 double E = 2.71;
@@ -385,7 +379,7 @@ extension E on Object {
 }
 class B {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:test1';
 import 'lib.dart';
 
@@ -402,7 +396,7 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 
 f(p.C c) {
@@ -415,7 +409,7 @@ f(p.C c) {
 @reflectiveTest
 class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest {
   test_named_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 extension E<S> on C<S> {}
 ''');
@@ -437,7 +431,7 @@ NamedType
   }
 
   test_named_onDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on dynamic {}
 ''');
     var extendedType = findNode.typeAnnotation('dynamic');
@@ -450,7 +444,7 @@ NamedType
   }
 
   test_named_onEnum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum A {a, b, c}
 extension E on A {}
 ''');
@@ -464,7 +458,7 @@ NamedType
   }
 
   test_named_onFunctionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {}
 ''');
     var extendedType = findNode.typeAnnotation('Function');
@@ -504,7 +498,7 @@ class C { }
 extension E on C {}
 ''';
 
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
 
     var extendedType = findNode.typeAnnotation('C {}');
     assertResolvedNodeText(extendedType, r'''
@@ -516,7 +510,7 @@ NamedType
   }
 
   test_named_onMixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
 }
 extension E on M {}
@@ -531,7 +525,7 @@ NamedType
   }
 
   test_unnamed_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 extension<S> on C<S> {}
 ''');
@@ -553,7 +547,7 @@ NamedType
   }
 
   test_unnamed_onDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension on dynamic {}
 ''');
     var extendedType = findNode.typeAnnotation('dynamic');
@@ -566,7 +560,7 @@ NamedType
   }
 
   test_unnamed_onEnum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum A {a, b, c}
 extension on A {}
 ''');
@@ -580,7 +574,7 @@ NamedType
   }
 
   test_unnamed_onFunctionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension on int Function(String) {}
 ''');
     var extendedType = findNode.typeAnnotation('Function');
@@ -615,7 +609,7 @@ GenericFunctionType
   }
 
   test_unnamed_onInterface() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C { }
 extension on C {}
 ''');
@@ -629,7 +623,7 @@ NamedType
   }
 
   test_unnamed_onMixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
 }
 extension on M {}
@@ -648,7 +642,7 @@ NamedType
 class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class C extends A {
   String method(int i) => "$i";
@@ -667,7 +661,7 @@ main() {
   }
 
   test_instance_call_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int call(int x) => 0;
 }
@@ -702,7 +696,7 @@ FunctionExpressionInvocation
   }
 
   test_instance_call_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -735,7 +729,7 @@ FunctionExpressionInvocation
   }
 
   test_instance_call_fromExtension_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int call(int x) => 0;
 }
@@ -765,7 +759,7 @@ FunctionExpressionInvocation
   }
 
   test_instance_compoundAssignment_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C operator +(int i) => this;
 }
@@ -798,7 +792,7 @@ AssignmentExpression
   }
 
   test_instance_compoundAssignment_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   C operator +(int i) => this;
@@ -829,7 +823,7 @@ AssignmentExpression
   }
 
   test_instance_getter_fromDifferentExtension_usingBounds() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 extension E1 on B {
   int get g => 0;
@@ -850,7 +844,7 @@ SimpleIdentifier
   }
 
   test_instance_getter_fromDifferentExtension_withoutTarget() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E1 on C {
   int get a => 1;
@@ -871,7 +865,7 @@ SimpleIdentifier
   }
 
   test_instance_getter_fromExtendedType_usingBounds() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   int get g => 0;
 }
@@ -891,7 +885,7 @@ SimpleIdentifier
   }
 
   test_instance_getter_fromExtendedType_withoutTarget() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void m() {
     a;
@@ -911,7 +905,7 @@ SimpleIdentifier
   }
 
   test_instance_getter_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   int get a => 1;
 }
@@ -937,7 +931,7 @@ PrefixedIdentifier
   }
 
   test_instance_getter_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -966,7 +960,7 @@ PrefixedIdentifier
   }
 
   test_instance_getter_fromInstance_extensionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {}
 
 extension E on A {
@@ -996,18 +990,17 @@ PrefixedIdentifier
   }
 
   test_instance_getter_fromInstance_Never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on Never {
   int get foo => 0;
 }
 
 f(Never a) {
   a.foo;
+//  ^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 63, 4)],
-    );
+''');
     var access = findNode.prefixed('a.foo');
     assertResolvedNodeText(access, r'''
 PrefixedIdentifier
@@ -1026,7 +1019,7 @@ PrefixedIdentifier
   }
 
   test_instance_getter_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int? {
   int get foo => 0;
 }
@@ -1053,7 +1046,7 @@ PrefixedIdentifier
   }
 
   test_instance_getter_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int get foo => 0;
 }
@@ -1079,7 +1072,7 @@ PropertyAccess
   }
 
   test_instance_getter_methodInvocation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -1119,7 +1112,7 @@ FunctionExpressionInvocation
   }
 
   test_instance_getter_specificSubtypeMatchLocal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B extends A {}
 
@@ -1152,7 +1145,7 @@ PrefixedIdentifier
   }
 
   test_instance_getterInvoked_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   String Function() get a => () => 'a';
 }
@@ -1184,7 +1177,7 @@ FunctionExpressionInvocation
   }
 
   test_instance_method_fromDifferentExtension_usingBounds() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 extension E1 on B {
   void m() {}
@@ -1211,7 +1204,7 @@ MethodInvocation
   }
 
   test_instance_method_fromDifferentExtension_withoutTarget() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 extension E1 on B {
   void a() {}
@@ -1238,7 +1231,7 @@ MethodInvocation
   }
 
   test_instance_method_fromExtendedType_usingBounds() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   void m() {}
 }
@@ -1264,7 +1257,7 @@ MethodInvocation
   }
 
   test_instance_method_fromExtendedType_withoutTarget() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   void m() {
     a();
@@ -1290,7 +1283,7 @@ MethodInvocation
   }
 
   test_instance_method_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   void a() {}
 }
@@ -1319,7 +1312,7 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 
 extension A on B {
@@ -1351,7 +1344,7 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_extensionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {}
 
 extension E on A {
@@ -1425,18 +1418,19 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_Never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on Never {
   void foo() {}
 }
 
 f(Never a) {
   a.foo();
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//     ^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 57, 1), error(diag.deadCode, 62, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -1459,7 +1453,7 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int? {
   void foo() {}
 }
@@ -1489,7 +1483,7 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_nullable_nullLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int? {
   void foo() {}
 }
@@ -1518,7 +1512,7 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   void foo() {}
 }
@@ -1548,7 +1542,7 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_nullLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T> on T {
   void foo() {}
 }
@@ -1577,7 +1571,7 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_privateName() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   void _foo() {}
 }
@@ -1614,7 +1608,7 @@ extension E on int {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 part 'a.dart';
 
 void f() {
@@ -1642,7 +1636,7 @@ MethodInvocation
   }
 
   test_instance_method_specificSubtypeMatchLocal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B extends A {}
 
@@ -1679,7 +1673,7 @@ MethodInvocation
   }
 
   test_instance_method_specificSubtypeMatchLocalGenerics() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 class B<T> extends A<T> {}
@@ -1727,7 +1721,7 @@ MethodInvocation
   }
 
   test_instance_operator_binary_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void operator +(int i) {}
 }
@@ -1757,7 +1751,7 @@ BinaryExpression
   }
 
   test_instance_operator_binary_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   void operator +(int i) {}
 }
@@ -1784,7 +1778,7 @@ BinaryExpression
   }
 
   test_instance_operator_binary_fromExtension_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void operator +(int i) {}
@@ -1812,7 +1806,7 @@ BinaryExpression
   }
 
   test_instance_operator_binary_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A? {
@@ -1843,20 +1837,18 @@ BinaryExpression
 
   test_instance_operator_binary_undefinedTarget() async {
     // Ensure that there is no exception thrown while resolving the code.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension on Object {}
 var a = b + c;
-''',
-      [
-        error(diag.undefinedIdentifier, 31, 1),
-        error(diag.undefinedIdentifier, 35, 1),
-      ],
-    );
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'c'.
+''');
   }
 
   test_instance_operator_index_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void operator [](int index) {}
 }
@@ -1886,7 +1878,7 @@ IndexExpression
   }
 
   test_instance_operator_index_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   void operator [](int index) {}
 }
@@ -1913,7 +1905,7 @@ IndexExpression
   }
 
   test_instance_operator_index_fromExtension_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void operator [](int index) {}
@@ -1941,7 +1933,7 @@ IndexExpression
   }
 
   test_instance_operator_index_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int? {
   int operator [](int index) => 0;
 }
@@ -1969,7 +1961,7 @@ IndexExpression
   }
 
   test_instance_operator_index_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int operator [](int index) => 0;
 }
@@ -1998,7 +1990,7 @@ IndexExpression
   }
 
   test_instance_operator_indexEquals_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void operator []=(int index, int value) {}
 }
@@ -2040,7 +2032,7 @@ AssignmentExpression
   }
 
   test_instance_operator_indexEquals_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   void operator []=(int index, int value) {}
 }
@@ -2079,7 +2071,7 @@ AssignmentExpression
   }
 
   test_instance_operator_indexEquals_fromExtension_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void operator []=(int index, int value) {}
@@ -2119,7 +2111,7 @@ AssignmentExpression
   }
 
   test_instance_operator_postfix_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C operator +(int i) => this;
 }
@@ -2148,7 +2140,7 @@ PostfixExpression
   }
 
   test_instance_operator_postfix_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   int Function(int) operator +(int i) => this;
 }
@@ -2174,7 +2166,7 @@ PostfixExpression
   }
 
   test_instance_operator_postfix_fromExtension_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   C operator +(int i) => this;
@@ -2201,7 +2193,7 @@ PostfixExpression
   }
 
   test_instance_operator_postfixInc_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A? {
@@ -2230,7 +2222,7 @@ PostfixExpression
   }
 
   test_instance_operator_prefix_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C operator +(int i) => this;
 }
@@ -2259,7 +2251,7 @@ PrefixExpression
   }
 
   test_instance_operator_prefix_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   int Function(int) operator +(int i) => this;
 }
@@ -2285,7 +2277,7 @@ PrefixExpression
   }
 
   test_instance_operator_prefix_fromExtension_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   C operator +(int i) => this;
@@ -2312,7 +2304,7 @@ PrefixExpression
   }
 
   test_instance_operator_prefixInc_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A? {
@@ -2341,7 +2333,7 @@ PrefixExpression
   }
 
   test_instance_operator_unary_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C operator -() => this;
 }
@@ -2366,7 +2358,7 @@ PrefixExpression
   }
 
   test_instance_operator_unary_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   void operator -() {}
 }
@@ -2388,7 +2380,7 @@ PrefixExpression
   }
 
   test_instance_operator_unary_fromExtension_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   C operator -() => this;
@@ -2411,7 +2403,7 @@ PrefixExpression
   }
 
   test_instance_operator_unaryMinus_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A? {
@@ -2436,7 +2428,7 @@ PrefixExpression
   }
 
   test_instance_setter_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   set a(int x) {}
 }
@@ -2474,7 +2466,7 @@ AssignmentExpression
   }
 
   test_instance_setter_fromInstance_extensionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {}
 
 extension E on A {
@@ -2516,7 +2508,7 @@ AssignmentExpression
   }
 
   test_instance_setter_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int? {
   set foo(int _) {}
 }
@@ -2554,7 +2546,7 @@ AssignmentExpression
   }
 
   test_instance_setter_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   set foo(int _) {}
 }
@@ -2591,7 +2583,7 @@ AssignmentExpression
   }
 
   test_instance_setter_oneMatch() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -2632,7 +2624,7 @@ AssignmentExpression
   }
 
   test_instance_tearoff_fromExtension_functionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {
   void a(int x) {}
 }
@@ -2656,7 +2648,7 @@ PrefixedIdentifier
   }
 
   test_instance_tearoff_fromExtension_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -2690,7 +2682,7 @@ extension E on C {
   static int a = 1;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 
 f() {
@@ -2722,7 +2714,7 @@ PropertyAccess
   }
 
   test_static_field_local() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -2751,23 +2743,21 @@ PrefixedIdentifier
   }
 
   test_static_getter_failure_onDynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on dynamic {
   static int get foo => 0;
 }
 
 void f() {
   dynamic.foo;
+//        ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedGetter, 76, 3)],
-    );
+''');
   }
 
   test_static_getter_failure_onFutureOr() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 extension E on FutureOr<int> {
@@ -2776,40 +2766,38 @@ extension E on FutureOr<int> {
 
 void f() {
   FutureOr.foo;
+//         ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'FutureOr<T>'.
 }
-''',
-      [error(diag.undefinedGetter, 105, 3)],
-    );
+''');
   }
 
   test_static_getter_failure_onNever() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on Never {
   static int get foo => 0;
 }
 
 void f() {
   Never.foo;
+//      ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedGetter, 72, 3)],
-    );
+''');
   }
 
   test_static_getter_failure_onTypeVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E<X extends String> on X {
   static int get foo => 0;
 }
 
 void f() {
   String.foo;
+//       ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'String'.
 }
-''',
-      [error(diag.undefinedGetter, 87, 3)],
-    );
+''');
   }
 
   test_static_getter_importedWithPrefix() async {
@@ -2820,7 +2808,7 @@ extension E on C {
   static int get a => 1;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 
 f() {
@@ -2852,7 +2840,7 @@ PropertyAccess
   }
 
   test_static_getter_local() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -2881,7 +2869,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onClass_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -2911,7 +2899,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onClass_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<X> {}
 
 extension E on A<String> {
@@ -2940,7 +2928,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onClass_viaTypedef_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 typedef T = A;
@@ -2972,7 +2960,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onClass_viaTypedef_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<X> {}
 
 typedef T<Y> = A<Y>;
@@ -3004,7 +2992,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onEnum_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum A { element; }
 
 extension E on A {
@@ -3033,7 +3021,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onEnum_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum A<X> { element; }
 
 extension E on A<String> {
@@ -3062,7 +3050,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onExtensionType_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(Object? it) {}
 
 extension E on A {
@@ -3091,7 +3079,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onExtensionType_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A<X>(Object? it) {}
 
 extension E on A<String> {
@@ -3120,7 +3108,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onMixin_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin A {}
 
 extension E on A {
@@ -3149,7 +3137,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onMixin_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin A<X> {}
 
 extension E on A<String> {
@@ -3178,7 +3166,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onTypedef_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 typedef T = A;
@@ -3210,7 +3198,7 @@ PrefixedIdentifier
   }
 
   test_static_getter_success_onTypedef_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<X> {}
 
 typedef T<Y> = A<Y>;
@@ -3249,7 +3237,7 @@ extension E on C {
   static void a() {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 
 f() {
@@ -3285,7 +3273,7 @@ MethodInvocation
   }
 
   test_static_method_local() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -3317,23 +3305,21 @@ MethodInvocation
   }
 
   test_static_setter_failure_onDynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on dynamic {
   static void set foo(int value) {}
 }
 
 void f() {
   dynamic.foo = 0;
+//        ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedSetter, 85, 3)],
-    );
+''');
   }
 
   test_static_setter_failure_onFutureOr() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 extension E on FutureOr<int> {
@@ -3342,40 +3328,38 @@ extension E on FutureOr<int> {
 
 void f() {
   FutureOr.foo = 0;
+//         ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'FutureOr<T>'.
 }
-''',
-      [error(diag.undefinedSetter, 114, 3)],
-    );
+''');
   }
 
   test_static_setter_failure_onNever() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on Never {
   static void set foo(int value) {}
 }
 
 void f() {
   Never.foo = 0;
+//      ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedSetter, 81, 3)],
-    );
+''');
   }
 
   test_static_setter_failure_onTypeVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E<X extends String> on X {
   static void set foo(int value) {}
 }
 
 void f() {
   String.foo = 0;
+//       ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'String'.
 }
-''',
-      [error(diag.undefinedSetter, 96, 3)],
-    );
+''');
   }
 
   test_static_setter_importedWithPrefix() async {
@@ -3386,7 +3370,7 @@ extension E on C {
   static set a(int x) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 
 f() {
@@ -3430,7 +3414,7 @@ AssignmentExpression
   }
 
   test_static_setter_local() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -3471,7 +3455,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onClass_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -3512,7 +3496,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onClass_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<X> {}
 
 extension E on A<String> {
@@ -3553,7 +3537,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onClass_viaTypedef_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 typedef T = A;
@@ -3597,7 +3581,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onClass_viaTypedef_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<X> {}
 
 typedef T<Y> = A<Y>;
@@ -3641,7 +3625,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onEnum_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum A { element; }
 
 extension E on A {
@@ -3682,7 +3666,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onEnum_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum A<X> { element; }
 
 extension E on A<String> {
@@ -3723,7 +3707,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onExtensionType_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(Object? it) {}
 
 extension E on A {
@@ -3764,7 +3748,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onExtensionType_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A<X>(Object? it) {}
 
 extension E on A<String> {
@@ -3805,7 +3789,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onMixin_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin A {}
 
 extension E on A {
@@ -3847,7 +3831,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onMixin_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin A<X> {}
 
 extension E on A<String> {
@@ -3889,7 +3873,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onTypedef_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 typedef T = A;
@@ -3933,7 +3917,7 @@ AssignmentExpression
   }
 
   test_static_setter_success_onTypedef_typeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<X> {}
 
 typedef T<Y> = A<Y>;
@@ -3977,7 +3961,7 @@ AssignmentExpression
   }
 
   test_static_tearoff() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4004,7 +3988,7 @@ PrefixedIdentifier
   }
 
   test_thisAccessOnDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on dynamic {
   int get d => 3;
 
@@ -4017,7 +4001,7 @@ extension E on dynamic {
   }
 
   test_thisAccessOnFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on Function {
   int get f => 4;
 
@@ -4036,7 +4020,7 @@ extension E on Function {
 @reflectiveTest
 class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest {
   test_instance_call() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4065,8 +4049,7 @@ FunctionExpressionInvocation
   }
 
   test_instance_getter_asSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E1 on int {
   int get foo => 0;
 }
@@ -4075,11 +4058,11 @@ extension E2 on int {
   int get foo => 0;
   void f() {
     foo = 0;
+//  ^^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E2'.
   }
 }
-''',
-      [error(diag.assignmentToFinalNoSetter, 104, 3)],
-    );
+''');
     var assignment = findNode.assignment('foo = 0');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -4102,7 +4085,7 @@ AssignmentExpression
   }
 
   test_instance_getter_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int get a => 1;
 }
@@ -4122,7 +4105,7 @@ SimpleIdentifier
   }
 
   test_instance_getter_fromThis_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int get a => 1;
 }
@@ -4148,7 +4131,7 @@ PropertyAccess
   }
 
   test_instance_getter_fromThis_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4173,7 +4156,7 @@ PropertyAccess
   }
 
   test_instance_method_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void a() {}
 }
@@ -4198,7 +4181,7 @@ MethodInvocation
   }
 
   test_instance_method_fromThis_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void a() {}
 }
@@ -4227,7 +4210,7 @@ MethodInvocation
   }
 
   test_instance_method_fromThis_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void a() {}
@@ -4254,7 +4237,7 @@ MethodInvocation
   }
 
   test_instance_operator_binary_fromThis_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void operator +(int i) {}
 }
@@ -4281,7 +4264,7 @@ BinaryExpression
   }
 
   test_instance_operator_binary_fromThis_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void operator +(int i) {}
@@ -4306,7 +4289,7 @@ BinaryExpression
   }
 
   test_instance_operator_index_fromThis_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void operator [](int index) {}
 }
@@ -4333,7 +4316,7 @@ IndexExpression
   }
 
   test_instance_operator_index_fromThis_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void operator [](int index) {}
@@ -4358,7 +4341,7 @@ IndexExpression
   }
 
   test_instance_operator_indexEquals_fromThis_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void operator []=(int index, int value) {}
 }
@@ -4397,7 +4380,7 @@ AssignmentExpression
   }
 
   test_instance_operator_indexEquals_fromThis_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void operator []=(int index, int value) {}
@@ -4434,7 +4417,7 @@ AssignmentExpression
   }
 
   test_instance_operator_unary_fromThis_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void operator -() {}
 }
@@ -4456,7 +4439,7 @@ PrefixExpression
   }
 
   test_instance_operator_unary_fromThis_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   void operator -() {}
@@ -4476,8 +4459,7 @@ PrefixExpression
   }
 
   test_instance_setter_asGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E1 on int {
   set foo(int _) {}
 }
@@ -4486,11 +4468,11 @@ extension E2 on int {
   set foo(int _) {}
   void f() {
     foo;
+//  ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
   }
 }
-''',
-      [error(diag.undefinedIdentifier, 104, 3)],
-    );
+''');
     var node = findNode.simple('foo;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
@@ -4501,7 +4483,7 @@ SimpleIdentifier
   }
 
   test_instance_setter_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   set a(int _) {}
 }
@@ -4535,7 +4517,7 @@ AssignmentExpression
   }
 
   test_instance_setter_fromThis_fromExtendedType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   set a(int _) {}
 }
@@ -4575,7 +4557,7 @@ AssignmentExpression
   }
 
   test_instance_setter_fromThis_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4613,7 +4595,7 @@ AssignmentExpression
   }
 
   test_instance_tearoff_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4631,7 +4613,7 @@ SimpleIdentifier
   }
 
   test_instance_tearoff_fromThis() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4655,7 +4637,7 @@ PropertyAccess
   }
 
   test_static_field_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4673,7 +4655,7 @@ SimpleIdentifier
   }
 
   test_static_field_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4691,7 +4673,7 @@ SimpleIdentifier
   }
 
   test_static_getter_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4709,7 +4691,7 @@ SimpleIdentifier
   }
 
   test_static_getter_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4727,7 +4709,7 @@ SimpleIdentifier
   }
 
   test_static_method_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   static void a() {}
@@ -4750,7 +4732,7 @@ MethodInvocation
   }
 
   test_static_method_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 extension E on C {
   static void a() {}
@@ -4773,7 +4755,7 @@ MethodInvocation
   }
 
   test_static_setter_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4805,7 +4787,7 @@ AssignmentExpression
   }
 
   test_static_setter_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4837,7 +4819,7 @@ AssignmentExpression
   }
 
   test_static_tearoff_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4855,7 +4837,7 @@ SimpleIdentifier
   }
 
   test_static_tearoff_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -4873,7 +4855,7 @@ SimpleIdentifier
   }
 
   test_topLevel_function_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void a() {}
 }
@@ -4902,7 +4884,7 @@ MethodInvocation
   }
 
   test_topLevel_function_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   void a() {}
 }
@@ -4931,7 +4913,7 @@ MethodInvocation
   }
 
   test_topLevel_getter_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int get a => 0;
 }
@@ -4954,7 +4936,7 @@ SimpleIdentifier
   }
 
   test_topLevel_getter_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int get a => 0;
 }
@@ -4977,7 +4959,7 @@ SimpleIdentifier
   }
 
   test_topLevel_setter_fromInstance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   set a(int _) {}
 }
@@ -5012,7 +4994,7 @@ AssignmentExpression
   }
 
   test_topLevel_setter_fromStatic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   set a(int _) {}
 }

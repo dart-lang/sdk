@@ -80,8 +80,8 @@ import 'package:kernel/ast.dart'
         TreeNode,
         Typedef,
         UnevaluatedConstant,
-        VariableDeclaration,
-        Version;
+        Version,
+        LegacyVariable;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -1713,10 +1713,10 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkVariableStatement_binaryOffsetNoTag(
+  bool checkLegacyVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
-    VariableDeclaration node,
-    VariableDeclaration other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return true;
   }

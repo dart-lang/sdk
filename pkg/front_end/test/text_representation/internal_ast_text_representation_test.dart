@@ -46,6 +46,29 @@ void testStatement(
   );
 }
 
+void testVariableDeclaration(
+  VariableDeclaration node,
+  String normal, {
+  String? verbose,
+  String? limited,
+}) {
+  Expect.stringEquals(
+    normal,
+    node.toText(normalStrategy),
+    "Unexpected normal strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    verbose ?? normal,
+    node.toText(verboseStrategy),
+    "Unexpected verbose strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    limited ?? normal,
+    node.toText(limitedStrategy),
+    "Unexpected limited strategy text for ${node.runtimeType}",
+  );
+}
+
 void testExpression(
   Expression node,
   String normal, {
@@ -201,16 +224,20 @@ void main() {
 void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration('a'),
-      new VariableDeclaration('b'),
+      new VariableStatement(new VariableDeclaration('a')),
+      new VariableStatement(new VariableDeclaration('b')),
     ], dummyUri),
     '''
 dynamic a, b;''',
   );
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration('a', type: const VoidType()),
-      new VariableDeclaration('b', initializer: new NullLiteral()),
+      new VariableStatement(
+        new VariableDeclaration('a', type: const VoidType()),
+      ),
+      new VariableStatement(
+        new VariableDeclaration('b', initializer: new NullLiteral()),
+      ),
     ], dummyUri),
     '''
 void a, b = null;''',
@@ -348,7 +375,9 @@ void _testInternalForInStatement() {
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableDeclaration: new VariableDeclarationImpl('e', fileOffset: -1),
+        variableStatement: new LegacyVariableStatement(
+          new VariableDeclarationImpl('e', fileOffset: -1),
+        ),
         error: null,
       ),
       new NullLiteral(),
@@ -364,10 +393,12 @@ for (var e in null) {}''',
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableDeclaration: new VariableDeclarationImpl(
-          'e',
-          type: const VoidType(),
-          fileOffset: -1,
+        variableStatement: new LegacyVariableStatement(
+          new VariableDeclarationImpl(
+            'e',
+            type: const VoidType(),
+            fileOffset: -1,
+          ),
         ),
         error: null,
       ),
@@ -497,8 +528,12 @@ for (null in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclarationImpl('a', fileOffset: -1),
-          new VariableDeclarationImpl('b', fileOffset: -1),
+          new VariableStatement(
+            new VariableDeclarationImpl('a', fileOffset: -1),
+          ),
+          new VariableStatement(
+            new VariableDeclarationImpl('b', fileOffset: -1),
+          ),
         ],
         error: new InvalidExpression('error'),
       ),
@@ -516,12 +551,16 @@ for (var a, b in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclarationImpl(
-            'a',
-            type: const VoidType(),
-            fileOffset: -1,
+          new VariableStatement(
+            new VariableDeclarationImpl(
+              'a',
+              type: const VoidType(),
+              fileOffset: -1,
+            ),
           ),
-          new VariableDeclarationImpl('b', fileOffset: -1),
+          new VariableStatement(
+            new VariableDeclarationImpl('b', fileOffset: -1),
+          ),
         ],
         error: new InvalidExpression('error'),
       ),
@@ -1395,21 +1434,21 @@ return 0;''');
 }
 
 void _testVariableDeclarationImpl() {
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl('foo', fileOffset: TreeNode.noOffset),
     '''
-dynamic foo;''',
+dynamic foo''',
   );
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl(
       'foo',
       initializer: new IntLiteral(0),
       fileOffset: TreeNode.noOffset,
     ),
     '''
-dynamic foo = 0;''',
+dynamic foo = 0''',
   );
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl(
       'foo',
       type: const VoidType(),
@@ -1419,9 +1458,9 @@ dynamic foo = 0;''',
       fileOffset: TreeNode.noOffset,
     ),
     '''
-required final void foo;''',
+required final void foo''',
   );
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl(
       'foo',
       type: const VoidType(),
@@ -1430,9 +1469,9 @@ required final void foo;''',
       fileOffset: TreeNode.noOffset,
     ),
     '''
-late void foo = 0;''',
+late void foo = 0''',
   );
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl(
         'foo',
         type: const VoidType(),
@@ -1444,9 +1483,9 @@ late void foo = 0;''',
         fileOffset: TreeNode.noOffset,
       ),
     '''
-late void foo = 0;''',
+late void foo = 0''',
   );
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl(
         'foo',
         type: const VoidType(),
@@ -1459,7 +1498,7 @@ late void foo = 0;''',
       )
       ..lateType = const DynamicType(),
     '''
-late dynamic foo = 0;''',
+late dynamic foo = 0''',
   );
 }
 

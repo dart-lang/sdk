@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetLiteralTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -21,24 +22,23 @@ class SetLiteralTest extends PubPackageResolutionTest {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_expression_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Set<int> a = {'a'};
-''',
-      [error(diag.setElementTypeNotAssignable, 14, 3)],
-    );
+//            ^^^
+// [diag.setElementTypeNotAssignable] The element type 'String' can't be assigned to the set type 'int'.
+''');
     assertType(setLiteral('{'), 'Set<int>');
   }
 
   test_context_noTypeArgs_expression_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Set<int> a = {1};
 ''');
     assertType(setLiteral('{'), 'Set<int>');
   }
 
   test_context_noTypeArgs_noElements_fromParameterType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   useSet({});
 }
@@ -48,14 +48,14 @@ void useSet(Set<int> _) {}
   }
 
   test_context_noTypeArgs_noElements_fromVariableType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Set<String> a = {};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
   }
 
   test_context_noTypeArgs_noElements_fromVariableType_nested() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Set<Set<String>> a = {{}};
 ''');
     assertType(setLiteral('{}'), 'Set<String>');
@@ -74,38 +74,36 @@ FutureOr<Set<int>> f() {
   }
 
   test_context_noTypeArgs_noElements_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<E extends Set<int>> {
   E a = {};
+//      ^^
+// [diag.invalidAssignment] A value of type 'Set<dynamic>' can't be assigned to a variable of type 'E'.
 }
-''',
-      [error(diag.invalidAssignment, 38, 2)],
-    );
+''');
     assertType(setLiteral('{}'), 'Set<dynamic>');
   }
 
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<E extends Set<dynamic>> {
   E a = {};
+//      ^^
+// [diag.invalidAssignment] A value of type 'Set<dynamic>' can't be assigned to a variable of type 'E'.
 }
-''',
-      [error(diag.invalidAssignment, 42, 2)],
-    );
+''');
     assertType(setLiteral('{}'), 'Set<dynamic>');
   }
 
   test_context_noTypeArgs_noEntries() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Set<String> a = {};
 ''');
     assertType(setOrMapLiteral('{'), 'Set<String>');
   }
 
   test_context_noTypeArgs_noEntries_typeParameterNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T extends Object?> {
   Set<T> a = {}; // 1
   Set<T>? b = {}; // 2
@@ -120,12 +118,11 @@ class C<T extends Object?> {
   }
 
   test_context_typeArgs_expression_conflictingExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Set<String> a = <String>{0};
-''',
-      [error(diag.setElementTypeNotAssignable, 25, 1)],
-    );
+//                       ^
+// [diag.setElementTypeNotAssignable] The element type 'int' can't be assigned to the set type 'String'.
+''');
     assertType(setLiteral('{'), 'Set<String>');
   }
 
@@ -138,52 +135,51 @@ Set<String> a = <int>{'a'};
   }
 
   test_context_typeArgs_expression_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Set<String> a = <String>{'a'};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
   }
 
   test_context_typeArgs_noElements_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Set<String> a = <int>{};
-''',
-      [error(diag.invalidAssignment, 16, 7)],
-    );
+//              ^^^^^^^
+// [diag.invalidAssignment] A value of type 'Set<int>' can't be assigned to a variable of type 'Set<String>'.
+''');
     assertType(setLiteral('{'), 'Set<int>');
   }
 
   test_context_typeArgs_noElements_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Set<String> a = <String>{};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {1, 2, 3};
 ''');
     assertType(setLiteral('{'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {1, 2.3, 4};
 ''');
     assertType(setLiteral('{'), 'Set<num>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {1, '2', 3};
 ''');
     assertType(setLiteral('{'), 'Set<Object>');
   }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 var a = {for (int e in c) e * 2};
 ''');
@@ -191,7 +187,7 @@ var a = {for (int e in c) e * 2};
   }
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 int b = 0;
 var a = {for (b in c) b * 2};
@@ -200,14 +196,14 @@ var a = {for (b in c) b * 2};
   }
 
   test_noContext_noTypeArgs_forWithDeclaration() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {for (var i = 0; i < 2; i++) i * 2};
 ''');
     assertType(setLiteral('{for'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_forWithExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int i = 0;
 var a = {for (i = 0; i < 2; i++) i * 2};
 ''');
@@ -215,7 +211,7 @@ var a = {for (i = 0; i < 2; i++) i * 2};
   }
 
   test_noContext_noTypeArgs_if() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1};
 ''');
@@ -223,7 +219,7 @@ var a = {if (c) 1};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1 else 2};
 ''');
@@ -231,7 +227,7 @@ var a = {if (c) 1 else 2};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1 else 2.3};
 ''');
@@ -239,7 +235,7 @@ var a = {if (c) 1 else 2.3};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1 else '2'};
 ''');
@@ -247,7 +243,7 @@ var a = {if (c) 1 else '2'};
   }
 
   test_noContext_noTypeArgs_spread() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 var a = {...c};
 ''');
@@ -255,7 +251,7 @@ var a = {...c};
   }
 
   test_noContext_noTypeArgs_spread_lubOfInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 List<int> b = [];
 var a = {...b, ...c};
@@ -264,7 +260,7 @@ var a = {...b, ...c};
   }
 
   test_noContext_noTypeArgs_spread_lubOfNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 List<double> b = [];
 var a = {...b, ...c};
@@ -273,7 +269,7 @@ var a = {...b, ...c};
   }
 
   test_noContext_noTypeArgs_spread_lubOfObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 List<String> b = [];
 var a = {...b, ...c};
@@ -282,7 +278,7 @@ var a = {...b, ...c};
   }
 
   test_noContext_noTypeArgs_spread_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin S on Set<int> {}
 
 void f(S s1) {
@@ -294,7 +290,7 @@ void f(S s1) {
   }
 
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 dynamic d;
 var a = {if (0 < 1) ...c else ...d};
@@ -303,36 +299,33 @@ var a = {if (0 < 1) ...c else ...d};
   }
 
   test_noContext_noTypeArgs_spread_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0};
+//                   ^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 87, 12)],
-    );
+''');
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0};
+//         ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                    ^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [
-        error(diag.invalidNullAwareOperator, 77, 4),
-        error(diag.deadCode, 88, 12),
-      ],
-    );
+''');
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0};
@@ -342,7 +335,7 @@ void f(Null a, bool b) async {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a) {
   // ignore:unused_local_variable
   var v = {1, ...?a, 2};
@@ -352,23 +345,21 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0};
+//         ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                    ^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [
-        error(diag.invalidNullAwareOperator, 90, 4),
-        error(diag.deadCode, 101, 12),
-      ],
-    );
+''');
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Null>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0};
@@ -378,7 +369,7 @@ void f<T extends Null>(T a, bool b) async {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends List<int>>(T a) {
   // ignore:unused_local_variable
   var v = {...a};
@@ -388,56 +379,52 @@ void f<T extends List<int>>(T a) {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0};
+//                   ^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 100, 12)],
-    );
+''');
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a};
+//        ^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
 }
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 73, 6)],
-    );
+''');
     assertType(setLiteral('{...'), 'dynamic');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a, 0};
+//        ^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
 }
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 73, 9)],
-    );
+''');
     assertType(setLiteral('{...'), 'dynamic');
   }
 
   test_noContext_typeArgs_expression_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = <String>{1};
-''',
-      [error(diag.setElementTypeNotAssignable, 17, 1)],
-    );
+//               ^
+// [diag.setElementTypeNotAssignable] The element type 'int' can't be assigned to the set type 'String'.
+''');
     assertType(setLiteral('{'), 'Set<String>');
   }
 
   test_noContext_typeArgs_expression_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <int>{1};
 ''');
     assertType(setLiteral('{'), 'Set<int>');
@@ -452,7 +439,7 @@ var a = <int, String>{1, 2};
   }
 
   test_noContext_typeArgs_noElements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <num>{};
 ''');
     assertType(setLiteral('{'), 'Set<num>');

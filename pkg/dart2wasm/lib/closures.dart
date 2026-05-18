@@ -1626,11 +1626,11 @@ class _CaptureFinder extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     if (depth > 0) {
       variableDepth[node] = depth;
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariableDeclaration(node);
   }
 
   @override
@@ -1863,7 +1863,7 @@ class _ContextCollector extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     Capture? capture = closures.captures[node];
     if (capture != null) {
       if (isInInitializer == capture.isInInitializer) {
@@ -1871,7 +1871,7 @@ class _ContextCollector extends RecursiveVisitor {
         capture.context = currentContext!;
       }
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariableDeclaration(node);
   }
 
   @override

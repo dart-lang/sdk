@@ -49,7 +49,7 @@ class MatchingCache {
   bool _isClosed = false;
 
   /// The declarations need for the cached expressions.
-  List<Statement> _declarations = [];
+  List<VariableDeclaration> _declarations = [];
 
   /// Map for the known cached keys and their corresponding expressions.
   Map<CacheKey, Cache> _cacheKeyMap = {};
@@ -166,7 +166,7 @@ class MatchingCache {
 
   /// Registers that the variable or local function [declaration] is need for
   /// the cached expressions.
-  void registerDeclaration(Statement declaration) {
+  void registerDeclaration(VariableDeclaration declaration) {
     assert(!_isClosed);
     _declarations.add(declaration);
   }
@@ -176,7 +176,7 @@ class MatchingCache {
   ///
   /// Once called, the matching cache is closed and no new cacheable expressions
   /// can be created.
-  Iterable<Statement> get declarations {
+  Iterable<VariableDeclaration> get declarations {
     _isClosed = true;
     return _declarations;
   }

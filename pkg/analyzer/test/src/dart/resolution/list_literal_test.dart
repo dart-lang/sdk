@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListLiteralResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ListLiteralResolutionTest extends PubPackageResolutionTest {
   test_hasTypeArguments_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int>[];
 }
@@ -40,14 +41,13 @@ ListLiteral
   }
 
   test_hasTypeArguments_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int, double>[];
+//^^^^^^^^^^^^^
+// [diag.expectedOneListTypeArguments] List literals require one type argument or none, but 2 found.
 }
-''',
-      [error(diag.expectedOneListTypeArguments, 13, 13)],
-    );
+''');
 
     var node = findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
@@ -71,7 +71,7 @@ ListLiteral
   }
 
   test_noTypeArguments_hasElements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [0];
 }
@@ -91,7 +91,7 @@ ListLiteral
   }
 
   test_noTypeArguments_hasElements_lub() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [0, 1.2];
 }
@@ -114,7 +114,7 @@ ListLiteral
   }
 
   test_noTypeArguments_noElements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [];
 }

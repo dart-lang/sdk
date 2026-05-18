@@ -417,7 +417,7 @@ class _NullableVariableInference extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     if (_nullInference.allowNotNullDeclarations) {
       var annotations = node.annotations;
       if (annotations.isNotEmpty &&

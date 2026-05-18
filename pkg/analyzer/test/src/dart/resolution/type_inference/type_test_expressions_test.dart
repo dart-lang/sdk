@@ -5,18 +5,20 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsNotTest);
     defineReflectiveTests(IsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class IsNotTest extends PubPackageResolutionTest {
   test_simple() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Object a) {
   var b = a is! String;
   print(b);
@@ -29,7 +31,7 @@ void f(Object a) {
 @reflectiveTest
 class IsTest extends PubPackageResolutionTest {
   test_simple() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Object a) {
   var b = a is String;
   print(b);

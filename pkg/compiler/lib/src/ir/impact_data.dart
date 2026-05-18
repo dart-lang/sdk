@@ -284,7 +284,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void visitVariableDeclaration(ir.VariableDeclaration node) {
+  void defaultVariableDeclaration(ir.VariableDeclaration node) {
     if (node.initializer == null) {
       registerLocalWithoutInitializer();
     }

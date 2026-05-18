@@ -2565,7 +2565,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitForStatement(ir.ForStatement node) {
     assert(_isReachable);
     void buildInitializer() {
-      for (ir.VariableDeclaration declaration in node.variables) {
+      for (ir.VariableStatement declaration in node.variables) {
         declaration.accept(this);
       }
     }
@@ -4752,7 +4752,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   @override
-  void visitVariableDeclaration(ir.VariableDeclaration node) {
+  void visitLegacyVariableStatement(ir.LegacyVariableStatement node) {
+    defaultVariableDeclaration(node.variable);
+  }
+
+  @override
+  void defaultVariableDeclaration(ir.VariableDeclaration node) {
     Local local = _localsMap.getLocalVariable(node);
     if (node.initializer == null) {
       HInstruction initialValue = graph.addConstantNull(closedWorld);
@@ -9693,7 +9698,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  void visitVariableDeclaration(ir.VariableDeclaration node) {
+  void defaultVariableDeclaration(ir.VariableDeclaration node) {
     registerRegularNode();
     skipReductiveNodes(() {
       visitList(node.annotations);

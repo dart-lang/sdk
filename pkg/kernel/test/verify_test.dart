@@ -48,7 +48,7 @@ void main() {
       VariableDeclaration variable = test.makeVariable();
       test.addNode(
         Block([
-          new Block([variable]),
+          new Block([new VariableStatement(variable)]),
           new ReturnStatement(new VariableGet(variable)),
         ]),
       );
@@ -75,7 +75,14 @@ void main() {
     'Variable redeclared',
     (TestHarness test) {
       VariableDeclaration variable = test.makeVariable();
-      test.addNode(Block([variable, variable]));
+      test.addNode(
+        Procedure(
+          new Name('bar'),
+          ProcedureKind.Method,
+          FunctionNode(null, positionalParameters: [variable, variable]),
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset,
+      );
       return variable;
     },
     (Node? node) => "${errorPrefix}Variable '$node' declared more than once.",

@@ -5,17 +5,19 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ThrowTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ThrowTest extends PubPackageResolutionTest {
   test_downward() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   throw a();
 }

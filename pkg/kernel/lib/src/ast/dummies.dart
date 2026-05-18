@@ -472,6 +472,15 @@ final List<MapPatternEntry> emptyListOfMapPatternEntry = List.filled(
   growable: false,
 );
 
+/// Non-nullable [VariableStatement] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final VariableStatement dummyVariableStatement = new VariableStatement(
+  dummyVariableDeclaration,
+);
+
 /// Non-nullable [VariableDeclaration] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be

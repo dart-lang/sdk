@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class ExtensionDeclarationResolutionTest extends PubPackageResolutionTest {
   test_blockBody_empty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 ''');
 
@@ -41,7 +40,7 @@ ExtensionDeclaration
   }
 
   test_blockBody_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static int f = 0;
 }
@@ -84,7 +83,7 @@ ExtensionDeclaration
   }
 
   test_blockBody_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get g => 0;
 }
@@ -126,7 +125,7 @@ ExtensionDeclaration
   }
 
   test_blockBody_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void m() {}
 }
@@ -168,7 +167,7 @@ ExtensionDeclaration
   }
 
   test_blockBody_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   set s(int v) {}
 }
@@ -216,7 +215,7 @@ ExtensionDeclaration
   }
 
   test_emptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int;
 ''');
 
@@ -238,13 +237,12 @@ ExtensionDeclaration
   }
 
   test_emptyBody_language310() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension E on int;
-''',
-      [error(diag.experimentNotEnabled, 34, 1)],
-    );
+//                ^
+// [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
+''');
 
     var node = findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''

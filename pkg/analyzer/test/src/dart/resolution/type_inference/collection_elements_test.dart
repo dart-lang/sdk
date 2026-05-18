@@ -2,32 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForElementTest);
     defineReflectiveTests(IfElementTest);
     defineReflectiveTests(SpreadElementTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ForElementTest extends PubPackageResolutionTest {
   test_list_awaitForIn_dynamic_downward() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() async {
   <int>[await for (var e in a()) e];
+//                               ^
+// [diag.listElementTypeNotAssignable] The element type 'Object?' can't be assigned to the list type 'int'.
 }
 
 T a<T>() => throw '';
-''',
-      [error(diag.listElementTypeNotAssignable, 50, 1)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -47,7 +47,7 @@ MethodInvocation
   }
 
   test_list_awaitForIn_int_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() async {
   <int>[await for (int e in a()) e];
 }
@@ -73,7 +73,7 @@ MethodInvocation
   }
 
   test_list_for_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>[for (int i = 0; a(); i++) i];
 }
@@ -99,16 +99,15 @@ MethodInvocation
   }
 
   test_list_forIn_dynamic_downward() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>[for (var e in a()) e];
+//                         ^
+// [diag.listElementTypeNotAssignable] The element type 'Object?' can't be assigned to the list type 'int'.
 }
 
 T a<T>() => throw '';
-''',
-      [error(diag.listElementTypeNotAssignable, 38, 1)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -128,7 +127,7 @@ MethodInvocation
   }
 
   test_list_forIn_int_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>[for (int e in a()) e];
 }
@@ -154,19 +153,17 @@ MethodInvocation
   }
 
   test_map_awaitForIn_dynamic_downward() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() async {
   <int, int>{await for (var e in a()) e : e};
+//                                    ^
+// [diag.mapKeyTypeNotAssignable] The element type 'Object?' can't be assigned to the map key type 'int'.
+//                                        ^
+// [diag.mapValueTypeNotAssignable] The element type 'Object?' can't be assigned to the map value type 'int'.
 }
 
 T a<T>() => throw '';
-''',
-      [
-        error(diag.mapKeyTypeNotAssignable, 55, 1),
-        error(diag.mapValueTypeNotAssignable, 59, 1),
-      ],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -186,7 +183,7 @@ MethodInvocation
   }
 
   test_map_awaitForIn_int_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() async {
   <int, int>{await for (int e in a()) e : e};
 }
@@ -212,7 +209,7 @@ MethodInvocation
   }
 
   test_map_for_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int, int>{for (int i = 0; a(); i++) i : i};
 }
@@ -238,19 +235,17 @@ MethodInvocation
   }
 
   test_map_forIn_dynamic_downward() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int, int>{for (var e in a()) e : e};
+//                              ^
+// [diag.mapKeyTypeNotAssignable] The element type 'Object?' can't be assigned to the map key type 'int'.
+//                                  ^
+// [diag.mapValueTypeNotAssignable] The element type 'Object?' can't be assigned to the map value type 'int'.
 }
 
 T a<T>() => throw '';
-''',
-      [
-        error(diag.mapKeyTypeNotAssignable, 43, 1),
-        error(diag.mapValueTypeNotAssignable, 47, 1),
-      ],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -270,7 +265,7 @@ MethodInvocation
   }
 
   test_map_forIn_int_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int, int>{for (int e in a()) e : e};
 }
@@ -296,16 +291,15 @@ MethodInvocation
   }
 
   test_set_awaitForIn_dynamic_downward() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() async {
   <int>{await for (var e in a()) e};
+//                               ^
+// [diag.setElementTypeNotAssignable] The element type 'Object?' can't be assigned to the set type 'int'.
 }
 
 T a<T>() => throw '';
-''',
-      [error(diag.setElementTypeNotAssignable, 50, 1)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -325,7 +319,7 @@ MethodInvocation
   }
 
   test_set_awaitForIn_int_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() async {
   <int>{await for (int e in a()) e};
 }
@@ -351,7 +345,7 @@ MethodInvocation
   }
 
   test_set_for_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>{for (int i = 0; a(); i++) i};
 }
@@ -377,16 +371,15 @@ MethodInvocation
   }
 
   test_set_forIn_dynamic_downward() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>{for (var e in a()) e};
+//                         ^
+// [diag.setElementTypeNotAssignable] The element type 'Object?' can't be assigned to the set type 'int'.
 }
 
 T a<T>() => throw '';
-''',
-      [error(diag.setElementTypeNotAssignable, 38, 1)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -406,7 +399,7 @@ MethodInvocation
   }
 
   test_set_forIn_int_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>{for (int e in a()) e};
 }
@@ -435,7 +428,7 @@ MethodInvocation
 @reflectiveTest
 class IfElementTest extends PubPackageResolutionTest {
   test_list_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>[if (a()) 1];
 }
@@ -461,7 +454,7 @@ MethodInvocation
   }
 
   test_map_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <String, int>{if (a()) 'a' : 1};
 }
@@ -487,7 +480,7 @@ MethodInvocation
   }
 
   test_set_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>{if (a()) 1};
 }
@@ -516,7 +509,7 @@ MethodInvocation
 @reflectiveTest
 class SpreadElementTest extends PubPackageResolutionTest {
   test_list_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>[...a()];
 }
@@ -542,7 +535,7 @@ MethodInvocation
   }
 
   test_map_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <String, int>{...a()};
 }
@@ -568,7 +561,7 @@ MethodInvocation
   }
 
   test_set_downward() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   <int>{...a()};
 }

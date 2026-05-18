@@ -447,7 +447,28 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitVariableDeclaration(
+  TreeNode visitLegacyVariableStatement(
+    LegacyVariableStatement node,
+    TreeNode? removalSentinel,
+  ) {
+    if (removalSentinel != null) {
+      VariableDeclaration? variable = transformOrRemoveVariableDeclaration(
+        node.variable,
+      );
+      if (variable == null) {
+        return removalSentinel;
+      }
+      node.variable = variable..parent = node;
+      return node;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      node.variable = transform(node.variable)..parent = node;
+      return node;
+    }
+  }
+
+  @override
+  TreeNode defaultVariableDeclaration(
     VariableDeclaration node,
     TreeNode? removalSentinel,
   ) {
@@ -1107,7 +1128,12 @@ class ConstantsTransformer extends RemovingTransformer {
           if (isContinueTarget) {
             // TODO(johnniwinther): In this case it should be an error to have
             // any variables. This is not currently reported.
-            replacementStatements.addAll(pattern.declaredVariables);
+            for (VariableDeclaration declaredVariable
+                in pattern.declaredVariables) {
+              replacementStatements.add(
+                extern.createVariableStatement(declaredVariable),
+              );
+            }
 
             for (VariableDeclaration variable in pattern.declaredVariables) {
               (declaredVariablesByName[variable.name!] ??= []).add(variable);
@@ -1247,7 +1273,9 @@ class ConstantsTransformer extends RemovingTransformer {
             ],
             [node.fileOffset],
             extern.createBlock([
-              ...switchCase.jointVariables,
+              for (VariableDeclaration jointVariable
+                  in switchCase.jointVariables)
+                extern.createVariableStatement(jointVariable),
               if (body is! Block || body.statements.isNotEmpty) body,
             ], fileOffset: node.fileOffset),
             isDefault: switchCase.isDefault,
@@ -1269,7 +1297,8 @@ class ConstantsTransformer extends RemovingTransformer {
           replacementCases.add(replacementCase);
         } else {
           caseBlock = extern.createBlock([
-            ...switchCase.jointVariables,
+            for (VariableDeclaration jointVariable in switchCase.jointVariables)
+              extern.createVariableStatement(jointVariable),
             if (body is! Block || body.statements.isNotEmpty) body,
           ], fileOffset: switchCase.fileOffset);
         }
@@ -1302,7 +1331,8 @@ class ConstantsTransformer extends RemovingTransformer {
         }
         cases.add(
           extern.createBlock([
-            ...caseVariables,
+            for (VariableDeclaration caseVariable in caseVariables)
+              extern.createVariableStatement(caseVariable),
             caseBlock,
             if (breakStatement != null)
               // Coverage-ignore(suite): Not run.
@@ -1355,10 +1385,13 @@ class ConstantsTransformer extends RemovingTransformer {
         );
         innerLabeledStatement.body = casesBlock..parent = innerLabeledStatement;
         replacementStatements = [
-          matchResultVariable,
+          extern.createVariableStatement(matchResultVariable),
           ...replacementStatements,
-          ...matchingCache.declarations,
-          ...declaredVariableHelpers,
+          for (VariableDeclaration declaration in matchingCache.declarations)
+            extern.createVariableStatement(declaration),
+          for (VariableDeclaration declaredVariableHelper
+              in declaredVariableHelpers)
+            extern.createVariableStatement(declaredVariableHelper),
           innerLabeledStatement,
           extern.createSwitchStatement(
             extern.createVariableGet(matchResultVariable),
@@ -1371,8 +1404,11 @@ class ConstantsTransformer extends RemovingTransformer {
       } else {
         replacementStatements = [
           ...replacementStatements,
-          ...matchingCache.declarations,
-          ...declaredVariableHelpers,
+          for (VariableDeclaration declaration in matchingCache.declarations)
+            extern.createVariableStatement(declaration),
+          for (VariableDeclaration declaredVariableHelper
+              in declaredVariableHelpers)
+            extern.createVariableStatement(declaredVariableHelper),
           ...cases,
         ];
       }
@@ -1609,15 +1645,19 @@ class ConstantsTransformer extends RemovingTransformer {
       }
     }
 
-    List<Statement> cacheVariables = [...matchingCache.declarations];
-    Iterable<Statement> declarations =
+    List<Statement> cacheVariables = [
+      for (VariableDeclaration declaration in matchingCache.declarations)
+        extern.createVariableStatement(declaration),
+    ];
+    Iterable<VariableDeclaration> declarations =
         node.patternGuard.pattern.declaredVariables;
     Statement ifStatement;
     if (declarations.isNotEmpty) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
       ifStatement = extern.createBlock([
-        ...declarations,
+        for (VariableDeclaration declaration in declarations)
+          extern.createVariableStatement(declaration),
         extern.createIfStatement(
           condition,
           then,
@@ -1680,7 +1720,8 @@ class ConstantsTransformer extends RemovingTransformer {
         replacementStatements,
       );
       replacementStatements = [
-        ...matchingCache.declarations,
+        for (VariableDeclaration declaration in matchingCache.declarations)
+          extern.createVariableStatement(declaration),
         ...replacementStatements,
       ];
     } else {
@@ -1689,7 +1730,8 @@ class ConstantsTransformer extends RemovingTransformer {
         inCacheInitializer: false,
       );
       replacementStatements = [
-        ...matchingCache.declarations,
+        for (VariableDeclaration declaration in matchingCache.declarations)
+          extern.createVariableStatement(declaration),
         // TODO(cstefantsova): Provide a better diagnostic message.
         extern.createIfStatement(
           extern.createNot(readMatchingExpression),
@@ -1720,7 +1762,9 @@ class ConstantsTransformer extends RemovingTransformer {
       ];
     }
     replacementStatements = [
-      ...node.pattern.declaredVariables,
+      for (VariableDeclaration declaredVariable
+          in node.pattern.declaredVariables)
+        extern.createVariableStatement(declaredVariable),
       ...replacementStatements,
     ];
 
@@ -1770,8 +1814,12 @@ class ConstantsTransformer extends RemovingTransformer {
         effects: effects,
       );
       replacementStatements = [
-        ...matchingCache.declarations,
-        ...node.pattern.declaredVariables,
+        for (VariableDeclaration declaration in matchingCache.declarations)
+          extern.createVariableStatement(declaration),
+        for (VariableDeclaration declaredVariable
+            in node.pattern.declaredVariables)
+          extern // Coverage-ignore(suite): Not run.
+              .createVariableStatement(declaredVariable),
         ...replacementStatements,
         ...effects,
       ];
@@ -1784,8 +1832,12 @@ class ConstantsTransformer extends RemovingTransformer {
       );
 
       replacementStatements = [
-        ...matchingCache.declarations,
-        ...node.pattern.declaredVariables,
+        for (VariableDeclaration declaration in matchingCache.declarations)
+          extern.createVariableStatement(declaration),
+        for (VariableDeclaration declaredVariable
+            in node.pattern.declaredVariables)
+          extern // Coverage-ignore(suite): Not run.
+              .createVariableStatement(declaredVariable),
         // TODO(cstefantsova): Provide a better diagnostic message.
         extern.createIfStatement(
           extern.createNot(readMatchingExpression),
@@ -2005,7 +2057,7 @@ class ConstantsTransformer extends RemovingTransformer {
       )..parent = labeledStatement;
       replacement = extern.createBlockExpression(
         extern.createBlock([
-          valueVariable,
+          extern.createVariableStatement(valueVariable),
           labeledStatement,
         ], fileOffset: node.fileOffset),
         extern.createVariableGet(valueVariable),
@@ -2110,7 +2162,9 @@ class ConstantsTransformer extends RemovingTransformer {
 
         cases.add(
           extern.createBlock([
-            ...pattern.declaredVariables,
+            for (VariableDeclaration declaredVariable
+                in pattern.declaredVariables)
+              extern.createVariableStatement(declaredVariable),
             extern.createIfStatement(
               caseCondition,
               extern.createBlock([
@@ -2173,8 +2227,9 @@ class ConstantsTransformer extends RemovingTransformer {
       )..parent = labeledStatement;
       replacement = extern.createBlockExpression(
         extern.createBlock([
-          valueVariable,
-          ...matchingCache.declarations,
+          extern.createVariableStatement(valueVariable),
+          for (VariableDeclaration declaration in matchingCache.declarations)
+            extern.createVariableStatement(declaration),
           labeledStatement,
         ], fileOffset: node.fileOffset),
         extern.createVariableGet(valueVariable),
@@ -6048,8 +6103,12 @@ class ConstantEvaluator
 }
 
 class StatementConstantEvaluator
-    with StatementVisitorExperimentExclusionMixin<ExecutionStatus>
-    implements StatementVisitor<ExecutionStatus> {
+    with
+        StatementVisitorExperimentExclusionMixin<ExecutionStatus>,
+        VariableVisitorExperimentExclusionMixin<ExecutionStatus>
+    implements
+        StatementVisitor<ExecutionStatus>,
+        VariableVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator);
@@ -6145,7 +6204,7 @@ class StatementConstantEvaluator
 
   @override
   ExecutionStatus visitForStatement(ForStatement node) {
-    for (VariableDeclaration variable in node.variables) {
+    for (VariableStatement variable in node.variables) {
       final ExecutionStatus status = variable.accept(this);
       if (status is! ProceedStatus) return status;
     }

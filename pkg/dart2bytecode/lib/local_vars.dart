@@ -527,38 +527,8 @@ class _ScopeBuilder extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _handleVariableInitialization(node);
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    _handleVariableInitialization(node);
-  }
-
-  void _handleVariableInitialization(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     _declareVariable(node.variable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitPositionalParameter(PositionalParameter node) {
-    _handleFunctionParameter(node);
-  }
-
-  @override
-  void visitNamedParameter(NamedParameter node) {
-    _handleFunctionParameter(node);
-  }
-
-  void _handleFunctionParameter(FunctionParameter node) {
-    _declareVariable(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitCatchVariable(CatchVariable node) {
-    _declareVariable(node);
     node.visitChildren(this);
   }
 
@@ -1063,16 +1033,7 @@ class _Allocator extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _handleVariableInitialization(node);
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    _handleVariableInitialization(node);
-  }
-
-  void _handleVariableInitialization(VariableDeclaration node) {
+  void defaultVariableDeclaration(VariableDeclaration node) {
     _allocateVariable(node.variable);
     node.visitChildren(this);
   }

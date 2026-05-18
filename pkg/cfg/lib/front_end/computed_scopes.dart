@@ -305,7 +305,12 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(ast.VariableDeclaration node) {
+  void visitLegacyVariableStatement(ast.LegacyVariableStatement node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void defaultVariableDeclaration(ast.VariableDeclaration node) {
     _declareVariable(node.variable);
     node.visitChildren(this);
   }

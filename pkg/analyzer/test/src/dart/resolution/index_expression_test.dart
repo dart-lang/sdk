@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class IndexExpressionResolutionTest extends PubPackageResolutionTest {
   test_contextType_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator [](int index) => false;
   operator []=(String index, bool value) {}
@@ -50,7 +49,7 @@ MethodInvocation
   }
 
   test_contextType_readWrite_readLower() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator [](int index) => 0;
   operator []=(num index, int value) {}
@@ -82,8 +81,7 @@ MethodInvocation
   }
 
   test_contextType_readWrite_writeLower() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator [](num index) => 0;
   operator []=(int index, int value) {}
@@ -91,12 +89,12 @@ class A {
 
 void f(A a) {
   a[ g() ]++;
+//   ^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num' can't be assigned to the parameter type 'int'.
 }
 
 T g<T>() => throw 0;
-''',
-      [error(diag.argumentTypeNotAssignable, 107, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('g()');
     assertResolvedNodeText(node, r'''
@@ -117,7 +115,7 @@ MethodInvocation
   }
 
   test_contextType_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator [](int index) => false;
   operator []=(String index, bool value) {}
@@ -196,7 +194,7 @@ IndexExpression
   }
 
   test_read() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -225,7 +223,7 @@ IndexExpression
   }
 
   test_read_cascade_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -265,7 +263,7 @@ IndexExpression
   }
 
   test_read_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   T operator[](int index) => throw 42;
 }
@@ -298,18 +296,17 @@ IndexExpression
   }
 
   test_read_index_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     this[super];
+//       ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 
   int operator[](Object index) => 0;
 }
-''',
-      [error(diag.missingAssignableSelector, 32, 5)],
-    );
+''');
 
     var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
@@ -328,14 +325,13 @@ IndexExpression
   }
 
   test_read_index_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> a) {
   a[b];
+//  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 }
-''',
-      [error(diag.undefinedIdentifier, 26, 1)],
-    );
+''');
 
     var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
@@ -361,7 +357,7 @@ IndexExpression
   }
 
   test_read_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -391,7 +387,7 @@ IndexExpression
   }
 
   test_read_ofExtension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   bool operator[](int index) => false;
 }
@@ -419,7 +415,7 @@ IndexExpression
   }
 
   test_read_ofExtension_augmentation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f() {
@@ -449,7 +445,7 @@ IndexExpression
   }
 
   test_read_switchExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -505,7 +501,7 @@ IndexExpression
   }
 
   test_read_target_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   a[0];
 }
@@ -530,14 +526,13 @@ IndexExpression
   }
 
   test_read_target_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   a[0];
+//^
+// [diag.undefinedIdentifier] Undefined name 'a'.
 }
-''',
-      [error(diag.undefinedIdentifier, 13, 1)],
-    );
+''');
 
     var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
@@ -558,7 +553,7 @@ IndexExpression
   }
 
   test_readWrite_assignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   num operator[](int index) => 0;
   void operator[]=(int index, num value) {}
@@ -600,7 +595,7 @@ AssignmentExpression
   }
 
   test_readWrite_assignment_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   T operator[](int index) => throw 42;
   void operator[]=(int index, T value) {}
@@ -649,7 +644,7 @@ AssignmentExpression
   }
 
   test_readWrite_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   num operator[](int index) => 0;
   void operator[]=(int index, num value) {}
@@ -693,7 +688,7 @@ AssignmentExpression
   }
 
   test_rewrite_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   T Function<T>(T) operator[](int i);
 }
@@ -732,7 +727,7 @@ int Function(int)? f(B? b) => b?.a[0];
   }
 
   test_write() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, num value) {}
 }
@@ -774,7 +769,7 @@ AssignmentExpression
   }
 
   test_write_cascade_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, A a) {}
 }
@@ -843,7 +838,7 @@ CascadeExpression
   }
 
   test_write_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void operator[]=(int index, T value) {}
 }
@@ -891,7 +886,7 @@ AssignmentExpression
   }
 
   test_write_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, num value) {}
 }
@@ -934,7 +929,7 @@ AssignmentExpression
   }
 
   test_write_ofExtension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   operator[]=(int index, num value) {}
 }
@@ -983,7 +978,7 @@ augment extension E {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 extension E on int {}
@@ -1027,7 +1022,7 @@ AssignmentExpression
   }
 
   test_write_switchExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, num value) {}
 }

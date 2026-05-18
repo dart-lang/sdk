@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,6 +15,7 @@ main() {
     defineReflectiveTests(
       GenericTypeAliasResolutionTest_WithoutGenericMetadata,
     );
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,7 +23,7 @@ main() {
 class GenericTypeAliasResolutionTest extends PubPackageResolutionTest
     with GenericTypeAliasResolutionTestCases {
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 
 typedef G = Function<S>();
@@ -32,7 +33,7 @@ C<G>? x;
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 
 C<Function<S>()>? x;
@@ -40,7 +41,7 @@ C<Function<S>()>? x;
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T) {}
 
 main() {
@@ -50,7 +51,7 @@ main() {
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_functionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 late T Function<T>(T?) f;
 
 main() {
@@ -60,7 +61,7 @@ main() {
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void f<T>(T) {}
 }
@@ -72,7 +73,7 @@ main() {
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_typedef() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef T F<T>(T t);
 
 F<Function<S>()>? x;
@@ -83,15 +84,14 @@ F<Function<S>()>? x;
     newFile('$testPackageLibPath/a.dart', '''
 typedef G = Function<S>();
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart=2.12
 import 'a.dart';
 class C<T> {}
 C<G>? x;
-''',
-      [error(diag.genericFunctionTypeCannotBeTypeArgument, 47, 1)],
-    );
+//^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
+''');
   }
 }
 
@@ -100,62 +100,57 @@ class GenericTypeAliasResolutionTest_WithoutGenericMetadata
     extends PubPackageResolutionTest
     with GenericTypeAliasResolutionTestCases {
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 class C<T> {}
 
 typedef G = Function<S>();
 
 C<G>? x;
-''',
-      [error(diag.genericFunctionTypeCannotBeTypeArgument, 59, 1)],
-    );
+//^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
+''');
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 class C<T> {}
 
 C<Function<S>()>? x;
-''',
-      [error(diag.genericFunctionTypeCannotBeTypeArgument, 31, 13)],
-    );
+//^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
+''');
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 void f<T>(T) {}
 
 main() {
   f<Function<S>()>(null);
+//  ^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
 }
-''',
-      [error(diag.genericFunctionTypeCannotBeTypeArgument, 44, 13)],
-    );
+''');
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_functionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 late T Function<T>(T?) f;
 
 main() {
   f<Function<S>()>(null);
+//  ^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
 }
-''',
-      [error(diag.genericFunctionTypeCannotBeTypeArgument, 54, 13)],
-    );
+''');
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 class C {
   void f<T>(T) {}
@@ -163,28 +158,27 @@ class C {
 
 main() {
   new C().f<Function<S>()>(null);
+//          ^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
 }
-''',
-      [error(diag.genericFunctionTypeCannotBeTypeArgument, 66, 13)],
-    );
+''');
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_typedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 typedef T F<T>(T t);
 
 F<Function<S>()>? x;
-''',
-      [error(diag.genericFunctionTypeCannotBeTypeArgument, 38, 13)],
-    );
+//^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
+''');
   }
 }
 
 mixin GenericTypeAliasResolutionTestCases on PubPackageResolutionTest {
   test_genericFunctionTypeCannotBeTypeArgument_OK_def_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 
 typedef G = Function();
@@ -194,7 +188,7 @@ C<G> x = C();
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_OK_literal_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 
 C<Function()> x = C();
@@ -202,36 +196,36 @@ C<Function()> x = C();
   }
 
   test_missingGenericFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F<T> = ;
+//             ^
+// [diag.expectedTypeName] Expected a type name.
 
 void f() {
   F.a;
+//  ^
+// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.expectedTypeName, 15, 1), error(diag.undefinedGetter, 33, 1)],
-    );
+''');
   }
 
   test_missingGenericFunction_imported_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = ;
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 
 void f() {
   p.F.a;
+//    ^
+// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedGetter, 40, 1)],
-    );
+''');
   }
 
   test_type_element() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 G<int>? g;
 
 typedef G<T> = T Function(double);
@@ -260,7 +254,7 @@ NamedType
   }
 
   test_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B {}

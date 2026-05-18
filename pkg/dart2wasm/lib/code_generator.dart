@@ -672,6 +672,18 @@ abstract class AstCodeGenerator
     }
   }
 
+  void translateVariableDeclaration(VariableDeclaration node) {
+    final oldFileOffset = setSourceMapFileOffset(node.fileOffset);
+    try {
+      visitVariableDeclaration(node);
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    } finally {
+      setSourceMapFileOffset(oldFileOffset);
+    }
+  }
+
   void translateStatement(Statement node) {
     final oldFileOffset = setSourceMapFileOffset(node.fileOffset);
     try {
@@ -1266,7 +1278,7 @@ abstract class AstCodeGenerator
   @override
   void visitForStatement(ForStatement node) {
     allocateContext(node);
-    for (VariableDeclaration variable in node.variables) {
+    for (VariableStatement variable in node.variables) {
       translateStatement(variable);
     }
     w.Label block = b.block();
@@ -1290,8 +1302,8 @@ abstract class AstCodeGenerator
       w.Local newContext = context.currentLocal;
 
       // Copy the values of captured loop variables to the new context.
-      for (VariableDeclaration variable in node.variables) {
-        Capture? capture = closures.captures[variable];
+      for (VariableStatement variableDeclaration in node.variables) {
+        Capture? capture = closures.captures[variableDeclaration.variable];
         if (capture != null) {
           assert(capture.context == context);
           b.local_get(newContext);
@@ -1559,7 +1571,7 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitLet(Let node, w.ValueType expectedType) {
-    translateStatement(node.variable);
+    translateVariableDeclaration(node.variable);
     return translateExpression(node.body, expectedType);
   }
 
@@ -4440,7 +4452,7 @@ class ConstructorInitializerCodeGenerator extends ConstructorCodeGeneratorBase {
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    translateStatement(node.variable);
+    translateVariableDeclaration(node.variable);
   }
 
   @override

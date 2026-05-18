@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class FunctionExpressionInvocationTest extends PubPackageResolutionTest {
   test_call_infer_fromArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void call<T>(T t) {}
 }
@@ -97,7 +96,7 @@ FunctionExpressionInvocation
   }
 
   test_call_infer_fromContext() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   T call<T>() {
     throw 42;
@@ -128,7 +127,7 @@ FunctionExpressionInvocation
   }
 
   test_call_typeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   T call<T>() {
     throw 42;
@@ -167,7 +166,7 @@ FunctionExpressionInvocation
   }
 
   test_dynamic_withoutTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   (main as dynamic)(0);
 }
@@ -206,7 +205,7 @@ FunctionExpressionInvocation
   }
 
   test_dynamic_withTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   (main as dynamic)<bool, int>(0);
 }
@@ -260,7 +259,7 @@ FunctionExpressionInvocation
   }
 
   test_expression_interfaceType_nullable_hasCall() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a();
 }
@@ -286,7 +285,7 @@ FunctionExpressionInvocation
   }
 
   test_expression_recordType_hasCall_extensionMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((String,) a) {
   a();
 }
@@ -312,15 +311,14 @@ FunctionExpressionInvocation
   }
 
   test_expression_recordType_hasCall_namedField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var r = (call: () => 0);
   r();
+//^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 40, 1)],
-    );
+''');
     var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
@@ -338,14 +336,13 @@ FunctionExpressionInvocation
   }
 
   test_expression_recordType_noCall() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((String,) a) {
   a();
+//^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 24, 1)],
-    );
+''');
     var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
@@ -363,7 +360,7 @@ FunctionExpressionInvocation
   }
 
   test_formalParameter_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(T Function<T>(T a) g) {
   g(0);
 }
@@ -395,7 +392,7 @@ FunctionExpressionInvocation
   }
 
   test_formalParameter_generic_withTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F<S> = S Function<T>(T x);
 
 void f(F<int> a) {
@@ -436,14 +433,13 @@ FunctionExpressionInvocation
   }
 
   test_formalParameter_tooManyArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int Function() g, int a) {
   g(a);
+//  ^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 38, 1)],
-    );
+''');
 
     var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
@@ -468,7 +464,7 @@ FunctionExpressionInvocation
   }
 
   test_getter_functionTyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = String Function(int a, {int b});
 
 class A {
@@ -511,7 +507,7 @@ FunctionExpressionInvocation
   }
 
   test_getter_functionTyped_withSetterDeclaredLocally() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   Function get foo => () {};
 }
@@ -541,15 +537,14 @@ FunctionExpressionInvocation
   }
 
   test_invalidConst_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const id = identical;
 const a = 0;
 const b = 0;
 const c = id(a, b);
-''',
-      [error(diag.constInitializedWithNonConstantValue, 58, 8)],
-    );
+//        ^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
 
     var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
@@ -579,14 +574,15 @@ FunctionExpressionInvocation
   }
 
   test_never() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x<int>(1 + 2);
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//      ^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 26, 8)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -629,14 +625,13 @@ FunctionExpressionInvocation
   }
 
   test_neverQ() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x<int>(1 + 2);
+//^
+// [diag.uncheckedInvocationOfNullableValue] The function can't be unconditionally invoked because it can be 'null'.
 }
-''',
-      [error(diag.uncheckedInvocationOfNullableValue, 21, 1)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -679,7 +674,7 @@ FunctionExpressionInvocation
   }
 
   test_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int Function() get foo;
 }
@@ -715,7 +710,7 @@ FunctionExpressionInvocation
   }
 
   test_nullShorting_extended() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   int Function() f();
 }
@@ -750,7 +745,7 @@ FunctionExpressionInvocation
   }
 
   test_nullShorting_extends() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int Function() get foo;
 }
@@ -793,7 +788,7 @@ PropertyAccess
   }
 
   test_on_switchExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     _ => foo,
@@ -838,7 +833,7 @@ FunctionExpressionInvocation
   }
 
   test_record_field_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({void Function(int) foo}) r) {
   r.foo(0);
 }
@@ -873,7 +868,7 @@ FunctionExpressionInvocation
   }
 
   test_record_field_positional_rewrite() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((void Function(int),) r) {
   r.$1(0);
 }
@@ -908,7 +903,7 @@ FunctionExpressionInvocation
   }
 
   test_record_field_positional_withParenthesis() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((void Function(int),) r) {
   (r.$1)(0);
 }

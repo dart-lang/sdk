@@ -2,38 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListLiteralTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ListLiteralTest extends PubPackageResolutionTest {
   test_context_noTypeArgs_expression_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 List<int> a = ['a'];
-''',
-      [error(diag.listElementTypeNotAssignable, 15, 3)],
-    );
-    assertType(findNode.listLiteral('['), 'List<int>');
+//             ^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
+''');
+    assertType(findNode.listLiteral('[\'a\']'), 'List<int>');
   }
 
   test_context_noTypeArgs_expression_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> a = [1];
 ''');
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_context_noTypeArgs_noElements_fromReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> f() {
   return [];
 }
@@ -42,38 +42,36 @@ List<int> f() {
   }
 
   test_context_noTypeArgs_noElements_fromVariableType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<String> a = [];
 ''');
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
   test_context_noTypeArgs_noElements_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<E extends List<int>> {
   E a = [];
+//      ^^
+// [diag.invalidAssignment] A value of type 'List<dynamic>' can't be assigned to a variable of type 'E'.
 }
-''',
-      [error(diag.invalidAssignment, 39, 2)],
-    );
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+''');
+    assertType(findNode.listLiteral('[]'), 'List<dynamic>');
   }
 
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<E extends List<dynamic>> {
   E a = [];
+//      ^^
+// [diag.invalidAssignment] A value of type 'List<dynamic>' can't be assigned to a variable of type 'E'.
 }
-''',
-      [error(diag.invalidAssignment, 43, 2)],
-    );
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+''');
+    assertType(findNode.listLiteral('[]'), 'List<dynamic>');
   }
 
   test_context_spread_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>(T t) => t;
 
 main() {
@@ -106,23 +104,21 @@ MethodInvocation
   }
 
   test_context_typeArgs_expression_conflictingContext() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 List<String> a = <int>[0];
-''',
-      [error(diag.invalidAssignment, 17, 8)],
-    );
-    assertType(findNode.listLiteral('['), 'List<int>');
+//               ^^^^^^^^
+// [diag.invalidAssignment] A value of type 'List<int>' can't be assigned to a variable of type 'List<String>'.
+''');
+    assertType(findNode.listLiteral('<int>['), 'List<int>');
   }
 
   test_context_typeArgs_expression_conflictingExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 List<String> a = <String>[0];
-''',
-      [error(diag.listElementTypeNotAssignable, 26, 1)],
-    );
-    assertType(findNode.listLiteral('['), 'List<String>');
+//                        ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
+''');
+    assertType(findNode.listLiteral('<String>['), 'List<String>');
   }
 
   @failingTest
@@ -136,31 +132,30 @@ List<String> a = <int>['a'];
   }
 
   test_context_typeArgs_expression_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<String> a = <String>['a'];
 ''');
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
   test_context_typeArgs_noElements_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 List<String> a = <int>[];
-''',
-      [error(diag.invalidAssignment, 17, 7)],
-    );
-    assertType(findNode.listLiteral('['), 'List<int>');
+//               ^^^^^^^
+// [diag.invalidAssignment] A value of type 'List<int>' can't be assigned to a variable of type 'List<String>'.
+''');
+    assertType(findNode.listLiteral('<int>['), 'List<int>');
   }
 
   test_context_typeArgs_noElements_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<String> a = <String>[];
 ''');
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
   test_nested_hasNull_1() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   [[0], null];
 }
@@ -170,7 +165,7 @@ main() {
   }
 
   test_nested_hasNull_2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   [[0], [1, null]];
 }
@@ -181,48 +176,46 @@ main() {
   }
 
   test_noContext_noTypeArgs_expressions_lubOfInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = [1, 2, 3];
 ''');
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = [1, 2.3, 4];
 ''');
     assertType(findNode.listLiteral('['), 'List<num>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = [1, '2', 3];
 ''');
     assertType(findNode.listLiteral('['), 'List<Object>');
   }
 
   test_noContext_noTypeArgs_expressions_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = [x];
-''',
-      [error(diag.undefinedIdentifier, 9, 1)],
-    );
-    assertType(findNode.listLiteral('['), 'List<InvalidType>');
+//       ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+''');
+    assertType(findNode.listLiteral('[x]'), 'List<InvalidType>');
   }
 
   test_noContext_noTypeArgs_expressions_unresolved_multiple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = [0, x, 2];
-''',
-      [error(diag.undefinedIdentifier, 12, 1)],
-    );
-    assertType(findNode.listLiteral('['), 'List<InvalidType>');
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+''');
+    assertType(findNode.listLiteral('[0, x'), 'List<InvalidType>');
   }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 var a = [for (int e in c) e * 2];
 ''');
@@ -230,7 +223,7 @@ var a = [for (int e in c) e * 2];
   }
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 int b = 0;
 var a = [for (b in c) b * 2];
@@ -239,14 +232,14 @@ var a = [for (b in c) b * 2];
   }
 
   test_noContext_noTypeArgs_forWithDeclaration() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = [for (var i = 0; i < 2; i++) i * 2];
 ''');
     assertType(findNode.listLiteral('[for'), 'List<int>');
   }
 
   test_noContext_noTypeArgs_forWithExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int i = 0;
 var a = [for (i = 0; i < 2; i++) i * 2];
 ''');
@@ -254,7 +247,7 @@ var a = [for (i = 0; i < 2; i++) i * 2];
   }
 
   test_noContext_noTypeArgs_if() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = [if (c) 1];
 ''');
@@ -262,7 +255,7 @@ var a = [if (c) 1];
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = [if (c) 1 else 2];
 ''');
@@ -270,7 +263,7 @@ var a = [if (c) 1 else 2];
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = [if (c) 1 else 2.3];
 ''');
@@ -278,7 +271,7 @@ var a = [if (c) 1 else 2.3];
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = [if (c) 1 else '2'];
 ''');
@@ -286,14 +279,14 @@ var a = [if (c) 1 else '2'];
   }
 
   test_noContext_noTypeArgs_noElements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = [];
 ''');
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 var a = [...c];
 ''');
@@ -301,7 +294,7 @@ var a = [...c];
   }
 
   test_noContext_noTypeArgs_spread_lubOfInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 List<int> b = [];
 var a = [...b, ...c];
@@ -310,7 +303,7 @@ var a = [...b, ...c];
   }
 
   test_noContext_noTypeArgs_spread_lubOfNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 List<double> b = [];
 var a = [...b, ...c];
@@ -319,7 +312,7 @@ var a = [...b, ...c];
   }
 
   test_noContext_noTypeArgs_spread_lubOfObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 List<String> b = [];
 var a = [...b, ...c];
@@ -328,7 +321,7 @@ var a = [...b, ...c];
   }
 
   test_noContext_noTypeArgs_spread_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin L on List<int> {}
 
 void f(L l1) {
@@ -340,7 +333,7 @@ void f(L l1) {
   }
 
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 dynamic d;
 var a = [if (0 < 1) ...c else ...d];
@@ -349,30 +342,29 @@ var a = [if (0 < 1) ...c else ...d];
   }
 
   test_noContext_noTypeArgs_spread_never() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Never a) async {
   // ignore:unused_local_variable
   var v = [...a];
 }
 ''');
-    assertType(findNode.listLiteral('['), 'List<Never>');
+    assertType(findNode.listLiteral('[...a]'), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Never a) async {
   // ignore:unused_local_variable
   var v = [...?a];
+//         ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
 }
-''',
-      [error(diag.invalidNullAwareOperator, 69, 4)],
-    );
-    assertType(findNode.listLiteral('['), 'List<Never>');
+''');
+    assertType(findNode.listLiteral('[...?a]'), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a) {
   // ignore:unused_local_variable
   var v = [...?a];
@@ -382,7 +374,7 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_null2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a) {
   // ignore:unused_local_variable
   var v = [1, ...?a, 2];
@@ -392,20 +384,19 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNever() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Never>(T a) async {
   // ignore:unused_local_variable
   var v = [...?a];
+//         ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
 }
-''',
-      [error(diag.invalidNullAwareOperator, 82, 4)],
-    );
-    assertType(findNode.listLiteral('['), 'List<Never>');
+''');
+    assertType(findNode.listLiteral('[...?a]'), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Null>(T a) async {
   // ignore:unused_local_variable
   var v = [...?a];
@@ -415,7 +406,7 @@ void f<T extends Null>(T a) async {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends List<int>>(T a) {
   // ignore:unused_local_variable
   var v = [...a];
@@ -425,7 +416,7 @@ void f<T extends List<int>>(T a) {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_implementsNever() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Never>(T a) async {
   // ignore:unused_local_variable
   var v = [...a];
@@ -435,53 +426,49 @@ void f<T extends Never>(T a) async {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = [...a];
+//            ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
 }
-''',
-      [error(diag.notIterableSpread, 77, 1)],
-    );
+''');
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = [...a, 0];
+//            ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
 }
-''',
-      [error(diag.notIterableSpread, 77, 1)],
-    );
+''');
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
 
   test_noContext_typeArgs_expression_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = <String>[1];
-''',
-      [error(diag.listElementTypeNotAssignable, 17, 1)],
-    );
-    assertType(findNode.listLiteral('['), 'List<String>');
+//               ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
+''');
+    assertType(findNode.listLiteral('<String>['), 'List<String>');
   }
 
   test_noContext_typeArgs_expression_conflict_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = <String>[(null as String?)];
-''',
-      [error(diag.listElementTypeNotAssignableNullability, 17, 17)],
-    );
-    assertType(findNode.listLiteral('['), 'List<String>');
+//               ^^^^^^^^^^^^^^^^^
+// [diag.listElementTypeNotAssignableNullability] The element type 'String?' can't be assigned to the list type 'String'.
+''');
+    assertType(findNode.listLiteral('<String>['), 'List<String>');
   }
 
   test_noContext_typeArgs_expression_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <int>[1];
 ''');
     assertType(findNode.listLiteral('['), 'List<int>');
@@ -496,7 +483,7 @@ var a = <int, String>[1, 2];
   }
 
   test_noContext_typeArgs_noElements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <num>[];
 ''');
     assertType(findNode.listLiteral('['), 'List<num>');
