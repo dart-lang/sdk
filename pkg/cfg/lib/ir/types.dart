@@ -77,6 +77,9 @@ sealed class CType {
   /// Return non-nullable variant of this type (if possible).
   CType get toNonNullableType;
 
+  /// Returns true if value of this type can be `int`.
+  bool get canBeInt;
+
   /// Returns true if value of this type can be `Future`.
   bool get canBeFuture;
 
@@ -110,6 +113,9 @@ final class IntType extends CType {
   CType get toNonNullableType => this;
 
   @override
+  bool get canBeInt => true;
+
+  @override
   bool get canBeFuture => false;
 
   @override
@@ -134,6 +140,9 @@ final class DoubleType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeInt => false;
 
   @override
   bool get canBeFuture => false;
@@ -162,6 +171,9 @@ final class BoolType extends CType {
   CType get toNonNullableType => this;
 
   @override
+  bool get canBeInt => false;
+
+  @override
   bool get canBeFuture => false;
 
   @override
@@ -186,6 +198,9 @@ final class StringType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeInt => false;
 
   @override
   bool get canBeFuture => false;
@@ -242,6 +257,9 @@ final class RecordType extends CType {
   CType get toNonNullableType => this;
 
   @override
+  bool get canBeInt => false;
+
+  @override
   bool get canBeFuture => false;
 
   @override
@@ -268,6 +286,9 @@ final class ObjectType extends CType {
   CType get toNonNullableType => this;
 
   @override
+  bool get canBeInt => true;
+
+  @override
   bool get canBeFuture => true;
 
   @override
@@ -291,6 +312,9 @@ final class NullType extends CType {
   CType get toNonNullableType => const NeverType();
 
   @override
+  bool get canBeInt => false;
+
+  @override
   bool get canBeFuture => false;
 
   @override
@@ -312,6 +336,9 @@ final class NeverType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeInt => false;
 
   @override
   bool get canBeFuture => false;
@@ -339,6 +366,9 @@ final class TopType extends CType {
   CType get toNonNullableType => const ObjectType();
 
   @override
+  bool get canBeInt => true;
+
+  @override
   bool get canBeFuture => true;
 
   @override
@@ -360,6 +390,52 @@ final class StaticType extends CType {
 
   @override
   CType get toNonNullableType => CType.fromStaticType(dartType.toNonNull());
+
+  @override
+  bool get canBeInt {
+    ast.DartType type = dartType;
+    for (;;) {
+      switch (type) {
+        case ast.InterfaceType():
+          return GlobalContext.instance.typeEnvironment.isSubtypeOf(
+            GlobalContext.instance.coreTypes.intNonNullableRawType,
+            type,
+          );
+        case ast.RecordType() ||
+            ast.FunctionType() ||
+            ast.NeverType() ||
+            ast.NullType():
+          return false;
+        case ast.DynamicType() || ast.VoidType():
+          return true;
+        case ast.ClassTypeParameterType():
+          type = type.parameter.bound;
+          break;
+        case ast.FunctionTypeParameterType():
+          type = type.parameter.bound;
+          break;
+        case ast.FutureOrType():
+          type = type.typeArgument;
+          break;
+        case ast.ExtensionType():
+          type = type.extensionTypeErasure;
+          break;
+        case ast.TypedefType():
+          type = type.unalias;
+          break;
+        case ast.IntersectionType():
+          type = type.left;
+          break;
+        case ast.TypeParameterType():
+          type = type.parameter.bound;
+          break;
+        case ast.AuxiliaryType() ||
+            ast.InvalidType() ||
+            ast.StructuralParameterType():
+          throw 'Unexpected type ${type.runtimeType} $type';
+      }
+    }
+  }
 
   @override
   bool get canBeFuture => true;
@@ -386,6 +462,9 @@ sealed class ExtendedType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeInt => false;
 
   @override
   bool get canBeFuture => false;

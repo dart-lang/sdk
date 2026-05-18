@@ -719,9 +719,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   bool _canBeSmi(Definition def) => switch (def) {
     Constant(:var value) => value.isInt && objectLayout.isSmi(value.intValue),
-    Definition(type: IntType()) => true,
-    Definition(type: ExtendedType()) => false,
-    Definition(:var type) => const IntType().isSubtypeOf(type),
+    Definition(:var type) => type.canBeInt,
   };
 
   void _writeBarrier(
