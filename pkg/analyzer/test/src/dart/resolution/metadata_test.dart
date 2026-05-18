@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,7 +20,7 @@ main() {
 @reflectiveTest
 class MetadataResolutionTest extends PubPackageResolutionTest {
   test_at_genericFunctionType_formalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 42;
 List<void Function(@a int b)> f() => [];
 ''');
@@ -43,7 +42,7 @@ int 42
   }
 
   test_location_class_classDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
@@ -54,7 +53,7 @@ class A {}
   }
 
   test_location_class_constructor_formalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -66,7 +65,7 @@ class A {
   }
 
   test_location_class_constructorDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -79,7 +78,7 @@ class A {
   }
 
   test_location_class_fieldDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -92,7 +91,7 @@ class A {
   }
 
   test_location_enumConstant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   @v
   v;
@@ -121,7 +120,7 @@ E
   }
 
   test_location_extensionType_representation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 extension type A(@foo int it) {}
@@ -131,7 +130,7 @@ extension type A(@foo int it) {}
   }
 
   test_location_fieldFormal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final Object f;
   const A(this.f);
@@ -194,7 +193,7 @@ A
   }
 
   test_location_forEach_declaredIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 void f(List<int> list) {
   for (@foo var x in list) {
@@ -217,7 +216,7 @@ void f() {
   }
 
   test_location_libraryDirective() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @foo
 library my;
 const foo = 42;
@@ -229,7 +228,7 @@ const foo = 42;
   test_location_libraryExportDirective() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @foo
 export 'a.dart';
 const foo = 42;
@@ -241,7 +240,7 @@ const foo = 42;
   test_location_libraryImportDirective() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @foo
 import 'a.dart'; // ignore:unused_import
 const foo = 42;
@@ -251,7 +250,7 @@ const foo = 42;
   }
 
   test_location_localVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int a;
   const A(this.a);
@@ -306,7 +305,7 @@ void f() {
   }
 
   test_location_methodDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -323,7 +322,7 @@ class A {
 part of 'test.dart';
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @foo
 part 'a.dart';
 const foo = 42;
@@ -333,14 +332,13 @@ const foo = 42;
   }
 
   test_location_partDirective_fileDoesNotExist() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @foo
 part 'a.dart';
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
 const foo = 42;
-''',
-      [error(diag.uriDoesNotExist, 10, 8)],
-    );
+''');
 
     _assertAtFoo42();
   }
@@ -363,7 +361,7 @@ part of 'test.dart';
   }
 
   test_location_recordTypeAnnotation_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);
@@ -400,7 +398,7 @@ A
   }
 
   test_location_recordTypeAnnotation_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);
@@ -437,7 +435,7 @@ A
   }
 
   test_location_topLevelFunctionDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
@@ -448,7 +446,7 @@ void bar() {}
   }
 
   test_location_topLevelVariableDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
@@ -459,7 +457,7 @@ final bar = 0;
   }
 
   test_value_class_inference_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A.named(this.f);
@@ -506,7 +504,7 @@ A
   }
 
   test_value_class_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A {
   final int f;
   const A.named(this.f);
@@ -594,7 +592,7 @@ Annotation
   }
 
   test_value_class_staticConstField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const int foo = 42;
 }
@@ -628,7 +626,7 @@ int 42
   }
 
   test_value_class_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);
@@ -668,7 +666,7 @@ A
   }
 
   test_value_class_unnamedConstructor_withNestedConstructorInvocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
 }
@@ -725,7 +723,7 @@ D
   }
 
   test_value_extensionType_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const A.named(int it) {}
 
 @A.named(42)
@@ -766,7 +764,7 @@ int 42
   }
 
   test_value_extensionType_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {}
 
 @A(42)
@@ -799,7 +797,7 @@ int 42
   }
 
   test_value_genericClass_downwards_inference_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final List<List<T>> f;
   const A.named(this.f);
@@ -859,7 +857,7 @@ A<Object?>
   }
 
   test_value_genericClass_downwards_inference_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final List<List<T>> f;
   const A(this.f);
@@ -907,7 +905,7 @@ A<Object?>
   }
 
   test_value_genericClass_inference_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -964,7 +962,7 @@ A<int>
   }
 
   test_value_genericClass_inference_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1038,7 +1036,7 @@ Annotation
   }
 
   test_value_genericClass_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final int f;
   const A.named(this.f);
@@ -1128,7 +1126,7 @@ Annotation
   }
 
   test_value_genericClass_typeArguments_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -1188,7 +1186,7 @@ A<int>
   }
 
   test_value_genericClass_typeArguments_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1242,7 +1240,7 @@ A<int>
 
   test_value_genericClass_unnamedConstructor_noGenericMetadata() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -1287,7 +1285,7 @@ A<dynamic>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1343,7 +1341,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_classTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1402,7 +1400,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_functionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1458,7 +1456,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_functionTypedFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1513,7 +1511,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_genericTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1569,7 +1567,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_methodDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1627,7 +1625,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_typeArguments_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1706,7 +1704,7 @@ class B {
 class C {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 void f(C c) {}
@@ -1749,7 +1747,7 @@ import 'a.dart';
 class B {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f(B b) {}
@@ -1782,7 +1780,7 @@ import 'a.dart';
 class B {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f(B b) {}
@@ -1808,7 +1806,7 @@ A
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.A.named(42)
@@ -1863,7 +1861,7 @@ class A {
   static const int foo = 42;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.A.foo
@@ -1908,7 +1906,7 @@ int 42
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.A(42)
@@ -1957,7 +1955,7 @@ A
 const foo = 42;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.foo
@@ -1997,7 +1995,7 @@ class A {
 
 typedef B = A;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B.foo
@@ -2042,7 +2040,7 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B.named(42)
@@ -2107,7 +2105,7 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B(42)
@@ -2165,7 +2163,7 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B<int>.named(42)
@@ -2238,7 +2236,7 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B<int>(42)
@@ -2296,7 +2294,7 @@ A<int>
   }
 
   test_value_topLevelVariableDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
@@ -2307,7 +2305,7 @@ void f() {}
   }
 
   test_value_typeAlias_class_staticConstField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const int foo = 42;
 }
@@ -2343,7 +2341,7 @@ int 42
   }
 
   test_value_typeAlias_generic_class_generic_1of2_typeArguments_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   final T t;
   final U u;
@@ -2414,7 +2412,7 @@ A<int, double>
   }
 
   test_value_typeAlias_generic_class_generic_1of2_typeArguments_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   final T t;
   final U u;
@@ -2478,7 +2476,7 @@ A<int, double>
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -2537,7 +2535,7 @@ A<int>
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -2584,7 +2582,7 @@ A<int>
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -2646,7 +2644,7 @@ A<int>
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -2701,7 +2699,7 @@ A<int>
   }
 
   test_value_typeAlias_notGeneric_class_generic_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -2760,7 +2758,7 @@ A<int>
   }
 
   test_value_typeAlias_notGeneric_class_generic_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -2807,7 +2805,7 @@ A<int>
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A.named(this.f);
@@ -2856,7 +2854,7 @@ A
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_unnamedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);

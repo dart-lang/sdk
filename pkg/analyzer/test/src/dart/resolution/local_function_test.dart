@@ -3,37 +3,37 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalFunctionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LocalFunctionResolutionTest extends PubPackageResolutionTest {
   test_defaultValue_functionReference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   void g({void Function(int _) a = foo}) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
 void foo<T>(T _) {}
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
     var formalParameter = findElement2.parameter('a');
     expect(formalParameter.constantInitializer, isA<FunctionReference>());
   }
 
   test_element_block() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   g() {}
   g();
@@ -62,15 +62,14 @@ MethodInvocation
   }
 
   test_element_ifStatement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   if (1 > 2)
     g() {}
+//  ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 23, 1)],
-    );
+''');
     var node = findNode.functionDeclaration('g() {}');
     var fragment = node.declaredFragment!;
     var element = fragment.element;
@@ -80,7 +79,7 @@ f() {
   }
 
   test_element_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a) {
   switch (a) {
     case 1:
@@ -113,7 +112,7 @@ MethodInvocation
   }
 
   test_element_switchCase_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 f(int a) {
   switch (a) {
@@ -147,17 +146,16 @@ MethodInvocation
   }
 
   test_recursiveReference_ifStatement_nonBlock() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool c) {
   if (c)
     g() {
+//  ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
       g(); // ref
     }
 }
-''',
-      [error(diag.unusedElement, 25, 1)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''

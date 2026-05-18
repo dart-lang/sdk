@@ -2,29 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FieldDeclarationResolutionTest extends PubPackageResolutionTest {
   test_initializer_late_super() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   late Object f = super;
+//                ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 }
-''',
-      [error(diag.missingAssignableSelector, 28, 5)],
-    );
+''');
 
     var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
@@ -49,7 +49,7 @@ FieldDeclaration
   }
 
   test_initializer_late_this() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   late Object f = this;
 }
@@ -78,15 +78,14 @@ FieldDeclaration
   }
 
   test_initializer_notLate_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a = 0;
   final int b = a;
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
 }
-''',
-      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
-    );
+''');
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -112,15 +111,14 @@ FieldDeclaration
   }
 
   test_initializer_notLate_getterInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get a => 0;
   final int b = a;
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
 }
-''',
-      [error(diag.implicitThisReferenceInInitializer, 44, 1)],
-    );
+''');
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -146,15 +144,14 @@ FieldDeclaration
   }
 
   test_initializer_notLate_methodInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int a() => 0;
   final int b = a();
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
 }
-''',
-      [error(diag.implicitThisReferenceInInitializer, 42, 1)],
-    );
+''');
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -186,14 +183,13 @@ FieldDeclaration
   }
 
   test_initializer_notLate_this() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final a = this;
+//          ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 22, 4)],
-    );
+''');
 
     var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
@@ -263,7 +259,7 @@ class A {
   }
 
   test_type_scope() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   var f = <T>[];
 }

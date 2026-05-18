@@ -10,11 +10,13 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryElementTest_featureSet);
     defineReflectiveTests(LibraryElementTest_toString);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -145,7 +147,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
 @reflectiveTest
 class LibraryElementTest_toString extends PubPackageResolutionTest {
   test_hasLibraryDirective_hasName() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.name;
 ''');
 
@@ -153,7 +155,7 @@ library my.name;
   }
 
   test_hasLibraryDirective_noName() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library;
 ''');
 
@@ -161,7 +163,7 @@ library;
   }
 
   test_noLibraryDirective() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 ''');
 

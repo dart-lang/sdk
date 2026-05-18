@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalVariableResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LocalVariableResolutionTest extends PubPackageResolutionTest {
   test_annotation_twoVariables() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 void f() {
@@ -40,7 +41,7 @@ void f() {
   }
 
   test_demoteTypeParameterType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, T b) {
   if (a is String) {
     var o = a;
@@ -54,14 +55,13 @@ void f<T>(T a, T b) {
   }
 
   test_element_block() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int x = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -71,14 +71,13 @@ void f() {
   }
 
   test_element_const() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   const int x = 0;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 23, 1)],
-    );
+''');
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isTrue);
@@ -88,14 +87,13 @@ void f() {
   }
 
   test_element_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final int x = 0;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 23, 1)],
-    );
+''');
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -105,15 +103,14 @@ void f() {
   }
 
   test_element_ifStatement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   if (1 > 2)
     int x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 32, 1)],
-    );
+''');
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -123,14 +120,13 @@ void f() {
   }
 
   test_element_late() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int x = 0;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 22, 1)],
-    );
+''');
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -140,7 +136,7 @@ void f() {
   }
 
   test_initializerReference_ifStatement_nonBlock() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   if (c)
     // ignore: unused_local_variable
@@ -157,19 +153,20 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   _() {}
+//^^^^^^
+// [diag.deadCode] Dead code.
   _();
+//^
+// [diag.undefinedFunction] The function '_' isn't defined.
 }
-''',
-      [error(diag.deadCode, 8, 6), error(diag.undefinedFunction, 17, 1)],
-    );
+''');
   }
 
   test_localVariable_wildcardFunction_preWildcards() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -189,7 +186,7 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardVariable_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   var _ = 1;
   void m() {
@@ -209,7 +206,7 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardVariable_topLevel() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var _ = 1;
 
 void f() {

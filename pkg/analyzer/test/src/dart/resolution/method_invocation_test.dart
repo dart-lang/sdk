@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,18 +19,17 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionTest extends PubPackageResolutionTest {
   test_arguments_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     g(super);
+//    ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
 
 void g(Object a) {}
-''',
-      [error(diag.missingAssignableSelector, 29, 5)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -53,19 +51,17 @@ MethodInvocation
   }
 
   test_arguments_synthetics() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   g(,,);
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+//   ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 
 void g(int a, int b) {}
-''',
-      [
-        error(diag.missingIdentifier, 15, 1),
-        error(diag.missingIdentifier, 16, 1),
-      ],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -94,7 +90,7 @@ MethodInvocation
   }
 
   test_cascadeExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
   void bar() {}
@@ -140,7 +136,7 @@ CascadeExpression
   }
 
   test_clamp_double_context_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(double a) {
   h(a.clamp(f(), f()));
@@ -208,16 +204,15 @@ MethodInvocation
   }
 
   test_clamp_double_context_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(double a) {
   h(a.clamp(f(), f()));
+//  ^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num' can't be assigned to the parameter type 'int'.
 }
 h(int x) {}
-''',
-      [error(diag.argumentTypeNotAssignable, 45, 17)],
-    );
+''');
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -279,7 +274,7 @@ MethodInvocation
   }
 
   test_clamp_double_context_none() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(double a) {
   a.clamp(f(), f());
@@ -334,7 +329,7 @@ MethodInvocation
   }
 
   test_clamp_double_double_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(double a, double b, double c) {
   a.clamp(b, c);
 }
@@ -372,7 +367,7 @@ MethodInvocation
   }
 
   test_clamp_double_double_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(double a, double b, int c) {
   a.clamp(b, c);
 }
@@ -410,7 +405,7 @@ MethodInvocation
   }
 
   test_clamp_double_int_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(double a, int b, double c) {
   a.clamp(b, c);
 }
@@ -448,7 +443,7 @@ MethodInvocation
   }
 
   test_clamp_double_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(double a, int b, int c) {
   a.clamp(b, c);
 }
@@ -486,16 +481,15 @@ MethodInvocation
   }
 
   test_clamp_int_context_double() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a.clamp(f(), f()));
+//  ^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num' can't be assigned to the parameter type 'double'.
 }
 h(double x) {}
-''',
-      [error(diag.argumentTypeNotAssignable, 42, 17)],
-    );
+''');
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -557,7 +551,7 @@ MethodInvocation
   }
 
   test_clamp_int_context_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a.clamp(f(), f()));
@@ -625,7 +619,7 @@ MethodInvocation
   }
 
   test_clamp_int_context_none() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   a.clamp(f(), f());
@@ -680,7 +674,7 @@ MethodInvocation
   }
 
   test_clamp_int_double_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, double b, double c) {
   a.clamp(b, c);
 }
@@ -718,7 +712,7 @@ MethodInvocation
   }
 
   test_clamp_int_double_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, double b, dynamic c) {
   a.clamp(b, c);
 }
@@ -756,7 +750,7 @@ MethodInvocation
   }
 
   test_clamp_int_double_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, double b, int c) {
   a.clamp(b, c);
 }
@@ -794,7 +788,7 @@ MethodInvocation
   }
 
   test_clamp_int_dynamic_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, dynamic b, double c) {
   a.clamp(b, c);
 }
@@ -832,7 +826,7 @@ MethodInvocation
   }
 
   test_clamp_int_dynamic_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, dynamic b, int c) {
   a.clamp(b, c);
 }
@@ -870,7 +864,7 @@ MethodInvocation
   }
 
   test_clamp_int_int_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int b, double c) {
   a.clamp(b, c);
 }
@@ -908,7 +902,7 @@ MethodInvocation
   }
 
   test_clamp_int_int_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int b, dynamic c) {
   a.clamp(b, c);
 }
@@ -946,7 +940,7 @@ MethodInvocation
   }
 
   test_clamp_int_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int b, int c) {
   a.clamp(b, c);
 }
@@ -984,7 +978,7 @@ MethodInvocation
   }
 
   test_clamp_int_int_int_from_cascade() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int b, int c) {
   a..clamp(b, c).isEven;
 }
@@ -1018,7 +1012,7 @@ MethodInvocation
   }
 
   test_clamp_int_int_int_via_extension_explicit() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   String clamp(int x, int y) => '';
 }
@@ -1069,7 +1063,7 @@ MethodInvocation
   }
 
   test_clamp_int_int_never() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int b, Never c) {
   a.clamp(b, c);
 }
@@ -1107,14 +1101,13 @@ MethodInvocation
   }
 
   test_clamp_int_never_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, Never b, int c) {
   a.clamp(b, c);
+//           ^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 40, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
@@ -1148,14 +1141,15 @@ MethodInvocation
   }
 
   test_clamp_never_int_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Never a, int b, int c) {
   a.clamp(b, c);
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//       ^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 29, 1), error(diag.deadCode, 36, 7)],
-    );
+''');
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
@@ -1189,19 +1183,18 @@ MethodInvocation
   }
 
   test_clamp_other_context_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   num clamp(String x, String y);
 }
 T f<T>() => throw Error();
 g(A a) {
   h(a.clamp(f(), f()));
+//  ^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num' can't be assigned to the parameter type 'int'.
 }
 h(int x) {}
-''',
-      [error(diag.argumentTypeNotAssignable, 94, 17)],
-    );
+''');
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -1263,7 +1256,7 @@ MethodInvocation
   }
 
   test_clamp_other_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   String clamp(int x, int y);
 }
@@ -1304,7 +1297,7 @@ MethodInvocation
   }
 
   test_clamp_other_int_int_via_extension_explicit() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String clamp(int x, int y) => '';
@@ -1356,7 +1349,7 @@ MethodInvocation
   }
 
   test_clamp_other_int_int_via_extension_implicit() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String clamp(int x, int y) => '';
@@ -1410,7 +1403,7 @@ augment class A {
   }
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void foo() {}
@@ -1449,7 +1442,7 @@ augment class A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void foo() {}
@@ -1490,7 +1483,7 @@ augment class A {
   static void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void foo() {}
@@ -1527,7 +1520,7 @@ augment class A {
   augment void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -1564,7 +1557,7 @@ augment class A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void foo() {}
@@ -1593,7 +1586,7 @@ MethodInvocation
   }
 
   test_demoteType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void test<T>(T t) {}
 
 void f<S>(S s) {
@@ -1637,17 +1630,16 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart';
 
 main() {
   foo(0);
+//^^^
+// [diag.ambiguousImport] The name 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
-''',
-      [error(diag.ambiguousImport, 46, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1679,17 +1671,16 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
 main() {
   p.foo(0);
+//  ^^^
+// [diag.ambiguousImport] The name 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
-''',
-      [error(diag.ambiguousImport, 58, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1719,18 +1710,17 @@ MethodInvocation
   }
 
   test_error_instanceAccessToStaticMember_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo(int _) {}
 }
 
 void f(A a) {
   a.foo(0);
+//  ^^^
+// [diag.instanceAccessToStaticMember] The static method 'foo' can't be accessed through an instance.
 }
-''',
-      [error(diag.instanceAccessToStaticMember, 59, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('a.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1758,18 +1748,17 @@ MethodInvocation
   }
 
   test_error_invocationOfNonFunction_interface_hasCall_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void Function() call = throw Error();
 }
 
 void f(C c) {
   c();
+//^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 69, 1)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('c();');
     assertResolvedNodeText(node, r'''
@@ -1788,7 +1777,7 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_instance() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   var foo;
 }
@@ -1822,7 +1811,7 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_superClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var foo;
 }
@@ -1851,7 +1840,7 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_OK_dynamicGetter_thisClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   var foo;
 
@@ -1878,7 +1867,7 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_OK_Function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Function foo) {
   foo(1, 2);
 }
@@ -1910,7 +1899,7 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_OK_functionTypeTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef MyFunction = double Function(int _);
 
 class C<T extends MyFunction> {
@@ -1948,14 +1937,13 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_parameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object foo) {
   foo();
+//^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 21, 3)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -1974,7 +1962,7 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_parameter_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(foo) {
   foo();
 }
@@ -1997,18 +1985,17 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_static_hasTarget() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static int foo = 0;
 }
 
 main() {
   C.foo();
+//^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 46, 5)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2034,18 +2021,17 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_static_noTarget() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static int foo = 0;
 
   main() {
     foo();
+//  ^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
   }
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 48, 3)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2064,8 +2050,7 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_super_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -2073,11 +2058,11 @@ class A {
 class B extends A {
   main() {
     super.foo();
+//  ^^^^^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
   }
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 68, 9)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2106,16 +2091,15 @@ FunctionExpressionInvocation
 void foo() {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 main() {
   prefix?.foo();
+//^^^^^^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'prefix' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 39, 6)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2138,16 +2122,15 @@ MethodInvocation
   }
 
   test_error_prefixIdentifierNotFollowedByDot_deferred() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' deferred as math;
 
 main() {
   math?.loadLibrary();
+//^^^^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'math' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 49, 4)],
-    );
+''');
 
     var node = findNode.methodInvocation('loadLibrary()');
     assertResolvedNodeText(node, r'''
@@ -2170,16 +2153,15 @@ MethodInvocation
   }
 
   test_error_prefixIdentifierNotFollowedByDot_invoke() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as foo;
 
 main() {
   foo();
+//^^^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'foo' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 39, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo()');
     assertResolvedNodeText(node, r'''
@@ -2197,14 +2179,13 @@ MethodInvocation
   }
 
   test_error_undefinedFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   foo(0);
+//^^^
+// [diag.undefinedFunction] The function 'foo' isn't defined.
 }
-''',
-      [error(diag.undefinedFunction, 11, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -2227,16 +2208,15 @@ MethodInvocation
   }
 
   test_error_undefinedFunction_hasTarget_importPrefix() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as math;
 
 main() {
   math.foo(0);
+//     ^^^
+// [diag.undefinedFunction] The function 'foo' isn't defined.
 }
-''',
-      [error(diag.undefinedFunction, 45, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2264,14 +2244,13 @@ MethodInvocation
   }
 
   test_error_undefinedIdentifier_target() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   bar.foo(0);
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'bar'.
 }
-''',
-      [error(diag.undefinedIdentifier, 11, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2299,15 +2278,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 main() {
   C.foo(0);
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedMethod, 24, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2335,17 +2313,16 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_arguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 int x = 0;
 main() {
   C.foo(x);
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedMethod, 36, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(x);');
     assertResolvedNodeText(node, r'''
@@ -2374,8 +2351,7 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_inSuperclass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class S {
   static void foo(int _) {}
 }
@@ -2384,10 +2360,10 @@ class C extends S {}
 
 main() {
   C.foo(0);
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedMethod, 76, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2415,16 +2391,15 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 main() {
   C.foo<int>();
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedMethod, 25, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo<int>();');
     assertResolvedNodeText(node, r'''
@@ -2457,14 +2432,13 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static main() => C.T();
+//                   ^
+// [diag.undefinedMethod] The method 'T' isn't defined for the type 'C'.
 }
-''',
-      [error(diag.undefinedMethod, 34, 1)],
-    );
+''');
 
     var node = findNode.methodInvocation('C.T();');
     assertResolvedNodeText(node, r'''
@@ -2487,14 +2461,13 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_instance() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   42.foo(0);
+//   ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'int'.
 }
-''',
-      [error(diag.undefinedMethod, 14, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2521,15 +2494,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_localVariable_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = () {};
   v.foo(0);
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Function'.
 }
-''',
-      [error(diag.undefinedMethod, 30, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2557,16 +2529,15 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_noTarget() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   main() {
     foo(0);
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
   }
 }
-''',
-      [error(diag.undefinedMethod, 25, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2589,16 +2560,15 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_noTarget_synthetic_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class {
+//    ^
+// [diag.missingIdentifier] Expected an identifier.
   void f() {
     foo(0);
   }
 }
-''',
-      [error(diag.missingIdentifier, 6, 1)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2621,14 +2591,13 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   null.foo();
+//     ^^^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
 }
-''',
-      [error(diag.invalidUseOfNullValue, 16, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2650,14 +2619,13 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_object_call() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object o) {
   o.call();
+//  ^^^^
+// [diag.undefinedMethod] The method 'call' isn't defined for the type 'Object'.
 }
-''',
-      [error(diag.undefinedMethod, 21, 4)],
-    );
+''');
   }
 
   test_error_undefinedMethod_private() async {
@@ -2666,18 +2634,17 @@ class A {
   void _foo(int _) {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 class B extends A {
   main() {
     _foo(0);
+//  ^^^^
+// [diag.undefinedMethod] The method '_foo' isn't defined for the type 'B'.
   }
 }
-''',
-      [error(diag.undefinedMethod, 53, 4)],
-    );
+''');
 
     var node = findNode.methodInvocation('_foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2700,38 +2667,34 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_typeLiteral_cascadeTarget() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static void foo() {}
 }
 
 main() {
   C..foo();
+//   ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedMethod, 50, 3)],
-    );
+''');
   }
 
   test_error_undefinedMethod_typeLiteral_conditional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 main() {
   A?.toString();
+// ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+//   ^^^^^^^^
+// [diag.undefinedMethod] The method 'toString' isn't defined for the type 'A'.
 }
-''',
-      [
-        error(diag.invalidNullAwareOperator, 23, 2),
-        error(diag.undefinedMethod, 25, 8),
-      ],
-    );
+''');
   }
 
   test_error_unqualifiedReferenceToNonLocalStaticMember_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
 }
@@ -2739,14 +2702,13 @@ class A {
 class B extends A {
   main() {
     foo(0);
+//  ^^^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
+//      ^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
   }
 }
-''',
-      [
-        error(diag.unqualifiedReferenceToNonLocalStaticMember, 71, 3),
-        error(diag.extraPositionalArguments, 75, 1),
-      ],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -2772,17 +2734,16 @@ MethodInvocation
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'missing.dart' as p;
+//     ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'missing.dart'.
 
 main() {
   p.foo(1);
   p.bar(2);
 }
-''',
-      [error(diag.uriDoesNotExist, 7, 14)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(1);');
     assertResolvedNodeText(node, r'''
@@ -2813,17 +2774,16 @@ MethodInvocation
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_show() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'missing.dart' show foo, bar;
+//     ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'missing.dart'.
 
 main() {
   foo(1);
   bar(2);
 }
-''',
-      [error(diag.uriDoesNotExist, 7, 14)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(1);');
     assertResolvedNodeText(node, r'''
@@ -2846,8 +2806,7 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_name_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T>{
   T foo;
   C(this.foo);
@@ -2855,10 +2814,10 @@ class C<T>{
 
 void f(C<void> c) {
   c.foo();
+//^^^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-''',
-      [error(diag.useOfVoidResult, 61, 5)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2886,15 +2845,14 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_name_localVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   void foo;
   foo();
+//^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-''',
-      [error(diag.useOfVoidResult, 23, 3)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2913,16 +2871,15 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_name_topFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 
 main() {
   foo()();
+//^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-''',
-      [error(diag.useOfVoidResult, 26, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo()()');
     assertResolvedNodeText(node, r'''
@@ -2940,16 +2897,15 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_name_topVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo;
 
 main() {
   foo();
+//^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-''',
-      [error(diag.useOfVoidResult, 22, 3)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2968,15 +2924,14 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_receiver() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   void foo;
   foo.toString();
+//^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-''',
-      [error(diag.useOfVoidResult, 23, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -2999,15 +2954,14 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_receiver_cascade() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   void foo;
   foo..toString();
+//^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-''',
-      [error(diag.useOfVoidResult, 23, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -3026,15 +2980,14 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_receiver_withNull() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   void foo;
   foo?.toString();
+//^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-''',
-      [error(diag.useOfVoidResult, 23, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -3057,16 +3010,15 @@ MethodInvocation
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_01() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 
 main() {
   foo<int>();
+//   ^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The function 'foo' is declared with 0 type parameters, but 1 type arguments are given.
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsElement, 29, 5)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo<int>()');
     assertResolvedNodeText(node, r'''
@@ -3092,16 +3044,15 @@ MethodInvocation
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Map<T, U> foo<T extends num, U>() => throw Error();
 
 main() {
   foo<int>();
+//   ^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The function 'foo' is declared with 2 type parameters, but 1 type arguments are given.
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsElement, 67, 5)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo<int>()');
     assertResolvedNodeText(node, r'''
@@ -3130,7 +3081,7 @@ MethodInvocation
   }
 
   test_expression_functionType_explicitCall() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(double Function(int p) g) {
   g.call(0);
 }
@@ -3162,7 +3113,7 @@ MethodInvocation
   }
 
   test_expression_interfaceType_explicitCall() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   double call(int p) => 0.0;
 }
@@ -3198,7 +3149,7 @@ MethodInvocation
   }
 
   test_extensionType_explicitThis() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
 
@@ -3228,7 +3179,7 @@ MethodInvocation
   }
 
   test_extensionType_implicitThis() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
 
@@ -3254,7 +3205,7 @@ MethodInvocation
   }
 
   test_hasReceiver_class_staticGetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static double Function(int) get foo => throw Error();
 }
@@ -3293,7 +3244,7 @@ FunctionExpressionInvocation
   }
 
   test_hasReceiver_class_staticMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static void foo(int _) {}
 }
@@ -3337,7 +3288,7 @@ augment class A {
   augment static void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -3380,7 +3331,7 @@ augment class A {
   static void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -3413,16 +3364,15 @@ MethodInvocation
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' deferred as math;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
 
 main() {
   math.loadLibrary();
 }
-''',
-      [error(diag.unusedImport, 7, 11)],
-    );
+''');
 
     var node = findNode.methodInvocation('loadLibrary()');
     assertResolvedNodeText(node, r'''
@@ -3445,19 +3395,17 @@ MethodInvocation
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary_extraArgument() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' deferred as math;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
 
 main() {
   math.loadLibrary(1 + 2);
+//                 ^^^^^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [
-        error(diag.unusedImport, 7, 11),
-        error(diag.extraPositionalArguments, 66, 5),
-      ],
-    );
+''');
 
     var node = findNode.methodInvocation('loadLibrary(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -3494,7 +3442,7 @@ MethodInvocation
   }
 
   test_hasReceiver_dynamic_hash() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   a.hash(0, 1);
 }
@@ -3530,7 +3478,7 @@ MethodInvocation
   }
 
   test_hasReceiver_extension_staticGetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {
   static double Function(int) get foo => throw Error();
 }
@@ -3570,7 +3518,7 @@ FunctionExpressionInvocation
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_extension_staticGetter_inAugmentation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {}
 
 augment extension A {
@@ -3614,7 +3562,7 @@ FunctionExpressionInvocation
   }
 
   test_hasReceiver_extension_staticMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {
   static void foo(int _) {}
 }
@@ -3651,7 +3599,7 @@ MethodInvocation
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_extension_staticMethod_inAugmentation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {}
 
 augment extension A {
@@ -3691,7 +3639,7 @@ MethodInvocation
   }
 
   test_hasReceiver_extensionTypeName() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static void foo() {}
 }
@@ -3722,7 +3670,7 @@ MethodInvocation
   }
 
   test_hasReceiver_functionTyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo(int _) {}
 
 main() {
@@ -3756,7 +3704,7 @@ MethodInvocation
   }
 
   test_hasReceiver_functionTyped_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T _) {}
 
 main() {
@@ -3798,7 +3746,7 @@ MethodInvocation
 T foo<T extends num>(T a, T b) => a;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 main() {
@@ -3846,7 +3794,7 @@ MethodInvocation
 T Function<T>(T a, T b) get foo => null;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 main() {
@@ -3894,7 +3842,7 @@ FunctionExpressionInvocation
   }
 
   test_hasReceiver_instance_Function_call_localVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Function getFunction()) {
   Function foo = getFunction();
 
@@ -3928,7 +3876,7 @@ MethodInvocation
   }
 
   test_hasReceiver_instance_Function_call_topVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Function foo = throw Error();
 
 void main() {
@@ -3962,7 +3910,7 @@ MethodInvocation
   }
 
   test_hasReceiver_instance_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   double Function(int) get foo => throw Error();
 }
@@ -4043,7 +3991,7 @@ FunctionExpressionInvocation
   }
 
   test_hasReceiver_instance_getter_switchStatementExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int Function() get foo => throw Error();
 }
@@ -4080,7 +4028,7 @@ FunctionExpressionInvocation
   }
 
   test_hasReceiver_instance_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void foo(int _) {}
 }
@@ -4116,7 +4064,7 @@ MethodInvocation
   }
 
   test_hasReceiver_instance_method_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T foo<T>(T a) {
     return a;
@@ -4158,7 +4106,7 @@ MethodInvocation
   }
 
   test_hasReceiver_instance_method_issue30552() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class I1 {
   void foo(int i);
 }
@@ -4202,7 +4150,7 @@ MethodInvocation
   }
 
   test_hasReceiver_instance_typeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(int _) {}
 }
@@ -4245,7 +4193,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceQ_Function_call_checked() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Function? foo) {
   foo?.call();
 }
@@ -4272,14 +4220,13 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceQ_Function_call_unchecked() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Function? foo) {
   foo.call();
+//    ^^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'call' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 30, 4)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo.call()');
     assertResolvedNodeText(node, r'''
@@ -4302,7 +4249,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceQ_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C foo() => throw 0;
   C bar() => throw 0;
@@ -4345,7 +4292,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceQ_nullShorting_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   void Function(C) get foo;
 }
@@ -4393,7 +4340,7 @@ augment class A {
   augment void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -4436,7 +4383,7 @@ augment class A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -4469,7 +4416,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_enum() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void foo() {}
@@ -4501,7 +4448,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_enum_fromMixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   void foo() {}
 }
@@ -4536,7 +4483,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_declared() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
 }
@@ -4567,7 +4514,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_declared_nullableRepresentation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int? it) {
   void foo() {}
 }
@@ -4598,18 +4545,17 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_declared_nullableType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int foo() => 0;
 }
 
 void f(A? a) {
   a.foo();
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 67, 3)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -4632,7 +4578,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_declared_nullableType_nullAware() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int foo() => 0;
 }
@@ -4663,7 +4609,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_exposed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -4698,8 +4644,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_notExposed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
@@ -4710,10 +4655,10 @@ extension type X(B it) implements A {}
 
 void f(X x) {
   x.foo();
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'X'.
 }
-''',
-      [error(diag.undefinedMethod, 109, 3)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -4736,7 +4681,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_redeclared() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -4771,7 +4716,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   T foo() => throw 0;
 }
@@ -4806,7 +4751,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameterNot() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   double foo() => throw 0;
 }
@@ -4847,7 +4792,7 @@ augment mixin A {
   augment void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {
@@ -4890,7 +4835,7 @@ augment mixin A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {}
@@ -4923,7 +4868,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_ofExtension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
 }
@@ -4962,7 +4907,7 @@ augment extension E {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 extension E on int {}
@@ -4993,7 +4938,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_switchExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Object f(Object? x) {
   return switch (x) {
     _ => 0,
@@ -5039,18 +4984,17 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 
 void f(A? a) {
   a.foo();
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 48, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -5073,8 +5017,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -5085,10 +5028,10 @@ extension E on A {
 
 void f(A? a) {
   a.foo();
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 86, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -5111,7 +5054,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extensionQ() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -5146,7 +5089,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extensionQ2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T> on T? {
   T foo() => throw 0;
 }
@@ -5179,16 +5122,15 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f(A? a) {
   a.foo();
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 31, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -5211,8 +5153,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined_extension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -5221,10 +5162,10 @@ extension E on A {
 
 void f(A? a) {
   a.foo();
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 69, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -5247,7 +5188,7 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined_extensionQ() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A? {
@@ -5280,14 +5221,13 @@ MethodInvocation
   }
 
   test_hasReceiver_neverQuestion_nullAware() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Never? a) {
   a?.foo();
+//   ^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 24, 5)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo');
     assertResolvedNodeText(node, r'''
@@ -5316,7 +5256,7 @@ class C {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 main() {
@@ -5367,7 +5307,7 @@ class C {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 main() {
@@ -5409,7 +5349,7 @@ MethodInvocation
   }
 
   test_hasReceiver_record_defined_extension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void foo(int a) {}
 }
@@ -5445,7 +5385,7 @@ MethodInvocation
   }
 
   test_hasReceiver_recordQ_defined_extension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String)? {
   void foo(int a) {}
 }
@@ -5481,18 +5421,17 @@ MethodInvocation
   }
 
   test_hasReceiver_recordQ_notDefined_extension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void foo(int a) {}
 }
 
 void f((int, String)? r) {
   r.foo(0);
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 86, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -5520,7 +5459,7 @@ MethodInvocation
   }
 
   test_hasReceiver_super_class_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
 }
@@ -5550,7 +5489,7 @@ MethodInvocation
   }
 
   test_hasReceiver_super_class_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -5673,7 +5612,7 @@ MethodInvocation
   }
 
   test_hasReceiver_super_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   double Function(int) get foo => throw Error();
 }
@@ -5713,7 +5652,7 @@ FunctionExpressionInvocation
   }
 
   test_hasReceiver_super_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(int _) {}
 }
@@ -5750,7 +5689,7 @@ MethodInvocation
   }
 
   test_hasReceiver_super_mixin_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
 }
@@ -5780,7 +5719,7 @@ MethodInvocation
   }
 
   test_hasReceiver_super_mixin_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -5812,7 +5751,7 @@ MethodInvocation
   }
 
   test_hasReceiver_typeAlias_staticMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo(int _) {}
 }
@@ -5850,7 +5789,7 @@ MethodInvocation
   }
 
   test_hasReceiver_typeAlias_staticMethod_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static void foo(int _) {}
 }
@@ -5888,7 +5827,7 @@ MethodInvocation
   }
 
   test_hasReceiver_typeParameter_promotedToNonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T? t) {
   if (t is int) {
     t.abs();
@@ -5917,7 +5856,7 @@ MethodInvocation
   }
 
   test_hasReceiver_typeParameter_promotedToOtherTypeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 
 abstract class B extends A {
@@ -5952,18 +5891,17 @@ MethodInvocation
   }
 
   test_identifier_class_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final foo = 0;
 
   void f() {
     foo(0);
+//  ^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
   }
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 45, 3)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -5987,7 +5925,7 @@ FunctionExpressionInvocation
   }
 
   test_identifier_class_field_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   dynamic foo;
 
@@ -6019,7 +5957,7 @@ FunctionExpressionInvocation
   }
 
   test_identifier_class_getter_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   dynamic get foo => null;
 
@@ -6051,7 +5989,7 @@ FunctionExpressionInvocation
   }
 
   test_identifier_formalParameter_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(foo) {
   foo(0);
 }
@@ -6079,18 +6017,17 @@ FunctionExpressionInvocation
   }
 
   test_identifier_topLevelFunction_arguments_duplicateNamed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 void foo({int? p}) {}
 
 void f() {
   foo(p: 0, p: a);
+//          ^
+// [diag.duplicateNamedArgument] The argument for the named parameter 'p' was already specified.
 }
-''',
-      [error(diag.duplicateNamedArgument, 60, 1)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -6124,16 +6061,15 @@ MethodInvocation
   }
 
   test_identifier_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final foo = 0;
 
 void f() {
   foo(0);
+//^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 29, 3)],
-    );
+''');
 
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -6157,7 +6093,7 @@ FunctionExpressionInvocation
   }
 
   test_identifier_topLevelVariable_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic foo;
 
 void f() {
@@ -6187,7 +6123,7 @@ FunctionExpressionInvocation
   }
 
   test_inClass_inInstanceMethod_staticMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo(int p) {}
 
@@ -6218,7 +6154,7 @@ MethodInvocation
   }
 
   test_inClass_inInstanceMethod_staticMethod_generic_contextTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static E foo<E>(A<E> p) => throw 0;
 
@@ -6253,7 +6189,7 @@ MethodInvocation
   }
 
   test_inFunction_topLevelFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo(int a) {}
 
 void f() {
@@ -6282,7 +6218,7 @@ MethodInvocation
   }
 
   test_inFunction_topLevelFunction_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo<T>(T a) {}
 
 void f() {
@@ -6365,17 +6301,16 @@ MethodInvocation
   }
 
   test_invalidConst_class_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int foo(int _) => 0;
 }
 
 const a = 0;
 const b = A.foo(a);
-''',
-      [error(diag.constEvalMethodInvocation, 66, 8)],
-    );
+//        ^^^^^^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -6404,13 +6339,12 @@ MethodInvocation
   }
 
   test_invalidConst_expression_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 const b = 'abc'.codeUnitAt(a);
-''',
-      [error(diag.constEvalMethodInvocation, 23, 19)],
-    );
+//        ^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -6437,7 +6371,7 @@ MethodInvocation
   }
 
   test_localFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   double g(int a, String b) => throw 0;
   g(1, '2');
@@ -6467,7 +6401,7 @@ MethodInvocation
   }
 
   test_localFunction_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   T g<T, U>(T a, U b) => throw 0;
   g(1, '2');
@@ -6502,7 +6436,7 @@ MethodInvocation
   }
 
   test_localFunction_generic_formalParameters_optionalPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   T g<T>([T? a]) => throw 0;
   g(0);
@@ -6534,7 +6468,7 @@ MethodInvocation
   }
 
   test_localFunction_generic_formalParameters_requiredNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   T g<T>({required T a}) => throw 0;
   g(a: 0);
@@ -6577,7 +6511,7 @@ augment mixin A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void foo() {}
@@ -6618,7 +6552,7 @@ augment mixin A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void foo() {}
@@ -6647,7 +6581,7 @@ MethodInvocation
   }
 
   test_namedArgument() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo({int? a, bool? b}) {}
 
 main() {
@@ -6686,7 +6620,7 @@ MethodInvocation
   }
 
   test_namedArgument_anywhere() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B {}
 class C {}
@@ -6779,7 +6713,7 @@ MethodInvocation
   }
 
   test_noReceiver_call_extension_on_FunctionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int Function() {
   void f() {
     call();
@@ -6803,7 +6737,7 @@ MethodInvocation
   }
 
   test_noReceiver_call_extension_on_FunctionType_bounded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T extends int Function()> on T {
   void f() {
     call();
@@ -6827,7 +6761,7 @@ MethodInvocation
   }
 
   test_noReceiver_getter_superClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   double Function(int) get foo => throw Error();
 }
@@ -6861,7 +6795,7 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_getter_thisClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   double Function(int) get foo => throw Error();
 
@@ -6893,16 +6827,15 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_importPrefix() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as math;
 
 main() {
   math();
+//^^^^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'math' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 40, 4)],
-    );
+''');
 
     var node = findNode.methodInvocation('math()');
     assertResolvedNodeText(node, r'''
@@ -6920,7 +6853,7 @@ MethodInvocation
   }
 
   test_noReceiver_localFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   void foo(int _) {}
 
@@ -6949,7 +6882,7 @@ MethodInvocation
   }
 
   test_noReceiver_localVariable_call() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int _) {}
 }
@@ -6981,7 +6914,7 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_localVariable_promoted() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   var foo;
   if (foo is void Function(int)) {
@@ -7012,7 +6945,7 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_method_superClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(int _) {}
 }
@@ -7045,7 +6978,7 @@ MethodInvocation
   }
 
   test_noReceiver_method_thisClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void foo(int _) {}
 
@@ -7076,7 +7009,7 @@ MethodInvocation
   }
 
   test_noReceiver_parameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function(int) foo) {
   foo(0);
 }
@@ -7104,7 +7037,7 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_parameter_call_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 double Function(int)? foo;
 
 main() {
@@ -7138,7 +7071,7 @@ MethodInvocation
   }
 
   test_noReceiver_parameter_functionTyped_typedef() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function();
 
 void f(F a) {
@@ -7165,7 +7098,7 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_topFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo(int _) {}
 
 main() {
@@ -7194,7 +7127,7 @@ MethodInvocation
   }
 
   test_noReceiver_topGetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 double Function(int) get foo => throw Error();
 
 main() {
@@ -7224,7 +7157,7 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_topVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void Function(int) foo = throw Error();
 
 main() {
@@ -7254,7 +7187,7 @@ FunctionExpressionInvocation
   }
 
   test_nullShorting_cascade_firstMethodInvocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
   int bar() => 0;
@@ -7300,7 +7233,7 @@ CascadeExpression
   }
 
   test_nullShorting_cascade_firstPropertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
   int bar() => 0;
@@ -7342,7 +7275,7 @@ CascadeExpression
   }
 
   test_nullShorting_cascade_nullAwareInside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? foo() => 0;
 }
@@ -7395,7 +7328,7 @@ CascadeExpression
   }
 
   test_objectMethodOnDynamic_argumentsDontMatch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(a, int b) {
   a.toString(b);
 }
@@ -7428,7 +7361,7 @@ MethodInvocation
   }
 
   test_objectMethodOnDynamic_argumentsMatch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(a) {
   a.toString();
 }
@@ -7455,7 +7388,7 @@ MethodInvocation
   }
 
   test_objectMethodOnFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {}
 
 main() {
@@ -7485,7 +7418,7 @@ MethodInvocation
 
   test_parameterMember_source() async {
     // See https://github.com/dart-lang/sdk/issues/50660
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>({int? a}) {}
 
 void f() {
@@ -7501,7 +7434,7 @@ void f() {
   }
 
   test_remainder_int_context_cascaded() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a..remainder(f()));
@@ -7528,7 +7461,7 @@ MethodInvocation
   }
 
   test_remainder_int_context_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a.remainder(f()));
@@ -7555,7 +7488,7 @@ MethodInvocation
   }
 
   test_remainder_int_context_int_target_rewritten() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int Function() a) {
   h(a().remainder(f()));
@@ -7582,19 +7515,18 @@ MethodInvocation
   }
 
   test_remainder_int_context_int_via_extension_explicit() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   String remainder(num x) => '';
 }
 T f<T>() => throw Error();
 g(int a) {
   h(E(a).remainder(f()));
+//  ^^^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }
 h(int x) {}
-''',
-      [error(diag.argumentTypeNotAssignable, 98, 19)],
-    );
+''');
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7615,7 +7547,7 @@ MethodInvocation
   }
 
   test_remainder_int_context_none() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   a.remainder(f());
@@ -7641,7 +7573,7 @@ MethodInvocation
   }
 
   test_remainder_int_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, double b) {
   a.remainder(b);
 }
@@ -7674,7 +7606,7 @@ MethodInvocation
   }
 
   test_remainder_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int b) {
   a.remainder(b);
 }
@@ -7707,7 +7639,7 @@ MethodInvocation
   }
 
   test_remainder_int_int_target_rewritten() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int Function() a, int b) {
   a().remainder(b);
 }
@@ -7747,8 +7679,7 @@ MethodInvocation
   }
 
   test_remainder_other_context_int_via_extension_explicit() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String remainder(num x) => '';
@@ -7756,11 +7687,11 @@ extension E on A {
 T f<T>() => throw Error();
 g(A a) {
   h(E(a).remainder(f()));
+//  ^^^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }
 h(int x) {}
-''',
-      [error(diag.argumentTypeNotAssignable, 105, 19)],
-    );
+''');
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7781,8 +7712,7 @@ MethodInvocation
   }
 
   test_remainder_other_context_int_via_extension_implicit() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String remainder(num x) => '';
@@ -7790,11 +7720,11 @@ extension E on A {
 T f<T>() => throw Error();
 g(A a) {
   h(a.remainder(f()));
+//  ^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }
 h(int x) {}
-''',
-      [error(diag.argumentTypeNotAssignable, 105, 16)],
-    );
+''');
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7815,7 +7745,7 @@ MethodInvocation
   }
 
   test_rewrite_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(this.content);
   final String Function() content;
@@ -7872,7 +7802,7 @@ FunctionExpressionInvocation
   }
 
   test_rewrite_with_target() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 test<T extends Function>(List<T> x) {
   x.first();
 }
@@ -7904,7 +7834,7 @@ FunctionExpressionInvocation
   }
 
   test_rewrite_without_target() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T extends Function> on List<T> {
   test() {
     first();
@@ -7931,7 +7861,7 @@ FunctionExpressionInvocation
   }
 
   test_superQualifier_identifier_methodOfMixin_inEnum() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
@@ -7964,18 +7894,17 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
   void foo(int _) {
     super.foo(0);
+//        ^^^
+// [diag.undefinedSuperMethod] The method 'foo' isn't defined in a superclass of 'B'.
   }
 }
-''',
-      [error(diag.undefinedSuperMethod, 62, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -8002,17 +7931,16 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inEnum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void f() {
     super.foo(0);
+//        ^^^
+// [diag.undefinedSuperMethod] The method 'foo' isn't defined in a superclass of 'E'.
   }
 }
-''',
-      [error(diag.undefinedSuperMethod, 37, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -8039,18 +7967,17 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inMixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 mixin M on A {
   void bar() {
     super.foo(0);
+//        ^^^
+// [diag.undefinedSuperMethod] The method 'foo' isn't defined in a superclass of 'M'.
   }
 }
-''',
-      [error(diag.undefinedSuperMethod, 52, 3)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -8080,17 +8007,15 @@ MethodInvocation
     // This code is invalid, and the constructor initializer has a method
     // invocation with a synthetic name. But we should still resolve the
     // invocation, and resolve all its arguments.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() : B(1 + 2, [0]);
+//      ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//      ^^^^^^^^^^^^^
+// [diag.initializerForNonExistentField] 'B' isn't a field in the enclosing class.
 }
-''',
-      [
-        error(diag.missingAssignmentInInitializer, 18, 1),
-        error(diag.initializerForNonExistentField, 18, 13),
-      ],
-    );
+''');
 
     var node = findNode.methodInvocation(');');
     assertResolvedNodeText(node, r'''
@@ -8134,7 +8059,7 @@ MethodInvocation
   }
 
   test_topLevelFunction_notGeneric_arguments_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo(int a, {required bool b}) {}
 
 void f() {
@@ -8170,16 +8095,15 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_inferred() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 U foo<T, U>(T a) => throw Error();
 
 main() {
   bool v = foo(0);
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 52, 1)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -8207,7 +8131,7 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_inferred_leftTop_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo<T extends Object>(T? value) {}
 
 void f(dynamic o) {
@@ -8241,7 +8165,7 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_inferred_leftTop_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo<T extends Object>(List<T?> value) {}
 
 void f(List<void> o) {
@@ -8275,7 +8199,7 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_instantiateToBounds() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T extends num>() {}
 
 main() {
@@ -8301,16 +8225,15 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_typeArguments_notBounds() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T extends num>() {}
 
 main() {
   foo<bool>();
+//    ^^^^
+// [diag.typeArgumentNotMatchingBounds] 'bool' doesn't conform to the bound 'num' of the type parameter 'T'.
 }
-''',
-      [error(diag.typeArgumentNotMatchingBounds, 45, 4)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo<bool>();');
     assertResolvedNodeText(node, r'''
@@ -8338,16 +8261,15 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_typeArguments_wrongNumber() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>() {}
 
 main() {
   foo<int, double>();
+//   ^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The function 'foo' is declared with 1 type parameters, but 2 type arguments are given.
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsElement, 32, 13)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo<int, double>();');
     assertResolvedNodeText(node, r'''
@@ -8379,7 +8301,7 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_notGeneric() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo(int a) {}
 
 main() {

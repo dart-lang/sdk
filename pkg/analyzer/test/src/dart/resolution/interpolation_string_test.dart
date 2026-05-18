@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InterpolationStringResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,7 +23,7 @@ class InterpolationStringResolutionTest extends PubPackageResolutionTest {
 var bar;
 var f = "foo$bar";
 ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
     var string = findNode.stringInterpolation(r'"foo$bar"');
 
     expect(string.elements, hasLength(3));
@@ -39,7 +40,7 @@ var f = "foo$bar";
 var bar;
 var f = "foo${bar}baz";
 ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
     var string = findNode.stringInterpolation(r'"foo${bar}baz"');
     expect(string.elements, hasLength(3));
     var quoteOffset = code.indexOf('"');
@@ -58,7 +59,7 @@ var f = "foo${bar}baz";
 var bar;
 var f = "foo${bar}";
 ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
     var string = findNode.stringInterpolation(r'"foo${bar}"');
     expect(string.elements, hasLength(3));
 
@@ -75,9 +76,14 @@ var f = "foo${bar}
 // deliberately unclosed
 ;
 ''';
-    await assertErrorsInCode(code, [
-      error(diag.unterminatedStringLiteral, code.indexOf('}'), 1),
-    ]);
+    await resolveTestCodeWithDiagnostics(r'''
+var bar;
+var f = "foo${bar}
+//               ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// deliberately unclosed
+;
+''');
     var string = findNode.stringInterpolation(r'"foo${bar}');
     expect(string.elements, hasLength(3));
 
@@ -95,9 +101,14 @@ var f = "foo${bar}'
 // deliberately closed with wrong quote
 ;
 ''';
-    await assertErrorsInCode(code, [
-      error(diag.unterminatedStringLiteral, code.indexOf("'"), 1),
-    ]);
+    await resolveTestCodeWithDiagnostics(r'''
+var bar;
+var f = "foo${bar}'
+//                ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// deliberately closed with wrong quote
+;
+''');
     var string = findNode.stringInterpolation('"foo\${bar}\'');
     expect(string.elements, hasLength(3));
 
@@ -113,7 +124,7 @@ var f = "foo${bar}'
 var bar;
 var f = "foo\n$bar";
 ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
     var string = findNode.stringInterpolation(r'"foo\n$bar"');
     expect(string.elements, hasLength(3));
 
