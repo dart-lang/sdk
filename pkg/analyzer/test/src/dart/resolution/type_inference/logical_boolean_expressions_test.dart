@@ -5,18 +5,20 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LogicalAndTest);
     defineReflectiveTests(LogicalOrTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LogicalAndTest extends PubPackageResolutionTest {
   test_downward() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(b) {
   var c = a() && b();
   print(c);
@@ -59,7 +61,7 @@ BinaryExpression
   }
 
   test_upward() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(bool a, bool b) {
   var c = a && b;
   print(c);
@@ -89,7 +91,7 @@ BinaryExpression
 @reflectiveTest
 class LogicalOrTest extends PubPackageResolutionTest {
   test_downward() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(b) {
   var c = a() || b();
   print(c);
@@ -132,7 +134,7 @@ BinaryExpression
   }
 
   test_upward() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(bool a, bool b) {
   var c = a || b;
   print(c);

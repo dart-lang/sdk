@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapLiteralTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,27 +20,25 @@ class MapLiteralTest extends PubPackageResolutionTest {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_entry_conflictingKey() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, int> a = {'a' : 1};
-''',
-      [error(diag.mapKeyTypeNotAssignable, 19, 3)],
-    );
+//                 ^^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
+''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_noTypeArgs_entry_conflictingValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, int> a = {1 : 'a'};
-''',
-      [error(diag.mapValueTypeNotAssignable, 23, 3)],
-    );
+//                     ^^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_noTypeArgs_entry_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, int> a = {1 : 2};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
@@ -57,7 +56,7 @@ FutureOr<Map<int, String>> f() {
   }
 
   test_context_noTypeArgs_noEntries_fromParameterType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   useMap({});
 }
@@ -67,14 +66,14 @@ void useMap(Map<int, String> _) {}
   }
 
   test_context_noTypeArgs_noEntries_fromVariableType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<String, String> a = {};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_noTypeArgs_noEntries_typeParameterNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T extends Object?> {
   Map<String, T> a = {}; // 1
   Map<String, T>? b = {}; // 2
@@ -89,31 +88,29 @@ class C<T extends Object?> {
   }
 
   test_context_noTypeArgs_noEntries_typeParameters() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<E extends Map<int, String>> {
   E a = {};
+//      ^^
+// [diag.invalidAssignment] A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'E'.
 }
-''',
-      [error(diag.invalidAssignment, 46, 2)],
-    );
+''');
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
 
   test_context_noTypeArgs_noEntries_typeParameters_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<E extends Map<dynamic, dynamic>> {
   E a = {};
+//      ^^
+// [diag.invalidAssignment] A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'E'.
 }
-''',
-      [error(diag.invalidAssignment, 51, 2)],
-    );
+''');
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
 
   test_context_spread_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>(T t) => t;
 
 main() {
@@ -146,51 +143,48 @@ MethodInvocation
   }
 
   test_context_typeArgs_entry_conflictingKey() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Map<String, String> a = <String, String>{0 : 'a'};
-''',
-      [error(diag.mapKeyTypeNotAssignable, 41, 1)],
-    );
+//                                       ^
+// [diag.mapKeyTypeNotAssignable] The element type 'int' can't be assigned to the map key type 'String'.
+''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_typeArgs_entry_conflictingValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Map<String, String> a = <String, String>{'a' : 1};
-''',
-      [error(diag.mapValueTypeNotAssignable, 47, 1)],
-    );
+//                                             ^
+// [diag.mapValueTypeNotAssignable] The element type 'int' can't be assigned to the map value type 'String'.
+''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_typeArgs_entry_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<String, String> a = <String, String>{'a' : 'b'};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_typeArgs_noEntries_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Map<String, String> a = <int, int>{};
-''',
-      [error(diag.invalidAssignment, 24, 12)],
-    );
+//                      ^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'Map<int, int>' can't be assigned to a variable of type 'Map<String, String>'.
+''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_typeArgs_noEntries_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<String, String> a = <String, String>{};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_default_constructor_param_typed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   const C({x = const <String, int>{}});
 }
@@ -198,7 +192,7 @@ class C {
   }
 
   test_default_constructor_param_untyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   const C({x = const {}});
 }
@@ -206,28 +200,28 @@ class C {
   }
 
   test_noContext_noTypeArgs_expressions_lubOfIntAndString() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {1 : 'a', 2 : 'b', 3 : 'c'};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, String>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfNumAndNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {1 : 2, 3.0 : 4, 5 : 6.0};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<num, num>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfObjectAndObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {1 : '1', '2' : 2, 3 : '3'};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<Object, Object>');
   }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 var a = {for (int e in c) e : e * 2};
 ''');
@@ -235,7 +229,7 @@ var a = {for (int e in c) e : e * 2};
   }
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int> c = [];
 int b = 0;
 var a = {for (b in c) b * 2 : b};
@@ -244,14 +238,14 @@ var a = {for (b in c) b * 2 : b};
   }
 
   test_noContext_noTypeArgs_forWithDeclaration() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {for (var i = 0; i < 2; i++) i : i * 2};
 ''');
     assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_forWithExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int i = 0;
 var a = {for (i = 0; i < 2; i++) i * 2 : i};
 ''');
@@ -259,7 +253,7 @@ var a = {for (i = 0; i < 2; i++) i * 2 : i};
   }
 
   test_noContext_noTypeArgs_if() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1 : 2};
 ''');
@@ -267,7 +261,7 @@ var a = {if (c) 1 : 2};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfIntAndInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1 : 3 else 2 : 4};
 ''');
@@ -275,7 +269,7 @@ var a = {if (c) 1 : 3 else 2 : 4};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfNumAndNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1.0 : 3 else 2 : 4.0};
 ''');
@@ -283,7 +277,7 @@ var a = {if (c) 1.0 : 3 else 2 : 4.0};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfObjectAndObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool c = true;
 var a = {if (c) 1 : '1' else '2': 2 };
 ''');
@@ -291,14 +285,14 @@ var a = {if (c) 1 : '1' else '2': 2 };
   }
 
   test_noContext_noTypeArgs_noEntries() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
   }
 
   test_noContext_noTypeArgs_spread() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, int> c = {};
 var a = {...c};
 ''');
@@ -306,7 +300,7 @@ var a = {...c};
   }
 
   test_noContext_noTypeArgs_spread_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var c = {};
 var a = {...c};
 ''');
@@ -314,7 +308,7 @@ var a = {...c};
   }
 
   test_noContext_noTypeArgs_spread_lubOfIntAndInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, int> c = {};
 Map<int, int> b = {};
 var a = {...b, ...c};
@@ -323,7 +317,7 @@ var a = {...b, ...c};
   }
 
   test_noContext_noTypeArgs_spread_lubOfNumAndNum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, double> c = {};
 Map<double, int> b = {};
 var a = {...b, ...c};
@@ -332,7 +326,7 @@ var a = {...b, ...c};
   }
 
   test_noContext_noTypeArgs_spread_lubOfObjectObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, int> c = {};
 Map<String, String> b = {};
 var a = {...b, ...c};
@@ -341,7 +335,7 @@ var a = {...b, ...c};
   }
 
   test_noContext_noTypeArgs_spread_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Map<String, int> {}
 
 void f(M m1) {
@@ -353,7 +347,7 @@ void f(M m1) {
   }
 
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Map<String, int> c = {};
 dynamic d;
 var a = {if (0 < 1) ...c else ...d};
@@ -362,49 +356,45 @@ var a = {if (0 < 1) ...c else ...d};
   }
 
   test_noContext_noTypeArgs_spread_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0: throw 0};
+//                   ^^^^^^^^^^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 87, 21)],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
+//         ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                    ^^^^^^^^^^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [
-        error(diag.invalidNullAwareOperator, 77, 4),
-        error(diag.deadCode, 88, 21),
-      ],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
+//                                ^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 99, 7)],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_map() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a) {
   // ignore:unused_local_variable
   var v = {1 : 'a', ...?a, 2 : 'b'};
@@ -414,7 +404,7 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_set() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a) {
   // ignore:unused_local_variable
   var v = {1, ...?a, 2};
@@ -424,49 +414,45 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null a) {
   // ignore:unused_local_variable
   var v = {...?a};
+//        ^^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
 }
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 61, 7)],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
+//         ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                    ^^^^^^^^^^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [
-        error(diag.invalidNullAwareOperator, 90, 4),
-        error(diag.deadCode, 101, 21),
-      ],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Null>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
+//                                ^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 112, 7)],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_implementsMap() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Map<int, String>>(T a) {
   // ignore:unused_local_variable
   var v = {...a};
@@ -476,80 +462,74 @@ void f<T extends Map<int, String>>(T a) {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0: throw 0};
+//                   ^^^^^^^^^^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 100, 21)],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   // TODO(scheglov): Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a};
+//        ^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
 }
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 73, 6)],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
   // TODO(scheglov): Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a, 0: 1};
+//        ^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
 }
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 73, 12)],
-    );
+''');
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
   test_noContext_typeArgs_entry_conflictingKey() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = <String, int>{1 : 2};
-''',
-      [error(diag.mapKeyTypeNotAssignable, 22, 1)],
-    );
+//                    ^
+// [diag.mapKeyTypeNotAssignable] The element type 'int' can't be assigned to the map key type 'String'.
+''');
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
 
   test_noContext_typeArgs_entry_conflictingValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = <String, int>{'a' : 'b'};
-''',
-      [error(diag.mapValueTypeNotAssignable, 28, 3)],
-    );
+//                          ^^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+''');
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
 
   test_noContext_typeArgs_entry_noConflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <int, int>{1 : 2};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_noContext_typeArgs_expression_conflictingElement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = <int, String>{1};
-''',
-      [error(diag.expressionInMap, 22, 1)],
-    );
+//                    ^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+''');
     assertType(setOrMapLiteral('{'), 'Map<int, String>');
   }
 
@@ -562,7 +542,7 @@ var a = <int>{1 : 2, 3 : 4};
   }
 
   test_noContext_typeArgs_noEntries() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <num, String>{};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<num, String>');

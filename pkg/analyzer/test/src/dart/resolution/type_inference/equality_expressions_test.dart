@@ -5,11 +5,13 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualTest);
     defineReflectiveTests(NotEqualTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 

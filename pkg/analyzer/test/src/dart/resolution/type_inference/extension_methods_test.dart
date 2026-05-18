@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ExtensionMethodsTest extends PubPackageResolutionTest {
   test_implicit_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -50,7 +51,7 @@ PrefixedIdentifier
   }
 
   test_implicit_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -94,7 +95,7 @@ MethodInvocation
   }
 
   test_implicit_method_internal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T> on List<T> {
   List<T> foo() => this;
   List<T> bar(List<T> other) => other.foo();
@@ -124,7 +125,7 @@ MethodInvocation
   }
 
   test_implicit_method_onTypeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T> on T {
   Map<T, U> foo<U>(U value) => <T, U>{};
 }
@@ -166,7 +167,7 @@ MethodInvocation
   }
 
   test_implicit_method_tearOff() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -200,7 +201,7 @@ PrefixedIdentifier
   }
 
   test_implicit_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -245,7 +246,7 @@ AssignmentExpression
   }
 
   test_implicit_targetTypeParameter_hasBound_methodInvocation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension Test<T> on T {
   T Function(T) test() => throw 0;
 }
@@ -278,7 +279,7 @@ MethodInvocation
   }
 
   test_implicit_targetTypeParameter_hasBound_propertyAccess_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension Test<T> on T {
   T Function(T) get test => throw 0;
 }
@@ -311,7 +312,7 @@ PropertyAccess
   }
 
   test_implicit_targetTypeParameter_hasBound_propertyAccess_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension Test<T> on T {
   void set test(T _) {}
 }
@@ -369,7 +370,7 @@ AssignmentExpression
   }
 
   test_override_downward_hasTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T> on Set<T> {
   void foo() {}
 }
@@ -383,24 +384,23 @@ main() {
   }
 
   test_override_downward_hasTypeArguments_wrongNumber() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T> on Set<T> {
   void foo() {}
 }
 
 main() {
   E<int, bool>({}).foo();
+// ^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsExtension] The extension 'E' is declared with 1 type parameters, but 2 type arguments were given.
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsExtension, 58, 11)],
-    );
+''');
     var literal = findNode.setOrMapLiteral('{}).');
     assertType(literal, 'Set<dynamic>');
   }
 
   test_override_downward_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T> on Set<T> {
   void foo() {}
 }
@@ -414,7 +414,7 @@ main() {
   }
 
   test_override_hasTypeArguments_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -465,7 +465,7 @@ PropertyAccess
   }
 
   test_override_hasTypeArguments_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -529,7 +529,7 @@ MethodInvocation
   }
 
   test_override_hasTypeArguments_method_tearOff() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -580,7 +580,7 @@ PropertyAccess
   }
 
   test_override_hasTypeArguments_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -645,25 +645,24 @@ AssignmentExpression
   }
 
   test_override_inferTypeArguments_error_couldNotInfer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T extends num> on T {
   void foo() {}
 }
 
 f(String s) {
   E(s).foo();
+//  ^
+// [diag.extensionOverrideArgumentNotAssignable] The type of the argument to the extension override 'String' isn't assignable to the extended type 'num'.
 }
-''',
-      [error(diag.extensionOverrideArgumentNotAssignable, 71, 1)],
-    );
+''');
     var override = findNode.extensionOverride('E(s)');
     assertElementTypes(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'num');
   }
 
   test_override_inferTypeArguments_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -706,7 +705,7 @@ PropertyAccess
   }
 
   test_override_inferTypeArguments_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -762,7 +761,7 @@ MethodInvocation
   }
 
   test_override_inferTypeArguments_method_tearOff() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
@@ -805,7 +804,7 @@ PropertyAccess
   }
 
   test_override_inferTypeArguments_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<T> on A<T> {
