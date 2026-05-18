@@ -2783,6 +2783,41 @@
     },
     {
       "builders": [
+        "dart2wasm-mac-safari"
+      ],
+      "meta": {
+        "description": "dart2wasm tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=arm64",
+            "runtime",
+            "dart2wasm",
+            "create_sdk",
+            "dartaotruntime"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "--arch=arm64",
+            "-ndart2wasm-${system}-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart2wasm-asserts-minified-linux-d8"
       ],
       "meta": {
