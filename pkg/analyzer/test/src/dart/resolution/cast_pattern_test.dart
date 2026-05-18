@@ -2,28 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CastPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class CastPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case var y as int) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 29, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
@@ -44,7 +44,7 @@ CastPattern
   }
 
   test_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   switch (x) {
@@ -72,14 +72,13 @@ CastPattern
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   var (a as int) = x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 19, 1)],
-    );
+''');
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration

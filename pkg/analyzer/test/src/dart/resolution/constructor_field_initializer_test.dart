@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorFieldInitializerResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,7 +18,7 @@ main() {
 class ConstructorFieldInitializerResolutionTest
     extends PubPackageResolutionTest {
   test_fieldOfAugmentation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo;
 }
@@ -46,7 +47,7 @@ ConstructorFieldInitializer
   }
 
   test_formalParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int f;
   A(int a) : f = a;
@@ -181,16 +182,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_declarationAndInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final x = 0;
   const A() : x = a;
+//            ^
+// [diag.fieldInitializedInInitializerAndDeclaration] Fields can't be initialized in the constructor if they are final and were already initialized at their declaration.
 }
 const a = 0;
-''',
-      [error(diag.fieldInitializedInInitializerAndDeclaration, 39, 1)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -208,16 +208,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : X = a;
+//            ^^^^^
+// [diag.initializerForNonExistentField] 'X' isn't a field in the enclosing class.
 }
 const a = 0;
 class X {}
-''',
-      [error(diag.initializerForNonExistentField, 24, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -235,16 +234,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
   int get x => 0;
 }
 const a = 0;
-''',
-      [error(diag.initializerForNonExistentField, 18, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -262,19 +260,17 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_importPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async' as x;
+//     ^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:async'.
 class A {
   A() : x = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
 const a = 0;
-''',
-      [
-        error(diag.unusedImport, 7, 12),
-        error(diag.initializerForNonExistentField, 44, 5),
-      ],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -292,16 +288,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
   void x() {}
 }
 const a = 0;
-''',
-      [error(diag.initializerForNonExistentField, 18, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -319,16 +314,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
   set x(int _) {}
 }
 const a = 0;
-''',
-      [error(diag.initializerForNonExistentField, 18, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -346,16 +340,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_topLevelFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
 const a = 0;
 void x() {}
-''',
-      [error(diag.initializerForNonExistentField, 18, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -373,16 +366,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_topLevelVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
 const a = 0;
 var x = 0;
-''',
-      [error(diag.initializerForNonExistentField, 18, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -400,15 +392,14 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A() : T = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'T' isn't a field in the enclosing class.
 }
 const a = 0;
-''',
-      [error(diag.initializerForNonExistentField, 21, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -426,15 +417,14 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
 const a = 0;
-''',
-      [error(diag.initializerForNonExistentField, 18, 5)],
-    );
+''');
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''

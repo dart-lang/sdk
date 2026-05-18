@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class ConstantPatternResolutionTest extends PubPackageResolutionTest {
   test_expression_class_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const foo = 0;
 }
@@ -48,7 +47,7 @@ ConstantPattern
   }
 
   test_expression_instanceCreation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -78,7 +77,7 @@ ConstantPattern
   }
 
   test_expression_integerLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0) {}
 }
@@ -94,7 +93,7 @@ ConstantPattern
   }
 
   test_expression_integerLiteral_contextType_double() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(double x) {
   switch (x) {
     case 0:
@@ -113,7 +112,7 @@ ConstantPattern
   }
 
   test_expression_listLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const [0]) {}
 }
@@ -135,7 +134,7 @@ ConstantPattern
   }
 
   test_expression_mapLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0: 1}) {}
 }
@@ -169,7 +168,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -208,7 +207,7 @@ ConstantPattern
 const foo = 0;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -236,7 +235,7 @@ ConstantPattern
   }
 
   test_expression_setLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0, 1}) {}
 }
@@ -262,7 +261,7 @@ ConstantPattern
   }
 
   test_expression_topLevelVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 
 void f(x) {
@@ -281,7 +280,7 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_dynamicElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case dynamic) {}
 }
@@ -300,7 +299,7 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_interfaceElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int) {}
 }
@@ -319,7 +318,7 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_nested() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case [0, int]) {}
 }
@@ -349,7 +348,7 @@ ListPattern
   }
 
   test_expression_typeLiteral_notPrefixed_neverElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case Never) {}
 }
@@ -368,7 +367,7 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_typeAliasElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 
 void f(Object? x) {
@@ -390,14 +389,13 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_typeParameterElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(Object? x) {
   if (x case T) {}
+//           ^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
 }
-''',
-      [error(diag.constTypeParameter, 36, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
@@ -412,7 +410,7 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_prefixed_dynamicElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 
 void f(core.Object? x) {
@@ -437,7 +435,7 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_prefixed_interfaceElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 
 void f(core.Object? x) {
@@ -462,7 +460,7 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_prefixed_neverElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 
 void f(core.Object? x) {
@@ -491,7 +489,7 @@ ConstantPattern
 typedef A = int;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(Object? x) {
@@ -518,7 +516,7 @@ ConstantPattern
   }
 
   test_location_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0) {}
 }
@@ -534,7 +532,7 @@ ConstantPattern
   }
 
   test_location_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case 0:

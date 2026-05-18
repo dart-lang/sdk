@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -24,7 +23,7 @@ class CommentResolutionTest_PrefixedIdentifier
     // TODO(srawlins): improve coverage regarding constructors, operators, the
     // 'new' keyword, and members on an extension on a type variable
     // (`extension <T> on T`).
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A.named();
 }
@@ -51,7 +50,7 @@ CommentReference
   }
 
   test_class_constructor_unnamedViaNew() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A();
 }
@@ -78,7 +77,7 @@ CommentReference
   }
 
   test_class_instanceGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -105,7 +104,7 @@ CommentReference
   }
 
   test_class_instanceGetter_onTypedef() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -133,7 +132,7 @@ CommentReference
   }
 
   test_class_instanceMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -160,7 +159,7 @@ CommentReference
   }
 
   test_class_instanceSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -187,7 +186,7 @@ CommentReference
   }
 
   test_class_invalid_ambiguousExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 /// [foo]
 class A {}
 
@@ -210,7 +209,7 @@ CommentReference
   }
 
   test_class_invalid_unresolved() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 /// [foo]
 class A {}
 ''');
@@ -225,7 +224,7 @@ CommentReference
   }
 
   test_class_staticGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static int get foo => 0;
 }
@@ -252,7 +251,7 @@ CommentReference
   }
 
   test_class_staticGetter_onTypedef() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static int get foo => 0;
 }
@@ -281,7 +280,7 @@ CommentReference
   }
 
   test_class_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void foo() {}
 }
@@ -308,7 +307,7 @@ CommentReference
   }
 
   test_class_staticSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static set foo(int _) {}
 }
@@ -340,7 +339,7 @@ class A {
   A.named();
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -371,7 +370,7 @@ class A {
   A();
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -402,7 +401,7 @@ class A {
   int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -433,7 +432,7 @@ class A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -464,7 +463,7 @@ class A {
   static int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -495,7 +494,7 @@ class A {
   static void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -526,7 +525,7 @@ class A {
   static set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -557,7 +556,7 @@ extension E on int {
   int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -588,7 +587,7 @@ extension E on int {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -619,7 +618,7 @@ extension E on int {
   set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -650,7 +649,7 @@ extension E on int {
   static int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -681,7 +680,7 @@ extension E on int {
   static void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -712,7 +711,7 @@ extension E on int {
   static set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -738,7 +737,7 @@ CommentReference
   }
 
   test_extension_instanceGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int get foo => 0;
 }
@@ -765,7 +764,7 @@ CommentReference
   }
 
   test_extension_instanceMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   void foo() {}
 }
@@ -792,7 +791,7 @@ CommentReference
   }
 
   test_extension_instanceSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   set foo(int _) {}
 }
@@ -819,7 +818,7 @@ CommentReference
   }
 
   test_extension_staticGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   static int get foo => 0;
 }
@@ -846,7 +845,7 @@ CommentReference
   }
 
   test_extension_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   static void foo() {}
 }
@@ -873,7 +872,7 @@ CommentReference
   }
 
   test_extension_staticSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   static set foo(int _) {}
 }
@@ -903,7 +902,7 @@ CommentReference
 @reflectiveTest
 class CommentResolutionTest_PropertyAccess extends PubPackageResolutionTest {
   test_class_constructor_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   A.named();
@@ -939,7 +938,7 @@ CommentReference
   }
 
   test_class_constructor_unnamedViaNew() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   A();
@@ -974,7 +973,7 @@ CommentReference
   }
 
   test_class_instanceGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   int get foo => 0;
@@ -1009,7 +1008,7 @@ CommentReference
   }
 
   test_class_instanceGetter_onTypedef() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   int get foo => 0;
@@ -1045,7 +1044,7 @@ CommentReference
   }
 
   test_class_instanceMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   void foo() {}
@@ -1080,7 +1079,7 @@ CommentReference
   }
 
   test_class_instanceSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   set foo(int value) {}
@@ -1115,7 +1114,7 @@ CommentReference
   }
 
   test_class_staticGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   static int get foo => 0;
@@ -1150,7 +1149,7 @@ CommentReference
   }
 
   test_class_staticGetter_onTypedef() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   static int get foo => 0;
@@ -1186,7 +1185,7 @@ CommentReference
   }
 
   test_class_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   static void foo() {}
@@ -1221,7 +1220,7 @@ CommentReference
   }
 
   test_class_staticSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class A {
   static set foo(int value) {}
@@ -1256,7 +1255,7 @@ CommentReference
   }
 
   test_extension_instanceGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   int get foo => 0;
@@ -1291,7 +1290,7 @@ CommentReference
   }
 
   test_extension_instanceMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   void foo() {}
@@ -1326,7 +1325,7 @@ CommentReference
   }
 
   test_extension_instanceSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   set foo(int value) {}
@@ -1361,7 +1360,7 @@ CommentReference
   }
 
   test_extension_staticGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   static int get foo => 0;
@@ -1396,7 +1395,7 @@ CommentReference
   }
 
   test_extension_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   static void foo() {}
@@ -1431,7 +1430,7 @@ CommentReference
   }
 
   test_extension_staticSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   static set foo(int value) {}
@@ -1469,7 +1468,7 @@ CommentReference
 @reflectiveTest
 class CommentResolutionTest_SimpleIdentifier extends PubPackageResolutionTest {
   test_associatedSetterAndGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int get foo => 0;
 
 set foo(int value) {}
@@ -1488,7 +1487,7 @@ CommentReference
   }
 
   test_associatedSetterAndGetter_setterInScope() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E1 on int {
   int get foo => 0;
 }
@@ -1509,7 +1508,7 @@ CommentReference
   }
 
   test_beforeClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// [foo]
 class A {
   foo() {}
@@ -1526,7 +1525,7 @@ CommentReference
   }
 
   test_beforeConstructor_fieldParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int p;
 
@@ -1545,7 +1544,7 @@ CommentReference
   }
 
   test_beforeConstructor_normalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   /// [p]
   A(int p);
@@ -1561,7 +1560,7 @@ CommentReference
   }
 
   test_beforeConstructor_superParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p);
 }
@@ -1582,7 +1581,7 @@ CommentReference
   }
 
   test_beforeEnum() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// This is the [Samurai] kind.
 enum Samurai {
   /// Use [int].
@@ -1617,7 +1616,7 @@ CommentReference
   }
 
   test_beforeFunction_blockBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// [p]
 foo(int p) {}
 ''');
@@ -1632,7 +1631,7 @@ SimpleIdentifier
   }
 
   test_beforeFunction_expressionBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// [p]
 foo(int p) => null;
 ''');
@@ -1647,7 +1646,7 @@ CommentReference
   }
 
   test_beforeFunctionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// [p]
 typedef Foo(int p);
 ''');
@@ -1662,7 +1661,7 @@ CommentReference
   }
 
   test_beforeGenericTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// Can resolve [T], [S], and [p].
 typedef Foo<T> = Function<S>(int p);
 ''');
@@ -1693,7 +1692,7 @@ CommentReference
   }
 
   test_beforeGetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// [int]
 get g => null;
 ''');
@@ -1708,7 +1707,7 @@ SimpleIdentifier
   }
 
   test_beforeMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   /// [p1]
   ma(int p1);
@@ -1779,7 +1778,7 @@ int get foo => 0;
 
 set foo(int value) {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -1802,7 +1801,7 @@ extension E1 on int {
   int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -1828,7 +1827,7 @@ class C {}
     newFile('$testPackageLibPath/two.dart', r'''
 export 'one.dart';
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'two.dart';
 library;
 
@@ -1852,19 +1851,17 @@ class A {
   A.named();
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
 /// [new A] or [new A.named]
+//   ^^^
+// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+//              ^^^
+// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
 main() {}
-''',
-      [
-        error(diag.deprecatedNewInCommentReference, 42, 3),
-        error(diag.deprecatedNewInCommentReference, 53, 3),
-      ],
-    );
+''');
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''
 CommentReference
@@ -1897,7 +1894,7 @@ CommentReference
     newFile('$testPackageLibPath/foo.dart', r'''
 void foo() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -1921,7 +1918,7 @@ CommentReference
     newFile('$testPackageLibPath/foo.dart', r'''
 void foo() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -1942,7 +1939,7 @@ CommentReference
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 class C {
@@ -1964,7 +1961,7 @@ CommentReference
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 ///
 /// Text [A].
@@ -1984,7 +1981,7 @@ CommentReference
     newFile('$testPackageLibPath/foo.dart', r'''
 void foo() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -2005,7 +2002,7 @@ CommentReference
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 /// Text [A].
@@ -2025,7 +2022,7 @@ CommentReference
     newFile('$testPackageLibPath/foo.dart', r'''
 void foo() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 
@@ -2043,21 +2040,19 @@ CommentReference
   }
 
   test_newKeyword() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A();
   A.named();
 }
 
 /// [new A] or [new A.named]
+//   ^^^
+// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+//              ^^^
+// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
 main() {}
-''',
-      [
-        error(diag.deprecatedNewInCommentReference, 38, 3),
-        error(diag.deprecatedNewInCommentReference, 49, 3),
-      ],
-    );
+''');
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''
 CommentReference
@@ -2088,7 +2083,7 @@ CommentReference
 
   test_onFieldFormalParameter() async {
     // TODO(scheglov): add tests for references to nested formal parameters
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   A({
@@ -2109,7 +2104,7 @@ CommentReference
   }
 
   test_onFunctionTypedFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   /// [int]
   void g(int a),
@@ -2128,7 +2123,7 @@ CommentReference
 
   test_onFunctionTypedFormalParameter_self() async {
     // TODO(scheglov): add tests for references to nested formal parameters
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// [bar]
 void f(int bar()) {}
 ''');
@@ -2143,7 +2138,7 @@ CommentReference
   }
 
   test_onSimpleFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(
   /// [int]
   int x,
@@ -2162,7 +2157,7 @@ CommentReference
 
   test_onSuperFormalParameter() async {
     // TODO(scheglov): add tests for references to nested formal parameters
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int f});
 }
@@ -2186,7 +2181,7 @@ CommentReference
   }
 
   test_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   /// [x] in A
   mA() {}
@@ -2217,7 +2212,7 @@ CommentReference
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void foo() {}
 }
