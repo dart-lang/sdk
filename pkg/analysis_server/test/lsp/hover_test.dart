@@ -450,6 +450,26 @@ Declared in `MyEnum` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
+  Future<void> test_enum_member_declaration() async {
+    var content = '''
+enum E {
+  /// Docs
+  [!on^e!]
+}
+''';
+    var expected = '''
+```dart
+E one
+```
+Type: `E`
+
+Declared in `E` in *package:test/main.dart*.
+
+---
+Docs''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_enum_values() async {
     var content = '''
 enum MyEnum { one }

@@ -47,6 +47,7 @@ class DartUnitHoverComputer {
 
     if (node is CompilationUnitMember ||
         node is CatchClauseParameter ||
+        node is EnumConstantDeclaration ||
         node is Expression ||
         node is FormalParameter ||
         node is MethodDeclaration ||
@@ -232,6 +233,7 @@ class DartUnitHoverComputer {
       ConstructorDeclaration() =>
         node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
       DeclaredIdentifier() => node.name,
+      EnumConstantDeclaration() => node.name,
       EnumDeclaration() => node.namePart.typeName,
       Expression() => node,
       ExtensionDeclaration() => node.name,
