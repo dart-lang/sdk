@@ -4,6 +4,12 @@
 #ifndef RUNTIME_VM_FFI_CALLBACK_METADATA_H_
 #define RUNTIME_VM_FFI_CALLBACK_METADATA_H_
 
+#include "platform/globals.h"
+
+#if defined(DART_HOST_OS_FUCHSIA)
+#include <zircon/types.h>
+#endif
+
 #include "platform/growable_array.h"
 #include "platform/utils.h"
 #include "vm/hash_map.h"
@@ -63,14 +69,15 @@ class FfiCallbackMetadata {
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
     kDoRedirectedFfiCallback,
+    kGroupFfiCallbackMetadata,
     kNumRuntimeFunctions,
   };
 
-  static void Init();
-  static void Cleanup();
+  FfiCallbackMetadata();
+  ~FfiCallbackMetadata();
 
   // Returns the FfiCallbackMetadata singleton.
-  static FfiCallbackMetadata* Instance();
+  static FfiCallbackMetadata* Instance(Trampoline trampoline);
 
   // Creates an async callback trampoline for the given function and associates
   // it with the send_port.
@@ -360,8 +367,6 @@ class FfiCallbackMetadata {
   Trampoline TrampolineOfMetadataEntry(MetadataEntry* metadata) const;
 
  private:
-  FfiCallbackMetadata();
-  ~FfiCallbackMetadata();
   void EnsureStubPageLocked();
   void AddToFreeListLocked(MetadataEntry* entry);
   void DeleteCallbackLocked(MetadataEntry* entry);
@@ -393,6 +398,9 @@ class FfiCallbackMetadata {
   uword offset_of_first_trampoline_in_page_ = 0;
   MetadataEntry* free_list_head_ = nullptr;
   MetadataEntry* free_list_tail_ = nullptr;
+#if defined(DART_HOST_OS_FUCHSIA)
+  zx_handle_t rx_vmo_ = ZX_HANDLE_INVALID;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallbackMetadata);
 };

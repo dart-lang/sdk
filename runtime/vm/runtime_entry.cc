@@ -5137,9 +5137,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   // have a use-after-free scenario here and therefore undefined behavior.
   // We make some best effort to `FATAL()` in obvious cases of undefined
   // behavior, but not all cases will be caught.
-  auto metadata =
-      FfiCallbackMetadata::Instance()->LookupMetadataForTrampolineUnlocked(
-          trampoline);
+  auto metadata = FfiCallbackMetadata::Instance(trampoline)
+                      ->LookupMetadataForTrampolineUnlocked(trampoline);
 
   if (!metadata.IsLive()) {
     FATAL("Callback invoked after it has been deleted.");

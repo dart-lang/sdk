@@ -343,6 +343,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   Heap* heap() const { return heap_.get(); }
   Roots* roots() const { return roots_.get(); }
+  FfiCallbackMetadata* callback_metadata() const {
+    return callback_metadata_.get();
+  }
 
   BackgroundCompiler* background_compiler() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -964,6 +967,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   AtomicBitFieldContainer<uint32_t> isolate_group_flags_;
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
+
+  std::unique_ptr<FfiCallbackMetadata> callback_metadata_;
 
   Mutex symbols_mutex_;
   Mutex type_canonicalization_mutex_;

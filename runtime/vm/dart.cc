@@ -364,7 +364,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   StoreBuffer::Init();
   MarkingStack::Init();
   TargetCPUFeatures::Init();
-  FfiCallbackMetadata::Init();
 
 #if defined(DART_INCLUDE_SIMULATOR)
   Simulator::Init();
@@ -776,7 +775,6 @@ char* Dart::Cleanup() {
   ICData::Cleanup();
   ArgumentsDescriptor::Cleanup();
   OffsetsTable::Cleanup();
-  FfiCallbackMetadata::Cleanup();
   TargetCPUFeatures::Cleanup();
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();

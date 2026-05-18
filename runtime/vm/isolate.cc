@@ -336,6 +336,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
+      callback_metadata_(new FfiCallbackMetadata()),
       symbols_mutex_(),
       type_canonicalization_mutex_(),
       type_arguments_canonicalization_mutex_(),
@@ -2545,8 +2546,7 @@ void Isolate::LowLevelShutdown() {
   // Clean up any synchronous FFI callbacks registered with this isolate. Skip
   // if this isolate never registered any.
   if (ffi_callback_list_head_ != nullptr) {
-    FfiCallbackMetadata::Instance()->DeleteAllCallbacks(
-        &ffi_callback_list_head_);
+    group()->callback_metadata()->DeleteAllCallbacks(&ffi_callback_list_head_);
   }
 
 #if !defined(PRODUCT)
@@ -2710,7 +2710,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       // Clean up any synchronous FFI callbacks registered with this
       // isolate group. Skip if this isolate group never registered any.
       if (isolate_group->ffi_callback_list_head_ != nullptr) {
-        FfiCallbackMetadata::Instance()->DeleteAllCallbacks(
+        isolate_group->callback_metadata()->DeleteAllCallbacks(
             &isolate_group->ffi_callback_list_head_);
       }
 
@@ -3810,7 +3810,7 @@ FfiCallbackMetadata::Trampoline Isolate::CreateAsyncFfiCallback(
     Zone* zone,
     const Function& send_function,
     Dart_Port send_port) {
-  return FfiCallbackMetadata::Instance()->CreateAsyncFfiCallback(
+  return group()->callback_metadata()->CreateAsyncFfiCallback(
       this, zone, send_function, send_port, &ffi_callback_list_head_);
 }
 
@@ -3822,7 +3822,7 @@ FfiCallbackMetadata::Trampoline Isolate::CreateIsolateLocalFfiCallback(
   if (keep_isolate_alive) {
     UpdateNativeCallableKeepIsolateAliveCounter(1);
   }
-  return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
+  return group()->callback_metadata()->CreateLocalFfiCallback(
       this, /*isolate_group=*/nullptr, zone, trampoline, target,
       &ffi_callback_list_head_);
 }
@@ -3831,14 +3831,13 @@ FfiCallbackMetadata::Trampoline
 IsolateGroup::CreateIsolateGroupBoundFfiCallback(Zone* zone,
                                                  const Function& trampoline,
                                                  const Closure& target) {
-  return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
+  return callback_metadata()->CreateLocalFfiCallback(
       /*isolate=*/nullptr, this, zone, trampoline, target,
       &ffi_callback_list_head_);
 }
 
 void IsolateGroup::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {
-  FfiCallbackMetadata::Instance()->DeleteCallback(callback,
-                                                  &ffi_callback_list_head_);
+  callback_metadata()->DeleteCallback(callback, &ffi_callback_list_head_);
 }
 
 bool Isolate::HasLivePorts() {
@@ -3891,8 +3890,8 @@ void Isolate::CloseReceivePort(const ReceivePort& receive_port) {
 }
 
 void Isolate::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {
-  FfiCallbackMetadata::Instance()->DeleteCallback(callback,
-                                                  &ffi_callback_list_head_);
+  group()->callback_metadata()->DeleteCallback(callback,
+                                               &ffi_callback_list_head_);
 }
 
 void Isolate::UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta) {
