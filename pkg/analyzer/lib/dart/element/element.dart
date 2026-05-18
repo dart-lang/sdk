@@ -2943,6 +2943,13 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
   @override
   PropertyAccessorElement get element;
 
+  /// The field or top-level variable fragment that induced this accessor
+  /// fragment.
+  ///
+  /// Returns `null` for explicit getter and setter declarations, including
+  /// explicit augmentations.
+  PropertyInducingFragment? get inducingVariable;
+
   @override
   PropertyAccessorFragment? get nextFragment;
 
@@ -3020,6 +3027,21 @@ abstract class PropertyInducingFragment implements VariableFragment {
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  /// The getter fragment induced by this variable or field fragment.
+  ///
+  /// Returns `null` for synthetic variable or field fragments created for
+  /// explicit accessor declarations. Such fragments do not induce accessors;
+  /// instead, they are created because explicit accessors need an associated
+  /// property-inducing element.
+  GetterFragment? get inducedGetter;
+
+  /// The setter fragment induced by this variable or field fragment.
+  ///
+  /// Returns `null` if this fragment does not induce a setter, or if this
+  /// fragment is a synthetic variable or field fragment created for explicit
+  /// accessor declarations.
+  SetterFragment? get inducedSetter;
 
   /// Whether the element is an augmentation.
   ///

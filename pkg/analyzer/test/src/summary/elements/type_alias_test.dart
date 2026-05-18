@@ -1756,16 +1756,20 @@ library
           fields
             #F2 isOriginDeclaration f (nameOffset:59) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@class::A::@field::f
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F3 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@getter::f
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@setter::f
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
                   element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
@@ -1792,11 +1796,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@getter::f
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int Function<T>(T)
             alias: <testLibrary>::@typeAlias::Foo
               typeArguments
@@ -1805,7 +1809,7 @@ library
       setters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@setter::f
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F6

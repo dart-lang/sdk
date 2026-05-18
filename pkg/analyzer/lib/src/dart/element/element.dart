@@ -9882,6 +9882,8 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   @override
   int? nameOffset;
 
+  PropertyInducingFragmentImpl? _inducingVariable;
+
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
   PropertyAccessorFragmentImpl({required this.name, super.firstTokenOffset});
@@ -9901,6 +9903,9 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       'isOriginVariable': isOriginVariable,
     };
   }
+
+  @override
+  PropertyInducingFragmentImpl? get inducingVariable => _inducingVariable;
 
   @generated
   bool get isOriginDeclaration {
@@ -9962,8 +9967,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       return nameOffset;
     }
     if (isOriginVariable) {
-      var variable = element.variable;
-      return variable._firstFragment.offset;
+      return inducingVariable!.offset;
     }
     return firstTokenOffset!;
   }
@@ -9995,6 +9999,10 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   @trackedIncludedInId
   TopLevelInferenceError? typeInferenceError;
+
+  @trackedInternal
+  late final PropertyInducingElementImplInternal internal =
+      PropertyInducingElementImplInternal(this);
 
   PropertyInducingElementImpl();
 
@@ -10137,6 +10145,16 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   }
 }
 
+/// Exposes [PropertyInducingElementImpl] properties needed while building or
+/// loading the element model, without recording opaque API requirements.
+class PropertyInducingElementImplInternal {
+  final PropertyInducingElementImpl _element;
+
+  PropertyInducingElementImplInternal(this._element);
+
+  List<PropertyInducingFragmentImpl> get fragments => _element._fragments;
+}
+
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
 abstract class PropertyInducingElementTypeInference {
@@ -10153,6 +10171,10 @@ abstract class PropertyInducingFragmentImpl
 
   @override
   int? nameOffset;
+
+  GetterFragmentImpl? _inducedGetter;
+
+  SetterFragmentImpl? _inducedSetter;
 
   @override
   PropertyInducingFragmentImpl? previousFragment;
@@ -10193,6 +10215,26 @@ abstract class PropertyInducingFragmentImpl
     }
 
     return !isFinal;
+  }
+
+  @override
+  GetterFragmentImpl? get inducedGetter => _inducedGetter;
+
+  set inducedGetter(GetterFragmentImpl value) {
+    assert(_inducedGetter == null);
+    assert(value._inducingVariable == null);
+    _inducedGetter = value;
+    value._inducingVariable = this;
+  }
+
+  @override
+  SetterFragmentImpl? get inducedSetter => _inducedSetter;
+
+  set inducedSetter(SetterFragmentImpl value) {
+    assert(_inducedSetter == null);
+    assert(value._inducingVariable == null);
+    _inducedSetter = value;
+    value._inducingVariable = this;
   }
 
   @generated

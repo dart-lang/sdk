@@ -1404,12 +1404,16 @@ library
       topLevelVariables
         #F2 hasInitializer isOriginDeclaration isStatic a (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::a
+          inducedGetter: #F3
+          inducedSetter: #F4
       getters
         #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F2
       setters
         #F4 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::a
+          inducingVariable: #F2
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::a::@formalParameter::value
@@ -1479,9 +1483,11 @@ library
             IntegerLiteral
               literal: 0 @31
               staticType: int
+          inducedGetter: #F3
       getters
         #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F2
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a

@@ -386,55 +386,65 @@ class ElementBuilder {
 
     instanceFragment.addField(fieldFragment);
 
+    FieldElementImpl fieldElement;
     var lastFieldElement = _fieldElement(lastFragment);
     var lastFieldFragment = lastFieldElement?.lastFragment;
-
     if (fieldFragment.isAugmentation &&
         lastFieldFragment is FieldFragmentImpl) {
       lastFieldFragment.addFragment(fieldFragment);
-      return;
+      fieldElement = lastFieldElement!;
+    } else {
+      fieldElement = FieldElementImpl(
+        reference: libraryBuilder.references.declareMemberField(
+          container: instanceElement.reference,
+          name: fieldFragment.name,
+        ),
+        firstFragment: fieldFragment,
+      );
+      if (fieldFragment.isAugmentation && lastFragment != null) {
+        fieldElement.previousFragmentOfDifferentKind = lastFragment;
+      }
+      instanceElement.addField(fieldElement);
     }
-
-    var fieldElement = FieldElementImpl(
-      reference: libraryBuilder.references.declareMemberField(
-        container: instanceElement.reference,
-        name: fieldFragment.name,
-      ),
-      firstFragment: fieldFragment,
-    );
-    if (fieldFragment.isAugmentation && lastFragment != null) {
-      fieldElement.previousFragmentOfDifferentKind = lastFragment;
-    }
-    instanceElement.addField(fieldElement);
 
     {
       var getterFragment = GetterFragmentImpl(name: fieldFragment.name)
         ..isOriginVariable = true
         ..isAbstract = fieldFragment.isAbstract
+        ..isAugmentation = fieldFragment.isAugmentation
         ..isCompleteDeclaration = !fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
+      fieldFragment.inducedGetter = getterFragment;
       instanceFragment.addGetter(getterFragment);
 
-      var getterElement = GetterElementImpl(
-        libraryBuilder.references.declareMemberGetter(
-          container: instanceElement.reference,
-          name: fieldFragment.name,
-        ),
-        getterFragment,
-      );
-      _executableElements.add(getterElement);
-      instanceElement.addGetter(getterElement);
+      // A field augmentation can target a setter-only property, so create
+      // or append each induced accessor independently.
+      if (fieldElement.getter case var getterElement?) {
+        getterElement.lastFragment.addFragment(getterFragment);
+      } else {
+        var getterElement = GetterElementImpl(
+          libraryBuilder.references.declareMemberGetter(
+            container: instanceElement.reference,
+            name: fieldFragment.name,
+          ),
+          getterFragment,
+        );
+        _executableElements.add(getterElement);
+        instanceElement.addGetter(getterElement);
 
-      fieldElement.getter = getterElement;
-      getterElement.variable = fieldElement;
+        fieldElement.getter = getterElement;
+        getterElement.variable = fieldElement;
+      }
     }
 
     if (fieldFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: fieldFragment.name)
         ..isOriginVariable = true
         ..isAbstract = fieldFragment.isAbstract
+        ..isAugmentation = fieldFragment.isAugmentation
         ..isCompleteDeclaration = !fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
+      fieldFragment.inducedSetter = setterFragment;
       instanceFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
@@ -445,18 +455,29 @@ class ElementBuilder {
       valueFragment.isExplicitlyCovariant = fieldFragment.isExplicitlyCovariant;
       setterFragment.formalParameters = [valueFragment];
 
-      var setterElement = SetterElementImpl(
-        libraryBuilder.references.declareMemberSetter(
-          container: instanceElement.reference,
-          name: fieldFragment.name,
-        ),
-        setterFragment,
-      );
-      _executableElements.add(setterElement);
-      instanceElement.addSetter(setterElement);
+      // A field augmentation can target a getter-only property, so create
+      // or append each induced accessor independently.
+      if (fieldElement.setter case var setterElement?) {
+        var lastSetterFragment = setterElement.lastFragment;
+        lastSetterFragment.addFragment(setterFragment);
+        _linkFormalParameters(
+          previousFragment: lastSetterFragment,
+          currentFragment: setterFragment,
+        );
+      } else {
+        var setterElement = SetterElementImpl(
+          libraryBuilder.references.declareMemberSetter(
+            container: instanceElement.reference,
+            name: fieldFragment.name,
+          ),
+          setterFragment,
+        );
+        _executableElements.add(setterElement);
+        instanceElement.addSetter(setterElement);
 
-      fieldElement.setter = setterElement;
-      setterElement.variable = fieldElement;
+        fieldElement.setter = setterElement;
+        setterElement.variable = fieldElement;
+      }
     }
   }
 
@@ -823,50 +844,63 @@ class ElementBuilder {
     assert(variableFragment.isOriginDeclaration);
     libraryFragment.addTopLevelVariable(variableFragment);
 
+    TopLevelVariableElementImpl variableElement;
     var lastVariableElement = _topLevelVariableElement(lastFragment);
-
     if (variableFragment.isAugmentation && lastVariableElement != null) {
       lastVariableElement.lastFragment.addFragment(variableFragment);
-      return;
+      variableElement = lastVariableElement;
+    } else {
+      variableElement = TopLevelVariableElementImpl(
+        libraryBuilder.references.declareTopLevelVariable(
+          variableFragment.name,
+        ),
+        variableFragment,
+      );
+      if (variableFragment.isAugmentation && lastFragment != null) {
+        variableElement.previousFragmentOfDifferentKind = lastFragment;
+      }
+      libraryElement.addTopLevelVariable(variableElement);
     }
-
-    var variableElement = TopLevelVariableElementImpl(
-      libraryBuilder.references.declareTopLevelVariable(variableFragment.name),
-      variableFragment,
-    );
-    if (variableFragment.isAugmentation && lastFragment != null) {
-      variableElement.previousFragmentOfDifferentKind = lastFragment;
-    }
-    libraryElement.addTopLevelVariable(variableElement);
 
     {
       var getterFragment = GetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
         ..isAbstract = variableFragment.isAbstract
+        ..isAugmentation = variableFragment.isAugmentation
         ..isCompleteDeclaration =
             variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
+      variableFragment.inducedGetter = getterFragment;
       libraryFragment.addGetter(getterFragment);
 
-      var getterReference = libraryBuilder.references.declareGetter(
-        variableFragment.name,
-      );
-      var getterElement = GetterElementImpl(getterReference, getterFragment);
-      _executableElements.add(getterElement);
-      libraryElement.addGetter(getterElement);
-      libraryBuilder.declare(getterElement, getterReference);
+      // A variable augmentation can target a setter-only property, so create
+      // or append each induced accessor independently.
+      if (variableElement.getter case var getterElement?) {
+        var lastGetterFragment = getterElement.lastFragment;
+        lastGetterFragment.addFragment(getterFragment);
+      } else {
+        var getterReference = libraryBuilder.references.declareGetter(
+          variableFragment.name,
+        );
+        var getterElement = GetterElementImpl(getterReference, getterFragment);
+        _executableElements.add(getterElement);
+        libraryElement.addGetter(getterElement);
+        libraryBuilder.declare(getterElement, getterReference);
 
-      variableElement.getter = getterElement;
-      getterElement.variable = variableElement;
+        variableElement.getter = getterElement;
+        getterElement.variable = variableElement;
+      }
     }
 
     if (variableFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
         ..isAbstract = variableFragment.isAbstract
+        ..isAugmentation = variableFragment.isAugmentation
         ..isCompleteDeclaration =
             variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
+      variableFragment.inducedSetter = setterFragment;
       libraryFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
@@ -876,16 +910,27 @@ class ElementBuilder {
       );
       setterFragment.formalParameters = [valueFragment];
 
-      var setterReference = libraryBuilder.references.declareSetter(
-        variableFragment.name,
-      );
-      var setterElement = SetterElementImpl(setterReference, setterFragment);
-      _executableElements.add(setterElement);
-      libraryElement.addSetter(setterElement);
-      libraryBuilder.declare(setterElement, setterReference);
+      // A variable augmentation can target a getter-only property, so create
+      // or append each induced accessor independently.
+      if (variableElement.setter case var setterElement?) {
+        var lastSetterFragment = setterElement.lastFragment;
+        lastSetterFragment.addFragment(setterFragment);
+        _linkFormalParameters(
+          previousFragment: lastSetterFragment,
+          currentFragment: setterFragment,
+        );
+      } else {
+        var setterReference = libraryBuilder.references.declareSetter(
+          variableFragment.name,
+        );
+        var setterElement = SetterElementImpl(setterReference, setterFragment);
+        _executableElements.add(setterElement);
+        libraryElement.addSetter(setterElement);
+        libraryBuilder.declare(setterElement, setterReference);
 
-      variableElement.setter = setterElement;
-      setterElement.variable = variableElement;
+        variableElement.setter = setterElement;
+        setterElement.variable = variableElement;
+      }
     }
   }
 
