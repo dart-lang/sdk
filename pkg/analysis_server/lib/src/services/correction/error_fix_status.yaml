@@ -894,6 +894,8 @@ implements_repeated:
   status: hasFix
 implements_super_class:
   status: hasFix
+implements_super_class_constraint:
+  status: needsEvaluation
 implements_type_alias_expands_to_type_parameter:
   status: hasFix
 implicit_this_reference_in_initializer:

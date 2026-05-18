@@ -465,6 +465,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.implementsNonClass,
   diag.implementsRepeated,
   diag.implementsSuperClass,
+  diag.implementsSuperClassConstraint,
   diag.implementsTypeAliasExpandsToTypeParameter,
   diag.implicitSuperInitializerMissingArguments,
   diag.implicitThisReferenceInInitializer,

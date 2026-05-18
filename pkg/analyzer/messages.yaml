@@ -8301,6 +8301,13 @@ CompileTimeErrorCode:
 
       class B implements A {}
       ```
+  implementsSuperClassConstraint:
+    type: compileTimeError
+    parameters:
+      Element superElement: the class that appears in both the "on" and "implements" clauses
+    problemMessage: "'#superElement' can't be used in both the 'on' and 'implements' clauses."
+    correctionMessage: Try removing the type from the 'implements' clause.
+    hasPublishedDocs: false
   implicitThisReferenceInInitializer:
     type: compileTimeError
     parameters:
