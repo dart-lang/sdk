@@ -163,6 +163,9 @@ abstract base class Assembler {
   /// Load arbitrary integer [value] into register.
   void loadImmediate(Register reg, int value);
 
+  /// Load arbitrary double [value] into a floating-point register.
+  void loadDoubleImmediate(FPRegister reg, double v);
+
   /// [dst] = [src] + arbitrary integer [value].
   void addImmediate(
     Register dst,

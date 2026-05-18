@@ -1775,10 +1775,7 @@ class SnapshotStreamWriter {
   }
 
   void writeDouble(double value) {
-    final buf = ByteData(8);
-    buf.setFloat64(0, value, Endian.little);
-    final intValue = buf.getInt64(0, Endian.little);
-    writeInt(intValue);
+    writeInt(doubleToIntBits(value));
   }
 
   ByteData _bufferAt(int offset) {

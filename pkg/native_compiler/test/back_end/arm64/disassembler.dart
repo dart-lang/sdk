@@ -12,6 +12,8 @@
 
 import 'dart:typed_data';
 
+import 'package:cfg/utils/misc.dart';
+
 // --- Constants from runtime/vm/constants_arm64.h ---
 
 // enum Register
@@ -691,22 +693,12 @@ extension type Instr(int value) {
   int imm8Field() => bits(13, 8); // kImm8Shift is not defined
 
   static int vfpExpandImm(int imm8) {
-    int sign = (imm8 >> 7) & 0x1;
-    int exp = (imm8 >> 4) & 0x7;
-    int frac = imm8 & 0xf;
-
-    if ((exp & 0x4) == 0) {
-      exp = (0x2 | (exp & 0x1)) << 1;
-      if ((exp & 0x2) == 0) {
-        exp = ((exp & 0x1) ^ 0x1);
-      } else {
-        exp = ((exp & 0x1) | 0x2);
-      }
-      exp = (0x3ff ^ 0x7) | (exp << 2);
-    } else {
-      exp = 0x3ff;
-    }
-    return (sign << 63) | (exp << 52) | (frac << 48);
+    int sign = ((imm8 & 0x80) >> 7) << 63;
+    int expHigh = (((~imm8) & 0x40) >> 6) << 62;
+    int expMid = (((imm8 & 0x40) >> 6) == 0) ? 0 : (0xff << 54);
+    int expLow = ((imm8 & 0x30) >> 4) << 52;
+    int frac = (imm8 & 0x0f) << 48;
+    return sign | expHigh | expMid | expLow | frac;
   }
 
   int immLogical() {
@@ -1047,9 +1039,7 @@ class ARM64Decoder {
           return 5;
         } else if (option.startsWith('immd')) {
           final imm = Instr.vfpExpandImm(instr.imm8Field());
-          final d = ByteData(8)
-            ..setInt64(0, imm, Endian.host)
-            ..getFloat64(0, Endian.host);
+          final d = intBitsToDouble(imm);
           print(d.toString());
           return 4;
         } else if (option.startsWith('immr')) {

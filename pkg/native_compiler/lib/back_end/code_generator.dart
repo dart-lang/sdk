@@ -210,13 +210,33 @@ abstract base class CodeGenerator extends Pass
   void visitParallelMove(ParallelMove instr) {
     // TODO: merge subsequent ParallelMove instructions.
     final map = <Location, Location>{};
+    Set<Location>? overwritten;
     for (final move in instr.moves) {
       if (move is Move) {
         final from = move.from.physicalLocation;
         final to = move.to.physicalLocation;
+        assert(!(overwritten?.contains(from) ?? false));
         if (from != to) {
-          assert(!map.containsKey(from));
-          map[from] = to;
+          if (to is StackLocation) {
+            // Moves into spill slots cannot participate in cycles.
+            // Generate them eagerly and do not put them into the map
+            // as they may have the same source as register/register moves.
+            assert(!map.containsKey(to));
+            assert(() {
+              (overwritten ??= {}).add(to);
+              return true;
+            }());
+            if (from is StackLocation) {
+              final temp = getMoveTempRegister(RegisterClass.cpu);
+              generateMove(from, temp);
+              generateMove(temp, to);
+            } else {
+              generateMove(from, to);
+            }
+          } else {
+            assert(!map.containsKey(from));
+            map[from] = to;
+          }
         }
       }
     }

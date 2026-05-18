@@ -1892,6 +1892,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
           case Register():
             _asm.ldr(to, _asm.address(FP, stackFrame.offsetFromFP(from)));
             return;
+          case FPRegister():
+            _asm.fldr(to, _asm.address(FP, stackFrame.offsetFromFP(from)));
+            return;
+          default:
+            break;
+        }
+      case FPRegister():
+        switch (to) {
+          case StackLocation():
+            _asm.fstr(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
+            return;
           default:
             break;
         }
@@ -1905,13 +1916,19 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void generateLoadConstant(ConstantValue value, Location to) {
-    if (to is Register) {
-      _asm.loadConstant(to, value);
-      return;
+    switch (to) {
+      case Register():
+        _asm.loadConstant(to, value);
+        return;
+      case FPRegister():
+        assert(value.isDouble && value.isUnboxed);
+        _asm.loadDoubleImmediate(to, value.doubleValue);
+        return;
+      case StackLocation():
+        _asm.loadConstant(tempReg, value);
+        _asm.str(tempReg, _asm.address(FP, stackFrame.offsetFromFP(to)));
+        return;
     }
-    _asm.unimplemented(
-      'Unimplemented: code generation for generateLoadConstant',
-    );
   }
 }
 
