@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopTypeInferenceResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TopTypeInferenceResolutionTest extends PubPackageResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int a = b + 1;
 }
@@ -28,15 +29,16 @@ final b = new A().a;
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final a = b + 1;
+//      ^
+// [diag.topLevelCycle] The type of 'a' can't be inferred because it depends on itself through the cycle: a, b.
 }
 final b = new A().a;
-''',
-      [error(diag.topLevelCycle, 18, 1), error(diag.topLevelCycle, 37, 1)],
-    );
+//    ^
+// [diag.topLevelCycle] The type of 'b' can't be inferred because it depends on itself through the cycle: a, b.
+''');
 
     assertTypeDynamic(findElement2.field('a').type);
     assertTypeDynamic(findElement2.topVar('b').type);

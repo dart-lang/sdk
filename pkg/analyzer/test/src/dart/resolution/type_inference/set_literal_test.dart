@@ -128,8 +128,12 @@ Set<String> a = <String>{0};
 
   @failingTest
   test_context_typeArgs_expression_conflictingTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Set<String> a = <int>{'a'};
+//              ^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'Set<int>' can't be assigned to a variable of type 'Set<String>'.
+//                    ^^^
+// [diag.setElementTypeNotAssignable] The element type 'String' can't be assigned to the set type 'int'.
 ''');
     assertType(setLiteral('{'), 'Set<String>');
   }
@@ -432,8 +436,12 @@ var a = <int>{1};
 
   @failingTest
   test_noContext_typeArgs_expressions_conflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <int, String>{1, 2};
+//                    ^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+//                       ^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
 ''');
     assertType(setLiteral('{'), 'Set<int>');
   }

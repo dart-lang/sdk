@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class NonNullableTest extends PubPackageResolutionTest {
   test_class_hierarchy() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin class A {}
 
 class X1 extends A {} // 1
@@ -32,7 +31,7 @@ class X3 with A {} // 3
   }
 
   test_classTypeAlias_hierarchy() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin B {}
 class C {}
@@ -46,7 +45,7 @@ class X = A with B implements C;
   }
 
   test_field_functionTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef F = T Function<T>(int, T);
 
 class C {
@@ -75,7 +74,7 @@ FieldDeclaration
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int? x) {
   return x?.isEven;
 }
@@ -85,40 +84,38 @@ f(int? x) {
   }
 
   test_local_interfaceType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   int? a = 0;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   int b = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 16, 1),
-        error(diag.unusedLocalVariable, 29, 1),
-      ],
-    );
+''');
 
     assertType(findNode.namedType('int? a'), 'int?');
     assertType(findNode.namedType('int b'), 'int');
   }
 
   test_local_interfaceType_generic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   List<int?>? a = [];
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   List<int>? b = [];
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
   List<int?> c = [];
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
   List<int> d = [];
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'd' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 23, 1),
-        error(diag.unusedLocalVariable, 44, 1),
-        error(diag.unusedLocalVariable, 65, 1),
-        error(diag.unusedLocalVariable, 85, 1),
-      ],
-    );
+''');
 
     assertType(findNode.namedType('List<int?>? a'), 'List<int?>?');
     assertType(findNode.namedType('List<int>? b'), 'List<int>?');
@@ -127,7 +124,7 @@ main() {
   }
 
   test_local_methodNullAwareCall_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool x() => true;
 }
@@ -141,7 +138,7 @@ f(C? c) {
   }
 
   test_local_nullCoalesceAssign_nullableInt_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int? x;
   int y = 0;
@@ -152,7 +149,7 @@ main() {
   }
 
   test_local_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int? x;
   x ??= x;
@@ -162,32 +159,29 @@ main() {
   }
 
   test_local_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {
   T x = a;
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   T? y;
+//   ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 21, 1),
-        error(diag.unusedLocalVariable, 33, 1),
-      ],
-    );
+''');
 
     assertType(findNode.namedType('T x'), 'T');
     assertType(findNode.namedType('T? y'), 'T?');
   }
 
   test_local_variable_genericFunctionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   int? Function(bool, String?)? a;
+//                              ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 41, 1)],
-    );
+''');
 
     assertType(
       findNode.genericFunctionType('Function('),
@@ -196,29 +190,29 @@ main() {
   }
 
   test_localFunction_parameter_interfaceType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   f(int? a, int b) {}
+//^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 11, 1)],
-    );
+''');
 
     assertType(findNode.namedType('int? a'), 'int?');
     assertType(findNode.namedType('int b'), 'int');
   }
 
   test_localFunction_returnType_interfaceType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   int? f() => 0;
+//     ^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
   int g() => 0;
+//    ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 16, 1), error(diag.unusedElement, 32, 1)],
-    );
+''');
 
     assertType(findNode.namedType('int? f'), 'int?');
     assertType(findNode.namedType('int g'), 'int');
@@ -237,7 +231,7 @@ m<T extends Function>() {
   }
 
   test_mixin_hierarchy() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 mixin X1 on A {} // 1
@@ -249,7 +243,7 @@ mixin X2 implements A {} // 2
   }
 
   test_parameter_functionTyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f1(void p1()) {}
 void f2(void p2()?) {}
 void f3({void p3()?}) {}
@@ -321,7 +315,7 @@ FormalParameterList
   }
 
   test_parameter_functionTyped_fieldFormal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var f1;
   var f2;
@@ -407,20 +401,19 @@ FormalParameterList
   }
 
   test_parameter_functionTyped_local() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   void f1(void p1()) {}
+//     ^^
+// [diag.unusedElement] The declaration 'f1' isn't referenced.
   void f2(void p2()?) {}
+//     ^^
+// [diag.unusedElement] The declaration 'f2' isn't referenced.
   void f3({void p3()?}) {}
+//     ^^
+// [diag.unusedElement] The declaration 'f3' isn't referenced.
 }
-''',
-      [
-        error(diag.unusedElement, 13, 2),
-        error(diag.unusedElement, 37, 2),
-        error(diag.unusedElement, 62, 2),
-      ],
-    );
+''');
 
     var p1 = findNode.formalParameterList('p1');
     assertResolvedNodeText(p1, r'''
@@ -457,7 +450,7 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-    declaredFragment: <testLibraryFragment> p2@45
+    declaredFragment: <testLibraryFragment> p2@118
       element: isPublic
         type: void Function()?
   rightParenthesis: )
@@ -479,7 +472,7 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-    declaredFragment: <testLibraryFragment> p3@71
+    declaredFragment: <testLibraryFragment> p3@217
       element: isPublic
         type: void Function()?
   rightDelimiter: }
@@ -488,7 +481,7 @@ FormalParameterList
   }
 
   test_parameter_genericFunctionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(int? Function(bool, String?)? a) {
 }
 ''');
@@ -500,7 +493,7 @@ void f(int? Function(bool, String?)? a) {
   }
 
   test_parameter_getterNullAwareAccess_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x?.isEven;
 }
@@ -510,7 +503,7 @@ void f(int? x) {
   }
 
   test_parameter_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(int? a, int b) {
 }
 ''');
@@ -520,7 +513,7 @@ void f(int? a, int b) {
   }
 
   test_parameter_interfaceType_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
 }
 ''');
@@ -532,7 +525,7 @@ void f(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
   }
 
   test_parameter_methodNullAwareCall_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool x() => true;
 }
@@ -546,7 +539,7 @@ void f(C? c) {
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x, int y) {
   x ??= y;
 }
@@ -555,7 +548,7 @@ void f(int? x, int y) {
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x ??= x;
 }
@@ -564,7 +557,7 @@ void f(int? x) {
   }
 
   test_parameter_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, T? b) {
 }
 ''');
@@ -574,31 +567,29 @@ void f<T>(T a, T? b) {
   }
 
   test_typedef_classic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef int? F(bool a, String? b);
 
 main() {
   F? a;
+//   ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 50, 1)],
-    );
+''');
 
     assertType(findNode.namedType('F? a'), 'int? Function(bool, String?)?');
   }
 
   test_typedef_function() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef F<T> = int? Function(bool, T, T?);
 
 main() {
   F<String>? a;
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 66, 1)],
-    );
+''');
 
     assertType(
       findNode.namedType('F<String>'),
@@ -607,7 +598,7 @@ main() {
   }
 
   test_typedef_function_nullable_element() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef F<T> = int Function(T)?;
 
 void f(F<int> a, F<double>? b) {}
@@ -618,20 +609,18 @@ void f(F<int> a, F<double>? b) {}
   }
 
   test_typedef_function_nullable_local() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef F<T> = int Function(T)?;
 
 main() {
   F<int> a;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   F<double>? b;
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 52, 1),
-        error(diag.unusedLocalVariable, 68, 1),
-      ],
-    );
+''');
 
     assertType(findNode.namedType('F<int>'), 'int Function(int)?');
     assertType(findNode.namedType('F<double>?'), 'int Function(double)?');

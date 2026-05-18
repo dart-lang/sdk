@@ -8,10 +8,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PartDirectiveResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,7 +24,7 @@ class PartDirectiveResolutionTest extends PubPackageResolutionTest {
 part of 'test.dart';
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 ''');
     expect(
@@ -32,12 +34,11 @@ part 'a.dart';
   }
 
   test_inLibrary_fileDoesNotExist() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
-''',
-      [error(diag.uriDoesNotExist, 5, 8)],
-    );
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
+''');
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -53,21 +54,19 @@ PartDirective
   }
 
   test_inLibrary_fileDoesNotExist_generated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 part 'part.g.dart';
-''',
-      [error(diag.uriHasNotBeenGenerated, 5, 13)],
-    );
+//   ^^^^^^^^^^^^^
+// [diag.uriHasNotBeenGenerated] Target of URI hasn't been generated: 'package:test/part.g.dart'.
+''');
   }
 
   test_inLibrary_noRelativeUri() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part ':net';
-''',
-      [error(diag.invalidUri, 5, 6)],
-    );
+//   ^^^^^^
+// [diag.invalidUri] Invalid URI syntax: ':net'.
+''');
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -83,12 +82,11 @@ PartDirective
   }
 
   test_inLibrary_noRelativeUriStr() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part '${'foo'}.dart';
-''',
-      [error(diag.uriWithInterpolation, 5, 15)],
-    );
+//   ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
+''');
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -114,12 +112,11 @@ PartDirective
   }
 
   test_inLibrary_noSource() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'foo:bar';
-''',
-      [error(diag.uriDoesNotExist, 5, 9)],
-    );
+//   ^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'foo:bar'.
+''');
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -232,7 +229,7 @@ PartDirective
 part of 'test.dart';
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 ''');
 
@@ -254,12 +251,11 @@ PartDirective
 part of 'x.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
-''',
-      [error(diag.partOfDifferentLibrary, 5, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfDifferentLibrary] Expected this library to be part of 'package:test/test.dart', not 'package:test/a.dart'.
+''');
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -307,12 +303,11 @@ PartDirective
   test_inLibrary_withSource_notPart_library() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
-''',
-      [error(diag.partOfNonPart, 5, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfNonPart] The included part 'package:test/a.dart' must have a part-of directive.
+''');
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''

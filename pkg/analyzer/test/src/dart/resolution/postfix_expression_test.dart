@@ -3,22 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InferenceUpdate4Test);
     defineReflectiveTests(PostfixExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class InferenceUpdate4Test extends PubPackageResolutionTest {
   test_isExpression_notPromoted() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   num x = 2;
   if ((x++) is int) {
@@ -40,7 +41,7 @@ SimpleIdentifier
 @reflectiveTest
 class PostfixExpressionResolutionTest extends PubPackageResolutionTest {
   test_dec_simpleIdentifier_parameter_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x--;
 }
@@ -64,14 +65,13 @@ PostfixExpression
   }
 
   test_formalParameter_inc_inc() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x ++ ++;
+//     ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [error(diag.illegalAssignmentToNonAssignable, 23, 2)],
-    );
+''');
 
     var node = findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
@@ -99,16 +99,15 @@ PostfixExpression
   }
 
   test_formalParameter_incUnresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f(A a) {
   a++;
+// ^^
+// [diag.undefinedOperator] The operator '+' isn't defined for the type 'A'.
 }
-''',
-      [error(diag.undefinedOperator, 29, 2)],
-    );
+''');
 
     var node = findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
@@ -128,7 +127,7 @@ PostfixExpression
   }
 
   test_inc_dynamicIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic x) {
   x++;
 }
@@ -152,14 +151,13 @@ PostfixExpression
   }
 
   test_inc_formalParameter_inc() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   ++x++;
+//   ^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 }
-''',
-      [error(diag.missingAssignableSelector, 21, 2)],
-    );
+''');
 
     var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
@@ -187,7 +185,7 @@ PrefixExpression
   }
 
   test_inc_indexExpression_instance() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -225,7 +223,7 @@ PostfixExpression
   }
 
   test_inc_indexExpression_super() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -264,7 +262,7 @@ PostfixExpression
   }
 
   test_inc_indexExpression_this() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -301,14 +299,13 @@ PostfixExpression
   }
 
   test_inc_notLValue_parenthesized() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (0)++;
+//   ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [error(diag.illegalAssignmentToNonAssignable, 16, 2)],
-    );
+''');
 
     var node = findNode.postfix('(0)++');
     assertResolvedNodeText(node, r'''
@@ -331,14 +328,13 @@ PostfixExpression
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int++;
+//^^^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 13, 3)],
-    );
+''');
 
     var node = findNode.postfix('int++');
     assertResolvedNodeText(node, r'''
@@ -358,14 +354,13 @@ PostfixExpression
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {
   T++;
+//^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 16, 1)],
-    );
+''');
 
     var node = findNode.postfix('T++');
     assertResolvedNodeText(node, r'''
@@ -385,7 +380,7 @@ PostfixExpression
   }
 
   test_inc_ofExtensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
   set foo(int _) {}
@@ -422,7 +417,7 @@ PostfixExpression
   }
 
   test_inc_prefixedIdentifier_instance() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
 }
@@ -461,7 +456,7 @@ PostfixExpression
     newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 
 void f() {
@@ -495,7 +490,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_instance() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
 }
@@ -537,7 +532,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
 }
@@ -571,7 +566,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_super() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
   int get x => 0;
@@ -611,7 +606,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_this() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
   int get x => 0;
@@ -646,7 +641,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_parameter_depromote() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Object operator +(int _) => this;
 }
@@ -678,7 +673,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_parameter_double() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(double x) {
   x++;
 }
@@ -702,7 +697,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_parameter_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x++;
 }
@@ -726,7 +721,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_parameter_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   x++;
 }
@@ -750,7 +745,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_thisGetter_superSetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
 }
@@ -781,7 +776,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
 
 set x(num _) {}
@@ -809,7 +804,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter_fromClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
 
 set x(num _) {}
@@ -839,16 +834,15 @@ PostfixExpression
   }
 
   test_inc_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super++;
+//       ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   }
 }
-''',
-      [error(diag.illegalAssignmentToNonAssignable, 32, 2)],
-    );
+''');
 
     var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
@@ -867,16 +861,15 @@ PostfixExpression
   }
 
   test_inc_switchExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     _ => 0,
   }++);
+// ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
-''',
-      [error(diag.illegalAssignmentToNonAssignable, 51, 2)],
-    );
+''');
 
     var node = findNode.postfix('++');
     assertResolvedNodeText(node, r'''
@@ -913,14 +906,13 @@ PostfixExpression
   }
 
   test_inc_unresolvedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   x++;
+//^
+// [diag.undefinedIdentifier] Undefined name 'x'.
 }
-''',
-      [error(diag.undefinedIdentifier, 13, 1)],
-    );
+''');
 
     var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
@@ -940,7 +932,7 @@ PostfixExpression
   }
 
   test_nullCheck() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x!;
 }
@@ -959,7 +951,7 @@ PostfixExpression
   }
 
   test_nullCheck_functionExpressionInvocation_rewrite() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Function f2) {
   f2(42)!;
 }
@@ -967,7 +959,7 @@ void f(Function f2) {
   }
 
   test_nullCheck_indexExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Map<String, int> a) {
   int v = a['foo']!;
   v;
@@ -1012,7 +1004,7 @@ PostfixExpression
   }
 
   test_nullCheck_interfaceType_viaAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = String;
 
 void f(A? x) {
@@ -1037,20 +1029,19 @@ PostfixExpression
   }
 
   test_nullCheck_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Null x) {
   x!;
+//^^
+// [diag.nullCheckAlwaysFails] This null-check will always throw an exception because the expression will always evaluate to 'null'.
 }
-''',
-      [error(diag.nullCheckAlwaysFails, 19, 2)],
-    );
+''');
 
     assertType(findNode.postfix('x!'), 'Never');
   }
 
   test_nullCheck_nullableContext() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T t) => t;
 
 int g() => f(null)!;
@@ -1086,8 +1077,7 @@ PostfixExpression
 
   /// See https://github.com/dart-lang/language/issues/1163
   test_nullCheck_participatesNullShorting() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int zero;
   int? zeroOrNull;
@@ -1096,8 +1086,12 @@ class A {
 }
 
 void test1(A? a) => a?.zero!;
+//                         ^
+// [diag.unnecessaryNonNullAssertion] The '!' will have no effect because the receiver can't be null.
 void test2(A? a) => a?.zeroOrNull!;
 void test3(A? a) => a?.zero!.isEven;
+//                         ^
+// [diag.unnecessaryNonNullAssertion] The '!' will have no effect because the receiver can't be null.
 void test4(A? a) => a?.zeroOrNull!.isEven;
 
 class Foo {
@@ -1122,12 +1116,7 @@ void test7(Foo? foo, int a) => foo?.bar![a];
 void test8(Foo? foo, int? a) => foo?[a]!;
 void test9(Foo? foo, int? a) => foo?[a]!.baz;
 void test10(Foo? foo, int? a, int b) => foo?[a]![b];
-''',
-      [
-        error(diag.unnecessaryNonNullAssertion, 107, 1),
-        error(diag.unnecessaryNonNullAssertion, 173, 1),
-      ],
-    );
+''');
 
     void assertTestType(int index, String expected) {
       var function = findNode.functionDeclaration('test$index(');
@@ -1149,7 +1138,7 @@ void test10(Foo? foo, int? a, int b) => foo?[a]![b];
   }
 
   test_nullCheck_recordType_viaAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = (int,);
 
 void f(A? x) {
@@ -1174,8 +1163,7 @@ PostfixExpression
   }
 
   test_nullCheck_superExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
 }
@@ -1183,11 +1171,11 @@ class A {
 class B extends A {
   void bar() {
     super!.foo();
+//  ^^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 70, 6)],
-    );
+''');
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -1213,7 +1201,7 @@ MethodInvocation
   }
 
   test_nullCheck_typeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T? x) {
   x!;
 }
@@ -1233,7 +1221,7 @@ PostfixExpression
   }
 
   test_nullCheck_typeParameter_already_promoted() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T? x) {
   if (x is num?) {
     x!;

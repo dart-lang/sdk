@@ -2,28 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TryStatementResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TryStatementResolutionTest extends PubPackageResolutionTest {
   test_catch_parameters_0() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch () {}
+//              ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
 }
-''',
-      [error(diag.catchSyntax, 27, 1)],
-    );
+''');
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -49,17 +49,15 @@ TryStatement
   }
 
   test_catch_parameters_3() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (x, y, z) {}
+//                 ^
+// [diag.unusedCatchStack] The stack trace variable 'y' isn't used and can be removed.
+//                  ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
 }
-''',
-      [
-        error(diag.unusedCatchStack, 30, 1),
-        error(diag.catchSyntaxExtraParameters, 31, 1),
-      ],
-    );
+''');
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -91,14 +89,15 @@ TryStatement
   }
 
   test_catch_parameters_stackTrace_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (x, {st}) {}
+//                 ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+//                  ^^
+// [diag.unusedCatchStack] The stack trace variable 'st' isn't used and can be removed.
 }
-''',
-      [error(diag.catchSyntax, 30, 1), error(diag.unusedCatchStack, 31, 2)],
-    );
+''');
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -130,14 +129,15 @@ TryStatement
   }
 
   test_catch_parameters_stackTrace_optionalPositional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (x, [st]) {}
+//                 ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+//                  ^^
+// [diag.unusedCatchStack] The stack trace variable 'st' isn't used and can be removed.
 }
-''',
-      [error(diag.catchSyntax, 30, 1), error(diag.unusedCatchStack, 31, 2)],
-    );
+''');
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -169,14 +169,13 @@ TryStatement
   }
 
   test_catch_withoutType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (e, st) {}
+//                 ^^
+// [diag.unusedCatchStack] The stack trace variable 'st' isn't used and can be removed.
 }
-''',
-      [error(diag.unusedCatchStack, 30, 2)],
-    );
+''');
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -208,14 +207,13 @@ TryStatement
   }
 
   test_catch_withType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} on int catch (e, st) {}
+//                        ^^
+// [diag.unusedCatchStack] The stack trace variable 'st' isn't used and can be removed.
 }
-''',
-      [error(diag.unusedCatchStack, 37, 2)],
-    );
+''');
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''

@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelVariableResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,15 +19,14 @@ main() {
 class TopLevelVariableResolutionTest extends PubPackageResolutionTest {
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_dontUseInferredType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart=2.17
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final x = f(g, (z) => z.length);
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 108, 6)],
-    );
+//                      ^^^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'length' can't be unconditionally accessed because the receiver can be 'null'.
+''');
     var node = findNode.variableDeclaration('x =');
     assertResolvedNodeText(node, r'''
 VariableDeclaration
@@ -88,7 +88,7 @@ VariableDeclaration
 
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_typeAnnotation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart=2.17
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';

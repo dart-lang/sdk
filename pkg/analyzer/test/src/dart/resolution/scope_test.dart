@@ -3,27 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedNamespaceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PrefixedNamespaceTest extends PubPackageResolutionTest {
   Future<PrefixedNamespace> get _dartMath async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
-''',
-      [error(diag.unusedImport, 7, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+''');
     var namespace = findElement2.import('dart:math').namespace;
     return namespace as PrefixedNamespace;
   }

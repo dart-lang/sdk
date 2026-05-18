@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetOrMapLiteralResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SetOrMapLiteralResolutionTest extends PubPackageResolutionTest {
   test_hasTypeArguments_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int>{};
 }
@@ -41,7 +42,7 @@ SetOrMapLiteral
   }
 
   test_hasTypeArguments_2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int, String>{};
 }
@@ -70,14 +71,13 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_hasElements_expression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var v = {0};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
 
     var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
@@ -94,14 +94,13 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_hasElements_mapEntry() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var v = {0: ''};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
 
     var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
@@ -122,14 +121,13 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_noElements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var v = {};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
 
     var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''

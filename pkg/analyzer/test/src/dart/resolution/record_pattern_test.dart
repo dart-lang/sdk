@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecordPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RecordPatternResolutionTest extends PubPackageResolutionTest {
   test_dynamicType_empty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case ():
@@ -34,17 +35,16 @@ RecordPattern
   }
 
   test_dynamicType_named_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case (foo: var y):
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 46, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -68,17 +68,16 @@ RecordPattern
   }
 
   test_dynamicType_positional_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case (var y,):
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 41, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -99,7 +98,7 @@ RecordPattern
   }
 
   test_interfaceType_empty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case ():
@@ -117,7 +116,7 @@ RecordPattern
   }
 
   test_interfaceType_named_constant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case (foo: 0):
@@ -146,17 +145,16 @@ RecordPattern
   }
 
   test_interfaceType_named_variable_typed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case (foo: int y):
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 54, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -183,17 +181,16 @@ RecordPattern
   }
 
   test_interfaceType_named_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case (foo: var y):
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 54, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -217,7 +214,7 @@ RecordPattern
   }
 
   test_interfaceType_positional_constant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case (0,):
@@ -243,17 +240,16 @@ RecordPattern
   }
 
   test_interfaceType_positional_variable_typed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case (int y,):
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 49, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -277,17 +273,16 @@ RecordPattern
   }
 
   test_interfaceType_positional_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case (var y,):
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 49, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -308,21 +303,19 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_hasName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(() x) {
   switch (x) {
     case (a: var b):
+//       ^^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '()' can never match the required type '({Object? a})'.
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
       break;
     default:
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 39, 10),
-        error(diag.unusedLocalVariable, 47, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -346,21 +339,19 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_noName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(() x) {
   switch (x) {
     case (: var a):
+//       ^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '()' can never match the required type '({Object? a})'.
+//              ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
     default:
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 39, 9),
-        error(diag.unusedLocalVariable, 46, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -383,20 +374,18 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_noName2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int b}) x) {
   switch (x) {
     case (: var a):
+//       ^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '({int b})' can never match the required type '({Object? a})'.
+//              ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 46, 9),
-        error(diag.unusedLocalVariable, 53, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -419,20 +408,18 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooMany_noName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int a, int b}) x) {
   switch (x) {
     case (: var a):
+//       ^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '({int a, int b})' can never match the required type '({Object? a})'.
+//              ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 53, 9),
-        error(diag.unusedLocalVariable, 60, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -455,21 +442,19 @@ RecordPattern
   }
 
   test_recordType_differentShape_positional_tooFew() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(() x) {
   switch (x) {
     case (var a,):
+//       ^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '()' can never match the required type '(Object?,)'.
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
     default:
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 39, 8),
-        error(diag.unusedLocalVariable, 44, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -490,20 +475,18 @@ RecordPattern
   }
 
   test_recordType_differentShape_positional_tooMany() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) x) {
   switch (x) {
     case (var a,):
+//       ^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '(int, String)' can never match the required type '(Object?,)'.
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 50, 8),
-        error(diag.unusedLocalVariable, 55, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -524,21 +507,18 @@ RecordPattern
   }
 
   test_recordType_sameShape_empty() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(() x) {
   switch (x) {
     case ():
       break;
     default:
+//  ^^^^^^^
+// [diag.deadCode] Dead code.
+// [diag.unreachableSwitchDefault] This default clause is covered by the previous cases.
   }
 }
-''',
-      [
-        error(diag.deadCode, 60, 7),
-        error(diag.unreachableSwitchDefault, 60, 7),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -549,21 +529,20 @@ RecordPattern
   }
 
   test_recordType_sameShape_mixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int, double, {String foo}) x) {
   switch (x) {
     case (var a, foo: var b, var c):
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                        ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
+//                               ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
       break;
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 69, 1),
-        error(diag.unusedLocalVariable, 81, 1),
-        error(diag.unusedLocalVariable, 88, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -605,20 +584,18 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_hasName_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo}) x) {
   switch (x) {
     case (bar: var a):
+//       ^^^^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '({int foo})' can never match the required type '({Object? bar})'.
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 48, 12),
-        error(diag.unusedLocalVariable, 58, 1),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -642,17 +619,16 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_hasName_variable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo}) x) {
   switch (x) {
     case (foo: var y):
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 58, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -676,20 +652,18 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_constant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo}) x) {
   switch (x) {
     case (: 0):
+//       ^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type '({int foo})' can never match the required type '(Object?,)'.
+//        ^^^
+// [diag.missingNamedPatternFieldName] The getter name is not specified explicitly, and the pattern is not a variable.
       break;
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 48, 5),
-        error(diag.missingNamedPatternFieldName, 49, 3),
-      ],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -710,17 +684,16 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo}) x) {
   switch (x) {
     case (: var foo):
+//              ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 55, 3)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -743,17 +716,16 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_cast() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo as int):
+//              ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 56, 3)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -783,17 +755,16 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_nullAssert() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo!):
+//              ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 56, 3)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -819,17 +790,16 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_nullCheck() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo?):
+//              ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 56, 3)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -855,17 +825,16 @@ RecordPattern
   }
 
   test_recordType_sameShape_positional_variable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int,) x) {
   switch (x) {
     case (var a,):
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 48, 1)],
-    );
+''');
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -886,17 +855,15 @@ RecordPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) x) {
   var (a, b) = x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.unusedLocalVariable, 36, 1),
-      ],
-    );
+''');
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -932,19 +899,17 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (int a, String b) = g();
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                   ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
 
 (T, U) g<T, U>() => throw 0;
-''',
-      [
-        error(diag.unusedLocalVariable, 22, 1),
-        error(diag.unusedLocalVariable, 32, 1),
-      ],
-    );
+''');
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration

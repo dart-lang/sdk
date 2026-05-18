@@ -2,23 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeLiteralResolutionTest);
     defineReflectiveTests(TypeLiteralResolutionTest_WithoutConstructorTearoffs);
-    // defineReflectiveTests(UpdateNodeTextExpectations);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TypeLiteralResolutionTest extends PubPackageResolutionTest {
   test_class_argumentList_argument_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f(Type t) {}
 void g() {
@@ -47,7 +47,7 @@ TypeLiteral
   }
 
   test_class_argumentList_argument_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f(Type t) {}
 void g() {
@@ -68,7 +68,7 @@ TypeLiteral
   }
 
   test_class_argumentList_argument_parenthesizedExpression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f(Type t) {}
 void g() {
@@ -99,7 +99,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Type t) {}
 void g() {
@@ -134,7 +134,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Type t) {}
 void g() {
@@ -170,7 +170,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Type t) {}
 void g() {
@@ -195,7 +195,7 @@ TypeLiteral
   }
 
   test_class_asExpression_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Object f() {
   return C as Object;
@@ -217,7 +217,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Object f() {
   return a.C as Object;
@@ -240,15 +240,14 @@ TypeLiteral
   }
 
   test_class_assertInitializer_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 class A {
   A() : assert(C);
+//             ^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 36, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C);');
     assertResolvedNodeText(node, r'''
@@ -265,15 +264,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 class A {
   A() : assert(a.C);
+//             ^^^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 47, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C);');
     assertResolvedNodeText(node, r'''
@@ -291,7 +289,7 @@ TypeLiteral
   }
 
   test_class_assertInitializer_message_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 class A {
   A() : assert(true, C);
@@ -313,7 +311,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 class A {
   A() : assert(true, a.C);
@@ -336,15 +334,14 @@ TypeLiteral
   }
 
   test_class_assertStatement_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   assert(C);
+//       ^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 31, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C);');
     assertResolvedNodeText(node, r'''
@@ -361,15 +358,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   assert(a.C);
+//       ^^^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 42, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C);');
     assertResolvedNodeText(node, r'''
@@ -387,7 +383,7 @@ TypeLiteral
   }
 
   test_class_assertStatement_message_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   assert(true, C);
@@ -409,7 +405,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   assert(true, a.C);
@@ -432,7 +428,7 @@ TypeLiteral
   }
 
   test_class_assignmentExpression_rightHandSide_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Type t = int;
 void f() {
@@ -461,7 +457,7 @@ TypeLiteral
   }
 
   test_class_assignmentExpression_rightHandSide_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Type t = int;
 void f() {
@@ -485,7 +481,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Type t = int;
 void f() {
@@ -521,7 +517,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Type t = int;
 void f() {
@@ -546,7 +542,7 @@ TypeLiteral
   }
 
   test_class_awaitExpression_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Future<Type> f() async {
   return await C;
@@ -568,7 +564,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Future<Type> f() async {
   return await a.C;
@@ -591,7 +587,7 @@ TypeLiteral
   }
 
   test_class_binaryExpression_leftOperand_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   C<int> == int;
@@ -618,7 +614,7 @@ TypeLiteral
   }
 
   test_class_binaryExpression_leftOperand_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   C == int;
@@ -640,7 +636,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   a.C<int> == int;
@@ -674,7 +670,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   a.C == int;
@@ -697,7 +693,7 @@ TypeLiteral
   }
 
   test_class_binaryExpression_rightOperand_ifNull_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Type? x;
 void f() {
@@ -721,7 +717,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Type? x;
 void f() {
@@ -746,7 +742,7 @@ TypeLiteral
   }
 
   test_class_binaryExpression_rightOperand_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   int == C<int>;
@@ -774,7 +770,7 @@ TypeLiteral
   }
 
   test_class_binaryExpression_rightOperand_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   int == C;
@@ -797,7 +793,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   int == a.C<int>;
@@ -832,7 +828,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   int == a.C;
@@ -856,7 +852,7 @@ TypeLiteral
   }
 
   test_class_cascadeExpression_target_methodInvocation_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   C..toString();
@@ -878,7 +874,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   a.C..toString();
@@ -901,7 +897,7 @@ TypeLiteral
   }
 
   test_class_cascadeExpression_target_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   C..hashCode;
@@ -920,7 +916,7 @@ TypeLiteral
   }
 
   test_class_cascadeExpression_target_parenthesized_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   (C<int>)..hashCode;
@@ -950,7 +946,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   (a.C<int>)..hashCode;
@@ -984,7 +980,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   a.C..hashCode;
@@ -1007,13 +1003,12 @@ TypeLiteral
   }
 
   test_class_conditionalExpression_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 var x = C ? 0 : 1;
-''',
-      [error(diag.nonBoolCondition, 19, 1)],
-    );
+//      ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
 
     var node = findNode.typeLiteral('C ?');
     assertResolvedNodeText(node, r'''
@@ -1030,13 +1025,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var x = a.C ? 0 : 1;
-''',
-      [error(diag.nonBoolCondition, 30, 3)],
-    );
+//      ^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
 
     var node = findNode.typeLiteral('a.C ?');
     assertResolvedNodeText(node, r'''
@@ -1054,7 +1048,7 @@ TypeLiteral
   }
 
   test_class_conditionalExpression_elseExpression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 bool b = true;
 var y = b ? int : C<int>;
@@ -1083,7 +1077,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 bool b = true;
 var y = b ? int : a.C<int>;
@@ -1113,7 +1107,7 @@ TypeLiteral
   }
 
   test_class_conditionalExpression_thenExpression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 bool b = true;
 var y = b ? C<int> : int;
@@ -1142,7 +1136,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 bool b = true;
 var y = b ? a.C<int> : int;
@@ -1172,7 +1166,7 @@ TypeLiteral
   }
 
   test_class_constructorFieldInitializer_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 class A {
   Object o;
@@ -1195,7 +1189,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 class A {
   Object o;
@@ -1219,7 +1213,7 @@ TypeLiteral
   }
 
   test_class_defaultValue_optionalPositional_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f([Object o = C]) {}
 ''');
@@ -1239,7 +1233,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f([Object o = a.C]) {}
 ''');
@@ -1260,15 +1254,14 @@ TypeLiteral
   }
 
   test_class_doStatement_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   do {} while (C);
+//             ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 37, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C);');
     assertResolvedNodeText(node, r'''
@@ -1285,15 +1278,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   do {} while (a.C);
+//             ^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 48, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C);');
     assertResolvedNodeText(node, r'''
@@ -1311,7 +1303,7 @@ TypeLiteral
   }
 
   test_class_expressionFunctionBody_expression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Type f() => C<int>;
 ''');
@@ -1336,7 +1328,7 @@ TypeLiteral
   }
 
   test_class_expressionFunctionBody_expression_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Type f() => C;
 ''');
@@ -1356,7 +1348,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Type f() => a.C<int>;
 ''');
@@ -1388,7 +1380,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Type f() => a.C;
 ''');
@@ -1409,7 +1401,7 @@ TypeLiteral
   }
 
   test_class_expressionStatement_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   C;
@@ -1428,7 +1420,7 @@ TypeLiteral
   }
 
   test_class_expressionStatement_expression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   C<int>;
@@ -1459,7 +1451,7 @@ TypeLiteral
 class C {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void f() {
@@ -1486,7 +1478,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   a.C<int>;
@@ -1517,17 +1509,16 @@ TypeLiteral
   }
 
   test_class_forEachParts_iterable_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   for (var e in C) {
+//              ^
+// [diag.forInOfInvalidType] The type 'Type' used in the 'for' loop must implement 'Iterable'.
     e;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 38, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C)');
     assertResolvedNodeText(node, r'''
@@ -1544,17 +1535,16 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   for (var e in a.C) {
+//              ^^^
+// [diag.forInOfInvalidType] The type 'Type' used in the 'for' loop must implement 'Iterable'.
     e;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 49, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C)');
     assertResolvedNodeText(node, r'''
@@ -1572,13 +1562,12 @@ TypeLiteral
   }
 
   test_class_forElement_forEachParts_iterable_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 var v = [for (var e in C) e];
-''',
-      [error(diag.forInOfInvalidType, 34, 1)],
-    );
+//                     ^
+// [diag.forInOfInvalidType] The type 'Type' used in the 'for' loop must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('C) e');
     assertResolvedNodeText(node, r'''
@@ -1595,13 +1584,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var v = [for (var e in a.C) e];
-''',
-      [error(diag.forInOfInvalidType, 45, 3)],
-    );
+//                     ^^^
+// [diag.forInOfInvalidType] The type 'Type' used in the 'for' loop must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('a.C) e');
     assertResolvedNodeText(node, r'''
@@ -1619,7 +1607,7 @@ TypeLiteral
   }
 
   test_class_forParts_initialization_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(bool b) {
   for (C; b; ) {
@@ -1643,7 +1631,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(bool b) {
   for (a.C; b; ) {
@@ -1668,7 +1656,7 @@ TypeLiteral
   }
 
   test_class_forParts_updaters_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(bool b) {
   for (; b; C) {}
@@ -1690,7 +1678,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(bool b) {
   for (; b; a.C) {}
@@ -1713,15 +1701,14 @@ TypeLiteral
   }
 
   test_class_forStatement_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   for (; C; ) {}
+//       ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 31, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C; )');
     assertResolvedNodeText(node, r'''
@@ -1738,15 +1725,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   for (; a.C; ) {}
+//       ^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 42, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C; )');
     assertResolvedNodeText(node, r'''
@@ -1764,18 +1750,17 @@ TypeLiteral
   }
 
   test_class_guardedPattern_whenClause_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
     case _ when C:
+//              ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
       break;
   }
 }
-''',
-      [error(diag.nonBoolCondition, 61, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C:');
     assertResolvedNodeText(node, r'''
@@ -1792,18 +1777,17 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
     case _ when a.C:
+//              ^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
       break;
   }
 }
-''',
-      [error(diag.nonBoolCondition, 72, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C:');
     assertResolvedNodeText(node, r'''
@@ -1821,7 +1805,7 @@ TypeLiteral
   }
 
   test_class_ifCaseElement_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 List<int> f(Object x) {
   return [if (x case C) 0];
@@ -1843,7 +1827,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 List<int> f(Object x) {
   return [if (x case a.C) 0];
@@ -1866,7 +1850,7 @@ TypeLiteral
   }
 
   test_class_ifCaseElement_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 List<int> f(Object x) {
   return [if (x case {C: 0}) 0];
@@ -1888,7 +1872,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 List<int> f(Object x) {
   return [if (x case {a.C: 0}) 0];
@@ -1911,7 +1895,7 @@ TypeLiteral
   }
 
   test_class_ifCaseElement_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 List<int> f(Object x) {
   return [if (x case == C) 0];
@@ -1933,7 +1917,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 List<int> f(Object x) {
   return [if (x case == a.C) 0];
@@ -1956,7 +1940,7 @@ TypeLiteral
   }
 
   test_class_ifCaseStatement_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   if (x case C) {}
@@ -1978,7 +1962,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   if (x case a.C) {}
@@ -2001,7 +1985,7 @@ TypeLiteral
   }
 
   test_class_ifCaseStatement_logicalOrPattern_leftOperand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   if (x case C || int) {}
@@ -2023,7 +2007,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   if (x case a.C || int) {}
@@ -2046,7 +2030,7 @@ TypeLiteral
   }
 
   test_class_ifCaseStatement_logicalOrPattern_rightOperand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   if (x case int || C) {}
@@ -2068,7 +2052,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   if (x case int || a.C) {}
@@ -2091,7 +2075,7 @@ TypeLiteral
   }
 
   test_class_ifCaseStatement_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   if (x case {C: 0}) {}
@@ -2113,7 +2097,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   if (x case {a.C: 0}) {}
@@ -2136,7 +2120,7 @@ TypeLiteral
   }
 
   test_class_ifCaseStatement_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   if (x case == C) {}
@@ -2158,7 +2142,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   if (x case == a.C) {}
@@ -2181,13 +2165,12 @@ TypeLiteral
   }
 
   test_class_ifElement_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 var v = [if (C) 1];
-''',
-      [error(diag.nonBoolCondition, 24, 1)],
-    );
+//           ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
 
     var node = findNode.typeLiteral('C) 1');
     assertResolvedNodeText(node, r'''
@@ -2204,13 +2187,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var v = [if (a.C) 1];
-''',
-      [error(diag.nonBoolCondition, 35, 3)],
-    );
+//           ^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
 
     var node = findNode.typeLiteral('a.C) 1');
     assertResolvedNodeText(node, r'''
@@ -2228,15 +2210,14 @@ TypeLiteral
   }
 
   test_class_ifStatement_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   if (C) {}
+//    ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 28, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C) {');
     assertResolvedNodeText(node, r'''
@@ -2253,15 +2234,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   if (a.C) {}
+//    ^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 39, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C) {');
     assertResolvedNodeText(node, r'''
@@ -2279,7 +2259,7 @@ TypeLiteral
   }
 
   test_class_indexExpression_index_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(dynamic d) {
   d[C];
@@ -2302,7 +2282,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(dynamic d) {
   d[a.C];
@@ -2326,15 +2306,14 @@ TypeLiteral
   }
 
   test_class_indexExpression_target_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(int i) {
   C[i];
+// ^^^
+// [diag.undefinedOperator] The operator '[]' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedOperator, 30, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('C[i]');
     assertResolvedNodeText(node, r'''
@@ -2351,15 +2330,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(int i) {
   a.C[i];
+//   ^^^
+// [diag.undefinedOperator] The operator '[]' isn't defined for the type 'Type'.
 }
-''',
-      [error(diag.undefinedOperator, 43, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C[i]');
     assertResolvedNodeText(node, r'''
@@ -2377,7 +2355,7 @@ TypeLiteral
   }
 
   test_class_interpolationExpression_expression_noPrefix() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 var s = '${C}';
 ''');
@@ -2397,7 +2375,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as a;
 var s = '${a.C}';
 ''');
@@ -2418,15 +2396,14 @@ TypeLiteral
   }
 
   test_class_isExpression_expression_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 bool f() {
   return C is Type;
+//       ^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 31, 9)],
-    );
+''');
 
     var node = findNode.typeLiteral('C is');
     assertResolvedNodeText(node, r'''
@@ -2443,15 +2420,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 bool f() {
   return a.C is Type;
+//       ^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 42, 11)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C is');
     assertResolvedNodeText(node, r'''
@@ -2469,7 +2445,7 @@ TypeLiteral
   }
 
   test_class_listLiteral_elements_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var l = [C<int>];
 ''');
@@ -2494,7 +2470,7 @@ TypeLiteral
   }
 
   test_class_listLiteral_elements_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var l = [C];
 ''');
@@ -2514,7 +2490,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var l = [a.C<int>];
 ''');
@@ -2546,7 +2522,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var l = [a.C];
 ''');
@@ -2567,7 +2543,7 @@ TypeLiteral
   }
 
   test_class_listLiteral_forElement_body_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 List<Object> f() {
   return [for (var _ in [0]) C];
@@ -2589,7 +2565,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 List<Object> f() {
   return [for (var _ in [0]) a.C];
@@ -2612,7 +2588,7 @@ TypeLiteral
   }
 
   test_class_listLiteral_ifElement_else_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 List<Object> f(bool b) {
   return [if (b) int else C];
@@ -2634,7 +2610,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 List<Object> f(bool b) {
   return [if (b) int else a.C];
@@ -2657,7 +2633,7 @@ TypeLiteral
   }
 
   test_class_listLiteral_ifElement_then_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 List<Object> f(bool b) {
   return [if (b) C];
@@ -2679,7 +2655,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 List<Object> f(bool b) {
   return [if (b) a.C];
@@ -2702,13 +2678,12 @@ TypeLiteral
   }
 
   test_class_listLiteral_spreadElement_expression_noPrefix_instantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var l = [...C<int>];
-''',
-      [error(diag.notIterableSpread, 26, 6)],
-    );
+//          ^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('C<int>]');
     assertResolvedNodeText(node, r'''
@@ -2730,16 +2705,14 @@ TypeLiteral
   }
 
   test_class_listLiteral_spreadElement_expression_nullAware_noPrefix_instantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var l = [...?C<int>];
-''',
-      [
-        error(diag.invalidNullAwareOperator, 23, 4),
-        error(diag.notIterableSpread, 27, 6),
-      ],
-    );
+//       ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//           ^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('C<int>]');
     assertResolvedNodeText(node, r'''
@@ -2764,16 +2737,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var l = [...?a.C<int>];
-''',
-      [
-        error(diag.invalidNullAwareOperator, 31, 4),
-        error(diag.notIterableSpread, 35, 8),
-      ],
-    );
+//       ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//           ^^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('a.C<int>]');
     assertResolvedNodeText(node, r'''
@@ -2802,13 +2773,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var l = [...a.C<int>];
-''',
-      [error(diag.notIterableSpread, 34, 8)],
-    );
+//          ^^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('a.C<int>]');
     assertResolvedNodeText(node, r'''
@@ -2834,7 +2804,7 @@ TypeLiteral
   }
 
   test_class_listPattern_element_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -2861,7 +2831,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -2889,7 +2859,7 @@ TypeLiteral
   }
 
   test_class_listPattern_element_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -2916,7 +2886,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -2944,7 +2914,7 @@ TypeLiteral
   }
 
   test_class_mapLiteral_ifElement_key_else_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Map<Object, int> f(bool b) {
   return {if (b) C: 1 else int: 2};
@@ -2966,7 +2936,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Map<Object, int> f(bool b) {
   return {if (b) a.C: 1 else int: 2};
@@ -2989,7 +2959,7 @@ TypeLiteral
   }
 
   test_class_mapLiteral_ifElement_value_else_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Map<int, Object> f(bool b) {
   return {if (b) 1: C else 2: int};
@@ -3011,7 +2981,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Map<int, Object> f(bool b) {
   return {if (b) 1: a.C else 2: int};
@@ -3034,7 +3004,7 @@ TypeLiteral
   }
 
   test_class_mapLiteral_key_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var m = {C<int>: 1};
 ''');
@@ -3059,7 +3029,7 @@ TypeLiteral
   }
 
   test_class_mapLiteral_key_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var m = {C: 1};
 ''');
@@ -3079,7 +3049,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var m = {a.C<int>: 1};
 ''');
@@ -3111,7 +3081,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var m = {a.C: 1};
 ''');
@@ -3132,13 +3102,12 @@ TypeLiteral
   }
 
   test_class_mapLiteral_spreadElement_expression_noPrefix_instantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Map<Object, Object> m = {...C<int>};
-''',
-      [error(diag.notMapSpread, 42, 6)],
-    );
+//                          ^^^^^^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
 
     var node = findNode.typeLiteral('C<int>}');
     assertResolvedNodeText(node, r'''
@@ -3160,16 +3129,14 @@ TypeLiteral
   }
 
   test_class_mapLiteral_spreadElement_expression_nullAware_noPrefix_instantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Map<Object, Object> m = {...?C<int>};
-''',
-      [
-        error(diag.invalidNullAwareOperator, 39, 4),
-        error(diag.notMapSpread, 43, 6),
-      ],
-    );
+//                       ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                           ^^^^^^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
 
     var node = findNode.typeLiteral('C<int>}');
     assertResolvedNodeText(node, r'''
@@ -3194,16 +3161,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Map<Object, Object> m = {...?a.C<int>};
-''',
-      [
-        error(diag.invalidNullAwareOperator, 47, 4),
-        error(diag.notMapSpread, 51, 8),
-      ],
-    );
+//                       ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                           ^^^^^^^^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
 
     var node = findNode.typeLiteral('a.C<int>}');
     assertResolvedNodeText(node, r'''
@@ -3232,13 +3197,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Map<Object, Object> m = {...a.C<int>};
-''',
-      [error(diag.notMapSpread, 50, 8)],
-    );
+//                          ^^^^^^^^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
 
     var node = findNode.typeLiteral('a.C<int>}');
     assertResolvedNodeText(node, r'''
@@ -3264,7 +3228,7 @@ TypeLiteral
   }
 
   test_class_mapLiteral_value_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var m = {1: C<int>};
 ''');
@@ -3289,7 +3253,7 @@ TypeLiteral
   }
 
   test_class_mapLiteral_value_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var m = {1: C};
 ''');
@@ -3309,7 +3273,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var m = {1: a.C<int>};
 ''');
@@ -3341,7 +3305,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var m = {1: a.C};
 ''');
@@ -3362,7 +3326,7 @@ TypeLiteral
   }
 
   test_class_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -3389,7 +3353,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -3417,7 +3381,7 @@ TypeLiteral
   }
 
   test_class_mapPatternEntry_value_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -3444,7 +3408,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -3472,7 +3436,7 @@ TypeLiteral
   }
 
   test_class_mapPatternEntry_value_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -3499,7 +3463,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -3527,7 +3491,7 @@ TypeLiteral
   }
 
   test_class_methodInvocation_target_parenthesizedExpression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 
 void bar() {
@@ -3562,7 +3526,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void bar() {
@@ -3598,7 +3562,7 @@ TypeLiteral
   }
 
   test_class_namedExpression_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f({required Type t}) {}
 void g() {
@@ -3621,7 +3585,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f({required Type t}) {}
 void g() {
@@ -3645,7 +3609,7 @@ TypeLiteral
   }
 
   test_class_objectPattern_patternField_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 class A {
   final Object f;
@@ -3676,7 +3640,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 class A {
   final Object f;
@@ -3708,7 +3672,7 @@ TypeLiteral
   }
 
   test_class_objectPattern_patternField_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 class A {
   final Object f;
@@ -3739,7 +3703,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 class A {
   final Object f;
@@ -3771,7 +3735,7 @@ TypeLiteral
   }
 
   test_class_parenthesizedExpression_expression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   (C<int>);
@@ -3798,7 +3762,7 @@ TypeLiteral
   }
 
   test_class_parenthesizedExpression_expression_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 void f() {
   (C);
@@ -3820,7 +3784,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   (a.C<int>);
@@ -3854,7 +3818,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   (a.C);
@@ -3880,15 +3844,14 @@ TypeLiteral
   test_class_postfixExpression_operand_increment_noPrefix() async {
     // TODO(scheglov): Decide the exact diagnostic for `TypeLiteral++`.
     // Speculation: it should be `assignmentToType`.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   C++;
+//^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 27, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C++;');
     assertResolvedNodeText(node, r'''
@@ -3908,15 +3871,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   a.C++;
+//  ^
+// [diag.undefinedPrefixedName] The name 'C' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
 }
-''',
-      [error(diag.assignmentToType, 37, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C++;');
     assertResolvedNodeText(node, r'''
@@ -3934,13 +3896,12 @@ TypeLiteral
   }
 
   test_class_prefixExpression_operand_bang_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 var x = !C;
-''',
-      [error(diag.nonBoolNegationExpression, 20, 1)],
-    );
+//       ^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
+''');
 
     var node = findNode.typeLiteral('C;');
     assertResolvedNodeText(node, r'''
@@ -3957,13 +3918,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var x = !a.C;
-''',
-      [error(diag.nonBoolNegationExpression, 31, 3)],
-    );
+//       ^^^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
+''');
 
     var node = findNode.typeLiteral('a.C;');
     assertResolvedNodeText(node, r'''
@@ -3984,15 +3944,14 @@ TypeLiteral
   test_class_prefixExpression_operand_increment_noPrefix() async {
     // TODO(scheglov): Decide the exact diagnostic for `++TypeLiteral`.
     // Speculation: it should be `assignmentToType`.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   ++C;
+//  ^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 29, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C;');
     assertResolvedNodeText(node, r'''
@@ -4012,15 +3971,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   ++a.C;
+//    ^
+// [diag.undefinedPrefixedName] The name 'C' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
 }
-''',
-      [error(diag.assignmentToType, 39, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C;');
     assertResolvedNodeText(node, r'''
@@ -4038,13 +3996,12 @@ TypeLiteral
   }
 
   test_class_prefixExpression_operand_minus_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 var x = -C;
-''',
-      [error(diag.undefinedOperator, 19, 1)],
-    );
+//      ^
+// [diag.undefinedOperator] The operator 'unary-' isn't defined for the type 'Type'.
+''');
 
     var node = findNode.typeLiteral('C;');
     assertResolvedNodeText(node, r'''
@@ -4061,13 +4018,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var x = -a.C;
-''',
-      [error(diag.undefinedOperator, 30, 1)],
-    );
+//      ^
+// [diag.undefinedOperator] The operator 'unary-' isn't defined for the type 'Type'.
+''');
 
     var node = findNode.typeLiteral('a.C;');
     assertResolvedNodeText(node, r'''
@@ -4085,7 +4041,7 @@ TypeLiteral
   }
 
   test_class_propertyAccess_target_parenthesizedExpression_noPrefix_instantiated_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 
 void bar() {
@@ -4117,7 +4073,7 @@ TypeLiteral
   }
 
   test_class_propertyAccess_target_parenthesizedExpression_noPrefix_instantiated_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 
 void bar() {
@@ -4152,7 +4108,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void bar() {
@@ -4191,7 +4147,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void bar() {
@@ -4227,7 +4183,7 @@ TypeLiteral
   }
 
   test_class_recordLiteral_fields_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 (Object,) f() {
   return (C,);
@@ -4249,7 +4205,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 (Object,) f() {
   return (a.C,);
@@ -4272,7 +4228,7 @@ TypeLiteral
   }
 
   test_class_recordPattern_patternField_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -4299,7 +4255,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -4327,7 +4283,7 @@ TypeLiteral
   }
 
   test_class_recordPattern_patternField_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -4354,7 +4310,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -4382,7 +4338,7 @@ TypeLiteral
   }
 
   test_class_returnStatement_expression_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Type f() {
   return C<int>;
@@ -4409,7 +4365,7 @@ TypeLiteral
   }
 
   test_class_returnStatement_expression_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Type f() {
   return C;
@@ -4431,7 +4387,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Type f() {
   return a.C<int>;
@@ -4465,7 +4421,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Type f() {
   return a.C;
@@ -4488,7 +4444,7 @@ TypeLiteral
   }
 
   test_class_setLiteral_elements_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var s = {C<int>};
 ''');
@@ -4513,7 +4469,7 @@ TypeLiteral
   }
 
   test_class_setLiteral_elements_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var s = {C};
 ''');
@@ -4533,7 +4489,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var s = {a.C<int>};
 ''');
@@ -4565,7 +4521,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var s = {a.C};
 ''');
@@ -4586,7 +4542,7 @@ TypeLiteral
   }
 
   test_class_setLiteral_forElement_body_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Set<Object> f() {
   return {for (var _ in [0]) C};
@@ -4608,7 +4564,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Set<Object> f() {
   return {for (var _ in [0]) a.C};
@@ -4631,7 +4587,7 @@ TypeLiteral
   }
 
   test_class_setLiteral_ifElement_else_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Set<Object> f(bool b) {
   return {if (b) int else C};
@@ -4653,7 +4609,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Set<Object> f(bool b) {
   return {if (b) int else a.C};
@@ -4676,7 +4632,7 @@ TypeLiteral
   }
 
   test_class_setLiteral_ifElement_then_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Set<Object> f(bool b) {
   return {if (b) C};
@@ -4698,7 +4654,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Set<Object> f(bool b) {
   return {if (b) a.C};
@@ -4721,13 +4677,12 @@ TypeLiteral
   }
 
   test_class_setLiteral_spreadElement_expression_noPrefix_instantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Set<Object> s = {...C<int>};
-''',
-      [error(diag.notIterableSpread, 34, 6)],
-    );
+//                  ^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('C<int>}');
     assertResolvedNodeText(node, r'''
@@ -4749,16 +4704,14 @@ TypeLiteral
   }
 
   test_class_setLiteral_spreadElement_expression_nullAware_noPrefix_instantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 Set<Object> s = {...?C<int>};
-''',
-      [
-        error(diag.invalidNullAwareOperator, 31, 4),
-        error(diag.notIterableSpread, 35, 6),
-      ],
-    );
+//               ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                   ^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('C<int>}');
     assertResolvedNodeText(node, r'''
@@ -4783,16 +4736,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Set<Object> s = {...?a.C<int>};
-''',
-      [
-        error(diag.invalidNullAwareOperator, 39, 4),
-        error(diag.notIterableSpread, 43, 8),
-      ],
-    );
+//               ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//                   ^^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('a.C<int>}');
     assertResolvedNodeText(node, r'''
@@ -4821,13 +4772,12 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Set<Object> s = {...a.C<int>};
-''',
-      [error(diag.notIterableSpread, 42, 8)],
-    );
+//                  ^^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('a.C<int>}');
     assertResolvedNodeText(node, r'''
@@ -4853,7 +4803,7 @@ TypeLiteral
   }
 
   test_class_switchExpression_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 int f() {
   return switch (C<int>) {
@@ -4885,7 +4835,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 int f() {
   return switch (a.C<int>) {
@@ -4918,7 +4868,7 @@ TypeLiteral
   }
 
   test_class_switchExpressionCase_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 int f(Object x) {
   return switch (x) {
@@ -4943,7 +4893,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 int f(Object x) {
   return switch (x) {
@@ -4969,7 +4919,7 @@ TypeLiteral
   }
 
   test_class_switchExpressionCase_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 int f(Object x) {
   return switch (x) {
@@ -4994,7 +4944,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 int f(Object x) {
   return switch (x) {
@@ -5020,7 +4970,7 @@ TypeLiteral
   }
 
   test_class_switchExpressionCase_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 int f(Object x) {
   return switch (x) {
@@ -5045,7 +4995,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 int f(Object x) {
   return switch (x) {
@@ -5071,7 +5021,7 @@ TypeLiteral
   }
 
   test_class_switchPatternCase_constantPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -5093,7 +5043,7 @@ TypeLiteral
   }
 
   test_class_switchPatternCase_constantPattern_operand_noPrefix_matchedValueTypeType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Type t) {
   switch (t) {
@@ -5120,7 +5070,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -5149,7 +5099,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Type t) {
   switch (t) {
@@ -5177,7 +5127,7 @@ TypeLiteral
   }
 
   test_class_switchPatternCase_relationalPattern_operand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f(Object x) {
   switch (x) {
@@ -5202,7 +5152,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Object x) {
   switch (x) {
@@ -5228,7 +5178,7 @@ TypeLiteral
   }
 
   test_class_switchStatement_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   switch (C) {
@@ -5252,7 +5202,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   switch (a.C) {
@@ -5277,7 +5227,7 @@ TypeLiteral
   }
 
   test_class_throwExpression_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 Never f() => throw C;
 ''');
@@ -5297,7 +5247,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 Never f() => throw a.C;
 ''');
@@ -5318,7 +5268,7 @@ TypeLiteral
   }
 
   test_class_variableDeclaration_initializer_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var t = C<int>;
 ''');
@@ -5343,13 +5293,12 @@ TypeLiteral
   }
 
   test_class_variableDeclaration_initializer_noPrefix_instantiated_tooFewTypeArgs() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 var t = C<int>;
-''',
-      [error(diag.wrongNumberOfTypeArguments, 26, 5)],
-    );
+//       ^^^^^
+// [diag.wrongNumberOfTypeArguments] The type 'C' is declared with 2 type parameters, but 1 type arguments were given.
+''');
 
     var node = findNode.typeLiteral('C<int>;');
     assertResolvedNodeText(node, r'''
@@ -5371,13 +5320,12 @@ TypeLiteral
   }
 
   test_class_variableDeclaration_initializer_noPrefix_instantiated_tooManyTypeArgs() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var t = C<int, int>;
-''',
-      [error(diag.wrongNumberOfTypeArguments, 23, 10)],
-    );
+//       ^^^^^^^^^^
+// [diag.wrongNumberOfTypeArguments] The type 'C' is declared with 1 type parameters, but 2 type arguments were given.
+''');
 
     var node = findNode.typeLiteral('C<int, int>;');
     assertResolvedNodeText(node, r'''
@@ -5403,20 +5351,14 @@ TypeLiteral
   }
 
   test_class_variableDeclaration_initializer_noPrefix_instantiated_typeArgumentsDoNotMatchBound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T extends num> {}
 var t = C<String>;
-''',
-      [
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          36,
-          6,
-          contextMessages: [message(testFile, 34, 9)],
-        ),
-      ],
-    );
+//      ^^^^^^^^^
+// [context 1] The inverted type 'C<String>' is also not regular-bounded, so the type is not well-bounded.
+//        ^^^^^^
+// [diag.typeArgumentNotMatchingBounds][context 1] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+''');
 
     var node = findNode.typeLiteral('C<String>;');
     assertResolvedNodeText(node, r'''
@@ -5438,7 +5380,7 @@ TypeLiteral
   }
 
   test_class_variableDeclaration_initializer_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var t = C;
 ''');
@@ -5458,7 +5400,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.C<int>;
 ''');
@@ -5490,7 +5432,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.C;
 ''');
@@ -5511,15 +5453,14 @@ TypeLiteral
   }
 
   test_class_whileStatement_condition_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 void f() {
   while (C) {}
+//       ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 31, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C) {');
     assertResolvedNodeText(node, r'''
@@ -5536,15 +5477,14 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f() {
   while (a.C) {}
+//       ^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 42, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C) {');
     assertResolvedNodeText(node, r'''
@@ -5562,7 +5502,7 @@ TypeLiteral
   }
 
   test_class_yieldStatement_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class C {}
 Stream<Type> f() async* {
@@ -5582,16 +5522,15 @@ TypeLiteral
   }
 
   test_class_yieldStatement_expression_star_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class C {}
 Stream<Type> f() async* {
   yield* C;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'Type' implied by the 'yield*' expression must be assignable to 'Stream<Type>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 67, 1)],
-    );
+''');
 
     var node = findNode.typeLiteral('C;');
     assertResolvedNodeText(node, r'''
@@ -5608,16 +5547,15 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 import 'a.dart' as a;
 Stream<Type> f() async* {
   yield* a.C;
+//       ^^^
+// [diag.yieldEachOfInvalidType] The type 'Type' implied by the 'yield*' expression must be assignable to 'Stream<Type>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 78, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('a.C;');
     assertResolvedNodeText(node, r'''
@@ -5638,7 +5576,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 import 'a.dart' as a;
 Stream<Type> f() async* {
@@ -5726,7 +5664,7 @@ TypeLiteral
   //    - `F<int>.new` (Error: Function types don't have constructors)
 
   test_classAlias_variableDeclaration_initializer_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef CA<T> = C<T>;
 var t = CA<int>;
@@ -5755,7 +5693,7 @@ TypeLiteral
   }
 
   test_classAlias_variableDeclaration_initializer_noPrefix_instantiated_differentTypeArgCount() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef CA<T> = C<T, int>;
 var t = CA<String>;
@@ -5784,7 +5722,7 @@ TypeLiteral
   }
 
   test_classAlias_variableDeclaration_initializer_noPrefix_instantiated_functionTypeArg() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef CA<T> = C<T>;
 var t = CA<void Function()>;
@@ -5823,21 +5761,15 @@ TypeLiteral
   }
 
   test_classAlias_variableDeclaration_initializer_noPrefix_instantiated_typeArgumentsDoNotMatchBound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef CA<T extends num> = C<T>;
 var t = CA<String>;
-''',
-      [
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          59,
-          6,
-          contextMessages: [message(testFile, 56, 10)],
-        ),
-      ],
-    );
+//      ^^^^^^^^^^
+// [context 1] The inverted type 'CA<String>' is also not regular-bounded, so the type is not well-bounded.
+//         ^^^^^^
+// [diag.typeArgumentNotMatchingBounds][context 1] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+''');
 
     var node = findNode.typeLiteral('CA<String>;');
     assertResolvedNodeText(node, r'''
@@ -5866,7 +5798,7 @@ TypeLiteral
 class C<T> {}
 typedef CA<T> = C<T>;
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.CA<int>;
 ''');
@@ -5898,7 +5830,7 @@ TypeLiteral
   }
 
   test_dynamic_argumentList_argument_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Type t) {}
 void g() {
   f(dynamic);
@@ -5918,7 +5850,7 @@ TypeLiteral
   }
 
   test_dynamic_argumentList_argument_noPrefix_parenthesized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Type t) {}
 void g() {
   f((dynamic));
@@ -5937,7 +5869,7 @@ TypeLiteral
   }
 
   test_dynamic_argumentList_argument_withPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 void f(core.Type t) {}
 void g() {
@@ -5962,7 +5894,7 @@ TypeLiteral
   }
 
   test_dynamic_binaryExpression_rightOperand_ifNull_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Object? x;
 var y = x ?? dynamic;
 ''');
@@ -5980,7 +5912,7 @@ TypeLiteral
   }
 
   test_dynamic_binaryExpression_rightOperand_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   int == dynamic;
 }
@@ -5999,7 +5931,7 @@ TypeLiteral
   }
 
   test_dynamic_binaryExpression_rightOperand_withPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 void f() {
   core.int == core.dynamic;
@@ -6023,7 +5955,7 @@ TypeLiteral
   }
 
   test_dynamic_conditionalExpression_elseExpression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool b = true;
 var y = b ? int : dynamic;
 ''');
@@ -6040,7 +5972,7 @@ TypeLiteral
   }
 
   test_dynamic_conditionalExpression_thenExpression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool b = true;
 var y = b ? dynamic : int;
 ''');
@@ -6057,7 +5989,7 @@ TypeLiteral
   }
 
   test_dynamic_expressionStatement_expression_noPrefix_explicitCore() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
 
 void f() {
@@ -6077,7 +6009,7 @@ TypeLiteral
   }
 
   test_dynamic_expressionStatement_expression_noPrefix_implicitCore() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   dynamic;
 }
@@ -6095,7 +6027,7 @@ TypeLiteral
   }
 
   test_dynamic_expressionStatement_expression_withPrefix_explicitCore() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 
 void f() {
@@ -6119,7 +6051,7 @@ TypeLiteral
   }
 
   test_dynamic_listLiteral_elements_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var l = [dynamic];
 ''');
 
@@ -6135,7 +6067,7 @@ TypeLiteral
   }
 
   test_dynamic_listLiteral_elements_withPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 var l = [core.dynamic];
 ''');
@@ -6156,7 +6088,7 @@ TypeLiteral
   }
 
   test_dynamic_listLiteral_ifElement_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 bool b = true;
 var l = [if (b) dynamic];
 ''');
@@ -6173,15 +6105,13 @@ TypeLiteral
   }
 
   test_dynamic_listLiteral_nullAwareSpread_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var l = [...?dynamic];
-''',
-      [
-        error(diag.invalidNullAwareOperator, 9, 4),
-        error(diag.notIterableSpread, 13, 7),
-      ],
-    );
+//       ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//           ^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('dynamic]');
     assertResolvedNodeText(node, r'''
@@ -6195,12 +6125,11 @@ TypeLiteral
   }
 
   test_dynamic_listLiteral_spread_noPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var l = [...dynamic];
-''',
-      [error(diag.notIterableSpread, 12, 7)],
-    );
+//          ^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('dynamic]');
     assertResolvedNodeText(node, r'''
@@ -6214,7 +6143,7 @@ TypeLiteral
   }
 
   test_dynamic_returnStatement_expression_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Type f() {
   return dynamic;
 }
@@ -6232,7 +6161,7 @@ TypeLiteral
   }
 
   test_dynamic_returnStatement_expression_withPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 core.Type f() {
   return core.dynamic;
@@ -6255,7 +6184,7 @@ TypeLiteral
   }
 
   test_dynamic_variableDeclaration_initializer_noPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var t = dynamic;
 ''');
 
@@ -6271,12 +6200,11 @@ TypeLiteral
   }
 
   test_dynamic_variableDeclaration_initializer_noPrefix_hasTypeArguments() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var t = dynamic<int>;
-''',
-      [error(diag.disallowedTypeInstantiationExpression, 8, 7)],
-    );
+//      ^^^^^^^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
     var node = findNode.functionReference('dynamic<int>;');
@@ -6299,7 +6227,7 @@ FunctionReference
   }
 
   test_dynamic_variableDeclaration_initializer_withPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 var t = core.dynamic;
 ''');
@@ -6320,7 +6248,7 @@ TypeLiteral
   }
 
   test_enum_variableDeclaration_initializer_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E { v }
 var t = E;
 ''');
@@ -6340,7 +6268,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 enum E { v }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.E;
 ''');
@@ -6361,7 +6289,7 @@ TypeLiteral
   }
 
   test_extensionType_variableDeclaration_initializer_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A<T>(T it) {}
 var t = A<int>;
 ''');
@@ -6386,7 +6314,7 @@ TypeLiteral
   }
 
   test_extensionType_variableDeclaration_initializer_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {}
 var t = A;
 ''');
@@ -6406,7 +6334,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 extension type A<T>(T it) {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.A<int>;
 ''');
@@ -6438,7 +6366,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 extension type A(int it) {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.A;
 ''');
@@ -6463,7 +6391,7 @@ TypeLiteral
 typedef void F();
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void f() {
@@ -6488,7 +6416,7 @@ TypeLiteral
   }
 
   test_mixin_variableDeclaration_initializer_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M<T> {}
 var t = M<int>;
 ''');
@@ -6513,7 +6441,7 @@ TypeLiteral
   }
 
   test_mixin_variableDeclaration_initializer_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M<T> {}
 var t = M;
 ''');
@@ -6533,7 +6461,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 mixin M<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.M<int>;
 ''');
@@ -6565,7 +6493,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 mixin M<T> {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.M;
 ''');
@@ -6586,7 +6514,7 @@ TypeLiteral
   }
 
   test_never_argumentList_argument_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Type t) {}
 void g() {
   f(Never);
@@ -6606,7 +6534,7 @@ TypeLiteral
   }
 
   test_never_argumentList_argument_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 void f(core.Type t) {}
 void g() {
@@ -6631,7 +6559,7 @@ TypeLiteral
   }
 
   test_never_argumentList_argument_withPrefix_notInstantiated_hasTypeArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 void f(core.Object? x) {}
 void g() {
@@ -6673,7 +6601,7 @@ FunctionReference
   }
 
   test_never_argumentList_argument_withPrefix_notInstantiated_parenthesized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 void f(core.Type t) {}
 void g() {
@@ -6697,7 +6625,7 @@ TypeLiteral
   }
 
   test_never_binaryExpression_rightOperand_ifNull_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 core.Object? x;
 var y = x ?? core.Never;
@@ -6720,7 +6648,7 @@ TypeLiteral
   }
 
   test_never_binaryExpression_rightOperand_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   int == Never;
 }
@@ -6739,7 +6667,7 @@ TypeLiteral
   }
 
   test_never_binaryExpression_rightOperand_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 void f() {
   core.int == core.Never;
@@ -6763,7 +6691,7 @@ TypeLiteral
   }
 
   test_never_conditionalExpression_elseExpression_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 core.bool b = true;
 var y = b ? core.int : core.Never;
@@ -6785,7 +6713,7 @@ TypeLiteral
   }
 
   test_never_conditionalExpression_thenExpression_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 core.bool b = true;
 var y = b ? core.Never : core.int;
@@ -6807,7 +6735,7 @@ TypeLiteral
   }
 
   test_never_expressionStatement_expression_noPrefix() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   Never;
 }
@@ -6825,7 +6753,7 @@ TypeLiteral
   }
 
   test_never_listLiteral_elements_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var l = [Never];
 ''');
 
@@ -6841,7 +6769,7 @@ TypeLiteral
   }
 
   test_never_listLiteral_elements_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 var l = [core.Never];
 ''');
@@ -6862,7 +6790,7 @@ TypeLiteral
   }
 
   test_never_listLiteral_ifElement_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 core.bool b = true;
 var l = [if (b) core.Never];
@@ -6884,16 +6812,14 @@ TypeLiteral
   }
 
   test_never_listLiteral_nullAwareSpread_withPrefix_notInstantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 var l = [...?core.Never];
-''',
-      [
-        error(diag.invalidNullAwareOperator, 37, 4),
-        error(diag.notIterableSpread, 41, 10),
-      ],
-    );
+//       ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//           ^^^^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('Never]');
     assertResolvedNodeText(node, r'''
@@ -6911,13 +6837,12 @@ TypeLiteral
   }
 
   test_never_listLiteral_spread_withPrefix_notInstantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 var l = [...core.Never];
-''',
-      [error(diag.notIterableSpread, 40, 10)],
-    );
+//          ^^^^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
 
     var node = findNode.typeLiteral('Never]');
     assertResolvedNodeText(node, r'''
@@ -6935,7 +6860,7 @@ TypeLiteral
   }
 
   test_never_returnStatement_expression_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Type f() {
   return Never;
 }
@@ -6953,7 +6878,7 @@ TypeLiteral
   }
 
   test_never_returnStatement_expression_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 core.Type f() {
   return core.Never;
@@ -6976,7 +6901,7 @@ TypeLiteral
   }
 
   test_never_setLiteral_ifElement_else_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 core.Set<core.Object> f(core.bool b) {
   return {if (b) core.int else core.Never};
@@ -6999,7 +6924,7 @@ TypeLiteral
   }
 
   test_never_variableDeclaration_initializer_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var t = Never;
 ''');
 
@@ -7015,12 +6940,11 @@ TypeLiteral
   }
 
   test_never_variableDeclaration_initializer_noPrefix_notInstantiated_hasTypeArguments() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var t = Never<int>;
-''',
-      [error(diag.disallowedTypeInstantiationExpression, 8, 5)],
-    );
+//      ^^^^^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
     var node = findNode.functionReference('Never<int>;');
@@ -7043,7 +6967,7 @@ FunctionReference
   }
 
   test_never_variableDeclaration_initializer_withPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 var t = core.Never;
 ''');
@@ -7067,7 +6991,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 typedef F = void Function();
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void f(Type t) {}
 void g() {
@@ -7096,7 +7020,7 @@ TypeLiteral
 typedef A = void Function();
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void f() {
@@ -7125,7 +7049,7 @@ TypeLiteral
 typedef A = List<int>;
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void f() {
@@ -7150,20 +7074,19 @@ TypeLiteral
   }
 
   test_typeAlias_methodInvocation_target_noPrefix_instantiated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
   Fn<int>.foo();
+//        ^^^
+// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'Fn' function type.
 }
 
 extension E on Type {
   void foo() {}
 }
-''',
-      [error(diag.undefinedMethodOnFunctionType, 58, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -7188,7 +7111,7 @@ TypeLiteral
   }
 
   test_typeAlias_methodInvocation_target_noPrefix_instantiated_parenthesized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -7226,20 +7149,19 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 typedef Fn<T> = void Function(T);
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 
 void bar() {
   a.Fn<int>.foo();
+//          ^^^
+// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'a.Fn' function type.
 }
 
 extension E on Type {
   void foo() {}
 }
-''',
-      [error(diag.undefinedMethodOnFunctionType, 48, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -7268,20 +7190,19 @@ TypeLiteral
   }
 
   test_typeAlias_propertyAccess_target_noPrefix_instantiated_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
   Fn<int>.foo;
+//        ^^^
+// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
 }
 
 extension E on Type {
   int get foo => 1;
 }
-''',
-      [error(diag.undefinedGetterOnFunctionType, 58, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -7306,7 +7227,7 @@ TypeLiteral
   }
 
   test_typeAlias_propertyAccess_target_noPrefix_instantiated_getter_parenthesized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -7341,20 +7262,19 @@ TypeLiteral
   }
 
   test_typeAlias_propertyAccess_target_noPrefix_instantiated_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
   Fn<int>.foo = 7;
+//        ^^^
+// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'Fn' function type.
 }
 
 extension E on Type {
   set foo(int value) {}
 }
-''',
-      [error(diag.undefinedSetterOnFunctionType, 58, 3)],
-    );
+''');
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -7379,7 +7299,7 @@ TypeLiteral
   }
 
   test_typeAlias_propertyAccess_target_noPrefix_instantiated_setter_parenthesized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -7414,7 +7334,7 @@ TypeLiteral
   }
 
   test_typeAlias_variableDeclaration_initializer_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 var t = Fn<int>;
 ''');
@@ -7442,13 +7362,12 @@ TypeLiteral
   }
 
   test_typeAlias_variableDeclaration_initializer_noPrefix_instantiated_tooFewTypeArgs() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T, U> = void Function(T, U);
 var t = Fn<int>;
-''',
-      [error(diag.wrongNumberOfTypeArguments, 50, 5)],
-    );
+//        ^^^^^
+// [diag.wrongNumberOfTypeArguments] The type 'Fn' is declared with 2 type parameters, but 1 type arguments were given.
+''');
 
     var node = findNode.typeLiteral('Fn<int>;');
     assertResolvedNodeText(node, r'''
@@ -7474,13 +7393,12 @@ TypeLiteral
   }
 
   test_typeAlias_variableDeclaration_initializer_noPrefix_instantiated_tooManyTypeArgs() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
 var t = Fn<int, String>;
-''',
-      [error(diag.wrongNumberOfTypeArguments, 44, 13)],
-    );
+//        ^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArguments] The type 'Fn' is declared with 1 type parameters, but 2 type arguments were given.
+''');
 
     var node = findNode.typeLiteral('Fn<int, String>;');
     assertResolvedNodeText(node, r'''
@@ -7509,20 +7427,14 @@ TypeLiteral
   }
 
   test_typeAlias_variableDeclaration_initializer_noPrefix_instantiated_typeArgumentsDoNotMatchBound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Fn<T extends num> = void Function(T);
 var t = Fn<String>;
-''',
-      [
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          57,
-          6,
-          contextMessages: [message(testFile, 54, 10)],
-        ),
-      ],
-    );
+//      ^^^^^^^^^^
+// [context 1] The inverted type 'Fn<String>' is also not regular-bounded, so the type is not well-bounded.
+//         ^^^^^^
+// [diag.typeArgumentNotMatchingBounds][context 1] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+''');
 
     var node = findNode.typeLiteral('Fn<String>;');
     assertResolvedNodeText(node, r'''
@@ -7547,7 +7459,7 @@ TypeLiteral
   }
 
   test_typeAlias_variableDeclaration_initializer_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef F = void Function();
 var t = F;
 ''');
@@ -7568,7 +7480,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 typedef Fn<T> = void Function(T);
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.Fn<int>;
 ''');
@@ -7603,7 +7515,7 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 typedef F = void Function();
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.F;
 ''');
@@ -7625,7 +7537,7 @@ TypeLiteral
   }
 
   test_typeParameter_argumentList_argument() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   void f(Type t) {}
   void g() {
@@ -7647,17 +7559,16 @@ TypeLiteral
   }
 
   test_typeParameter_argumentList_argument_hasTypeArguments() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   void f(Object? x) {}
   void g() {
     f(T<int>);
+//    ^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
   }
 }
-''',
-      [error(diag.disallowedTypeInstantiationExpression, 55, 1)],
-    );
+''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
     var node = findNode.functionReference('T<int>)');
@@ -7681,7 +7592,7 @@ FunctionReference
   }
 
   test_typeParameter_assignmentExpression_rightHandSide() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   Type t = int;
   void f() {
@@ -7703,7 +7614,7 @@ TypeLiteral
   }
 
   test_typeParameter_binaryExpression_leftOperand() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   void f() {
     T == int;
@@ -7723,7 +7634,7 @@ TypeLiteral
   }
 
   test_typeParameter_binaryExpression_rightOperand() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   void f() {
     int == T;
@@ -7744,7 +7655,7 @@ TypeLiteral
   }
 
   test_typeParameter_binaryExpression_rightOperand_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   Object? x;
   void f() {
@@ -7766,7 +7677,7 @@ TypeLiteral
   }
 
   test_typeParameter_expressionFunctionBody_expression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   Type f() => T;
 }
@@ -7784,7 +7695,7 @@ TypeLiteral
   }
 
   test_typeParameter_expressionFunctionBody_expression_parenthesized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   Type f() => (T);
 }
@@ -7802,7 +7713,7 @@ TypeLiteral
   }
 
   test_typeParameter_expressionStatement_expression_enum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E<T> {
   v;
   void foo() {
@@ -7823,7 +7734,7 @@ TypeLiteral
   }
 
   test_typeParameter_listLiteral_elements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   var l = [T];
 }
@@ -7841,7 +7752,7 @@ TypeLiteral
   }
 
   test_typeParameter_listLiteral_ifElement_else() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   List<Object> f(bool b) {
     return [if (b) int else T];
@@ -7861,17 +7772,15 @@ TypeLiteral
   }
 
   test_typeParameter_listLiteral_nullAwareSpread() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   var l = [...?T];
+//         ^^^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?...' is unnecessary.
+//             ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
 }
-''',
-      [
-        error(diag.invalidNullAwareOperator, 24, 4),
-        error(diag.notIterableSpread, 28, 1),
-      ],
-    );
+''');
 
     var node = findNode.typeLiteral('T]');
     assertResolvedNodeText(node, r'''
@@ -7885,19 +7794,17 @@ TypeLiteral
   }
 
   test_typeParameter_localFunctionTypeParameter_variableDeclaration_initializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   void g<U>() {
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
     var x = U;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   }
 }
-''',
-      [
-        error(diag.unusedElement, 18, 1),
-        error(diag.unusedLocalVariable, 35, 1),
-      ],
-    );
+''');
 
     var node = findNode.typeLiteral('U;');
     assertResolvedNodeText(node, r'''
@@ -7911,16 +7818,15 @@ TypeLiteral
   }
 
   test_typeParameter_mapLiteral_ifElement_key_else() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   void f(bool b) {
     var m = {if (b) T: 1 else Never: 2};
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 40, 1)],
-    );
+''');
 
     var thenNode = findNode.typeLiteral('T: 1');
     assertResolvedNodeText(thenNode, r'''
@@ -7944,7 +7850,7 @@ TypeLiteral
   }
 
   test_typeParameter_mapLiteral_key() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   var m = {T: 1};
 }
@@ -7962,7 +7868,7 @@ TypeLiteral
   }
 
   test_typeParameter_mapLiteral_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   var m = {1: T};
 }
@@ -7980,7 +7886,7 @@ TypeLiteral
   }
 
   test_typeParameter_returnStatement_expression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   Type f() {
     return T;
@@ -8000,7 +7906,7 @@ TypeLiteral
   }
 
   test_typeParameter_setLiteral_elements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   var s = {T};
 }
@@ -8018,14 +7924,13 @@ TypeLiteral
   }
 
   test_typeParameter_variableDeclaration_initializer_hasTypeArguments() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   var t = T<int>;
+//        ^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
 }
-''',
-      [error(diag.disallowedTypeInstantiationExpression, 23, 1)],
-    );
+''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
     var node = findNode.functionReference('T<int>;');
@@ -8048,7 +7953,7 @@ FunctionReference
   }
 
   test_typeVariableTypeAlias_variableDeclaration_initializer_noPrefix_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef T<E> = E;
 var t = T<int>;
 ''');
@@ -8076,7 +7981,7 @@ TypeLiteral
   }
 
   test_typeVariableTypeAlias_variableDeclaration_initializer_noPrefix_instantiated_functionTypeArg() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef T<E> = E;
 var t = T<void Function()>;
 ''');
@@ -8119,25 +8024,23 @@ class TypeLiteralResolutionTest_WithoutConstructorTearoffs
     extends PubPackageResolutionTest
     with WithoutConstructorTearoffsMixin {
   test_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 var t = C<int>;
-''',
-      [error(diag.experimentNotEnabled, 23, 5)],
-    );
+//       ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+''');
   }
 
   test_class_importPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 var t = a.C<int>;
-''',
-      [error(diag.experimentNotEnabled, 33, 5)],
-    );
+//         ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+''');
   }
 }
