@@ -1838,6 +1838,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       service_id_zones_(nullptr),
+      next_service_id_zone_id_(1),
 #define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
   metric_##variable##_(),
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
@@ -1865,8 +1866,9 @@ Isolate::~Isolate() {
   delete debugger_;
   debugger_ = nullptr;
   if (service_id_zones_ != nullptr) {
-    for (intptr_t i = 0; i < service_id_zones_->length(); ++i) {
-      delete service_id_zones_->At(i);
+    auto it = service_id_zones_->GetIterator();
+    while (auto* pair = it.Next()) {
+      delete pair->value;
     }
     delete service_id_zones_;
     service_id_zones_ = nullptr;
@@ -2832,7 +2834,7 @@ void Isolate::DeferredMarkLiveTemporaries() {
 void Isolate::init_loaded_prefixes_set_storage() {
   ASSERT(loaded_prefixes_set_storage_ == nullptr);
   loaded_prefixes_set_storage_ =
-      HashTables::New<UnorderedHashSet<LibraryPrefixMapTraits> >(4);
+      HashTables::New<UnorderedHashSet<LibraryPrefixMapTraits>>(4);
 }
 
 bool Isolate::IsPrefixLoaded(const LibraryPrefix& prefix) const {
@@ -3028,11 +3030,9 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
 #if !defined(PRODUCT)
       if (visitor->trace_object_id_rings()) {
         for (Isolate* isolate : isolates_) {
-          for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
-            if (auto ring = isolate->GetServiceIdZone(i)) {
-              ring->VisitPointers(visitor);
-            }
-          }
+          isolate->ForEachServiceIdZone([visitor](RingServiceIdZone* ring) {
+            ring->VisitPointers(visitor);
+          });
         }
       }
 #endif  // !defined(PRODUCT)
@@ -3087,10 +3087,15 @@ RingServiceIdZone& Isolate::AddServiceIdZone(
     int32_t capacity) {
   EnsureDefaultServiceIdZone();
   switch (backing_buffer_kind) {
-    case ObjectIdRing::BackingBufferKind::kRing:
-      service_id_zones_->Add(new RingServiceIdZone(
-          service_id_zones_->length(), id_assignment_policy, capacity));
-      return *service_id_zones_->Last();
+    case ObjectIdRing::BackingBufferKind::kRing: {
+      const intptr_t zone_id = next_service_id_zone_id_++;
+
+      auto* zone =
+          new RingServiceIdZone(zone_id, id_assignment_policy, capacity);
+      service_id_zones_->Insert({zone_id, zone});
+
+      return *zone;
+    }
     default:
       UNREACHABLE();
   }
@@ -3098,35 +3103,33 @@ RingServiceIdZone& Isolate::AddServiceIdZone(
 
 void Isolate::DeleteServiceIdZone(int32_t id) {
   ASSERT(service_id_zones_ != nullptr);
-  ASSERT(id < service_id_zones_->length());
-  delete service_id_zones_->At(id);
-  (*service_id_zones_)[id] = nullptr;
+  auto* pair = service_id_zones_->Lookup(static_cast<intptr_t>(id));
+  ASSERT(pair != nullptr);
+
+  delete pair->value;
+  service_id_zones_->Remove(static_cast<intptr_t>(id));
 }
 
 RingServiceIdZone& Isolate::EnsureDefaultServiceIdZone() {
   if (service_id_zones_ == nullptr) {
-    service_id_zones_ = new MallocGrowableArray<RingServiceIdZone*>();
+    service_id_zones_ = new MallocDirectChainedHashMap<
+        IntKeyRawPointerValueTrait<RingServiceIdZone*>>();
   }
-  if (service_id_zones_->is_empty()) {
-    service_id_zones_->Add(
-        new RingServiceIdZone(0, ObjectIdRing::IdPolicy::kAllocateId,
-                              RingServiceIdZone::kCapacityOfDefaultIdZone));
+  if (!service_id_zones_->HasKey(0)) {
+    service_id_zones_->Insert(
+        {0,
+         new RingServiceIdZone(0, ObjectIdRing::IdPolicy::kAllocateId,
+                               RingServiceIdZone::kCapacityOfDefaultIdZone)});
   }
-  return *service_id_zones_->At(0);
+  return *service_id_zones_->Lookup(0)->value;
 }
 
 RingServiceIdZone* Isolate::GetServiceIdZone(intptr_t zone_id) const {
-  if (service_id_zones_ == nullptr || service_id_zones_->length() <= zone_id) {
+  if (service_id_zones_ == nullptr) {
     return nullptr;
   }
-  return service_id_zones_->At(zone_id);
-}
-
-intptr_t Isolate::NumServiceIdZones() const {
-  if (service_id_zones_ == nullptr) {
-    return 0;
-  }
-  return service_id_zones_->length();
+  auto* pair = service_id_zones_->Lookup(zone_id);
+  return pair != nullptr ? pair->value : nullptr;
 }
 
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
