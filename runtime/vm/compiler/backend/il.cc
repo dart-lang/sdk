@@ -229,7 +229,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    bool exclude_null) {
   // Use the class table in cases where the direct subclasses and implementors
   // are not filled out.
-  if (dst_klass.InVMIsolateHeap() || dst_klass.id() == kInstanceCid) {
+  if (dst_klass.id() == kInstanceCid) {
     BuildRangesUsingClassTableFor(table, ranges, dst_klass, include_abstract,
                                   exclude_null);
     return;
@@ -971,21 +971,20 @@ LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AllocateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  auto object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
   const intptr_t num_elements = NumElements();
   switch (num_elements) {
     case 1:
-      stub = object_store->allocate_closure1_stub();
+      stub = StubCode::AllocateClosure1().ptr();
       break;
     case 2:
-      stub = object_store->allocate_closure2_stub();
+      stub = StubCode::AllocateClosure2().ptr();
       break;
     case 3:
-      stub = object_store->allocate_closure3_stub();
+      stub = StubCode::AllocateClosure3().ptr();
       break;
     case 4:
-      stub = object_store->allocate_closure4_stub();
+      stub = StubCode::AllocateClosure4().ptr();
       break;
     default:
       UNREACHABLE();
@@ -1416,7 +1415,14 @@ bool Value::NeedsWriteBarrier() {
         return false;
       } else {
         const Object& constant = value->BoundConstant();
-        return constant.ptr()->IsHeapObject() && !constant.InVMIsolateHeap();
+        if (constant.ptr()->IsImmediateObject()) {
+          return false;
+        }
+        // N.B.: Not Page::Of(constant)->is_never_evacuate() because Page::Of
+        // requires us to first filter out image page objects.
+        Page* page = Page::Of(Object::null());
+        ASSERT(page->is_never_evacuate());
+        return !page->Contains(UntaggedObject::ToAddr(constant.ptr()));
       }
     }
 
@@ -4592,7 +4598,6 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     ASSERT((FLAG_experimental_shared_data && !field().is_shared()) ||
            (field().has_initializer() && field().is_late()));
-    auto object_store = compiler->isolate_group()->object_store();
     const Field& original_field = Field::ZoneHandle(field().Original());
 
     compiler::Label no_call;
@@ -4602,7 +4607,7 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     auto& stub = Code::ZoneHandle(compiler->zone());
     if (calls_initializer()) {
       if (field().needs_load_guard()) {
-        stub = object_store->init_static_field_stub();
+        stub = StubCode::InitStaticField().ptr();
       } else {
         // The stubs below call the initializer function directly, so make sure
         // one is created.
@@ -4610,14 +4615,14 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           original_field.EnsureInitializerFunction();
         }
         stub = field().is_shared()
-                   ? object_store->init_shared_late_static_field_stub()
+                   ? StubCode::InitSharedLateStaticField().ptr()
                    : (field().is_final()
-                          ? object_store->init_late_final_static_field_stub()
-                          : object_store->init_late_static_field_stub());
+                          ? StubCode::InitLateFinalStaticField().ptr()
+                          : StubCode::InitLateStaticField().ptr());
       }
     } else {
       ASSERT(FLAG_experimental_shared_data && !field().is_shared());
-      stub = object_store->check_isolate_field_access_stub();
+      stub = StubCode::CheckIsolateFieldAccess().ptr();
     }
 
     __ LoadObject(InitStaticFieldABI::kFieldReg, original_field);
@@ -4789,22 +4794,21 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg, original_field);
 
-  auto object_store = compiler->isolate_group()->object_store();
   auto& stub = Code::ZoneHandle(compiler->zone());
   if (field.needs_load_guard()) {
-    stub = object_store->init_instance_field_stub();
+    stub = StubCode::InitInstanceField().ptr();
   } else if (field.is_late()) {
     if (!field.has_nontrivial_initializer()) {
-      stub = object_store->init_instance_field_stub();
+      stub = StubCode::InitInstanceField().ptr();
     } else {
       // Stubs for late field initialization call initializer
       // function directly, so make sure one is created.
       original_field.EnsureInitializerFunction();
 
       if (field.is_final()) {
-        stub = object_store->init_late_final_instance_field_stub();
+        stub = StubCode::InitLateFinalInstanceField().ptr();
       } else {
-        stub = object_store->init_late_instance_field_stub();
+        stub = StubCode::InitLateInstanceField().ptr();
       }
     }
   } else {
@@ -4827,11 +4831,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& throw_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->throw_stub());
-
-  compiler->GenerateStubCall(source(), throw_stub,
+  compiler->GenerateStubCall(source(), StubCode::Throw(),
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
                              deopt_id(), env());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
@@ -4854,12 +4854,8 @@ LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& re_throw_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->re_throw_stub());
-
   compiler->SetNeedsStackTrace(catch_try_index());
-  compiler->GenerateStubCall(source(), re_throw_stub,
+  compiler->GenerateStubCall(source(), StubCode::ReThrow(),
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
                              deopt_id(), env());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
@@ -8322,18 +8318,11 @@ const Code& DartReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
   ASSERT(function.IsSuspendableFunction());
   if (function.IsAsyncFunction()) {
     if (compiler->is_optimizing() && !value()->Type()->CanBeFuture()) {
-      return Code::ZoneHandle(compiler->zone(),
-                              compiler->isolate_group()
-                                  ->object_store()
-                                  ->return_async_not_future_stub());
+      return StubCode::ReturnAsyncNotFuture();
     }
-    return Code::ZoneHandle(
-        compiler->zone(),
-        compiler->isolate_group()->object_store()->return_async_stub());
+    return StubCode::ReturnAsync();
   } else if (function.IsAsyncGenerator()) {
-    return Code::ZoneHandle(
-        compiler->zone(),
-        compiler->isolate_group()->object_store()->return_async_star_stub());
+    return StubCode::ReturnAsyncStar();
   } else {
     UNREACHABLE();
   }
@@ -8895,23 +8884,22 @@ LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,
 }
 
 void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ObjectStore* object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
   switch (stub_id_) {
     case StubId::kCloneSuspendState:
-      stub = object_store->clone_suspend_state_stub();
+      stub = StubCode::CloneSuspendState().ptr();
       break;
     case StubId::kInitAsync:
-      stub = object_store->init_async_stub();
+      stub = StubCode::InitAsync().ptr();
       break;
     case StubId::kInitAsyncStar:
-      stub = object_store->init_async_star_stub();
+      stub = StubCode::InitAsyncStar().ptr();
       break;
     case StubId::kInitSyncStar:
-      stub = object_store->init_sync_star_stub();
+      stub = StubCode::InitSyncStar().ptr();
       break;
     case StubId::kFfiAsyncCallbackSend:
-      stub = object_store->ffi_async_callback_send_stub();
+      stub = StubCode::FfiAsyncCallbackSend().ptr();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
@@ -8944,23 +8932,22 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Use deopt_id as a yield index.
   compiler->EmitYieldPositionMetadata(source(), deopt_id());
 
-  ObjectStore* object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
   switch (stub_id_) {
     case StubId::kAwait:
-      stub = object_store->await_stub();
+      stub = StubCode::Await().ptr();
       break;
     case StubId::kAwaitWithTypeCheck:
-      stub = object_store->await_with_type_check_stub();
+      stub = StubCode::AwaitWithTypeCheck().ptr();
       break;
     case StubId::kYieldAsyncStar:
-      stub = object_store->yield_async_star_stub();
+      stub = StubCode::YieldAsyncStar().ptr();
       break;
     case StubId::kSuspendSyncStarAtStart:
-      stub = object_store->suspend_sync_star_at_start_stub();
+      stub = StubCode::SuspendSyncStarAtStart().ptr();
       break;
     case StubId::kSuspendSyncStarAtYield:
-      stub = object_store->suspend_sync_star_at_yield_stub();
+      stub = StubCode::SuspendSyncStarAtYield().ptr();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
@@ -8993,9 +8980,7 @@ LocationSummary* AllocateRecordInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Code& stub = Code::ZoneHandle(
-      compiler->zone(),
-      compiler->isolate_group()->object_store()->allocate_record_stub());
+  const Code& stub = StubCode::AllocateRecord();
   __ LoadImmediate(AllocateRecordABI::kShapeReg,
                    Smi::RawValue(shape().AsInt()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
@@ -9023,17 +9008,16 @@ LocationSummary* AllocateSmallRecordInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  auto object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
   if (shape().HasNamedFields()) {
     __ LoadImmediate(AllocateSmallRecordABI::kShapeReg,
                      Smi::RawValue(shape().AsInt()));
     switch (num_fields()) {
       case 2:
-        stub = object_store->allocate_record2_named_stub();
+        stub = StubCode::AllocateRecord2Named().ptr();
         break;
       case 3:
-        stub = object_store->allocate_record3_named_stub();
+        stub = StubCode::AllocateRecord3Named().ptr();
         break;
       default:
         UNREACHABLE();
@@ -9041,10 +9025,10 @@ void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     switch (num_fields()) {
       case 2:
-        stub = object_store->allocate_record2_stub();
+        stub = StubCode::AllocateRecord2().ptr();
         break;
       case 3:
-        stub = object_store->allocate_record3_stub();
+        stub = StubCode::AllocateRecord3().ptr();
         break;
       default:
         UNREACHABLE();

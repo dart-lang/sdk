@@ -147,15 +147,11 @@ Dart_Handle Loader::DeferredLoadHandler(intptr_t loading_unit_id) {
   Dart_Handle result;
   if (loading_unit_snapshot != nullptr) {
     isolate_group_data->AddLoadedSnapshot(loading_unit_snapshot);
-    const uint8_t* isolate_snapshot_data = nullptr;
-    const uint8_t* isolate_snapshot_instructions = nullptr;
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    loading_unit_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
-    result = Dart_DeferredLoadComplete(loading_unit_id, isolate_snapshot_data,
-                                       isolate_snapshot_instructions);
+    const uint8_t* snapshot_data = nullptr;
+    const uint8_t* snapshot_text = nullptr;
+    loading_unit_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
+    result = Dart_DeferredLoadComplete(loading_unit_id, snapshot_data,
+                                       snapshot_text);
     if (Dart_IsApiError(result)) {
       result =
           Dart_DeferredLoadCompleteError(loading_unit_id, Dart_GetError(result),

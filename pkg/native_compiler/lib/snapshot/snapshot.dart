@@ -26,7 +26,7 @@ import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Kinds of Dart snapshots.
 /// Should match Snapshot::Kind enum in runtime/vm/snapshot.h.
-enum SnapshotKind { full, fullCore, fullJIT, fullAOT, module, none, invalid }
+enum SnapshotKind { full, fullJIT, fullAOT, module, invalid }
 
 /// Dart snapshot constants.
 class Snapshot {

@@ -94,12 +94,6 @@ void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->clear_gc_root_type();
 }
 
-void ObjectStore::InitStubs() {
-#define DO(member, name) set_##member(StubCode::name());
-  OBJECT_STORE_STUB_CODE_LIST(DO)
-#undef DO
-}
-
 #ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   jsobj->AddProperty("type", "_ObjectStore");

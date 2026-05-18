@@ -13,10 +13,8 @@
 namespace dart {
 namespace snapshot_analyzer {
 typedef struct {
-  const uint8_t* vm_snapshot_data;
-  const uint8_t* vm_snapshot_instructions;
-  const uint8_t* vm_isolate_data;
-  const uint8_t* vm_isolate_instructions;
+  const uint8_t* snapshot_data;
+  const uint8_t* snapshot_text;
 } Dart_SnapshotAnalyzerInformation;
 
 void Dart_DumpSnapshotInformationAsJson(

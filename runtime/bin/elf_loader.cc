@@ -52,10 +52,8 @@ class LoadedElf {
   /// sections corresponding to non-null output parameters in the BSS segment.
   ///
   /// On failure, the error may be retrieved by 'error()'.
-  bool ResolveSymbols(const uint8_t** vm_data,
-                      const uint8_t** vm_instrs,
-                      const uint8_t** isolate_data,
-                      const uint8_t** isolate_instrs);
+  bool ResolveSymbols(const uint8_t** snapshot_data,
+                      const uint8_t** snapshot_text);
 
   const char* error() { return error_; }
 
@@ -362,10 +360,7 @@ bool LoadedElf::ReadSections() {
   return true;
 }
 
-bool LoadedElf::ResolveSymbols(const uint8_t** vm_data,
-                               const uint8_t** vm_instrs,
-                               const uint8_t** isolate_data,
-                               const uint8_t** isolate_instrs) {
+bool LoadedElf::ResolveSymbols(const uint8_t** data, const uint8_t** text) {
   if (error_ != nullptr) {
     return false;
   }
@@ -376,14 +371,10 @@ bool LoadedElf::ResolveSymbols(const uint8_t** vm_data,
     const char* name = dynamic_string_table_ + sym.name;
     const uint8_t** output = nullptr;
 
-    if (strcmp(name, kVmSnapshotDataAsmSymbol) == 0) {
-      output = vm_data;
-    } else if (strcmp(name, kVmSnapshotInstructionsAsmSymbol) == 0) {
-      output = vm_instrs;
-    } else if (strcmp(name, kIsolateSnapshotDataAsmSymbol) == 0) {
-      output = isolate_data;
-    } else if (strcmp(name, kIsolateSnapshotInstructionsAsmSymbol) == 0) {
-      output = isolate_instrs;
+    if (strcmp(name, kSnapshotDataAsmSymbol) == 0) {
+      output = data;
+    } else if (strcmp(name, kSnapshotTextAsmSymbol) == 0) {
+      output = text;
     }
 
     if (output != nullptr) {
@@ -391,10 +382,10 @@ bool LoadedElf::ResolveSymbols(const uint8_t** vm_data,
     }
   }
 
-  CHECK_ERROR(isolate_data == nullptr || *isolate_data != nullptr,
-              "Could not find isolate snapshot data.");
-  CHECK_ERROR(isolate_instrs == nullptr || *isolate_instrs != nullptr,
-              "Could not find isolate instructions.");
+  CHECK_ERROR(data == nullptr || *data != nullptr,
+              "Could not find snapshot data.");
+  CHECK_ERROR(text == nullptr || *text != nullptr,
+              "Could not find snapshot text.");
   return true;
 }
 
@@ -425,20 +416,16 @@ using namespace dart::bin::elf;  // NOLINT
 using Mappable = dart::bin::Mappable;
 
 #if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
-DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
-                                            uint64_t file_offset,
-                                            const char** error,
-                                            const uint8_t** vm_snapshot_data,
-                                            const uint8_t** vm_snapshot_instrs,
-                                            const uint8_t** vm_isolate_data,
-                                            const uint8_t** vm_isolate_instrs) {
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd2(int fd,
+                                             uint64_t file_offset,
+                                             const char** error,
+                                             const uint8_t** snapshot_data,
+                                             const uint8_t** snapshot_text) {
   std::unique_ptr<Mappable> mappable(Mappable::FromFD(fd));
   std::unique_ptr<LoadedElf> elf(
       new LoadedElf(std::move(mappable), file_offset));
 
-  if (!elf->Load() ||
-      !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
-                           vm_isolate_data, vm_isolate_instrs)) {
+  if (!elf->Load() || !elf->ResolveSymbols(snapshot_data, snapshot_text)) {
     *error = elf->error();
     return nullptr;
   }
@@ -447,13 +434,11 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
 }
 #endif
 
-DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
-                                         uint64_t file_offset,
-                                         const char** error,
-                                         const uint8_t** vm_snapshot_data,
-                                         const uint8_t** vm_snapshot_instrs,
-                                         const uint8_t** vm_isolate_data,
-                                         const uint8_t** vm_isolate_instrs) {
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF2(const char* filename,
+                                          uint64_t file_offset,
+                                          const char** error,
+                                          const uint8_t** snapshot_data,
+                                          const uint8_t** snapshot_text) {
   std::unique_ptr<Mappable> mappable(Mappable::FromPath(filename));
   if (mappable == nullptr) {
     *error = "Couldn't open file.";
@@ -462,9 +447,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
   std::unique_ptr<LoadedElf> elf(
       new LoadedElf(std::move(mappable), file_offset));
 
-  if (!elf->Load() ||
-      !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
-                           vm_isolate_data, vm_isolate_instrs)) {
+  if (!elf->Load() || !elf->ResolveSymbols(snapshot_data, snapshot_text)) {
     *error = elf->error();
     return nullptr;
   }
@@ -472,14 +455,12 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
   return reinterpret_cast<Dart_LoadedElf*>(elf.release());
 }
 
-DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory2(
     const uint8_t* snapshot,
     uint64_t snapshot_size,
     const char** error,
-    const uint8_t** vm_snapshot_data,
-    const uint8_t** vm_snapshot_instrs,
-    const uint8_t** vm_isolate_data,
-    const uint8_t** vm_isolate_instrs) {
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text) {
   std::unique_ptr<Mappable> mappable(
       Mappable::FromMemory(snapshot, snapshot_size));
   if (mappable == nullptr) {
@@ -489,9 +470,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
   std::unique_ptr<LoadedElf> elf(
       new LoadedElf(std::move(mappable), /*elf_data_offset=*/0));
 
-  if (!elf->Load() ||
-      !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
-                           vm_isolate_data, vm_isolate_instrs)) {
+  if (!elf->Load() || !elf->ResolveSymbols(snapshot_data, snapshot_text)) {
     *error = elf->error();
     return nullptr;
   }

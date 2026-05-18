@@ -402,8 +402,6 @@ class UntaggedObject {
     return IsShallowImmutable() || IsDeeplyImmutable();
   }
 
-  bool InVMIsolateHeap() const;
-
   // Support for GC remembered bit.
   bool IsRemembered() const {
     ASSERT(IsOldObject());
@@ -1280,7 +1278,6 @@ class UntaggedClass : public UntaggedObject {
         return reinterpret_cast<CompressedObjectPtr*>(&direct_subclasses_);
 #endif  // defined(PRODUCT)
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
 #if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&allocation_stub_);
 #endif
@@ -1289,7 +1286,6 @@ class UntaggedClass : public UntaggedObject {
         return reinterpret_cast<CompressedObjectPtr*>(&dependent_code_);
 #endif
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -1315,7 +1311,6 @@ class UntaggedClass : public UntaggedObject {
   // Offset of the next instance field.
   int32_t host_next_field_offset_in_words_;
 
-#if defined(DART_PRECOMPILER)
   // Size if fixed len or 0 if variable len (target).
   int32_t target_instance_size_in_words_;
 
@@ -1324,7 +1319,6 @@ class UntaggedClass : public UntaggedObject {
 
   // Offset of the next instance field (target).
   int32_t target_next_field_offset_in_words_;
-#endif  // defined(DART_PRECOMPILER)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_offset_;
@@ -1342,7 +1336,6 @@ class UntaggedClass : public UntaggedObject {
   friend class InstanceSerializationCluster;
   friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
-  friend class FinalizeVMIsolateVisitor;
   friend class Api;
   friend class module_snapshot::ObjectPoolDeserializationCluster;
 };
@@ -1366,7 +1359,6 @@ class UntaggedPatchClass : public UntaggedObject {
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&script_);
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
 #if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
@@ -1375,7 +1367,6 @@ class UntaggedPatchClass : public UntaggedObject {
         return nullptr;
 #endif
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -1566,11 +1557,9 @@ class UntaggedFunction : public UntaggedObject {
     switch (kind) {
       case Snapshot::kFullAOT:
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&data_);
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -1730,12 +1719,10 @@ class UntaggedField : public UntaggedObject {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&initializer_function_);
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -1801,11 +1788,9 @@ class alignas(8) UntaggedScript : public UntaggedObject {
         return reinterpret_cast<CompressedObjectPtr*>(&resolved_url_);
 #endif
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -1874,7 +1859,6 @@ class UntaggedLibrary : public UntaggedObject {
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&exports_);
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
 #if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
@@ -1883,7 +1867,6 @@ class UntaggedLibrary : public UntaggedObject {
         return nullptr;
 #endif
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -1933,11 +1916,9 @@ class UntaggedNamespace : public UntaggedObject {
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&target_);
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&owner_);
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -2135,14 +2116,28 @@ class UntaggedBytecode : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, closures);
   COMPRESSED_POINTER_FIELD(TypedDataBasePtr, binary);
   COMPRESSED_POINTER_FIELD(ExceptionHandlersPtr, exception_handlers);
+  COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(LocalVarDescriptorsPtr, var_descriptors);
-#endif
-  COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
+  VISIT_TO(var_descriptors);
+#else
   VISIT_TO(pc_descriptors);
+#endif
 
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<ObjectPtr*>(&pc_descriptors_);
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    switch (kind) {
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+        return reinterpret_cast<CompressedObjectPtr*>(&var_descriptors_);
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<CompressedObjectPtr*>(&pc_descriptors_);
+      default:
+        UNREACHABLE();
+    }
+#else
+    return reinterpret_cast<CompressedObjectPtr*>(&pc_descriptors_);
+#endif
   }
 
   int32_t instructions_binary_offset_;
@@ -2761,11 +2756,9 @@ class UntaggedICData : public UntaggedCallSiteData {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&entries_);
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return to();
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }
@@ -2905,11 +2898,9 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&imports_);
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&importer_);
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }

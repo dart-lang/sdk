@@ -570,7 +570,6 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  params.vm_snapshot_data = TesterState::vm_snapshot_data;
   params.create_group = TesterState::create_callback;
   params.shutdown_isolate = TesterState::shutdown_callback;
   params.cleanup_group = TesterState::group_cleanup_callback;

@@ -65,7 +65,6 @@ DEFINE_FLAG(bool,
             "mapping)");
 
 DECLARE_FLAG(bool, write_protect_code);
-DECLARE_FLAG(bool, write_protect_vm_isolate);
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, code_comments);
 #endif
@@ -178,11 +177,9 @@ class JitDumpCodeObserver : public CodeObserver {
     // writing all JIT generated code out.
     setvbuf(out_file_, nullptr, _IOFBF, 2 * MB);
 
-    // Disable code write protection and vm isolate write protection, because
-    // calling mprotect on the pages filled with JIT generated code objects
-    // confuses perf.
+    // Disable code write protection, because calling mprotect on the pages
+    // filled with JIT generated code objects confuses perf.
     FLAG_write_protect_code = false;
-    FLAG_write_protect_vm_isolate = false;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
     // Enable code comments.

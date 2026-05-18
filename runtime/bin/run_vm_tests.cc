@@ -22,21 +22,16 @@
 #include "vm/unit_test.h"
 
 extern "C" {
-extern const uint8_t kDartVmSnapshotData[];
-extern const uint8_t kDartVmSnapshotInstructions[];
-extern const uint8_t kDartCoreIsolateSnapshotData[];
-extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
+extern const uint8_t kDartCoreSnapshotData[];
+extern const uint8_t kDartCoreSnapshotText[];
 }
 
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
 
 // Snapshot pieces when we link in a snapshot.
-const uint8_t* bin::vm_snapshot_data = kDartVmSnapshotData;
-const uint8_t* bin::vm_snapshot_instructions = kDartVmSnapshotInstructions;
-const uint8_t* bin::core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
-const uint8_t* bin::core_isolate_snapshot_instructions =
-    kDartCoreIsolateSnapshotInstructions;
+const uint8_t* bin::core_snapshot_data = kDartCoreSnapshotData;
+const uint8_t* bin::core_snapshot_text = kDartCoreSnapshotText;
 
 // Only run tests that match the filter string. The default does not match any
 // tests.
@@ -134,8 +129,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 #if defined(EXPERIMENTAL_VM_SERVICE)
   if (is_exp_service_test) {
     ASSERT(!is_service_test);
-    const uint8_t* isolate_snapshot_data = nullptr;
-    const uint8_t* isolate_snapshot_instructions = nullptr;
+    const uint8_t* snapshot_data = nullptr;
+    const uint8_t* snapshot_text = nullptr;
 
     bin::VmService::enable_experimental_vm_service = true;
     auto [app_snapshot, script_name] = bin::Snapshot::TryReadSDKSnapshot(
@@ -143,15 +138,11 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     if (app_snapshot == nullptr) {
       return nullptr;
     }
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
-    isolate = Dart_CreateIsolateGroup(
-        script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
-        isolate_snapshot_instructions, flags, isolate_group_data,
-        /*isolate_data=*/nullptr, error);
+    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
+    isolate = Dart_CreateIsolateGroup(script_uri, DART_VM_SERVICE_ISOLATE_NAME,
+                                      snapshot_data, snapshot_text, flags,
+                                      isolate_group_data,
+                                      /*isolate_data=*/nullptr, error);
   }
 #endif  // defined(EXPERIMENTAL_VM_SERVICE)
 
@@ -239,20 +230,16 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     bin::AppSnapshot* app_snapshot =
         bin::Snapshot::TryReadAppSnapshot(script_uri);
     ASSERT(app_snapshot != nullptr);
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    const uint8_t* isolate_snapshot_data;
-    const uint8_t* isolate_snapshot_instructions;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    const uint8_t* snapshot_data;
+    const uint8_t* snapshot_text;
+    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
     isolate_group_data = new bin::IsolateGroupData(
         script_uri, /*asset_resolution_base=*/nullptr, packages_config,
         app_snapshot, app_snapshot != nullptr);
-    isolate = Dart_CreateIsolateGroup(
-        DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-        isolate_snapshot_data, isolate_snapshot_instructions, flags,
-        isolate_group_data, /*isolate_data=*/nullptr, error);
+    isolate = Dart_CreateIsolateGroup(DART_KERNEL_ISOLATE_NAME,
+                                      DART_KERNEL_ISOLATE_NAME, snapshot_data,
+                                      snapshot_text, flags, isolate_group_data,
+                                      /*isolate_data=*/nullptr, error);
     if (*error != nullptr) {
       OS::PrintErr("Error creating isolate group: %s\n", *error);
       free(*error);
@@ -425,7 +412,6 @@ static int Main(int argc, const char** argv) {
     return 1;
   }
 
-  TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
   TesterState::create_callback = CreateIsolateAndSetup;
   TesterState::group_cleanup_callback = CleanupIsolateGroup;
   TesterState::argv = dart_argv;
@@ -434,8 +420,6 @@ static int Main(int argc, const char** argv) {
   Dart_InitializeParams init_params;
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  init_params.vm_snapshot_data = dart::bin::vm_snapshot_data;
-  init_params.vm_snapshot_instructions = dart::bin::vm_snapshot_instructions;
   init_params.create_group = CreateIsolateAndSetup;
   init_params.cleanup_group = CleanupIsolateGroup;
   init_params.file_open = dart::bin::DartUtils::OpenFile;

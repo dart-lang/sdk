@@ -270,26 +270,13 @@ namespace {
 // instructions section by comparing payloads.
 const char* TryIdentifyIsolateSpecificStubCopy(ObjectStore* object_store,
                                                const Code& code) {
-#define MATCH(member, name)                                                    \
-  if (object_store->member() != Code::null() &&                                \
-      StubCode::name().ptr() == object_store->member() &&                      \
-      StubCode::name().Size() == code.Size() &&                                \
-      memcmp(reinterpret_cast<void*>(code.PayloadStart()),                     \
-             reinterpret_cast<void*>(StubCode::name().PayloadStart()),         \
-             code.Size()) == 0) {                                              \
-    return "_iso_stub_" #name "Stub";                                          \
-  }
-  OBJECT_STORE_STUB_CODE_LIST(MATCH)
-#undef MATCH
-
   return nullptr;
 }
 }  // namespace
 
 void SnapshotAnalyzer::DumpCode(const Code& code) {
   js_.PrintProperty("type", "Code");
-  const auto instruction_base =
-      reinterpret_cast<uint64_t>(info_.vm_isolate_instructions);
+  const auto instruction_base = reinterpret_cast<uint64_t>(info_.snapshot_text);
 
   if (code.IsUnknownDartCode()) {
     js_.PrintProperty64("offset", 0);
@@ -357,8 +344,7 @@ void SnapshotAnalyzer::DumpCode(uword start_pc,
                                 uword end_pc,
                                 const char* name) {
   js_.PrintProperty("type", "Code");
-  const auto instruction_base =
-      reinterpret_cast<uint64_t>(info_.vm_isolate_instructions);
+  const auto instruction_base = reinterpret_cast<uint64_t>(info_.snapshot_text);
 
   js_.PrintProperty64("offset",
                       static_cast<uint64_t>(start_pc) - instruction_base);
@@ -662,11 +648,10 @@ void SnapshotAnalyzer::DumpSnapshotInformation(char** buffer,
   js_.OpenObject();
   js_.OpenObject("snapshot_data");
   // Base addresses of the snapshot data, useful to calculate relative offsets.
-  js_.PrintfProperty("vm_data", "%p", info_.vm_snapshot_data);
-  js_.PrintfProperty("vm_instructions", "%p", info_.vm_snapshot_instructions);
-  js_.PrintfProperty("isolate_data", "%p", info_.vm_isolate_data);
-  js_.PrintfProperty("isolate_instructions", "%p",
-                     info_.vm_isolate_instructions);
+  js_.PrintfProperty("vm_data", "%p", nullptr);
+  js_.PrintfProperty("vm_instructions", "%p", nullptr);
+  js_.PrintfProperty("isolate_data", "%p", info_.snapshot_data);
+  js_.PrintfProperty("isolate_instructions", "%p", info_.snapshot_text);
   js_.CloseObject();
 
   {

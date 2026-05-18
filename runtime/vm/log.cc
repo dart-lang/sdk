@@ -155,9 +155,6 @@ intptr_t Log::cursor() const {
 bool Log::ShouldLogForIsolateGroup(const IsolateGroup* isolate_group) {
   if (FLAG_isolate_log_filter == nullptr) {
     // By default, do not log for the service or kernel isolates.
-    if (isolate_group == Dart::vm_isolate_group()) {
-      return true;
-    }
     if (IsolateGroup::IsSystemIsolateGroup(isolate_group)) {
       return false;
     }

@@ -50,15 +50,14 @@ class Dart : public AllStatic {
   // caller must free.
   static char* InitializeIsolateGroup(Thread* T,
                                       const uint8_t* snapshot_data,
-                                      const uint8_t* snapshot_instructions,
+                                      const uint8_t* snapshot_text,
                                       const uint8_t* kernel_buffer,
                                       intptr_t kernel_buffer_size);
-  static char* InitIsolateGroupFromSnapshot(
-      Thread* T,
-      const uint8_t* snapshot_data,
-      const uint8_t* snapshot_instructions,
-      const uint8_t* kernel_buffer,
-      intptr_t kernel_buffer_size);
+  static char* InitIsolateGroupFromSnapshot(Thread* T,
+                                            const uint8_t* snapshot_data,
+                                            const uint8_t* snapshot_text,
+                                            const uint8_t* kernel_buffer,
+                                            intptr_t kernel_buffer_size);
   static ErrorPtr InitializeIsolate(Thread* T,
                                     bool is_first_isolate_in_group,
                                     void* isolate_data);
@@ -66,11 +65,6 @@ class Dart : public AllStatic {
   static void RunShutdownCallback();
   static void ShutdownIsolate(Thread* T);
 
-  static Isolate* vm_isolate() { return vm_isolate_; }
-  static IsolateGroup* vm_isolate_group() {
-    if (vm_isolate_ == nullptr) return nullptr;
-    return vm_isolate_->group();
-  }
   static ThreadPool* thread_pool() { return thread_pool_; }
 
   static int64_t UptimeMicros();
@@ -79,10 +73,7 @@ class Dart : public AllStatic {
   }
 
   // The returned string has to be free()ed.
-  static char* FeaturesString(IsolateGroup* isolate_group,
-                              bool is_vm_snapshot,
-                              Snapshot::Kind kind);
-  static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
+  static char* FeaturesString(IsolateGroup* isolate_group, Snapshot::Kind kind);
 
   static Dart_ThreadStartCallback thread_start_callback() {
     return thread_start_callback_;
@@ -144,10 +135,8 @@ class Dart : public AllStatic {
   static void WaitForIsolateShutdown();
   static void WaitForApplicationIsolateShutdown();
 
-  static Isolate* vm_isolate_;
   static int64_t start_time_micros_;
   static ThreadPool* thread_pool_;
-  static Snapshot::Kind vm_snapshot_kind_;
   static Dart_ThreadStartCallback thread_start_callback_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;

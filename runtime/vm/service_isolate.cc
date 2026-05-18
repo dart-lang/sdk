@@ -234,10 +234,6 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (isolate->is_vm_isolate()) {
-    return false;
-  }
-
   Dart_Port main_port = Dart_GetMainPortId();
   if (FLAG_trace_service) {
     OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Isolate %s %" Pd64
@@ -257,9 +253,6 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (isolate->is_vm_isolate()) {
-    return false;
-  }
 
   Dart_Port main_port = isolate->main_port();
   if (FLAG_trace_service) {

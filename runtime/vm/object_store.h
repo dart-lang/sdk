@@ -142,6 +142,8 @@ class ObjectPointerVisitor;
   RW(Class, native_finalizer_class)                                            \
   RW(Class, dart_condition_variable_class)                                     \
   RW(Class, dart_mutex_class)                                                  \
+  RW(Class, ffi_pointer_class)                                                 \
+  RW(Class, ffi_native_type_class)                                             \
   ARW_AR(WeakArray, symbol_table)                                              \
   ARW_AR(WeakArray, regexp_table)                                              \
   RW(Array, canonical_types)                                                   \
@@ -211,203 +213,14 @@ class ObjectPointerVisitor;
   RW(Array, saved_unlinked_calls)                                              \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(GrowableObjectArray, ffi_callback_code)                                   \
-  RW(Code, dispatch_table_null_error_stub)                                     \
-  RW(Code, late_initialization_error_stub_with_fpu_regs_stub)                  \
-  RW(Code, late_initialization_error_stub_without_fpu_regs_stub)               \
-  RW(Code, null_error_stub_with_fpu_regs_stub)                                 \
-  RW(Code, null_error_stub_without_fpu_regs_stub)                              \
-  RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \
-  RW(Code, null_arg_error_stub_without_fpu_regs_stub)                          \
-  RW(Code, null_cast_error_stub_with_fpu_regs_stub)                            \
-  RW(Code, null_cast_error_stub_without_fpu_regs_stub)                         \
-  RW(Code, range_error_stub_with_fpu_regs_stub)                                \
-  RW(Code, range_error_stub_without_fpu_regs_stub)                             \
-  RW(Code, write_error_stub_with_fpu_regs_stub)                                \
-  RW(Code, write_error_stub_without_fpu_regs_stub)                             \
-  RW(Code, field_access_error_stub_with_fpu_regs_stub)                         \
-  RW(Code, field_access_error_stub_without_fpu_regs_stub)                      \
-  RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
-  RW(Code, allocate_mint_without_fpu_regs_stub)                                \
-  RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
-  RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
-  RW(Code, allocate_array_stub)                                                \
-  RW(Code, allocate_mint_stub)                                                 \
-  RW(Code, allocate_double_stub)                                               \
-  RW(Code, allocate_float32x4_stub)                                            \
-  RW(Code, allocate_float64x2_stub)                                            \
-  RW(Code, allocate_int32x4_stub)                                              \
-  RW(Code, allocate_int8_array_stub)                                           \
-  RW(Code, allocate_uint8_array_stub)                                          \
-  RW(Code, allocate_uint8_clamped_array_stub)                                  \
-  RW(Code, allocate_int16_array_stub)                                          \
-  RW(Code, allocate_uint16_array_stub)                                         \
-  RW(Code, allocate_int32_array_stub)                                          \
-  RW(Code, allocate_uint32_array_stub)                                         \
-  RW(Code, allocate_int64_array_stub)                                          \
-  RW(Code, allocate_uint64_array_stub)                                         \
-  RW(Code, allocate_float32_array_stub)                                        \
-  RW(Code, allocate_float64_array_stub)                                        \
-  RW(Code, allocate_float32x4_array_stub)                                      \
-  RW(Code, allocate_int32x4_array_stub)                                        \
-  RW(Code, allocate_float64x2_array_stub)                                      \
-  RW(Code, allocate_closure1_stub)                                             \
-  RW(Code, allocate_closure2_stub)                                             \
-  RW(Code, allocate_closure3_stub)                                             \
-  RW(Code, allocate_closure4_stub)                                             \
-  RW(Code, allocate_context_stub)                                              \
-  RW(Code, allocate_growable_array_stub)                                       \
-  RW(Code, allocate_object_stub)                                               \
-  RW(Code, allocate_object_parametrized_stub)                                  \
-  RW(Code, allocate_record_stub)                                               \
-  RW(Code, allocate_record2_stub)                                              \
-  RW(Code, allocate_record2_named_stub)                                        \
-  RW(Code, allocate_record3_stub)                                              \
-  RW(Code, allocate_record3_named_stub)                                        \
-  RW(Code, allocate_unhandled_exception_stub)                                  \
-  RW(Code, check_isolate_field_access_stub)                                    \
-  RW(Code, clone_context_stub)                                                 \
-  RW(Code, write_barrier_wrappers_stub)                                        \
-  RW(Code, array_write_barrier_stub)                                           \
-  RW(Code, throw_stub)                                                         \
-  RW(Code, re_throw_stub)                                                      \
-  RW(Code, instance_of_stub)                                                   \
-  RW(Code, init_static_field_stub)                                             \
-  RW(Code, init_late_static_field_stub)                                        \
-  RW(Code, init_late_final_static_field_stub)                                  \
-  RW(Code, init_instance_field_stub)                                           \
-  RW(Code, init_late_instance_field_stub)                                      \
-  RW(Code, init_late_final_instance_field_stub)                                \
-  RW(Code, init_shared_late_static_field_stub)                                 \
-  RW(Code, call_closure_no_such_method_stub)                                   \
-  RW(Code, default_tts_stub)                                                   \
-  RW(Code, default_nullable_tts_stub)                                          \
-  RW(Code, top_type_tts_stub)                                                  \
-  RW(Code, nullable_type_parameter_tts_stub)                                   \
-  RW(Code, type_parameter_tts_stub)                                            \
-  RW(Code, unreachable_tts_stub)                                               \
   RW(Array, ffi_callback_functions)                                            \
-  RW(Code, resume_stub)                                                        \
-  RW(Code, slow_tts_stub)                                                      \
   /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
-  RW(Code, await_stub)                                                         \
-  RW(Code, await_with_type_check_stub)                                         \
-  RW(Code, clone_suspend_state_stub)                                           \
-  RW(Code, ffi_async_callback_send_stub)                                       \
-  RW(Code, init_async_stub)                                                    \
-  RW(Code, return_async_stub)                                                  \
-  RW(Code, return_async_not_future_stub)                                       \
-  RW(Code, init_async_star_stub)                                               \
-  RW(Code, yield_async_star_stub)                                              \
-  RW(Code, return_async_star_stub)                                             \
-  RW(Code, init_sync_star_stub)                                                \
-  RW(Code, suspend_sync_star_at_start_stub)                                    \
-  RW(Code, suspend_sync_star_at_yield_stub)                                    \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(GrowableObjectArray, tag_table)                                           \
   RW(Array, obfuscation_map)                                                   \
   RW(Array, loading_unit_uris)                                                 \
-  RW(Class, ffi_pointer_class)                                                 \
-  RW(Class, ffi_native_type_class)                                             \
   // Please remember the last entry must be referred in the 'to' function below.
-
-#define OBJECT_STORE_STUB_CODE_LIST(DO)                                        \
-  DO(dispatch_table_null_error_stub, DispatchTableNullError)                   \
-  DO(late_initialization_error_stub_with_fpu_regs_stub,                        \
-     LateInitializationErrorSharedWithFPURegs)                                 \
-  DO(late_initialization_error_stub_without_fpu_regs_stub,                     \
-     LateInitializationErrorSharedWithoutFPURegs)                              \
-  DO(null_error_stub_with_fpu_regs_stub, NullErrorSharedWithFPURegs)           \
-  DO(null_error_stub_without_fpu_regs_stub, NullErrorSharedWithoutFPURegs)     \
-  DO(null_arg_error_stub_with_fpu_regs_stub, NullArgErrorSharedWithFPURegs)    \
-  DO(null_arg_error_stub_without_fpu_regs_stub,                                \
-     NullArgErrorSharedWithoutFPURegs)                                         \
-  DO(null_cast_error_stub_with_fpu_regs_stub, NullCastErrorSharedWithFPURegs)  \
-  DO(null_cast_error_stub_without_fpu_regs_stub,                               \
-     NullCastErrorSharedWithoutFPURegs)                                        \
-  DO(range_error_stub_with_fpu_regs_stub, RangeErrorSharedWithFPURegs)         \
-  DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
-  DO(write_error_stub_with_fpu_regs_stub, WriteErrorSharedWithFPURegs)         \
-  DO(write_error_stub_without_fpu_regs_stub, WriteErrorSharedWithoutFPURegs)   \
-  DO(field_access_error_stub_with_fpu_regs_stub,                               \
-     FieldAccessErrorSharedWithFPURegs)                                        \
-  DO(field_access_error_stub_without_fpu_regs_stub,                            \
-     FieldAccessErrorSharedWithoutFPURegs)                                     \
-  DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
-  DO(allocate_mint_without_fpu_regs_stub, AllocateMintSharedWithoutFPURegs)    \
-  DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
-  DO(stack_overflow_stub_without_fpu_regs_stub,                                \
-     StackOverflowSharedWithoutFPURegs)                                        \
-  DO(allocate_array_stub, AllocateArray)                                       \
-  DO(allocate_mint_stub, AllocateMint)                                         \
-  DO(allocate_double_stub, AllocateDouble)                                     \
-  DO(allocate_float32x4_stub, AllocateFloat32x4)                               \
-  DO(allocate_float64x2_stub, AllocateFloat64x2)                               \
-  DO(allocate_int32x4_stub, AllocateInt32x4)                                   \
-  DO(allocate_int8_array_stub, AllocateInt8Array)                              \
-  DO(allocate_uint8_array_stub, AllocateUint8Array)                            \
-  DO(allocate_uint8_clamped_array_stub, AllocateUint8ClampedArray)             \
-  DO(allocate_int16_array_stub, AllocateInt16Array)                            \
-  DO(allocate_uint16_array_stub, AllocateUint16Array)                          \
-  DO(allocate_int32_array_stub, AllocateInt32Array)                            \
-  DO(allocate_uint32_array_stub, AllocateUint32Array)                          \
-  DO(allocate_int64_array_stub, AllocateInt64Array)                            \
-  DO(allocate_uint64_array_stub, AllocateUint64Array)                          \
-  DO(allocate_float32_array_stub, AllocateFloat32Array)                        \
-  DO(allocate_float64_array_stub, AllocateFloat64Array)                        \
-  DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
-  DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
-  DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
-  DO(allocate_closure1_stub, AllocateClosure1)                                 \
-  DO(allocate_closure2_stub, AllocateClosure2)                                 \
-  DO(allocate_closure3_stub, AllocateClosure3)                                 \
-  DO(allocate_closure4_stub, AllocateClosure4)                                 \
-  DO(allocate_context_stub, AllocateContext)                                   \
-  DO(allocate_growable_array_stub, AllocateGrowableArray)                      \
-  DO(allocate_object_stub, AllocateObject)                                     \
-  DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
-  DO(allocate_record_stub, AllocateRecord)                                     \
-  DO(allocate_record2_stub, AllocateRecord2)                                   \
-  DO(allocate_record2_named_stub, AllocateRecord2Named)                        \
-  DO(allocate_record3_stub, AllocateRecord3)                                   \
-  DO(allocate_record3_named_stub, AllocateRecord3Named)                        \
-  DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
-  DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
-  DO(clone_context_stub, CloneContext)                                         \
-  DO(check_isolate_field_access_stub, CheckIsolateFieldAccess)                 \
-  DO(default_tts_stub, DefaultTypeTest)                                        \
-  DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
-  DO(top_type_tts_stub, TopTypeTypeTest)                                       \
-  DO(nullable_type_parameter_tts_stub, NullableTypeParameterTypeTest)          \
-  DO(type_parameter_tts_stub, TypeParameterTypeTest)                           \
-  DO(unreachable_tts_stub, UnreachableTypeTest)                                \
-  DO(slow_tts_stub, SlowTypeTest)                                              \
-  DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
-  DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
-  DO(throw_stub, Throw)                                                        \
-  DO(re_throw_stub, ReThrow)                                                   \
-  DO(init_static_field_stub, InitStaticField)                                  \
-  DO(init_late_static_field_stub, InitLateStaticField)                         \
-  DO(init_late_final_static_field_stub, InitLateFinalStaticField)              \
-  DO(init_instance_field_stub, InitInstanceField)                              \
-  DO(init_late_instance_field_stub, InitLateInstanceField)                     \
-  DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \
-  DO(init_shared_late_static_field_stub, InitSharedLateStaticField)            \
-  DO(await_stub, Await)                                                        \
-  DO(await_with_type_check_stub, AwaitWithTypeCheck)                           \
-  DO(clone_suspend_state_stub, CloneSuspendState)                              \
-  DO(ffi_async_callback_send_stub, FfiAsyncCallbackSend)                       \
-  DO(init_async_stub, InitAsync)                                               \
-  DO(resume_stub, Resume)                                                      \
-  DO(return_async_stub, ReturnAsync)                                           \
-  DO(return_async_not_future_stub, ReturnAsyncNotFuture)                       \
-  DO(init_async_star_stub, InitAsyncStar)                                      \
-  DO(yield_async_star_stub, YieldAsyncStar)                                    \
-  DO(return_async_star_stub, ReturnAsyncStar)                                  \
-  DO(init_sync_star_stub, InitSyncStar)                                        \
-  DO(suspend_sync_star_at_start_stub, SuspendSyncStarAtStart)                  \
-  DO(suspend_sync_star_at_yield_stub, SuspendSyncStarAtYield)                  \
-  DO(instance_of_stub, InstanceOf)
 
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
   R_(Array, dart_args_1)                                                       \
@@ -581,8 +394,6 @@ class ObjectStore {
 
   void InitKnownObjects();
 
-  void InitStubs();
-
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* jsobj);
 #endif
@@ -615,19 +426,15 @@ class ObjectStore {
 #undef DECLARE_OBJECT_STORE_FIELD
 #undef DECLARE_ATOMIC_OBJECT_STORE_FIELD
 #undef DECLARE_LAZY_OBJECT_STORE_FIELD
-  ObjectPtr* to() {
-    return reinterpret_cast<ObjectPtr*>(&ffi_native_type_class_);
-  }
+  ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&loading_unit_uris_); }
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-      case Snapshot::kFullCore:
         return reinterpret_cast<ObjectPtr*>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&slow_tts_stub_);
+        return reinterpret_cast<ObjectPtr*>(&ffi_callback_functions_);
       case Snapshot::kModule:
-      case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
     }

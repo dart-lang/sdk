@@ -390,9 +390,7 @@ void ReportImpossibleNullError(intptr_t cid,
     buffer.Printf("%s[sp+%" Pd "] %" Pp "", comma ? ", " : "", i,
                   static_cast<uword>(ptr));
     if (ptr->IsHeapObject() &&
-        (Dart::vm_isolate_group()->heap()->Contains(
-             UntaggedObject::ToAddr(ptr)) ||
-         thread->heap()->Contains(UntaggedObject::ToAddr(ptr)))) {
+        thread->heap()->Contains(UntaggedObject::ToAddr(ptr))) {
       buffer.Printf("(%" Pp ")", static_cast<uword>(ptr->untag()->tags_));
     }
     comma = true;
@@ -4902,13 +4900,6 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
   const Instance& stack_trace =
       Instance::CheckedHandle(zone, arguments.ArgAt(2));
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const auto& resume_stub = Code::Handle(
-      zone, thread->isolate_group()->object_store()->resume_stub());
-#else
-  const auto& resume_stub = StubCode::Resume();
-#endif
-
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -4916,7 +4907,7 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
   while (frame->IsExitFrame() ||
          (frame->IsStubFrame() &&
           !StubCode::ResumeInterpreter().ContainsInstructionAt(frame->pc()) &&
-          !resume_stub.ContainsInstructionAt(frame->pc()))) {
+          !StubCode::Resume().ContainsInstructionAt(frame->pc()))) {
     frame = iterator.NextFrame();
     ASSERT(frame != nullptr);
   }

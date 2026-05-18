@@ -1268,10 +1268,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     }
     case MethodRecognizer::kSuspendState_resume: {
-      const Code& resume_stub =
-          Code::ZoneHandle(Z, IG->object_store()->resume_stub());
       body += NullConstant();
-      body += TailCall(resume_stub);
+      body += TailCall(StubCode::Resume());
       break;
     }
     case MethodRecognizer::kTypedList_GetInt8:

@@ -1444,7 +1444,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           continue;
         }
         obj = pool.ObjectAt(i);
-        if (obj.IsInstance() && !obj.IsSmi() && !obj.InVMIsolateHeap()) {
+        if (obj.IsInstance() && !obj.IsSmi()) {
           obj = Instance::Cast(obj).Canonicalize(d->thread());
           pool.SetObjectAt(i, obj);
         }
@@ -1625,21 +1625,17 @@ void Deserializer::Deserialize() {
   AddBaseObject(StubCode::Subtype4TestCache());
   AddBaseObject(StubCode::Subtype6TestCache());
   AddBaseObject(StubCode::InstantiateTypeArguments());
-  AddBaseObject(Code::Handle(zone(), object_store->init_async_stub()));
-  AddBaseObject(Code::Handle(zone(), object_store->init_async_star_stub()));
-  AddBaseObject(Code::Handle(zone(), object_store->init_sync_star_stub()));
-  AddBaseObject(Code::Handle(zone(), object_store->await_stub()));
-  AddBaseObject(
-      Code::Handle(zone(), object_store->await_with_type_check_stub()));
-  AddBaseObject(Code::Handle(zone(), object_store->yield_async_star_stub()));
-  AddBaseObject(
-      Code::Handle(zone(), object_store->suspend_sync_star_at_start_stub()));
-  AddBaseObject(
-      Code::Handle(zone(), object_store->suspend_sync_star_at_yield_stub()));
-  AddBaseObject(Code::Handle(zone(), object_store->return_async_stub()));
-  AddBaseObject(
-      Code::Handle(zone(), object_store->return_async_not_future_stub()));
-  AddBaseObject(Code::Handle(zone(), object_store->return_async_star_stub()));
+  AddBaseObject(StubCode::InitAsync());
+  AddBaseObject(StubCode::InitAsyncStar());
+  AddBaseObject(StubCode::InitSyncStar());
+  AddBaseObject(StubCode::Await());
+  AddBaseObject(StubCode::AwaitWithTypeCheck());
+  AddBaseObject(StubCode::YieldAsyncStar());
+  AddBaseObject(StubCode::SuspendSyncStarAtStart());
+  AddBaseObject(StubCode::SuspendSyncStarAtYield());
+  AddBaseObject(StubCode::ReturnAsync());
+  AddBaseObject(StubCode::ReturnAsyncNotFuture());
+  AddBaseObject(StubCode::ReturnAsyncStar());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
     FATAL("Snapshot expects %" Pd

@@ -534,7 +534,7 @@ class IntKeyRawPointerValueTrait {
 
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
-  static uword Hash(Key key) { return key; }
+  static uword Hash(Key key) { return FinalizeHash(key); }
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 

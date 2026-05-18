@@ -5630,7 +5630,7 @@ class SystemServiceIsolateVisitor : public IsolateVisitor {
   virtual ~SystemServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (IsSystemIsolate(isolate) && !isolate->is_vm_isolate()) {
+    if (IsSystemIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -5683,7 +5683,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
 #else
   Snapshot::Kind kind = Snapshot::kFullJIT;
 #endif
-  char* features_string = Dart::FeaturesString(nullptr, true, kind);
+  char* features_string = Dart::FeaturesString(nullptr, kind);
   jsobj.AddProperty("_features", features_string);
   free(features_string);
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
@@ -5713,10 +5713,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   {
     JSONArray jsarr_isolate_groups(&jsobj, "systemIsolateGroups");
     IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
-      // Don't surface the vm-isolate since it's not a "real" isolate.
-      if (isolate_group->is_vm_isolate()) {
-        return;
-      }
       if (isolate_group->is_system_isolate_group()) {
         jsarr_isolate_groups.AddValue(isolate_group);
       }

@@ -152,10 +152,6 @@ extension ComputedOffsets on VMOffsets {
 // Symbol names used in Dart snapshots.
 
 const String snapshotBuildIdAsmSymbol = "_kDartSnapshotBuildId";
-const String vmSnapshotDataAsmSymbol = "_kDartVmSnapshotData";
-const String vmSnapshotInstructionsAsmSymbol = "_kDartVmSnapshotInstructions";
-const String vmSnapshotBssAsmSymbol = "_kDartVmSnapshotBss";
-const String isolateSnapshotDataAsmSymbol = "_kDartIsolateSnapshotData";
-const String isolateSnapshotInstructionsAsmSymbol =
-    "_kDartIsolateSnapshotInstructions";
-const String isolateSnapshotBssAsmSymbol = "_kDartIsolateSnapshotBss";
+const String snapshotDataAsmSymbol = "_kDartSnapshotData";
+const String snapshotTextAsmSymbol = "_kDartSnapshotText";
+const String snapshotBssAsmSymbol = "_kDartSnapshotBss";

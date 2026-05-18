@@ -454,11 +454,6 @@ class Object {
 
   bool IsNew() const { return ptr()->IsNewObject(); }
   bool IsOld() const { return ptr()->IsOldObject(); }
-#if defined(DEBUG)
-  bool InVMIsolateHeap() const;
-#else
-  bool InVMIsolateHeap() const { return ptr()->untag()->InVMIsolateHeap(); }
-#endif  // DEBUG
 
   // Print the object on stdout for debugging.
   void Print() const;
@@ -574,7 +569,6 @@ class Object {
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
   V(UnhandledException, unhandled_oom_exception)                               \
-  V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
   V(AbstractType, null_abstract_type)                                          \
@@ -586,9 +580,6 @@ class Object {
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
-  static void set_vm_isolate_snapshot_object_table(const Array& table);
-
-  // Initialize the VM isolate.
   static void InitNullAndBool(IsolateGroup* isolate_group);
   static void Init(IsolateGroup* isolate_group);
   static void InitVtables();
@@ -687,7 +678,7 @@ class Object {
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
-  Object() : ptr_(Roots::null_obj()) {}
+  Object() : ptr_(nullptr) {}
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
@@ -6954,7 +6945,6 @@ class Code : public Object {
   uword PayloadStart() const { return PayloadStartOf(ptr()); }
   static uword PayloadStartOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (IsUnknownDartCode(code)) return 0;
     const uword entry_offset = HasMonomorphicEntry(code)
                                    ? Instructions::kPolymorphicEntryOffsetAOT
                                    : 0;
@@ -7026,7 +7016,6 @@ class Code : public Object {
   uword Size() const { return PayloadSizeOf(ptr()); }
   static uword PayloadSizeOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (IsUnknownDartCode(code)) return kUwordMax;
     return code->untag()->instructions_length_;
 #else
     auto instr = InstructionsOf(code);

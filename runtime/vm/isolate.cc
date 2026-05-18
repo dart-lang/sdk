@@ -303,13 +303,11 @@ void MutatorThreadPool::NotifyIdle() {
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            ObjectStore* object_store,
-                           Dart_IsolateFlags api_flags,
-                           bool is_vm_isolate)
+                           Dart_IsolateFlags api_flags)
     : class_table_(nullptr),
       cached_class_table_table_(nullptr),
       object_store_(object_store),
       class_table_allocator_(),
-      is_vm_isolate_(is_vm_isolate),
       embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -361,19 +359,17 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       tag_table_lock_(),
       roots_(new Roots()) {
   FlagsCopyFrom(api_flags);
-  if (!is_vm_isolate) {
-    intptr_t max_worker_threads;
-    if (FLAG_disable_thread_pool_limit) {
-      max_worker_threads = 0;
-    } else {
-      // There needs to be at least one more thread than active mutators slots
-      // so that there is a thread waiting in IncreaseMutatorCount (instead of
-      // unscheduled task sitting in the thread pool's queue) to eventually
-      // timeout and trigger StealActiveMutators.
-      max_worker_threads = Scavenger::MaxMutatorThreadCount() + 2;
-    }
-    thread_pool_.reset(new MutatorThreadPool(this, max_worker_threads));
+  intptr_t max_worker_threads;
+  if (FLAG_disable_thread_pool_limit) {
+    max_worker_threads = 0;
+  } else {
+    // There needs to be at least one more thread than active mutators slots
+    // so that there is a thread waiting in IncreaseMutatorCount (instead of
+    // unscheduled task sitting in the thread pool's queue) to eventually
+    // timeout and trigger StealActiveMutators.
+    max_worker_threads = Scavenger::MaxMutatorThreadCount() + 2;
   }
+  thread_pool_.reset(new MutatorThreadPool(this, max_worker_threads));
   {
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
     // Keep isolate IDs less than 2^53 so web clients of the service
@@ -387,20 +383,13 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
   cached_class_table_table_.store(class_table_->table());
   memset(&native_assets_api_, 0, sizeof(NativeAssetsApi));
 
-  if (!is_vm_isolate) {
-    *roots() = *Dart::vm_isolate_group()->roots();
-  }
   Roots::SetCurrent(roots());
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
-                           Dart_IsolateFlags api_flags,
-                           bool is_vm_isolate)
-    : IsolateGroup(source, embedder_data, nullptr, api_flags, is_vm_isolate) {
-  set_object_store(new ObjectStore());
-  object_store()->InitStubs();
-}
+                           Dart_IsolateFlags api_flags)
+    : IsolateGroup(source, embedder_data, nullptr, api_flags) {}
 
 IsolateGroup::~IsolateGroup() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -485,12 +474,8 @@ void IsolateGroup::UnregisterIsolateGroupMutator(Thread* mutator) {
   mutators_.Remove(mutator);
 }
 
-void IsolateGroup::CreateHeap(bool is_vm_isolate,
-                              bool is_service_or_kernel_isolate) {
-  Heap::Init(this, is_vm_isolate,
-             is_vm_isolate
-                 ? 0  // New gen size 0; VM isolate should only allocate in old.
-                 : FLAG_new_gen_semi_max_size * MBInWords,
+void IsolateGroup::CreateHeap(bool is_service_or_kernel_isolate) {
+  Heap::Init(this, FLAG_new_gen_semi_max_size * MBInWords,
              (is_service_or_kernel_isolate ? kDefaultMaxOldGenHeapSize
                                            : FLAG_old_gen_heap_size) *
                  MBInWords);
@@ -519,13 +504,9 @@ void IsolateGroup::Shutdown() {
   }
   // Ensure to join all threads before waiting for pending GC tasks (the thread
   // pool can trigger idle notification, which can start new GC tasks).
-  //
-  // (The vm-isolate doesn't have a thread pool.)
-  if (!is_vm_isolate_) {
-    ASSERT(thread_pool_ != nullptr);
-    thread_pool_->Shutdown();
-    thread_pool_.reset();
-  }
+  ASSERT(thread_pool_ != nullptr);
+  thread_pool_->Shutdown();
+  thread_pool_.reset();
 
   {
     MonitorLocker ml(Isolate::isolate_creation_monitor_);
@@ -554,7 +535,7 @@ void IsolateGroup::Shutdown() {
   // If the creation of the isolate group (or the first isolate within the
   // isolate group) failed, we do not invoke the cleanup callback (the
   // embedder is responsible for handling the creation error).
-  if (initial_spawn_successful_ && !is_vm_isolate_) {
+  if (initial_spawn_successful_) {
     auto group_shutdown_callback = Isolate::GroupCleanupCallback();
     if (group_shutdown_callback != nullptr) {
       group_shutdown_callback(embedder_data());
@@ -753,6 +734,15 @@ void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
   isolate_groups_->Remove(isolate_group);
 }
 
+bool IsolateGroup::HasIsolateGroups() {
+  ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
+  for (auto group : *isolate_groups_) {
+    USE(group);
+    return true;
+  }
+  return false;
+}
+
 bool IsolateGroup::HasApplicationIsolateGroups() {
   ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   for (auto group : *isolate_groups_) {
@@ -761,16 +751,6 @@ bool IsolateGroup::HasApplicationIsolateGroups() {
     }
   }
   return false;
-}
-
-bool IsolateGroup::HasOnlyVMIsolateGroup() {
-  ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
-  for (auto group : *isolate_groups_) {
-    if (!group->is_vm_isolate()) {
-      return false;
-    }
-  }
-  return true;
 }
 
 void IsolateGroup::Init() {
@@ -1026,7 +1006,6 @@ void IsolateGroup::RehashConstants(Become* become) {
       while (it.MoveNext()) {
         constant ^= set.GetKey(it.Current());
         ASSERT(!constant.IsNull());
-        ASSERT(!constant.InVMIsolateHeap());
         constant.ClearCanonical();
       }
       set.Release();
@@ -1909,18 +1888,10 @@ void Isolate::InitVM() {
 
 Isolate* Isolate::InitIsolate(const char* name_prefix,
                               IsolateGroup* isolate_group,
-                              const Dart_IsolateFlags& api_flags,
-                              bool is_vm_isolate) {
+                              const Dart_IsolateFlags& api_flags) {
   Isolate* result = new Isolate(isolate_group, api_flags);
-  result->set_is_vm_isolate(is_vm_isolate);
   result->BuildName(name_prefix);
-  if (!is_vm_isolate) {
-    // vm isolate object store is initialized later, after null instance
-    // is created (in Dart::Init).
-    // Non-vm isolates need to have isolate object store initialized is that
-    // exit_listeners have to be null-initialized as they will be used if
-    // we fail to create isolate below, have to do low level shutdown.
-    ASSERT(result->group()->object_store() != nullptr);
+  if (!isolate_group->is_bootstrapping()) {
     result->isolate_object_store()->Init();
   }
 
@@ -1991,6 +1962,16 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   }
 
   return result;
+}
+
+void Isolate::FixInitiallyNullFields() {
+#if !defined(PRODUCT)
+  pending_service_extension_calls_ = GrowableObjectArray::null();
+  registered_service_extension_handlers_ = GrowableObjectArray::null();
+#endif
+  finalizers_ = GrowableObjectArray::null();
+  sticky_error_ = Error::null();
+  isolate_object_store_->Init();
 }
 
 ObjectPtr IsolateGroup::CallTagHandler(Dart_LibraryTag tag,
@@ -2680,12 +2661,9 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // Now it's safe to delete the isolate.
   delete isolate;
 
-  // Run isolate specific cleanup function for all non "vm-isolate's.
-  const bool is_vm_isolate = Dart::vm_isolate() == isolate;
-  if (!is_vm_isolate) {
-    if (cleanup != nullptr) {
-      cleanup(isolate_group->embedder_data(), callback_data);
-    }
+  // Run isolate specific cleanup function.
+  if (cleanup != nullptr) {
+    cleanup(isolate_group->embedder_data(), callback_data);
   }
 
   const bool shutdown_group = isolate_group->UnregisterIsolateDecrementCount();
@@ -2695,7 +2673,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
     Profiler::IsolateGroupShutdown(isolate_group);
 #endif
 
-    if (!is_vm_isolate) {
+    {
       Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
                                         /*bypass_safepoint=*/false);
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2717,10 +2695,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
     }
 
-    // The "vm-isolate" does not have a thread pool.
-    ASSERT(is_vm_isolate == (isolate_group->thread_pool() == nullptr));
-    if (is_vm_isolate ||
-        !isolate_group->thread_pool()->CurrentThreadIsWorker()) {
+    if (!isolate_group->thread_pool()->CurrentThreadIsWorker()) {
       isolate_group->Shutdown();
     } else {
       class ShutdownGroupTask : public ThreadPool::Task {
@@ -3684,8 +3659,7 @@ bool IsolateGroup::IsSystemIsolateGroup(const IsolateGroup* group) {
 }
 
 bool Isolate::IsVMInternalIsolate(const Isolate* isolate) {
-  return isolate->is_kernel_isolate() || isolate->is_service_isolate() ||
-         isolate->is_vm_isolate();
+  return isolate->is_kernel_isolate() || isolate->is_service_isolate();
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {
@@ -3736,9 +3710,7 @@ class IsolateKillerVisitor : public IsolateVisitor {
         kill_system_isolates_(kill_system_isolates) {}
 
   IsolateKillerVisitor(Isolate* isolate, Isolate::LibMsgId msg_id)
-      : target_(isolate), msg_id_(msg_id), kill_system_isolates_(false) {
-    ASSERT(isolate != Dart::vm_isolate());
-  }
+      : target_(isolate), msg_id_(msg_id), kill_system_isolates_(false) {}
 
   virtual ~IsolateKillerVisitor() {}
 
@@ -3756,11 +3728,11 @@ class IsolateKillerVisitor : public IsolateVisitor {
   bool ShouldKill(Isolate* isolate) {
     if (kill_system_isolates_) {
       ASSERT(target_ == nullptr);
-      // Don't kill the service isolate or vm isolate.
+      // Don't kill the service isolate or kernel isolate.
       return IsSystemIsolate(isolate) && !Isolate::IsVMInternalIsolate(isolate);
     }
     // If a target_ is specified, then only kill the target_.
-    // Otherwise, don't kill the service isolate or vm isolate.
+    // Otherwise, don't kill the service isolate or kernel isolate.
     return (((target_ != nullptr) && (isolate == target_)) ||
             ((target_ == nullptr) && !IsSystemIsolate(isolate)));
   }

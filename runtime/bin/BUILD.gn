@@ -620,32 +620,22 @@ dart_io("common_embedder_dart_io_product") {
   extra_deps = [ ":libdart_builtin_product" ]
 }
 
-gen_snapshot_action("generate_snapshot_bin") {
+gen_snapshot_action("core_snapshot_bin") {
   deps = [ "../vm:vm_platform_stripped" ]
-  vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
-  vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
-  isolate_snapshot_data = "$target_gen_dir/isolate_snapshot_data.bin"
-  isolate_snapshot_instructions =
-      "$target_gen_dir/isolate_snapshot_instructions.bin"
+  snapshot_data = "$target_gen_dir/core_snapshot_data.bin"
+  snapshot_text = "$target_gen_dir/core_snapshot_text.bin"
 
   platform_dill = "$root_out_dir/vm_platform_stripped.dill"
   inputs = [ platform_dill ]
   outputs = [
-    vm_snapshot_data,
-    vm_snapshot_instructions,
-    isolate_snapshot_data,
-    isolate_snapshot_instructions,
+    snapshot_data,
+    snapshot_text,
   ]
   args = [
     "--deterministic",
     "--snapshot_kind=core",
-    "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
-    "--vm_snapshot_instructions=" +
-        rebase_path(vm_snapshot_instructions, root_build_dir),
-    "--isolate_snapshot_data=" +
-        rebase_path(isolate_snapshot_data, root_build_dir),
-    "--isolate_snapshot_instructions=" +
-        rebase_path(isolate_snapshot_instructions, root_build_dir),
+    "--snapshot_data=" + rebase_path(snapshot_data, root_build_dir),
+    "--snapshot_text=" + rebase_path(snapshot_text, root_build_dir),
     rebase_path(platform_dill, root_build_dir),
   ]
 }
@@ -758,31 +748,17 @@ template("bin_to_linkable") {
   }
 }
 
-bin_to_linkable("vm_snapshot_data_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/vm_snapshot_data.bin"
-  symbol = "kDartVmSnapshotData"
+bin_to_linkable("core_snapshot_data_linkable") {
+  deps = [ ":core_snapshot_bin" ]
+  input = "$target_gen_dir/core_snapshot_data.bin"
+  symbol = "kDartCoreSnapshotData"
   executable = false
 }
 
-bin_to_linkable("vm_snapshot_instructions_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/vm_snapshot_instructions.bin"
-  symbol = "kDartVmSnapshotInstructions"
-  executable = true
-}
-
-bin_to_linkable("isolate_snapshot_data_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/isolate_snapshot_data.bin"
-  symbol = "kDartCoreIsolateSnapshotData"
-  executable = false
-}
-
-bin_to_linkable("isolate_snapshot_instructions_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/isolate_snapshot_instructions.bin"
-  symbol = "kDartCoreIsolateSnapshotInstructions"
+bin_to_linkable("core_snapshot_text_linkable") {
+  deps = [ ":core_snapshot_bin" ]
+  input = "$target_gen_dir/core_snapshot_text.bin"
+  symbol = "kDartCoreSnapshotText"
   executable = true
 }
 
@@ -815,18 +791,14 @@ bin_to_linkable("icudtl_linkable") {
   executable = false
 }
 
-source_set("dart_snapshot_cc") {
+source_set("core_snapshot_cc") {
   visibility = [ ":*" ]
   deps = [
-    ":isolate_snapshot_data_linkable",
-    ":isolate_snapshot_instructions_linkable",
-    ":vm_snapshot_data_linkable",
-    ":vm_snapshot_instructions_linkable",
+    ":core_snapshot_data_linkable",
+    ":core_snapshot_text_linkable",
   ]
-  sources = get_target_outputs(":isolate_snapshot_data_linkable") +
-            get_target_outputs(":isolate_snapshot_instructions_linkable") +
-            get_target_outputs(":vm_snapshot_data_linkable") +
-            get_target_outputs(":vm_snapshot_instructions_linkable")
+  sources = get_target_outputs(":core_snapshot_data_linkable") +
+            get_target_outputs(":core_snapshot_text_linkable")
 }
 
 source_set("dart_kernel_platform_cc") {
@@ -966,7 +938,7 @@ template("dart_executable") {
 
 dart_executable("dartvm") {
   extra_deps = [
-    ":dart_snapshot_cc",
+    ":core_snapshot_cc",
     "..:libdart_jit",
     "../platform:libdart_platform_jit",
   ]
@@ -1219,9 +1191,9 @@ executable("run_vm_tests") {
 
   deps = [
     ":common_embedder_dart_io",
+    ":core_snapshot_cc",
     ":crashpad",
     ":dart_kernel_platform_cc",
-    ":dart_snapshot_cc",
     ":run_vm_tests_set",
     "..:libdart_precompiler_testing",
     "//third_party/boringssl",  # for secure_socket_utils_test

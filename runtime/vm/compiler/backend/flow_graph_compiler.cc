@@ -3162,20 +3162,19 @@ const RuntimeEntry& NullErrorSlowPath::GetRuntimeEntry(
 CodePtr NullErrorSlowPath::GetStub(FlowGraphCompiler* compiler,
                                    CheckNullInstr::ExceptionType exception_type,
                                    bool save_fpu_registers) {
-  auto object_store = compiler->isolate_group()->object_store();
   switch (exception_type) {
     case CheckNullInstr::kNoSuchMethod:
       return save_fpu_registers
-                 ? object_store->null_error_stub_with_fpu_regs_stub()
-                 : object_store->null_error_stub_without_fpu_regs_stub();
+                 ? StubCode::NullErrorSharedWithFPURegs().ptr()
+                 : StubCode::NullErrorSharedWithoutFPURegs().ptr();
     case CheckNullInstr::kArgumentError:
       return save_fpu_registers
-                 ? object_store->null_arg_error_stub_with_fpu_regs_stub()
-                 : object_store->null_arg_error_stub_without_fpu_regs_stub();
+                 ? StubCode::NullArgErrorSharedWithFPURegs().ptr()
+                 : StubCode::NullArgErrorSharedWithoutFPURegs().ptr();
     case CheckNullInstr::kCastError:
       return save_fpu_registers
-                 ? object_store->null_cast_error_stub_with_fpu_regs_stub()
-                 : object_store->null_cast_error_stub_without_fpu_regs_stub();
+                 ? StubCode::NullCastErrorSharedWithFPURegs().ptr()
+                 : StubCode::NullCastErrorSharedWithoutFPURegs().ptr();
   }
   UNREACHABLE();
 }
@@ -3217,12 +3216,9 @@ void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 #if defined(TARGET_ARCH_IA32)
   UNREACHABLE();
 #else
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->range_error_stub_with_fpu_regs_stub()
-          : object_store->range_error_stub_without_fpu_regs_stub());
+  const auto& stub = save_fpu_registers
+                         ? StubCode::RangeErrorSharedWithFPURegs()
+                         : StubCode::RangeErrorSharedWithoutFPURegs();
   compiler->EmitCallToStub(stub);
 #endif
 }
@@ -3240,12 +3236,9 @@ void WriteErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 #if defined(TARGET_ARCH_IA32)
   UNREACHABLE();
 #else
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->write_error_stub_with_fpu_regs_stub()
-          : object_store->write_error_stub_without_fpu_regs_stub());
+  const auto& stub = save_fpu_registers
+                         ? StubCode::WriteErrorSharedWithFPURegs()
+                         : StubCode::WriteErrorSharedWithoutFPURegs();
   compiler->EmitCallToStub(stub);
 #endif
 }
@@ -3265,13 +3258,10 @@ void LateInitializationErrorSlowPath::EmitSharedStubCall(
          LateInitializationErrorABI::kFieldReg);
   __ LoadObject(LateInitializationErrorABI::kFieldReg,
                 Field::ZoneHandle(OriginalField()));
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
+  const auto& stub =
       save_fpu_registers
-          ? object_store->late_initialization_error_stub_with_fpu_regs_stub()
-          : object_store
-                ->late_initialization_error_stub_without_fpu_regs_stub());
+          ? StubCode::LateInitializationErrorSharedWithFPURegs()
+          : StubCode::LateInitializationErrorSharedWithoutFPURegs();
   compiler->EmitCallToStub(stub);
 #endif
 }
@@ -3533,14 +3523,12 @@ bool FlowGraphCompiler::CanPcRelativeCall(const Function& target) const {
 
 bool FlowGraphCompiler::CanPcRelativeCall(const Code& target) const {
   return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
-         !target.InVMIsolateHeap() &&
          (LoadingUnit::LoadingUnitOf(function()) ==
           LoadingUnit::LoadingUnitOf(target));
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const AbstractType& target) const {
   return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
-         !target.InVMIsolateHeap() &&
          (LoadingUnit::LoadingUnitOf(function()) ==
           LoadingUnit::LoadingUnit::kRootId);
 }

@@ -19,6 +19,8 @@ var tests = <IsolateTest>[
 
       final classRef = entry.classRef!;
       print(classRef);
+      if (classRef.name == 'Sentinel') continue;
+      if (classRef.name == 'Null') continue;
       final instanceSet =
           await service.getInstances(isolateRef.id!, classRef.id!, 10);
       for (var instance in instanceSet.instances!) {

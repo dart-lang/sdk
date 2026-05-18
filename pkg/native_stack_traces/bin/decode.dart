@@ -258,10 +258,6 @@ void find(ArgResults options) {
     }
     vmStart = address;
   }
-  if (vmStart == null) {
-    return usageError('no VM start address found, one must be specified '
-        'with --vm_start');
-  }
 
   var isolateStart = dwarf.isolateStartAddress();
   if (options['isolate_start'] != null) {

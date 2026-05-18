@@ -578,7 +578,7 @@ DART_EXPORT const char* Dart_VersionString(void);
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000d)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000e)
 
 typedef struct {
   int32_t version;
@@ -594,6 +594,8 @@ typedef struct {
   bool snapshot_is_dontneed_safe;
   bool branch_coverage;
   bool coverage;
+  bool dwarf_stack_traces;
+  bool code_comments;
 } Dart_IsolateFlags;
 
 /**
@@ -872,19 +874,8 @@ typedef struct {
    */
   int32_t version;
 
-  /**
-   * A buffer containing snapshot data, or NULL if no snapshot is provided.
-   *
-   * If provided, the buffer must remain valid until Dart_Cleanup returns.
-   */
+  /* TRANSITION */
   const uint8_t* vm_snapshot_data;
-
-  /**
-   * A buffer containing a snapshot of precompiled instructions, or NULL if
-   * no snapshot is provided.
-   *
-   * If provided, the buffer must remain valid until Dart_Cleanup returns.
-   */
   const uint8_t* vm_snapshot_instructions;
 
   /**
@@ -929,7 +920,7 @@ typedef struct {
   /**
    * A function to be called by the service isolate when it requires the
    * vmservice assets archive. See Dart_GetVMServiceAssetsArchive.
-   * 
+   *
    * This field is deprecated and has no effect.
    */
   Dart_GetVMServiceAssetsArchive get_service_assets;
@@ -1013,10 +1004,10 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   that allows it to load the same program into such a child isolate.
  * \param name A short name for the isolate to improve debugging messages.
  *   Typically of the format 'foo.dart:main()'.
- * \param isolate_snapshot_data Buffer containing the snapshot data of the
+ * \param snapshot_data Buffer containing the snapshot data of the
  *   isolate or NULL if no snapshot is provided. If provided, the buffer must
  *   remain valid until the isolate shuts down.
- * \param isolate_snapshot_instructions Buffer containing the snapshot
+ * \param snapshot_text Buffer containing the snapshot
  *   instructions of the isolate or NULL if no snapshot is provided. If
  *   provided, the buffer must remain valid until the isolate shuts down.
  * \param flags Pointer to VM specific flags or NULL for default flags.
@@ -1033,15 +1024,14 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *
  * \return The new isolate on success, or NULL if isolate creation failed.
  */
-DART_EXPORT Dart_Isolate
-Dart_CreateIsolateGroup(const char* script_uri,
-                        const char* name,
-                        const uint8_t* isolate_snapshot_data,
-                        const uint8_t* isolate_snapshot_instructions,
-                        Dart_IsolateFlags* flags,
-                        void* isolate_group_data,
-                        void* isolate_data,
-                        char** error);
+DART_EXPORT Dart_Isolate Dart_CreateIsolateGroup(const char* script_uri,
+                                                 const char* name,
+                                                 const uint8_t* snapshot_data,
+                                                 const uint8_t* snapshot_text,
+                                                 Dart_IsolateFlags* flags,
+                                                 void* isolate_group_data,
+                                                 void* isolate_data,
+                                                 char** error);
 /**
  * Creates a new isolate inside the isolate group of [group_member].
  *
@@ -1419,26 +1409,17 @@ DART_EXPORT void Dart_ExitIsolate(void);
  * Requires there to be a current isolate. Not available in the precompiled
  * runtime (check Dart_IsPrecompiledRuntime).
  *
- * \param vm_snapshot_data_buffer Returns a pointer to a buffer containing the
- *   vm snapshot. This buffer is scope allocated and is only valid
+ * \param snapshot_data_buffer Returns a pointer to a buffer containing
+ *   the snapshot. This buffer is scope allocated and is only valid
  *   until the next call to Dart_ExitScope.
- * \param vm_snapshot_data_size Returns the size of vm_snapshot_data_buffer.
- * \param isolate_snapshot_data_buffer Returns a pointer to a buffer containing
- *   the isolate snapshot. This buffer is scope allocated and is only valid
- *   until the next call to Dart_ExitScope.
- * \param isolate_snapshot_data_size Returns the size of
- *   isolate_snapshot_data_buffer.
- * \param is_core Create a snapshot containing core libraries.
- *   Such snapshot should be agnostic to null safety mode.
+ * \param snapshot_data_size Returns the size of
+ *   snapshot_data_buffer.
  *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
-                    intptr_t* vm_snapshot_data_size,
-                    uint8_t** isolate_snapshot_data_buffer,
-                    intptr_t* isolate_snapshot_data_size,
-                    bool is_core);
+Dart_CreateSnapshot(uint8_t** snapshot_data_buffer,
+                    intptr_t* snapshot_data_size);
 
 /**
  * Returns whether the buffer contains a kernel file.
@@ -3549,7 +3530,7 @@ Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler);
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_DeferredLoadComplete(intptr_t loading_unit_id,
                           const uint8_t* snapshot_data,
-                          const uint8_t* snapshot_instructions);
+                          const uint8_t* snapshot_text);
 
 /**
  * Notifies the VM that a deferred load failed. This function
@@ -3601,12 +3582,12 @@ Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer, intptr_t kernel_size);
  *
  * \param snapshot_data Buffer containing the module snapshot data.
  *   Must remain valid until isolate group shutdown.
- * \param snapshot_instructions Buffer containing the module snapshot
+ * \param snapshot_text Buffer containing the module snapshot
  *   instructions. Must remain valid until isolate group shutdown.
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
-                        const uint8_t* snapshot_instructions);
+                        const uint8_t* snapshot_text);
 
 /**
  * Gets the library for the root script for the current isolate.
@@ -3951,7 +3932,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const char* package_config,
                                        const char* original_working_directory,
                                        const uint8_t* snapshot_data,
-                                       const uint8_t* snapshot_instructions,
+                                       const uint8_t* snapshot_text,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size);
 
@@ -4022,6 +4003,23 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 // symbol names in the objects are given by the '...AsmSymbol' definitions.
 #if defined(__APPLE__)
 #define kSnapshotBuildIdCSymbol "kDartSnapshotBuildId"
+#define kSnapshotDataCSymbol "kDartSnapshotData"
+#define kSnapshotTextCSymbol "kDartSnapshotText"
+#define kSnapshotBssCSymbol "kDartSnapshotBss"
+#else
+#define kSnapshotBuildIdCSymbol "_kDartSnapshotBuildId"
+#define kSnapshotDataCSymbol "_kDartSnapshotData"
+#define kSnapshotTextCSymbol "_kDartSnapshotText"
+#define kSnapshotBssCSymbol "_kDartSnapshotBss"
+#endif
+
+#define kSnapshotBuildIdAsmSymbol "_kDartSnapshotBuildId"
+#define kSnapshotDataAsmSymbol "_kDartSnapshotData"
+#define kSnapshotTextAsmSymbol "_kDartSnapshotText"
+#define kSnapshotBssAsmSymbol "_kDartSnapshotBss"
+
+/* TRANSITION */
+#if defined(__APPLE__)
 #define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
 #define kVmSnapshotBssCSymbol "kDartVmSnapshotBss"
@@ -4029,7 +4027,6 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 #define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
 #define kIsolateSnapshotBssCSymbol "kDartIsolateSnapshotBss"
 #else
-#define kSnapshotBuildIdCSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
 #define kVmSnapshotBssCSymbol "_kDartVmSnapshotBss"
@@ -4037,15 +4034,6 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 #define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
 #define kIsolateSnapshotBssCSymbol "_kDartIsolateSnapshotBss"
 #endif
-
-#define kSnapshotBuildIdAsmSymbol "_kDartSnapshotBuildId"
-#define kVmSnapshotDataAsmSymbol "_kDartVmSnapshotData"
-#define kVmSnapshotInstructionsAsmSymbol "_kDartVmSnapshotInstructions"
-#define kVmSnapshotBssAsmSymbol "_kDartVmSnapshotBss"
-#define kIsolateSnapshotDataAsmSymbol "_kDartIsolateSnapshotData"
-#define kIsolateSnapshotInstructionsAsmSymbol                                  \
-  "_kDartIsolateSnapshotInstructions"
-#define kIsolateSnapshotBssAsmSymbol "_kDartIsolateSnapshotBss"
 
 /**
  *  Creates a precompiled snapshot.
@@ -4057,10 +4045,8 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
  *
  *  The assembly should be compiled as a static or shared library and linked or
  *  loaded by the embedder. Running this snapshot requires a VM compiled with
- *  DART_PRECOMPILED_RUNTIME. The kDartVmSnapshotData and
- *  kDartVmSnapshotInstructions should be passed to Dart_Initialize. The
- *  kDartIsolateSnapshotData and kDartIsolateSnapshotInstructions should be
- *  passed to Dart_CreateIsolateGroup.
+ *  DART_PRECOMPILED_RUNTIME. The kDartSnapshotData and kDartSnapshotText should
+ *  be passed to Dart_CreateIsolateGroup.
  *
  *  The callback will be invoked one or more times to provide the assembly code.
  *
@@ -4092,16 +4078,13 @@ Dart_CreateAppAOTSnapshotAsAssemblies(
  *   - Dart_Precompile must have been called.
  *
  *  Outputs an ELF shared library defining the symbols
- *   - _kDartVmSnapshotData
- *   - _kDartVmSnapshotInstructions
- *   - _kDartIsolateSnapshotData
- *   - _kDartIsolateSnapshotInstructions
+ *   - _kDartSnapshotData
+ *   - _kDartSnapshotText
  *
  *  The shared library should be dynamically loaded by the embedder.
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_RUNTIME.
- *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
- *  Dart_Initialize. The kDartIsolateSnapshotData and
- *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *  The kDartSnapshotData and kDartSnapshotText should be passed to
+ *  Dart_CreateIsolateGroup.
  *
  *  The callback will be invoked one or more times to provide the binary output.
  *
@@ -4137,16 +4120,13 @@ typedef enum {
  *   - Dart_Precompile must have been called.
  *
  *  Outputs a snapshot in the specified binary format defining the symbols
- *   - _kDartVmSnapshotData
- *   - _kDartVmSnapshotInstructions
- *   - _kDartIsolateSnapshotData
- *   - _kDartIsolateSnapshotInstructions
+ *   - _kDartSnapshotData
+ *   - _kDartSnapshotText
  *
  *  The shared library should be dynamically loaded by the embedder.
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_RUNTIME.
- *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
- *  Dart_Initialize. The kDartIsolateSnapshotData and
- *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *  The kDartSnapshotData and kDartSnapshotText should be passed to
+ *  Dart_CreateIsolateGroup.
  *
  *  The callback will be invoked one or more times to provide the binary output.
  *
@@ -4184,18 +4164,15 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
  *
  *  Outputs both a snapshot and a relocatable object file in
  *  the specified binary format defining the symbols
- *   - _kDartVmSnapshotData
- *   - _kDartVmSnapshotInstructions
- *   - _kDartIsolateSnapshotData
- *   - _kDartIsolateSnapshotInstructions
+ *   - _kDartSnapshotData
+ *   - _kDartSnapshotText
  *  Whether or not the snapshot is stripped, the relocatable object file
  *  contains all debugging information.
  *
  *  The shared library should be dynamically loaded by the embedder.
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_RUNTIME.
- *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
- *  Dart_Initialize. The kDartIsolateSnapshotData and
- *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *  The kDartSnapshotData and kDartSnapshotText should be passed to
+ *  Dart_CreateIsolateGroup.
  *
  *  The callback will be invoked one or more times to provide the binary output.
  *
@@ -4273,10 +4250,10 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses(void);
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
-                                 intptr_t* isolate_snapshot_data_size,
-                                 uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size);
+Dart_CreateAppJITSnapshotAsBlobs(uint8_t** snapshot_data_buffer,
+                                 intptr_t* snapshot_data_size,
+                                 uint8_t** snapshot_text_buffer,
+                                 intptr_t* snapshot_text_size);
 
 /**
  * Get obfuscation map for precompiled code.

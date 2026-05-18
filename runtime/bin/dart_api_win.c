@@ -108,8 +108,7 @@ typedef void (*Dart_ThreadDisableProfilingType)();
 typedef void (*Dart_ThreadEnableProfilingType)();
 typedef void (*Dart_AddSymbolsType)(const char*, void*, intptr_t);
 typedef void (*Dart_ExitIsolateType)();
-typedef Dart_Handle (
-    *Dart_CreateSnapshotType)(uint8_t**, intptr_t*, uint8_t**, intptr_t*, bool);
+typedef Dart_Handle (*Dart_CreateSnapshotType)(uint8_t**, intptr_t*);
 typedef bool (*Dart_IsKernelType)(const uint8_t*, intptr_t);
 typedef bool (*Dart_IsBytecodeType)(const uint8_t*, intptr_t);
 typedef char* (*Dart_IsolateMakeRunnableType)(Dart_Isolate);
@@ -1543,18 +1542,17 @@ bool Dart_IsVMFlagSet(const char* flag_name) {
   return Dart_IsVMFlagSetFn(flag_name);
 }
 
-Dart_Isolate Dart_CreateIsolateGroup(
-    const char* script_uri,
-    const char* name,
-    const uint8_t* isolate_snapshot_data,
-    const uint8_t* isolate_snapshot_instructions,
-    Dart_IsolateFlags* flags,
-    void* isolate_group_data,
-    void* isolate_data,
-    char** error) {
-  return Dart_CreateIsolateGroupFn(script_uri, name, isolate_snapshot_data,
-                                   isolate_snapshot_instructions, flags,
-                                   isolate_group_data, isolate_data, error);
+Dart_Isolate Dart_CreateIsolateGroup(const char* script_uri,
+                                     const char* name,
+                                     const uint8_t* snapshot_data,
+                                     const uint8_t* snapshot_text,
+                                     Dart_IsolateFlags* flags,
+                                     void* isolate_group_data,
+                                     void* isolate_data,
+                                     char** error) {
+  return Dart_CreateIsolateGroupFn(script_uri, name, snapshot_data,
+                                   snapshot_text, flags, isolate_group_data,
+                                   isolate_data, error);
 }
 
 Dart_Isolate Dart_CreateIsolateInGroup(
@@ -1698,14 +1696,9 @@ void Dart_ExitIsolate() {
   Dart_ExitIsolateFn();
 }
 
-Dart_Handle Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
-                                intptr_t* vm_snapshot_data_size,
-                                uint8_t** isolate_snapshot_data_buffer,
-                                intptr_t* isolate_snapshot_data_size,
-                                bool is_core) {
-  return Dart_CreateSnapshotFn(vm_snapshot_data_buffer, vm_snapshot_data_size,
-                               isolate_snapshot_data_buffer,
-                               isolate_snapshot_data_size, is_core);
+Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_data_buffer,
+                                intptr_t* snapshot_data_size) {
+  return Dart_CreateSnapshotFn(snapshot_data_buffer, snapshot_data_size);
 }
 
 bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
@@ -2447,9 +2440,9 @@ Dart_Handle Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler) {
 
 Dart_Handle Dart_DeferredLoadComplete(intptr_t loading_unit_id,
                                       const uint8_t* snapshot_data,
-                                      const uint8_t* snapshot_instructions) {
+                                      const uint8_t* snapshot_text) {
   return Dart_DeferredLoadCompleteFn(loading_unit_id, snapshot_data,
-                                     snapshot_instructions);
+                                     snapshot_text);
 }
 
 Dart_Handle Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
@@ -2470,8 +2463,8 @@ Dart_Handle Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer,
 }
 
 Dart_Handle Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
-                                    const uint8_t* snapshot_instructions) {
-  return Dart_LoadModuleSnapshotFn(snapshot_data, snapshot_instructions);
+                                    const uint8_t* snapshot_text) {
+  return Dart_LoadModuleSnapshotFn(snapshot_data, snapshot_text);
 }
 
 Dart_Handle Dart_RootLibrary() {
@@ -2610,12 +2603,12 @@ bool Dart_DetectNullSafety(const char* script_uri,
                            const char* package_config,
                            const char* original_working_directory,
                            const uint8_t* snapshot_data,
-                           const uint8_t* snapshot_instructions,
+                           const uint8_t* snapshot_text,
                            const uint8_t* kernel_buffer,
                            intptr_t kernel_buffer_size) {
   return Dart_DetectNullSafetyFn(
       script_uri, package_config, original_working_directory, snapshot_data,
-      snapshot_instructions, kernel_buffer, kernel_buffer_size);
+      snapshot_text, kernel_buffer, kernel_buffer_size);
 }
 
 bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
@@ -2715,14 +2708,13 @@ Dart_Handle Dart_SortClasses() {
   return Dart_SortClassesFn();
 }
 
-Dart_Handle Dart_CreateAppJITSnapshotAsBlobs(
-    uint8_t** isolate_snapshot_data_buffer,
-    intptr_t* isolate_snapshot_data_size,
-    uint8_t** isolate_snapshot_instructions_buffer,
-    intptr_t* isolate_snapshot_instructions_size) {
+Dart_Handle Dart_CreateAppJITSnapshotAsBlobs(uint8_t** snapshot_data_buffer,
+                                             intptr_t* snapshot_data_size,
+                                             uint8_t** snapshot_text_buffer,
+                                             intptr_t* snapshot_text_size) {
   return Dart_CreateAppJITSnapshotAsBlobsFn(
-      isolate_snapshot_data_buffer, isolate_snapshot_data_size,
-      isolate_snapshot_instructions_buffer, isolate_snapshot_instructions_size);
+      snapshot_data_buffer, snapshot_data_size, snapshot_text_buffer,
+      snapshot_text_size);
 }
 
 Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer, intptr_t* buffer_length) {

@@ -184,9 +184,6 @@ Page* PageSpace::AllocatePage(bool is_exec, bool link) {
   if (is_exec) {
     flags |= Page::kExecutable;
   }
-  if ((heap_ != nullptr) && (heap_->is_vm_isolate())) {
-    flags |= Page::kVMIsolate;
-  }
   Page* page = Page::Allocate(Page::kPageSize, flags);
   if (page == nullptr) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
@@ -204,7 +201,7 @@ Page* PageSpace::AllocatePage(bool is_exec, bool link) {
   }
 
   page->set_object_end(page->memory_->end());
-  if (!is_exec && (heap_ != nullptr) && !heap_->is_vm_isolate()) {
+  if (!is_exec) {
     page->AllocateForwardingPage();
   }
 
@@ -227,9 +224,6 @@ Page* PageSpace::AllocateLargePage(intptr_t size, bool is_exec) {
   uword flags = Page::kLarge;
   if (is_exec) {
     flags |= Page::kExecutable;
-  }
-  if ((heap_ != nullptr) && (heap_->is_vm_isolate())) {
-    flags |= Page::kVMIsolate;
   }
   Page* page = Page::Allocate(page_size_in_words << kWordSizeLog2, flags);
 
@@ -431,6 +425,58 @@ void PageSpace::ReleaseLock(FreeList* freelist) {
       (freelist->TakeUnaccountedSizeLocked() >> kWordSizeLog2);
   freelist->mutex()->Unlock();
   usage_.used_in_words -= (freelist->ReleaseBumpAllocation() >> kWordSizeLog2);
+}
+
+void PageSpace::Freeze(Page* page) {
+  ASSERT(FLAG_write_protect_code);
+
+  // Move to the image page list and premark its objects. This page is like an
+  // image page, except that we are responsible for freeing it at shutdown.
+
+  {
+    Page* prev_page = nullptr;
+    Page* search_page = exec_pages_;
+    while (search_page != nullptr) {
+      if (search_page == page) {
+        search_page = search_page->next();
+        if (prev_page == nullptr) {
+          exec_pages_ = search_page;
+        } else {
+          prev_page->WriteProtect(false);
+          prev_page->set_next(search_page);
+          prev_page->WriteProtect(true);
+        }
+      } else {
+        prev_page = search_page;
+        search_page = search_page->next();
+      }
+    }
+    if (exec_pages_tail_ == page) {
+      exec_pages_tail_ = prev_page;
+    }
+  }
+
+  page->WriteProtect(false);
+  {
+    page->set_next(image_pages_);
+    image_pages_ = page;
+
+    uword scan = page->object_start();
+    uword end = page->object_end();
+    while (scan < end) {
+      ObjectPtr obj = UntaggedObject::FromAddr(scan);
+      if (!obj->IsFreeListElement()) {
+        ASSERT(obj->IsInstructions());
+        obj->untag()->SetMarkBitUnsynchronized();
+      }
+      scan += obj->untag()->HeapSize();
+    }
+
+    page->set_frozen(true);
+  }
+  page->WriteProtect(true);
+
+  freelists_[kExecutableFreelist].Reset();
 }
 
 void PageSpace::PauseConcurrentMarking() {
@@ -640,7 +686,7 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 
 void PageSpace::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->is_image()) {
+    if (!it.page()->is_image() && !it.page()->is_frozen()) {
       it.page()->VisitObjects(visitor);
     }
   }
@@ -648,7 +694,7 @@ void PageSpace::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
 
 void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (it.page()->is_image()) {
+    if (it.page()->is_image() || it.page()->is_frozen()) {
       it.page()->VisitObjects(visitor);
     }
   }
@@ -1055,9 +1101,11 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   if (marker_ == nullptr) {
     ASSERT(phase() == kDone);
     marker_ = new GCMarker(isolate_group, heap_);
+#if !defined(TARGET_ARCH_IA32)
     if (FLAG_use_incremental_compactor) {
       GCIncrementalCompactor::Prologue(this);
     }
+#endif
   } else {
     ASSERT(phase() == kAwaitingFinalization);
   }
@@ -1089,9 +1137,11 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   bool has_reservation = MarkReservation();
 
   bool new_space_is_swept = false;
+#if !defined(TARGET_ARCH_IA32)
   if (FLAG_use_incremental_compactor) {
     new_space_is_swept = GCIncrementalCompactor::Epilogue(this);
   }
+#endif
 
   // Reset the freelists and setup sweeping.
   for (intptr_t i = 0; i < num_freelists_; i++) {
@@ -1341,7 +1391,12 @@ void PageSpace::SweepExecutable() {
   MutexLocker ml(freelist->mutex());
   while (page != nullptr) {
     Page* next_page = page->next();
-    bool page_in_use = sweeper.SweepPage(page, freelist);
+    bool page_in_use;
+    if (page->is_frozen()) {
+      page_in_use = true;
+    } else {
+      page_in_use = sweeper.SweepPage(page, freelist);
+    }
     if (page_in_use) {
       prev_page = page;
     } else {
