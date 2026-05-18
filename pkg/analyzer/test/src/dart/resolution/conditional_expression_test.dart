@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -19,16 +18,15 @@ main() {
 @reflectiveTest
 class ConditionalExpressionResolutionTest extends PubPackageResolutionTest {
   test_condition_super() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void f() {
     super ? 0 : 1;
+//  ^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
-''',
-      [error(diag.nonBoolCondition, 27, 5)],
-    );
+''');
 
     var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
@@ -75,16 +73,15 @@ MethodInvocation
   }
 
   test_else_super() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void f(bool c) {
     c ? 0 : super;
+//          ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 41, 5)],
-    );
+''');
 
     var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
@@ -106,7 +103,7 @@ ConditionalExpression
   }
 
   test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart=3.3
 class A {}
 class B1 extends A {}
@@ -142,19 +139,18 @@ ConditionalExpression
   }
 
   test_issue49692() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>(T t, bool b) {
   if (t is int) {
     final u = b ? t : null;
     return u;
+//         ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int?' can't be returned from the function 'f' because it has a return type of 'T'.
   } else {
     return t;
   }
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 79, 1)],
-    );
+''');
 
     var node = findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
@@ -177,7 +173,7 @@ ConditionalExpression
   }
 
   test_recordType_differentShape() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(bool b, (int, String) r1, ({int a}) r2) {
   b ? r1 : r2;
 }
@@ -205,7 +201,7 @@ ConditionalExpression
   }
 
   test_recordType_sameShape_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(bool b, ({int a}) r1, ({double a}) r2) {
   b ? r1 : r2;
 }
@@ -233,16 +229,15 @@ ConditionalExpression
   }
 
   test_then_super() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void f(bool c) {
     c ? super : 0;
+//      ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 37, 5)],
-    );
+''');
 
     var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
@@ -264,7 +259,7 @@ ConditionalExpression
   }
 
   test_type_int_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(bool b) {
   b ? 0 : 1.2;
 }
@@ -290,7 +285,7 @@ ConditionalExpression
   }
 
   test_type_int_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(bool b) {
   b ? 42 : null;
 }
@@ -329,7 +324,7 @@ void f(bool a, int b, int c) {
 @reflectiveTest
 class InferenceUpdate3Test extends PubPackageResolutionTest {
   test_contextIsConvertedToATypeUsingGreatestClosure() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1<T> extends A {}
 class B2<T> extends A {}
@@ -367,7 +362,7 @@ f(bool b, C1<int> c1, C2<double> c2) {
   }
 
   test_contextNotUsedIfLhsDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -404,7 +399,7 @@ f(bool b, B2 b2, C1 c1, Object? o) {
   }
 
   test_contextNotUsedIfRhsDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -441,7 +436,7 @@ f(bool b, C1 c1, B2 b2, Object? o) {
   }
 
   test_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}

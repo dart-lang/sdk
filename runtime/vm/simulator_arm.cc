@@ -256,14 +256,10 @@ static const char* ImageName(uword vm_instructions,
                              uword isolate_instructions,
                              uword pc,
                              intptr_t* offset) {
-  const Image vm_image(vm_instructions);
   const Image isolate_image(isolate_instructions);
-  if (vm_image.contains(pc)) {
-    *offset = pc - vm_instructions;
-    return kVmSnapshotInstructionsAsmSymbol;
-  } else if (isolate_image.contains(pc)) {
+  if (isolate_image.contains(pc)) {
     *offset = pc - isolate_instructions;
-    return kIsolateSnapshotInstructionsAsmSymbol;
+    return kSnapshotTextAsmSymbol;
   } else {
     *offset = 0;
     return "<unknown>";
@@ -308,10 +304,9 @@ void SimulatorDebugger::PrintBacktrace() {
   auto const T = Thread::Current();
   auto const Z = T->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
-  auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate_group()->source()->snapshot_instructions);
-  auto const isolate_instructions = reinterpret_cast<uword>(
-      T->isolate_group()->source()->snapshot_instructions);
+  const uword vm_instructions = 0;
+  const uword isolate_instructions =
+      reinterpret_cast<uword>(T->isolate_group()->source()->snapshot_text);
   OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
                vm_instructions, isolate_instructions);
 #else

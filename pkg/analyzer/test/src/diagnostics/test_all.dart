@@ -380,6 +380,8 @@ import 'implements_deferred_class_test.dart' as implements_deferred_class;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implements_repeated_test.dart' as implements_repeated;
+import 'implements_super_class_constraint_test.dart'
+    as implements_super_class_constraint;
 import 'implements_super_class_test.dart' as implements_super_class;
 import 'implements_type_alias_expands_to_type_parameter_test.dart'
     as implements_type_alias_expands_to_type_parameter;
@@ -1203,6 +1205,7 @@ main() {
     implements_disallowed_class.main();
     implements_non_class.main();
     implements_repeated.main();
+    implements_super_class_constraint.main();
     implements_super_class.main();
     implements_type_alias_expands_to_type_parameter.main();
     implicit_this_reference_in_initializer.main();

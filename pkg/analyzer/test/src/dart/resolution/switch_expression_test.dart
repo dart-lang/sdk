@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class SwitchExpressionResolutionTest extends PubPackageResolutionTest {
   test_case_expression_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch(x) {
     0 => 0,
@@ -74,12 +73,11 @@ SwitchExpression
   }
 
   test_cases_empty() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = switch (0) {};
-''',
-      [error(diag.nonExhaustiveSwitchExpression, 10, 6)],
-    );
+//        ^^^^^^
+// [diag.nonExhaustiveSwitchExpression] The type 'int' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'int()'.
+''');
 
     var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
@@ -97,7 +95,7 @@ SwitchExpression
   }
 
   test_contextType_case_expression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   T foo<T>() => throw 0;
 
@@ -145,16 +143,15 @@ SwitchExpression
   }
 
   test_expression_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(void x) {
   (switch(x) {
+//        ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
     _ => 0,
   });
 }
-''',
-      [error(diag.useOfVoidResult, 27, 1)],
-    );
+''');
 
     var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
@@ -185,7 +182,7 @@ SwitchExpression
   test_joinedVariables_inLocalFunction() async {
     // Note: this is an important case to test because when variables are inside
     // a local function, their enclosing element is `null`.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   List<int> get values;
 }
@@ -210,7 +207,7 @@ SimpleIdentifier
   }
 
   test_location_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 num a = 0;
 
 final b = switch (a) {
@@ -278,7 +275,7 @@ SwitchExpression
   }
 
   test_rewrite_case_expression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x, int Function() a) {
   (switch (x) {
     _ => a(),
@@ -309,7 +306,7 @@ SwitchExpressionCase
   }
 
   test_rewrite_case_pattern() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     const A() => 0,
@@ -348,7 +345,7 @@ SwitchExpressionCase
   }
 
   test_rewrite_case_whenClause() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x, bool Function() a) {
   (switch (x) {
     0 when a() => true,
@@ -387,7 +384,7 @@ SwitchExpressionCase
   }
 
   test_rewrite_expression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int Function() a) {
   (switch (a()) {
     _ => 0,
@@ -429,7 +426,7 @@ SwitchExpression
   }
 
   test_staticType_cases_leastUpperBound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     true => 0,
@@ -476,7 +473,7 @@ SwitchExpression
   }
 
   test_staticType_cases_same() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     true => 0,
@@ -523,17 +520,16 @@ SwitchExpression
   }
 
   test_variables_logicalOr() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     <int>[var a || var a] => a,
+//              ^^^^^^^^
+// [diag.deadCode] Dead code.
     _ => 0,
   });
 }
-''',
-      [error(diag.deadCode, 52, 8)],
-    );
+''');
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
@@ -600,26 +596,20 @@ SwitchExpression
   }
 
   test_variables_scope() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 void f(Object? x) {
   (switch (x) {
     [int a, == a] when a > 0 => a,
+//       ^
+// [context 1] The declaration of 'a' is here.
+//             ^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'a' can't be referenced before it is declared.
     _ => 0,
   });
 }
-''',
-      [
-        error(diag.nonConstantRelationalPatternExpression, 64, 1),
-        error(
-          diag.referencedBeforeDeclaration,
-          64,
-          1,
-          contextMessages: [message(testFile, 58, 1)],
-        ),
-      ],
-    );
+''');
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
@@ -694,17 +684,16 @@ SwitchExpression
   }
 
   test_variables_singleCase() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     int a when a > 0 => a,
     _ => a,
+//       ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
   });
 }
-''',
-      [error(diag.undefinedIdentifier, 72, 1)],
-    );
+''');
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''

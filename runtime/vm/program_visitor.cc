@@ -99,8 +99,8 @@ class ProgramWalker : public ValueObject {
   // Adds the given object to the worklist if it's an object type that the
   // visitor can visit.
   void AddToWorklist(const Object& object) {
-    // We don't visit null, non-heap objects, or objects in the VM heap.
-    if (object.IsNull() || object.IsSmi() || object.InVMIsolateHeap()) return;
+    // We don't visit null or non-heap objects.
+    if (object.IsNull() || object.IsSmi()) return;
     // Check and set visited, even if we don't end up adding this to the list.
     if (heap_->GetObjectId(object.ptr()) != 0) return;
     heap_->SetObjectId(object.ptr(), 1);
@@ -316,16 +316,6 @@ class Deduper : public ValueObject {
     if (!ShouldAdd(obj)) return;
     ASSERT(!canonical_objects_.HasKey(&obj));
     canonical_objects_.Insert(&T::ZoneHandle(zone_, obj.ptr()));
-  }
-
-  void AddVMBaseObjects() {
-    const auto& object_table = Object::vm_isolate_snapshot_object_table();
-    auto& obj = Object::Handle(zone_);
-    for (intptr_t i = 0; i < object_table.Length(); i++) {
-      obj = object_table.At(i);
-      if (!ShouldAdd(obj)) continue;
-      AddCanonical(T::Cast(obj));
-    }
   }
 
   typename T::ObjectPtrType Dedup(const T& obj) {
@@ -751,12 +741,7 @@ void ProgramVisitor::DedupPcDescriptors(Thread* thread) {
         public Deduper<PcDescriptors, PcDescriptorsKeyValueTrait> {
    public:
     explicit DedupPcDescriptorsVisitor(Zone* zone)
-        : Deduper(zone), pc_descriptor_(PcDescriptors::Handle(zone)) {
-      if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
-        // Prefer existing objects in the VM isolate.
-        AddVMBaseObjects();
-      }
-    }
+        : Deduper(zone), pc_descriptor_(PcDescriptors::Handle(zone)) {}
 
     void VisitCode(const Code& code) {
       pc_descriptor_ = code.pc_descriptors();
@@ -1022,12 +1007,7 @@ void ProgramVisitor::DedupCodeSourceMaps(Thread* thread) {
         public Deduper<CodeSourceMap, CodeSourceMapKeyValueTrait> {
    public:
     explicit DedupCodeSourceMapsVisitor(Zone* zone)
-        : Deduper(zone), code_source_map_(CodeSourceMap::Handle(zone)) {
-      if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
-        // Prefer existing objects in the VM isolate.
-        AddVMBaseObjects();
-      }
-    }
+        : Deduper(zone), code_source_map_(CodeSourceMap::Handle(zone)) {}
 
     void VisitCode(const Code& code) {
       code_source_map_ = code.code_source_map();
@@ -1226,12 +1206,7 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
     explicit DedupInstructionsVisitor(Zone* zone)
         : Deduper(zone),
           code_(Code::Handle(zone)),
-          instructions_(Instructions::Handle(zone)) {
-      if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
-        // Prefer existing objects in the VM isolate.
-        Dart::vm_isolate_group()->heap()->VisitObjectsImagePages(this);
-      }
-    }
+          instructions_(Instructions::Handle(zone)) {}
 
     void VisitObject(ObjectPtr obj) override {
       if (!obj->IsInstructions()) return;
@@ -1250,6 +1225,8 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
     }
 
     void VisitCode(const Code& code) override {
+      if (code.IsStubCode()) return;
+
       instructions_ = code.instructions();
       instructions_ = Dedup(instructions_);
       code.set_instructions(instructions_);
@@ -1287,7 +1264,7 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
       auto& static_calls_table_entry = Object::Handle(zone_);
 
       auto should_canonicalize = [&](const Object& obj) {
-        return CanCanonicalize(Code::Cast(obj)) && !obj.InVMIsolateHeap();
+        return CanCanonicalize(Code::Cast(obj));
       };
 
       auto process_pool = [&](const ObjectPool& pool) {
@@ -1364,6 +1341,8 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
     }
 
     void VisitCode(const Code& code) {
+      if (code.IsStubCode()) return;
+
       canonical_ = code.ptr();
       if (code.IsDisabled()) return;
       canonical_ = Canonicalize(code);
@@ -1374,7 +1353,9 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
     }
 
    private:
-    bool CanCanonicalize(const Code& code) const { return !code.IsDisabled(); }
+    bool CanCanonicalize(const Code& code) const {
+      return !code.IsDisabled() && !code.IsStubCode();
+    }
 
     CodePtr Canonicalize(const Code& code) {
       canonical_ = Dedup(code);
@@ -1513,7 +1494,6 @@ void ProgramVisitor::AssignUnits(Thread* thread) {
 
   AssignLoadingUnitsCodeVisitor visitor(thread->zone());
   HeapIterationScope iter(thread);
-  iter.IterateVMIsolateObjects(&visitor);
   iter.IterateObjects(&visitor);
 }
 

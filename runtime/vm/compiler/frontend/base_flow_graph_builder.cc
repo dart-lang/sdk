@@ -968,10 +968,8 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   JoinEntryInstr* nsm = BuildJoinEntry();
 
   Fragment failing(nsm);
-  const Code& nsm_handler = Code::ZoneHandle(
-      Z, IG->object_store()->call_closure_no_such_method_stub());
   failing += LoadArgDescriptor();
-  failing += TailCall(nsm_handler);
+  failing += TailCall(StubCode::CallClosureNoSuchMethod());
 
   return nsm;
 }

@@ -76,7 +76,6 @@ class FakeMessageHandler : public MessageHandler {
 };
 
 VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
-  auto* fcm = FfiCallbackMetadata::Instance();
   FfiCallbackMetadata::Trampoline tramp1 = 0;
   FfiCallbackMetadata::Trampoline tramp2 = 0;
 
@@ -85,6 +84,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     ASSERT(isolate == isolate_scope.isolate());
+    auto* fcm = isolate->group()->callback_metadata();
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
 
@@ -156,21 +156,9 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
       EXPECT_EQ(e2->list_next(), nullptr);
     }
   }
-
-  {
-    // Isolate has shut down, so all callbacks should be deleted.
-    FfiCallbackMetadata::Metadata m1 =
-        fcm->LookupMetadataForTrampolineUnlocked(tramp1);
-    EXPECT(!m1.IsLive());
-
-    FfiCallbackMetadata::Metadata m2 =
-        fcm->LookupMetadataForTrampolineUnlocked(tramp2);
-    EXPECT(!m2.IsLive());
-  }
 }
 
 VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
-  auto* fcm = FfiCallbackMetadata::Instance();
   FfiCallbackMetadata::Trampoline tramp1 = 0;
   FfiCallbackMetadata::Trampoline tramp2 = 0;
 
@@ -179,6 +167,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     ASSERT(thread->isolate() == isolate_scope.isolate());
+    auto* fcm = isolate->group()->callback_metadata();
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
 
@@ -252,21 +241,9 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
       EXPECT_EQ(e1->list_next(), nullptr);
     }
   }
-
-  {
-    // Isolate has shut down, so all callbacks should be deleted.
-    FfiCallbackMetadata::Metadata m1 =
-        fcm->LookupMetadataForTrampolineUnlocked(tramp1);
-    EXPECT(!m1.IsLive());
-
-    FfiCallbackMetadata::Metadata m2 =
-        fcm->LookupMetadataForTrampolineUnlocked(tramp2);
-    EXPECT(!m2.IsLive());
-  }
 }
 
 VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
-  auto* fcm = FfiCallbackMetadata::Instance();
   FfiCallbackMetadata::Trampoline tramp1 = 0;
   FfiCallbackMetadata::Trampoline tramp2 = 0;
 
@@ -275,6 +252,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     ASSERT(thread->isolate() == isolate_scope.isolate());
+    auto* fcm = isolate->group()->callback_metadata();
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
 
@@ -357,23 +335,12 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
       EXPECT_EQ(e1->list_next(), nullptr);
     }
   }
-
-  {
-    // Isolate has shut down, so all callbacks should be deleted.
-    FfiCallbackMetadata::Metadata m1 =
-        fcm->LookupMetadataForTrampolineUnlocked(tramp1);
-    EXPECT(!m1.IsLive());
-
-    FfiCallbackMetadata::Metadata m2 =
-        fcm->LookupMetadataForTrampolineUnlocked(tramp2);
-    EXPECT(!m2.IsLive());
-  }
 }
 
 ISOLATE_UNIT_TEST_CASE(FfiCallbackMetadata_TrampolineRecycling) {
   Isolate* isolate = thread->isolate();
   auto* zone = thread->zone();
-  auto* fcm = FfiCallbackMetadata::Instance();
+  auto* fcm = IsolateGroup::Current()->callback_metadata();
 
   const Function& func =
       Function::Handle(CreateTestFunction(FfiCallbackKind::kAsyncCallback));
@@ -437,7 +404,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
   TransitionNativeToVM transition(thread);
   StackZone stack_zone(thread);
 
-  auto* fcm = FfiCallbackMetadata::Instance();
+  auto* fcm = IsolateGroup::Current()->callback_metadata();
   std::unordered_set<FfiCallbackMetadata::Trampoline> tramps;
   FfiCallbackMetadata::MetadataEntry* list_head = nullptr;
 
@@ -515,7 +482,7 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
     Dart_Port port;
   };
 
-  auto* fcm = FfiCallbackMetadata::Instance();
+  auto* fcm = IsolateGroup::Current()->callback_metadata();
   Random random(seed);
   std::vector<TrampolineWithPort> tramps;
   std::unordered_set<FfiCallbackMetadata::Trampoline> tramp_set;

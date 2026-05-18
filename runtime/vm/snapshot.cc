@@ -5,7 +5,6 @@
 #include "vm/snapshot.h"
 
 #include "platform/assert.h"
-#include "vm/dart.h"
 
 namespace dart {
 
@@ -13,14 +12,10 @@ const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
     case kFull:
       return "full";
-    case kFullCore:
-      return "full-core";
     case kFullJIT:
       return "full-jit";
     case kFullAOT:
       return "full-aot";
-    case kNone:
-      return "none";
     case kInvalid:
     default:
       return "invalid";

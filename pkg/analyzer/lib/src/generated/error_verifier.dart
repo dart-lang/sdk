@@ -7095,6 +7095,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkImplementsSuperClassConstraint(
+    MixinOnClause? onClause,
+    ImplementsClause? implementsClause,
+  ) {
+    if (onClause == null || implementsClause == null) {
+      return;
+    }
+
+    if (_currentLibrary.featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
+
+    var onElements = <Element>{};
+    for (var onNode in onClause.superclassConstraints) {
+      var type = onNode.type;
+      if (type is InterfaceType) {
+        onElements.add(type.element);
+      }
+    }
+
+    for (var interfaceNode in implementsClause.interfaces) {
+      var type = interfaceNode.type;
+      if (type is InterfaceType && onElements.contains(type.element)) {
+        diagnosticReporter.report(
+          diag.implementsSuperClassConstraint
+              .withArguments(superElement: type.element)
+              .at(interfaceNode),
+        );
+      }
+    }
+  }
+
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
   void _checkMixinInheritance(
@@ -7118,6 +7150,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         implementsClause?.interfaces,
         diag.implementsRepeated,
       );
+      _checkImplementsSuperClassConstraint(onClause, implementsClause);
       _checkForConflictingGenerics(node: node, nameToken: node.name);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
       _checkForFinalSupertypeOutsideOfLibrary(

@@ -61,7 +61,7 @@ intptr_t Page::CachedSize() {
 }
 
 static bool CanUseCache(uword flags) {
-  return (flags & (Page::kImage | Page::kLarge | Page::kVMIsolate)) == 0;
+  return (flags & (Page::kImage | Page::kLarge | Page::kFrozen)) == 0;
 }
 
 static intptr_t CacheIndex(uword flags) {

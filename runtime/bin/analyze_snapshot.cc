@@ -60,10 +60,8 @@ static void PrintUsage() {
 }
 // clang-format on
 
-const uint8_t* vm_snapshot_data = nullptr;
-const uint8_t* vm_snapshot_instructions = nullptr;
-const uint8_t* vm_isolate_data = nullptr;
-const uint8_t* vm_isolate_instructions = nullptr;
+const uint8_t* snapshot_data = nullptr;
+const uint8_t* snapshot_text = nullptr;
 
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
@@ -168,21 +166,18 @@ int RunAnalyzer(int argc, char** argv) {
   const char* script_name = nullptr;
   script_name = inputs.GetArgument(0);
 
-  auto* const app_snapshot = Snapshot::TryReadAppSnapshot(
-      script_name, /*force_load_from_memory=*/true);
+  std::unique_ptr<AppSnapshot> app_snapshot(Snapshot::TryReadAppSnapshot(
+      script_name, /*force_load_from_memory=*/true));
   if (app_snapshot == nullptr) {
     Syslog::PrintErr("Cannot load snapshot file.\n");
     return kErrorExitCode;
   }
-  app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
-                           &vm_isolate_data, &vm_isolate_instructions);
+  app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
 
   // Begin initialization
   Dart_InitializeParams init_params = {};
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  init_params.vm_snapshot_data = vm_snapshot_data;
-  init_params.vm_snapshot_instructions = vm_snapshot_instructions;
 
   init_params.file_open = DartUtils::OpenFile;
   init_params.file_read = DartUtils::ReadFile;
@@ -203,8 +198,8 @@ int RunAnalyzer(int argc, char** argv) {
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
 
-  Dart_CreateIsolateGroup(nullptr, nullptr, vm_isolate_data,
-                          vm_isolate_instructions, &isolate_flags,
+  Dart_CreateIsolateGroup(/*script_uri=*/nullptr, /*name=*/nullptr,
+                          snapshot_data, snapshot_text, &isolate_flags,
                           isolate_group_data.get(),
                           /*isolate_data=*/nullptr, &error);
 
@@ -215,8 +210,7 @@ int RunAnalyzer(int argc, char** argv) {
   }
 
   dart::snapshot_analyzer::Dart_SnapshotAnalyzerInformation info = {
-      vm_snapshot_data, vm_snapshot_instructions, vm_isolate_data,
-      vm_isolate_instructions};
+      snapshot_data, snapshot_text};
 
   char* out = nullptr;
   intptr_t out_len = 0;
@@ -230,8 +224,6 @@ int RunAnalyzer(int argc, char** argv) {
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
-  // Delete the returned AppSnapshot to avoid leaks.
-  delete app_snapshot;
   return 0;
 }
 #endif

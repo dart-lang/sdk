@@ -31,8 +31,6 @@ DEFINE_FLAG(bool,
             "Generate probe points for installation of user space probes");
 #endif
 
-AcqRelAtomic<bool> StubCode::initialized_ = {false};
-
 #if defined(DART_PRECOMPILED_RUNTIME)
 void StubCode::Init() {
   // Stubs will be loaded from the snapshot.
@@ -64,8 +62,6 @@ void StubCode::Init() {
     Roots::stub_handle(i).set_object_pool(object_pool.ptr());
   }
 
-  InitializationDone();
-
 #if defined(DART_PRECOMPILER)
   {
     // Set Function owner for UnknownDartCode stub so it pretends to
@@ -90,6 +86,13 @@ void StubCode::Init() {
     ASSERT(StubCode::UnknownDartCode().IsFunctionCode());
   }
 #endif  // defined(DART_PRECOMPILER)
+
+  if (FLAG_write_protect_code) {
+    // An FFI call can be executing in CallNativeThroughSafepoint while a
+    // safepoint is in progress. It needs to stay executable.
+    IsolateGroup::Current()->heap()->old_space()->Freeze(
+        Page::Of(StubCode::CallNativeThroughSafepoint().instructions()));
+  }
 }
 
 #undef STUB_CODE_GENERATE
@@ -121,13 +124,10 @@ CodePtr StubCode::Generate(const char* name,
     Disassembler::DisassembleStub(name, code);
   }
 #endif  // !PRODUCT
+  ASSERT(!code.IsNull());
   return code.ptr();
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
-
-void StubCode::Cleanup() {
-  initialized_.store(false, std::memory_order_release);
-}
 
 bool StubCode::InInvocationStub(Thread* T,
                                 uword pc,
@@ -165,6 +165,9 @@ bool StubCode::InJumpToFrameStub(Thread* T, uword pc) {
   if (roots == nullptr) return false;
 
   const Code& stub = roots->x_stub_handle(kJumpToFrameIndex);
+  if (stub.ptr() == nullptr) {
+    return false;  // Still bootstrapping.
+  }
   uword entry = Code::StubEntryPointOf(stub.ptr());
   uword size = Code::StubPayloadSizeOf(stub.ptr());
   return (pc >= entry) && (pc < (entry + size));
@@ -200,36 +203,35 @@ ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
 
 CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
-  auto object_store = thread->isolate_group()->object_store();
   Zone* zone = thread->zone();
   const Error& error =
       Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
   ASSERT(error.IsNull());
   switch (cls.id()) {
     case kArrayCid:
-      return object_store->allocate_array_stub();
+      return StubCode::AllocateArray().ptr();
 #if !defined(TARGET_ARCH_IA32)
     case kGrowableObjectArrayCid:
-      return object_store->allocate_growable_array_stub();
+      return StubCode::AllocateGrowableArray().ptr();
 #endif  // !defined(TARGET_ARCH_IA32)
     case kContextCid:
-      return object_store->allocate_context_stub();
+      return StubCode::AllocateContext().ptr();
     case kUnhandledExceptionCid:
-      return object_store->allocate_unhandled_exception_stub();
+      return StubCode::AllocateUnhandledException().ptr();
     case kMintCid:
-      return object_store->allocate_mint_stub();
+      return StubCode::AllocateMint().ptr();
     case kDoubleCid:
-      return object_store->allocate_double_stub();
+      return StubCode::AllocateDouble().ptr();
     case kFloat32x4Cid:
-      return object_store->allocate_float32x4_stub();
+      return StubCode::AllocateFloat32x4().ptr();
     case kFloat64x2Cid:
-      return object_store->allocate_float64x2_stub();
+      return StubCode::AllocateFloat64x2().ptr();
     case kInt32x4Cid:
-      return object_store->allocate_int32x4_stub();
+      return StubCode::AllocateInt32x4().ptr();
     case kClosureCid:
-      return object_store->allocate_closure1_stub();
+      return StubCode::AllocateClosure1().ptr();
     case kRecordCid:
-      return object_store->allocate_record_stub();
+      return StubCode::AllocateRecord().ptr();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
   if (stub.IsNull()) {
@@ -245,13 +247,12 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
                                      : Code::PoolAttachment::kAttachPool;
 
     auto zone = thread->zone();
-    auto object_store = thread->isolate_group()->object_store();
     auto& allocate_object_stub = Code::ZoneHandle(zone);
     auto& allocate_object_parametrized_stub = Code::ZoneHandle(zone);
     if (FLAG_precompiled_mode) {
-      allocate_object_stub = object_store->allocate_object_stub();
+      allocate_object_stub = StubCode::AllocateObject().ptr();
       allocate_object_parametrized_stub =
-          object_store->allocate_object_parametrized_stub();
+          StubCode::AllocateObjectParameterized().ptr();
     }
 
     compiler::Assembler assembler(wrapper);
@@ -303,36 +304,35 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
-  auto object_store = Thread::Current()->isolate_group()->object_store();
   switch (class_id) {
     case kTypedDataInt8ArrayCid:
-      return object_store->allocate_int8_array_stub();
+      return StubCode::AllocateInt8Array().ptr();
     case kTypedDataUint8ArrayCid:
-      return object_store->allocate_uint8_array_stub();
+      return StubCode::AllocateUint8Array().ptr();
     case kTypedDataUint8ClampedArrayCid:
-      return object_store->allocate_uint8_clamped_array_stub();
+      return StubCode::AllocateUint8ClampedArray().ptr();
     case kTypedDataInt16ArrayCid:
-      return object_store->allocate_int16_array_stub();
+      return StubCode::AllocateInt16Array().ptr();
     case kTypedDataUint16ArrayCid:
-      return object_store->allocate_uint16_array_stub();
+      return StubCode::AllocateUint16Array().ptr();
     case kTypedDataInt32ArrayCid:
-      return object_store->allocate_int32_array_stub();
+      return StubCode::AllocateInt32Array().ptr();
     case kTypedDataUint32ArrayCid:
-      return object_store->allocate_uint32_array_stub();
+      return StubCode::AllocateUint32Array().ptr();
     case kTypedDataInt64ArrayCid:
-      return object_store->allocate_int64_array_stub();
+      return StubCode::AllocateInt64Array().ptr();
     case kTypedDataUint64ArrayCid:
-      return object_store->allocate_uint64_array_stub();
+      return StubCode::AllocateUint64Array().ptr();
     case kTypedDataFloat32ArrayCid:
-      return object_store->allocate_float32_array_stub();
+      return StubCode::AllocateFloat32Array().ptr();
     case kTypedDataFloat64ArrayCid:
-      return object_store->allocate_float64_array_stub();
+      return StubCode::AllocateFloat64Array().ptr();
     case kTypedDataFloat32x4ArrayCid:
-      return object_store->allocate_float32x4_array_stub();
+      return StubCode::AllocateFloat32x4Array().ptr();
     case kTypedDataInt32x4ArrayCid:
-      return object_store->allocate_int32x4_array_stub();
+      return StubCode::AllocateInt32x4Array().ptr();
     case kTypedDataFloat64x2ArrayCid:
-      return object_store->allocate_float64x2_array_stub();
+      return StubCode::AllocateFloat64x2Array().ptr();
   }
   UNREACHABLE();
   return Code::null();
@@ -362,17 +362,6 @@ void StubCode::ForEachStub(
       }
     }
   }
-  auto object_store = IsolateGroup::Current()->object_store();
-
-#define MATCH(member, name)                                                    \
-  if (object_store->member() != Code::null()) {                                \
-    if (!callback("_iso_stub_" #name "Stub",                                   \
-                  Code::EntryPointOf(object_store->member()))) {               \
-      return;                                                                  \
-    }                                                                          \
-  }
-  OBJECT_STORE_STUB_CODE_LIST(MATCH)
-#undef MATCH
 }
 
 const char* StubCode::NameOfStub(uword entry_point) {

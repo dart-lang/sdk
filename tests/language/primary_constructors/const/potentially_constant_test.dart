@@ -7,8 +7,6 @@
 // primary constructor, or in an initializing expression of a non-late instance
 // variable declaration, is potentially constant.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 class const A(dynamic d) {

@@ -28,35 +28,68 @@ typedef struct {
 /// borrows it for the duration of the call. The memory can be release as soon
 // as Dart_LoadAOTSnapshot_Memory returns.
 #if defined(__Fuchsia__) || defined(__linux__) || defined(__FreeBSD__)
-DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd(
+DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd2(
     int fd,
     uint64_t file_offset,
     const char** error,
-    const uint8_t** vm_snapshot_data,
-    const uint8_t** vm_snapshot_instrs,
-    const uint8_t** vm_isolate_data,
-    const uint8_t** vm_isolate_instrs);
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text);
+inline Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd(
+    int fd,
+    uint64_t file_offset,
+    const char** error,
+    const uint8_t** vm_data,
+    const uint8_t** vm_text,
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text) {
+  *vm_data = nullptr;
+  *vm_text = nullptr;
+  return Dart_LoadMachODylib_Fd2(fd, file_offset, error, snapshot_data,
+                                 snapshot_text);
+}
 #endif
 
 /// Please see documentation for Dart_LoadMachODylib_Fd.
-DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib(
+DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib2(
     const char* filename,
     uint64_t file_offset,
     const char** error,
-    const uint8_t** vm_snapshot_data,
-    const uint8_t** vm_snapshot_instrs,
-    const uint8_t** vm_isolate_data,
-    const uint8_t** vm_isolate_instrs);
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text);
+inline Dart_LoadedMachODylib* Dart_LoadMachODylib(
+    const char* filename,
+    uint64_t file_offset,
+    const char** error,
+    const uint8_t** vm_data,
+    const uint8_t** vm_text,
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text) {
+  *vm_data = nullptr;
+  *vm_text = nullptr;
+  return Dart_LoadMachODylib2(filename, file_offset, error, snapshot_data,
+                              snapshot_text);
+}
 
 /// Please see documentation for Dart_LoadMachODylib_Fd.
-DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory(
+DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory2(
     const uint8_t* snapshot,
     uint64_t snapshot_size,
     const char** error,
-    const uint8_t** vm_snapshot_data,
-    const uint8_t** vm_snapshot_instrs,
-    const uint8_t** vm_isolate_data,
-    const uint8_t** vm_isolate_instrs);
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text);
+inline Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory(
+    const uint8_t* snapshot,
+    uint64_t snapshot_size,
+    const char** error,
+    const uint8_t** vm_data,
+    const uint8_t** vm_text,
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text) {
+  *vm_data = nullptr;
+  *vm_text = nullptr;
+  return Dart_LoadMachODylib_Memory2(snapshot, snapshot_size, error,
+                                     snapshot_data, snapshot_text);
+}
 
 /// Unloads an MachO dynamic library object loaded through
 /// Dart_LoadMachODylib{_Fd, _Memory}.

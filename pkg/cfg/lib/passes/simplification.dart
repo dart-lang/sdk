@@ -250,6 +250,9 @@ final class Simplification extends Pass
   Instruction visitAllocateMapLiteral(AllocateMapLiteral instr) => instr;
 
   @override
+  Instruction visitAllocateRecordLiteral(AllocateRecordLiteral instr) => instr;
+
+  @override
   Instruction visitStringInterpolation(StringInterpolation instr) {
     final buf = _StringInterpolationBuffer(constantFolding);
     buf.addStringInterpolation(instr);
@@ -291,6 +294,9 @@ final class Simplification extends Pass
 
   @override
   Instruction visitSetListElement(SetListElement instr) => instr;
+
+  @override
+  Instruction visitAllocateRecord(AllocateRecord instr) => instr;
 
   @override
   Instruction visitBoxInt(BoxInt instr) => instr;

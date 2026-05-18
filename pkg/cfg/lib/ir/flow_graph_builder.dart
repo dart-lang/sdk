@@ -599,6 +599,22 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [AllocateRecordLiteral] to the graph.
+  /// Takes elements from the stack as inputs.
+  AllocateRecordLiteral addAllocateRecordLiteral(RecordType type) {
+    final inputCount = type.numFields;
+    final instr = AllocateRecordLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [StringInterpolation] to the graph.
   StringInterpolation addStringInterpolation(int inputCount) {
     final instr = StringInterpolation(

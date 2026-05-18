@@ -2947,10 +2947,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& allocate_array_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
-  compiler->GenerateStubCall(source(), allocate_array_stub,
+  compiler->GenerateStubCall(source(), StubCode::AllocateArray(),
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
   __ Bind(&done);
@@ -2991,12 +2988,9 @@ class AllocateContextSlowPath
         instruction(), /*num_slow_path_args=*/0);
     ASSERT(slow_path_env != nullptr);
 
-    auto object_store = compiler->isolate_group()->object_store();
-    const auto& allocate_context_stub = Code::ZoneHandle(
-        compiler->zone(), object_store->allocate_context_stub());
-
     __ LoadImmediate(T1, instruction()->num_context_variables());
-    compiler->GenerateStubCall(instruction()->source(), allocate_context_stub,
+    compiler->GenerateStubCall(instruction()->source(),
+                               StubCode::AllocateContext(),
                                UntaggedPcDescriptors::kOther, locs,
                                instruction()->deopt_id(), slow_path_env);
     ASSERT(instruction()->locs()->out(0).reg() == A0);
@@ -3047,11 +3041,8 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == T1);
   ASSERT(locs()->out(0).reg() == A0);
 
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& allocate_context_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
   __ LoadImmediate(T1, num_context_variables());
-  compiler->GenerateStubCall(source(), allocate_context_stub,
+  compiler->GenerateStubCall(source(), StubCode::AllocateContext(),
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
 }
@@ -3071,10 +3062,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == T5);
   ASSERT(locs()->out(0).reg() == A0);
 
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& clone_context_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
-  compiler->GenerateStubCall(source(), clone_context_stub,
+  compiler->GenerateStubCall(source(), StubCode::CloneContext(),
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
                              deopt_id(), env());
 }
@@ -3170,13 +3158,10 @@ class CheckStackOverflowSlowPath
           __ TsanFuncEntry();
         }
       }
-      auto object_store = compiler->isolate_group()->object_store();
       const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
-      const auto& stub = Code::ZoneHandle(
-          compiler->zone(),
-          live_fpu_regs
-              ? object_store->stack_overflow_stub_with_fpu_regs_stub()
-              : object_store->stack_overflow_stub_without_fpu_regs_stub());
+      const auto& stub = live_fpu_regs
+                             ? StubCode::StackOverflowSharedWithFPURegs()
+                             : StubCode::StackOverflowSharedWithoutFPURegs();
 
       if (compiler->CanPcRelativeCall(stub)) {
         __ GenerateUnRelocatedPcRelativeCall();
@@ -4071,19 +4056,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
-  // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
-  // replaced with isolate-specific stubs.
-  auto object_store = IsolateGroup::Current()->object_store();
-  const bool stubs_in_vm_isolate =
-      object_store->allocate_mint_with_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap() ||
-      object_store->allocate_mint_without_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap();
-  const bool shared_slow_path_call =
-      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
+  const bool shared_slow_path_call = SlowPathSharingSupported(opt);
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone) LocationSummary(
@@ -4145,12 +4118,10 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ set_constant_pool_allowed(false);
       __ EnterDartFrame(0);
     }
-    auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-    const auto& stub = Code::ZoneHandle(
-        compiler->zone(),
-        live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
-                      : object_store->allocate_mint_without_fpu_regs_stub());
+    const auto& stub = live_fpu_regs
+                           ? StubCode::AllocateMintSharedWithFPURegs()
+                           : StubCode::AllocateMintSharedWithoutFPURegs();
 
     ASSERT(!locs()->live_registers()->ContainsRegister(
         AllocateMintABI::kResultReg));
@@ -4201,12 +4172,10 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ TsanFuncEntry();
       }
     }
-    auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-    const auto& stub = Code::ZoneHandle(
-        compiler->zone(),
-        live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
-                      : object_store->allocate_mint_without_fpu_regs_stub());
+    const auto& stub = live_fpu_regs
+                           ? StubCode::AllocateMintSharedWithFPURegs()
+                           : StubCode::AllocateMintSharedWithoutFPURegs();
 
     ASSERT(!locs()->live_registers()->ContainsRegister(
         AllocateMintABI::kResultReg));

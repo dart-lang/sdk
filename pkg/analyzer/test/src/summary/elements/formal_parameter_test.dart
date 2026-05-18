@@ -698,37 +698,41 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration positional (nameOffset:23) (firstTokenOffset:21) (offset:23)
+            #F5 isCompleteDeclaration isOriginDeclaration positional (nameOffset:23) (firstTokenOffset:21) (offset:23)
               element: <testLibrary>::@class::C::@constructor::positional
               typeName: C
               typeNameOffset: 21
               periodOffset: 22
               formalParameters
-                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:35) (offset:40)
+                #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:35) (offset:40)
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
                       literal: 1 @44
                       staticType: int
-            #F5 isCompleteDeclaration isOriginDeclaration named (nameOffset:53) (firstTokenOffset:51) (offset:53)
+            #F7 isCompleteDeclaration isOriginDeclaration named (nameOffset:53) (firstTokenOffset:51) (offset:53)
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 51
               periodOffset: 52
               formalParameters
-                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:65) (firstTokenOffset:60) (offset:65)
+                #F8 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:65) (firstTokenOffset:60) (offset:65)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
                   initializer: expression_1
                     IntegerLiteral
                       literal: 1 @68
                       staticType: int
           getters
-            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -746,36 +750,36 @@ library
       constructors
         isOriginDeclaration positional
           reference: <testLibrary>::@class::C::@constructor::positional
-          firstFragment: #F3
-          formalParameters
-            #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.x
-              firstFragment: #F4
-              type: dynamic
-              constantInitializer
-                fragment: #F4
-                expression: expression_0
-              field: <testLibrary>::@class::C::@field::x
-        isOriginDeclaration named
-          reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F5
           formalParameters
-            #E1 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
+            #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.x
               firstFragment: #F6
               type: dynamic
               constantInitializer
                 fragment: #F6
+                expression: expression_0
+              field: <testLibrary>::@class::C::@field::x
+        isOriginDeclaration named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F7
+          formalParameters
+            #E1 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
+              firstFragment: #F8
+              type: dynamic
+              constantInitializer
+                fragment: #F8
                 expression: expression_1
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F7
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F8
+          firstFragment: #F4
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F9

@@ -119,6 +119,8 @@ class AstToIr extends ast.RecursiveVisitor {
         if (builder.hasOpenBlock) {
           builder.addReturn();
         }
+      case MethodExtractor():
+        throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
       case RegularFunction() || GetterFunction() || SetterFunction():
         _enterScope(functionNode);
         _translateNode(functionNode?.body);
@@ -717,7 +719,7 @@ class AstToIr extends ast.RecursiveVisitor {
   void visitInstanceTearOff(ast.InstanceTearOff node) {
     final interfaceTarget = functionRegistry.getFunction(
       node.interfaceTarget,
-      isTearOff: true,
+      isMethodExtractor: true,
     );
     _translateNode(node.receiver);
     if (_handleUnreachableExpression(1)) return;
@@ -2087,6 +2089,40 @@ class AstToIr extends ast.RecursiveVisitor {
       default:
         throw 'Unexpected YieldStatement in $function with ${function.asyncMarker}';
     }
+  }
+
+  @override
+  void visitRecordIndexGet(ast.RecordIndexGet node) {
+    final shape = RecordType(node.receiverType).shape;
+    _translateNode(node.receiver);
+    // TODO: canonicalize record fields
+    builder.addLoadInstanceField(CField(RecordField(shape, node.index)));
+  }
+
+  @override
+  void visitRecordNameGet(ast.RecordNameGet node) {
+    final shape = RecordType(node.receiverType).shape;
+    final namedIndex = shape.named.indexOf(node.name);
+    assert(namedIndex >= 0);
+    _translateNode(node.receiver);
+    // TODO: canonicalize record fields
+    builder.addLoadInstanceField(
+      CField(RecordField(shape, shape.positional + namedIndex)),
+    );
+  }
+
+  @override
+  void visitRecordLiteral(ast.RecordLiteral node) {
+    assert(!node.isConst);
+    final type = RecordType(node.recordType);
+    for (final expr in node.positional) {
+      _translateNode(expr);
+    }
+    for (final expr in node.named) {
+      _translateNode(expr.value);
+    }
+    assert(node.positional.length + node.named.length == type.numFields);
+    builder.addAllocateRecordLiteral(type);
   }
 }
 

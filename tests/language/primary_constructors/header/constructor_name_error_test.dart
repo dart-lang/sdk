@@ -6,8 +6,6 @@
 // primary constructor whose name is also the name of a constructor declared
 // in the body.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C1(final int x) {
   C1(this.x);
   // [error column 3, length 2]
@@ -26,6 +24,7 @@ class C2.named(final int x) {
 
 enum E1(final int x) {
   e(1);
+
   const E1(this.x);
   //    ^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
@@ -38,6 +37,7 @@ enum E2.named(final int x) {
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ENUM_CONSTRUCTOR
   // [cfe] Couldn't find constructor 'E2'.
+
   const E2.named(this.x);
   //    ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR

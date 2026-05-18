@@ -413,6 +413,9 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitAllocateRecordLiteral(AllocateRecordLiteral instr) {}
+
+  @override
   void visitStringInterpolation(StringInterpolation instr) {}
 
   @override
@@ -486,6 +489,9 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitSetListElement(SetListElement instr) {}
+
+  @override
+  void visitAllocateRecord(AllocateRecord instr) {}
 
   @override
   void visitBoxInt(BoxInt instr) {

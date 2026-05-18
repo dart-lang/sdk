@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -19,23 +18,21 @@ main() {
 class DotShorthandConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
   test_abstractClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   Foo();
 }
 
 void main() {
   Foo _ = .new();
+//        ^^^^^^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 60, 6)],
-    );
+''');
   }
 
   test_abstractClass_const() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   static C fn() => CB.named(1);
 }
@@ -47,16 +44,15 @@ class CB implements C {
 
 void main() {
   C c = const .fn(1);
+//             ^^
+// [diag.constWithUndefinedConstructor] The class 'C' doesn't have a constant constructor 'fn'.
   print(c);
 }
-''',
-      [error(diag.constWithUndefinedConstructor, 145, 2)],
-    );
+''');
   }
 
   test_abstractClass_const_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   static C fn() => CB.named(1);
 }
@@ -68,18 +64,17 @@ class CB implements C {
 
 void main() {
   C c = const .fn<int>(1);
+//             ^^
+// [diag.constWithUndefinedConstructor] The class 'C' doesn't have a constant constructor 'fn'.
+//               ^^^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'C.fn', and type parameters can't be applied to dot shorthand constructor invocations.
   print(c);
 }
-''',
-      [
-        error(diag.constWithUndefinedConstructor, 145, 2),
-        error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 147, 5),
-      ],
-    );
+''');
   }
 
   test_abstractClass_factory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() async {
   var iter = [1, 2];
   await for (var x in .fromIterable(iter)) {
@@ -115,7 +110,7 @@ DotShorthandConstructorInvocation
   }
 
   test_abstractClass_factory_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -149,8 +144,7 @@ DotShorthandConstructorInvocation
   }
 
   test_abstractClass_factory_const_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -162,14 +156,13 @@ class _Foo<T> extends Foo<T> {
 }
 
 Foo<int> bar<T>() => const .a<int>();
-''',
-      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 154, 5)],
-    );
+//                           ^^^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
+''');
   }
 
   test_abstractClass_factory_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   factory Foo.a() = _Foo;
 
@@ -181,39 +174,37 @@ class _Foo<T> extends Foo<T> {
 }
 
 Foo<T> bar<T>() => .a<T>();
-''',
-      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 128, 3)],
-    );
+//                   ^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
+''');
   }
 
   test_abstractClass_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Function getFunction() {
   return .new();
+//       ^^^^^^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 34, 6)],
-    );
+''');
   }
 
   test_abstractClass_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   Foo();
 }
 
 void main() {
   Foo _ = .new<int>();
+//        ^^^^^^^^^^^
+// [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
-''',
-      [error(diag.instantiateAbstractClass, 60, 11)],
-    );
+''');
   }
 
   test_chain_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -259,7 +250,7 @@ MethodInvocation
   }
 
   test_chain_method_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C(this.x);
@@ -306,7 +297,7 @@ MethodInvocation
   }
 
   test_chain_property() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -348,7 +339,7 @@ PropertyAccess
   }
 
   test_chain_property_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C(this.x);
@@ -391,7 +382,7 @@ PropertyAccess
   }
 
   test_conflict_instance_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int value; // Same name as constructor
   A.value(this.value);
@@ -426,7 +417,7 @@ DotShorthandConstructorInvocation
   }
 
   test_conflict_instance_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int val;
   A.value(this.val);
@@ -462,7 +453,7 @@ DotShorthandConstructorInvocation
   }
 
   test_conflict_instance_method_factory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int val;
   A._(this.val);
@@ -494,7 +485,7 @@ DotShorthandConstructorInvocation
   }
 
   test_conflict_instance_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? val;
   A.value(this.val);
@@ -534,7 +525,7 @@ DotShorthandConstructorInvocation
   }
 
   test_const_assert() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -570,7 +561,7 @@ DotShorthandConstructorInvocation
   }
 
   test_const_inConstantContext() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -604,7 +595,7 @@ DotShorthandConstructorInvocation
   }
 
   test_const_keyword() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -639,8 +630,7 @@ DotShorthandConstructorInvocation
   }
 
   test_const_nonConst_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   C.named(this.x);
@@ -648,16 +638,15 @@ class C {
 
 void main() {
   C c = const .named(1);
+//      ^^^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
   print(c);
 }
-''',
-      [error(diag.constWithNonConst, 69, 5)],
-    );
+''');
   }
 
   test_const_nonConst_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C fn() => C.named(1);
   final int x;
@@ -666,15 +655,15 @@ class C {
 
 void main() {
   C c = const .fn(1);
+//             ^^
+// [diag.constWithUndefinedConstructor] The class 'C' doesn't have a constant constructor 'fn'.
   print(c);
 }
-''',
-      [error(diag.constWithUndefinedConstructor, 107, 2)],
-    );
+''');
   }
 
   test_constructor_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C.named(this.x);
@@ -708,7 +697,7 @@ DotShorthandConstructorInvocation
   }
 
   test_constructor_named_futureOr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 class C<T> {
@@ -748,8 +737,7 @@ DotShorthandConstructorInvocation
   }
 
   test_enum_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named();
 
@@ -758,15 +746,15 @@ enum E {
 
 void f() {
   E e = .named();
+//       ^^^^^
+// [diag.invalidReferenceToGenerativeEnumConstructor] Generative enum constructors can only be used to create an enum constant.
   print(e);
 }
-''',
-      [error(diag.invalidReferenceToGenerativeEnumConstructor, 65, 5)],
-    );
+''');
   }
 
   test_equality() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C.named(this.x);
@@ -802,7 +790,7 @@ DotShorthandConstructorInvocation
   }
 
   test_equality_inferTypeParameters() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main() {
   bool x = <int>[] == .filled(2, '2');
   print(x);
@@ -838,7 +826,7 @@ DotShorthandConstructorInvocation
   }
 
   test_equality_pattern() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -873,7 +861,7 @@ DotShorthandConstructorInvocation
   }
 
   test_factory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   factory Foo.a() = _Foo;
 
@@ -906,7 +894,7 @@ DotShorthandConstructorInvocation
   }
 
   test_factory_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -940,8 +928,7 @@ DotShorthandConstructorInvocation
   }
 
   test_factory_const_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -953,14 +940,13 @@ class _Foo<T> extends Foo<T> {
 }
 
 Foo<int> bar<T>() => const .a<int>();
-''',
-      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 145, 5)],
-    );
+//                           ^^^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
+''');
   }
 
   test_factory_typeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   factory Foo.a() = _Foo;
 
@@ -972,26 +958,25 @@ class _Foo<T> extends Foo<T> {
 }
 
 Foo<T> bar<T>() => .a<T>();
-''',
-      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 119, 3)],
-    );
+//                   ^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
+''');
   }
 
   test_functionExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 void main() {
   final C _ = .new()();
+//            ^^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 40, 6)],
-    );
+''');
   }
 
   test_functionExpression_call() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C call() => this;
 }
@@ -1025,7 +1010,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_argument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C call(int x) => this;
 }
@@ -1064,7 +1049,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_extension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 extension CallC on C {
@@ -1100,7 +1085,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C call<T>(T t) => this;
 }
@@ -1151,7 +1136,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_namedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named();
   C call() => this;
@@ -1186,7 +1171,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_nested() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C(C c);
   C.a();
@@ -1235,8 +1220,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C(C c);
   C.a();
@@ -1244,14 +1228,14 @@ class C {
 
 void main() {
   C _ = .new(.a())();
+//      ^^^^^^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 54, 10)],
-    );
+''');
   }
 
   test_nested_invocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C member() => C(1);
   T x;
@@ -1299,7 +1283,7 @@ DotShorthandConstructorInvocation
   }
 
   test_nested_property() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C get member => C(1);
   T x;
@@ -1343,7 +1327,7 @@ DotShorthandConstructorInvocation
   }
 
   test_new() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -1377,37 +1361,33 @@ DotShorthandConstructorInvocation
   }
 
   test_postfixOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 void main() {
   C c = .new()++;
+//       ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//            ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   print(c);
 }
-''',
-      [
-        error(diag.dotShorthandUndefinedInvocation, 35, 3),
-        error(diag.illegalAssignmentToNonAssignable, 40, 2),
-      ],
-    );
+''');
   }
 
   test_prefixOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 void main() {
   C c = ++.new();
+//         ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//             ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   print(c);
 }
-''',
-      [
-        error(diag.dotShorthandUndefinedInvocation, 37, 3),
-        error(diag.missingAssignableSelector, 41, 1),
-      ],
-    );
+''');
   }
 
   test_privateClass_otherLibrary_constConstructor() async {
@@ -1420,17 +1400,16 @@ typedef Public = _Private;
 const Public p = _Private.named();
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = const .named();
+//    ^^^^^^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(x);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 50, 14)],
-    );
+''');
   }
 
   test_privateClass_otherLibrary_constConstructor_withUnresolvedArg() async {
@@ -1443,24 +1422,22 @@ typedef Public = _Private;
 const Public p = _Private.named(0);
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = const .named(unknown);
+//    ^^^^^^^^^^^^^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//                 ^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'unknown'.
   print(x);
 }
-''',
-      [
-        error(diag.dotShorthandMissingContext, 50, 21),
-        error(diag.undefinedIdentifier, 63, 7),
-      ],
-    );
+''');
   }
 
   test_privateClass_sameLibrary_constConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class _Private {
   const _Private.named();
 }
@@ -1496,8 +1473,7 @@ DotShorthandConstructorInvocation
   }
 
   test_requiredParameters_missing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C({required this.x});
@@ -1505,124 +1481,89 @@ class C {
 
 void main() {
   C c = .new();
+//       ^^^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
   print(c);
 }
-''',
-      [error(diag.missingRequiredArgument, 69, 3)],
-    );
+''');
   }
 
   test_typeParameters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
 }
 
 void main() {
   C c = .new<int>();
+//          ^^^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'C.new', and type parameters can't be applied to dot shorthand constructor invocations.
   print(c);
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 46, 5)],
-    );
+''');
   }
 
   test_typeParameters_const() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
 }
 
 void main() {
   C c = const .new<int>();
+//                ^^^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'C.new', and type parameters can't be applied to dot shorthand constructor invocations.
   print(c);
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 58, 5)],
-    );
+''');
   }
 
   test_typeParameters_missingContext() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var c = const .new<int>();
+//        ^^^^^^^^^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(c);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 24, 17)],
-    );
+''');
   }
 
   test_undefinedConstructor_message() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() => const .foo();
-''',
-      [
-        error(
-          diag.constWithUndefinedConstructor,
-          18,
-          3,
-          messageContains: ["class 'int'", "constructor 'foo'"],
-        ),
-      ],
-    );
+//                ^^^
+// [diag.constWithUndefinedConstructor] The class 'int' doesn't have a constant constructor 'foo'.
+''');
   }
 
   test_undefinedConstructor_message_equalityRhs() async {
-    await assertErrorsInCode(
-      r'''
+    // Make sure the error message properly refers to the `int` class. See
+    // https://github.com/dart-lang/sdk/issues/62352.
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == const .foo();
-''',
-      [
-        // Make sure the error message properly refers to the `int` class. See
-        // https://github.com/dart-lang/sdk/issues/62352.
-        error(
-          diag.constWithUndefinedConstructor,
-          29,
-          3,
-          messageContains: ["class 'int'", "constructor 'foo'"],
-        ),
-      ],
-    );
+//                           ^^^
+// [diag.constWithUndefinedConstructor] The class 'int' doesn't have a constant constructor 'foo'.
+''');
   }
 
   test_wrongNumberOfTypeArguments_message() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 C f() => .new<int>();
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          25,
-          5,
-          messageContains: ["constructor 'C.new'"],
-        ),
-      ],
-    );
+//           ^^^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'C.new', and type parameters can't be applied to dot shorthand constructor invocations.
+''');
   }
 
   test_wrongNumberOfTypeArguments_message_equalityRhs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 bool f(C c) => c == .new<int>();
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          36,
-          5,
-          messageContains: ["constructor 'C.new'"],
-        ),
-      ],
-    );
+//                      ^^^^^
+// [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'C.new', and type parameters can't be applied to dot shorthand constructor invocations.
+''');
   }
 }

@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -257,6 +258,20 @@ void main() {
         'movk r3, #0xfefe lsl 16\n'
         'mov r4, 0xfefefefefefefefe\n'
         'mov r5, 0xff00ff00ff00ff00\n',
+      );
+    });
+    test('loadDoubleImmediate', () {
+      asm.loadDoubleImmediate(V0, 1.0);
+      asm.loadDoubleImmediate(V31, -3.5);
+      asm.loadDoubleImmediate(V1, 0.0);
+      asm.loadDoubleImmediate(V2, 0.123456789);
+      asm.loadDoubleImmediate(V3, double.nan);
+      expectDisassembly(
+        'fmovd v0, 1.0\n'
+        'fmovd v31, -3.5\n'
+        'fmovdr v1, zr\n'
+        'fldrd v2, [pp, #${objectPoolBase}]\n'
+        'fldrd v3, [pp, #${objectPoolBase + 8}]\n',
       );
     });
     test('addImmediate', () {
@@ -1643,6 +1658,29 @@ void main() {
       });
       expectThrows(() {
         asm.scvtf(V0, SP);
+      });
+    });
+
+    test('fmov', () {
+      asm.fmov(V0, R0);
+      asm.fmov(V2, ZR);
+      asm.fmov(V3, R2, .s32);
+      asm.fmov(V0, Immediate(doubleToIntBits(1.0)));
+      asm.fmov(V1, Immediate(doubleToIntBits(2.0)));
+      asm.fmov(V31, Immediate(doubleToIntBits(-0.25)));
+      expectDisassembly(
+        'fmovdr v0, r0\n'
+        'fmovdr v2, zr\n'
+        'fmovsrw v3, r2\n'
+        'fmovd v0, 1.0\n'
+        'fmovd v1, 2.0\n'
+        'fmovd v31, -0.25\n',
+      );
+      expectThrows(() {
+        asm.fmov(V0, Immediate(doubleToIntBits(0.0)));
+      });
+      expectThrows(() {
+        asm.fmov(V1, Immediate(doubleToIntBits(1.23456789)));
       });
     });
   });

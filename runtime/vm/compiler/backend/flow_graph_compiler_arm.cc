@@ -30,10 +30,7 @@ DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
   if (FLAG_precompiled_mode) {
-    auto object_store = isolate_group()->object_store();
-
-    const auto& stub =
-        Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
+    const auto& stub = StubCode::WriteBarrierWrappers();
     if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_write_barrier_wrapper_ =
           [&](Condition condition, Register reg) {
@@ -45,8 +42,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
           };
     }
 
-    const auto& array_stub =
-        Code::ZoneHandle(object_store->array_write_barrier_stub());
+    const auto& array_stub = StubCode::ArrayWriteBarrier();
     if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_array_write_barrier_ =
           [&](Condition condition) {

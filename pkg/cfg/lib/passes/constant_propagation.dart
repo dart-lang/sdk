@@ -429,6 +429,11 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitAllocateRecordLiteral(AllocateRecordLiteral instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitStringInterpolation(StringInterpolation instr) {
     for (int i = 0, n = instr.inputCount; i < n; ++i) {
       if (_isNonConstant(instr.inputDefAt(i))) {
@@ -573,6 +578,11 @@ final class ConstantPropagation extends Pass
 
   @override
   void visitSetListElement(SetListElement instr) {}
+
+  @override
+  void visitAllocateRecord(AllocateRecord instr) {
+    _setNonConstant(instr);
+  }
 
   @override
   void visitBoxInt(BoxInt instr) {

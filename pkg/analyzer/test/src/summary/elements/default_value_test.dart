@@ -99,13 +99,14 @@ library
           fields
             #F2 isFinal isOriginDeclaration f (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::X::@field::f
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:76) (offset:82)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:76) (offset:82)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
               typeNameOffset: 82
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.f (nameOffset:90) (firstTokenOffset:85) (offset:90)
+                #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.f (nameOffset:90) (firstTokenOffset:85) (offset:90)
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     FunctionReference
@@ -117,8 +118,9 @@ library
                       typeArgumentTypes
                         dynamic
           getters
-            #F5 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F3 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::X::@getter::f
+              inducingVariable: #F2
       typeAliases
         #F6 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
@@ -150,22 +152,22 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::X::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E2 optionalNamed hasDefaultValue hasImplicitType isFinal this.f
-              firstFragment: #F4
+              firstFragment: #F5
               type: void Function(dynamic)
                 alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
               constantInitializer
-                fragment: #F4
+                fragment: #F5
                 expression: expression_0
               field: <testLibrary>::@class::X::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::X::@getter::f
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: void Function(dynamic)
             alias: <testLibrary>::@typeAlias::F
               typeArguments

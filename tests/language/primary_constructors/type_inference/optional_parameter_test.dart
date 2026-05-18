@@ -5,8 +5,6 @@
 // We can omit the type of an optional parameter with a default value, in which
 // case the type is inferred from the default value.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 import "package:expect/static_type_helper.dart";
 
@@ -20,7 +18,8 @@ class Named({final x = 1, var y = 2}) {
 }
 
 enum NamedEnum({final x = 1}) {
-  e(x: 2), f();
+  e(x: 2),
+  f();
 
   final Object o;
 
@@ -41,7 +40,8 @@ class Optional([final x = 1, var y = 2]) {
 }
 
 enum OptionalEnum([final x = 1]) {
-  e(2), f();
+  e(2),
+  f();
 
   final Object o;
 

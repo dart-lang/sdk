@@ -862,7 +862,6 @@ class ProfileBuilder : public ValueObject {
                  Profile* profile)
       : thread_(thread),
         isolate_(isolate),
-        vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
         sample_buffer_(sample_buffer),
         profile_(profile),
@@ -1285,8 +1284,7 @@ class ProfileBuilder : public ValueObject {
   }
 
   bool IsPCInDartHeap(uword pc) {
-    return vm_isolate_->group()->heap()->CodeContains(pc) ||
-           thread_->isolate_group()->heap()->CodeContains(pc);
+    return thread_->isolate_group()->heap()->CodeContains(pc);
   }
 
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
@@ -1382,7 +1380,6 @@ class ProfileBuilder : public ValueObject {
 
   Thread* thread_;
   Isolate* isolate_;
-  Isolate* vm_isolate_;
   SampleFilter* filter_;
   SampleBlockBuffer* sample_buffer_;
   Profile* profile_;

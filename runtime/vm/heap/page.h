@@ -68,16 +68,17 @@ class Page {
   enum PageFlags : uword {
     kExecutable = 1 << 0,
     kLarge = 1 << 1,
+    // Not allocated by VM, premarked, cannot change permissions.
     kImage = 1 << 2,
-    kVMIsolate = 1 << 3,
-    kNew = 1 << 4,
-    kEvacuationCandidate = 1 << 5,
-    kNeverEvacuate = 1 << 6,
+    kNew = 1 << 3,
+    kEvacuationCandidate = 1 << 4,
+    kNeverEvacuate = 1 << 5,
+    // Allocated by VM, premarked, cannot change permissions.
+    kFrozen = 1 << 6,
   };
   bool is_executable() const { return (flags_ & kExecutable) != 0; }
   bool is_large() const { return (flags_ & kLarge) != 0; }
   bool is_image() const { return (flags_ & kImage) != 0; }
-  bool is_vm_isolate() const { return (flags_ & kVMIsolate) != 0; }
   bool is_new() const { return (flags_ & kNew) != 0; }
   bool is_old() const { return !is_new(); }
   bool is_evacuation_candidate() const {
@@ -96,6 +97,14 @@ class Page {
       flags_ |= kNeverEvacuate;
     } else {
       flags_ &= ~kNeverEvacuate;
+    }
+  }
+  bool is_frozen() const { return (flags_ & kFrozen) != 0; }
+  void set_frozen(bool value) {
+    if (value) {
+      flags_ |= kFrozen;
+    } else {
+      flags_ &= ~kFrozen;
     }
   }
 

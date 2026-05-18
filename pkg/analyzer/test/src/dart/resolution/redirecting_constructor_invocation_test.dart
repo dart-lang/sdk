@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RedirectingConstructorInvocationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,7 +18,7 @@ main() {
 class RedirectingConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
   test_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named(int a);
   C.other() : this.named(0);
@@ -46,14 +47,13 @@ RedirectingConstructorInvocation
   }
 
   test_named_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.other() : this.named(0);
+//            ^^^^^^^^^^^^^
+// [diag.redirectGenerativeToMissingConstructor] The constructor 'C.named' couldn't be found in 'C'.
 }
-''',
-      [error(diag.redirectGenerativeToMissingConstructor, 24, 13)],
-    );
+''');
 
     var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''
@@ -106,7 +106,7 @@ RedirectingConstructorInvocation
   }
 
   test_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C(int a);
   C.other() : this(0);
@@ -130,15 +130,14 @@ RedirectingConstructorInvocation
   }
 
   test_unnamed_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named();
   C.other() : this(0);
+//            ^^^^^^^
+// [diag.redirectGenerativeToMissingConstructor] The constructor 'C' couldn't be found in 'C'.
 }
-''',
-      [error(diag.redirectGenerativeToMissingConstructor, 37, 7)],
-    );
+''');
 
     var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''

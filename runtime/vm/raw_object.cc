@@ -17,16 +17,6 @@
 
 namespace dart {
 
-bool UntaggedObject::InVMIsolateHeap() const {
-  // All "vm-isolate" objects are pre-marked and in old space
-  // (see [Object::FinalizeVMIsolate]).
-  if (!IsOldObject() || !IsMarked()) return false;
-
-  auto heap = Dart::vm_isolate_group()->heap();
-  ASSERT(heap->UsedInWords(Heap::kNew) == 0);
-  return heap->old_space()->ContainsUnsafe(ToAddr(this));
-}
-
 void ObjectPtr::Validate(IsolateGroup* isolate_group) const {
   // All Smi values are valid.
   if (!IsHeapObject()) {

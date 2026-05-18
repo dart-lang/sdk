@@ -327,11 +327,6 @@ class PluginServer {
   Future<void> _analyzeAllFilesInContextCollection({
     required AnalysisContextCollectionImpl contextCollection,
   }) async {
-    _channel.sendNotification(
-      protocol.PluginStatusParams(
-        analysis: protocol.AnalysisStatus(true),
-      ).toNotification(),
-    );
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
       final driver = analysisContext.driver;
       var paths = analysisContext.contextRoot
@@ -346,11 +341,6 @@ class PluginServer {
         driver.addFile(path);
       }
     });
-    _channel.sendNotification(
-      protocol.PluginStatusParams(
-        analysis: protocol.AnalysisStatus(false),
-      ).toNotification(),
-    );
   }
 
   /// Computes and returns [protocol.AnalysisError]s for each of the parts in

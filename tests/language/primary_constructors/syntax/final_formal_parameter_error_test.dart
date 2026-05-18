@@ -5,8 +5,6 @@
 // Declaring any formal parameters with the `final` modifier is a compile-time
 // error.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C {
   void method1(final int x) {}
   //           ^^^^^

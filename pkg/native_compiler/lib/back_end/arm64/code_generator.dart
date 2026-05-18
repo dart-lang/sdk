@@ -719,9 +719,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   bool _canBeSmi(Definition def) => switch (def) {
     Constant(:var value) => value.isInt && objectLayout.isSmi(value.intValue),
-    Definition(type: IntType()) => true,
-    Definition(type: ExtendedType()) => false,
-    Definition(:var type) => const IntType().isSubtypeOf(type),
+    Definition(:var type) => type.canBeInt,
   };
 
   void _writeBarrier(
@@ -1462,6 +1460,50 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitAllocateRecord(AllocateRecord instr) {
+    final instanceSize = roundUp(
+      vmOffsets.Record_elementsStartOffset +
+          instr.type.numFields * objectLayout.compressedWordSize,
+      objectAlignment(wordSize),
+    );
+    final resultReg = AllocationStub.resultReg;
+    assert(outputReg(instr) == resultReg);
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for AllocateRecord slow path',
+      );
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      AllocationStub.tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.RecordCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      AllocationStub.tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: true,
+    );
+    final fieldReg = AllocationStub.scratch1Reg;
+    _asm.loadFromPool(fieldReg, instr.type.shape);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Record_shape_offset),
+    );
+    _asm.bind(done);
+  }
+
+  @override
   void visitBoxInt(BoxInt instr) {
     var operandReg = inputReg(instr, 0);
     final tagsReg = temporaryReg(instr, 0);
@@ -1850,6 +1892,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
           case Register():
             _asm.ldr(to, _asm.address(FP, stackFrame.offsetFromFP(from)));
             return;
+          case FPRegister():
+            _asm.fldr(to, _asm.address(FP, stackFrame.offsetFromFP(from)));
+            return;
+          default:
+            break;
+        }
+      case FPRegister():
+        switch (to) {
+          case StackLocation():
+            _asm.fstr(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
+            return;
           default:
             break;
         }
@@ -1863,13 +1916,19 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void generateLoadConstant(ConstantValue value, Location to) {
-    if (to is Register) {
-      _asm.loadConstant(to, value);
-      return;
+    switch (to) {
+      case Register():
+        _asm.loadConstant(to, value);
+        return;
+      case FPRegister():
+        assert(value.isDouble && value.isUnboxed);
+        _asm.loadDoubleImmediate(to, value.doubleValue);
+        return;
+      case StackLocation():
+        _asm.loadConstant(tempReg, value);
+        _asm.str(tempReg, _asm.address(FP, stackFrame.offsetFromFP(to)));
+        return;
     }
-    _asm.unimplemented(
-      'Unimplemented: code generation for generateLoadConstant',
-    );
   }
 }
 

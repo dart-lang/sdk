@@ -3,22 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperFormalParameterResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SuperFormalParameterResolutionTest extends PubPackageResolutionTest {
   test_element_typeParameterSubstitution_chained() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A({int? key});
 }
@@ -51,7 +52,7 @@ class C<V> extends B<V> {
   }
 
   test_functionTyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(Object a);
 }
@@ -99,12 +100,11 @@ SuperFormalParameter
   }
 
   test_invalid_notConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(super.a) {}
-''',
-      [error(diag.invalidSuperFormalParameterLocation, 7, 5)],
-    );
+//     ^^^^^
+// [diag.invalidSuperFormalParameterLocation] Super parameters can only be used in non-redirecting generative constructors.
+''');
 
     var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''
@@ -119,7 +119,7 @@ SuperFormalParameter
   }
 
   test_optionalNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? a});
 }
@@ -142,7 +142,7 @@ SuperFormalParameter
   }
 
   test_optionalPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? a]);
 }
@@ -165,7 +165,7 @@ SuperFormalParameter
   }
 
   test_requiredNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int a});
 }
@@ -189,7 +189,7 @@ SuperFormalParameter
   }
 
   test_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
@@ -212,7 +212,7 @@ SuperFormalParameter
   }
 
   test_scoping_inBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int a;
   A(this.a);
@@ -235,7 +235,7 @@ SimpleIdentifier
   }
 
   test_scoping_inInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }

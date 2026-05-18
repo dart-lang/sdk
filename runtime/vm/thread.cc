@@ -71,7 +71,7 @@ Thread::~Thread() {
 
 #define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(nullptr),
 
-Thread::Thread(bool is_vm_isolate)
+Thread::Thread(bool is_bootstrapping)
     : ThreadState(false),
       write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
       active_exception_(Object::null()),
@@ -123,9 +123,9 @@ Thread::Thread(bool is_vm_isolate)
   LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-  // We cannot initialize the VM constants here for the vm isolate thread
-  // due to boot strapping issues.
-  if (!is_vm_isolate) {
+  // We cannot initialize the constants here for the first thread in the isolate
+  // group because they haven't been created or deserialized yet.
+  if (!is_bootstrapping) {
     InitVMConstants();
   }
 
@@ -229,6 +229,16 @@ void Thread::InitVMConstants() {
   this->object##_handle_ = this->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
+}
+
+void Thread::FixInitiallyNullFields() {
+  global_object_pool_ = ObjectPool::null();
+  active_exception_ = Object::null();
+  active_stacktrace_ = Object::null();
+  sticky_error_ = Error::null();
+  default_tag_ = UserTag::null();
+  current_tag_ = UserTag::null();
+  thread_locals_ = Array::null();
 }
 
 void Thread::set_active_exception(const Object& value) {
@@ -369,9 +379,13 @@ void Thread::AssertEmptyThreadInvariants() {
     ASSERT(field_table_values_ == nullptr);
     ASSERT(shared_field_table_values_ == nullptr);
     ASSERT(global_object_pool_ == Object::null());
+
+    // Might be null if we failed during early bootstrap.
+    if (Object_handle_ != nullptr) {
 #define CHECK_REUSABLE_HANDLE(object) ASSERT(object##_handle_->IsNull());
-    REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
+      REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
 #undef CHECK_REUSABLE_HANDLE
+    }
   }
 }
 
@@ -423,7 +437,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
     thread->SetupMutatorState();
     thread->SetupDartMutatorState(isolate);
 
-    if (!isolate->is_vm_isolate()) {
+    if (Array::empty_array().ptr() != nullptr) {
       thread->set_thread_locals(Array::empty_array());
     }
   }
@@ -631,18 +645,15 @@ void Thread::ExitIsolateGroupAsNonMutator() {
 
 void Thread::ResumeDartMutatorThreadInternal(Thread* thread) {
   ResumeThreadInternal(thread);
-  if (Dart::vm_isolate() != nullptr &&
-      thread->isolate() != Dart::vm_isolate()) {
 #if defined(DART_INCLUDE_SIMULATOR)
-    if (FLAG_use_simulator) {
-      thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
-    } else {
-      thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-    }
-#else
+  if (FLAG_use_simulator) {
+    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+  } else {
     thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-#endif
   }
+#else
+  thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+#endif
 }
 
 void Thread::SuspendDartMutatorThreadInternal(Thread* thread,
@@ -693,11 +704,6 @@ Thread* Thread::AddActiveThread(IsolateGroup* group,
                                 Isolate* isolate,
                                 TaskKind task_kind,
                                 bool bypass_safepoint) {
-  // NOTE: We cannot just use `Dart::vm_isolate() == this` here, since during
-  // VM startup it might not have been set at this point.
-  const bool is_vm_isolate =
-      Dart::vm_isolate() == nullptr || Dart::vm_isolate() == isolate;
-
   auto thread_registry = group->thread_registry();
   auto safepoint_handler = group->safepoint_handler();
   MonitorLocker ml(thread_registry->threads_lock());
@@ -708,7 +714,8 @@ Thread* Thread::AddActiveThread(IsolateGroup* group,
     }
   }
 
-  Thread* thread = thread_registry->GetFreeThreadLocked(is_vm_isolate);
+  Thread* thread =
+      thread_registry->GetFreeThreadLocked(group->is_bootstrapping());
   thread->AssertEmptyThreadInvariants();
   thread->SetupStateLocked(task_kind);
 
@@ -1077,6 +1084,9 @@ C* Thread::AllocateReusableHandle() {
 }
 
 void Thread::ClearReusableHandles() {
+  // Might be null if we failed during early bootstrap.
+  if (Object_handle_ == nullptr) return;
+
 #define CLEAR_REUSABLE_HANDLE(object) *object##_handle_ = object::null();
   REUSABLE_HANDLE_LIST(CLEAR_REUSABLE_HANDLE)
 #undef CLEAR_REUSABLE_HANDLE
@@ -1193,11 +1203,6 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
       // Dart code won't store into canonical instances.
       if (obj->untag()->IsCanonical()) continue;
 
-      // Objects in the VM isolate heap are immutable and won't be
-      // stored into. Check this condition last because there's no bit
-      // in the header for it.
-      if (obj->untag()->InVMIsolateHeap()) continue;
-
       switch (op_) {
         case Thread::RestoreWriteBarrierInvariantOp::kAddToRememberedSet:
           if (obj->IsOldObject()) {
@@ -1250,7 +1255,6 @@ void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
                                      ValidationPolicy::kDontValidateFrames,
                                      this, cross_thread_policy);
   RestoreWriteBarrierInvariantVisitor visitor(isolate_group(), this, op);
-  ObjectStore* object_store = isolate_group()->object_store();
   bool scan_next_dart_frame = false;
   for (StackFrame* frame = frames_iterator.NextFrame(); frame != nullptr;
        frame = frames_iterator.NextFrame()) {
@@ -1260,14 +1264,14 @@ void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
       /* Continue searching. */
     } else if (frame->IsStubFrame()) {
       const uword pc = frame->pc();
-      if (Code::ContainsInstructionAt(
-              object_store->init_late_static_field_stub(), pc) ||
+      if (Code::ContainsInstructionAt(StubCode::InitLateStaticField().ptr(),
+                                      pc) ||
           Code::ContainsInstructionAt(
-              object_store->init_late_final_static_field_stub(), pc) ||
+              StubCode::InitLateFinalStaticField().ptr(), pc) ||
+          Code::ContainsInstructionAt(StubCode::InitLateInstanceField().ptr(),
+                                      pc) ||
           Code::ContainsInstructionAt(
-              object_store->init_late_instance_field_stub(), pc) ||
-          Code::ContainsInstructionAt(
-              object_store->init_late_final_instance_field_stub(), pc)) {
+              StubCode::InitLateFinalInstanceField().ptr(), pc)) {
         scan_next_dart_frame = true;
       }
     } else {
@@ -1320,7 +1324,6 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->untag()->InVMIsolateHeap());                                  \
   if (object.ptr() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
@@ -1342,12 +1345,6 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
 }
 
 bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
-  if (Isolate::Current() == Dart::vm_isolate()) {
-    // --disassemble-stubs runs before all the references through
-    // thread have targets
-    return false;
-  }
-
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
   if (Thread::member_name##offset() == offset) {                               \
     *object = expr;                                                            \

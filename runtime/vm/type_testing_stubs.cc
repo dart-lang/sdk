@@ -116,7 +116,7 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     bool lazy_specialize /* = true */) {
   // During bootstrapping we have no access to stubs yet, so we'll just return
   // `null` and patch these later in `Object::FinishInit()`.
-  if (!StubCode::HasBeenInitialized()) {
+  if (StubCode::TopTypeTypeTest().ptr() == nullptr) {
     ASSERT(type.IsType());
     const classid_t cid = type.type_class_id();
     ASSERT(cid == kDynamicCid || cid == kVoidCid);
@@ -171,8 +171,6 @@ TypeTestingStubGenerator::TypeTestingStubGenerator()
 CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
 #if !defined(TARGET_ARCH_IA32)
-  ASSERT(StubCode::HasBeenInitialized());
-
   if (type.IsTypeParameter()) {
     return TypeTestingStubGenerator::DefaultCodeForType(
         type, /*lazy_specialize=*/false);
@@ -257,7 +255,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const AbstractType& type) {
 
   auto& slow_tts_stub = Code::ZoneHandle(zone);
   if (FLAG_precompiled_mode) {
-    slow_tts_stub = thread->isolate_group()->object_store()->slow_tts_stub();
+    slow_tts_stub = StubCode::SlowTypeTest().ptr();
   }
 
   CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,

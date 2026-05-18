@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -640,6 +641,24 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       }
     }
     assert(initialized);
+  }
+
+  @override
+  void loadDoubleImmediate(FPRegister reg, double v) {
+    final imm = Immediate(doubleToIntBits(v));
+    if (imm.tryEncodingFpImm(.s64) != null) {
+      fmov(reg, imm);
+      return;
+    }
+    if (imm.value == 0) {
+      fmov(reg, ZR);
+      return;
+    }
+    int poolIndex = objectPool.getObject(UnboxedDoubleConstant(v));
+    fldr(
+      reg,
+      address(poolPointerReg, vmOffsets.ObjectPool_elementOffset(poolIndex)),
+    );
   }
 
   bool canEncodeImm12(int value) =>
@@ -1900,6 +1919,56 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           (srcSize.is64 ? B31 : 0),
     );
   }
+
+  void fmov(FPRegister rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+    assert(sz.is16or32or64);
+    switch (o) {
+      case FPRegister():
+        emit(
+          B14 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              rd.encodingRd |
+              o.encodingRn |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+        break;
+      case Register():
+        emit(
+          B16 |
+              B17 |
+              B18 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              rd.encodingRd |
+              o.encodingRn() |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))) |
+              (sz.is64 ? B31 : 0),
+        );
+        break;
+      case Immediate():
+        emit(
+          B12 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              rd.encodingRd |
+              (o.encodingFpImm(sz) << 13) |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+        break;
+      default:
+        throw 'Unexpect operand ${o.runtimeType}';
+    }
+  }
 }
 
 bool _isUint(int numBits, int value) => (value >>> numBits) == 0;
@@ -1930,6 +1999,7 @@ extension on Register {
 extension on FPRegister {
   int get encodingRd => index;
   int get encodingRt => index;
+  int get encodingRn => index << 5;
 }
 
 extension on Immediate {
@@ -2074,6 +2144,30 @@ extension on Immediate {
     value =
         ((value >>> 32) & 0x00000000ffffffff) + (value & 0x00000000ffffffff);
     return value;
+  }
+
+  int encodingFpImm(OperandSize sz) =>
+      tryEncodingFpImm(sz) ??
+      (throw 'Immediate $value cannot be encoded as FP immediate');
+
+  int? tryEncodingFpImm(OperandSize sz) {
+    if (!sz.is64) {
+      throw 'Unimplemented FP immediates of size $sz';
+    }
+    // value: aBbbbbbb bbcdefgh 00000000 00000000 00000000 00000000 00000000 00000000
+    // encoded as: abcdefgh (where B = NOT(b)).
+    final int value = this.value;
+    if (value & ((1 << 48) - 1) != 0) {
+      return null;
+    }
+    final int bitB = (value >> 62) & 0x1;
+    const int maskb = 0xff << 54;
+    if ((value & maskb) != ((bitB - 1) & maskb)) {
+      return null;
+    }
+    return (((value >> 63) & 0x1) << 7) |
+        ((((~value) >> 62) & 0x1) << 6) |
+        ((value >> 48) & 0x3f);
   }
 }
 

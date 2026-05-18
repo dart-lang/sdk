@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class CascadeExpressionResolutionTest extends PubPackageResolutionTest {
   test_nullAware_indexGet_promotableField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final D? _d;
   C(this._d);
@@ -46,7 +46,7 @@ SimpleIdentifier
   }
 
   test_nullAware_indexGet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D? get d;
 }
@@ -75,7 +75,7 @@ SimpleIdentifier
   }
 
   test_nullAware_indexSet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D get d;
   void f(int i);
@@ -103,7 +103,7 @@ SimpleIdentifier
   }
 
   test_nullAware_methodInvocation_promotableField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final D? _d;
   C(this._d);
@@ -131,7 +131,7 @@ SimpleIdentifier
   }
 
   test_nullAware_methodInvocation_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D? get d;
 }
@@ -158,7 +158,7 @@ SimpleIdentifier
   }
 
   test_nullAware_propertyGet_promotableField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final D? _d;
   C(this._d);
@@ -187,7 +187,7 @@ SimpleIdentifier
   }
 
   test_nullAware_propertyGet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D? get d;
 }
@@ -216,7 +216,7 @@ SimpleIdentifier
   }
 
   test_nullAware_propertySet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   int? x;
   void f(int i);

@@ -4,15 +4,16 @@
 
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -24,13 +25,12 @@ class A {
   const A({int p});
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 const a = const A();
-''',
-      [error(diag.constConstructorParamTypeMismatch, 27, 9)],
-    );
+//        ^^^^^^^^^
+// [diag.constConstructorParamTypeMismatch] A value of type 'Null' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
 
     var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
     var aConstructor = aLib.getClass('A')!.constructors.single;
@@ -43,7 +43,7 @@ const a = const A();
   }
 
   test_constFactoryRedirection_super() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class I {
   const factory I(int f) = B;
 }
@@ -68,83 +68,78 @@ main() {}
   }
 
   test_constList_withNullAwareElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const [?A()];
+//                ^
+// [diag.invalidNullAwareElement] The element can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareElement, 51, 1)],
-    );
+''');
     assertType(findNode.listLiteral('const ['), 'List<A>');
   }
 
   test_constMap_withNullAwareKey() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const {?A(): 0};
+//                ^
+// [diag.invalidNullAwareMapEntryKey] The map entry key can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareMapEntryKey, 51, 1)],
-    );
+''');
     assertType(findNode.setOrMapLiteral('const {'), 'Map<A, int>');
   }
 
   test_constMap_withNullAwareValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const {0: ?A()};
+//                   ^
+// [diag.invalidNullAwareMapEntryValue] The map entry value can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareMapEntryValue, 54, 1)],
-    );
+''');
     assertType(findNode.setOrMapLiteral('const {'), 'Map<int, A>');
   }
 
   test_constNotInitialized() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   const B(_);
 }
 
 class C extends B {
   static const a;
+//             ^
+// [diag.constNotInitialized] The constant 'a' must be initialized.
   const C() : super(a);
 }
-''',
-      [error(diag.constNotInitialized, 62, 1)],
-    );
+''');
   }
 
   test_constSet_withNullAwareElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const {?A()};
+//                ^
+// [diag.invalidNullAwareElement] The element can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareElement, 51, 1)],
-    );
+''');
     assertType(findNode.setOrMapLiteral('const {'), 'Set<A>');
   }
 
   test_context_eliminateTypeVariables() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A({List<T> a = const []});
 }
@@ -153,7 +148,7 @@ class A<T> {
   }
 
   test_context_eliminateTypeVariables_functionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   const A({List<T Function(U)> a = const []});
 }
@@ -173,7 +168,7 @@ class C<T> {
   const C();
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 const v = a;
@@ -266,7 +261,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 class B extends A {
@@ -284,7 +279,7 @@ class B extends A {
   }
 
   test_local_prefixedIdentifier_staticField_extension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = E.f;
 
 extension E on int {

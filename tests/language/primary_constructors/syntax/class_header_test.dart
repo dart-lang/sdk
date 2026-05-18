@@ -4,8 +4,6 @@
 
 // Tests declaring constructors with various clauses.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 // Generics

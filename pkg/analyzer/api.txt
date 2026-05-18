@@ -4062,6 +4062,7 @@ package:analyzer/dart/element/element.dart:
   PropertyAccessorFragment (class extends Object implements ExecutableFragment, abstract):
     new (constructor: PropertyAccessorFragment Function())
     element (getter: PropertyAccessorElement)
+    inducingVariable (getter: PropertyInducingFragment?)
     nextFragment (getter: PropertyAccessorFragment?)
     previousFragment (getter: PropertyAccessorFragment?)
   PropertyInducingElement (class extends Object implements VariableElement, abstract):
@@ -4078,6 +4079,8 @@ package:analyzer/dart/element/element.dart:
     new (constructor: PropertyInducingFragment Function())
     element (getter: PropertyInducingElement)
     hasInitializer (getter: bool)
+    inducedGetter (getter: GetterFragment?)
+    inducedSetter (getter: SetterFragment?)
     isAugmentation (getter: bool)
     libraryFragment (getter: LibraryFragment)
     nextFragment (getter: PropertyInducingFragment?)

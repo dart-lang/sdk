@@ -703,11 +703,10 @@ trace to find the place to insert the appropriate support.
             if self.get_option(['-o', '--output']):
                 self.outputs.append(self.rebase(self.optarg))
             elif self.get_option([
-                    '--vm_snapshot_data',
-                    '--vm_snapshot_instructions',
-                    '--isolate_snapshot_data',
-                    '--isolate_snapshot_instructions',
+                    '--snapshot_data',
+                    '--snapshot_text',
                     '--elf',
+                    '--macho',
                     '--ffi_callback_stub',
             ]):
                 self.outputs.append(self.rebase(self.optarg))

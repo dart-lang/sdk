@@ -40,14 +40,6 @@ class StubCode : public AllStatic {
 
   static void Cleanup();
 
-  // Returns true if stub code has been initialized.
-  static bool HasBeenInitialized() {
-    return initialized_.load(std::memory_order_acquire);
-  }
-  static void InitializationDone() {
-    initialized_.store(true, std::memory_order_release);
-  }
-
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
   static bool InInvocationStub(Thread* T,
@@ -120,18 +112,6 @@ class StubCode : public AllStatic {
   }
   static intptr_t NumEntries() { return kNumStubEntries; }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-#define GENERATE_STUB(name)                                                    \
-  static CodePtr BuildIsolateSpecific##name##Stub(                             \
-      compiler::ObjectPoolBuilder* opw) {                                      \
-    return StubCode::Generate(                                                 \
-        "_iso_stub_" #name, opw,                                               \
-        &compiler::StubCodeCompiler::Generate##name##Stub);                    \
-  }
-  VM_STUB_CODE_LIST(GENERATE_STUB);
-#undef GENERATE_STUB
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
  private:
   friend class MegamorphicCacheTable;
 
@@ -141,8 +121,6 @@ class StubCode : public AllStatic {
 #undef STUB_CODE_ENTRY
         kNumStubEntries
   };
-
-  static AcqRelAtomic<bool> initialized_;
 };
 
 }  // namespace dart

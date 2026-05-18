@@ -451,8 +451,6 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   auto isolate = thread == nullptr ? nullptr : thread->isolate();
   auto isolate_group = thread == nullptr ? nullptr : thread->isolate_group();
   auto source = isolate_group == nullptr ? nullptr : isolate_group->source();
-  auto vm_source =
-      Dart::vm_isolate() == nullptr ? nullptr : Dart::vm_isolate()->source();
   const char* isolate_group_name =
       isolate_group == nullptr ? "(nil)" : isolate_group->source()->name;
   const char* isolate_name = isolate == nullptr ? "(nil)" : isolate->name();
@@ -479,13 +477,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 #endif
   OS::PrintErr("os=%s, arch=%s, comp=%s, sim=%s\n", kHostOperatingSystemName,
                kTargetArchitectureName, kCompressedPointers, kUsingSimulator);
-  OS::PrintErr("isolate_instructions=%" Px ", vm_instructions=%" Px "\n",
-               source == nullptr
-                   ? 0
-                   : reinterpret_cast<uword>(source->snapshot_instructions),
-               vm_source == nullptr
-                   ? 0
-                   : reinterpret_cast<uword>(vm_source->snapshot_instructions));
+  OS::PrintErr(
+      "isolate_instructions=%" Px ", vm_instructions=0\n",
+      source == nullptr ? 0 : reinterpret_cast<uword>(source->snapshot_text));
   OS::PrintErr("fp=%" Px ", sp=%" Px ", pc=%" Px "\n", fp, sp, pc);
 
   uword stack_lower = 0;
@@ -1192,14 +1186,6 @@ static Sample* SetupSample(Thread* thread,
   return sample;
 }
 
-static bool CheckIsolate(Isolate* isolate) {
-  if ((isolate == nullptr) || (Dart::vm_isolate() == nullptr)) {
-    // No isolate.
-    return false;
-  }
-  return isolate != Dart::vm_isolate();
-}
-
 void Profiler::SampleAllocation(Thread* thread,
                                 intptr_t cid,
                                 uint32_t identity_hash) {
@@ -1207,7 +1193,7 @@ void Profiler::SampleAllocation(Thread* thread,
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
   Isolate* isolate = thread->isolate();
-  if (!CheckIsolate(isolate)) {
+  if (isolate == nullptr) {
     return;
   }
 
@@ -1308,7 +1294,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (!CheckIsolate(isolate)) {
+  if (isolate == nullptr) {
     counters_.bail_out_check_isolate.fetch_add(1);
     return;
   }
@@ -1445,8 +1431,6 @@ class CodeLookupTableBuilder : public ObjectVisitor {
 
 void CodeLookupTable::Build(Thread* thread) {
   ASSERT(thread != nullptr);
-  Isolate* vm_isolate = Dart::vm_isolate();
-  ASSERT(vm_isolate != nullptr);
 
   // Clear.
   code_objects_.Clear();
@@ -1474,7 +1458,6 @@ void CodeLookupTable::Build(Thread* thread) {
                              "CodeLookupTable::Build HeapIterationScope");
     HeapIterationScope iteration(thread);
     CodeLookupTableBuilder cltb(this);
-    iteration.IterateVMIsolateObjects(&cltb);
     iteration.IterateOldObjects(&cltb);
   }
   thread->CheckForSafepoint();
@@ -1633,7 +1616,7 @@ class PerfettoPerfSampleWriter : public ValueObject {
     IsolateGroup::ForEach([&](IsolateGroup* group) {
       const auto group_source = group->source();
       const auto isolate_group_instructions =
-          reinterpret_cast<uword>(group_source->snapshot_instructions);
+          reinterpret_cast<uword>(group_source->snapshot_text);
       const Image isolate_group_image(isolate_group_instructions);
       group->heap()->old_space()->ForEachImagePage([&](Page* page) {
         if (page->is_executable()) {
@@ -2136,8 +2119,6 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     // If shutting down flush all sample blocks from all isolates.
     if (shutdown_) {
       IsolateGroup::ForEach([&](IsolateGroup* group) {
-        if (group == Dart::vm_isolate_group()) return;
-
         const bool kBypassSafepoint = false;
         Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
                                           kBypassSafepoint);
@@ -2149,8 +2130,6 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     Timeline::DrainCompletedSampleBlocksIntoRecorder();
 #else
     IsolateGroup::ForEach([&](IsolateGroup* group) {
-      if (group == Dart::vm_isolate_group()) return;
-
       const bool kBypassSafepoint = false;
       Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
                                         kBypassSafepoint);

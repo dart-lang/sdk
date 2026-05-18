@@ -6,17 +6,19 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VarianceResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class VarianceResolutionTest extends PubPackageResolutionTest {
   test_inference_in_parameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class Contravariant<in T> {}
 
 class Exactly<inout T> {}
@@ -48,8 +50,7 @@ MethodInvocation
   }
 
   test_inference_in_parameter_downwards() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class B<in T> {
   B(List<T> x);
   void set x(T val) {}
@@ -57,10 +58,10 @@ class B<in T> {
 
 main() {
   B<int> b = B(<num>[])..x=2.2;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 76, 1)],
-    );
+''');
 
     var node = findNode.instanceCreation('B(<num>');
     nodeTextConfiguration.skipArgumentList = true;
@@ -114,7 +115,7 @@ MethodInvocation
   }
 
   test_inference_out_parameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class Covariant<out T> {}
 
 class Exactly<inout T> {}

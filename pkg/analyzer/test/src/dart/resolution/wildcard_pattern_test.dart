@@ -5,17 +5,19 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WildcardPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class WildcardPatternResolutionTest extends PubPackageResolutionTest {
   test_assignmentContext_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (_) = 0;
 }
@@ -33,7 +35,7 @@ ParenthesizedPattern
   }
 
   test_declarationContext_typed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (int _) = 0;
 }
@@ -55,7 +57,7 @@ ParenthesizedPattern
   }
 
   test_declarationContext_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (_) = 0;
 }
@@ -73,7 +75,7 @@ ParenthesizedPattern
   }
 
   test_matchingContext_typed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case int _) {}
 }
@@ -91,7 +93,7 @@ WildcardPattern
   }
 
   test_matchingContext_typed_final() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case final int _) {}
 }
@@ -110,7 +112,7 @@ WildcardPattern
   }
 
   test_matchingContext_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case _) {}
 }
@@ -124,7 +126,7 @@ WildcardPattern
   }
 
   test_matchingContext_untyped_final() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case final _) {}
 }

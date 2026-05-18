@@ -4,8 +4,6 @@
 
 // An empty declaration body, `{}`, can be replaced by `;`.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class S1;
 class S2 extends S;
 class S3 with M;
@@ -66,12 +64,17 @@ extension Ex2<T> on T;
 
 // Helpers.
 interface class I {}
+
 interface class J {}
+
 interface class IJ implements I, J {}
+
 class S {
   const S();
 }
+
 mixin M {}
+
 mixin N {}
 
 class M1With with M1;

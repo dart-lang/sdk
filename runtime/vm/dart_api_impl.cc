@@ -506,7 +506,6 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
 void Api::InitHandles() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != nullptr);
-  ASSERT(isolate == Dart::vm_isolate());
   ApiState* state = isolate->group()->api_state();
   ASSERT(state != nullptr);
 
@@ -519,8 +518,6 @@ void Api::InitHandles() {
   Roots::unwind_in_progress_error_api_handle()->set_ptr(
       Object::unwind_in_progress_error().ptr());
 }
-
-void Api::Cleanup() {}
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               int arg_index,
@@ -1223,7 +1220,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
     char* error_str = nullptr;
     if (is_new_group) {
       error_str = Dart::InitializeIsolateGroup(
-          T, source->snapshot_data, source->snapshot_instructions,
+          T, source->snapshot_data, source->snapshot_text,
           source->kernel_buffer, source->kernel_buffer_size);
     }
     if (error_str == nullptr) {
@@ -1308,11 +1305,8 @@ Dart_CreateIsolateGroup(const char* script_uri,
   std::unique_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, snapshot_data,
                              snapshot_instructions, nullptr, -1, *flags));
-  auto group = new IsolateGroup(std::move(source), isolate_group_data, *flags,
-                                /*is_vm_isolate=*/false);
-  group->CreateHeap(
-      /*is_vm_isolate=*/false,
-      flags->is_service_isolate || flags->is_kernel_isolate);
+  auto group = new IsolateGroup(std::move(source), isolate_group_data, *flags);
+  group->CreateHeap(flags->is_service_isolate || flags->is_kernel_isolate);
   IsolateGroup::RegisterIsolateGroup(group);
   Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
                                        non_null_name, isolate_data, error);
@@ -1343,12 +1337,9 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   std::shared_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, nullptr, nullptr,
                              kernel_buffer, kernel_buffer_size, *flags));
-  auto group = new IsolateGroup(source, isolate_group_data, *flags,
-                                /*is_vm_isolate=*/false);
+  auto group = new IsolateGroup(source, isolate_group_data, *flags);
   IsolateGroup::RegisterIsolateGroup(group);
-  group->CreateHeap(
-      /*is_vm_isolate=*/false,
-      flags->is_service_isolate || flags->is_kernel_isolate);
+  group->CreateHeap(flags->is_service_isolate || flags->is_kernel_isolate);
   Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
                                        non_null_name, isolate_data, error);
   if (isolate != nullptr) {
@@ -1840,22 +1831,15 @@ DART_EXPORT void Dart_ExitIsolate() {
   Thread::ExitIsolate();
 }
 
-DART_EXPORT Dart_Handle
-Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
-                    intptr_t* vm_snapshot_data_size,
-                    uint8_t** isolate_snapshot_data_buffer,
-                    intptr_t* isolate_snapshot_data_size,
-                    bool is_core) {
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_data_buffer,
+                                            intptr_t* snapshot_data_size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("Cannot create snapshots on an AOT runtime.");
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
-  if (vm_snapshot_data_buffer != nullptr) {
-    CHECK_NULL(vm_snapshot_data_size);
-  }
-  CHECK_NULL(isolate_snapshot_data_buffer);
-  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(snapshot_data_buffer);
+  CHECK_NULL(snapshot_data_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (Api::IsError(state)) {
@@ -1872,22 +1856,14 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   }
 #endif  // #if defined(DEBUG)
 
-  ZoneWriteStream vm_snapshot_data(Api::TopScope(T)->zone(),
-                                   FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_data(Api::TopScope(T)->zone(),
                                         FullSnapshotWriter::kInitialSize);
-  const Snapshot::Kind snapshot_kind =
-      is_core ? Snapshot::kFullCore : Snapshot::kFull;
-  FullSnapshotWriter writer(
-      snapshot_kind, &vm_snapshot_data, &isolate_snapshot_data,
-      nullptr /* vm_image_writer */, nullptr /* isolate_image_writer */);
+  const Snapshot::Kind snapshot_kind = Snapshot::kFull;
+  FullSnapshotWriter writer(snapshot_kind, &isolate_snapshot_data,
+                            nullptr /* image_writer */);
   writer.WriteFullSnapshot();
-  if (vm_snapshot_data_buffer != nullptr) {
-    *vm_snapshot_data_buffer = vm_snapshot_data.buffer();
-    *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
-  }
-  *isolate_snapshot_data_buffer = isolate_snapshot_data.buffer();
-  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
+  *snapshot_data_buffer = isolate_snapshot_data.buffer();
+  *snapshot_data_size = isolate_snapshot_data.bytes_written();
   return Api::Success();
 #endif
 }
@@ -4380,9 +4356,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     if (FLAG_verify_entry_points) {
       CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
     }
-#if defined(DEBUG)
-    if (!cls.is_allocated() &&
-        (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
+#if defined(DEBUG) && defined(DART_PRECOMPILED_RUNTIME)
+    if (!cls.is_allocated()) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -4514,8 +4489,8 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   if (FLAG_verify_entry_points) {
     CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
   }
-#if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
+#if defined(DEBUG) && defined(DART_PRECOMPILED_RUNTIME)
+  if (!cls.is_allocated()) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4546,8 +4521,8 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
   if (FLAG_verify_entry_points) {
     CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
   }
-#if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
+#if defined(DEBUG) && defined(DART_PRECOMPILED_RUNTIME)
+  if (!cls.is_allocated()) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -6109,13 +6084,6 @@ static Dart_Handle DeferredLoadComplete(intptr_t loading_unit_id,
     if (snapshot == nullptr) {
       return Api::NewError("Invalid snapshot");
     }
-    if (!IsSnapshotCompatible(Dart::vm_snapshot_kind(), snapshot->kind())) {
-      const String& message = String::Handle(String::NewFormatted(
-          "Incompatible snapshot kinds: vm '%s', isolate '%s'",
-          Snapshot::KindToCString(Dart::vm_snapshot_kind()),
-          Snapshot::KindToCString(snapshot->kind())));
-      return Api::NewHandle(T, ApiError::New(message));
-    }
 
     FullSnapshotReader reader(snapshot, snapshot_instructions, T);
     char* error = reader.ReadUnitSnapshot(unit);
@@ -6726,8 +6694,7 @@ static void CreateAppAOTSnapshotHelper(
       object_callback_data != nullptr ? &object_stream_value : nullptr;
 
   auto const use_output_writer = [&](ImageWriter* image_writer) {
-    FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
-                              &isolate_snapshot_data, image_writer,
+    FullSnapshotWriter writer(Snapshot::kFullAOT, &isolate_snapshot_data,
                               image_writer);
 
     if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
@@ -6911,20 +6878,23 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  CHECK_NULL(callback);
-
-  TIMELINE_DURATION(T, Isolate, "WriteVMAOTSnapshot");
-  StreamingWriteStream assembly_stream(kAssemblyInitialSize, callback,
-                                       callback_data);
-  AssemblyImageWriter image_writer(T, &assembly_stream);
-  ZoneWriteStream vm_snapshot_data(T->zone(), FullSnapshotWriter::kInitialSize);
-  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data, nullptr,
-                            &image_writer, nullptr);
-
-  writer.WriteFullSnapshot();
-
+  const char assembly[] =
+      ".text\n"
+      ".globl _kDartVmSnapshotInstructions\n"
+      ".balign 64, 0\n"
+      "_kDartVmSnapshotInstructions:\n"
+      ".quad 0\n"
+      ".size _kDartVmSnapshotInstructions, .-_kDartVmSnapshotInstructions\n"
+      ".type _kDartVmSnapshotInstructions, %object\n"
+      ".section .rodata\n"
+      ".globl _kDartVmSnapshotData\n"
+      ".balign 64, 0\n"
+      "_kDartVmSnapshotData:\n"
+      ".quad 0\n"
+      ".size _kDartVmSnapshotData, .-_kDartVmSnapshotData\n"
+      ".type _kDartVmSnapshotData, %object\n";
+  callback(callback_data, reinterpret_cast<const uint8_t*>(assembly),
+           sizeof(assembly));
   return Api::Success();
 #endif
 }
@@ -7152,8 +7122,8 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
       Api::TopScope(T)->zone(), FullSnapshotWriter::kInitialSize);
   BlobImageWriter image_writer(T, /*vm_instructions=*/nullptr,
                                &isolate_snapshot_instructions);
-  FullSnapshotWriter writer(Snapshot::kFullJIT, nullptr, &isolate_snapshot_data,
-                            nullptr, &image_writer);
+  FullSnapshotWriter writer(Snapshot::kFullJIT, &isolate_snapshot_data,
+                            &image_writer);
   writer.WriteFullSnapshot();
 
   *isolate_snapshot_data_buffer = isolate_snapshot_data.buffer();

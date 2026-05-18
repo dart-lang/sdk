@@ -957,7 +957,7 @@ uword Code::EntryPointOf(const dart::Code& code) {
 }
 
 bool CanEmbedAsRawPointerInGeneratedCode(const dart::Object& obj) {
-  return obj.IsSmi() || obj.InVMIsolateHeap();
+  return obj.IsSmi() || obj.IsNull() || obj.IsCode();
 }
 
 word ToRawPointer(const dart::Object& a) {

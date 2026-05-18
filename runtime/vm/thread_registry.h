@@ -52,11 +52,11 @@ class ThreadRegistry {
  private:
   Thread* active_list() const { return active_list_; }
 
-  Thread* GetFreeThreadLocked(bool is_vm_isolate);
+  Thread* GetFreeThreadLocked(bool is_bootstrapping);
   void ReturnThreadLocked(Thread* thread);
   void AddToActiveListLocked(Thread* thread);
   void RemoveFromActiveListLocked(Thread* thread);
-  Thread* GetFromFreelistLocked(bool is_vm_isolate);
+  Thread* GetFromFreelistLocked(bool is_bootstrapping);
   void ReturnToFreelistLocked(Thread* thread);
 
   // This monitor protects the threads list for an isolate, it is used whenever

@@ -4,20 +4,18 @@
 
 // An enum cannot declare mutable fields through declaring parameters.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 enum E1(var int x) {
-//     ^
-// [cfe] Enum constructors are constant so all fields must be final.
-//              ^
-// [analyzer] COMPILE_TIME_ERROR.NON_FINAL_FIELD_IN_ENUM
+  //   ^
+  // [cfe] Enum constructors are constant so all fields must be final.
+  //            ^
+  // [analyzer] COMPILE_TIME_ERROR.NON_FINAL_FIELD_IN_ENUM
 
   a(0)
 }
 
 enum E2() {
-//     ^
-// [cfe] Enum constructors are constant so all fields must be final.
+  //   ^
+  // [cfe] Enum constructors are constant so all fields must be final.
   a;
 
   int x = 0;

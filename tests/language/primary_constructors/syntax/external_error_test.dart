@@ -4,8 +4,6 @@
 
 // `external` instance variables cannot be introduced by a declaring parameter.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C(external int x);
 //      ^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER

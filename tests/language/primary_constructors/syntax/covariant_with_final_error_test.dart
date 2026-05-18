@@ -4,34 +4,32 @@
 
 // It is an error for a formal parameter to be both `covariant` and `final`.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C1(covariant final int x);
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//       ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 class C2({covariant final int? x = 1});
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//        ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 class C3({required covariant final int x});
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                 ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 class C4([covariant final int? x]);
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//        ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 extension type E1(covariant final int x);
-//                ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 extension type E2(covariant int x);
-//                ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.

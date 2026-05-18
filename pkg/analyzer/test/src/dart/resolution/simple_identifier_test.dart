@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -171,16 +172,15 @@ SimpleIdentifier
   }
 
   test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as mycore;
 
 main() {
   dynamic;
+//^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'dynamic'.
 }
-''',
-      [error(diag.undefinedIdentifier, 42, 7)],
-    );
+''');
 
     var node = findNode.simple('dynamic;');
     assertResolvedNodeText(node, r'''
@@ -192,7 +192,7 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 void f() {
@@ -210,18 +210,17 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_constructor_returnBody() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 class C {
   C() {
     return a;
+//         ^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
   }
 }
-''',
-      [error(diag.returnInGenerativeConstructor, 43, 1)],
-    );
+''');
 
     var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
@@ -233,19 +232,17 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_constructor_returnExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 class C {
   C() => a;
+//    ^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//       ^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.returnInGenerativeConstructor, 30, 5),
-        error(diag.returnOfInvalidTypeFromConstructor, 33, 1),
-      ],
-    );
+''');
 
     var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
@@ -257,7 +254,7 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_invocationArgument_afterNamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 void foo(int a, {int? b}) {}
@@ -278,7 +275,7 @@ SimpleIdentifier
   }
 
   test_implicitCall_tearOff() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int call() => 0;
 }
@@ -298,18 +295,17 @@ SimpleIdentifier
   }
 
   test_implicitCall_tearOff_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int call() => 0;
 }
 
 int Function() foo(A? a) {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'A?' can't be returned from the function 'foo' because it has a return type of 'int Function()'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 68, 1)],
-    );
+''');
 
     var identifier = findNode.simple('a;');
     assertResolvedNodeText(identifier, r'''
@@ -321,7 +317,7 @@ SimpleIdentifier
   }
 
   test_inClass_getterInherited_setterDeclaredLocally() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 7;
 }
@@ -375,7 +371,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onFunctionType_call() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function(double) {
   void f() {
     call;
@@ -393,7 +389,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onFunctionType_call_inference() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int Function<T>(T) {
   int Function(double) f() {
     return call;
@@ -413,7 +409,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_fromTypeParameterBound_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E<T extends ({int foo})> on T {
   void f() {
     foo;
@@ -431,7 +427,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_fromTypeParameterBound_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T extends (int, String)> on T {
   void f() {
     $1;
@@ -449,7 +445,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
   void f() {
     foo;
@@ -467,7 +463,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_named_fromExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
   bool get bar => true;
 
@@ -487,16 +483,15 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_named_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
   void f() {
     bar;
+//  ^^^
+// [diag.undefinedIdentifier] Undefined name 'bar'.
   }
 }
-''',
-      [error(diag.undefinedIdentifier, 46, 3)],
-    );
+''');
 
     var node = findNode.simple('bar;');
     assertResolvedNodeText(node, r'''
@@ -508,7 +503,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_0() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void f() {
     $1;
@@ -526,7 +521,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void f() {
     $2;
@@ -544,7 +539,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_2_fromExtension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   bool get $3 => true;
 
@@ -564,16 +559,15 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_2_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void f() {
     $3;
+//  ^^
+// [diag.undefinedIdentifier] Undefined name '$3'.
   }
 }
-''',
-      [error(diag.undefinedIdentifier, 48, 2)],
-    );
+''');
 
     var node = findNode.simple(r'$3;');
     assertResolvedNodeText(node, r'''
@@ -585,7 +579,7 @@ SimpleIdentifier
   }
 
   test_inExtensionType_declared() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 
@@ -605,7 +599,7 @@ SimpleIdentifier
   }
 
   test_inExtensionType_explicitThis_exposed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -660,7 +654,7 @@ SimpleIdentifier
   }
 
   test_localFunction_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   static void foo<S>(S s) {
     void f<U>(S s, U u) {}
@@ -679,7 +673,7 @@ SimpleIdentifier
   }
 
   test_tearOff_function_topLevel() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo(int a) {}
 
 main() {
@@ -697,7 +691,7 @@ SimpleIdentifier
   }
 
   test_tearOff_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo(int a) {}
 

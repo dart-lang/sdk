@@ -193,8 +193,7 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_buildId, 0, 0) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   IsolateGroup* isolate_group = thread->isolate_group();
   ASSERT(isolate_group != nullptr);
-  if (const uint8_t* instructions =
-          isolate_group->source()->snapshot_instructions) {
+  if (const uint8_t* instructions = isolate_group->source()->snapshot_text) {
     const auto& build_id = OS::GetAppBuildId(instructions);
     if (build_id.data != nullptr) {
       ZoneTextBuffer buffer(zone);

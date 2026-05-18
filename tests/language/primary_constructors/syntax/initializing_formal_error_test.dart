@@ -5,16 +5,17 @@
 // A compile-time error occurs if a declaration has a primary constructor with
 // an initializing formal and no instance variable of the same name.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C(this.x) {}
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//      ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
+//           ^
+// [cfe] 'x' isn't an instance field of this class.
+
 
 enum E(this.x) {
-//     ^
-// [analyzer] unspecified
-// [cfe] unspecified
+  //   ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
+  //        ^
+  // [cfe] 'x' isn't an instance field of this class.
   e(1);
 }

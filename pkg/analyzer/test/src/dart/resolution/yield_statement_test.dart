@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldStatementResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -31,7 +33,7 @@ class MyStream<T> implements Stream<T> {
   }
 
   test_downInference_function_asyncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'my_stream.dart';
 
 Stream f1() async* {
@@ -60,7 +62,7 @@ Stream<List<int>> f2() async* {
   }
 
   test_downInference_function_syncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Iterable f1() sync* {
   yield []; // 1
   yield* List.empty(); // 2
@@ -87,7 +89,7 @@ Iterable<List<int>> f2() sync* {
   }
 
   test_downInference_function_unionFreeReturnType_asyncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 FutureOr<Stream<List<int>>?> f() async* {
@@ -104,7 +106,7 @@ ListLiteral
   }
 
   test_downInference_function_unionFreeReturnType_syncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 FutureOr<Iterable<List<int>>?> f() sync* {
@@ -121,7 +123,7 @@ ListLiteral
   }
 
   test_downInference_functionExpression_asyncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'my_stream.dart';
 
 main() {
@@ -154,7 +156,7 @@ main() {
   }
 
   test_downInference_functionExpression_syncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   Iterable Function() f1 = () sync* {
     yield []; // 1
@@ -185,7 +187,7 @@ main() {
   }
 
   test_downInference_method_asyncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'my_stream.dart';
 
 class A {
@@ -216,7 +218,7 @@ class A {
   }
 
   test_downInference_method_syncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   Iterable m1() sync* {
     yield []; // 1

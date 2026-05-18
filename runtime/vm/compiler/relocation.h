@@ -148,10 +148,9 @@ class CodeRelocator : public StackResource {
   // the ".text" segment.
   static void Relocate(Thread* thread,
                        GrowableArray<CodePtr>* code_objects,
-                       GrowableArray<ImageWriterCommand>* commands,
-                       bool is_vm_isolate) {
+                       GrowableArray<ImageWriterCommand>* commands) {
     CodeRelocator relocator(thread, code_objects, commands);
-    relocator.Relocate(is_vm_isolate);
+    relocator.Relocate();
   }
 
  private:
@@ -159,7 +158,7 @@ class CodeRelocator : public StackResource {
                 GrowableArray<CodePtr>* code_objects,
                 GrowableArray<ImageWriterCommand>* commands);
 
-  void Relocate(bool is_vm_isolate);
+  void Relocate();
 
   void FindLargestInstruction();
 

@@ -1662,9 +1662,11 @@ library
           fields
             #F5 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
+              inducedGetter: #F6
           getters
             #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
+              inducingVariable: #F5
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -2317,9 +2319,11 @@ library
           fields
             #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
+              inducedGetter: #F4
           getters
             #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
+              inducingVariable: #F3
       mixins
         #F5 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
@@ -4243,12 +4247,16 @@ library
       topLevelVariables
         #F3 isOriginDeclaration isStatic c (nameOffset:14) (firstTokenOffset:14) (offset:14)
           element: <testLibrary>::@topLevelVariable::c
+          inducedGetter: #F4
+          inducedSetter: #F5
       getters
         #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
           element: <testLibrary>::@getter::c
+          inducingVariable: #F3
       setters
         #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
           element: <testLibrary>::@setter::c
+          inducingVariable: #F3
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@setter::c::@formalParameter::value
@@ -4308,12 +4316,16 @@ library
       topLevelVariables
         #F3 isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::c
+          inducedGetter: #F4
+          inducedSetter: #F5
       getters
         #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::c
+          inducingVariable: #F3
       setters
         #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@setter::c
+          inducingVariable: #F3
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@setter::c::@formalParameter::value
@@ -4571,9 +4583,11 @@ library
           fields
             #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::it
+              inducedGetter: #F4
           getters
             #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
+              inducingVariable: #F3
   classes
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
@@ -7298,9 +7312,11 @@ library
                 leftParenthesis: ( @35
                 rightParenthesis: ) @36
               staticType: B
+          inducedGetter: #F2
       getters
         #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -8392,16 +8408,20 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration x (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@class::M::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::M::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::M::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@class::M::@setter::x::@formalParameter::value
@@ -8428,17 +8448,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::M::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::M::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::M::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::M::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -8512,16 +8532,20 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration isStatic x (nameOffset:47) (firstTokenOffset:47) (offset:47)
               element: <testLibrary>::@class::M::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::M::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::M::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
                   element: <testLibrary>::@class::M::@setter::x::@formalParameter::value
@@ -8548,17 +8572,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::M::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable isStatic x
           reference: <testLibrary>::@class::M::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::M::@field::x
       setters
         isOriginVariable isStatic x
           reference: <testLibrary>::@class::M::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -9162,23 +9186,27 @@ library
               element: <testLibrary>::@class::E::@field::b
             #F8 isOriginDeclaration x (nameOffset:107) (firstTokenOffset:107) (offset:107)
               element: <testLibrary>::@class::E::@field::x
+              inducedGetter: #F9
+              inducedSetter: #F10
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F11 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::E::@constructor::new
               typeName: E
           getters
-            #F10 isCompleteDeclaration isOriginDeclaration a (nameOffset:53) (firstTokenOffset:45) (offset:53)
+            #F12 isCompleteDeclaration isOriginDeclaration a (nameOffset:53) (firstTokenOffset:45) (offset:53)
               element: <testLibrary>::@class::E::@getter::a
-            #F11 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
+            #F9 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
               element: <testLibrary>::@class::E::@getter::x
+              inducingVariable: #F8
           setters
-            #F12 isCompleteDeclaration isOriginDeclaration b (nameOffset:75) (firstTokenOffset:66) (offset:75)
+            #F13 isCompleteDeclaration isOriginDeclaration b (nameOffset:75) (firstTokenOffset:66) (offset:75)
               element: <testLibrary>::@class::E::@setter::b
               formalParameters
-                #F13 requiredPositional isOriginDeclaration i (nameOffset:81) (firstTokenOffset:77) (offset:81)
+                #F14 requiredPositional isOriginDeclaration i (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@class::E::@setter::b::@formalParameter::i
-            #F14 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
+            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
               element: <testLibrary>::@class::E::@setter::x
+              inducingVariable: #F8
               formalParameters
                 #F15 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:107)
                   element: <testLibrary>::@class::E::@setter::x::@formalParameter::value
@@ -9234,31 +9262,31 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::E::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F11
       getters
         isOriginDeclaration a
           reference: <testLibrary>::@class::E::@getter::a
-          firstFragment: #F10
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@class::E::@field::a
         isOriginVariable x
           reference: <testLibrary>::@class::E::@getter::x
-          firstFragment: #F11
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@class::E::@field::x
       setters
         isOriginDeclaration b
           reference: <testLibrary>::@class::E::@setter::b
-          firstFragment: #F12
+          firstFragment: #F13
           formalParameters
             #E0 requiredPositional i
-              firstFragment: #F13
+              firstFragment: #F14
               type: int
           returnType: void
           variable: <testLibrary>::@class::E::@field::b
         isOriginVariable x
           reference: <testLibrary>::@class::E::@setter::x
-          firstFragment: #F14
+          firstFragment: #F10
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F15
@@ -9375,15 +9403,17 @@ library
           fields
             #F2 isFinal isOriginDeclaration x (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@class::A::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
               thisKeywordOffset: 35
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::A::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -9397,7 +9427,7 @@ library
       constructors
         isConst isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -9411,7 +9441,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::x
 ''');
@@ -9546,8 +9576,9 @@ library
           fields
             #F2 isFinal isOriginDeclaration x (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@class::A::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               metadata
                 Annotation
@@ -9567,8 +9598,9 @@ library
               typeNameOffset: 12
               thisKeywordOffset: 54
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::A::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -9582,7 +9614,7 @@ library
       constructors
         isConst isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           metadata
             Annotation
               atSign: @ @35
@@ -9610,7 +9642,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::x
 ''');
@@ -9635,8 +9667,9 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               metadata
                 Annotation
@@ -9650,11 +9683,12 @@ library
               typeNameOffset: 12
               thisKeywordOffset: 45
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.x (nameOffset:24) (firstTokenOffset:14) (offset:24)
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.x (nameOffset:24) (firstTokenOffset:14) (offset:24)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -9669,7 +9703,7 @@ library
       constructors
         isConst isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           metadata
             Annotation
               atSign: @ @31
@@ -9680,13 +9714,13 @@ library
               element: dart:core::@getter::deprecated
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::x
 ''');
@@ -9813,18 +9847,20 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
               thisKeywordOffset: 31
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.x (nameOffset:24) (firstTokenOffset:14) (offset:24)
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.x (nameOffset:24) (firstTokenOffset:14) (offset:24)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -9839,10 +9875,10 @@ library
       constructors
         isConst isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::x
           constantInitializers
@@ -9865,7 +9901,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::x
 ''');
@@ -9887,17 +9923,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:24) (firstTokenOffset:14) (offset:24)
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:24) (firstTokenOffset:14) (offset:24)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -9912,16 +9950,16 @@ library
       constructors
         isConst isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -9943,17 +9981,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
+                #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -9968,16 +10008,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int Function()
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -9999,17 +10039,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter isPromotable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::_foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:20) (firstTokenOffset:9) (offset:20)
+                #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:20) (firstTokenOffset:9) (offset:20)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::_foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10024,17 +10066,17 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int?
               privateName: _foo
               field: <testLibrary>::@class::A::@field::_foo
       getters
         isOriginVariable _foo
           reference: <testLibrary>::@class::A::@getter::_foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int?
           variable: <testLibrary>::@class::A::@field::_foo
 ''');
@@ -10056,17 +10098,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter isPromotable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::_123
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed isDeclaring isFinal isOriginDeclaration this._123 (nameOffset:20) (firstTokenOffset:9) (offset:20)
+                #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this._123 (nameOffset:20) (firstTokenOffset:9) (offset:20)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_123
           getters
-            #F5 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::_123
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10081,16 +10125,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed isDeclaring isFinal this._123
-              firstFragment: #F4
+              firstFragment: #F5
               type: int?
               field: <testLibrary>::@class::A::@field::_123
       getters
         isOriginVariable _123
           reference: <testLibrary>::@class::A::@getter::_123
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int?
           variable: <testLibrary>::@class::A::@field::_123
 ''');
@@ -10112,17 +10156,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
+                #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10137,16 +10183,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10168,17 +10214,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
+                #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10193,16 +10241,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalPositional isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int Function()
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10224,17 +10272,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
+                #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:9) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10249,16 +10299,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalPositional isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10280,17 +10330,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:28) (firstTokenOffset:9) (offset:28)
+                #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:28) (firstTokenOffset:9) (offset:28)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10305,16 +10357,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredNamed isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int Function()
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10336,17 +10388,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter isPromotable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::_foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:28) (firstTokenOffset:9) (offset:28)
+                #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:28) (firstTokenOffset:9) (offset:28)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::_foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10361,17 +10415,17 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredNamed isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               privateName: _foo
               field: <testLibrary>::@class::A::@field::_foo
       getters
         isOriginVariable _foo
           reference: <testLibrary>::@class::A::@getter::_foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::_foo
 ''');
@@ -10393,17 +10447,19 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:28) (firstTokenOffset:9) (offset:28)
+                #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:28) (firstTokenOffset:9) (offset:28)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10418,16 +10474,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredNamed isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10449,17 +10505,19 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
+                #F5 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10474,16 +10532,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed hasImplicitType isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: Object?
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: Object?
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10505,21 +10563,23 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
+                #F5 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   initializer: expression_0
                     IntegerLiteral
                       literal: 0 @21
                       staticType: int
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10534,19 +10594,19 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed hasDefaultValue hasImplicitType isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               constantInitializer
-                fragment: #F4
+                fragment: #F5
                 expression: expression_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10568,21 +10628,23 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
+                #F5 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   initializer: expression_0
                     NullLiteral
                       literal: null @21
                       staticType: Null
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10597,19 +10659,19 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed hasDefaultValue hasImplicitType isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: Object?
               constantInitializer
-                fragment: #F4
+                fragment: #F5
                 expression: expression_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: Object?
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10647,17 +10709,19 @@ library
           fields
             #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@field::foo
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
+            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 39
               formalParameters
-                #F8 requiredNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:57) (firstTokenOffset:42) (offset:57)
+                #F9 requiredNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:57) (firstTokenOffset:42) (offset:57)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
           getters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F6
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10693,16 +10757,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             #E0 requiredNamed hasImplicitType isDeclaring isFinal this.foo
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
               field: <testLibrary>::@class::B::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::B::@getter::foo
-          firstFragment: #F9
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::foo
 ''');
@@ -10740,21 +10804,23 @@ library
           fields
             #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@field::foo
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
+            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 39
               formalParameters
-                #F8 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:48) (firstTokenOffset:42) (offset:48)
+                #F9 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:48) (firstTokenOffset:42) (offset:48)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
                   initializer: expression_0
                     IntegerLiteral
                       literal: 0 @54
                       staticType: int
           getters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F6
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10790,19 +10856,19 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             #E0 optionalNamed hasDefaultValue hasImplicitType isDeclaring isFinal this.foo
-              firstFragment: #F8
+              firstFragment: #F9
               type: num
               constantInitializer
-                fragment: #F8
+                fragment: #F9
                 expression: expression_0
               field: <testLibrary>::@class::B::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::B::@getter::foo
-          firstFragment: #F9
+          firstFragment: #F7
           returnType: num
           variable: <testLibrary>::@class::B::@field::foo
 ''');
@@ -10828,13 +10894,14 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:11) (offset:58)
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:11) (offset:58)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -10846,8 +10913,9 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -10871,10 +10939,10 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int Function()
               documentationComment: /// first\n/// second
               metadata
@@ -10889,7 +10957,7 @@ library
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int Function()
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -10911,20 +10979,24 @@ library
           fields
             #F2 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:16) (firstTokenOffset:8) (offset:16)
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:16) (firstTokenOffset:8) (offset:16)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -10943,22 +11015,22 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F6
               type: int Function()
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int Function()
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -10988,13 +11060,14 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:11) (offset:58)
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:11) (offset:58)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -11006,8 +11079,9 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11031,10 +11105,10 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               documentationComment: /// first\n/// second
               metadata
@@ -11049,7 +11123,7 @@ library
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -11071,20 +11145,24 @@ library
           fields
             #F2 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:16) (firstTokenOffset:8) (offset:16)
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:16) (firstTokenOffset:8) (offset:16)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -11103,22 +11181,22 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -11144,17 +11222,19 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:14) (firstTokenOffset:8) (offset:14)
+                #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:14) (firstTokenOffset:8) (offset:14)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11169,16 +11249,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional hasImplicitType isDeclaring isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: Object?
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: Object?
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -11216,17 +11296,19 @@ library
           fields
             #F6 hasImplicitType isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@field::foo
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
+            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 39
               formalParameters
-                #F8 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:47) (firstTokenOffset:41) (offset:47)
+                #F9 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:47) (firstTokenOffset:41) (offset:47)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
           getters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F6
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11262,16 +11344,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             #E0 requiredPositional hasImplicitType isDeclaring isFinal this.foo
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
               field: <testLibrary>::@class::B::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::B::@getter::foo
-          firstFragment: #F9
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::foo
 ''');
@@ -11296,17 +11378,19 @@ library
           fields
             #F3 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:11) (offset:19)
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:11) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11324,16 +11408,16 @@ library
       constructors
         hasEnclosingTypeParameterReference isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E1 requiredPositional isDeclaring isFinal this.foo
-              firstFragment: #F5
+              firstFragment: #F6
               type: T
               field: <testLibrary>::@class::A::@field::foo
       getters
         hasEnclosingTypeParameterReference isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: T
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -11357,20 +11441,24 @@ library
           fields
             #F2 isOriginDeclaration field (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::field
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isOriginDeclaration A (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                #F6 requiredPositional isOriginDeclaration A (nameOffset:12) (firstTokenOffset:8) (offset:12)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
           getters
-            #F5 isCompleteDeclaration isOriginVariable field (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isCompleteDeclaration isOriginVariable field (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::field
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable field (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable field (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@setter::field
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
                   element: <testLibrary>::@class::A::@setter::field::@formalParameter::value
@@ -11388,21 +11476,21 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional A
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
       getters
         isOriginVariable field
           reference: <testLibrary>::@class::A::@getter::field
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: A?
           variable: <testLibrary>::@class::A::@field::field
       setters
         isOriginVariable field
           reference: <testLibrary>::@class::A::@setter::field
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -11430,17 +11518,19 @@ library
           fields
             #F2 isFinal isOriginDeclaration isPromotable _foo (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@class::A::@field::_foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:14) (firstTokenOffset:9) (offset:14)
+                #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:14) (firstTokenOffset:9) (offset:14)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F3 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::A::@getter::_foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11454,17 +11544,17 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed hasImplicitType isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int?
               privateName: _foo
               field: <testLibrary>::@class::A::@field::_foo
       getters
         isOriginVariable _foo
           reference: <testLibrary>::@class::A::@getter::_foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int?
           variable: <testLibrary>::@class::A::@field::_foo
 ''');
@@ -11488,17 +11578,19 @@ library
           fields
             #F2 isFinal isOriginDeclaration isPromotable _123 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@class::A::@field::_123
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this._123 (nameOffset:14) (firstTokenOffset:9) (offset:14)
+                #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this._123 (nameOffset:14) (firstTokenOffset:9) (offset:14)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_123
           getters
-            #F5 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F3 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::A::@getter::_123
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11512,16 +11604,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalNamed hasImplicitType isFinal this._123
-              firstFragment: #F4
+              firstFragment: #F5
               type: int?
               field: <testLibrary>::@class::A::@field::_123
       getters
         isOriginVariable _123
           reference: <testLibrary>::@class::A::@getter::_123
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int?
           variable: <testLibrary>::@class::A::@field::_123
 ''');
@@ -11545,17 +11637,19 @@ library
           fields
             #F2 isFinal isOriginDeclaration isPromotable _foo (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: <testLibrary>::@class::A::@field::_foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredNamed hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:23) (firstTokenOffset:9) (offset:23)
+                #F5 requiredNamed hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:23) (firstTokenOffset:9) (offset:23)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+            #F3 isCompleteDeclaration isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@class::A::@getter::_foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11569,17 +11663,17 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredNamed hasImplicitType isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int?
               privateName: _foo
               field: <testLibrary>::@class::A::@field::_foo
       getters
         isOriginVariable _foo
           reference: <testLibrary>::@class::A::@getter::_foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int?
           variable: <testLibrary>::@class::A::@field::_foo
 ''');
@@ -11603,17 +11697,19 @@ library
           fields
             #F2 isFinal isOriginDeclaration foo (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:13) (firstTokenOffset:8) (offset:13)
+                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:13) (firstTokenOffset:8) (offset:13)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -11627,16 +11723,16 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -12172,13 +12268,14 @@ library
                 IntegerLiteral
                   literal: 1 @75
                   staticType: int
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:22) (offset:22)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 22
               formalParameters
-                #F5 optionalPositional isOriginDeclaration x (nameOffset:42) (firstTokenOffset:33) (offset:42)
+                #F6 optionalPositional isOriginDeclaration x (nameOffset:42) (firstTokenOffset:33) (offset:42)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
                     Annotation
@@ -12194,8 +12291,9 @@ library
                       element: <testLibrary>::@class::A::@getter::foo
                       staticType: int
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -12203,9 +12301,11 @@ library
             IntegerLiteral
               literal: 0 @12
               staticType: int
+          inducedGetter: #F8
       getters
         #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
+          inducingVariable: #F7
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -12233,10 +12333,10 @@ library
       constructors
         hasEnclosingTypeParameterReference isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E1 optionalPositional hasDefaultValue x
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               metadata
                 Annotation
@@ -12247,12 +12347,12 @@ library
                     staticType: null
                   element: <testLibrary>::@class::A::@getter::foo
               constantInitializer
-                fragment: #F5
+                fragment: #F6
                 expression: expression_1
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
   topLevelVariables
@@ -12927,9 +13027,11 @@ library
           fields
             #F3 isFinal isOriginDeclaration f (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::f
+              inducedGetter: #F4
           getters
             #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::f
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
@@ -12996,9 +13098,11 @@ library
           fields
             #F3 isFinal isOriginDeclaration f (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::f
+              inducedGetter: #F4
           getters
             #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::f
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
@@ -13066,35 +13170,37 @@ library
           fields
             #F3 isFinal isOriginDeclaration n1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::n1
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 requiredNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:45) (firstTokenOffset:31) (offset:45)
+                #F6 requiredNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:45) (firstTokenOffset:31) (offset:45)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 isCompleteDeclaration isOriginVariable n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::n1
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:67) (firstTokenOffset:53) (offset:67)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           nextFragment: #F9
           constructors
-            #F7 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:73) (offset:81)
+            #F8 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:73) (offset:81)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 81
               formalParameters
-                #F6 requiredNamed isOriginDeclaration n1 (nameOffset:97) (firstTokenOffset:84) (offset:97)
+                #F7 requiredNamed isOriginDeclaration n1 (nameOffset:97) (firstTokenOffset:84) (offset:97)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-                  previousFragment: #F5
+                  previousFragment: #F6
                   nextFragment: #F10
               nextFragment: #F11
-              previousFragment: #F4
+              previousFragment: #F5
         #F9 isAugmentation class A (nameOffset:119) (firstTokenOffset:105) (offset:119)
           element: <testLibrary>::@class::A
           previousFragment: #F2
@@ -13106,8 +13212,8 @@ library
               formalParameters
                 #F10 requiredNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:150) (firstTokenOffset:136) (offset:150)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-                  previousFragment: #F6
-              previousFragment: #F7
+                  previousFragment: #F7
+              previousFragment: #F8
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -13121,16 +13227,16 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredNamed hasImplicitType isFinal this.n1
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::n1
       getters
         isOriginVariable n1
           reference: <testLibrary>::@class::A::@getter::n1
-          firstFragment: #F8
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::n1
 ''');
@@ -13163,42 +13269,44 @@ library
           fields
             #F3 isFinal isOriginDeclaration n1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::n1
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 requiredNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:45) (firstTokenOffset:31) (offset:45)
+                #F6 requiredNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:45) (firstTokenOffset:31) (offset:45)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-                  nextFragment: #F6
-                #F7 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+                  nextFragment: #F7
+                #F8 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n2
-                  nextFragment: #F8
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 isCompleteDeclaration isOriginVariable n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::n1
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:67) (firstTokenOffset:53) (offset:67)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           nextFragment: #F11
           constructors
-            #F9 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:73) (offset:81)
+            #F10 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:73) (offset:81)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 81
               formalParameters
-                #F8 requiredNamed isOriginDeclaration n2 (nameOffset:97) (firstTokenOffset:84) (offset:97)
+                #F9 requiredNamed isOriginDeclaration n2 (nameOffset:97) (firstTokenOffset:84) (offset:97)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n2
-                  previousFragment: #F7
+                  previousFragment: #F8
                   nextFragment: #F12
-                #F6 requiredNamed isFinal isOriginOtherFragmentOfEnclosing this.n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
+                #F7 requiredNamed isFinal isOriginOtherFragmentOfEnclosing this.n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-                  previousFragment: #F5
+                  previousFragment: #F6
                   nextFragment: #F13
               nextFragment: #F14
-              previousFragment: #F4
+              previousFragment: #F5
         #F11 isAugmentation class A (nameOffset:119) (firstTokenOffset:105) (offset:119)
           element: <testLibrary>::@class::A
           previousFragment: #F2
@@ -13210,11 +13318,11 @@ library
               formalParameters
                 #F13 requiredNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:150) (firstTokenOffset:136) (offset:150)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-                  previousFragment: #F6
+                  previousFragment: #F7
                 #F12 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:133)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n2
-                  previousFragment: #F8
-              previousFragment: #F9
+                  previousFragment: #F9
+              previousFragment: #F10
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -13228,19 +13336,19 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredNamed hasImplicitType isFinal this.n1
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::n1
             #E1 requiredNamed n2
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
       getters
         isOriginVariable n1
           reference: <testLibrary>::@class::A::@getter::n1
-          firstFragment: #F10
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::n1
 ''');
@@ -13270,32 +13378,34 @@ library
           fields
             #F3 isFinal isOriginDeclaration p1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::p1
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:35) (firstTokenOffset:30) (offset:35)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:35) (firstTokenOffset:30) (offset:35)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::p1
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:70)
+            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:70)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 70
               formalParameters
-                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:77) (firstTokenOffset:72) (offset:77)
+                #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:77) (firstTokenOffset:72) (offset:77)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  previousFragment: #F5
-              previousFragment: #F4
+                  previousFragment: #F6
+              previousFragment: #F5
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -13309,16 +13419,16 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.p1
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::p1
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::A::@getter::p1
-          firstFragment: #F8
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::p1
 ''');
@@ -13348,32 +13458,34 @@ library
           fields
             #F3 isFinal isOriginDeclaration p1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::p1
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:35) (firstTokenOffset:30) (offset:35)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:35) (firstTokenOffset:30) (offset:35)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::p1
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F7 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:70)
+            #F8 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:70)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 70
               formalParameters
-                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:76) (firstTokenOffset:72) (offset:76)
+                #F7 requiredPositional isOriginDeclaration p1 (nameOffset:76) (firstTokenOffset:72) (offset:76)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  previousFragment: #F5
-              previousFragment: #F4
+                  previousFragment: #F6
+              previousFragment: #F5
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -13387,16 +13499,16 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.p1
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::p1
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::A::@getter::p1
-          firstFragment: #F8
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::p1
 ''');
@@ -13429,35 +13541,37 @@ library
           fields
             #F3 isFinal isOriginDeclaration p1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::p1
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:35) (firstTokenOffset:30) (offset:35)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:35) (firstTokenOffset:30) (offset:35)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::p1
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           nextFragment: #F9
           constructors
-            #F7 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:70)
+            #F8 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:62) (offset:70)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 70
               formalParameters
-                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:76) (firstTokenOffset:72) (offset:76)
+                #F7 requiredPositional isOriginDeclaration p1 (nameOffset:76) (firstTokenOffset:72) (offset:76)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  previousFragment: #F5
+                  previousFragment: #F6
                   nextFragment: #F10
               nextFragment: #F11
-              previousFragment: #F4
+              previousFragment: #F5
         #F9 isAugmentation class A (nameOffset:97) (firstTokenOffset:83) (offset:97)
           element: <testLibrary>::@class::A
           previousFragment: #F2
@@ -13469,8 +13583,8 @@ library
               formalParameters
                 #F10 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:118) (firstTokenOffset:113) (offset:118)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  previousFragment: #F6
-              previousFragment: #F7
+                  previousFragment: #F7
+              previousFragment: #F8
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -13484,16 +13598,16 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.p1
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::p1
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::A::@getter::p1
-          firstFragment: #F8
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::p1
 ''');
@@ -13539,35 +13653,37 @@ library
           fields
             #F6 isFinal isOriginDeclaration p1 (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@class::B::@field::p1
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
+            #F8 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 63
               formalParameters
-                #F8 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:70) (firstTokenOffset:65) (offset:70)
+                #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:70) (firstTokenOffset:65) (offset:70)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  nextFragment: #F9
-              nextFragment: #F10
+                  nextFragment: #F10
+              nextFragment: #F11
           getters
-            #F11 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F7 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::B::@getter::p1
+              inducingVariable: #F6
         #F5 isAugmentation class B (nameOffset:102) (firstTokenOffset:88) (offset:102)
           element: <testLibrary>::@class::B
           previousFragment: #F4
           nextFragment: #F12
           constructors
-            #F10 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:108) (offset:116)
+            #F11 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:108) (offset:116)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 116
               formalParameters
-                #F9 requiredPositional isOriginDeclaration p1 (nameOffset:122) (firstTokenOffset:118) (offset:122)
+                #F10 requiredPositional isOriginDeclaration p1 (nameOffset:122) (firstTokenOffset:118) (offset:122)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  previousFragment: #F8
+                  previousFragment: #F9
                   nextFragment: #F13
               nextFragment: #F14
-              previousFragment: #F7
+              previousFragment: #F8
         #F12 isAugmentation class B (nameOffset:143) (firstTokenOffset:129) (offset:143)
           element: <testLibrary>::@class::B
           previousFragment: #F5
@@ -13579,8 +13695,8 @@ library
               formalParameters
                 #F13 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:165) (firstTokenOffset:159) (offset:165)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  previousFragment: #F9
-              previousFragment: #F10
+                  previousFragment: #F10
+              previousFragment: #F11
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -13606,17 +13722,17 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             #E1 requiredPositional hasImplicitType isFinal this.p1
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
               field: <testLibrary>::@class::B::@field::p1
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::B::@getter::p1
-          firstFragment: #F11
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::p1
 ''');
@@ -13659,32 +13775,34 @@ library
           fields
             #F6 isFinal isOriginDeclaration p1 (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@class::B::@field::p1
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
+            #F8 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 63
               formalParameters
-                #F8 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:70) (firstTokenOffset:65) (offset:70)
+                #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:70) (firstTokenOffset:65) (offset:70)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  nextFragment: #F9
-              nextFragment: #F10
+                  nextFragment: #F10
+              nextFragment: #F11
           getters
-            #F11 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F7 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::B::@getter::p1
+              inducingVariable: #F6
         #F5 isAugmentation class B (nameOffset:102) (firstTokenOffset:88) (offset:102)
           element: <testLibrary>::@class::B
           previousFragment: #F4
           constructors
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:108) (offset:116)
+            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:108) (offset:116)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 116
               formalParameters
-                #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:124) (firstTokenOffset:118) (offset:124)
+                #F10 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:124) (firstTokenOffset:118) (offset:124)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  previousFragment: #F8
-              previousFragment: #F7
+                  previousFragment: #F9
+              previousFragment: #F8
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -13710,17 +13828,17 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             #E1 requiredPositional hasImplicitType isFinal this.p1
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
               field: <testLibrary>::@class::B::@field::p1
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::B::@getter::p1
-          firstFragment: #F11
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::p1
 ''');
@@ -14939,32 +15057,34 @@ library
           fields
             #F3 isFinal isOriginDeclaration p1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::p1
+              inducedGetter: #F4
           constructors
-            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 requiredPositional isOriginDeclaration p1 (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:34) (firstTokenOffset:30) (offset:34)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::p1
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:61) (offset:69)
+            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:61) (offset:69)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 69
               formalParameters
-                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:76) (firstTokenOffset:71) (offset:76)
+                #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:76) (firstTokenOffset:71) (offset:76)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  previousFragment: #F5
-              previousFragment: #F4
+                  previousFragment: #F6
+              previousFragment: #F5
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -14978,16 +15098,16 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.p1
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::p1
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::A::@getter::p1
-          firstFragment: #F8
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::p1
 ''');
@@ -15020,35 +15140,37 @@ library
           fields
             #F3 isFinal isOriginDeclaration p1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::p1
+              inducedGetter: #F4
           constructors
-            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 requiredPositional isOriginDeclaration p1 (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:34) (firstTokenOffset:30) (offset:34)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::p1
+              inducingVariable: #F3
         #F2 isAugmentation class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           nextFragment: #F9
           constructors
-            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:61) (offset:69)
+            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:61) (offset:69)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 69
               formalParameters
-                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:76) (firstTokenOffset:71) (offset:76)
+                #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:76) (firstTokenOffset:71) (offset:76)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  previousFragment: #F5
+                  previousFragment: #F6
                   nextFragment: #F10
               nextFragment: #F11
-              previousFragment: #F4
+              previousFragment: #F5
         #F9 isAugmentation class A (nameOffset:97) (firstTokenOffset:83) (offset:97)
           element: <testLibrary>::@class::A
           previousFragment: #F2
@@ -15060,8 +15182,8 @@ library
               formalParameters
                 #F10 requiredPositional isOriginDeclaration p1 (nameOffset:117) (firstTokenOffset:113) (offset:117)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  previousFragment: #F6
-              previousFragment: #F7
+                  previousFragment: #F7
+              previousFragment: #F8
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -15075,16 +15197,16 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.p1
-              firstFragment: #F5
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::p1
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::A::@getter::p1
-          firstFragment: #F8
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::p1
 ''');
@@ -17543,32 +17665,34 @@ library
           fields
             #F6 isFinal isOriginDeclaration p1 (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@class::B::@field::p1
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
+            #F8 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 63
               formalParameters
-                #F8 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:71) (firstTokenOffset:65) (offset:71)
+                #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:71) (firstTokenOffset:65) (offset:71)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  nextFragment: #F9
-              nextFragment: #F10
+                  nextFragment: #F10
+              nextFragment: #F11
           getters
-            #F11 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F7 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::B::@getter::p1
+              inducingVariable: #F6
         #F5 isAugmentation class B (nameOffset:92) (firstTokenOffset:78) (offset:92)
           element: <testLibrary>::@class::B
           previousFragment: #F4
           constructors
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:98) (offset:106)
+            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:98) (offset:106)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 106
               formalParameters
-                #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:113) (firstTokenOffset:108) (offset:113)
+                #F10 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:113) (firstTokenOffset:108) (offset:113)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  previousFragment: #F8
-              previousFragment: #F7
+                  previousFragment: #F9
+              previousFragment: #F8
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -17594,17 +17718,17 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             #E1 requiredPositional hasImplicitType isFinal super.p1
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::B::@getter::p1
-          firstFragment: #F11
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::p1
 ''');
@@ -17735,35 +17859,37 @@ library
           fields
             #F6 isFinal isOriginDeclaration p1 (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@class::B::@field::p1
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
+            #F8 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 63
               formalParameters
-                #F8 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:71) (firstTokenOffset:65) (offset:71)
+                #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:71) (firstTokenOffset:65) (offset:71)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  nextFragment: #F9
-              nextFragment: #F10
+                  nextFragment: #F10
+              nextFragment: #F11
           getters
-            #F11 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F7 isCompleteDeclaration isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::B::@getter::p1
+              inducingVariable: #F6
         #F5 isAugmentation class B (nameOffset:92) (firstTokenOffset:78) (offset:92)
           element: <testLibrary>::@class::B
           previousFragment: #F4
           nextFragment: #F12
           constructors
-            #F10 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:98) (offset:106)
+            #F11 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:98) (offset:106)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 106
               formalParameters
-                #F9 requiredPositional isOriginDeclaration p1 (nameOffset:112) (firstTokenOffset:108) (offset:112)
+                #F10 requiredPositional isOriginDeclaration p1 (nameOffset:112) (firstTokenOffset:108) (offset:112)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  previousFragment: #F8
+                  previousFragment: #F9
                   nextFragment: #F13
               nextFragment: #F14
-              previousFragment: #F7
+              previousFragment: #F8
         #F12 isAugmentation class B (nameOffset:133) (firstTokenOffset:119) (offset:133)
           element: <testLibrary>::@class::B
           previousFragment: #F5
@@ -17775,8 +17901,8 @@ library
               formalParameters
                 #F13 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:154) (firstTokenOffset:149) (offset:154)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  previousFragment: #F9
-              previousFragment: #F10
+                  previousFragment: #F10
+              previousFragment: #F11
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -17802,17 +17928,17 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           formalParameters
             #E1 requiredPositional hasImplicitType isFinal super.p1
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable p1
           reference: <testLibrary>::@class::B::@getter::p1
-          firstFragment: #F11
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::p1
 ''');
@@ -18354,12 +18480,16 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -18596,12 +18726,16 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -19229,20 +19363,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19260,22 +19398,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 optionalNamed hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19304,24 +19442,28 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
                       literal: 42 @32
                       staticType: int
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19339,25 +19481,25 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               constantInitializer
-                fragment: #F4
+                fragment: #F6
                 expression: expression_0
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19386,20 +19528,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19417,22 +19563,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 optionalPositional hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19461,24 +19607,28 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
                       literal: 42 @33
                       staticType: int
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19496,25 +19646,25 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               constantInitializer
-                fragment: #F4
+                fragment: #F6
                 expression: expression_0
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19543,20 +19693,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 25
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:27) (offset:40)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:27) (offset:40)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19574,22 +19728,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: dynamic
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19618,20 +19772,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 25
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:27) (offset:32)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:27) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19649,22 +19807,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: dynamic
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19693,20 +19851,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 25
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:27) (offset:36)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:27) (offset:36)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19724,22 +19886,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19768,20 +19930,24 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:23) (offset:36)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:23) (offset:36)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19799,22 +19965,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: dynamic
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19843,20 +20009,24 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19874,22 +20044,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: dynamic
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19918,20 +20088,24 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -19949,22 +20123,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -19993,20 +20167,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:23) (offset:36)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:36) (firstTokenOffset:23) (offset:36)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -20024,22 +20202,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: dynamic
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: num
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -20068,20 +20246,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -20099,22 +20281,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: num
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: num
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -20143,20 +20325,24 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -20174,22 +20360,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: num
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -20218,23 +20404,27 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   parameters
-                    #F5 requiredPositional isOriginDeclaration b (nameOffset:37) (firstTokenOffset:30) (offset:37)
+                    #F7 requiredPositional isOriginDeclaration b (nameOffset:37) (firstTokenOffset:30) (offset:37)
                       element: b@37
           getters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -20252,26 +20442,26 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: dynamic Function(double)
               formalParameters
                 #E1 requiredPositional b
-                  firstFragment: #F5
+                  firstFragment: #F7
                   type: double
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F6
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F7
+          firstFragment: #F4
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F8
@@ -20300,23 +20490,27 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 21
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
+                #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   parameters
-                    #F5 requiredPositional isOriginDeclaration b (nameOffset:41) (firstTokenOffset:34) (offset:41)
+                    #F7 requiredPositional isOriginDeclaration b (nameOffset:41) (firstTokenOffset:34) (offset:41)
                       element: b@41
           getters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -20334,26 +20528,26 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int Function(double)
               formalParameters
                 #E1 requiredPositional b
-                  firstFragment: #F5
+                  firstFragment: #F7
                   type: double
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F6
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F7
+          firstFragment: #F4
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F8
@@ -20382,28 +20576,32 @@ library
           fields
             #F2 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@field::f
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 28
               formalParameters
-                #F4 requiredPositional isFinal isOriginDeclaration this.f (nameOffset:43) (firstTokenOffset:30) (offset:43)
+                #F6 requiredPositional isFinal isOriginDeclaration this.f (nameOffset:43) (firstTokenOffset:30) (offset:43)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::f
                   typeParameters
-                    #F5 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+                    #F7 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
                       element: #E0 T
-                    #F6 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
+                    #F8 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
                       element: #E1 U
                   parameters
-                    #F7 requiredPositional isOriginDeclaration t (nameOffset:53) (firstTokenOffset:51) (offset:53)
+                    #F9 requiredPositional isOriginDeclaration t (nameOffset:53) (firstTokenOffset:51) (offset:53)
                       element: t@53
           getters
-            #F8 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F3 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@getter::f
+              inducingVariable: #F2
           setters
-            #F9 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@setter::f
+              inducingVariable: #F2
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::C::@setter::f::@formalParameter::value
@@ -20421,31 +20619,31 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E2 requiredPositional isFinal this.f
-              firstFragment: #F4
+              firstFragment: #F6
               type: List<U> Function<T, U>(T)
               typeParameters
                 #E0 T
-                  firstFragment: #F5
+                  firstFragment: #F7
                 #E1 U
-                  firstFragment: #F6
+                  firstFragment: #F8
               formalParameters
                 #E3 requiredPositional t
-                  firstFragment: #F7
+                  firstFragment: #F9
                   type: T
               field: <testLibrary>::@class::C::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F8
+          firstFragment: #F3
           returnType: dynamic Function()
           variable: <testLibrary>::@class::C::@field::f
       setters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@setter::f
-          firstFragment: #F9
+          firstFragment: #F4
           formalParameters
             #E4 requiredPositional value
               firstFragment: #F10
@@ -20477,29 +20675,37 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::C::@field::x
-            #F3 isOriginDeclaration x (nameOffset:41) (firstTokenOffset:41) (offset:41)
+              inducedGetter: #F3
+              inducedSetter: #F4
+            #F5 isOriginDeclaration x (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: <testLibrary>::@class::C::@field::x#1
+              inducedGetter: #F6
+              inducedSetter: #F7
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F8 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 12
               formalParameters
-                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:19) (firstTokenOffset:14) (offset:19)
+                #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:19) (firstTokenOffset:14) (offset:19)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@getter::x
-            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+              inducingVariable: #F2
+            #F6 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::C::@getter::x#1
+              inducingVariable: #F5
           setters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
-                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
-            #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::C::@setter::x#1
+              inducingVariable: #F5
               formalParameters
                 #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
                   element: <testLibrary>::@class::C::@setter::x#1::@formalParameter::value
@@ -20516,43 +20722,43 @@ library
           setter: <testLibrary>::@class::C::@setter::x
         isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x#1
-          firstFragment: #F3
+          firstFragment: #F5
           type: String
           getter: <testLibrary>::@class::C::@getter::x#1
           setter: <testLibrary>::@class::C::@setter::x#1
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F8
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.x
-              firstFragment: #F5
+              firstFragment: #F9
               type: int
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F6
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x#1
-          firstFragment: #F7
+          firstFragment: #F6
           returnType: String
           variable: <testLibrary>::@class::C::@field::x#1
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F8
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F9
+              firstFragment: #F10
               type: int
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x#1
-          firstFragment: #F10
+          firstFragment: #F7
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F11
@@ -20621,20 +20827,24 @@ library
           fields
             #F2 isOriginDeclaration _x (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::C::@field::_x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 23
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:31) (firstTokenOffset:26) (offset:31)
+                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:31) (firstTokenOffset:26) (offset:31)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F3 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@getter::_x
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isCompleteDeclaration isOriginVariable _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@setter::_x
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@class::C::@setter::_x::@formalParameter::value
@@ -20652,23 +20862,23 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 optionalNamed hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F6
               type: int?
               privateName: _x
               field: <testLibrary>::@class::C::@field::_x
       getters
         isOriginVariable _x
           reference: <testLibrary>::@class::C::@getter::_x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int?
           variable: <testLibrary>::@class::C::@field::_x
       setters
         isOriginVariable _x
           reference: <testLibrary>::@class::C::@setter::_x
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -20701,20 +20911,24 @@ library
           fields
             #F2 isOriginDeclaration _123 (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::C::@field::_123
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 25
               formalParameters
-                #F4 optionalNamed hasImplicitType isFinal isOriginDeclaration this._123 (nameOffset:33) (firstTokenOffset:28) (offset:33)
+                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this._123 (nameOffset:33) (firstTokenOffset:28) (offset:33)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::_123
           getters
-            #F5 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F3 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@getter::_123
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@setter::_123
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@class::C::@setter::_123::@formalParameter::value
@@ -20732,22 +20946,22 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 optionalNamed hasImplicitType isFinal this._123
-              firstFragment: #F4
+              firstFragment: #F6
               type: int?
               field: <testLibrary>::@class::C::@field::_123
       getters
         isOriginVariable _123
           reference: <testLibrary>::@class::C::@getter::_123
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int?
           variable: <testLibrary>::@class::C::@field::_123
       setters
         isOriginVariable _123
           reference: <testLibrary>::@class::C::@setter::_123
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -22172,14 +22386,16 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -22193,7 +22409,7 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -22207,7 +22423,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -22235,14 +22451,16 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
       functions
         #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:53) (firstTokenOffset:49) (offset:53)
           element: <testLibrary>::@function::foo
@@ -22259,7 +22477,7 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -22280,7 +22498,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
   functions
@@ -22310,21 +22528,23 @@ library
           fields
             #F2 isFinal isOriginDeclaration isPromotable _f (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::_f
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:34)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:34)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 34
               formalParameters
-                #F4 optionalPositional isOriginDeclaration f (nameOffset:41) (firstTokenOffset:37) (offset:41)
+                #F5 optionalPositional isOriginDeclaration f (nameOffset:41) (firstTokenOffset:37) (offset:41)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     IntegerLiteral
                       literal: 0 @45
                       staticType: int
           getters
-            #F5 isCompleteDeclaration isOriginVariable _f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isCompleteDeclaration isOriginVariable _f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::_f
+              inducingVariable: #F2
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22338,13 +22558,13 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 optionalPositional hasDefaultValue f
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               constantInitializer
-                fragment: #F4
+                fragment: #F5
                 expression: expression_0
           constantInitializers
             ConstructorFieldInitializer
@@ -22360,7 +22580,7 @@ library
       getters
         isOriginVariable _f
           reference: <testLibrary>::@class::A::@getter::_f
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::_f
 ''');
@@ -22385,17 +22605,19 @@ library
           fields
             #F2 isFinal isOriginDeclaration x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:30) (offset:36)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:30) (offset:36)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 36
               formalParameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:42) (firstTokenOffset:38) (offset:42)
+                #F5 requiredPositional isOriginDeclaration a (nameOffset:42) (firstTokenOffset:38) (offset:42)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -22409,10 +22631,10 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional a
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
           constantInitializers
             ConstructorFieldInitializer
@@ -22436,7 +22658,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: Object
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -22461,14 +22683,16 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaration f (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::f
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::f
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -22482,7 +22706,7 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -22507,7 +22731,7 @@ library
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::f
 ''');
@@ -22532,17 +22756,19 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaration f (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::f
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 requiredPositional isOriginDeclaration x (nameOffset:35) (firstTokenOffset:31) (offset:35)
+                #F5 requiredPositional isOriginDeclaration x (nameOffset:35) (firstTokenOffset:31) (offset:35)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::f
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -22556,10 +22782,10 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional x
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
           constantInitializers
             ConstructorFieldInitializer
@@ -22585,7 +22811,7 @@ library
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::f
 ''');
@@ -22610,17 +22836,19 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
               formalParameters
-                #F4 requiredPositional isOriginDeclaration p (nameOffset:35) (firstTokenOffset:31) (offset:35)
+                #F5 requiredPositional isOriginDeclaration p (nameOffset:35) (firstTokenOffset:31) (offset:35)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -22634,10 +22862,10 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional p
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
           constantInitializers
             ConstructorFieldInitializer
@@ -22661,7 +22889,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -25918,27 +26146,31 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
         #F5 class D (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::D
           fields
             #F6 hasImplicitType isFinal isOriginDeclaration x (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::D::@field::x
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:76) (offset:82)
+            #F8 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:76) (offset:82)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
               typeNameOffset: 82
           getters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::D::@getter::x
+              inducingVariable: #F6
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -25952,7 +26184,7 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -25975,7 +26207,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
     isSimplyBounded class D
@@ -25990,7 +26222,7 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           constantInitializers
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
@@ -26013,7 +26245,7 @@ library
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::D::@getter::x
-          firstFragment: #F8
+          firstFragment: #F7
           returnType: dynamic
           variable: <testLibrary>::@class::D::@field::x
 ''');
@@ -26043,27 +26275,31 @@ library
           fields
             #F2 hasImplicitType isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
+            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 23
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
         #F5 class D (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::D
           fields
             #F6 hasImplicitType isFinal isOriginDeclaration x (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::D::@field::x
+              inducedGetter: #F7
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:68) (offset:68)
+            #F8 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:68) (offset:68)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
               typeNameOffset: 68
           getters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
               element: <testLibrary>::@class::D::@getter::x
+              inducingVariable: #F6
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -26077,11 +26313,11 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
     isSimplyBounded class D
@@ -26096,11 +26332,11 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::D::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::D::@getter::x
-          firstFragment: #F8
+          firstFragment: #F7
           returnType: dynamic
           variable: <testLibrary>::@class::D::@field::x
 ''');
@@ -26124,16 +26360,20 @@ library
           fields
             #F2 isAbstract isOriginDeclaration i (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@class::C::@field::i
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isAbstract isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F3 isAbstract isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@getter::i
+              inducingVariable: #F2
           setters
-            #F5 isAbstract isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isAbstract isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@setter::i
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
@@ -26151,17 +26391,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         isOriginVariable i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -26195,16 +26435,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo1
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo1
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo1
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo1::@formalParameter::value
@@ -26214,12 +26458,16 @@ library
           fields
             #F8 hasInitializer isOriginDeclaration foo2 (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: <testLibrary>::@class::A::@field::foo2
+              inducedGetter: #F9
+              inducedSetter: #F10
           getters
             #F9 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::A::@getter::foo2
+              inducingVariable: #F8
           setters
             #F10 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::A::@setter::foo2
+              inducingVariable: #F8
               formalParameters
                 #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
                   element: <testLibrary>::@class::A::@setter::foo2::@formalParameter::value
@@ -26243,11 +26491,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo1
           reference: <testLibrary>::@class::A::@getter::foo1
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo1
         isOriginVariable foo2
@@ -26258,7 +26506,7 @@ library
       setters
         isOriginVariable foo1
           reference: <testLibrary>::@class::A::@setter::foo1
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -26305,16 +26553,20 @@ library
           fields
             #F5 isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::A::@field::foo1
+              inducedGetter: #F6
+              inducedSetter: #F7
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F7 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F6 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::A::@getter::foo1
+              inducingVariable: #F5
           setters
-            #F8 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F7 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::A::@setter::foo1
+              inducingVariable: #F5
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@class::A::@setter::foo1::@formalParameter::value
@@ -26328,12 +26580,16 @@ library
           fields
             #F10 isOriginDeclaration foo2 (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@class::A::@field::foo2
+              inducedGetter: #F11
+              inducedSetter: #F12
           getters
             #F11 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::A::@getter::foo2
+              inducingVariable: #F10
           setters
             #F12 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::A::@setter::foo2
+              inducingVariable: #F10
               formalParameters
                 #F13 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
                   element: <testLibrary>::@class::A::@setter::foo2::@formalParameter::value
@@ -26360,11 +26616,11 @@ library
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F8
       getters
         hasEnclosingTypeParameterReference isOriginVariable foo1
           reference: <testLibrary>::@class::A::@getter::foo1
-          firstFragment: #F7
+          firstFragment: #F6
           returnType: T
           variable: <testLibrary>::@class::A::@field::foo1
         hasEnclosingTypeParameterReference isOriginVariable foo2
@@ -26375,7 +26631,7 @@ library
       setters
         hasEnclosingTypeParameterReference isOriginVariable foo1
           reference: <testLibrary>::@class::A::@setter::foo1
-          firstFragment: #F8
+          firstFragment: #F7
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F9
@@ -26430,9 +26686,11 @@ library
                 IntegerLiteral
                   literal: 0 @69
                   staticType: int
+              inducedGetter: #F5
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26492,9 +26750,11 @@ library
                 IntegerLiteral
                   literal: 0 @55
                   staticType: int
+              inducedGetter: #F5
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26557,9 +26817,11 @@ library
                 IntegerLiteral
                   literal: 0 @62
                   staticType: int
+              inducedGetter: #F5
           getters
             #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26615,9 +26877,11 @@ library
           fields
             #F4 hasInitializer isFinal isOriginDeclaration foo (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F5
           getters
             #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26673,9 +26937,11 @@ library
           fields
             #F4 isFinal isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F5
           getters
             #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26744,9 +27010,11 @@ library
           fields
             #F5 isFinal isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:58) (offset:58)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F6
           getters
             #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26799,27 +27067,50 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
         #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F11
               previousFragment: #F3
+          getters
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F11 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F5
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26834,20 +27125,20 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F7
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
@@ -26882,36 +27173,59 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
-              nextFragment: #F7
+              inducingVariable: #F3
+              nextFragment: #F8
           setters
-            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
         #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F10
+          nextFragment: #F12
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@class::A::@getter::foo
-              previousFragment: #F6
-        #F10 isAugmentation class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+              previousFragment: #F4
+              nextFragment: #F13
+        #F12 isAugmentation class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F13
+              inducedSetter: #F11
               previousFragment: #F3
+          getters
+            #F13 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F8
+          setters
+            #F11 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F5
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -26926,17 +27240,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F7
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F8
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F9
@@ -26974,41 +27288,64 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
-                  nextFragment: #F9
-              nextFragment: #F10
+                  nextFragment: #F10
+              nextFragment: #F11
         #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F11
+          nextFragment: #F12
           setters
-            #F10 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+            #F11 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F9 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+                #F10 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
-                  previousFragment: #F8
-              previousFragment: #F7
-        #F11 isAugmentation class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+                  previousFragment: #F9
+                  nextFragment: #F13
+              previousFragment: #F5
+              nextFragment: #F14
+        #F12 isAugmentation class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F14
               previousFragment: #F3
+          getters
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F14 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F13 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F10
+              previousFragment: #F11
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27023,20 +27360,20 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F7
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
@@ -27072,19 +27409,22 @@ library
                 IntegerLiteral
                   literal: 0 @35
                   staticType: null
-              nextFragment: #F4
+              inducedGetter: #F4
+              nextFragment: #F5
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
         #F2 isAugmentation class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:87) (firstTokenOffset:87) (offset:87)
+            #F5 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:87) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
                 MethodInvocation
@@ -27097,7 +27437,13 @@ library
                     rightParenthesis: ) @103
                   staticInvokeType: InvalidType
                   staticType: InvalidType
+              inducedGetter: #F7
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:87)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
+              previousFragment: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27108,17 +27454,17 @@ library
           firstFragment: #F3
           type: int
           constantInitializer
-            fragment: #F4
+            fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -27153,20 +27499,23 @@ library
                 IntegerLiteral
                   literal: 0 @28
                   staticType: null
-              nextFragment: #F4
+              inducedGetter: #F4
+              nextFragment: #F5
           constructors
-            #F5 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:39)
+            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:39)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 39
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
         #F2 isAugmentation class A (nameOffset:61) (firstTokenOffset:47) (offset:61)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:85) (firstTokenOffset:85) (offset:85)
+            #F5 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:85) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
                 BinaryExpression
@@ -27181,7 +27530,13 @@ library
                   element: <null>
                   staticInvokeType: null
                   staticType: InvalidType
+              inducedGetter: #F7
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:85)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
+              previousFragment: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27192,17 +27547,17 @@ library
           firstFragment: #F3
           type: int
           constantInitializer
-            fragment: #F4
+            fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -27232,27 +27587,50 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
         #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F11
               previousFragment: #F3
+          getters
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F11 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F5
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27267,20 +27645,110 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F7
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F8
+              firstFragment: #F9
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_field_augmentation_chain_finalThenNonFinal() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int foo = 0;
+}
+
+augment class A {
+  augment int foo = 1;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasInitializer isFinal isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              nextFragment: #F5
+          constructors
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
+        #F2 isAugmentation class A (nameOffset:48) (firstTokenOffset:34) (offset:48)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F5 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F8
+              previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
+              previousFragment: #F4
+          setters
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F5
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer isFinal isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F6
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F8
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
@@ -27316,12 +27784,16 @@ library
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F5
+              inducedSetter: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F5 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F4
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -27387,36 +27859,78 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
         #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F9
+          nextFragment: #F12
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F11
               previousFragment: #F3
-              nextFragment: #F10
-        #F9 isAugmentation class A (nameOffset:86) (firstTokenOffset:72) (offset:86)
+              nextFragment: #F13
+          getters
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+              nextFragment: #F14
+          setters
+            #F11 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+                  nextFragment: #F15
+              previousFragment: #F5
+              nextFragment: #F16
+        #F12 isAugmentation class A (nameOffset:86) (firstTokenOffset:72) (offset:86)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           fields
-            #F10 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
+            #F13 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
               element: <testLibrary>::@class::A::@field::foo
-              previousFragment: #F4
+              inducedGetter: #F14
+              inducedSetter: #F16
+              previousFragment: #F6
+          getters
+            #F14 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F13
+              previousFragment: #F8
+          setters
+            #F16 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F13
+              formalParameters
+                #F15 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F10
+              previousFragment: #F11
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27431,20 +27945,20 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F7
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
@@ -27482,12 +27996,16 @@ library
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:55) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F5
+              inducedSetter: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F5 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F4
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -27559,13 +28077,28 @@ library
           getters
             #F6 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F7
         #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F8
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
+              previousFragment: #F6
+          setters
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27576,6 +28109,7 @@ library
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -27585,6 +28119,16 @@ library
           reference: <testLibrary>::@class::A::@getter::foo
           firstFragment: #F6
           returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F8
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: int
+          returnType: void
           variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
@@ -27623,12 +28167,16 @@ library
           fields
             #F5 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F6
+              inducedSetter: #F7
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F5
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -27709,13 +28257,30 @@ library
               formalParameters
                 #F7 requiredPositional isOriginDeclaration _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  nextFragment: #F8
+              nextFragment: #F9
         #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F10
+              inducedSetter: #F9
               previousFragment: #F3
+          getters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
+          setters
+            #F9 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  previousFragment: #F7
+              previousFragment: #F6
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27724,12 +28289,19 @@ library
         hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
-          type: int
+          type: InvalidType
+          getter: <testLibrary>::@class::A::@getter::foo
           setter: <testLibrary>::@class::A::@setter::foo
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F10
+          returnType: InvalidType
+          variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
@@ -27765,16 +28337,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -27784,12 +28360,16 @@ library
           fields
             #F8 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@class::A::@field::foo#1
+              inducedGetter: #F9
+              inducedSetter: #F10
           getters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+            #F9 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::A::@getter::foo#1
+              inducingVariable: #F8
           setters
-            #F10 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::A::@setter::foo#1
+              inducingVariable: #F8
               formalParameters
                 #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: <testLibrary>::@class::A::@setter::foo#1::@formalParameter::value
@@ -27813,11 +28393,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
         isOriginVariable foo
@@ -27828,7 +28408,7 @@ library
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -27882,12 +28462,16 @@ library
           fields
             #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::A::@field::foo#1
+              inducedGetter: #F7
+              inducedSetter: #F8
           getters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@getter::foo#1
+              inducingVariable: #F6
           setters
-            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -27967,12 +28551,16 @@ library
           fields
             #F5 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F6
+              inducedSetter: #F7
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F5
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -28053,12 +28641,16 @@ library
           fields
             #F7 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::A::@field::foo#1
+              inducedGetter: #F8
+              inducedSetter: #F9
           getters
-            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F7
           setters
-            #F9 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F9 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@setter::foo#1
+              inducingVariable: #F7
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
                   element: <testLibrary>::@class::A::@setter::foo#1::@formalParameter::value
@@ -28132,13 +28724,15 @@ library
                 IntegerLiteral
                   literal: 0 @33
                   staticType: int
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F3 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@getter::i
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -28155,11 +28749,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable isStatic i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
 ''');
@@ -28187,13 +28781,15 @@ library
                 IntegerLiteral
                   literal: 0 @38
                   staticType: int
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F3 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@getter::i
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -28210,11 +28806,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable isStatic i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
 ''');
@@ -28238,16 +28834,20 @@ library
           fields
             #F2 isExplicitlyCovariant isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional isExplicitlyCovariant value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -28265,17 +28865,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -28307,16 +28907,20 @@ library
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@class::C::@field::x
               documentationComment: /**\n   * Docs\n   */
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -28335,17 +28939,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -28374,20 +28978,24 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::foo
-            #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              inducedGetter: #F3
+              inducedSetter: #F4
+            #F5 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::foo#1
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::foo
-            #F6 isCompleteDeclaration isOriginDeclaration foo (nameOffset:35) (firstTokenOffset:27) (offset:35)
+              inducingVariable: #F2
+            #F7 isCompleteDeclaration isOriginDeclaration foo (nameOffset:35) (firstTokenOffset:27) (offset:35)
               element: <testLibrary>::@class::C::@getter::foo#1
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -28404,28 +29012,28 @@ library
           setter: <testLibrary>::@class::C::@setter::foo
         isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo#1
-          firstFragment: #F3
+          firstFragment: #F5
           type: int
           getter: <testLibrary>::@class::C::@getter::foo#1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
         isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@getter::foo#1
-          firstFragment: #F6
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo#1
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F8
@@ -28454,18 +29062,22 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::foo
-            #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              inducedGetter: #F3
+              inducedSetter: #F4
+            #F5 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::foo#1
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -28487,23 +29099,23 @@ library
           setter: <testLibrary>::@class::C::@setter::foo
         isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo#1
-          firstFragment: #F3
+          firstFragment: #F5
           type: int
           setter: <testLibrary>::@class::C::@setter::foo#1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -28540,16 +29152,20 @@ library
           fields
             #F2 isExternal isOriginDeclaration i (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@class::C::@field::i
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F3 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@getter::i
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@setter::i
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
@@ -28567,17 +29183,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         isOriginVariable i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -28610,14 +29226,16 @@ library
                 IntegerLiteral
                   literal: 42 @22
                   staticType: int
+              inducedGetter: #F3
           constructors
-            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:34)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:34)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 34
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -28634,11 +29252,11 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -28723,14 +29341,16 @@ library
                     leftParenthesis: ( @82
                     rightParenthesis: ) @83
                   staticType: A<int Function(double)>
+              inducedGetter: #F6
           constructors
-            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:88) (offset:94)
+            #F7 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:88) (offset:94)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 94
           getters
-            #F7 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F6 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::B::@getter::f
+              inducingVariable: #F5
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -28757,11 +29377,11 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F7
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F7
+          firstFragment: #F6
           returnType: A<int Function(double)>
           variable: <testLibrary>::@class::B::@field::f
 ''');
@@ -28785,13 +29405,15 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -28805,11 +29427,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -28835,17 +29457,19 @@ library
           fields
             #F2 isFinal isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
+            #F4 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 29
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:36) (firstTokenOffset:31) (offset:36)
+                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:36) (firstTokenOffset:31) (offset:36)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
           setters
             #F6 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:48) (firstTokenOffset:44) (offset:48)
               element: <testLibrary>::@class::A::@setter::foo
@@ -28866,16 +29490,16 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.foo
-              firstFragment: #F4
+              firstFragment: #F5
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
@@ -28914,20 +29538,24 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::C::@field::v
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F5 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 31
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.v (nameOffset:38) (firstTokenOffset:33) (offset:38)
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.v (nameOffset:38) (firstTokenOffset:33) (offset:38)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::v
           getters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@getter::v
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@setter::v
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
@@ -28958,23 +29586,23 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.v
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
               field: <testLibrary>::@class::C::@field::v
           superConstructor: <testLibrary>::@class::D::@constructor::new
       getters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -29021,16 +29649,20 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -29048,17 +29680,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -29086,16 +29718,20 @@ library
           fields
             #F2 hasImplicitType isLate isOriginDeclaration x (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -29113,17 +29749,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -29151,16 +29787,20 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration v (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::v
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::v
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::v
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
@@ -29178,17 +29818,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: num
           variable: <testLibrary>::@class::C::@field::v
       setters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -29216,16 +29856,20 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration v (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::v
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::v
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::v
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
@@ -29243,17 +29887,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -29285,16 +29929,20 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::C::@field::v
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@getter::v
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isCompleteDeclaration isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::C::@setter::v
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
@@ -29325,18 +29973,18 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           superConstructor: <testLibrary>::@class::D::@constructor::new
       getters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -29414,14 +30062,16 @@ library
                       staticType: int
                   rightBracket: ] @115
                   staticType: List<int>
+              inducedGetter: #F7
           constructors
-            #F7 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:90) (offset:96)
+            #F8 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:90) (offset:96)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 96
           getters
-            #F8 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+            #F7 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@class::B::@getter::f
+              inducingVariable: #F6
       topLevelVariables
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -29429,9 +30079,11 @@ library
             IntegerLiteral
               literal: 0 @10
               staticType: int
+          inducedGetter: #F10
       getters
         #F10 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F9
   classes
     isAbstract isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -29468,12 +30120,12 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F8
+          firstFragment: #F7
           returnType: List<int>
           variable: <testLibrary>::@class::B::@field::f
   topLevelVariables
@@ -29512,16 +30164,20 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@field::v
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@getter::v
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@setter::v
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
@@ -29539,17 +30195,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable isStatic v
           reference: <testLibrary>::@class::C::@getter::v
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::v
       setters
         isOriginVariable isStatic v
           reference: <testLibrary>::@class::C::@setter::v
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -29600,14 +30256,16 @@ library
                 IntegerLiteral
                   literal: 2 @100
                   staticType: double
+              inducedGetter: #F7
           constructors
-            #F7 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:75) (offset:81)
+            #F8 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:75) (offset:81)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 81
           getters
-            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F6
   classes
     isAbstract isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -29644,12 +30302,12 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::B::@getter::foo
-          firstFragment: #F8
+          firstFragment: #F7
           returnType: double
           variable: <testLibrary>::@class::B::@field::foo
 ''');
@@ -30491,25 +31149,33 @@ library
           fields
             #F2 isOriginDeclaration a (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::C::@field::a
-            #F3 isOriginDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:30) (offset:30)
+              inducedGetter: #F3
+              inducedSetter: #F4
+            #F5 isOriginDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@class::C::@field::#0
+              inducedGetter: #F6
+              inducedSetter: #F7
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@getter::a
+              inducingVariable: #F2
             #F6 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::C::@getter::#1
+              inducingVariable: #F5
           setters
-            #F7 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F4 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@setter::a
+              inducingVariable: #F2
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
                   element: <testLibrary>::@class::C::@setter::a::@formalParameter::value
-            #F9 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F7 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::C::@setter::#2
+              inducingVariable: #F5
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
                   element: <testLibrary>::@class::C::@setter::#2::@formalParameter::value
@@ -30526,18 +31192,18 @@ library
           setter: <testLibrary>::@class::C::@setter::a
         isOriginDeclaration <null-name>
           reference: <testLibrary>::@class::C::@field::#0
-          firstFragment: #F3
+          firstFragment: #F5
           type: Object
           getter: <testLibrary>::@class::C::@getter::#1
           setter: <testLibrary>::@class::C::@setter::#2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F8
       getters
         isOriginVariable a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: Object
           variable: <testLibrary>::@class::C::@field::a
         isOriginVariable <null-name>
@@ -30548,16 +31214,16 @@ library
       setters
         isOriginVariable a
           reference: <testLibrary>::@class::C::@setter::a
-          firstFragment: #F7
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F8
+              firstFragment: #F9
               type: Object
           returnType: void
           variable: <testLibrary>::@class::C::@field::a
         isOriginVariable <null-name>
           reference: <testLibrary>::@class::C::@setter::#2
-          firstFragment: #F9
+          firstFragment: #F7
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F10
@@ -30589,12 +31255,16 @@ library
           fields
             #F3 isLate isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@class::C::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -30653,12 +31323,16 @@ library
           fields
             #F3 isLate isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::C::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -30717,13 +31391,15 @@ library
                 IntegerLiteral
                   literal: 0 @29
                   staticType: int
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -30740,11 +31416,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable isStatic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -30775,13 +31451,15 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration b (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@class::C::@field::b
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F3 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::C::@getter::b
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -30795,11 +31473,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable b
           reference: <testLibrary>::@class::C::@getter::b
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: double
           variable: <testLibrary>::@class::C::@field::b
 ''');
@@ -30838,13 +31516,15 @@ library
           fields
             #F3 hasImplicitType hasInitializer isFinal isOriginDeclaration b (nameOffset:48) (firstTokenOffset:48) (offset:48)
               element: <testLibrary>::@class::C::@field::b
+              inducedGetter: #F4
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F4 isCompleteDeclaration isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::C::@getter::b
+              inducingVariable: #F3
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
@@ -30852,9 +31532,11 @@ library
       topLevelVariables
         #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::a
+          inducedGetter: #F7
       getters
         #F7 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F6
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -30868,11 +31550,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
       getters
         isOriginVariable b
           reference: <testLibrary>::@class::C::@getter::b
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: double
           variable: <testLibrary>::@class::C::@field::b
   topLevelVariables
@@ -30908,13 +31590,15 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -30928,11 +31612,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -30956,13 +31640,15 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -30976,11 +31662,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable isStatic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -31004,16 +31690,20 @@ library
           fields
             #F2 isOriginDeclaration isStatic i (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::C::@field::i
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F3 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@getter::i
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@setter::i
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
@@ -31031,17 +31721,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable isStatic i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         isOriginVariable isStatic i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -31082,12 +31772,16 @@ library
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:62) (firstTokenOffset:62) (offset:62)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F5
+              inducedSetter: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+            #F5 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F4
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -31148,16 +31842,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -31167,12 +31865,16 @@ library
           fields
             #F8 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@class::A::@field::foo#1
+              inducedGetter: #F9
+              inducedSetter: #F10
           getters
-            #F9 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+            #F9 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::A::@getter::foo#1
+              inducingVariable: #F8
           setters
-            #F10 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::A::@setter::foo#1
+              inducingVariable: #F8
               formalParameters
                 #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: <testLibrary>::@class::A::@setter::foo#1::@formalParameter::value
@@ -31196,11 +31898,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
         isOriginVariable isStatic foo
@@ -31211,7 +31913,7 @@ library
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -31265,12 +31967,16 @@ library
           fields
             #F6 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::A::@field::foo#1
+              inducedGetter: #F7
+              inducedSetter: #F8
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@getter::foo#1
+              inducingVariable: #F6
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -31350,12 +32056,16 @@ library
           fields
             #F5 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F6
+              inducedSetter: #F7
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
           setters
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F5
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -31436,12 +32146,16 @@ library
           fields
             #F7 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::A::@field::foo#1
+              inducedGetter: #F8
+              inducedSetter: #F9
           getters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F7
           setters
-            #F9 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F9 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::A::@setter::foo#1
+              inducingVariable: #F7
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
                   element: <testLibrary>::@class::A::@setter::foo#1::@formalParameter::value
@@ -31523,13 +32237,28 @@ library
           getters
             #F6 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:27) (firstTokenOffset:12) (offset:27)
               element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F7
         #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:78) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F8
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
+              previousFragment: #F6
+          setters
+            #F8 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -31540,6 +32269,7 @@ library
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -31549,6 +32279,16 @@ library
           reference: <testLibrary>::@class::A::@getter::foo
           firstFragment: #F6
           returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable isStatic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F8
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: int
+          returnType: void
           variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
@@ -31585,12 +32325,16 @@ library
           fields
             #F5 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F6
+              inducedSetter: #F7
           getters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
           setters
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F5
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -31667,13 +32411,30 @@ library
               formalParameters
                 #F7 requiredPositional isOriginDeclaration _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  nextFragment: #F8
+              nextFragment: #F9
         #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:78) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F10
+              inducedSetter: #F9
               previousFragment: #F3
+          getters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
+          setters
+            #F9 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  previousFragment: #F7
+              previousFragment: #F6
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -31682,12 +32443,19 @@ library
         hasInitializer isOriginGetterSetter isStatic foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
-          type: int
+          type: InvalidType
+          getter: <testLibrary>::@class::A::@getter::foo
           setter: <testLibrary>::@class::A::@setter::foo
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+      getters
+        isOriginVariable isStatic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F10
+          returnType: InvalidType
+          variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
@@ -31720,14 +32488,16 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic f (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::f
+              inducedGetter: #F3
           constructors
-            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 40
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::f
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -31741,11 +32511,11 @@ library
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable isStatic f
           reference: <testLibrary>::@class::C::@getter::f
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::f
 ''');
@@ -31769,13 +32539,15 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -31789,11 +32561,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable isStatic x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
 ''');
@@ -31817,16 +32589,20 @@ library
           fields
             #F2 isLate isOriginDeclaration isStatic i (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::C::@field::i
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@getter::i
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F4 isCompleteDeclaration isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@setter::i
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
@@ -31844,17 +32620,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable isStatic i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
       setters
         isOriginVariable isStatic i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -31885,16 +32661,20 @@ library
           fields
             #F3 isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -31915,17 +32695,17 @@ library
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: InvalidType
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -31954,16 +32734,20 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration a (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::a
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::a
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::a
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::a::@formalParameter::value
@@ -31981,17 +32765,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::a
       setters
         isOriginVariable a
           reference: <testLibrary>::@class::C::@setter::a
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -32020,16 +32804,20 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::foo
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -32047,17 +32835,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -32102,13 +32890,15 @@ library
           fields
             #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@class::B::@field::foo
+              inducedGetter: #F7
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F8 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F6
   classes
     isAbstract isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -32142,12 +32932,12 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::B::@getter::foo
-          firstFragment: #F8
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::foo
 ''');
@@ -32172,16 +32962,20 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration a (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::a
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::a
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::a
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::a::@formalParameter::value
@@ -32199,17 +32993,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable a
           reference: <testLibrary>::@class::C::@getter::a
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: Never
           variable: <testLibrary>::@class::C::@field::a
       setters
         isOriginVariable a
           reference: <testLibrary>::@class::C::@setter::a
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -32237,16 +33031,20 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -32264,17 +33062,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -32302,16 +33100,20 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -32329,17 +33131,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -32368,25 +33170,33 @@ library
           fields
             #F2 isOriginDeclaration i (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::i
-            #F3 isOriginDeclaration j (nameOffset:25) (firstTokenOffset:25) (offset:25)
+              inducedGetter: #F3
+              inducedSetter: #F4
+            #F5 isOriginDeclaration j (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::j
+              inducedGetter: #F6
+              inducedSetter: #F7
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::i
+              inducingVariable: #F2
             #F6 isCompleteDeclaration isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::j
+              inducingVariable: #F5
           setters
-            #F7 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::i
+              inducingVariable: #F2
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
-            #F9 isCompleteDeclaration isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F7 isCompleteDeclaration isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@setter::j
+              inducingVariable: #F5
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
                   element: <testLibrary>::@class::C::@setter::j::@formalParameter::value
@@ -32403,18 +33213,18 @@ library
           setter: <testLibrary>::@class::C::@setter::i
         isOriginDeclaration j
           reference: <testLibrary>::@class::C::@field::j
-          firstFragment: #F3
+          firstFragment: #F5
           type: int
           getter: <testLibrary>::@class::C::@getter::j
           setter: <testLibrary>::@class::C::@setter::j
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F8
       getters
         isOriginVariable i
           reference: <testLibrary>::@class::C::@getter::i
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::i
         isOriginVariable j
@@ -32425,16 +33235,16 @@ library
       setters
         isOriginVariable i
           reference: <testLibrary>::@class::C::@setter::i
-          firstFragment: #F7
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
           returnType: void
           variable: <testLibrary>::@class::C::@field::i
         isOriginVariable j
           reference: <testLibrary>::@class::C::@setter::j
-          firstFragment: #F9
+          firstFragment: #F7
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F10
@@ -32462,16 +33272,20 @@ library
           fields
             #F2 isLate isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@field::foo
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -32489,17 +33303,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -32527,16 +33341,20 @@ library
           fields
             #F2 isFinal isLate isOriginDeclaration foo (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::C::@field::foo
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -32554,17 +33372,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -32592,13 +33410,15 @@ library
           fields
             #F2 hasInitializer isFinal isLate isOriginDeclaration foo (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::C::@field::foo
+              inducedGetter: #F3
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F2
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -32612,11 +33432,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F4
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
 ''');
@@ -32653,16 +33473,20 @@ library
           fields
             #F5 hasImplicitType hasInitializer isLate isOriginDeclaration f (nameOffset:62) (firstTokenOffset:62) (offset:62)
               element: <testLibrary>::@class::B::@field::f
+              inducedGetter: #F6
+              inducedSetter: #F7
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F7 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+            #F6 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
               element: <testLibrary>::@class::B::@getter::f
+              inducingVariable: #F5
           setters
-            #F8 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+            #F7 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
               element: <testLibrary>::@class::B::@setter::f
+              inducingVariable: #F5
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
                   element: <testLibrary>::@class::B::@setter::f::@formalParameter::value
@@ -32693,18 +33517,18 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F7
+          firstFragment: #F6
           returnType: int
           variable: <testLibrary>::@class::B::@field::f
       setters
         isOriginVariable f
           reference: <testLibrary>::@class::B::@setter::f
-          firstFragment: #F8
+          firstFragment: #F7
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F9
@@ -32748,16 +33572,20 @@ library
           fields
             #F6 hasImplicitType hasInitializer isLate isOriginDeclaration f (nameOffset:64) (firstTokenOffset:64) (offset:64)
               element: <testLibrary>::@class::B::@field::f
+              inducedGetter: #F7
+              inducedSetter: #F8
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F8 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F7 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::B::@getter::f
+              inducingVariable: #F6
           setters
-            #F9 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F8 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::B::@setter::f
+              inducingVariable: #F6
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
                   element: <testLibrary>::@class::B::@setter::f::@formalParameter::value
@@ -32795,18 +33623,18 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F9
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::B::@getter::f
-          firstFragment: #F8
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@class::B::@field::f
       setters
         isOriginVariable f
           reference: <testLibrary>::@class::B::@setter::f
-          firstFragment: #F9
+          firstFragment: #F8
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F10
@@ -33122,17 +33950,21 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
-              nextFragment: #F6
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -33140,9 +33972,9 @@ library
           element: <testLibrary>::@class::A
           previousFragment: #F1
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@class::A::@getter::foo
-              previousFragment: #F5
+              previousFragment: #F4
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -33157,17 +33989,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F8
@@ -33205,17 +34037,21 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
-              nextFragment: #F6
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -33224,9 +34060,9 @@ library
           previousFragment: #F1
           nextFragment: #F9
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@class::A::@getter::foo
-              previousFragment: #F5
+              previousFragment: #F4
               nextFragment: #F10
         #F9 isAugmentation class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
@@ -33234,7 +34070,7 @@ library
           getters
             #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:113) (firstTokenOffset:97) (offset:113)
               element: <testLibrary>::@class::A::@getter::foo
-              previousFragment: #F6
+              previousFragment: #F7
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -33249,17 +34085,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F8
@@ -33733,16 +34569,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -33774,11 +34614,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
         isOriginDeclaration foo
@@ -33789,7 +34629,7 @@ library
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -34640,16 +35480,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -34681,11 +35525,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
         isOriginDeclaration isStatic foo
@@ -34696,7 +35540,7 @@ library
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -34941,17 +35785,21 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
-              nextFragment: #F6
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -34959,9 +35807,9 @@ library
           element: <testLibrary>::@class::A
           previousFragment: #F1
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:77) (firstTokenOffset:54) (offset:77)
+            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:77) (firstTokenOffset:54) (offset:77)
               element: <testLibrary>::@class::A::@getter::foo
-              previousFragment: #F5
+              previousFragment: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -34976,17 +35824,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F8
@@ -35144,18 +35992,20 @@ library
           fields
             #F2 isFinal isOriginDeclaration x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
           constructors
-            #F3 isCompleteDeclaration isConst isOriginDeclaration named (nameOffset:38) (firstTokenOffset:30) (offset:38)
+            #F4 isCompleteDeclaration isConst isOriginDeclaration named (nameOffset:38) (firstTokenOffset:30) (offset:38)
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 36
               periodOffset: 37
               formalParameters
-                #F4 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:49) (firstTokenOffset:44) (offset:49)
+                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:49) (firstTokenOffset:44) (offset:49)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
           getters
-            #F5 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
       topLevelVariables
         #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::x
@@ -35180,9 +36030,11 @@ library
                     staticType: int
                 rightParenthesis: ) @76
               staticType: C
+          inducedGetter: #F7
       getters
         #F7 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F6
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -35196,16 +36048,16 @@ library
       constructors
         isConst isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
-          firstFragment: #F3
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional hasImplicitType isFinal this.x
-              firstFragment: #F4
+              firstFragment: #F5
               type: Object
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: Object
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
@@ -40200,16 +41052,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -40233,17 +41089,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -40420,16 +41276,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -40453,17 +41313,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -41639,16 +42499,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -41672,17 +42536,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -41904,16 +42768,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -41937,17 +42805,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -42840,20 +43708,24 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration bar (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::bar
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                #F6 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F3 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@getter::bar
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F4 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@setter::bar
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
                   element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
@@ -42871,21 +43743,21 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional foo
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
       getters
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@getter::bar
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::bar
       setters
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@setter::bar
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -42913,24 +43785,30 @@ library
           fields
             #F2 isFinal isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
-            #F3 hasImplicitType hasInitializer isOriginDeclaration bar (nameOffset:31) (firstTokenOffset:31) (offset:31)
+              inducedGetter: #F3
+            #F4 hasImplicitType hasInitializer isOriginDeclaration bar (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@class::A::@field::bar
+              inducedGetter: #F5
+              inducedSetter: #F6
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:18) (firstTokenOffset:8) (offset:18)
+                #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:18) (firstTokenOffset:8) (offset:18)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
-            #F7 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              inducingVariable: #F2
+            #F5 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::A::@getter::bar
+              inducingVariable: #F4
           setters
-            #F8 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F6 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::A::@setter::bar
+              inducingVariable: #F4
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
                   element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
@@ -42947,34 +43825,34 @@ library
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
         hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
-          firstFragment: #F3
+          firstFragment: #F4
           type: int
           getter: <testLibrary>::@class::A::@getter::bar
           setter: <testLibrary>::@class::A::@setter::bar
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F7
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.foo
-              firstFragment: #F5
+              firstFragment: #F8
               type: int
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F6
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@getter::bar
-          firstFragment: #F7
+          firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@field::bar
       setters
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@setter::bar
-          firstFragment: #F8
+          firstFragment: #F6
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F9
@@ -43002,20 +43880,24 @@ library
           fields
             #F2 hasImplicitType hasInitializer isLate isOriginDeclaration bar (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@class::A::@field::bar
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                #F6 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F3 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::A::@getter::bar
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F4 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::A::@setter::bar
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
                   element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
@@ -43033,21 +43915,21 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional foo
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
       getters
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@getter::bar
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: InvalidType
           variable: <testLibrary>::@class::A::@field::bar
       setters
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@setter::bar
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -43075,20 +43957,24 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration bar (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::A::@field::bar
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isOriginDeclaration foo (nameOffset:13) (firstTokenOffset:8) (offset:13)
+                #F6 requiredPositional isOriginDeclaration foo (nameOffset:13) (firstTokenOffset:8) (offset:13)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@getter::bar
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isCompleteDeclaration isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@setter::bar
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
                   element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
@@ -43106,21 +43992,21 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional foo
-              firstFragment: #F4
+              firstFragment: #F6
               type: int?
       getters
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@getter::bar
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::bar
       setters
         isOriginVariable bar
           reference: <testLibrary>::@class::A::@setter::bar
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -43148,20 +44034,24 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic bar (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@class::A::@field::bar
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                #F6 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F3 isCompleteDeclaration isOriginVariable isStatic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@getter::bar
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F4 isCompleteDeclaration isOriginVariable isStatic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@setter::bar
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
                   element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
@@ -43179,21 +44069,21 @@ library
       constructors
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional foo
-              firstFragment: #F4
+              firstFragment: #F6
               type: int
       getters
         isOriginVariable isStatic bar
           reference: <testLibrary>::@class::A::@getter::bar
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: InvalidType
           variable: <testLibrary>::@class::A::@field::bar
       setters
         isOriginVariable isStatic bar
           reference: <testLibrary>::@class::A::@setter::bar
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F7
@@ -43465,16 +44355,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -43490,7 +44384,7 @@ library
                 #F8 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
                   previousFragment: #F7
-              previousFragment: #F6
+              previousFragment: #F5
   classes
     hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -43505,17 +44399,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -43905,16 +44799,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -43949,17 +44847,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -44559,16 +45457,20 @@ library
           fields
             #F2 isOriginDeclaration t (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::t
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::t
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::t
+              inducingVariable: #F2
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::t::@formalParameter::value
@@ -44577,16 +45479,20 @@ library
           fields
             #F8 isOriginDeclaration t (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@class::B::@field::t
+              inducedGetter: #F9
+              inducedSetter: #F10
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F11 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F10 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F9 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@getter::t
+              inducingVariable: #F8
           setters
-            #F11 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F10 isCompleteDeclaration isOriginVariable t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@setter::t
+              inducingVariable: #F8
               formalParameters
                 #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
                   element: <testLibrary>::@class::B::@setter::t::@formalParameter::value
@@ -44625,17 +45531,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable t
           reference: <testLibrary>::@class::A::@getter::t
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::t
       setters
         isOriginVariable t
           reference: <testLibrary>::@class::A::@setter::t
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
@@ -44656,18 +45562,18 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F9
+          firstFragment: #F11
           superConstructor: <testLibrary>::@class::A::@constructor::new
       getters
         isOriginVariable t
           reference: <testLibrary>::@class::B::@getter::t
-          firstFragment: #F10
+          firstFragment: #F9
           returnType: double
           variable: <testLibrary>::@class::B::@field::t
       setters
         isOriginVariable t
           reference: <testLibrary>::@class::B::@setter::t
-          firstFragment: #F11
+          firstFragment: #F10
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F12
@@ -44787,18 +45693,22 @@ library
           fields
             #F2 isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::foo
-            #F3 isOriginGetterSetter bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              inducedGetter: #F3
+              inducedSetter: #F4
+            #F5 isOriginGetterSetter bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::bar
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::foo
+              inducingVariable: #F2
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::foo
+              inducingVariable: #F2
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
@@ -44820,23 +45730,23 @@ library
           setter: <testLibrary>::@class::C::@setter::foo
         isOriginGetterSetter bar
           reference: <testLibrary>::@class::C::@field::bar
-          firstFragment: #F3
+          firstFragment: #F5
           type: dynamic
           setter: <testLibrary>::@class::C::@setter::bar
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::C::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::C::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F4
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -45687,16 +46597,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -45731,17 +46645,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -46016,16 +46930,20 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
@@ -46041,7 +46959,7 @@ library
                 #F8 requiredPositional isOriginDeclaration _ (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
                   previousFragment: #F7
-              previousFragment: #F6
+              previousFragment: #F5
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -46056,17 +46974,17 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -46255,21 +47173,29 @@ library
       topLevelVariables
         #F5 isOriginDeclaration isStatic c (nameOffset:37) (firstTokenOffset:37) (offset:37)
           element: <testLibrary>::@topLevelVariable::c
-        #F6 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:44) (firstTokenOffset:44) (offset:44)
+          inducedGetter: #F6
+          inducedSetter: #F7
+        #F8 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:44) (firstTokenOffset:44) (offset:44)
           element: <testLibrary>::@topLevelVariable::v
+          inducedGetter: #F9
+          inducedSetter: #F10
       getters
-        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+        #F6 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
           element: <testLibrary>::@getter::c
-        #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+          inducingVariable: #F5
+        #F9 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@getter::v
+          inducingVariable: #F8
       setters
-        #F9 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
           element: <testLibrary>::@setter::c
+          inducingVariable: #F5
           formalParameters
-            #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F11 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+        #F10 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@setter::v
+          inducingVariable: #F8
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@setter::v::@formalParameter::value
@@ -46298,34 +47224,34 @@ library
       setter: <testLibrary>::@setter::c
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
-      firstFragment: #F6
+      firstFragment: #F8
       type: void Function()
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
     isOriginVariable isStatic c
       reference: <testLibrary>::@getter::c
-      firstFragment: #F7
+      firstFragment: #F6
       returnType: C<int>
       variable: <testLibrary>::@topLevelVariable::c
     isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
-      firstFragment: #F8
+      firstFragment: #F9
       returnType: void Function()
       variable: <testLibrary>::@topLevelVariable::v
   setters
     isOriginVariable isStatic c
       reference: <testLibrary>::@setter::c
-      firstFragment: #F9
+      firstFragment: #F7
       formalParameters
         #E1 requiredPositional value
-          firstFragment: #F10
+          firstFragment: #F11
           type: C<int>
       returnType: void
       variable: <testLibrary>::@topLevelVariable::c
     isOriginVariable isStatic v
       reference: <testLibrary>::@setter::v
-      firstFragment: #F11
+      firstFragment: #F10
       formalParameters
         #E2 requiredPositional value
           firstFragment: #F12

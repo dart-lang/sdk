@@ -100,16 +100,14 @@ AliasIdentity::AliasIdentity(FlowGraphDeserializer* d)
 
 void ArgumentsDescriptor::Write(FlowGraphSerializer* s) const {
   if (IsCached()) {
-    // Simple argument descriptors are cached in the VM isolate.
+    // Simple argument descriptors are cached.
     // Write them as arguments count and query cache during deserialization.
     ASSERT(NamedCount() == 0);
     ASSERT(Count() == Size());
-    ASSERT(array_.InVMIsolateHeap());
     s->Write<intptr_t>(TypeArgsLen());
     s->Write<intptr_t>(Count());
   } else {
     ASSERT(array_.IsCanonical());
-    ASSERT(!array_.InVMIsolateHeap());
     s->Write<intptr_t>(-1);
     s->Write<const Array&>(array_);
   }
@@ -505,16 +503,6 @@ void FlowGraphSerializer::WriteTrait<const Code&>::Write(FlowGraphSerializer* s,
       return;
     }
   }
-  intptr_t index = StubCode::NumEntries();
-  ObjectStore* object_store = s->isolate_group()->object_store();
-#define MATCH(member, name)                                                    \
-  if (object_store->member() == x.ptr()) {                                     \
-    s->Write<intptr_t>(index);                                                 \
-    return;                                                                    \
-  }                                                                            \
-  ++index;
-  OBJECT_STORE_STUB_CODE_LIST(MATCH)
-#undef MATCH
   UNIMPLEMENTED();
 }
 
@@ -525,15 +513,6 @@ const Code& FlowGraphDeserializer::ReadTrait<const Code&>::Read(
   if (stub_id < StubCode::NumEntries()) {
     return StubCode::EntryAt(stub_id);
   }
-  intptr_t index = StubCode::NumEntries();
-  ObjectStore* object_store = d->isolate_group()->object_store();
-#define MATCH(member, name)                                                    \
-  if (index == stub_id) {                                                      \
-    return Code::ZoneHandle(d->zone(), object_store->member());                \
-  }                                                                            \
-  ++index;
-  OBJECT_STORE_STUB_CODE_LIST(MATCH)
-#undef MATCH
   UNIMPLEMENTED();
 }
 

@@ -165,6 +165,7 @@ void checkVMSymbolsAreValid(
         break;
       // In assembly snapshots, we use local object symbols to initialize the
       // InstructionsSection header with the right offset to the BSS section.
+      case '_kDartSnapshotBss':
       case '_kDartVmSnapshotBss':
       case '_kDartIsolateSnapshotBss':
         Expect.isTrue(isAssembled);
@@ -259,16 +260,16 @@ void checkElf(Elf? snapshot, Elf debugInfo, {required bool isAssembled}) {
   // using the --add-readonly-data-symbols flag.
   Expect.isNotEmpty(debugLocalObjectSymbols);
 
-  // We expect exactly two local object symbols with names starting with
+  // We expect exactly one local object symbols with names starting with
   // 'RawBytes'.
   int rawBytesSeen = debugLocalObjectSymbols.fold<int>(
     0,
     (i, s) => i + (s.name.startsWith('RawBytes') ? 1 : 0),
   );
   Expect.equals(
-    2,
+    1,
     rawBytesSeen,
-    'saw $rawBytesSeen (!= 2) RawBytes local object symbols',
+    'saw $rawBytesSeen (!= 1) RawBytes local object symbols',
   );
 
   // All snapshots include at least one (and likely many) duplicate local

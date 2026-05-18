@@ -12,18 +12,14 @@
 // the initializer list contains an expression which is not potentially
 // constant.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 int fn(int x) => x;
 
 class const C(int p) {
-//    ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
-  // TODO(cfe): Avoid having multiple errors here and make sure the error
-  // message is accurate. i.e. "Not a potentially constant expression."
+  //  ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
   final int x = fn(p);
   //            ^
-  // [cfe] unspecified
+  // [cfe] Method invocation is not a constant expression.
 }
 
 class const C2(int p) {
@@ -35,14 +31,14 @@ class const C2(int p) {
 }
 
 enum const E(int p) {
-//   ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
+  // ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
   e(1);
 
   final int x = fn(p);
   //            ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
-  // [cfe] Static invocation is not a constant expression.
+  // [cfe] Method invocation is not a constant expression.
 }
 
 extension type const Ext(int p) {
@@ -58,14 +54,13 @@ extension type const Ext(int p) {
 // constant.
 
 class const A(dynamic d) {
-  // TODO(cfe): Avoid having multiple errors here and make sure the error
-  // message is accurate. i.e. "Not a potentially constant expression."
   final int i = d.length;
   //            ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_PROPERTY_ACCESS
-  // [cfe] unspecified
 }
 
 void main() {
   const A([]); // Error because `[].length` isn't constant.
+  //    ^
+  // [cfe] Constant evaluation error:
 }

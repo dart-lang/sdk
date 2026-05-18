@@ -7,12 +7,10 @@
 // initializer list of the body part, or by an initializing formal parameter
 // of the primary constructor.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C1(this.x) {
-//            ^
-// [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_DECLARATION_AND_PARAMETER_OF_PRIMARY_CONSTRUCTOR
-// [cfe] Fields can't be initialized in both the primary constructor parameter list and at their declaration.
+  //          ^
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_DECLARATION_AND_PARAMETER_OF_PRIMARY_CONSTRUCTOR
+  // [cfe] Fields can't be initialized in both the primary constructor parameter list and at their declaration.
   int x = 1;
 }
 

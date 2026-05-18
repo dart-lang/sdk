@@ -196,14 +196,11 @@ class SharedObjectWriter : public ZoneObject {
   // Must be the same value as the values returned by ImageWriter::SectionLabel
   // for the appropriate section and vm values.
   enum ReservedLabels : intptr_t {
-    kVmInstructionsLabel = 1,
-    kIsolateInstructionsLabel = 2,
-    kVmDataLabel = 3,
-    kIsolateDataLabel = 4,
-    kVmBssLabel = 5,
-    kIsolateBssLabel = 6,
-    kBuildIdLabel = 7,
-    kMachOEhFrameLabel = 8,
+    kIsolateInstructionsLabel = 1,
+    kIsolateDataLabel = 2,
+    kIsolateBssLabel = 3,
+    kBuildIdLabel = 4,
+    kMachOEhFrameLabel = 5,
     kLastReservedLabel = kMachOEhFrameLabel,
   };
 

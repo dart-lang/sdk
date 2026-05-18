@@ -952,7 +952,10 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   void ClearReusableHandles();
 
 #define REUSABLE_HANDLE(object)                                                \
-  object& object##Handle() const { return *object##_handle_; }
+  object& object##Handle() const {                                             \
+    ASSERT(object##_handle_ != nullptr);                                       \
+    return *object##_handle_;                                                  \
+  }
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
 #undef REUSABLE_HANDLE
 
@@ -1280,6 +1283,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   void UnwindScopes(uword stack_marker);
 
   void InitVMConstants();
+  void FixInitiallyNullFields();
 
   int64_t GetNextTaskId() { return next_task_id_++; }
   static intptr_t next_task_id_offset() {
@@ -1654,7 +1658,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
-  explicit Thread(bool is_vm_isolate);
+  explicit Thread(bool is_bootstrapping);
 
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);

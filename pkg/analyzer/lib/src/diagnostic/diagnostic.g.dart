@@ -7016,6 +7016,23 @@ implementsSuperClass = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.element],
 );
 
+/// Parameters:
+/// Element superElement: the class that appears in both the "on" and
+///                       "implements" clauses
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Element superElement})
+>
+implementsSuperClassConstraint = DiagnosticWithArguments(
+  name: 'implements_super_class_constraint',
+  problemMessage:
+      "'{0}' can't be used in both the 'on' and 'implements' clauses.",
+  correctionMessage: "Try removing the type from the 'implements' clause.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'implements_super_class_constraint',
+  withArguments: _withArgumentsImplementsSuperClassConstraint,
+  expectedTypes: [ExpectedType.element],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments implementsTypeAliasExpandsToTypeParameter =
     DiagnosticWithoutArgumentsImpl(
@@ -19611,6 +19628,14 @@ LocatableDiagnostic _withArgumentsImplementsSuperClass({
   required Element superElement,
 }) {
   return LocatableDiagnosticImpl(diag.implementsSuperClass, [superElement]);
+}
+
+LocatableDiagnostic _withArgumentsImplementsSuperClassConstraint({
+  required Element superElement,
+}) {
+  return LocatableDiagnosticImpl(diag.implementsSuperClassConstraint, [
+    superElement,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsImplicitSuperInitializerMissingArguments({

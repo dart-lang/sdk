@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -19,7 +18,7 @@ main() {
 @reflectiveTest
 class SwitchStatementResolutionTest extends PubPackageResolutionTest {
   test_default() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0?:
@@ -72,7 +71,7 @@ SwitchStatement
   test_joinedVariables_inLocalFunction() async {
     // Note: this is an important case to test because when variables are inside
     // a local function, their enclosing element is `null`.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   List<int> get values;
 }
@@ -98,7 +97,7 @@ SimpleIdentifier
   }
 
   test_mergeCases() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0?:
@@ -171,7 +170,7 @@ SwitchStatement
   }
 
   test_rewrite_pattern() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case const A():
@@ -223,7 +222,7 @@ SwitchStatement
   }
 
   test_rewrite_whenClause() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x, bool Function() a) {
   switch (x) {
     case 0 when a():
@@ -275,7 +274,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_consistent() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a < 0:
@@ -367,7 +366,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_consistent_final() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -461,7 +460,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_consistent_logicalOr2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a || [int a] when a < 0:
@@ -591,24 +590,17 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentFinality() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
     case int a when a > 0:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeDifferentFinalityOrType] The variable 'a' doesn't have the same type and/or finality in all cases that share this body.
   }
 }
-''',
-      [
-        error(
-          diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
-          101,
-          1,
-        ),
-      ],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -693,24 +685,17 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentFinalityTypes() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
     case num a when a > 0:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeDifferentFinalityOrType] The variable 'a' doesn't have the same type and/or finality in all cases that share this body.
   }
 }
-''',
-      [
-        error(
-          diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
-          101,
-          1,
-        ),
-      ],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -795,24 +780,17 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentTypes() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a < 0:
     case num a when a > 0:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeDifferentFinalityOrType] The variable 'a' doesn't have the same type and/or finality in all cases that share this body.
   }
 }
-''',
-      [
-        error(
-          diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
-          95,
-          1,
-        ),
-      ],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -896,18 +874,17 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareFirst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
     case int a when a > 0:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeNotAllCases] The variable 'a' is available in some, but not all cases that share this body.
   }
 }
-''',
-      [error(diag.patternVariableSharedCaseScopeNotAllCases, 80, 1)],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -971,18 +948,17 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareSecond() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
     case 0:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeNotAllCases] The variable 'a' is available in some, but not all cases that share this body.
   }
 }
-''',
-      [error(diag.patternVariableSharedCaseScopeNotAllCases, 80, 1)],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1046,18 +1022,17 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
     default:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeHasLabel] The variable 'a' is not available because there is a label or 'default' case.
   }
 }
-''',
-      [error(diag.patternVariableSharedCaseScopeHasLabel, 81, 1)],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1115,24 +1090,23 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case var a:
     case var a:
+//  ^^^^
+// [diag.deadCode] Dead code.
+// [diag.unreachableSwitchCase] This case is covered by the previous cases.
     default:
+//  ^^^^^^^
+// [diag.deadCode] Dead code.
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeHasLabel] The variable 'a' is not available because there is a label or 'default' case.
   }
 }
-''',
-      [
-        error(diag.deadCode, 55, 4),
-        error(diag.unreachableSwitchCase, 55, 4),
-        error(diag.deadCode, 71, 7),
-        error(diag.patternVariableSharedCaseScopeHasLabel, 86, 1),
-      ],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1183,21 +1157,19 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasLabel() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     myLabel:
+//  ^^^^^^^^
+// [diag.unusedLabel] The label 'myLabel' isn't used.
     case int a when a > 0:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeHasLabel] The variable 'a' is not available because there is a label or 'default' case.
   }
 }
-''',
-      [
-        error(diag.unusedLabel, 39, 8),
-        error(diag.patternVariableSharedCaseScopeHasLabel, 81, 1),
-      ],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1225,7 +1197,7 @@ SwitchStatement
             element: dart:core::@class::int
             type: int
           name: a
-          declaredFragment: isPublic a@61
+          declaredFragment: isPublic a@128
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1234,7 +1206,7 @@ SwitchStatement
           expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
-              element: a@61
+              element: a@128
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -1257,25 +1229,24 @@ SwitchStatement
   }
 
   test_variables_joinedCase_notConsistent3() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a:
     case double b:
     case String c:
       a;
+//    ^
+// [diag.patternVariableSharedCaseScopeNotAllCases] The variable 'a' is available in some, but not all cases that share this body.
       b;
+//    ^
+// [diag.patternVariableSharedCaseScopeNotAllCases] The variable 'b' is available in some, but not all cases that share this body.
       c;
+//    ^
+// [diag.patternVariableSharedCaseScopeNotAllCases] The variable 'c' is available in some, but not all cases that share this body.
   }
 }
-''',
-      [
-        error(diag.patternVariableSharedCaseScopeNotAllCases, 95, 1),
-        error(diag.patternVariableSharedCaseScopeNotAllCases, 104, 1),
-        error(diag.patternVariableSharedCaseScopeNotAllCases, 113, 1),
-      ],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1355,17 +1326,16 @@ SwitchStatement
   }
 
   test_variables_logicalOr() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a || var a]:
+//                   ^^^^^^^^
+// [diag.deadCode] Dead code.
       a;
   }
 }
-''',
-      [error(diag.deadCode, 56, 8)],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1426,26 +1396,20 @@ SwitchStatement
   }
 
   test_variables_scope() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 void f(Object? x) {
   switch (x) {
     case [int a, == a] when a > 0:
+//            ^
+// [context 1] The declaration of 'a' is here.
+//                  ^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'a' can't be referenced before it is declared.
       a;
   }
 }
-''',
-      [
-        error(diag.nonConstantRelationalPatternExpression, 68, 1),
-        error(
-          diag.referencedBeforeDeclaration,
-          68,
-          1,
-          contextMessages: [message(testFile, 62, 1)],
-        ),
-      ],
-    );
+''');
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1514,7 +1478,7 @@ SwitchStatement
   }
 
   test_variables_singleCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -1576,7 +1540,7 @@ SwitchStatement
   }
 
   test_whenClause() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0 when true:
@@ -1624,7 +1588,7 @@ SwitchStatement
 class SwitchStatementResolutionTest_Language219 extends PubPackageResolutionTest
     with WithLanguage219Mixin {
   test_default() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -1669,7 +1633,7 @@ SwitchStatement
   }
 
   test_mergeCases() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
