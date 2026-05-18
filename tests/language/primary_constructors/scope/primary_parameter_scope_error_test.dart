@@ -5,8 +5,6 @@
 // The body of a primary constructor does not have access to declaring
 // parameters, initializing formals, or super parameters.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 int k = 42;
 
 class A {

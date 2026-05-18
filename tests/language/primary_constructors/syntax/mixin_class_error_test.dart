@@ -6,27 +6,26 @@
 // constructor which is not trivial, that is, it declares one or more
 // parameters, or it has a body part that has an initializer list or a body.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 mixin class M1(int x);
 //          ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
 //            ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 
+
 mixin class M2(int x) {
-//          ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
-//            ^
-// [cfe] Can't use 'M2' as a mixin because it has constructors.
+  //        ^^
+  // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
+  //          ^
+  // [cfe] Can't use 'M2' as a mixin because it has constructors.
 }
 
 mixin class M3() {
   this : assert(true);
-//     ^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
-//       ^
-// [cfe] Can't use 'M3' as a mixin because it has constructors.
+  //   ^
+  // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
+  //     ^
+  // [cfe] Can't use 'M3' as a mixin because it has constructors.
 }
 
 mixin class M4() {
@@ -35,7 +34,7 @@ mixin class M4() {
 
 mixin class M5() {
   this {}
-//     ^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
-// [cfe] Can't use 'M5' as a mixin because it has constructors.
+  //   ^
+  // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
+  // [cfe] Can't use 'M5' as a mixin because it has constructors.
 }

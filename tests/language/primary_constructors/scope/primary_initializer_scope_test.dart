@@ -8,8 +8,6 @@
 // It is also the current scope for the initializer list in the body part of the
 // primary constructor, if any.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 class InitializingExpression(int x) {

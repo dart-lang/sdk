@@ -5,29 +5,27 @@
 // Formal parameter types of primary constructor are resolved within the body
 // scope of the enclosing declaration.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C(int x) {
-//      ^
-// [analyzer] unspecified
-// [cfe] 'int' isn't a type.
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+  // [cfe] 'int' isn't a type.
 
   static const String int = 'not a type';
 }
 
 enum E(int x) {
-//     ^
-// [cfe] 'int' isn't a type.
-// [analyzer] unspecified
+  //   ^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+  // [cfe] 'int' isn't a type.
   a(0);
 
   static const String int = 'not a type';
 }
 
 extension type ET(int x) {
-//                ^
-// [analyzer] unspecified
-// [cfe] 'int' isn't a type.
+  //              ^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+  // [cfe] 'int' isn't a type.
 
   static const String int = 'not a type';
 }

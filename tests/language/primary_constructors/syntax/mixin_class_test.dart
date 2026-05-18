@@ -4,10 +4,6 @@
 
 // Body and header constructor syntax for mixin classes.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
-import "package:expect/expect.dart";
-
 class C1 {}
 
 mixin class M1() implements C1;

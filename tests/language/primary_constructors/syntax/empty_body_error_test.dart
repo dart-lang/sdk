@@ -2,30 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 // Enums that have an empty body (i.e. `;`) can be parsed, but will cause a
 // compile-time error when there's no enum constant declared.
 
 enum E1;
-//   ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//   ^^
+// [analyzer] COMPILE_TIME_ERROR.ENUM_WITHOUT_CONSTANTS
+// [cfe] An enum declaration can't be empty.
 
 enum E2(final int x);
-//   ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//   ^^
+// [analyzer] COMPILE_TIME_ERROR.ENUM_WITHOUT_CONSTANTS
+// [cfe] An enum declaration can't be empty.
 
 enum const E3;
-//   ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//   ^^^^^
+// [analyzer] SYNTACTIC_ERROR.CONST_WITHOUT_PRIMARY_CONSTRUCTOR
+// [cfe] 'const' can only be used together with a primary constructor declaration.
+//         ^^
+// [analyzer] COMPILE_TIME_ERROR.ENUM_WITHOUT_CONSTANTS
+// [cfe] An enum declaration can't be empty.
 
 enum const E4(final int x);
-//   ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//         ^^
+// [analyzer] COMPILE_TIME_ERROR.ENUM_WITHOUT_CONSTANTS
+// [cfe] An enum declaration can't be empty.
 
 // Mixin application classes cannot have an explicit (empty) class body.
 

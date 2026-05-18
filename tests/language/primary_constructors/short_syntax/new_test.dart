@@ -4,8 +4,6 @@
 
 // Using `new` to declare constructors.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 class C1 {
@@ -17,7 +15,7 @@ class C1 {
 class C2 {
   int x;
   new() : x = 1 {} // Equivalent to `C1() : x = 1 {}`
-  new named() : x = 1 {}// Equivalent to `C1.named() : x = 1 {}`
+  new named() : x = 1 {} // Equivalent to `C1.named() : x = 1 {}`
 }
 
 class C3 {
