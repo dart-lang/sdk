@@ -993,9 +993,11 @@ class FunctionTypeDeserializationCluster : public DeserializationCluster {
                                      is_deeply_immutable());
       type->untag()->type_test_stub_entry_point_.store(
           0, std::memory_order_relaxed);
-      const intptr_t is_nullable = d.ReadUnsigned();
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
       const intptr_t flags = UntaggedAbstractType::NullabilityBit::update(
-          is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+          nullability, UntaggedAbstractType::TypeStateBits::encode(
                            UntaggedAbstractType::kAllocated));
       type->untag()->set_flags(flags);
       type->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
@@ -1063,9 +1065,11 @@ class RecordTypeDeserializationCluster : public DeserializationCluster {
                                      is_deeply_immutable());
       type->untag()->type_test_stub_entry_point_.store(
           0, std::memory_order_relaxed);
-      const intptr_t is_nullable = d.ReadUnsigned();
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
       const intptr_t flags = UntaggedAbstractType::NullabilityBit::update(
-          is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+          nullability, UntaggedAbstractType::TypeStateBits::encode(
                            UntaggedAbstractType::kAllocated));
       type->untag()->set_flags(flags);
       type->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
@@ -1109,11 +1113,13 @@ class InterfaceTypeDeserializationCluster : public DeserializationCluster {
       type->untag()->type_test_stub_entry_point_.store(
           0, std::memory_order_relaxed);
       ClassPtr type_class = static_cast<ClassPtr>(d.ReadRef());
-      const intptr_t is_nullable = d.ReadUnsigned();
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
       const intptr_t flags = UntaggedType::TypeClassIdBits::update(
           type_class->untag()->id(),
           UntaggedAbstractType::NullabilityBit::update(
-              is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+              nullability, UntaggedAbstractType::TypeStateBits::encode(
                                UntaggedAbstractType::kAllocated)));
       type->untag()->set_flags(flags);
       type->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
@@ -1156,10 +1162,12 @@ class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
                                      is_deeply_immutable());
       tp->untag()->type_test_stub_entry_point_.store(0,
                                                      std::memory_order_relaxed);
-      const intptr_t is_nullable = d.ReadUnsigned();
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
       ObjectPtr owner = d.ReadRef();
       intptr_t flags = UntaggedAbstractType::NullabilityBit::update(
-          is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+          nullability, UntaggedAbstractType::TypeStateBits::encode(
                            UntaggedAbstractType::kAllocated));
       if (owner->IsClass()) {
         owner = Smi::New(static_cast<ClassPtr>(owner)->untag()->id());
