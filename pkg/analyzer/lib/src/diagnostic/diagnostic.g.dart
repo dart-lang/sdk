@@ -1035,6 +1035,44 @@ const DiagnosticWithoutArguments augmentationWithoutDeclaration =
       expectedTypes: [],
     );
 
+/// Parameters:
+/// String name: the name of the getter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+augmentationWithoutGetterDeclaration = DiagnosticWithArguments(
+  name: 'augmentation_without_declaration',
+  problemMessage:
+      "This augmentation induces a getter, but no getter declaration named '{0}' "
+      "exists to augment.",
+  correctionMessage:
+      "Try changing the augmentation to match an existing getter "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_without_getter_declaration',
+  withArguments: _withArgumentsAugmentationWithoutGetterDeclaration,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+augmentationWithoutSetterDeclaration = DiagnosticWithArguments(
+  name: 'augmentation_without_declaration',
+  problemMessage:
+      "This augmentation induces a setter, but no setter declaration named '{0}' "
+      "exists to augment.",
+  correctionMessage:
+      "Try changing the augmentation to match an existing setter "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_without_setter_declaration',
+  withArguments: _withArgumentsAugmentationWithoutSetterDeclaration,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments
 augmentedExpressionIsNotSetter = DiagnosticWithoutArgumentsImpl(
@@ -18408,6 +18446,22 @@ LocatableDiagnostic _withArgumentsAugmentationReturnTypeMismatch({
   return LocatableDiagnosticImpl(diag.augmentationReturnTypeMismatch, [
     expectedType,
     actualType,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAugmentationWithoutGetterDeclaration({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationWithoutGetterDeclaration, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAugmentationWithoutSetterDeclaration({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationWithoutSetterDeclaration, [
+    name,
   ]);
 }
 

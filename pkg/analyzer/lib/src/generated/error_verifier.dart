@@ -1034,10 +1034,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    if (node.augmentKeyword case var augmentKeyword?) {
+    if (node.augmentKeyword != null) {
       for (var variable in node.fields.variables) {
-        var declaredFragment = variable.declaredFragment!;
-        _checkAugmentationWithoutDeclaration(augmentKeyword, declaredFragment);
+        var declaredFragment = variable.declaredFragment! as FieldFragmentImpl;
+        _checkAugmentationWithoutDeclaration(variable.name, declaredFragment);
+        _checkAugmentationWithoutDeclarationForInducedAccessors(
+          variable.name,
+          declaredFragment,
+        );
       }
     }
 
@@ -1993,10 +1997,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var variableList = node.variables;
 
-    if (node.augmentKeyword case var augmentKeyword?) {
+    if (node.augmentKeyword != null) {
       for (var variable in variableList.variables) {
-        var declaredFragment = variable.declaredFragment!;
-        _checkAugmentationWithoutDeclaration(augmentKeyword, declaredFragment);
+        var declaredFragment =
+            variable.declaredFragment! as TopLevelVariableFragmentImpl;
+        _checkAugmentationWithoutDeclaration(variable.name, declaredFragment);
+        _checkAugmentationWithoutDeclarationForInducedAccessors(
+          variable.name,
+          declaredFragment,
+        );
       }
     }
 
@@ -2125,10 +2134,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkAugmentationWithoutDeclaration(
-    Token? augmentKeyword,
+    Token? errorToken,
     FragmentImpl fragment,
   ) {
-    if (augmentKeyword != null) {
+    if (errorToken != null) {
       if (fragment.previousFragment == null) {
         var element = fragment.element;
         var previousFragmentOfDifferentKind =
@@ -2142,7 +2151,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       "The declaration being augmented.",
                     ),
                   ])
-                  .at(augmentKeyword),
+                  .at(errorToken),
             );
           case FragmentImpl previousFragment:
             var previousElement = previousFragment.element;
@@ -2157,13 +2166,67 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       "The declaration being augmented.",
                     ),
                   ])
-                  .at(augmentKeyword),
+                  .at(errorToken),
             );
           case null:
             diagnosticReporter.report(
-              diag.augmentationWithoutDeclaration.at(augmentKeyword),
+              diag.augmentationWithoutDeclaration.at(errorToken),
             );
         }
+      }
+    }
+  }
+
+  void _checkAugmentationWithoutDeclarationForInducedAccessors(
+    Token variableName,
+    PropertyInducingFragmentImpl fragment,
+  ) {
+    var previousFragment = fragment.previousFragment;
+
+    // Already reported by `_checkAugmentationWithoutDeclaration`.
+    if (previousFragment == null) {
+      return;
+    }
+
+    if (fragment.inducedGetter case var inducedGetter?) {
+      if (inducedGetter.previousFragment == null) {
+        var setterFragment =
+            fragment.inducedSetter?.previousFragment ??
+            fragment.element.setter?.lastFragment;
+        var contextMessage =
+            setterFragment?.contextMessageAt(
+              "The corresponding setter is declared here.",
+            ) ??
+            previousFragment.contextMessageAt(
+              "The corresponding setter is induced by this declaration.",
+            );
+        diagnosticReporter.report(
+          diag.augmentationWithoutGetterDeclaration
+              .withArguments(name: variableName.lexeme)
+              .withContextMessages([?contextMessage])
+              .at(variableName),
+        );
+      }
+    }
+
+    if (fragment.inducedSetter case var inducedSetter?) {
+      if (inducedSetter.previousFragment == null) {
+        var getterFragment =
+            fragment.inducedGetter?.previousFragment ??
+            fragment.element.getter?.lastFragment;
+        var contextMessage =
+            getterFragment?.contextMessageAt(
+              "The corresponding getter is declared here.",
+            ) ??
+            previousFragment.contextMessageAt(
+              "The corresponding getter is induced by this declaration.",
+            );
+        diagnosticReporter.report(
+          diag.augmentationWithoutSetterDeclaration
+              .withArguments(name: variableName.lexeme)
+              .withContextMessages([?contextMessage])
+              .at(variableName),
+        );
       }
     }
   }

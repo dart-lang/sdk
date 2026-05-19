@@ -6,6 +6,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -100,14 +101,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isAugmentation) return;
+    if (node.name.isPrivate) return;
 
-    if (!node.name.isPrivate) {
-      if (node.returnType == null && !node.isSetter) {
-        rule.reportAtToken(node.name);
-      } else {
-        node.parameters?.accept(v);
-      }
+    if (node.returnType == null &&
+        !node.isSetter &&
+        node.name.type != TokenType.INDEX_EQ) {
+      rule.reportAtToken(node.name);
     }
+
+    node.parameters?.accept(v);
   }
 
   @override

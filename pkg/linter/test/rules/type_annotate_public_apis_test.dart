@@ -480,6 +480,63 @@ class A {
 ''');
   }
 
+  test_instanceOperator_binary_hasTypes() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A operator +(A a) => a;
+}
+''');
+  }
+
+  test_instanceOperator_binary_noParameterType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A operator +(a) => a;
+}
+''',
+      [lint(25, 1)],
+    );
+  }
+
+  test_instanceOperator_binary_noReturnType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  operator +(A a) => a;
+}
+''',
+      [lint(21, 1)],
+    );
+  }
+
+  test_instanceOperator_indexAssignment_hasTypes() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void operator []=(A a, A b) {}
+}
+''');
+  }
+
+  test_instanceOperator_indexAssignment_noParameterType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  void operator []=(a, A b) {}
+}
+''',
+      [lint(30, 1)],
+    );
+  }
+
+  test_instanceOperator_indexAssignment_noReturnType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  operator []=(A a, A b) {}
+}
+''');
+  }
+
   test_instanceSetter_noReturnType() async {
     await assertNoDiagnostics(r'''
 class A {
