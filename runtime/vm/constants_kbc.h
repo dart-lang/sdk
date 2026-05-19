@@ -207,6 +207,8 @@ namespace dart {
   V(LoadRecordField_Wide,                  D, WIDE, num, ___, ___)             \
   V(FfiCall,                               D, ORDN, lit, ___, ___)             \
   V(FfiCall_Wide,                          D, WIDE, lit, ___, ___)             \
+  V(RecordCoverage,                        A_E, ORDN, num, num, ___)           \
+  V(RecordCoverage_Wide,                   A_E, WIDE, num, num, ___)           \
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.
@@ -270,7 +272,7 @@ class KernelBytecode {
   static const intptr_t kMagicValue = 0x44424333;  // 'DBC3'
   // Bytecode format version supported by the VM
   // (should match pkg/dart2bytecode/lib/dbc.dart).
-  static const intptr_t kBytecodeFormatVersion = 2;
+  static const intptr_t kBytecodeFormatVersion = 3;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,

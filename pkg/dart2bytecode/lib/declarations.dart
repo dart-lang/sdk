@@ -25,7 +25,8 @@ import 'object_table.dart'
         NameAndType,
         ParameterFlags,
         TypeParameterDeclaration;
-import 'source_positions.dart' show LineStarts, SourcePositions;
+import 'source_positions.dart'
+    show LineStarts, RecordedCoverageArray, SourcePositions;
 
 class LibraryDeclaration extends BytecodeDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
@@ -873,12 +874,14 @@ class Code extends BytecodeDeclaration {
   static const hasForwardingStubTargetFlag = 1 << 5;
   static const hasDefaultFunctionTypeArgsFlag = 1 << 6;
   static const hasLocalVariablesFlag = 1 << 7;
+  static const hasRecordedCoverageFlag = 1 << 8;
 
   final ConstantPool constantPool;
   final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions? sourcePositions;
   final LocalVariableTable? localVariables;
+  final RecordedCoverageArray? recordedCoverage;
   final List<ObjectHandle> nullableFields;
   final List<ClosureDeclaration> closures;
   // Covariant and CovariantByClass flags for all parameters.
@@ -889,6 +892,7 @@ class Code extends BytecodeDeclaration {
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions => sourcePositions?.isNotEmpty ?? false;
   bool get hasLocalVariables => localVariables?.isNotEmpty ?? false;
+  bool get hasRecordedCoverage => recordedCoverage?.isNotEmpty ?? false;
   bool get hasNullableFields => nullableFields.isNotEmpty;
   bool get hasClosures => closures.isNotEmpty;
 
@@ -902,7 +906,8 @@ class Code extends BytecodeDeclaration {
       (defaultFunctionTypeArgsCpIndex != null
           ? hasDefaultFunctionTypeArgsFlag
           : 0) |
-      (hasLocalVariables ? hasLocalVariablesFlag : 0);
+      (hasLocalVariables ? hasLocalVariablesFlag : 0) |
+      (hasRecordedCoverage ? hasRecordedCoverageFlag : 0);
 
   Code(
     this.constantPool,
@@ -910,6 +915,7 @@ class Code extends BytecodeDeclaration {
     this.exceptionsTable,
     this.sourcePositions,
     this.localVariables,
+    this.recordedCoverage,
     this.nullableFields,
     this.closures,
     this.parameterFlags,
@@ -947,6 +953,9 @@ class Code extends BytecodeDeclaration {
     }
     if (hasLocalVariables) {
       writer.writeLinkOffset(localVariables!);
+    }
+    if (hasRecordedCoverage) {
+      writer.writeLinkOffset(recordedCoverage!);
     }
     if (hasNullableFields) {
       writer.writePackedList(nullableFields);
@@ -990,6 +999,9 @@ class Code extends BytecodeDeclaration {
     final localVariables = ((flags & hasLocalVariablesFlag) != 0)
         ? reader.readLinkOffset<LocalVariableTable>()
         : null;
+    final recordedCoverage = ((flags & hasRecordedCoverageFlag) != 0)
+        ? reader.readLinkOffset<RecordedCoverageArray>()
+        : null;
     final List<ObjectHandle> nullableFields =
         ((flags & hasNullableFieldsFlag) != 0)
         ? reader.readPackedList<ObjectHandle>()
@@ -1003,6 +1015,7 @@ class Code extends BytecodeDeclaration {
       exceptionsTable,
       sourcePositions,
       localVariables,
+      recordedCoverage,
       nullableFields,
       closures,
       parameterFlags,
@@ -1017,6 +1030,7 @@ class Code extends BytecodeDeclaration {
       "Bytecode {\n"
       "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable, annotations: [hasSourcePositions ? sourcePositions!.getBytecodeAnnotations() : const <int, String>{}, hasLocalVariables ? localVariables!.getBytecodeAnnotations() : const <int, String>{}])}}\n"
       "$exceptionsTable"
+      "${recordedCoverage == null ? '' : 'Coverage array: $recordedCoverage\n'}"
       "${nullableFields.isEmpty ? '' : 'Nullable fields: $nullableFields\n'}"
       "${parameterFlags == null ? '' : 'Parameter flags: $parameterFlags\n'}"
       "${forwardingStubTargetCpIndex == null ? '' : 'Forwarding stub target: CP#$forwardingStubTargetCpIndex\n'}"
@@ -1237,17 +1251,19 @@ class ClosureCode {
   static const hasLocalVariablesFlag = 1 << 2;
   static const capturesOnlyFinalNotLateVarsFlag = 1 << 3;
   static const hasLocalFunctionIdFlag = 1 << 4;
+  static const hasRecordedCoverageFlag = 1 << 5;
 
   final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions? sourcePositions;
   final LocalVariableTable? localVariables;
+  final RecordedCoverageArray? recordedCoverage;
   final bool capturesOnlyFinalNotLateVars;
   final int localFunctionId;
-
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions => sourcePositions?.isNotEmpty ?? false;
   bool get hasLocalVariables => localVariables?.isNotEmpty ?? false;
+  bool get hasRecordedCoverage => recordedCoverage?.isNotEmpty ?? false;
   bool get hasLocalFunctionId => localFunctionId > 0;
 
   int get flags =>
@@ -1255,13 +1271,15 @@ class ClosureCode {
       (hasSourcePositions ? hasSourcePositionsFlag : 0) |
       (hasLocalVariables ? hasLocalVariablesFlag : 0) |
       (capturesOnlyFinalNotLateVars ? capturesOnlyFinalNotLateVarsFlag : 0) |
-      (hasLocalFunctionId ? hasLocalFunctionIdFlag : 0);
+      (hasLocalFunctionId ? hasLocalFunctionIdFlag : 0) |
+      (hasRecordedCoverage ? hasRecordedCoverageFlag : 0);
 
   ClosureCode(
     this.bytecodes,
     this.exceptionsTable,
     this.sourcePositions,
     this.localVariables,
+    this.recordedCoverage,
     this.capturesOnlyFinalNotLateVars,
     this.localFunctionId,
   );
@@ -1281,6 +1299,9 @@ class ClosureCode {
     if (hasLocalVariables) {
       writer.writeLinkOffset(localVariables!);
     }
+    if (hasRecordedCoverage) {
+      writer.writeLinkOffset(recordedCoverage!);
+    }
   }
 
   factory ClosureCode.read(BufferedReader reader) {
@@ -1298,6 +1319,9 @@ class ClosureCode {
     final localVariables = ((flags & hasLocalVariablesFlag) != 0)
         ? reader.readLinkOffset<LocalVariableTable>()
         : null;
+    final recordedCoverage = ((flags & hasRecordedCoverageFlag) != 0)
+        ? reader.readLinkOffset<RecordedCoverageArray>()
+        : null;
     final capturesOnlyFinalNotLateVars =
         (flags & capturesOnlyFinalNotLateVarsFlag) != 0;
 
@@ -1306,6 +1330,7 @@ class ClosureCode {
       exceptionsTable,
       sourcePositions,
       localVariables,
+      recordedCoverage,
       capturesOnlyFinalNotLateVars,
       localFunctionId,
     );
@@ -1329,6 +1354,9 @@ class ClosureCode {
         ],
       ),
     );
+    if (hasRecordedCoverage) {
+      sb.writeln('Coverage array: $recordedCoverage');
+    }
     sb.writeln('}');
     return sb.toString();
   }
@@ -1363,7 +1391,7 @@ class _Section {
 
 class Component {
   static const int magicValue = 0x44424333; // 'DBC3'
-  static const int numSections = 13;
+  static const int numSections = 14;
   static const int sectionAlignment = 4;
 
   //  UInt32 magic, version, numSections x (numItems, offset)
@@ -1380,6 +1408,8 @@ class Component {
   final List<SourceFile> sourceFiles = <SourceFile>[];
   final Map<Uri, SourceFile> uriToSource = <Uri, SourceFile>{};
   final List<LocalVariableTable> localVariables = <LocalVariableTable>[];
+  final List<RecordedCoverageArray> recordedCoverage =
+      <RecordedCoverageArray>[];
   final List<AnnotationsDeclaration> annotations = <AnnotationsDeclaration>[];
   ObjectHandle? dynModuleEntryPoint;
 
@@ -1399,6 +1429,14 @@ class Component {
       annot.write(annotationsWriter);
     }
     BytecodeSizeStatistics.annotationsSize += annotationsWriter.offset;
+
+    final recordedCoverageWriter = new BufferedWriter.fromWriter(writer);
+    for (var rc in recordedCoverage) {
+      writer.linkWriter.put(rc, recordedCoverageWriter.offset);
+      rc.write(recordedCoverageWriter);
+    }
+    BytecodeSizeStatistics.recordedCoverageSize +=
+        recordedCoverageWriter.offset;
 
     final localVariablesWriter = new BufferedWriter.fromWriter(writer);
     for (var lv in localVariables) {
@@ -1484,9 +1522,14 @@ class Component {
       new _Section(sourceFiles.length, sourceFilesWriter),
       new _Section(lineStarts.length, lineStartsWriter),
       new _Section(localVariables.length, localVariablesWriter),
+      new _Section(recordedCoverage.length, recordedCoverageWriter),
       new _Section(annotations.length, annotationsWriter),
     ];
-    assert(sections.length == numSections);
+    if (sections.length != numSections) {
+      throw StateError(
+        'Expected $numSections sections, got ${sections.length}',
+      );
+    }
 
     int offset = headerSize;
     for (var section in sections) {
@@ -1567,6 +1610,9 @@ class Component {
     final localVariablesNum = reader.readUInt32();
     final localVariablesOffset = reader.readUInt32();
 
+    final recordedCoverageNum = reader.readUInt32();
+    final recordedCoverageOffset = reader.readUInt32();
+
     final annotationsNum = reader.readUInt32();
     final annotationsOffset = reader.readUInt32();
 
@@ -1588,6 +1634,24 @@ class Component {
       AnnotationsDeclaration annot = new AnnotationsDeclaration.read(reader);
       reader.linkReader.setOffset(annot, offset);
       annotations.add(annot);
+    }
+
+    final recordedCoverageStart = start + recordedCoverageOffset;
+    reader.offset = recordedCoverageStart;
+    for (int i = 0; i < recordedCoverageNum; ++i) {
+      int offset = reader.offset - recordedCoverageStart;
+      RecordedCoverageArray rc = new RecordedCoverageArray.read(reader);
+      reader.linkReader.setOffset(rc, offset);
+      recordedCoverage.add(rc);
+    }
+
+    final localVariablesStart = start + localVariablesOffset;
+    reader.offset = localVariablesStart;
+    for (int i = 0; i < localVariablesNum; ++i) {
+      int offset = reader.offset - localVariablesStart;
+      LocalVariableTable lv = new LocalVariableTable.read(reader);
+      reader.linkReader.setOffset(lv, offset);
+      localVariables.add(lv);
     }
 
     final lineStartsStart = start + lineStartsOffset;
@@ -1615,15 +1679,6 @@ class Component {
       SourcePositions sp = new SourcePositions.read(reader);
       reader.linkReader.setOffset(sp, offset);
       sourcePositions.add(sp);
-    }
-
-    final localVariablesStart = start + localVariablesOffset;
-    reader.offset = localVariablesStart;
-    for (int i = 0; i < localVariablesNum; ++i) {
-      int offset = reader.offset - localVariablesStart;
-      LocalVariableTable lv = new LocalVariableTable.read(reader);
-      reader.linkReader.setOffset(lv, offset);
-      localVariables.add(lv);
     }
 
     final codesStart = start + codesOffset;

@@ -2118,6 +2118,7 @@ class UntaggedBytecode : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ExceptionHandlersPtr, exception_handlers);
   COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, coverage_array);
   COMPRESSED_POINTER_FIELD(LocalVarDescriptorsPtr, var_descriptors);
   VISIT_TO(var_descriptors);
 #else
@@ -2145,6 +2146,7 @@ class UntaggedBytecode : public UntaggedObject {
   int32_t source_positions_binary_offset_;
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int32_t local_variables_binary_offset_;
+  int32_t recorded_coverage_binary_offset_;
 #endif
 
   static bool ContainsPC(ObjectPtr raw_obj, uword pc);

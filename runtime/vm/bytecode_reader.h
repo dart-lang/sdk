@@ -300,6 +300,7 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kHasForwardingStubTargetFlag = 1 << 5;
     static const int kHasDefaultFunctionTypeArgsFlag = 1 << 6;
     static const int kHasLocalVariablesFlag = 1 << 7;
+    static const int kHasRecordedCoverageFlag = 1 << 8;
   };
 
   // Closure code flags, must be in sync with ClosureCode constants in
@@ -310,6 +311,7 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kHasLocalVariablesFlag = 1 << 2;
     static const int kCapturesOnlyFinalNotLateVarsFlag = 1 << 3;
     static const int kHasLocalFunctionIdFlag = 1 << 4;
+    static const int kHasRecordedCoverageFlag = 1 << 5;
   };
 
   // Parameter flags, must be in sync with ParameterFlags constants in
@@ -390,6 +392,8 @@ class BytecodeReaderHelper : public ValueObject {
                            bool has_exceptions_table);
   void ReadSourcePositions(const Bytecode& bytecode, bool has_source_positions);
   void ReadLocalVariables(const Bytecode& bytecode, bool has_local_variables);
+  void ReadRecordedCoverage(const Bytecode& bytecode,
+                            bool has_recorded_coverage);
   StringPtr ConstructorName(const Class& cls, const String& name);
 
   ObjectPtr ReadObjectContents(uint32_t header);
@@ -451,6 +455,7 @@ class BytecodeComponentData : ValueObject {
     kSourceFilesOffset,
     kLineStartsOffset,
     kLocalVariablesOffset,
+    kRecordedCoverageOffset,
     kAnnotationsOffset,
     kNumFields
   };
@@ -477,6 +482,7 @@ class BytecodeComponentData : ValueObject {
   intptr_t GetSourceFilesOffset() const;
   intptr_t GetLineStartsOffset() const;
   intptr_t GetLocalVariablesOffset() const;
+  intptr_t GetRecordedCoverageOffset() const;
   intptr_t GetAnnotationsOffset() const;
   void SetObject(intptr_t index, const Object& obj) const;
   ObjectPtr GetObject(intptr_t index) const;
@@ -504,6 +510,7 @@ class BytecodeComponentData : ValueObject {
                       intptr_t source_files_offset,
                       intptr_t line_starts_offset,
                       intptr_t local_variables_offset,
+                      intptr_t recorded_coverage_offset,
                       intptr_t annotations_offset,
                       Heap::Space space);
 
@@ -712,6 +719,53 @@ class BytecodeLocalVariablesIterator : ValueObject {
   TokenPosition cur_token_pos_ = TokenPosition::kNoSource;
   TokenPosition cur_declaration_token_pos_ = TokenPosition::kNoSource;
   TokenPosition cur_end_token_pos_ = TokenPosition::kNoSource;
+};
+
+// Types of recorded coverage, keep in sync with the RecordedCoverageType
+// enum in pkg/dart2bytecode/lib/source_positions.dart.
+enum class RecordedCoverageType { kRegular, kBranchTarget };
+
+class BytecodeRecordedCoverageIterator : ValueObject {
+ public:
+  BytecodeRecordedCoverageIterator(Zone* zone, const Bytecode& bytecode)
+      : reader_(TypedDataBase::Handle(zone, bytecode.binary())) {
+    ASSERT(bytecode.HasRecordedCoverage());
+    reader_.set_offset(bytecode.recorded_coverage_binary_offset());
+    pairs_remaining_ = num_entries_ = reader_.ReadUInt();
+  }
+
+  intptr_t NumEntries() const { return num_entries_; }
+
+  bool MoveNext() {
+    if (pairs_remaining_ == 0) {
+      return false;
+    }
+    ASSERT(pairs_remaining_ > 0);
+    --pairs_remaining_;
+    cur_type_ = static_cast<RecordedCoverageType>(reader_.ReadUInt());
+    cur_position_ += reader_.ReadSLEB128();
+    return true;
+  }
+
+  intptr_t EncodedCoveragePosition() const {
+    return TokenPos().EncodeCoveragePosition(IsBranch());
+  }
+
+ private:
+  TokenPosition TokenPos() const {
+    ASSERT(cur_position_ >= 0);
+    return TokenPosition::Deserialize(cur_position_);
+  }
+
+  bool IsBranch() const {
+    return cur_type_ == RecordedCoverageType::kBranchTarget;
+  }
+
+  Reader reader_;
+  intptr_t num_entries_ = 0;
+  intptr_t pairs_remaining_ = 0;
+  RecordedCoverageType cur_type_ = RecordedCoverageType::kRegular;
+  intptr_t cur_position_ = 0;
 };
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
