@@ -3,22 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 class UpdateSdkConstraints extends ResolvedCorrectionProducer {
   /// The minimum version to which the SDK constraints should be updated.
-  final String _minimumVersion;
+  final Version _minimumVersion;
 
   /// Initializes a newly created instance that will update the SDK constraints
   /// to '2.14.0'.
   UpdateSdkConstraints.version_2_14_0({required super.context})
-    : _minimumVersion = '2.14.0';
+    : _minimumVersion = Version(2, 14, 0);
 
   @override
   // Too nuanced to do unattended to apply in bulk.
@@ -36,34 +37,16 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
       return;
     }
 
-    var extractor = SdkConstraintExtractor(pubspecFile);
-    var text = extractor.constraintText();
-    var offset = extractor.constraintOffset();
-    if (text == null || offset < 0) {
-      return;
-    }
-
-    var length = text.length;
-    var spaceOffset = text.indexOf(' ');
-    if (spaceOffset >= 0) {
-      length = spaceOffset;
-    }
-
-    String newText;
-    if (text == 'any') {
-      newText = '^$_minimumVersion';
-    } else if (text.startsWith('^')) {
-      newText = '^$_minimumVersion';
-    } else if (text.startsWith('>=')) {
-      newText = '>=$_minimumVersion';
-    } else if (text.startsWith('>')) {
-      newText = '>=$_minimumVersion';
-    } else {
+    var result = computeEdit(pubspecFile, _minimumVersion);
+    if (result == null) {
       return;
     }
 
     await builder.addYamlFileEdit(pubspecFile.path, (builder) {
-      builder.addSimpleReplacement(SourceRange(offset, length), newText);
+      builder.addSimpleReplacement(
+        SourceRange(result.offset, result.length),
+        result.replacement,
+      );
     });
   }
 
