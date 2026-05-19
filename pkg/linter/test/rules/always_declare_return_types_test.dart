@@ -166,11 +166,29 @@ class C {
 ''');
   }
 
-  test_operator() async {
+  test_operator_binary() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  operator +(C c) => c;
+}
+''',
+      [lint(21, 1)],
+    );
+  }
+
+  test_operator_binary_withReturnType() async {
     await assertNoDiagnostics(r'''
 class C {
-  operator []=(int index, int value) //OK: #300
-  {}
+  C operator +(C c) => c;
+}
+''');
+  }
+
+  test_operator_indexAssignment() async {
+    await assertNoDiagnostics(r'''
+class C {
+  operator []=(int index, int value) {}
 }
 ''');
   }
