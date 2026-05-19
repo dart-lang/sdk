@@ -53,7 +53,6 @@ io_impl_sources = [
   "process_macos.cc",
   "process_win.cc",
   "reference_counting.h",
-  "root_certificates_unsupported.cc",
   "secure_socket_filter.cc",
   "secure_socket_filter.h",
   "secure_socket_unsupported.cc",

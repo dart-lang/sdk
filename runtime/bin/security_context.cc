@@ -325,37 +325,6 @@ void SSLCertContext::LoadRootCertFile(const char* file) {
   }
 }
 
-void SSLCertContext::AddCompiledInCerts() {
-  if (root_certificates_pem == nullptr) {
-    if (SSL_LOG_STATUS) {
-      Syslog::Print("Missing compiled-in roots\n");
-    }
-    return;
-  }
-  X509_STORE* store = SSL_CTX_get_cert_store(context());
-  BIO* roots_bio =
-      BIO_new_mem_buf(const_cast<unsigned char*>(root_certificates_pem),
-                      root_certificates_pem_length);
-  X509* root_cert;
-  // PEM_read_bio_X509 reads PEM-encoded certificates from a bio (in our case,
-  // backed by a memory buffer), and returns X509 objects, one by one.
-  // When the end of the bio is reached, it returns null.
-  while ((root_cert = PEM_read_bio_X509(roots_bio, nullptr, nullptr,
-                                        nullptr)) != nullptr) {
-    int status = X509_STORE_add_cert(store, root_cert);
-    // X509_STORE_add_cert increments the reference count of cert on success.
-    X509_free(root_cert);
-    if (status == 0) {
-      break;
-    }
-  }
-  BIO_free(roots_bio);
-  // If there is an error here, it must be the error indicating that we are done
-  // reading PEM certificates.
-  ASSERT((ERR_peek_error() == 0) || SecureSocketUtils::NoPEMStartLine());
-  ERR_clear_error();
-}
-
 void SSLCertContext::LoadRootCertCache(const char* cache) {
   if (SSL_LOG_STATUS) {
     Syslog::Print("Looking for trusted roots in %s\n", cache);

@@ -107,7 +107,6 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   }
 
  private:
-  void AddCompiledInCerts();
   void LoadRootCertFile(const char* file);
   void LoadRootCertCache(const char* cache);
 

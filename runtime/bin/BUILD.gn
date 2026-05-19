@@ -581,14 +581,6 @@ template("dart_io") {
       ]
     }
 
-    if (is_linux || is_win || is_fuchsia) {
-      if (dart_use_fallback_root_certificates) {
-        deps += [ "../../third_party/fallback_root_certificates" ]
-      } else {
-        defines += [ "DART_IO_ROOT_CERTS_DISABLED" ]
-      }
-    }
-
     if (dart_disable_secure_socket) {
       defines += [ "DART_IO_SECURE_SOCKET_DISABLED" ]
     }
