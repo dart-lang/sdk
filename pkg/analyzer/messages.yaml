@@ -1869,6 +1869,24 @@ CompileTimeErrorCode:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
+  augmentationWithoutGetterDeclaration:
+    type: compileTimeError
+    parameters:
+      String name: the name of the getter
+    sharedName: augmentationWithoutDeclaration
+    experiment: augmentations
+    problemMessage: "This augmentation induces a getter, but no getter declaration named '#name' exists to augment."
+    correctionMessage: Try changing the augmentation to match an existing getter declaration.
+    hasPublishedDocs: false
+  augmentationWithoutSetterDeclaration:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+    sharedName: augmentationWithoutDeclaration
+    experiment: augmentations
+    problemMessage: "This augmentation induces a setter, but no setter declaration named '#name' exists to augment."
+    correctionMessage: Try changing the augmentation to match an existing setter declaration.
+    hasPublishedDocs: false
   augmentationOfMixinApplicationClass:
     type: compileTimeError
     parameters: none

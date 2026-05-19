@@ -156,10 +156,14 @@ class C {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   int get foo;
+//        ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment abstract class C {
   augment int foo = 0;
+//            ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -457,10 +461,14 @@ class A(var int _, var int _);
     await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   void set foo(int _);
+//         ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment abstract class C {
   augment int foo = 0;
+//            ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -673,10 +681,14 @@ class C {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo => 0;
+//               ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment class A {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -815,10 +827,14 @@ class C {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void set foo(_) {}
+//                ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment class A {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -1208,10 +1224,14 @@ enum E(final int _, final int _) {
 enum E {
   v;
   void set foo(int _) {}
+//         ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment enum E {;
   augment final int foo = 0;
+//                  ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -1403,10 +1423,14 @@ enum E {
 enum E {
   v;
   static int get foo => 0;
+//               ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment enum E {;
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -1556,10 +1580,14 @@ enum E {
 enum E {
   v;
   static void set foo(_) {}
+//                ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment enum E {;
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -1671,11 +1699,14 @@ extension E on A {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
+//        ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment extension E {
   augment int foo = 0;
 //            ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 // [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
 ''');
@@ -1821,11 +1852,14 @@ extension E on A {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void set foo(int _) {}
+//         ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment extension E {
   augment int foo = 0;
 //            ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 // [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
 ''');
@@ -1967,10 +2001,14 @@ extension E on A {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static int get foo => 0;
+//               ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment extension E {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -2115,10 +2153,14 @@ extension E on A {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void set foo(_) {}
+//                ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment extension E {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -2207,11 +2249,14 @@ class DuplicateDefinitionExtensionTypeTest extends PubPackageResolutionTest {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   int get foo => 0;
+//        ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment extension type E(int it) {
   augment int foo = 0;
 //            ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 // [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
 ''');
@@ -2327,11 +2372,14 @@ extension type E(int it) {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   void set foo(int _) {}
+//         ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment extension type E(int it) {
   augment int foo = 0;
 //            ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 // [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
 ''');
@@ -2437,10 +2485,14 @@ extension type E(int it) {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static int get foo => 0;
+//               ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment extension type E(int it) {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -2523,10 +2575,14 @@ extension type E(int it) {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static void set foo(_) {}
+//                ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment extension type E(int it) {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -2645,10 +2701,14 @@ mixin M {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
+//        ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment mixin M {
   augment int foo = 0;
+//            ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -2759,10 +2819,14 @@ mixin M {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void set foo(int _) {}
+//         ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment mixin M {
   augment int foo = 0;
+//            ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -2867,10 +2931,14 @@ mixin M {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo => 0;
+//               ^^^
+// [context 1] The corresponding getter is declared here.
 }
 
 augment mixin M {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
   }
@@ -2953,10 +3021,14 @@ mixin M {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void set foo(_) {}
+//                ^^^
+// [context 1] The corresponding setter is declared here.
 }
 
 augment mixin M {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
   }

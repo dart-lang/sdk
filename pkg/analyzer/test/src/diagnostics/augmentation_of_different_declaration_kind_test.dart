@@ -158,7 +158,7 @@ class A {
 }
 augment class A {
   augment int foo = 0;
-//^^^^^^^
+//            ^^^
 // [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a field.
 }
 ''');
@@ -281,7 +281,7 @@ class A {
 }
 augment class A {
   augment static int foo = 0;
-//^^^^^^^
+//                   ^^^
 // [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a constructor with a field.
 }
 ''');
@@ -296,7 +296,7 @@ class A {
 }
 augment class A {
   augment static int foo = 0;
-//^^^^^^^
+//                   ^^^
 // [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a field.
 }
 ''');
@@ -528,7 +528,8 @@ class A {}
 //    ^
 // [context 1] The declaration being augmented.
 augment int A = 0;
-// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a class with a top level variable.
+//          ^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a class with a top level variable.
 ''');
   }
 
@@ -538,7 +539,8 @@ void foo() {}
 //   ^^^
 // [context 1] The declaration being augmented.
 augment int foo = 0;
-// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a function with a top level variable.
+//          ^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a function with a top level variable.
 ''');
   }
 }

@@ -255,6 +255,10 @@ augmentation_type_parameter_name:
     We could rename the type parameter, this is purely local operation.
 augmentation_without_declaration:
   status: noFix
+augmentation_without_getter_declaration:
+  status: needsEvaluation
+augmentation_without_setter_declaration:
+  status: needsEvaluation
 augmented_expression_is_not_setter:
   status: noFix
 augmented_expression_is_setter:

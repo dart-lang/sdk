@@ -79,6 +79,8 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.augmentationTypeParameterCount,
   diag.augmentationTypeParameterName,
   diag.augmentationWithoutDeclaration,
+  diag.augmentationWithoutGetterDeclaration,
+  diag.augmentationWithoutSetterDeclaration,
   diag.augmentedExpressionIsNotSetter,
   diag.augmentedExpressionIsSetter,
   diag.augmentedExpressionNotOperator,
