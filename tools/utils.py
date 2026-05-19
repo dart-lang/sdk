@@ -359,15 +359,14 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, sanitizer=None):
     return build_root
 
 
-def GetVersion(no_git_hash=False, version_file=None, git_revision_file=None):
+def GetVersion(no_git_hash=False, version_file=None):
     version = ReadVersionFile(version_file)
     if not version:
         return None
 
     suffix = ''
     if version.channel in ['main', 'be']:
-        suffix = '-edge' if no_git_hash else '-edge.{}'.format(
-            GetGitRevision(git_revision_file))
+        suffix = '-edge' if no_git_hash else '-edge.{}'.format(GetGitRevision())
     elif version.channel in ('beta', 'dev'):
         suffix = '-{}.{}.{}'.format(version.prerelease,
                                     version.prerelease_patch, version.channel)
@@ -417,15 +416,7 @@ def ReadVersionFile(version_file=None):
     return None
 
 
-def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
-    # When building from tarball use tools/GIT_REVISION
-    if git_revision_file is None:
-        git_revision_file = os.path.join(repo_path, 'tools', 'GIT_REVISION')
-    try:
-        with open(git_revision_file) as fd:
-            return fd.read().strip()
-    except:
-        pass
+def GetGitRevision(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -460,16 +451,23 @@ def GetShortGitHash(repo_path=DART_DIR):
     return revision
 
 
-def GetGitTimestamp(git_timestamp_file=None, repo_path=DART_DIR):
-    # When building from tarball use tools/GIT_TIMESTAMP
-    if git_timestamp_file is None:
-        git_timestamp_file = os.path.join(repo_path, 'tools', 'GIT_TIMESTAMP')
-    try:
-        with open(git_timestamp_file) as fd:
-            return fd.read().strip()
-    except:
-        pass
+def GetGitTimestamp(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cd'],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=IsWindows(),
+                         cwd=repo_path)
+    out, err = p.communicate()
+    if p.wait() != 0:
+        # TODO(https://github.com/dart-lang/sdk/issues/51865): Don't ignore errors.
+        # raise Exception('git log failed: ' + str(err))
+        return None
+    timestamp = out.decode('utf-8').strip()
+    return timestamp
+
+
+def GetGitTimestampForDpkg(repo_path=DART_DIR):
+    p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cD'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          shell=IsWindows(),
