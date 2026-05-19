@@ -104,39 +104,104 @@ template("aot_snapshot") {
     }
   }
 
-  # Create a snapshot from kernel built above.
-  gen_snapshot_action(target_name) {
-    if (defined(invoker.pool)) {
-      pool = invoker.pool
-    }
-    deps = extra_deps + [ ":${target_name}_dill" ]
+  # Whether to build an AOT snapshot, which can be opened by dlopen.
+  # Ignore this option on Linux, as the default app-aot-elf AOT
+  # snapshot already can be used with dlopen on Linux.
+  as_shared_library = defined(invoker.as_shared_library) &&
+                      invoker.as_shared_library && !is_linux
 
-    inputs = extra_inputs
+  assert(!(as_shared_library && is_win),
+         "AOT Snapshots as shared libraries are not supported on Windows")
 
-    outputs = [ output ]
+  if (!as_shared_library) {
+    # Create a snapshot from kernel built above.
+    gen_snapshot_action(target_name) {
+      if (defined(invoker.pool)) {
+        pool = invoker.pool
+      }
+      deps = extra_deps + [ ":${target_name}_dill" ]
 
-    abs_output = rebase_path(output)
+      inputs = extra_inputs
 
-    # TODO(60813): Generate PE DLL on Windows.
-    if (is_mac) {
-      vm_args = [
-                  "--deterministic",
-                  "--snapshot-kind=app-aot-macho-dylib",
-                  "--macho=$abs_output",
-                ] + gen_snapshot_args
-    } else {
+      outputs = [ output ]
+
+      abs_output = rebase_path(output)
+
       vm_args = [
                   "--deterministic",
                   "--snapshot-kind=app-aot-elf",
                   "--elf=$abs_output",
                 ] + gen_snapshot_args
+      if (defined(invoker.vm_args)) {
+        vm_args += invoker.vm_args
+      }
+
+      args = [ rebase_path(dill) ]
+
+      force_product_mode = product_mode
     }
-    if (defined(invoker.vm_args)) {
-      vm_args += invoker.vm_args
+  } else {
+    assembly = "$target_gen_dir/$name.S"
+    dill_target_name = ":${target_name}_dill"
+
+    # Create an assembly snapshot from kernel built above.
+    assembly_target_name = target_name + "_assembly"
+    gen_snapshot_action(assembly_target_name) {
+      if (defined(invoker.pool)) {
+        pool = invoker.pool
+      }
+      deps = extra_deps + [ dill_target_name ]
+
+      inputs = extra_inputs
+
+      outputs = [ assembly ]
+
+      abs_output = rebase_path(assembly)
+      vm_args = [
+                  "--deterministic",
+                  "--snapshot-kind=app-aot-assembly",
+                  "--assembly=$abs_output",
+                ] + gen_snapshot_args
+
+      args = [ rebase_path(dill) ]
+
+      force_product_mode = product_mode
     }
 
-    args = [ rebase_path(dill) ]
+    # build a shared library from assembly.
+    shared_library_target_name = target_name + "_shared_library"
+    shared_library(shared_library_target_name) {
+      sources = [ assembly ]
+      deps = [ ":${assembly_target_name}" ]
+    }
 
-    force_product_mode = product_mode
+    output_prefix = "lib"
+    output_extension = ""
+
+    if (current_os == "mac" || current_os == "ios" || current_os == "watchos") {
+      output_extension = "dylib"
+    } else if (current_os == "win") {
+      output_extension = "dll"
+      output_prefix = ""
+    } else if (current_os == "unknown" && current_cpu == "wasm32") {
+      output_extension = "wasm"
+    } else {
+      output_extension = "so"
+    }
+
+    shared_library_output_file_name =
+        "$output_prefix$shared_library_target_name"
+    if (output_extension != "") {
+      shared_library_output_file_name += ".$output_extension"
+    }
+
+    # copy shared library to the same output, as when
+    # `as_shared_library` is False.
+    copy(target_name) {
+      sources = [ "$root_out_dir/$shared_library_output_file_name" ]
+      outputs = [ output ]
+
+      deps = [ ":${shared_library_target_name}" ]
+    }
   }
 }

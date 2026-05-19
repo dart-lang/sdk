@@ -1042,6 +1042,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           variable.name,
           declaredFragment,
         );
+        if (declaredFragment.inducedGetter case var inducedGetter?) {
+          _checkForAugmentationReturnTypeMismatch(
+            fragment: inducedGetter,
+            returnTypeNode: node.fields.type,
+            errorEntity: variable.name,
+          );
+        }
       }
     }
 
@@ -1180,6 +1187,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForAugmentationReturnTypeMismatch(
       fragment: fragment,
       returnTypeNode: node.returnType,
+      errorEntity: node.returnType ?? node.name,
     );
 
     if (element.enclosingElement is! LibraryElement) {
@@ -1440,6 +1448,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForAugmentationReturnTypeMismatch(
       fragment: fragment,
       returnTypeNode: node.returnType,
+      errorEntity: node.returnType ?? node.name,
     );
 
     _withEnclosingExecutable(
@@ -2006,6 +2015,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           variable.name,
           declaredFragment,
         );
+        if (declaredFragment.inducedGetter case var inducedGetter?) {
+          _checkForAugmentationReturnTypeMismatch(
+            fragment: inducedGetter,
+            returnTypeNode: variableList.type,
+            errorEntity: variable.name,
+          );
+        }
       }
     }
 
@@ -2678,6 +2694,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForAugmentationReturnTypeMismatch({
     required ExecutableFragmentImpl fragment,
     required TypeAnnotation? returnTypeNode,
+    required SyntacticEntity errorEntity,
   }) {
     if (!fragment.isAugmentation) {
       return;
@@ -2689,13 +2706,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var expectedType = fragment.element.returnType;
     var actualType = returnTypeNode.typeOrThrow;
-    if (!typeSystem.isEqualTo(actualType, expectedType)) {
-      diagnosticReporter.report(
-        diag.augmentationReturnTypeMismatch
-            .withArguments(expectedType: expectedType, actualType: actualType)
-            .at(returnTypeNode),
-      );
+    if (typeSystem.isEqualTo(actualType, expectedType)) {
+      return;
     }
+
+    var diagnosticCode =
+        fragment is GetterFragmentImpl && fragment.inducingVariable != null
+        ? diag.augmentationInducedGetterReturnTypeMismatch
+        : diag.augmentationReturnTypeMismatch;
+
+    diagnosticReporter.report(
+      diagnosticCode
+          .withArguments(expectedType: expectedType, actualType: actualType)
+          .at(errorEntity),
+    );
   }
 
   void _checkForAugmentationTypeParameters({

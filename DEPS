@@ -75,9 +75,9 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:15.0.1",
+  "d8_tag": "version:15.0.135",
   "jsshell_tag": "version:150.0.1",
-  "jsc_tag": "version:312556",
+  "jsc_tag": "version:313485",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:a3f244e2d5550e110daee562b88bee247b75d66c",
@@ -145,7 +145,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "dfc75136655b780f5bc2a99a7413b73ec495fecd", # rolled manually while record_use is experimental
   "protobuf_rev": "84079e8b8531309e06ba7276b1c28bdca9210ad6",
-  "pub_rev": "74408212b5348003381bc63f3b59274aaa23cfa3", # rolled manually
+  "pub_rev": "ec276d10a7fa0f6c6ec005340fb9ad29f3b012d0", # rolled manually
   "shelf_rev": "74d58bc1499115f91f8120dbd08f77c83f7f343d",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
@@ -166,9 +166,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "149.0.7827.3",
+  "chrome_tag": "149.0.7827.14",
   "download_firefox": False,
-  "firefox_tag": "150.0",
+  "firefox_tag": "151.0",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
@@ -577,7 +577,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "R2EllDf4DgBXVNuiND77UsIc5t36TtLMwB1a92BF4-oC",
+      "version": "dQ4PjIJB5kZFU8Y32gzTUq7iKC6dfL6DsaPDSdMSuNsC",
       }
     ],
     "condition": 'download_fuchsia_deps',

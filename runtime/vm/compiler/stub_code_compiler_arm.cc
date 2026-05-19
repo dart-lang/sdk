@@ -278,8 +278,11 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
   // Note: If the stub was aligned, this could be a single PC relative load.
 
   // Load a pointer to the beginning of the stub into dst.
+  // This is not SubImmediate(dst, PC, Instr::kPCReadOffset + code_size)
+  // because synthesizing the large immediate changes what offset is needed.
   const intptr_t code_size = __ CodeSize();
-  __ SubImmediate(dst, PC, Instr::kPCReadOffset + code_size);
+  __ mov(dst, Operand(PC));
+  __ SubImmediate(dst, dst, Instr::kPCReadOffset + code_size);
 
   // Round dst down to the page size.
   __ AndImmediate(dst, dst, FfiCallbackMetadata::kPageMask);

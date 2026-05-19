@@ -1894,6 +1894,16 @@ CompileTimeErrorCode:
     problemMessage: "Mixin application classes can't be augmented."
     correctionMessage: Try removing the 'augment' keyword, or making the target a normal class.
     hasPublishedDocs: false
+  augmentationInducedGetterReturnTypeMismatch:
+    type: compileTimeError
+    parameters:
+      Type expectedType: the return type of the getter being augmented
+      Type actualType: the return type of the induced getter
+    sharedName: augmentationReturnTypeMismatch
+    experiment: augmentations
+    problemMessage: "The getter induced by this augmentation has return type '#actualType', but the getter being augmented has return type '#expectedType'."
+    correctionMessage: Try changing the augmentation's type to match the getter being augmented.
+    hasPublishedDocs: false
   augmentationReturnTypeMismatch:
     type: compileTimeError
     parameters:

@@ -70,6 +70,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.asyncForInWrongContext,
   diag.asyncKeywordUsedAsIdentifier,
   diag.augmentationExtendsClauseAlreadyPresent,
+  diag.augmentationInducedGetterReturnTypeMismatch,
   diag.augmentationModifierExtra,
   diag.augmentationModifierMissing,
   diag.augmentationOfDifferentDeclarationKind,

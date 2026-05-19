@@ -52,11 +52,6 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
         reason: 'Validation was not empty',
       );
     }
-    expect(
-      validator.blockCount,
-      equals(0),
-      reason: 'SDK dill only contains outlines',
-    );
   }
 
   @override

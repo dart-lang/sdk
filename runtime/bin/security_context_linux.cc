@@ -22,12 +22,7 @@
 namespace dart {
 namespace bin {
 
-// The security context won't necessarily use the compiled-in root certificates,
-// but since there is no way to update the size of the allocation after creating
-// the weak persistent handle, we assume that it will. Note that when the
-// root certs aren't compiled in, |root_certificates_pem_length| is 0.
-const intptr_t SSLCertContext::kApproximateSize =
-    sizeof(SSLCertContext) + root_certificates_pem_length;
+const intptr_t SSLCertContext::kApproximateSize = sizeof(SSLCertContext);
 
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
@@ -92,14 +87,6 @@ void SSLCertContext::TrustBuiltinRoots() {
     }
 #endif
   }
-
-#if defined(DART_HOST_OS_LINUX)
-  // Fall back on the compiled-in certs if the standard locations don't exist.
-  if (SSL_LOG_STATUS) {
-    Syslog::Print("Trusting compiled-in roots\n");
-  }
-  AddCompiledInCerts();
-#endif
 }
 
 void SSLCertContext::RegisterCallbacks(SSL* ssl) {
