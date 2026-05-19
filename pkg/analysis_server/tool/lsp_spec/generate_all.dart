@@ -10,7 +10,9 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 import 'codegen_dart.dart';
+import 'custom/interactive_forms.dart';
 import 'meta_model.dart';
+import 'utils.dart';
 
 Future<void> main(List<String> arguments) async {
   var args = argParser.parse(arguments);
@@ -137,48 +139,6 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 ''';
 
 List<LspEntity> getCustomClasses() {
-  /// Helper to create an interface type.
-  Interface interface(
-    String name,
-    List<Member> fields, {
-    String? baseType,
-    String? comment,
-    bool abstract = false,
-  }) {
-    return Interface(
-      name: name,
-      abstract: abstract,
-      comment: comment,
-      baseTypes: [if (baseType != null) TypeReference(baseType)],
-      members: fields,
-    );
-  }
-
-  /// Helper to create a field.
-  Field field(
-    String name, {
-    String? comment,
-    required String type,
-    bool array = false,
-    bool literal = false,
-    bool canBeNull = false,
-    bool canBeUndefined = false,
-  }) {
-    var fieldType = array
-        ? ArrayType(TypeReference(type))
-        : literal
-        ? LiteralType(TypeReference.string, type)
-        : TypeReference(type);
-
-    return Field(
-      name: name,
-      comment: comment,
-      type: fieldType,
-      allowsNull: canBeNull,
-      allowsUndefined: canBeUndefined,
-    );
-  }
-
   var customTypes = <LspEntity>[
     TypeAlias(
       name: 'LSPAny',
@@ -482,11 +442,9 @@ List<LspEntity> getCustomClasses() {
             'This is used to provide documentation in the resolved response.',
       ),
     ], baseType: 'CompletionItemResolutionInfo'),
-    interface(
-      'PubPackageCompletionItemResolutionInfo',
-      [field('packageName', type: 'string')],
-      baseType: 'CompletionItemResolutionInfo',
-    ),
+    interface('PubPackageCompletionItemResolutionInfo', [
+      field('packageName', type: 'string'),
+    ], baseType: 'CompletionItemResolutionInfo'),
     // Custom types for experimental SnippetTextEdits
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
     interface('SnippetTextEdit', [
@@ -642,7 +600,7 @@ List<LspEntity> getCustomClasses() {
       renameReferences: false,
     ),
     //
-    // Command parameter support
+    // Support for the original (Dart-specific) interactive-refactors.
     //
     interface(
       'CommandParameter',
@@ -714,6 +672,9 @@ List<LspEntity> getCustomClasses() {
       baseType: 'CommandParameter',
       comment: 'Information about a Save URI argument needed by the command.',
     ),
+
+    // Support for the new (Go-specified) interactive-refactors.
+    ...interactiveFormClasses,
 
     // Types for `dart/textDocument/summary`.
     interface('DartTextDocumentSummaryParams', [

@@ -159,6 +159,31 @@ bool _canParseFlutterOutline(
   return true;
 }
 
+bool _canParseFormFieldType(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !FormFieldType.canParse(value, reporter)) {
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseInsertTextFormat(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -363,6 +388,86 @@ bool _canParseListFlutterWidgetPreviewDetails(
             value.any((item) =>
                 !FlutterWidgetPreviewDetails.canParse(item, reporter)))) {
       reporter.reportError('must be of type List<FlutterWidgetPreviewDetails>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListFormEnumEntry(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !FormEnumEntry.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<FormEnumEntry>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListFormField(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !FormField.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<FormField>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListObjectNullable(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> || value.any((item) => false))) {
+      reporter.reportError('must be of type List<LSPAny>');
       return false;
     }
   } finally {
@@ -772,7 +877,6 @@ Either2<int, String> _eitherIntString(Object? value) {
 typedef DocumentUri = Uri;
 
 typedef LSPAny = Object?;
-
 typedef LSPObject = Object;
 
 typedef LSPUri = Uri;
@@ -2600,6 +2704,562 @@ class FlutterWidgetPreviews implements ToJsonable {
   }
 }
 
+/// A numeric input.
+class FormEnumEntry implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormEnumEntry.canParse,
+    FormEnumEntry.fromJson,
+  );
+
+  /// The human-readable label presented to the user.
+  final String description;
+
+  /// The unique string identifier for this option.
+  ///
+  /// This is the value that will be sent back to the server in `FormAnswers` if
+  /// the user selects this option.
+  final String value;
+
+  FormEnumEntry({
+    required this.description,
+    required this.value,
+  });
+  @override
+  int get hashCode => Object.hash(
+        description,
+        value,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormEnumEntry &&
+        other.runtimeType == FormEnumEntry &&
+        description == other.description &&
+        value == other.value;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['description'] = description;
+    result['value'] = value;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'description',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'value',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type FormEnumEntry');
+      return false;
+    }
+  }
+
+  static FormEnumEntry fromJson(Map<String, Object?> json) {
+    final descriptionJson = json['description'];
+    final description = descriptionJson as String;
+    final valueJson = json['value'];
+    final value = valueJson as String;
+    return FormEnumEntry(
+      description: description,
+      value: value,
+    );
+  }
+}
+
+/// A single question in a form and its validation state.
+class FormField implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormField.canParse,
+    FormField.fromJson,
+  );
+
+  /// An optional initial value for the answer. If [type] is 'enum', this value
+  /// must be present in the enum's values array.
+  final LSPAny defaultValue;
+
+  /// The text content of the question (the prompt) presented to the user.
+  final String description;
+
+  /// A validation message from the language server. If empty or null, the
+  /// current answer is considered valid.
+  final String? error;
+
+  /// The data type and validation constraints for the answer.
+  final FormFieldType type;
+  FormField({
+    this.defaultValue,
+    required this.description,
+    this.error,
+    required this.type,
+  });
+  @override
+  int get hashCode => Object.hash(
+        defaultValue,
+        description,
+        error,
+        type,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormField &&
+        other.runtimeType == FormField &&
+        defaultValue == other.defaultValue &&
+        description == other.description &&
+        error == other.error &&
+        type == other.type;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (defaultValue != null) {
+      result['default'] = defaultValue;
+    }
+    result['description'] = description;
+    if (error != null) {
+      result['error'] = error;
+    }
+    result['type'] = type.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'description',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'error',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseFormFieldType(obj, reporter, 'type',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type FormField');
+      return false;
+    }
+  }
+
+  static FormField fromJson(Map<String, Object?> json) {
+    final defaultValueJson = json['default'];
+    final defaultValue = defaultValueJson;
+    final descriptionJson = json['description'];
+    final description = descriptionJson as String;
+    final errorJson = json['error'];
+    final error = errorJson as String?;
+    final typeJson = json['type'];
+    final type = FormFieldType.fromJson(typeJson as Map<String, Object?>);
+    return FormField(
+      defaultValue: defaultValue,
+      description: description,
+      error: error,
+      type: type,
+    );
+  }
+}
+
+abstract class FormFieldType implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormFieldType.canParse,
+    FormFieldType.fromJson,
+  );
+
+  final String kind;
+
+  FormFieldType({
+    required this.kind,
+  });
+
+  @override
+  int get hashCode => kind.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormFieldType &&
+        other.runtimeType == FormFieldType &&
+        kind == other.kind;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseString(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type FormFieldType');
+      return false;
+    }
+  }
+
+  static FormFieldType fromJson(Map<String, Object?> json) {
+    if (FormFieldTypeEnum.canParse(json, nullLspJsonReporter)) {
+      return FormFieldTypeEnum.fromJson(json);
+    }
+    if (FormFieldTypeBool.canParse(json, nullLspJsonReporter)) {
+      return FormFieldTypeBool.fromJson(json);
+    }
+    if (FormFieldTypeDocumentURI.canParse(json, nullLspJsonReporter)) {
+      return FormFieldTypeDocumentURI.fromJson(json);
+    }
+    if (FormFieldTypeNumber.canParse(json, nullLspJsonReporter)) {
+      return FormFieldTypeNumber.fromJson(json);
+    }
+    if (FormFieldTypeString.canParse(json, nullLspJsonReporter)) {
+      return FormFieldTypeString.fromJson(json);
+    }
+    throw ArgumentError(
+        'Supplied map is not valid for any subclass of FormFieldType');
+  }
+}
+
+/// A boolean input.
+class FormFieldTypeBool implements FormFieldType, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormFieldTypeBool.canParse,
+    FormFieldTypeBool.fromJson,
+  );
+
+  @override
+  final String kind;
+
+  FormFieldTypeBool({
+    this.kind = 'bool',
+  }) {
+    if (kind != 'bool') {
+      throw 'kind may only be the literal \'bool\'';
+    }
+  }
+
+  @override
+  int get hashCode => kind.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormFieldTypeBool &&
+        other.runtimeType == FormFieldTypeBool &&
+        kind == other.kind;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'bool');
+    } else {
+      reporter.reportError('must be of type FormFieldTypeBool');
+      return false;
+    }
+  }
+
+  static FormFieldTypeBool fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    return FormFieldTypeBool(
+      kind: kind,
+    );
+  }
+}
+
+/// FormFieldTypeDocumentURI defines an input for a file or directory URI.
+///
+/// The client determines the best mechanism to collect this information from
+/// the user (e.g., a graphical file picker, a text input with autocomplete,
+/// etc).
+///
+/// The value returned by the client must be a valid "DocumentUri" as defined in
+/// the LSP specification:
+/// https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri
+class FormFieldTypeDocumentURI implements FormFieldType, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormFieldTypeDocumentURI.canParse,
+    FormFieldTypeDocumentURI.fromJson,
+  );
+
+  @override
+  final String kind;
+
+  FormFieldTypeDocumentURI({
+    this.kind = 'documentURI',
+  }) {
+    if (kind != 'documentURI') {
+      throw 'kind may only be the literal \'documentURI\'';
+    }
+  }
+
+  @override
+  int get hashCode => kind.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormFieldTypeDocumentURI &&
+        other.runtimeType == FormFieldTypeDocumentURI &&
+        kind == other.kind;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'documentURI');
+    } else {
+      reporter.reportError('must be of type FormFieldTypeDocumentURI');
+      return false;
+    }
+  }
+
+  static FormFieldTypeDocumentURI fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    return FormFieldTypeDocumentURI(
+      kind: kind,
+    );
+  }
+}
+
+/// A numeric input.
+class FormFieldTypeEnum implements FormFieldType, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormFieldTypeEnum.canParse,
+    FormFieldTypeEnum.fromJson,
+  );
+
+  /// The list of allowable options.
+  final List<FormEnumEntry> entries;
+
+  @override
+  final String kind;
+
+  /// An optional identifier for the enum type.
+  final String? name;
+  FormFieldTypeEnum({
+    required this.entries,
+    this.kind = 'enum',
+    this.name,
+  }) {
+    if (kind != 'enum') {
+      throw 'kind may only be the literal \'enum\'';
+    }
+  }
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(entries),
+        kind,
+        name,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormFieldTypeEnum &&
+        other.runtimeType == FormFieldTypeEnum &&
+        const DeepCollectionEquality().equals(entries, other.entries) &&
+        kind == other.kind &&
+        name == other.name;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['entries'] = entries.map((item) => item.toJson()).toList();
+    result['kind'] = kind;
+    if (name != null) {
+      result['name'] = name;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseListFormEnumEntry(obj, reporter, 'entries',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'enum')) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'name',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type FormFieldTypeEnum');
+      return false;
+    }
+  }
+
+  static FormFieldTypeEnum fromJson(Map<String, Object?> json) {
+    final entriesJson = json['entries'];
+    final entries = (entriesJson as List<Object?>)
+        .map((item) => FormEnumEntry.fromJson(item as Map<String, Object?>))
+        .toList();
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final nameJson = json['name'];
+    final name = nameJson as String?;
+    return FormFieldTypeEnum(
+      entries: entries,
+      kind: kind,
+      name: name,
+    );
+  }
+}
+
+/// A numeric input.
+class FormFieldTypeNumber implements FormFieldType, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormFieldTypeNumber.canParse,
+    FormFieldTypeNumber.fromJson,
+  );
+
+  @override
+  final String kind;
+
+  FormFieldTypeNumber({
+    this.kind = 'number',
+  }) {
+    if (kind != 'number') {
+      throw 'kind may only be the literal \'number\'';
+    }
+  }
+
+  @override
+  int get hashCode => kind.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormFieldTypeNumber &&
+        other.runtimeType == FormFieldTypeNumber &&
+        kind == other.kind;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'number');
+    } else {
+      reporter.reportError('must be of type FormFieldTypeNumber');
+      return false;
+    }
+  }
+
+  static FormFieldTypeNumber fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    return FormFieldTypeNumber(
+      kind: kind,
+    );
+  }
+}
+
+/// A text input.
+class FormFieldTypeString implements FormFieldType, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormFieldTypeString.canParse,
+    FormFieldTypeString.fromJson,
+  );
+
+  @override
+  final String kind;
+
+  FormFieldTypeString({
+    this.kind = 'string',
+  }) {
+    if (kind != 'string') {
+      throw 'kind may only be the literal \'string\'';
+    }
+  }
+
+  @override
+  int get hashCode => kind.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormFieldTypeString &&
+        other.runtimeType == FormFieldTypeString &&
+        kind == other.kind;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'string');
+    } else {
+      reporter.reportError('must be of type FormFieldTypeString');
+      return false;
+    }
+  }
+
+  static FormFieldTypeString fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    return FormFieldTypeString(
+      kind: kind,
+    );
+  }
+}
+
 class IncomingMessage implements Message, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     IncomingMessage.canParse,
@@ -2693,6 +3353,95 @@ class IncomingMessage implements Message, ToJsonable {
       jsonrpc: jsonrpc,
       method: method,
       params: params,
+    );
+  }
+}
+
+class InteractiveParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    InteractiveParams.canParse,
+    InteractiveParams.fromJson,
+  );
+
+  /// Context preserved for the server.
+  final LSPAny data;
+
+  /// The values for the form questions.
+  ///
+  /// When sent by the language server, this acts as preserved/previous input.
+  ///
+  /// When sent by the client (in a resolve request), this is required when
+  /// formFields are defined.
+  final List<LSPAny> formAnswers;
+
+  /// Defines the questions and validation errors. This is a server-to-client
+  /// field.
+  final List<FormField>? formFields;
+  InteractiveParams({
+    this.data,
+    required this.formAnswers,
+    this.formFields,
+  });
+  @override
+  int get hashCode => Object.hash(
+        data,
+        lspHashCode(formAnswers),
+        lspHashCode(formFields),
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is InteractiveParams &&
+        other.runtimeType == InteractiveParams &&
+        data == other.data &&
+        const DeepCollectionEquality().equals(formAnswers, other.formAnswers) &&
+        const DeepCollectionEquality().equals(formFields, other.formFields);
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (data != null) {
+      result['data'] = data;
+    }
+    result['formAnswers'] = formAnswers;
+    if (formFields != null) {
+      result['formFields'] = formFields?.map((item) => item.toJson()).toList();
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseListObjectNullable(obj, reporter, 'formAnswers',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseListFormField(obj, reporter, 'formFields',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type InteractiveParams');
+      return false;
+    }
+  }
+
+  static InteractiveParams fromJson(Map<String, Object?> json) {
+    final dataJson = json['data'];
+    final data = dataJson;
+    final formAnswersJson = json['formAnswers'];
+    final formAnswers =
+        (formAnswersJson as List<Object?>).map((item) => item).toList();
+    final formFieldsJson = json['formFields'];
+    final formFields = (formFieldsJson as List<Object?>?)
+        ?.map((item) => FormField.fromJson(item as Map<String, Object?>))
+        .toList();
+    return InteractiveParams(
+      data: data,
+      formAnswers: formAnswers,
+      formFields: formFields,
     );
   }
 }
