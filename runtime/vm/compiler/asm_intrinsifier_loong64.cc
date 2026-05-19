@@ -506,7 +506,7 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
           FieldAddress(
               A0,
               target::Class::host_type_arguments_field_offset_in_words_offset()),
-          kUnsignedFourBytes);
+          kFourBytes);
   __ CompareImmediate(T1, target::Class::kNoTypeArguments);
   __ BranchIf(EQ, &equal, Assembler::kNearJump);
 
