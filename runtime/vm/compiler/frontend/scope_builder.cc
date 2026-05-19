@@ -47,9 +47,14 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           &type_translator_,
           InferredTypeMetadataHelper::Kind::ArgType),
       procedure_attributes_metadata_helper_(&helper_) {
-  const auto& kernel_program_info = KernelProgramInfo::Handle(
-      Z, parsed_function->function().KernelProgramInfo());
-  H.InitFromKernelProgramInfo(kernel_program_info);
+  const Function& function = parsed_function->function();
+  if (!function.IsNoSuchMethodDispatcher() &&
+      !function.IsInvokeFieldDispatcher() &&
+      !function.IsFfiCallbackTrampoline()) {
+    const auto& kernel_program_info =
+        KernelProgramInfo::Handle(Z, function.KernelProgramInfo());
+    H.InitFromKernelProgramInfo(kernel_program_info);
+  }
   ASSERT(type_translator_.active_class_ == &active_class_);
 }
 

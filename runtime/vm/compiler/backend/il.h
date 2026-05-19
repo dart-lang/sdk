@@ -3478,7 +3478,7 @@ class MoveArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   static bool IsSupportedLocation(Location loc, bool can_be_fpu_value = true) {
-#if defined(TARGET_ARCH_IS_32_BIT)
+#if defined(TARGET_ARCH_IS_32_BIT) || defined(TARGET_ARCH_LOONG64)
     if (loc.IsPairLocation()) {
       auto pair_loc = loc.AsPairLocation();
       return IsSupportedLocation(pair_loc->At(0), /*can_be_fpu_value=*/false) &&

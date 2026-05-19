@@ -17,11 +17,19 @@
 namespace dart {
 
 static constexpr uint32_t kInstrSize = 4;
+static constexpr uint32_t kAddiD = 0x02c00000;
 static constexpr uint32_t kLoadD = 0x28c00000;
 static constexpr uint32_t kJirl = 0x4c000000;
 static constexpr uint32_t kBranch = 0x50000000;
 static constexpr uint32_t kBranchLink = 0x54000000;
+static constexpr uint32_t kLu12iW = 0x14000000;
+static constexpr uint32_t kLu32iD = 0x16000000;
+static constexpr uint32_t kLu52iD = 0x03000000;
+static constexpr uint32_t kOri = 0x03800000;
+static constexpr uint32_t kAddD = 0x00108000;
+static constexpr uint32_t kOp7Mask = 0xfe000000;
 static constexpr uint32_t kOp10Mask = 0xffc00000;
+static constexpr uint32_t kRegRegRegMask = 0xffff8000;
 static constexpr uint32_t kBranchOpcodeMask = 0xfc000000;
 static constexpr uint32_t kRetInstruction = kJirl | (RA << 5) | ZR;
 static constexpr uint32_t kIndirectCallInstruction = kJirl | (RA << 5) | RA;
@@ -38,8 +46,20 @@ static Register DecodeRj(uint32_t instr) {
   return static_cast<Register>((instr >> 5) & 0x1f);
 }
 
+static Register DecodeRk(uint32_t instr) {
+  return static_cast<Register>((instr >> 10) & 0x1f);
+}
+
 static int32_t DecodeSImm12(uint32_t instr) {
   return SignExtend32(12, (instr >> 10) & 0xfff);
+}
+
+static uint32_t DecodeUImm12(uint32_t instr) {
+  return (instr >> 10) & 0xfff;
+}
+
+static uint32_t DecodeImm20(uint32_t instr) {
+  return (instr >> 5) & 0xfffff;
 }
 
 static uint32_t EncodeSImm12(int32_t imm) {
@@ -58,6 +78,20 @@ static bool DecodeLoadD(uword pc,
   *dst = DecodeRd(instr);
   *base = DecodeRj(instr);
   *offset = DecodeSImm12(instr);
+  return true;
+}
+
+static bool DecodeAddD(uword pc,
+                       Register* dst,
+                       Register* left,
+                       Register* right) {
+  const uint32_t instr = LoadUnaligned(reinterpret_cast<uint32_t*>(pc));
+  if ((instr & kRegRegRegMask) != kAddD) {
+    return false;
+  }
+  *dst = DecodeRd(instr);
+  *left = DecodeRj(instr);
+  *right = DecodeRk(instr);
   return true;
 }
 
@@ -81,8 +115,72 @@ static bool IsBranchOpcode(uint32_t instr, uint32_t opcode) {
 uword InstructionPattern::DecodeLoadWordImmediate(uword end,
                                                   Register* reg,
                                                   intptr_t* value) {
-  UNIMPLEMENTED();
-  return 0;
+  uword start = end - kInstrSize;
+  uint32_t instr = LoadUnaligned(reinterpret_cast<uint32_t*>(start));
+
+  if (((instr & kOp10Mask) == kAddiD) && (DecodeRj(instr) == ZR)) {
+    *reg = DecodeRd(instr);
+    *value = DecodeSImm12(instr);
+    return start;
+  }
+
+  bool has_reg = false;
+  bool has_upper = false;
+  Register dst = kNoRegister;
+  uint64_t lo12 = 0;
+  uint64_t hi20 = 0;
+  uint64_t hi32 = 0;
+  uint64_t hi52 = 0;
+
+  if ((instr & kOp10Mask) == kLu52iD) {
+    dst = DecodeRd(instr);
+    ASSERT(DecodeRj(instr) == dst);
+    hi52 = DecodeUImm12(instr);
+    has_reg = true;
+    has_upper = true;
+
+    start -= kInstrSize;
+    instr = LoadUnaligned(reinterpret_cast<uint32_t*>(start));
+    ASSERT((instr & kOp7Mask) == kLu32iD);
+    ASSERT(DecodeRd(instr) == dst);
+    hi32 = DecodeImm20(instr);
+  }
+
+  if (has_reg) {
+    start -= kInstrSize;
+    instr = LoadUnaligned(reinterpret_cast<uint32_t*>(start));
+  }
+
+  if ((instr & kOp10Mask) == kOri) {
+    const Register ori_dst = DecodeRd(instr);
+    if (!has_reg) {
+      dst = ori_dst;
+      has_reg = true;
+    }
+    ASSERT(ori_dst == dst);
+    ASSERT(DecodeRj(instr) == dst);
+    lo12 = DecodeUImm12(instr);
+
+    start -= kInstrSize;
+    instr = LoadUnaligned(reinterpret_cast<uint32_t*>(start));
+  }
+
+  ASSERT((instr & kOp7Mask) == kLu12iW);
+  const Register lu12_dst = DecodeRd(instr);
+  if (!has_reg) {
+    dst = lu12_dst;
+  }
+  ASSERT(lu12_dst == dst);
+  hi20 = DecodeImm20(instr);
+
+  const uint64_t low32 = ((hi20 & 0xfffff) << 12) | lo12;
+  *reg = dst;
+  if (has_upper) {
+    *value = static_cast<intptr_t>(low32 | (hi32 << 32) | (hi52 << 52));
+  } else {
+    *value = SignExtend32(32, static_cast<uint32_t>(low32));
+  }
+  return start;
 }
 
 uword InstructionPattern::DecodeLoadWordFromPool(uword end,
@@ -99,8 +197,25 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
     return end - kInstrSize;
   }
 
-  UNIMPLEMENTED();
-  return 0;
+  ASSERT(offset == 0);
+  Register dst;
+  Register left;
+  Register right;
+  const uword add_pc = end - (2 * kInstrSize);
+  if (!DecodeAddD(add_pc, &dst, &left, &right)) {
+    UNREACHABLE();
+  }
+  ASSERT(dst == base);
+  ASSERT(((left == PP) && (right == base)) ||
+         ((left == base) && (right == PP)));
+
+  Register offset_reg;
+  intptr_t pool_offset;
+  const uword start =
+      DecodeLoadWordImmediate(add_pc, &offset_reg, &pool_offset);
+  ASSERT(offset_reg == base);
+  *index = ObjectPool::IndexFromOffset(pool_offset - kHeapObjectTag);
+  return start;
 }
 
 void InstructionPattern::EncodeLoadWordFromPoolFixed(uword end,
@@ -375,13 +490,13 @@ void PcRelativeTrampolineJumpPattern::Initialize() {
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
   //   ld.d TypeTestABI::kSubtypeTestCacheReg, PP, ...
-  //   jirl RA, TypeTestABI::kScratchReg, 0
+  //   jirl RA, TTSInternalRegs::kScratchReg, 0
   // or in precompiled code:
   //   ld.d TypeTestABI::kSubtypeTestCacheReg, PP, ...
   //   bl pc+<offset>
   const uword call_pc = pc_ - kInstrSize;
   const uint32_t indirect_call =
-      kJirl | (static_cast<uint32_t>(TypeTestABI::kScratchReg) << 5) | RA;
+      kJirl | (static_cast<uint32_t>(TTSInternalRegs::kScratchReg) << 5) | RA;
   if (LoadUnaligned(reinterpret_cast<uint32_t*>(call_pc)) != indirect_call) {
     PcRelativeCallPattern pattern(call_pc);
     RELEASE_ASSERT(pattern.IsValid());

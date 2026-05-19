@@ -30,6 +30,8 @@ compiler_sources = [
   "assembler/assembler_base.h",
   "assembler/assembler_ia32.cc",
   "assembler/assembler_ia32.h",
+  "assembler/assembler_loong64.cc",
+  "assembler/assembler_loong64.h",
   "assembler/assembler_riscv.cc",
   "assembler/assembler_riscv.h",
   "assembler/assembler_x64.cc",

@@ -98,9 +98,14 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(nullptr),
       try_entries_(0),
       prepend_type_arguments_(Function::ZoneHandle(zone_)) {
-  const auto& info = KernelProgramInfo::Handle(
-      Z, parsed_function->function().KernelProgramInfo());
-  H.InitFromKernelProgramInfo(info);
+  const Function& function = parsed_function->function();
+  if (!function.IsNoSuchMethodDispatcher() &&
+      !function.IsInvokeFieldDispatcher() &&
+      !function.IsFfiCallbackTrampoline()) {
+    const auto& info =
+        KernelProgramInfo::Handle(Z, function.KernelProgramInfo());
+    H.InitFromKernelProgramInfo(info);
+  }
 }
 
 FlowGraphBuilder::~FlowGraphBuilder() {}

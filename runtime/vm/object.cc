@@ -3648,14 +3648,19 @@ void Class::AddInvocationDispatcher(const String& target_name,
                                     const Array& args_desc,
                                     const Function& dispatcher) const {
   auto thread = Thread::Current();
+  auto zone = thread->zone();
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 
   ASSERT(target_name.ptr() == dispatcher.name());
 
-  DispatcherSet dispatchers(invocation_dispatcher_cache() ==
-                                    Array::empty_array().ptr()
+  if (InVMIsolateHeap()) {
+    return;
+  }
+
+  const Array& cache = Array::Handle(zone, invocation_dispatcher_cache());
+  DispatcherSet dispatchers(cache.IsNull() || cache.Length() == 0
                                 ? HashTables::New<DispatcherSet>(4, Heap::kOld)
-                                : invocation_dispatcher_cache());
+                                : cache.ptr());
   dispatchers.Insert(dispatcher);
   set_invocation_dispatcher_cache(dispatchers.Release());
 }
@@ -3674,8 +3679,10 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
 
   // First we'll try to find it without using locks.
   DispatcherKey key(target_name, args_desc, kind);
-  if (invocation_dispatcher_cache() != Array::empty_array().ptr()) {
-    DispatcherSet dispatchers(Z, invocation_dispatcher_cache());
+  Array& cache = Array::Handle(Z);
+  cache = invocation_dispatcher_cache();
+  if (!cache.IsNull() && cache.Length() != 0) {
+    DispatcherSet dispatchers(Z, cache.ptr());
     function ^= dispatchers.GetOrNull(key);
     dispatchers.Release();
   }
@@ -3687,8 +3694,9 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
   // Try to find it again & return if it was added in the meantime.
-  if (invocation_dispatcher_cache() != Array::empty_array().ptr()) {
-    DispatcherSet dispatchers(Z, invocation_dispatcher_cache());
+  cache = invocation_dispatcher_cache();
+  if (!cache.IsNull() && cache.Length() != 0) {
+    DispatcherSet dispatchers(Z, cache.ptr());
     function ^= dispatchers.GetOrNull(key);
     dispatchers.Release();
   }

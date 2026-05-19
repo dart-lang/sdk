@@ -187,14 +187,14 @@ struct InstantiationABI {
 struct InstantiateTAVInternalRegs {
   static constexpr intptr_t kSavedRegisters = 0;
   static constexpr Register kEntryStartReg = S2;
-  static constexpr Register kProbeMaskReg = S3;
+  static constexpr Register kProbeMaskReg = T6;
   static constexpr Register kProbeDistanceReg = S4;
   static constexpr Register kCurrentEntryIndexReg = S5;
 };
 
 struct TTSInternalRegs {
   static constexpr Register kInstanceTypeArgumentsReg = S2;
-  static constexpr Register kScratchReg = S3;
+  static constexpr Register kScratchReg = T6;
   static constexpr Register kSubTypeArgumentReg = S4;
   static constexpr Register kSuperTypeArgumentReg = S5;
   static constexpr intptr_t kSavedTypeArgumentRegisters = 0;
@@ -206,10 +206,10 @@ struct TTSInternalRegs {
 
 struct STCInternalRegs {
   static constexpr Register kInstanceCidOrSignatureReg = S2;
-  static constexpr Register kInstanceInstantiatorTypeArgumentsReg = S3;
+  static constexpr Register kInstanceInstantiatorTypeArgumentsReg = T6;
   static constexpr Register kInstanceParentFunctionTypeArgumentsReg = S4;
   static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = S5;
-  static constexpr Register kCacheEntriesEndReg = S6;
+  static constexpr Register kCacheEntriesEndReg = T7;
   static constexpr Register kCacheContentsSizeReg = A6;
   static constexpr Register kProbeDistanceReg = A7;
   static constexpr intptr_t kInternalRegisters =
@@ -465,7 +465,7 @@ constexpr intptr_t kReservedFpuRegisters = 0;
 constexpr intptr_t kNumberOfReservedFpuRegisters = 0;
 constexpr RegList kDartVolatileFpuRegs = kAbiVolatileFpuRegs & ~R(FpuTMP);
 
-constexpr int kStoreBufferWrapperSize = 32;
+constexpr int kStoreBufferWrapperSize = 48;
 
 class CallingConventions {
  public:
@@ -576,7 +576,20 @@ enum ScaleFactor {
   TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
-const uword kBreakInstructionFiller = 0;
+class Instr {
+ public:
+  explicit Instr(uint32_t encoding) : encoding_(encoding) {}
+  uint32_t encoding() const { return encoding_; }
+  size_t length() const { return kInstrSize; }
+
+  static constexpr uint32_t kBreakPointInstruction = 0x002a0000;
+  static constexpr uint32_t kInstrSize = 4;
+
+ private:
+  const uint32_t encoding_;
+};
+
+constexpr uword kBreakInstructionFiller = 0x002a0000002a0000LL;
 
 const intptr_t kPreferredLoopAlignment = 1;
 

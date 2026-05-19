@@ -5868,7 +5868,7 @@ class Instructions : public Object {
   static constexpr intptr_t kPolymorphicEntryOffsetAOT = 18;
 #elif defined(TARGET_ARCH_LOONG64)
   static constexpr intptr_t kMonomorphicEntryOffsetJIT = 8;
-  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 52;
+  static constexpr intptr_t kPolymorphicEntryOffsetJIT = 60;
   static constexpr intptr_t kMonomorphicEntryOffsetAOT = 8;
   static constexpr intptr_t kPolymorphicEntryOffsetAOT = 24;
 #else

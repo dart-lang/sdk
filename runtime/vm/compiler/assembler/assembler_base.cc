@@ -428,7 +428,8 @@ void AssemblerBase::MsanUnpoison(Register base, Register length_in_bytes) {
 
 #if defined(DEBUG)
 static void InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_LOONG64)
   ASSERT(Utils::IsAligned(data, 4));
   ASSERT(Utils::IsAligned(length, 4));
   const uword end = data + length;

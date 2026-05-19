@@ -287,6 +287,8 @@ class FfiCallbackMetadata {
   // get it as close as possible to avoid wasting memory.
 #if defined(DART_TARGET_OS_LINUX) && defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kPageSize = 64 * KB;
+#elif defined(DART_TARGET_OS_LINUX) && defined(TARGET_ARCH_LOONG64)
+  static constexpr intptr_t kPageSize = 16 * KB;
 #elif defined(DART_TARGET_OS_ANDROID) && defined(TARGET_ARCH_IS_64_BIT)
   static constexpr intptr_t kPageSize = 64 * KB;
 #elif defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
@@ -353,7 +355,7 @@ class FfiCallbackMetadata {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_LOONG64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 232;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 384;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #else
 #error What architecture?
