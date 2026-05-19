@@ -1904,6 +1904,8 @@ void ElfHeader::Write(ElfWriteStream* stream) const {
   stream->WriteHalf(elf::EM_AARCH64);
 #elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   stream->WriteHalf(elf::EM_RISCV);
+#elif defined(TARGET_ARCH_LOONG64)
+  stream->WriteHalf(elf::EM_LOONGARCH);
 #else
   FATAL("Unknown ELF architecture");
 #endif
@@ -1919,6 +1921,9 @@ void ElfHeader::Write(ElfWriteStream* stream) const {
                                        : elf::EF_ARM_ABI_FLOAT_SOFT);
 #elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   uword flags = elf::EF_RISCV_RVC | elf::EF_RISCV_FLOAT_ABI_DOUBLE;
+#elif defined(TARGET_ARCH_LOONG64)
+  uword flags =
+      elf::EF_LOONGARCH_OBJABI_V1 | elf::EF_LOONGARCH_ABI_DOUBLE_FLOAT;
 #else
   uword flags = 0;
 #endif

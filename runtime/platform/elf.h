@@ -173,6 +173,9 @@ static constexpr intptr_t EF_ARM_ABI = 0x05000000;
 static constexpr intptr_t EF_RISCV_RVC = 0x1;
 static constexpr intptr_t EF_RISCV_FLOAT_ABI_DOUBLE = 0x4;
 
+static constexpr intptr_t EF_LOONGARCH_ABI_DOUBLE_FLOAT = 0x3;
+static constexpr intptr_t EF_LOONGARCH_OBJABI_V1 = 0x40;
+
 static constexpr intptr_t EM_386 = 3;
 static constexpr intptr_t EM_ARM = 40;
 static constexpr intptr_t EM_X86_64 = 62;

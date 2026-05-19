@@ -3446,47 +3446,7 @@ DEFINE_RUNTIME_ENTRY(SwitchableCallMiss, 2) {
   old_data =
       CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(), caller_code);
 #else
-#if defined(TARGET_ARCH_LOONG64)
-  const Code& old_code = Code::Handle(
-      zone, CodePatcher::GetInstanceCallAt(caller_frame->pc(), caller_code,
-                                           &old_data));
-#else
   CodePatcher::GetInstanceCallAt(caller_frame->pc(), caller_code, &old_data);
-#endif
-#endif
-
-#if defined(TARGET_ARCH_LOONG64) && !defined(DART_PRECOMPILED_RUNTIME)
-  {
-    const ObjectPtr raw_receiver = receiver.ptr();
-    const ObjectPtr raw_data = old_data.ptr();
-    const bool receiver_in_heap =
-        raw_receiver->IsHeapObject() &&
-        (Dart::vm_isolate_group()->heap()->Contains(
-             UntaggedObject::ToAddr(raw_receiver)) ||
-         thread->heap()->Contains(UntaggedObject::ToAddr(raw_receiver)));
-    const bool data_in_heap =
-        raw_data->IsHeapObject() &&
-        (Dart::vm_isolate_group()->heap()->Contains(
-             UntaggedObject::ToAddr(raw_data)) ||
-         thread->heap()->Contains(UntaggedObject::ToAddr(raw_data)));
-    const intptr_t receiver_cid =
-        receiver_in_heap ? raw_receiver->GetClassIdOfHeapObject() : kIllegalCid;
-    const intptr_t data_cid =
-        data_in_heap ? raw_data->GetClassIdOfHeapObject() : kIllegalCid;
-    const char* caller_name = caller_function.ToFullyQualifiedCString();
-    OS::PrintErr("Loong64 SwitchableCallMiss caller=%s pc=%" Px
-                 " receiver=%" Pp " receiver_cid=%" Pd
-                 " receiver_heap=%d old_data=%" Pp " old_data_cid=%" Pd
-                 " old_data_heap=%d old_code=%" Pp "\n",
-                 caller_name, caller_frame->pc(), static_cast<uword>(raw_receiver),
-                 receiver_cid, receiver_in_heap ? 1 : 0,
-                 static_cast<uword>(raw_data), data_cid,
-                 data_in_heap ? 1 : 0,
-                 static_cast<uword>(old_code.ptr()));
-    if (strstr(caller_name, "DirtifyingList_get_length") != nullptr) {
-      caller_code.Disassemble();
-    }
-  }
 #endif
 
   GrowableArray<const Instance*> caller_arguments(1);
