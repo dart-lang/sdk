@@ -6,7 +6,9 @@ part of '../../ast.dart';
 
 /// Generalized notion of a variable.
 sealed class VariableBase extends TreeNode implements Annotatable {
-  abstract VariableContext context;
+  VariableContext? get context;
+
+  void set context(VariableContext value);
 
   /// The cosmetic name of the variable from the source code, if exists.
   String? get cosmeticName;
@@ -30,7 +32,6 @@ abstract interface class IVariable implements TreeNode {
   abstract String? cosmeticName;
   abstract VariableInitialization? variableInitialization;
   abstract Expression? initializer;
-  abstract VariableContext context;
   abstract bool isFinal;
   abstract bool isConst;
   abstract bool isLate;
@@ -53,6 +54,9 @@ abstract interface class IVariable implements TreeNode {
   abstract int fileEqualsOffset;
   abstract VariableDeclaration variable;
   void clearAnnotations();
+
+  VariableContext? get context;
+  void set context(VariableContext value);
 
   bool get isAssignable;
   bool get hasIsFinal;
@@ -213,8 +217,7 @@ class LocalVariable extends VariableDeclaration {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  @override
-  late VariableContext context;
+  VariableContext? _context;
 
   LocalVariable({
     this.cosmeticName,
@@ -229,6 +232,21 @@ class LocalVariable extends VariableDeclaration {
     this.isConst = isConst;
     this.isLate = isLate;
     this.isWildcard = isWildcard;
+  }
+
+  @override
+  VariableContext? get context {
+    assert(
+      _context != null,
+      "The context of a '${runtimeType}' variable with cosmetic name "
+      "'${cosmeticName}' is accessed, but hasn't been set yet.",
+    );
+    return _context;
+  }
+
+  @override
+  void set context(VariableContext value) {
+    _context = value;
   }
 
   @override
@@ -521,8 +539,7 @@ class CatchVariable extends VariableDeclaration {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  @override
-  late VariableContext context;
+  VariableContext? _context;
 
   CatchVariable({
     required String name,
@@ -532,6 +549,21 @@ class CatchVariable extends VariableDeclaration {
        type = type ?? const DynamicType(),
        super.empty() {
     this.isWildcard = isWildcard;
+  }
+
+  @override
+  VariableContext? get context {
+    assert(
+      _context != null,
+      "The context of a '${runtimeType}' variable with cosmetic name "
+      "'${cosmeticName}' is accessed, but hasn't been set yet.",
+    );
+    return _context;
+  }
+
+  @override
+  void set context(VariableContext value) {
+    _context = value;
   }
 
   @override
@@ -1022,8 +1054,7 @@ class PositionalParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  @override
-  late VariableContext context;
+  VariableContext? _context;
 
   PositionalParameter({
     this.cosmeticName,
@@ -1039,6 +1070,21 @@ class PositionalParameter extends FunctionParameter {
     super.isSynthesized = false,
     super.isWildcard = false,
   });
+
+  @override
+  VariableContext? get context {
+    assert(
+      _context != null,
+      "The context of a '${runtimeType}' variable with cosmetic name "
+      "'${cosmeticName}' is accessed, but hasn't been set yet.",
+    );
+    return _context;
+  }
+
+  @override
+  void set context(VariableContext value) {
+    _context = value;
+  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -1169,8 +1215,7 @@ class NamedParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  @override
-  late VariableContext context;
+  VariableContext? _context;
 
   NamedParameter({
     required this.parameterName,
@@ -1186,6 +1231,21 @@ class NamedParameter extends FunctionParameter {
     super.isSynthesized = false,
     super.isWildcard = false,
   });
+
+  @override
+  VariableContext? get context {
+    assert(
+      _context != null,
+      "The context of a '${runtimeType}' variable with cosmetic name "
+      "'${cosmeticName}' is accessed, but hasn't been set yet.",
+    );
+    return _context;
+  }
+
+  @override
+  void set context(VariableContext value) {
+    _context = value;
+  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -1319,10 +1379,24 @@ class ThisVariable extends VariableDeclaration {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  @override
-  late VariableContext context;
+  VariableContext? _context;
 
   ThisVariable({required this.type}) : super.empty();
+
+  @override
+  VariableContext? get context {
+    assert(
+      _context != null,
+      "The context of a '${runtimeType}' variable with cosmetic name "
+      "'${cosmeticName}' is accessed, but hasn't been set yet.",
+    );
+    return _context;
+  }
+
+  @override
+  void set context(VariableContext value) {
+    _context = value;
+  }
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
@@ -1597,10 +1671,24 @@ class SyntheticVariable extends VariableDeclaration {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  @override
-  late VariableContext context;
+  VariableContext? _context;
 
   SyntheticVariable({this.cosmeticName, required this.type}) : super.empty();
+
+  @override
+  VariableContext? get context {
+    assert(
+      _context != null,
+      "The context of a '${runtimeType}' variable with cosmetic name "
+      "'${cosmeticName}' is accessed, but hasn't been set yet.",
+    );
+    return _context;
+  }
+
+  @override
+  void set context(VariableContext value) {
+    _context = value;
+  }
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override

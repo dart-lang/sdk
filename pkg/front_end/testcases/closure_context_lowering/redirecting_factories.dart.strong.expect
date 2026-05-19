@@ -18,6 +18,7 @@ class B<X extends core::Object? = dynamic> extends self::A<self::B::X%> {
     : super self::A::•()/* scope=[
     #ctx2: not-captured VariableContext([
       this-variable final this-variable;
+      positional-parameter x;
     ]),
   ] */
     ;
@@ -38,6 +39,7 @@ class D<Y extends core::Object? = dynamic> extends self::C<self::D::Y%> {
     : super self::C::•()/* scope=[
     #ctx4: not-captured VariableContext([
       this-variable final this-variable;
+      named-parameter required y;
     ]),
   ] */
     ;

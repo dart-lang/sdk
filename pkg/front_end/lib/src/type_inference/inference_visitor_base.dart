@@ -202,7 +202,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   DartType get bottomType => const NeverType.nonNullable();
 
-  // Coverage-ignore(suite): Not run.
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
 
   DartType computeGreatestClosure(DartType type) {

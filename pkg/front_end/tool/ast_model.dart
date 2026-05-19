@@ -129,7 +129,14 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariableGet': {'variable': FieldRule(isDeclaration: false)},
   'VariableSet': {'variable': FieldRule(isDeclaration: false)},
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
-  'LocalVariable': {'variableInitialization': FieldRule(isDeclaration: false)},
+  'LocalVariable': {
+    'variableInitialization': FieldRule(isDeclaration: false),
+    '_context': FieldRule(name: 'context'),
+  },
+  'CatchVariable': {'_context': FieldRule(name: 'context')},
+  'PositionalParameter': {'_context': FieldRule(name: 'context')},
+  'NamedParameter': {'_context': FieldRule(name: 'context')},
+  'ThisVariable': {'_context': FieldRule(name: 'context')},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
   'ForStatement': {'variables': FieldRule(isDeclaration: true)},
   'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
@@ -150,6 +157,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'SyntheticVariable': {
     'variableInitialization': FieldRule(isDeclaration: false),
+    '_context': FieldRule(name: 'context'),
   },
   'LegacyVariable': {'_name': FieldRule(name: 'name')},
   'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
@@ -158,7 +166,10 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},
   'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
-  'TypeVariable': {'parameter': FieldRule(isDeclaration: false)},
+  'TypeVariable': {
+    'parameter': FieldRule(isDeclaration: false),
+    '_context': FieldRule(name: 'context'),
+  },
   'ClassTypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),
     'thisVariable': FieldRule(isDeclaration: false),

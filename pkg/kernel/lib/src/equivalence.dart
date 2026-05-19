@@ -6326,13 +6326,13 @@ class EquivalenceStrategy {
     if (!checkTypeVariable_cosmeticName(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeVariable_context(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkTypeVariable_parameter(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkTypeVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkTypeVariable_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkTypeVariable_flags(visitor, node, other)) {
@@ -14120,15 +14120,6 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkTypeVariable_context(
-    EquivalenceVisitor visitor,
-    TypeVariable node,
-    TypeVariable other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
-  }
-
   bool checkTypeVariable_parameter(
     EquivalenceVisitor visitor,
     TypeVariable node,
@@ -14152,6 +14143,15 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
+  }
+
+  bool checkTypeVariable_context(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
   }
 
   bool checkTypeVariable_flags(

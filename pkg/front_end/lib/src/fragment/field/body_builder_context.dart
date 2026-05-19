@@ -65,7 +65,6 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get memberNameOffset => _nameOffset;
 
   @override

@@ -1180,6 +1180,53 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitCatchVariable(CatchVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitThisVariable(ThisVariable node) {
+    _verifyVariable(node);
+  }
+
+  void _verifyVariable(VariableDeclaration node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    declareVariable(node);
+    exitTreeNode(node);
+
+    if (!isOutline && node.context == null) {
+      problem(
+        node,
+        "A '${node.runtimeType}' variable with cosmetic name "
+        "'${node.cosmeticName}' doesn't have its context set.",
+      );
+    }
+  }
+
+  @override
   void visitVariableGet(VariableGet node) {
     // TODO(cstefantsova): Support new variable model.
     if (_isNewModelVariable(node.variable)) {

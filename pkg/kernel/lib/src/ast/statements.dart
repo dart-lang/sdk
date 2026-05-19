@@ -1900,11 +1900,13 @@ class LegacyVariable extends TreeNode
   }
 
   @override
-  VariableContext get context {
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  VariableContext? get context {
     throw new UnsupportedError("${this.runtimeType}.context");
   }
 
   @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   void set context(VariableContext value) {
     throw new UnsupportedError("${this.runtimeType}.context=");
   }
