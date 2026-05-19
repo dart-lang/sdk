@@ -889,6 +889,29 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
+/// Type expectedType: the return type of the getter being augmented
+/// Type actualType: the return type of the induced getter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required DartType expectedType,
+    required DartType actualType,
+  })
+>
+augmentationInducedGetterReturnTypeMismatch = DiagnosticWithArguments(
+  name: 'augmentation_return_type_mismatch',
+  problemMessage:
+      "The getter induced by this augmentation has return type '{1}', but the "
+      "getter being augmented has return type '{0}'.",
+  correctionMessage:
+      "Try changing the augmentation's type to match the getter being "
+      "augmented.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_induced_getter_return_type_mismatch',
+  withArguments: _withArgumentsAugmentationInducedGetterReturnTypeMismatch,
+  expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
+
+/// Parameters:
 /// String modifier: the lexeme of the modifier.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String modifier})
@@ -18415,6 +18438,16 @@ LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
     variableName,
     className,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsAugmentationInducedGetterReturnTypeMismatch({
+  required DartType expectedType,
+  required DartType actualType,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationInducedGetterReturnTypeMismatch,
+    [expectedType, actualType],
+  );
 }
 
 LocatableDiagnostic _withArgumentsAugmentationModifierExtra({

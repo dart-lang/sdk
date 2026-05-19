@@ -14,7 +14,62 @@ main() {
 
 @reflectiveTest
 class AugmentationReturnTypeMismatchTest extends PubPackageResolutionTest {
-  test_class_getter_int_String() async {
+  test_class_instanceField_instanceGetter_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int? get foo => 0;
+}
+
+augment class A {
+  augment final String? foo = null;
+//                      ^^^
+// [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+}
+''');
+  }
+
+  test_class_instanceField_int_int() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? foo;
+}
+
+augment class A {
+  augment int? foo;
+}
+''');
+  }
+
+  test_class_instanceField_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int? foo;
+}
+
+augment class A {
+  augment String? foo;
+//                ^^^
+// [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+}
+''');
+  }
+
+  test_class_instanceField_multiple_oneMismatch() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  String? foo;
+  int? bar;
+}
+
+augment class A {
+  augment String? foo, bar;
+//                     ^^^
+// [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+}
+''');
+  }
+
+  test_class_instanceGetter_int_String() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
@@ -28,7 +83,7 @@ augment class A {
 ''');
   }
 
-  test_class_method_void_int() async {
+  test_class_instanceMethod_void_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
@@ -42,7 +97,7 @@ augment class A {
 ''');
   }
 
-  test_class_method_void_void() async {
+  test_class_instanceMethod_void_void() async {
     await assertNoErrorsInCode(r'''
 class A {
   void foo() {}
@@ -54,7 +109,33 @@ augment class A {
 ''');
   }
 
-  test_extension_getter_int_String() async {
+  test_class_staticField_int_int() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int? foo;
+}
+
+augment class A {
+  augment static int? foo;
+}
+''');
+  }
+
+  test_class_staticField_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static int? foo;
+}
+
+augment class A {
+  augment static String? foo;
+//                       ^^^
+// [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+}
+''');
+  }
+
+  test_extension_instanceGetter_int_String() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
@@ -68,7 +149,7 @@ augment extension E {
 ''');
   }
 
-  test_extension_method_void_int() async {
+  test_extension_instanceMethod_void_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
@@ -82,7 +163,7 @@ augment extension E {
 ''');
   }
 
-  test_extensionType_getter_int_String() async {
+  test_extensionType_instanceGetter_int_String() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
@@ -96,7 +177,7 @@ augment extension type A(int it) {
 ''');
   }
 
-  test_extensionType_method_void_int() async {
+  test_extensionType_instanceMethod_void_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
@@ -110,7 +191,7 @@ augment extension type A(int it) {
 ''');
   }
 
-  test_mixin_getter_int_String() async {
+  test_mixin_instanceGetter_int_String() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
@@ -124,7 +205,7 @@ augment mixin M {
 ''');
   }
 
-  test_mixin_method_void_int() async {
+  test_mixin_instanceMethod_void_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
@@ -215,6 +296,45 @@ int get foo => 0;
 augment String get foo;
 //      ^^^^^^
 // [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
+''');
+  }
+
+  test_topLevelVariable_getter_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int? get foo => 0;
+
+augment final String? foo = null;
+//                    ^^^
+// [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+''');
+  }
+
+  test_topLevelVariable_int_int() async {
+    await assertNoErrorsInCode(r'''
+int? foo;
+
+augment int? foo;
+''');
+  }
+
+  test_topLevelVariable_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int? foo;
+
+augment String? foo;
+//              ^^^
+// [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+''');
+  }
+
+  test_topLevelVariable_multiple_oneMismatch() async {
+    await resolveTestCodeWithDiagnostics(r'''
+String? foo;
+int? bar;
+
+augment String? foo, bar;
+//                   ^^^
+// [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
 ''');
   }
 }
