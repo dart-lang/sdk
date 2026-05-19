@@ -99,6 +99,40 @@ consteval std::array<std::string_view, N> SplitNames(const char* raw_names) {
   return result;
 }
 
+inline std::string_view OperandNameAt(const char* raw_names, size_t index) {
+  std::string_view names(raw_names);
+  if (names.size() < 2) {
+    return {};
+  }
+
+  size_t start = 1;  // Skip the opening '('.
+  size_t names_size = names.size() - 1;
+  for (size_t i = 0; start < names_size; ++i) {
+    size_t comma = names.find(',', start);
+    size_t end = (comma == std::string_view::npos) ? names_size : comma;
+
+    start = names.find_first_not_of(" ", start);
+    if (start == std::string_view::npos || start >= names_size) {
+      return {};
+    }
+
+    size_t last = names.find_last_not_of(" ,)", end);
+    if (last == std::string_view::npos || last < start) {
+      return {};
+    }
+
+    if (i == index) {
+      return names.substr(start, last - start + 1);
+    }
+
+    if (comma == std::string_view::npos) {
+      break;
+    }
+    start = comma + 1;
+  }
+  return {};
+}
+
 // Calculates packed offsets for each Bytecode operand.
 // All operands are aligned to their own size.
 template <RegExpBytecodeOperandType... operand_types>
@@ -157,10 +191,8 @@ struct RegExpBytecodeOperandNames;
   struct RegExpBytecodeOperandNames<RegExpBytecode::k##CamelName> {            \
     enum class Operand { UNPAREN(OpNames) };                                   \
     using enum Operand;                                                        \
-    static constexpr size_t kCount = detail::CountOf<UNPAREN(OpNames)>();      \
-    static constexpr auto kNames = detail::SplitNames<kCount>(#OpNames);       \
     static /*constexpr*/ std::string_view Name(Operand op) {                   \
-      return kNames[static_cast<size_t>(op)];                                  \
+      return detail::OperandNameAt(#OpNames, static_cast<size_t>(op));         \
     }                                                                          \
   };
 REGEXP_BYTECODE_LIST(DECLARE_OPERAND_NAMES)

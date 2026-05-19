@@ -246,11 +246,38 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
-  assembler->Ret();
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    __ ret();
+
+    __ Bind(&slow_case);
+  }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
+  GenerateSharedStub(/*save_fpu_registers=*/true, &kAllocateMintRuntimeEntry,
+                     target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/true,
+                     /*store_runtime_result_in_result_register=*/true);
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
-  assembler->Ret();
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    __ ret();
+
+    __ Bind(&slow_case);
+  }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
+  GenerateSharedStub(
+      /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
+      target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
+      /*allow_return=*/true,
+      /*store_runtime_result_in_result_register=*/true);
 }
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
@@ -977,7 +1004,11 @@ void StubCodeCompiler::GenerateDeoptimizeStub() {
 }
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
-  assembler->Ret();
+  __ EnterStubFrame();
+  __ SmiTag(DispatchTableNullErrorABI::kClassIdReg);
+  __ PushRegister(DispatchTableNullErrorABI::kClassIdReg);
+  __ CallRuntime(kDispatchTableNullErrorRuntimeEntry, /*argument_count=*/1);
+  __ Breakpoint();
 }
 
 void StubCodeCompiler::GenerateEnterSafepointStub() {
@@ -2381,27 +2412,114 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   }
 }
 
-void StubCodeCompiler::GenerateRangeError(bool) {
-  assembler->Ret();
+void StubCodeCompiler::GenerateRangeError(bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+#if XLEN == 32
+    ASSERT(!GenericCheckBoundInstr::UseUnboxedRepresentation());
+#else
+    if (GenericCheckBoundInstr::UseUnboxedRepresentation()) {
+      Label length;
+
+      __ MoveRegister(TMP, RangeErrorABI::kIndexReg);
+      __ SmiTag(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg);
+      __ SmiUntag(TMP2, RangeErrorABI::kIndexReg);
+      __ beq(TMP, TMP2, &length);
+      {
+        __ PushRegister(NULL_REG);
+        __ CallRuntime(kAllocateMintRuntimeEntry, /*argument_count=*/0);
+        __ PopRegister(RangeErrorABI::kIndexReg);
+        __ Load(TMP,
+                Address(FP,
+                        target::kWordSize *
+                            StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                                RangeErrorABI::kIndexReg)));
+        __ Store(TMP, FieldAddress(RangeErrorABI::kIndexReg,
+                                   target::Mint::value_offset()));
+        __ Load(RangeErrorABI::kLengthReg,
+                Address(FP,
+                        target::kWordSize *
+                            StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                                RangeErrorABI::kLengthReg)));
+      }
+
+      __ Bind(&length);
+      __ SmiTag(RangeErrorABI::kLengthReg);
+    }
+#endif
+    __ PushRegistersInOrder(
+        {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
+    __ CallRuntime(kRangeErrorRuntimeEntry, /*argument_count=*/2);
+    __ Breakpoint();
+  };
+
+  GenerateSharedStubGeneric(
+      /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::range_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
 }
 
-void StubCodeCompiler::GenerateWriteError(bool) {
-  assembler->Ret();
+void StubCodeCompiler::GenerateWriteError(bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/2);
+    __ Breakpoint();
+  };
+
+  GenerateSharedStubGeneric(
+      /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::write_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::write_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
 }
 
-void StubCodeCompiler::GenerateSharedStubGeneric(bool,
-                                                 intptr_t,
-                                                 bool,
-                                                 std::function<void()>) {
-  assembler->Ret();
+void StubCodeCompiler::GenerateSharedStubGeneric(
+    bool save_fpu_registers,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    std::function<void()> perform_runtime_call) {
+  RegisterSet all_registers;
+  all_registers.AddAllNonReservedRegisters(save_fpu_registers);
+
+  __ PushRegister(RA);
+  __ PushRegisters(all_registers);
+  __ Load(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
+  __ EnterStubFrame();
+  perform_runtime_call();
+  if (!allow_return) {
+    __ Breakpoint();
+    return;
+  }
+  __ LeaveStubFrame();
+  __ PopRegisters(all_registers);
+  __ Drop(1);
+  __ ret();
 }
 
-void StubCodeCompiler::GenerateSharedStub(bool,
-                                          const RuntimeEntry*,
-                                          intptr_t,
-                                          bool,
-                                          bool) {
-  assembler->Ret();
+void StubCodeCompiler::GenerateSharedStub(bool save_fpu_registers,
+                                          const RuntimeEntry* target,
+                                          intptr_t self_code_stub_offset_from_thread,
+                                          bool allow_return,
+                                          bool store_runtime_result_in_result_register) {
+  ASSERT(!store_runtime_result_in_result_register || allow_return);
+  auto perform_runtime_call = [&]() {
+    if (store_runtime_result_in_result_register) {
+      __ PushRegister(NULL_REG);
+    }
+    __ CallRuntime(*target, /*argument_count=*/0);
+    if (store_runtime_result_in_result_register) {
+      __ PopRegister(A0);
+      __ Store(A0,
+               Address(FP,
+                       target::kWordSize *
+                           StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                               SharedSlowPathStubABI::kResultReg)));
+    }
+  };
+  GenerateSharedStubGeneric(save_fpu_registers,
+                            self_code_stub_offset_from_thread, allow_return,
+                            perform_runtime_call);
 }
 
 void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,

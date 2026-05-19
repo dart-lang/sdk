@@ -497,6 +497,7 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   static final supportedTargetPlatforms = <Target>{
     Target.linuxArm,
     Target.linuxArm64,
+    Target.linuxLoong64,
     Target.linuxRiscv64,
     Target.linuxX64,
   };

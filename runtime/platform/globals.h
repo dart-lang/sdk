@@ -90,8 +90,100 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <atomic>
 #include <bit>
 #include <cassert>  // For assert() in constant expressions.
+
+#if __cplusplus >= 202002L && !defined(__cpp_lib_atomic_ref)
+namespace std {
+
+// Some embedders still build Dart against libc++ versions that provide C++20
+// <bit> helpers but not std::atomic_ref. Dart only needs a reference view over
+// storage that is already treated atomically, so bridge those older libc++
+// builds through std::atomic<T>.
+template <typename T>
+class atomic_ref {
+ public:
+  using value_type = T;
+
+  explicit atomic_ref(T& object) noexcept : object_(&object) {}
+  atomic_ref(const atomic_ref&) noexcept = default;
+  atomic_ref& operator=(const atomic_ref&) = delete;
+
+  bool is_lock_free() const noexcept { return atomic().is_lock_free(); }
+
+  void store(T desired,
+             memory_order order = memory_order_seq_cst) const noexcept {
+    atomic().store(desired, order);
+  }
+
+  T load(memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().load(order);
+  }
+
+  T exchange(T desired,
+             memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().exchange(desired, order);
+  }
+
+  bool compare_exchange_weak(
+      T& expected,
+      T desired,
+      memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().compare_exchange_weak(expected, desired, order, order);
+  }
+
+  bool compare_exchange_weak(T& expected,
+                             T desired,
+                             memory_order success,
+                             memory_order failure) const noexcept {
+    return atomic().compare_exchange_weak(expected, desired, success, failure);
+  }
+
+  bool compare_exchange_strong(
+      T& expected,
+      T desired,
+      memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().compare_exchange_strong(expected, desired, order, order);
+  }
+
+  bool compare_exchange_strong(T& expected,
+                               T desired,
+                               memory_order success,
+                               memory_order failure) const noexcept {
+    return atomic().compare_exchange_strong(expected, desired, success, failure);
+  }
+
+  T fetch_add(T arg, memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().fetch_add(arg, order);
+  }
+
+  T fetch_sub(T arg, memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().fetch_sub(arg, order);
+  }
+
+  T fetch_and(T arg, memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().fetch_and(arg, order);
+  }
+
+  T fetch_or(T arg, memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().fetch_or(arg, order);
+  }
+
+  T fetch_xor(T arg, memory_order order = memory_order_seq_cst) const noexcept {
+    return atomic().fetch_xor(arg, order);
+  }
+
+ private:
+  atomic<T>& atomic() const noexcept {
+    return *reinterpret_cast<std::atomic<T>*>(object_);
+  }
+
+  T* object_;
+};
+
+}  // namespace std
+#endif  // __cplusplus >= 202002L && !defined(__cpp_lib_atomic_ref)
 
 #if defined(_WIN32)
 #include "platform/floating_point_win.h"

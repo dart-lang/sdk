@@ -49,9 +49,11 @@ class Sdk {
         sdkRelativePath: 'utils',
       );
 
-  String get genKernelSnapshot => _snapshotPathFor(
-        'gen_kernel_aot.dart.snapshot',
-      );
+  String get genKernelSnapshot => runFromBuildRoot
+      ? path.absolute(sdkPath, 'gen', 'gen_kernel_aot.dart.snapshot')
+      : _snapshotPathFor(
+          'gen_kernel_aot.dart.snapshot',
+        );
 
   String get analysisServerAotSnapshot => _snapshotPathFor(
         'analysis_server_aot.dart.snapshot',
