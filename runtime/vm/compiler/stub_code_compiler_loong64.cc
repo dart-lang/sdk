@@ -1576,7 +1576,7 @@ static void EmitFastSmiOp(Assembler* assembler,
       break;
     }
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
   }
 
   __ LoadFieldFromOffset(A6, IC_DATA_REG, target::ICData::entries_offset());

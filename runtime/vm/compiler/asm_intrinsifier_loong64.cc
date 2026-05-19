@@ -55,36 +55,42 @@ void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::Bigint_lsh(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Bigint_rsh(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Bigint_absAdd(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Bigint_absSub(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Bigint_mulAdd(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Bigint_sqrAdd(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
+                                                   Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Montgomery_mulMod(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
+                                        Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
 // FA0: left, FA1: right.
@@ -706,16 +712,19 @@ void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::AbstractType_getHashCode(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
+                                               Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::AbstractType_equality(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Type_equality(Assembler*, Label*) {
-  UNIMPLEMENTED();
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  __ Bind(normal_ir_body);
 }
 
 // Keep in sync with Instance::IdentityHashCode.

@@ -660,16 +660,14 @@ void FlowGraphCompiler::EmitMove(Location destination,
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
-      __ AddImmediate(SP, SP, -static_cast<intptr_t>(sizeof(double)));
-      __ StoreD(source.fpu_reg(), compiler::Address(SP));
-      __ LoadD(destination.fpu_reg(), compiler::Address(SP));
-      __ AddImmediate(SP, SP, sizeof(double));
+      __ MoveUnboxedSimd128(destination.fpu_reg(), source.fpu_reg());
     } else if (destination.IsStackSlot() || destination.IsDoubleStackSlot()) {
       __ StoreDToOffset(source.fpu_reg(), destination.base_reg(),
                         destination.ToStackSlotOffset());
     } else {
       ASSERT(destination.IsQuadStackSlot());
-      UNIMPLEMENTED();
+      __ StoreQToOffset(source.fpu_reg(), destination.base_reg(),
+                        destination.ToStackSlotOffset());
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
@@ -682,7 +680,15 @@ void FlowGraphCompiler::EmitMove(Location destination,
                         destination.ToStackSlotOffset());
     }
   } else if (source.IsQuadStackSlot()) {
-    UNIMPLEMENTED();
+    if (destination.IsFpuRegister()) {
+      __ LoadQFromOffset(destination.fpu_reg(), source.base_reg(),
+                         source.ToStackSlotOffset());
+    } else {
+      ASSERT(destination.IsQuadStackSlot());
+      __ LoadQFromOffset(FTMP, source.base_reg(), source.ToStackSlotOffset());
+      __ StoreQToOffset(FTMP, destination.base_reg(),
+                        destination.ToStackSlotOffset());
+    }
   } else if (source.IsPairLocation()) {
     UNREACHABLE();
   } else {
@@ -692,7 +698,11 @@ void FlowGraphCompiler::EmitMove(Location destination,
   }
 }
 
-static compiler::OperandSize BytesToOperandSize(intptr_t bytes);
+static void EmitNativeStoreBySize(FlowGraphCompiler* compiler,
+                                  Register src,
+                                  Register base,
+                                  intptr_t offset,
+                                  intptr_t bytes);
 
 void FlowGraphCompiler::EmitNativeMoveArchitecture(
     const compiler::ffi::NativeLocation& destination,
@@ -783,10 +793,9 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       const auto& dst = destination.AsStack();
       ASSERT(!sign_or_zero_extend);
-      const compiler::OperandSize op_size =
-          BytesToOperandSize(destination.container_type().SizeInBytes());
-      __ StoreToOffset(src.reg_at(0), dst.base_register(),
-                       dst.offset_in_bytes(), op_size);
+      EmitNativeStoreBySize(this, src.reg_at(0), dst.base_register(),
+                            dst.offset_in_bytes(),
+                            destination.container_type().SizeInBytes());
     }
   } else if (source.IsFpuRegisters()) {
     const auto& src = source.AsFpuRegisters();
@@ -810,6 +819,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsFpuRegisters();
       if (src_size == 4) {
         __ fmov_s(dst.fpu_reg(), src.fpu_reg());
+      } else if (src_size == 16) {
+        __ MoveUnboxedSimd128(dst.fpu_reg(), src.fpu_reg());
       } else {
         ASSERT(src_size == 8);
         __ fmov_d(dst.fpu_reg(), src.fpu_reg());
@@ -819,6 +830,10 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(src_type.IsFloat());
       const auto& dst = destination.AsStack();
       switch (dst_size) {
+        case 16:
+          __ StoreQToOffset(src.fpu_reg(), dst.base_register(),
+                            dst.offset_in_bytes());
+          return;
         case 8:
           __ StoreDToOffset(src.fpu_reg(), dst.base_register(),
                             dst.offset_in_bytes());
@@ -844,6 +859,10 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(src_type.IsFloat());
       const auto& dst = destination.AsFpuRegisters();
       switch (src_size) {
+        case 16:
+          __ LoadQFromOffset(dst.fpu_reg(), src.base_register(),
+                             src.offset_in_bytes());
+          return;
         case 8:
           __ LoadDFromOffset(dst.fpu_reg(), src.base_register(),
                              src.offset_in_bytes());
@@ -853,7 +872,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
                              src.offset_in_bytes());
           return;
         default:
-          UNIMPLEMENTED();
+          UNREACHABLE();
       }
     } else {
       ASSERT(destination.IsStack());
@@ -862,20 +881,74 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   }
 }
 
-static compiler::OperandSize BytesToOperandSize(intptr_t bytes) {
+#undef __
+#define __ compiler->assembler()->
+
+static void EmitNativeStoreBySize(FlowGraphCompiler* compiler,
+                                  Register src,
+                                  Register base,
+                                  intptr_t offset,
+                                  intptr_t bytes) {
   switch (bytes) {
     case 8:
-      return compiler::OperandSize::kEightBytes;
+      __ StoreToOffset(src, base, offset, compiler::kEightBytes);
+      return;
     case 4:
-      return compiler::OperandSize::kFourBytes;
+      __ StoreToOffset(src, base, offset, compiler::kFourBytes);
+      return;
     case 2:
-      return compiler::OperandSize::kTwoBytes;
+      __ StoreToOffset(src, base, offset, compiler::kTwoBytes);
+      return;
     case 1:
-      return compiler::OperandSize::kByte;
+      __ StoreToOffset(src, base, offset, compiler::kByte);
+      return;
     default:
-      UNIMPLEMENTED();
+      break;
   }
+
+  Register tmp = kNoRegister;
+  if (src != T1 && base != T1) tmp = T1;
+  if (src != T3 && base != T3) tmp = T3;
+  if (src != CALLEE_SAVED_TEMP && base != CALLEE_SAVED_TEMP) {
+    tmp = CALLEE_SAVED_TEMP;
+  }
+  if (src != TMP && base != TMP) tmp = TMP;
+  ASSERT(tmp != kNoRegister);
+  if (base == SP) offset += compiler::target::kWordSize;
+  __ PushRegister(tmp);
+
+  switch (bytes) {
+    case 3:
+      __ StoreToOffset(src, base, offset, compiler::kTwoBytes);
+      __ srli_d(tmp, src, 16);
+      __ StoreToOffset(tmp, base, offset + 2, compiler::kByte);
+      break;
+    case 5:
+      __ StoreToOffset(src, base, offset, compiler::kFourBytes);
+      __ srli_d(tmp, src, 32);
+      __ StoreToOffset(tmp, base, offset + 4, compiler::kByte);
+      break;
+    case 6:
+      __ StoreToOffset(src, base, offset, compiler::kFourBytes);
+      __ srli_d(tmp, src, 32);
+      __ StoreToOffset(tmp, base, offset + 4, compiler::kTwoBytes);
+      break;
+    case 7:
+      __ StoreToOffset(src, base, offset, compiler::kFourBytes);
+      __ srli_d(tmp, src, 32);
+      __ StoreToOffset(tmp, base, offset + 4, compiler::kTwoBytes);
+      __ srli_d(tmp, tmp, 16);
+      __ StoreToOffset(tmp, base, offset + 6, compiler::kByte);
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  __ PopRegister(tmp);
 }
+
+#undef __
+#define __ assembler()->
 
 void FlowGraphCompiler::EmitNativeLoad(Register dst,
                                        Register base,
@@ -1019,14 +1092,32 @@ void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
     Exchange(source.base_reg(), source.ToStackSlotOffset(),
              destination.base_reg(), destination.ToStackSlotOffset());
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
-    __ AddImmediate(SP, SP, -2 * static_cast<intptr_t>(sizeof(double)));
-    __ StoreD(source.fpu_reg(), compiler::Address(SP));
-    __ StoreD(destination.fpu_reg(), compiler::Address(SP, sizeof(double)));
-    __ LoadD(source.fpu_reg(), compiler::Address(SP, sizeof(double)));
-    __ LoadD(destination.fpu_reg(), compiler::Address(SP));
-    __ AddImmediate(SP, SP, 2 * static_cast<intptr_t>(sizeof(double)));
+    __ AddImmediate(SP, SP, -2 * kFpuRegisterSize);
+    __ StoreQ(source.fpu_reg(), compiler::Address(SP));
+    __ StoreQ(destination.fpu_reg(), compiler::Address(SP, kFpuRegisterSize));
+    __ LoadQ(source.fpu_reg(), compiler::Address(SP, kFpuRegisterSize));
+    __ LoadQ(destination.fpu_reg(), compiler::Address(SP));
+    __ AddImmediate(SP, SP, 2 * kFpuRegisterSize);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
-    UNIMPLEMENTED();
+    ASSERT(destination.IsStackSlot() || destination.IsDoubleStackSlot() ||
+           destination.IsQuadStackSlot() || source.IsStackSlot() ||
+           source.IsDoubleStackSlot() || source.IsQuadStackSlot());
+    const FpuRegister reg =
+        source.IsFpuRegister() ? source.fpu_reg() : destination.fpu_reg();
+    const Location stack_slot = source.IsFpuRegister() ? destination : source;
+    const intptr_t stack_offset = stack_slot.ToStackSlotOffset();
+
+    ScratchFpuRegisterScope ensure_scratch(this, reg);
+    const FpuRegister scratch = ensure_scratch.reg();
+    if (stack_slot.IsQuadStackSlot()) {
+      __ LoadQFromOffset(scratch, stack_slot.base_reg(), stack_offset);
+      __ StoreQToOffset(reg, stack_slot.base_reg(), stack_offset);
+      __ MoveUnboxedSimd128(reg, scratch);
+    } else {
+      __ LoadDFromOffset(scratch, stack_slot.base_reg(), stack_offset);
+      __ StoreDToOffset(reg, stack_slot.base_reg(), stack_offset);
+      __ fmov_d(reg, scratch);
+    }
   } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
     __ AddImmediate(SP, SP, -static_cast<intptr_t>(sizeof(double)));
     __ LoadDFromOffset(FTMP, source.base_reg(), source.ToStackSlotOffset());
@@ -1039,7 +1130,16 @@ void ParallelMoveEmitter::EmitSwap(const MoveOperands& move) {
                       destination.ToStackSlotOffset());
     __ AddImmediate(SP, SP, sizeof(double));
   } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
-    UNIMPLEMENTED();
+    __ AddImmediate(SP, SP, -kFpuRegisterSize);
+    __ LoadQFromOffset(FTMP, source.base_reg(), source.ToStackSlotOffset());
+    __ StoreQ(FTMP, compiler::Address(SP));
+    __ LoadQFromOffset(FTMP, destination.base_reg(),
+                       destination.ToStackSlotOffset());
+    __ StoreQToOffset(FTMP, source.base_reg(), source.ToStackSlotOffset());
+    __ LoadQ(FTMP, compiler::Address(SP));
+    __ StoreQToOffset(FTMP, destination.base_reg(),
+                      destination.ToStackSlotOffset());
+    __ AddImmediate(SP, SP, kFpuRegisterSize);
   } else {
     UNREACHABLE();
   }
@@ -1086,13 +1186,13 @@ void ParallelMoveEmitter::RestoreScratch(Register reg) {
 }
 
 void ParallelMoveEmitter::SpillFpuScratch(FpuRegister reg) {
-  __ AddImmediate(SP, SP, -static_cast<intptr_t>(sizeof(double)));
-  __ StoreD(reg, compiler::Address(SP));
+  __ AddImmediate(SP, SP, -kFpuRegisterSize);
+  __ StoreQ(reg, compiler::Address(SP));
 }
 
 void ParallelMoveEmitter::RestoreFpuScratch(FpuRegister reg) {
-  __ LoadD(reg, compiler::Address(SP));
-  __ AddImmediate(SP, SP, sizeof(double));
+  __ LoadQ(reg, compiler::Address(SP));
+  __ AddImmediate(SP, SP, kFpuRegisterSize);
 }
 
 #undef __

@@ -565,7 +565,12 @@ class Assembler : public AssemblerBase {
     }
     if ((object != kWriteBarrierObjectReg) ||
         (value != kWriteBarrierValueReg) || (slot != kWriteBarrierSlotReg)) {
-      UNIMPLEMENTED();
+      PushRegister(object);
+      PushRegister(slot);
+      PushRegister(value);
+      PopRegister(kWriteBarrierValueReg);
+      PopRegister(kWriteBarrierSlotReg);
+      PopRegister(kWriteBarrierObjectReg);
     }
     Call(Address(THR, target::Thread::array_write_barrier_entry_point_offset()));
     if (spill_lr) {
@@ -895,17 +900,24 @@ class Assembler : public AssemblerBase {
 
   void LoadS(FRegister dst, const Address& address) { fl_s(dst, PrepareAddress(address.base(), address.offset())); }
   void LoadD(FRegister dst, const Address& address) { fl_d(dst, PrepareAddress(address.base(), address.offset())); }
+  void LoadQ(FRegister dst, const Address& address) { vld(dst, PrepareAddress(address.base(), address.offset())); }
   void LoadSFromOffset(FRegister dst, Register base, int32_t offset) {
     LoadS(dst, Address(base, offset));
   }
   void LoadDFromOffset(FRegister dst, Register base, int32_t offset) {
     LoadD(dst, Address(base, offset));
   }
+  void LoadQFromOffset(FRegister dst, Register base, int32_t offset) {
+    LoadQ(dst, Address(base, offset));
+  }
   void LoadSFieldFromOffset(FRegister dst, Register base, int32_t offset) {
     LoadS(dst, FieldAddress(base, offset));
   }
   void LoadDFieldFromOffset(FRegister dst, Register base, int32_t offset) {
     LoadD(dst, FieldAddress(base, offset));
+  }
+  void LoadQFieldFromOffset(FRegister dst, Register base, int32_t offset) {
+    LoadQ(dst, FieldAddress(base, offset));
   }
   void LoadFromStack(Register dst, intptr_t depth) {
     Load(dst, Address(SP, depth * target::kWordSize));
@@ -921,6 +933,7 @@ class Assembler : public AssemblerBase {
   }
   void StoreS(FRegister src, const Address& address) { fs_s(src, PrepareAddress(address.base(), address.offset())); }
   void StoreD(FRegister src, const Address& address) { fs_d(src, PrepareAddress(address.base(), address.offset())); }
+  void StoreQ(FRegister src, const Address& address) { vst(src, PrepareAddress(address.base(), address.offset())); }
   void StoreSToOffset(FRegister src, Register base, int32_t offset) {
     StoreS(src, Address(base, offset));
   }
@@ -932,6 +945,12 @@ class Assembler : public AssemblerBase {
   }
   void StoreDFieldToOffset(FRegister src, Register base, int32_t offset) {
     StoreD(src, FieldAddress(base, offset));
+  }
+  void StoreQToOffset(FRegister src, Register base, int32_t offset) {
+    StoreQ(src, Address(base, offset));
+  }
+  void StoreQFieldToOffset(FRegister src, Register base, int32_t offset) {
+    StoreQ(src, FieldAddress(base, offset));
   }
 
   void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
@@ -946,10 +965,16 @@ class Assembler : public AssemblerBase {
     }
   }
   void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    LoadQFromOffset(dst, base, offset);
   }
   void StoreUnboxedSimd128(FpuRegister src, Register base, int32_t offset) {
+    StoreQToOffset(src, base, offset);
   }
-  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    if (dst != src) {
+      vor_v(dst, src, src);
+    }
+  }
 
   void InitializeHeader(Register tags, Register object) {
     Store(tags, FieldAddress(object, target::Object::tags_offset()));
@@ -1016,9 +1041,9 @@ class Assembler : public AssemblerBase {
     LoadDFromOffset(reg, PP, target::ObjectPool::element_offset(index));
   }
   void LoadQImmediate(FRegister reg, simd128_value_t immq) {
-    USE(reg);
-    USE(immq);
-    UNREACHABLE();
+    ASSERT(constant_pool_allowed());
+    const intptr_t index = object_pool_builder().FindImmediate128(immq);
+    LoadQFromOffset(reg, PP, target::ObjectPool::element_offset(index));
   }
   void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP) {
     ASSERT(dst != pp);
@@ -1834,6 +1859,8 @@ class Assembler : public AssemblerBase {
   void fst_s(FRegister fd, Address addr) { EmitFRegRegImm12(kFStoreS, fd, addr.base(), addr.offset()); }
   void fld_d(FRegister fd, Address addr) { EmitFRegRegImm12(kFLoadD, fd, addr.base(), addr.offset()); }
   void fst_d(FRegister fd, Address addr) { EmitFRegRegImm12(kFStoreD, fd, addr.base(), addr.offset()); }
+  void vld(FRegister vd, Address addr) { EmitFRegRegImm12(kVLoad, vd, addr.base(), addr.offset()); }
+  void vst(FRegister vd, Address addr) { EmitFRegRegImm12(kVStore, vd, addr.base(), addr.offset()); }
   void fl_s(FRegister fd, Address addr) { fld_s(fd, addr); }
   void fs_s(FRegister fd, Address addr) { fst_s(fd, addr); }
   void fl_d(FRegister fd, Address addr) { fld_d(fd, addr); }
@@ -1923,6 +1950,9 @@ class Assembler : public AssemblerBase {
   void fneg_d(FRegister fd, FRegister fj) { EmitFpuRegReg(kFnegD, fd, fj); }
   void fmov_s(FRegister fd, FRegister fj) { EmitFpuRegReg(kFmovS, fd, fj); }
   void fmov_d(FRegister fd, FRegister fj) { EmitFpuRegReg(kFmovD, fd, fj); }
+  void vor_v(FRegister vd, FRegister vj, FRegister vk) {
+    EmitFpuRegRegReg(kVorV, vd, vj, vk);
+  }
   void fsqrt_s(FRegister fd, FRegister fj) { EmitFpuRegReg(kFsqrtS, fd, fj); }
   void fsqrt_d(FRegister fd, FRegister fj) { EmitFpuRegReg(kFsqrtD, fd, fj); }
   void fcvt_s_d(FRegister fd, FRegister fj) { EmitFpuRegReg(kFcvtSD, fd, fj); }
@@ -2043,6 +2073,8 @@ class Assembler : public AssemblerBase {
   static constexpr uint32_t kFStoreS = 0x2b400000;
   static constexpr uint32_t kFLoadD = 0x2b800000;
   static constexpr uint32_t kFStoreD = 0x2bc00000;
+  static constexpr uint32_t kVLoad = 0x2c000000;
+  static constexpr uint32_t kVStore = 0x2c400000;
   static constexpr uint32_t kLu12iW = 0x14000000;
   static constexpr uint32_t kLu32iD = 0x16000000;
   static constexpr uint32_t kLu52iD = 0x03000000;
@@ -2090,6 +2122,7 @@ class Assembler : public AssemblerBase {
   static constexpr uint32_t kFnegD = 0x01141800;
   static constexpr uint32_t kFmovS = 0x01149400;
   static constexpr uint32_t kFmovD = 0x01149800;
+  static constexpr uint32_t kVorV = 0x71268000;
   static constexpr uint32_t kFsqrtS = 0x01144400;
   static constexpr uint32_t kFsqrtD = 0x01144800;
   static constexpr uint32_t kMovfr2grS = 0x0114b400;
@@ -2357,7 +2390,7 @@ class Assembler : public AssemblerBase {
         bgeu(right, left, label, distance);
         break;
       default:
-        UNIMPLEMENTED();
+        UNREACHABLE();
     }
   }
 

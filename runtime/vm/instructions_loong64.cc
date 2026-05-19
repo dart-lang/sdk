@@ -225,7 +225,7 @@ void InstructionPattern::EncodeLoadWordFromPoolFixed(uword end,
   intptr_t old_offset;
   const uword pc = end - kInstrSize;
   if (!DecodeLoadD(pc, &dst, &base, &old_offset) || (base != PP)) {
-    UNIMPLEMENTED();
+    UNREACHABLE();
   }
   ASSERT(Utils::IsAligned(offset, kWordSize));
   StoreUnaligned(reinterpret_cast<uint32_t*>(pc),

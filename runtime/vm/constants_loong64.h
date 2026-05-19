@@ -139,8 +139,8 @@ const FRegister FTMP = FT15;
 
 typedef FRegister FpuRegister;
 const FpuRegister FpuTMP = FTMP;
-const int kFpuRegisterSize = 8;
-typedef double fpu_register_t;
+const int kFpuRegisterSize = 16;
+typedef simd128_value_t fpu_register_t;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];

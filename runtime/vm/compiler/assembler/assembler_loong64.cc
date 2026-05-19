@@ -25,7 +25,7 @@ void Assembler::PushRegisters(const RegisterSet& registers) {
     const FRegister reg = static_cast<FRegister>(i);
     if (registers.ContainsFpuRegister(reg)) {
       offset -= kFpuRegisterSize;
-      StoreD(reg, Address(SP, offset));
+      StoreQ(reg, Address(SP, offset));
     }
   }
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
@@ -55,7 +55,7 @@ void Assembler::PopRegisters(const RegisterSet& registers) {
   for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
     const FRegister reg = static_cast<FRegister>(i);
     if (registers.ContainsFpuRegister(reg)) {
-      LoadD(reg, Address(SP, offset));
+      LoadQ(reg, Address(SP, offset));
       offset += kFpuRegisterSize;
     }
   }

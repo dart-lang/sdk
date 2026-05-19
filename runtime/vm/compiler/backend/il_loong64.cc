@@ -107,7 +107,920 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone,
 // Implemented below.
 // Implemented below.
 // Implemented below.
-DEFINE_UNIMPLEMENTED_INSTRUCTION(SimdOpInstr)
+
+static constexpr intptr_t kSimdSlot0Offset = 0;
+static constexpr intptr_t kSimdSlot1Offset = kSimd128Size;
+static constexpr intptr_t kSimdSlot2Offset = 2 * kSimd128Size;
+static constexpr intptr_t kSimdResultOffset = 3 * kSimd128Size;
+static constexpr intptr_t kSimdScratchSize = 4 * kSimd128Size;
+
+static Location RequiredSimdInputLocation(Representation representation) {
+  switch (representation) {
+    case kTagged:
+    case kUnboxedInt32:
+      return Location::RequiresRegister();
+    case kUnboxedDouble:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+    case kUnboxedInt32x4:
+      return Location::RequiresFpuRegister();
+    default:
+      UNREACHABLE();
+      return Location::NoLocation();
+  }
+}
+
+static Location SimdOutputLocation(Representation representation) {
+  switch (representation) {
+    case kTagged:
+    case kUnboxedInt32:
+      return Location::RequiresRegister();
+    case kUnboxedDouble:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+    case kUnboxedInt32x4:
+      return Location::RequiresFpuRegister();
+    default:
+      UNREACHABLE();
+      return Location::NoLocation();
+  }
+}
+
+LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = InputCount();
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  for (intptr_t i = 0; i < kNumInputs; i++) {
+    locs->set_in(i, RequiredSimdInputLocation(RequiredInputRepresentation(i)));
+  }
+  locs->set_out(0, SimdOutputLocation(representation()));
+  return locs;
+}
+
+static void ReserveSimdScratch(FlowGraphCompiler* compiler) {
+  __ AddImmediate(SP, SP, -kSimdScratchSize);
+}
+
+static void ReleaseSimdScratch(FlowGraphCompiler* compiler) {
+  __ AddImmediate(SP, SP, kSimdScratchSize);
+}
+
+static compiler::Address SimdSlot(intptr_t offset) {
+  return compiler::Address(SP, offset);
+}
+
+static intptr_t SimdLane32Offset(intptr_t base, intptr_t lane) {
+  ASSERT((0 <= lane) && (lane < 4));
+  return base + (lane * kInt32Size);
+}
+
+static intptr_t SimdLane64Offset(intptr_t base, intptr_t lane) {
+  ASSERT((0 <= lane) && (lane < 2));
+  return base + (lane * kDoubleSize);
+}
+
+static void CopySimdSlot(FlowGraphCompiler* compiler,
+                         intptr_t dst_offset,
+                         intptr_t src_offset) {
+  __ Load(TMP, SimdSlot(src_offset), compiler::kEightBytes);
+  __ Store(TMP, SimdSlot(dst_offset), compiler::kEightBytes);
+  __ Load(TMP, SimdSlot(src_offset + kWordSize), compiler::kEightBytes);
+  __ Store(TMP, SimdSlot(dst_offset + kWordSize), compiler::kEightBytes);
+}
+
+static void ClearSimdSlot(FlowGraphCompiler* compiler, intptr_t offset) {
+  __ Store(ZR, SimdSlot(offset), compiler::kEightBytes);
+  __ Store(ZR, SimdSlot(offset + kWordSize), compiler::kEightBytes);
+}
+
+static void LoadSimdResult(FlowGraphCompiler* compiler, FpuRegister out) {
+  __ LoadQ(out, SimdSlot(kSimdResultOffset));
+}
+
+static intptr_t Float32x4LaneFromKind(SimdOpInstr::Kind kind,
+                                      SimdOpInstr::Kind first_kind) {
+  const intptr_t lane = kind - first_kind;
+  ASSERT((0 <= lane) && (lane < 4));
+  return lane;
+}
+
+static intptr_t Float64x2LaneFromKind(SimdOpInstr::Kind kind,
+                                      SimdOpInstr::Kind first_kind) {
+  const intptr_t lane = kind - first_kind;
+  ASSERT((0 <= lane) && (lane < 2));
+  return lane;
+}
+
+static void StoreBoolMask(FlowGraphCompiler* compiler,
+                          Register flag,
+                          intptr_t dst_offset) {
+  compiler::Label store;
+  __ LoadImmediate(TMP, 0);
+  __ CompareObject(flag, Bool::True());
+  __ BranchIf(NE, &store, compiler::Assembler::kNearJump);
+  __ LoadImmediate(TMP, -1);
+  __ Bind(&store);
+  __ Store(TMP, SimdSlot(dst_offset), compiler::kFourBytes);
+}
+
+static void LoadBoolFromMask(FlowGraphCompiler* compiler,
+                             Register out,
+                             intptr_t src_offset) {
+  compiler::Label is_true, done;
+  __ Load(TMP, SimdSlot(src_offset), compiler::kFourBytes);
+  __ CompareImmediate(TMP, 0);
+  __ BranchIf(NE, &is_true, compiler::Assembler::kNearJump);
+  __ LoadObject(out, Bool::False());
+  __ b(&done, compiler::Assembler::kNearJump);
+  __ Bind(&is_true);
+  __ LoadObject(out, Bool::True());
+  __ Bind(&done);
+}
+
+static void EmitFloat32x4BinaryOp(FlowGraphCompiler* compiler,
+                                  SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister left = instr->locs()->in(0).fpu_reg();
+  const FpuRegister right = instr->locs()->in(1).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(left, SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(right, SimdSlot(kSimdSlot1Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ LoadS(out, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)));
+    __ LoadS(FpuTMP, SimdSlot(SimdLane32Offset(kSimdSlot1Offset, lane)));
+    switch (instr->kind()) {
+      case SimdOpInstr::kFloat32x4Add:
+        __ fadd_s(out, out, FpuTMP);
+        __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+        break;
+      case SimdOpInstr::kFloat32x4Sub:
+        __ fsub_s(out, out, FpuTMP);
+        __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+        break;
+      case SimdOpInstr::kFloat32x4Mul:
+        __ fmul_s(out, out, FpuTMP);
+        __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+        break;
+      case SimdOpInstr::kFloat32x4Div:
+        __ fdiv_s(out, out, FpuTMP);
+        __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+        break;
+      case SimdOpInstr::kFloat32x4Min:
+        __ fmin_s(out, out, FpuTMP);
+        __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+        break;
+      case SimdOpInstr::kFloat32x4Max:
+        __ fmax_s(out, out, FpuTMP);
+        __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+        break;
+      case SimdOpInstr::kFloat32x4Equal:
+        __ fcmp_ceq_s(out, FpuTMP);
+        __ movcf2gr(TMP);
+        __ sub_d(TMP, ZR, TMP);
+        __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+                 compiler::kFourBytes);
+        break;
+      case SimdOpInstr::kFloat32x4NotEqual:
+        __ fcmp_ceq_s(out, FpuTMP);
+        __ movcf2gr(TMP);
+        __ xori(TMP, TMP, 1);
+        __ sub_d(TMP, ZR, TMP);
+        __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+                 compiler::kFourBytes);
+        break;
+      case SimdOpInstr::kFloat32x4LessThan:
+        __ fcmp_clt_s(out, FpuTMP);
+        __ movcf2gr(TMP);
+        __ sub_d(TMP, ZR, TMP);
+        __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+                 compiler::kFourBytes);
+        break;
+      case SimdOpInstr::kFloat32x4LessThanOrEqual:
+        __ fcmp_cle_s(out, FpuTMP);
+        __ movcf2gr(TMP);
+        __ sub_d(TMP, ZR, TMP);
+        __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+                 compiler::kFourBytes);
+        break;
+      case SimdOpInstr::kFloat32x4GreaterThan:
+        __ fcmp_clt_s(FpuTMP, out);
+        __ movcf2gr(TMP);
+        __ sub_d(TMP, ZR, TMP);
+        __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+                 compiler::kFourBytes);
+        break;
+      case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
+        __ fcmp_cle_s(FpuTMP, out);
+        __ movcf2gr(TMP);
+        __ sub_d(TMP, ZR, TMP);
+        __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+                 compiler::kFourBytes);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2BinaryOp(FlowGraphCompiler* compiler,
+                                  SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister left = instr->locs()->in(0).fpu_reg();
+  const FpuRegister right = instr->locs()->in(1).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(left, SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(right, SimdSlot(kSimdSlot1Offset));
+  for (intptr_t lane = 0; lane < 2; lane++) {
+    __ LoadD(out, SimdSlot(SimdLane64Offset(kSimdSlot0Offset, lane)));
+    __ LoadD(FpuTMP, SimdSlot(SimdLane64Offset(kSimdSlot1Offset, lane)));
+    switch (instr->kind()) {
+      case SimdOpInstr::kFloat64x2Add:
+        __ fadd_d(out, out, FpuTMP);
+        break;
+      case SimdOpInstr::kFloat64x2Sub:
+        __ fsub_d(out, out, FpuTMP);
+        break;
+      case SimdOpInstr::kFloat64x2Mul:
+        __ fmul_d(out, out, FpuTMP);
+        break;
+      case SimdOpInstr::kFloat64x2Div:
+        __ fdiv_d(out, out, FpuTMP);
+        break;
+      case SimdOpInstr::kFloat64x2Min:
+        __ fmin_d(out, out, FpuTMP);
+        break;
+      case SimdOpInstr::kFloat64x2Max:
+        __ fmax_d(out, out, FpuTMP);
+        break;
+      default:
+        UNREACHABLE();
+    }
+    __ StoreD(out, SimdSlot(SimdLane64Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitInt32x4BinaryOp(FlowGraphCompiler* compiler,
+                                SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister left = instr->locs()->in(0).fpu_reg();
+  const FpuRegister right = instr->locs()->in(1).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(left, SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(right, SimdSlot(kSimdSlot1Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ Load(TMP, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)),
+            compiler::kFourBytes);
+    __ Load(TMP2, SimdSlot(SimdLane32Offset(kSimdSlot1Offset, lane)),
+            compiler::kFourBytes);
+    switch (instr->kind()) {
+      case SimdOpInstr::kInt32x4Add:
+        __ add_d(TMP, TMP, TMP2);
+        break;
+      case SimdOpInstr::kInt32x4Sub:
+        __ sub_d(TMP, TMP, TMP2);
+        break;
+      case SimdOpInstr::kInt32x4BitAnd:
+        __ and_(TMP, TMP, TMP2);
+        break;
+      case SimdOpInstr::kInt32x4BitOr:
+        __ or_(TMP, TMP, TMP2);
+        break;
+      case SimdOpInstr::kInt32x4BitXor:
+        __ xor_(TMP, TMP, TMP2);
+        break;
+      default:
+        UNREACHABLE();
+    }
+    __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+             compiler::kFourBytes);
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4UnaryOp(FlowGraphCompiler* compiler,
+                                 SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ LoadS(out, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)));
+    switch (instr->kind()) {
+      case SimdOpInstr::kFloat32x4Sqrt:
+        __ fsqrt_s(out, out);
+        break;
+      case SimdOpInstr::kFloat32x4Negate:
+        __ fneg_s(out, out);
+        break;
+      case SimdOpInstr::kFloat32x4Abs:
+        __ fabs_s(out, out);
+        break;
+      case SimdOpInstr::kFloat32x4Reciprocal:
+        __ fmov_s(FpuTMP, out);
+        __ LoadSImmediate(out, 1.0f);
+        __ fdiv_s(out, out, FpuTMP);
+        break;
+      case SimdOpInstr::kFloat32x4ReciprocalSqrt:
+        __ fsqrt_s(FpuTMP, out);
+        __ LoadSImmediate(out, 1.0f);
+        __ fdiv_s(out, out, FpuTMP);
+        break;
+      default:
+        UNREACHABLE();
+    }
+    __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2UnaryOp(FlowGraphCompiler* compiler,
+                                 SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  for (intptr_t lane = 0; lane < 2; lane++) {
+    __ LoadD(out, SimdSlot(SimdLane64Offset(kSimdSlot0Offset, lane)));
+    switch (instr->kind()) {
+      case SimdOpInstr::kFloat64x2Sqrt:
+        __ fsqrt_d(out, out);
+        break;
+      case SimdOpInstr::kFloat64x2Negate:
+        __ fneg_d(out, out);
+        break;
+      case SimdOpInstr::kFloat64x2Abs:
+        __ fabs_d(out, out);
+        break;
+      default:
+        UNREACHABLE();
+    }
+    __ StoreD(out, SimdSlot(SimdLane64Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4GetLane(FlowGraphCompiler* compiler,
+                                 SimdOpInstr* instr) {
+  const intptr_t lane =
+      Float32x4LaneFromKind(instr->kind(), SimdOpInstr::kFloat32x4GetX);
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  __ LoadS(out, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)));
+  __ fcvt_d_s(out, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2GetLane(FlowGraphCompiler* compiler,
+                                 SimdOpInstr* instr) {
+  const intptr_t lane =
+      Float64x2LaneFromKind(instr->kind(), SimdOpInstr::kFloat64x2GetX);
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  __ LoadD(out, SimdSlot(SimdLane64Offset(kSimdSlot0Offset, lane)));
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4WithLane(FlowGraphCompiler* compiler,
+                                  SimdOpInstr* instr) {
+  const intptr_t lane =
+      Float32x4LaneFromKind(instr->kind(), SimdOpInstr::kFloat32x4WithX);
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister replacement = instr->locs()->in(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(1).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreD(replacement, SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(value, SimdSlot(kSimdSlot1Offset));
+  CopySimdSlot(compiler, kSimdResultOffset, kSimdSlot1Offset);
+  __ LoadD(out, SimdSlot(kSimdSlot0Offset));
+  __ fcvt_s_d(out, out);
+  __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2WithLane(FlowGraphCompiler* compiler,
+                                  SimdOpInstr* instr) {
+  const intptr_t lane =
+      Float64x2LaneFromKind(instr->kind(), SimdOpInstr::kFloat64x2WithX);
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+  const FpuRegister replacement = instr->locs()->in(1).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  __ StoreD(replacement, SimdSlot(kSimdSlot1Offset));
+  CopySimdSlot(compiler, kSimdResultOffset, kSimdSlot0Offset);
+  __ LoadD(out, SimdSlot(kSimdSlot1Offset));
+  __ StoreD(out, SimdSlot(SimdLane64Offset(kSimdResultOffset, lane)));
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitInt32x4GetFlag(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const intptr_t lane =
+      Float32x4LaneFromKind(instr->kind(), SimdOpInstr::kInt32x4GetFlagX);
+  const Register out = instr->locs()->out(0).reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  LoadBoolFromMask(compiler, out, SimdLane32Offset(kSimdSlot0Offset, lane));
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitInt32x4WithFlag(FlowGraphCompiler* compiler,
+                                SimdOpInstr* instr) {
+  const intptr_t lane =
+      Float32x4LaneFromKind(instr->kind(), SimdOpInstr::kInt32x4WithFlagX);
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+  const Register replacement = instr->locs()->in(1).reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  CopySimdSlot(compiler, kSimdResultOffset, kSimdSlot0Offset);
+  StoreBoolMask(compiler, replacement,
+                SimdLane32Offset(kSimdResultOffset, lane));
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitSimdShuffle(FlowGraphCompiler* compiler, SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+  const intptr_t mask = instr->mask();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    const intptr_t src_lane = (mask >> (2 * lane)) & 0x3;
+    __ Load(TMP, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, src_lane)),
+            compiler::kFourBytes);
+    __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+             compiler::kFourBytes);
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitSimdShuffleMix(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister left = instr->locs()->in(0).fpu_reg();
+  const FpuRegister right = instr->locs()->in(1).fpu_reg();
+  const intptr_t mask = instr->mask();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(left, SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(right, SimdSlot(kSimdSlot1Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    const bool use_right = lane >= 2;
+    const intptr_t src_base = use_right ? kSimdSlot1Offset : kSimdSlot0Offset;
+    const intptr_t src_lane = (mask >> (2 * lane)) & 0x3;
+    __ Load(TMP, SimdSlot(SimdLane32Offset(src_base, src_lane)),
+            compiler::kFourBytes);
+    __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+             compiler::kFourBytes);
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4FromDoubles(FlowGraphCompiler* compiler,
+                                     SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ StoreD(instr->locs()->in(lane).fpu_reg(),
+              SimdSlot(kSimdSlot0Offset + (lane * kDoubleSize)));
+  }
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ LoadD(out, SimdSlot(kSimdSlot0Offset + (lane * kDoubleSize)));
+    __ fcvt_s_d(out, out);
+    __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2FromDoubles(FlowGraphCompiler* compiler,
+                                     SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreD(instr->locs()->in(0).fpu_reg(), SimdSlot(kSimdResultOffset));
+  __ StoreD(instr->locs()->in(1).fpu_reg(),
+            SimdSlot(kSimdResultOffset + kDoubleSize));
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitInt32x4FromInts(FlowGraphCompiler* compiler,
+                                SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ Store(instr->locs()->in(lane).reg(),
+             SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+             compiler::kFourBytes);
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitInt32x4FromBools(FlowGraphCompiler* compiler,
+                                 SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    StoreBoolMask(compiler, instr->locs()->in(lane).reg(),
+                  SimdLane32Offset(kSimdResultOffset, lane));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4Zero(FlowGraphCompiler* compiler, SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  ClearSimdSlot(compiler, kSimdResultOffset);
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2Zero(FlowGraphCompiler* compiler, SimdOpInstr* instr) {
+  EmitFloat32x4Zero(compiler, instr);
+}
+
+static void EmitFloat32x4Splat(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreD(value, SimdSlot(kSimdSlot0Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ LoadD(out, SimdSlot(kSimdSlot0Offset));
+    __ fcvt_s_d(out, out);
+    __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2Splat(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreD(value, SimdSlot(kSimdSlot0Offset));
+  __ LoadD(out, SimdSlot(kSimdSlot0Offset));
+  __ StoreD(out, SimdSlot(kSimdResultOffset));
+  __ StoreD(out, SimdSlot(kSimdResultOffset + kDoubleSize));
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitSimdGetSignMask(FlowGraphCompiler* compiler,
+                                SimdOpInstr* instr) {
+  const Register out = instr->locs()->out(0).reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+  const bool is_float64x2 =
+      instr->kind() == SimdOpInstr::kFloat64x2GetSignMask;
+  const intptr_t lane_count = is_float64x2 ? 2 : 4;
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  __ LoadImmediate(out, 0);
+  for (intptr_t lane = 0; lane < lane_count; lane++) {
+    if (is_float64x2) {
+      __ Load(TMP, SimdSlot(SimdLane64Offset(kSimdSlot0Offset, lane)),
+              compiler::kEightBytes);
+    } else {
+      __ Load(TMP, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)),
+              compiler::kFourBytes);
+    }
+    __ srai_d(TMP, TMP, XLEN - 1);
+    __ andi(TMP, TMP, 1);
+    if (lane != 0) {
+      __ slli_d(TMP, TMP, lane);
+    }
+    __ or_(out, out, TMP);
+  }
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4Scale(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister scale = instr->locs()->in(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(1).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreD(scale, SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(value, SimdSlot(kSimdSlot1Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ LoadS(out, SimdSlot(SimdLane32Offset(kSimdSlot1Offset, lane)));
+    __ LoadD(FpuTMP, SimdSlot(kSimdSlot0Offset));
+    __ fcvt_s_d(FpuTMP, FpuTMP);
+    __ fmul_s(out, out, FpuTMP);
+    __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2Scale(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+  const FpuRegister scale = instr->locs()->in(1).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  __ StoreD(scale, SimdSlot(kSimdSlot1Offset));
+  for (intptr_t lane = 0; lane < 2; lane++) {
+    __ LoadD(out, SimdSlot(SimdLane64Offset(kSimdSlot0Offset, lane)));
+    __ LoadD(FpuTMP, SimdSlot(kSimdSlot1Offset));
+    __ fmul_d(out, out, FpuTMP);
+    __ StoreD(out, SimdSlot(SimdLane64Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4Clamp(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(instr->locs()->in(0).fpu_reg(), SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(instr->locs()->in(1).fpu_reg(), SimdSlot(kSimdSlot1Offset));
+  __ StoreQ(instr->locs()->in(2).fpu_reg(), SimdSlot(kSimdSlot2Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ LoadS(out, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)));
+    __ LoadS(FpuTMP, SimdSlot(SimdLane32Offset(kSimdSlot1Offset, lane)));
+    __ fmax_s(out, out, FpuTMP);
+    __ LoadS(FpuTMP, SimdSlot(SimdLane32Offset(kSimdSlot2Offset, lane)));
+    __ fmin_s(out, out, FpuTMP);
+    __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2Clamp(FlowGraphCompiler* compiler,
+                               SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(instr->locs()->in(0).fpu_reg(), SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(instr->locs()->in(1).fpu_reg(), SimdSlot(kSimdSlot1Offset));
+  __ StoreQ(instr->locs()->in(2).fpu_reg(), SimdSlot(kSimdSlot2Offset));
+  for (intptr_t lane = 0; lane < 2; lane++) {
+    __ LoadD(out, SimdSlot(SimdLane64Offset(kSimdSlot0Offset, lane)));
+    __ LoadD(FpuTMP, SimdSlot(SimdLane64Offset(kSimdSlot1Offset, lane)));
+    __ fmax_d(out, out, FpuTMP);
+    __ LoadD(FpuTMP, SimdSlot(SimdLane64Offset(kSimdSlot2Offset, lane)));
+    __ fmin_d(out, out, FpuTMP);
+    __ StoreD(out, SimdSlot(SimdLane64Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitInt32x4Select(FlowGraphCompiler* compiler,
+                              SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(instr->locs()->in(0).fpu_reg(), SimdSlot(kSimdSlot0Offset));
+  __ StoreQ(instr->locs()->in(1).fpu_reg(), SimdSlot(kSimdSlot1Offset));
+  __ StoreQ(instr->locs()->in(2).fpu_reg(), SimdSlot(kSimdSlot2Offset));
+  for (intptr_t lane = 0; lane < 4; lane++) {
+    __ Load(TMP, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)),
+            compiler::kFourBytes);
+    __ Load(TMP2, SimdSlot(SimdLane32Offset(kSimdSlot1Offset, lane)),
+            compiler::kFourBytes);
+    __ and_(TMP2, TMP2, TMP);
+    __ Store(TMP2, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+             compiler::kFourBytes);
+    __ LoadImmediate(TMP2, -1);
+    __ xor_(TMP, TMP, TMP2);
+    __ Load(TMP2, SimdSlot(SimdLane32Offset(kSimdSlot2Offset, lane)),
+            compiler::kFourBytes);
+    __ and_(TMP, TMP, TMP2);
+    __ Load(TMP2, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+            compiler::kFourBytes);
+    __ or_(TMP, TMP, TMP2);
+    __ Store(TMP, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)),
+             compiler::kFourBytes);
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat32x4ToFloat64x2(FlowGraphCompiler* compiler,
+                                     SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  for (intptr_t lane = 0; lane < 2; lane++) {
+    __ LoadS(out, SimdSlot(SimdLane32Offset(kSimdSlot0Offset, lane)));
+    __ fcvt_d_s(out, out);
+    __ StoreD(out, SimdSlot(SimdLane64Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+static void EmitFloat64x2ToFloat32x4(FlowGraphCompiler* compiler,
+                                     SimdOpInstr* instr) {
+  const FpuRegister out = instr->locs()->out(0).fpu_reg();
+  const FpuRegister value = instr->locs()->in(0).fpu_reg();
+
+  ReserveSimdScratch(compiler);
+  __ StoreQ(value, SimdSlot(kSimdSlot0Offset));
+  ClearSimdSlot(compiler, kSimdResultOffset);
+  for (intptr_t lane = 0; lane < 2; lane++) {
+    __ LoadD(out, SimdSlot(SimdLane64Offset(kSimdSlot0Offset, lane)));
+    __ fcvt_s_d(out, out);
+    __ StoreS(out, SimdSlot(SimdLane32Offset(kSimdResultOffset, lane)));
+  }
+  LoadSimdResult(compiler, out);
+  ReleaseSimdScratch(compiler);
+}
+
+void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (kind()) {
+    case SimdOpInstr::kFloat32x4Add:
+    case SimdOpInstr::kFloat32x4Sub:
+    case SimdOpInstr::kFloat32x4Mul:
+    case SimdOpInstr::kFloat32x4Div:
+    case SimdOpInstr::kFloat32x4Min:
+    case SimdOpInstr::kFloat32x4Max:
+    case SimdOpInstr::kFloat32x4Equal:
+    case SimdOpInstr::kFloat32x4NotEqual:
+    case SimdOpInstr::kFloat32x4LessThan:
+    case SimdOpInstr::kFloat32x4LessThanOrEqual:
+    case SimdOpInstr::kFloat32x4GreaterThan:
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
+      EmitFloat32x4BinaryOp(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2Add:
+    case SimdOpInstr::kFloat64x2Sub:
+    case SimdOpInstr::kFloat64x2Mul:
+    case SimdOpInstr::kFloat64x2Div:
+    case SimdOpInstr::kFloat64x2Min:
+    case SimdOpInstr::kFloat64x2Max:
+      EmitFloat64x2BinaryOp(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4Add:
+    case SimdOpInstr::kInt32x4Sub:
+    case SimdOpInstr::kInt32x4BitAnd:
+    case SimdOpInstr::kInt32x4BitOr:
+    case SimdOpInstr::kInt32x4BitXor:
+      EmitInt32x4BinaryOp(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4Sqrt:
+    case SimdOpInstr::kFloat32x4Negate:
+    case SimdOpInstr::kFloat32x4Abs:
+    case SimdOpInstr::kFloat32x4Reciprocal:
+    case SimdOpInstr::kFloat32x4ReciprocalSqrt:
+      EmitFloat32x4UnaryOp(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2Sqrt:
+    case SimdOpInstr::kFloat64x2Negate:
+    case SimdOpInstr::kFloat64x2Abs:
+      EmitFloat64x2UnaryOp(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4GetX:
+    case SimdOpInstr::kFloat32x4GetY:
+    case SimdOpInstr::kFloat32x4GetZ:
+    case SimdOpInstr::kFloat32x4GetW:
+      EmitFloat32x4GetLane(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2GetX:
+    case SimdOpInstr::kFloat64x2GetY:
+      EmitFloat64x2GetLane(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4WithX:
+    case SimdOpInstr::kFloat32x4WithY:
+    case SimdOpInstr::kFloat32x4WithZ:
+    case SimdOpInstr::kFloat32x4WithW:
+      EmitFloat32x4WithLane(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2WithX:
+    case SimdOpInstr::kFloat64x2WithY:
+      EmitFloat64x2WithLane(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4GetFlagX:
+    case SimdOpInstr::kInt32x4GetFlagY:
+    case SimdOpInstr::kInt32x4GetFlagZ:
+    case SimdOpInstr::kInt32x4GetFlagW:
+      EmitInt32x4GetFlag(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4WithFlagX:
+    case SimdOpInstr::kInt32x4WithFlagY:
+    case SimdOpInstr::kInt32x4WithFlagZ:
+    case SimdOpInstr::kInt32x4WithFlagW:
+      EmitInt32x4WithFlag(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4Shuffle:
+    case SimdOpInstr::kInt32x4Shuffle:
+      EmitSimdShuffle(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4ShuffleMix:
+    case SimdOpInstr::kInt32x4ShuffleMix:
+      EmitSimdShuffleMix(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4FromDoubles:
+      EmitFloat32x4FromDoubles(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2FromDoubles:
+      EmitFloat64x2FromDoubles(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4FromInts:
+      EmitInt32x4FromInts(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4FromBools:
+      EmitInt32x4FromBools(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4Zero:
+      EmitFloat32x4Zero(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2Zero:
+      EmitFloat64x2Zero(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4Splat:
+      EmitFloat32x4Splat(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2Splat:
+      EmitFloat64x2Splat(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4GetSignMask:
+    case SimdOpInstr::kFloat32x4GetSignMask:
+    case SimdOpInstr::kFloat64x2GetSignMask:
+      EmitSimdGetSignMask(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4Scale:
+      EmitFloat32x4Scale(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2Scale:
+      EmitFloat64x2Scale(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4Clamp:
+      EmitFloat32x4Clamp(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2Clamp:
+      EmitFloat64x2Clamp(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4Select:
+      EmitInt32x4Select(compiler, this);
+      break;
+    case SimdOpInstr::kFloat32x4ToFloat64x2:
+      EmitFloat32x4ToFloat64x2(compiler, this);
+      break;
+    case SimdOpInstr::kFloat64x2ToFloat32x4:
+      EmitFloat64x2ToFloat32x4(compiler, this);
+      break;
+    case SimdOpInstr::kInt32x4ToFloat32x4:
+    case SimdOpInstr::kFloat32x4ToInt32x4:
+      __ MoveUnboxedSimd128(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
+      break;
+    case SimdOpInstr::kIllegalSimdOp:
+      UNREACHABLE();
+      break;
+  }
+}
 // Implemented below.
 // Implemented below.
 // Implemented below.
@@ -1382,7 +2295,16 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
              rep == kUnboxedFloat64x2);
-      UNIMPLEMENTED();
+      if (locs()->in(2).IsConstant()) {
+        ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
+        __ StoreToOffset(ZR, element_address.base(), element_address.offset(),
+                         compiler::kEightBytes);
+        __ StoreToOffset(ZR, element_address.base(),
+                         element_address.offset() + compiler::target::kWordSize,
+                         compiler::kEightBytes);
+      } else {
+        __ StoreQ(locs()->in(2).fpu_reg(), element_address);
+      }
     }
   } else if (class_id() == kArrayCid) {
     ASSERT(!ShouldEmitStoreBarrier());
@@ -1511,7 +2433,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
              rep == kUnboxedFloat64x2);
-      UNIMPLEMENTED();
+      __ LoadQ(result, element_address);
     }
   } else {
     ASSERT(rep == kTagged);
@@ -2200,12 +3122,20 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     ASSERT(constant.IsSmi());
     const intptr_t value = Smi::Cast(constant).Value();
     ASSERT(value >= 0);
-    __ slli_d(result, left, Utils::Minimum<intptr_t>(value, 63));
     if (shift_left->can_overflow()) {
       ASSERT(deopt != nullptr);
-      ASSERT(result != left);
-      __ srai_d(TMP2, result, Utils::Minimum<intptr_t>(value, 63));
-      __ bne(left, TMP2, deopt);
+      if (result == left) {
+        __ MoveRegister(TMP2, left);
+        __ slli_d(result, left, Utils::Minimum<intptr_t>(value, 63));
+        __ srai_d(TMP, result, Utils::Minimum<intptr_t>(value, 63));
+        __ bne(TMP2, TMP, deopt);
+      } else {
+        __ slli_d(result, left, Utils::Minimum<intptr_t>(value, 63));
+        __ srai_d(TMP2, result, Utils::Minimum<intptr_t>(value, 63));
+        __ bne(left, TMP2, deopt);
+      }
+    } else {
+      __ slli_d(result, left, Utils::Minimum<intptr_t>(value, 63));
     }
     return;
   }
@@ -2218,11 +3148,19 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     __ BranchIf(CS, deopt);
   }
   __ SmiUntag(TMP, right);
-  ASSERT(result != left);
-  __ sll_d(result, left, TMP);
   if (shift_left->can_overflow()) {
-    __ sra_d(TMP2, result, TMP);
-    __ bne(left, TMP2, deopt);
+    if (result == left) {
+      __ MoveRegister(TMP2, left);
+      __ sll_d(result, left, TMP);
+      __ sra_d(TMP, result, TMP);
+      __ bne(TMP2, TMP, deopt);
+    } else {
+      __ sll_d(result, left, TMP);
+      __ sra_d(TMP2, result, TMP);
+      __ bne(left, TMP2, deopt);
+    }
+  } else {
+    __ sll_d(result, left, TMP);
   }
 }
 
@@ -3347,6 +4285,17 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
         __ LoadDImmediate(destination.fpu_reg(),
                           compiler::target::DoubleValue(value()));
         break;
+      case kUnboxedFloat64x2:
+        __ LoadQImmediate(destination.fpu_reg(),
+                          Float64x2::Cast(value_).value());
+        break;
+      case kUnboxedFloat32x4:
+        __ LoadQImmediate(destination.fpu_reg(),
+                          Float32x4::Cast(value_).value());
+        break;
+      case kUnboxedInt32x4:
+        __ LoadQImmediate(destination.fpu_reg(), Int32x4::Cast(value_).value());
+        break;
       default:
         UNREACHABLE();
     }
@@ -3394,7 +4343,21 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                      destination.ToStackSlotOffset(), operand_size);
   } else {
     ASSERT(destination.IsQuadStackSlot());
-    UNREACHABLE();
+    switch (representation()) {
+      case kUnboxedFloat64x2:
+        __ LoadQImmediate(FpuTMP, Float64x2::Cast(value_).value());
+        break;
+      case kUnboxedFloat32x4:
+        __ LoadQImmediate(FpuTMP, Float32x4::Cast(value_).value());
+        break;
+      case kUnboxedInt32x4:
+        __ LoadQImmediate(FpuTMP, Int32x4::Cast(value_).value());
+        break;
+      default:
+        UNREACHABLE();
+    }
+    __ StoreQToOffset(FpuTMP, destination.base_reg(),
+                      destination.ToStackSlotOffset());
   }
 }
 
@@ -4177,8 +5140,10 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
 }
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (compiler->intrinsic_mode()) {
-    UNIMPLEMENTED();
+  const bool preserve_intrinsic_registers = compiler->intrinsic_mode();
+  if (preserve_intrinsic_registers) {
+    __ PushRegister(CODE_REG);
+    __ PushRegister(ARGS_DESC_REG);
   }
 
   compiler::LeafRuntimeScope rt(compiler->assembler(),
@@ -4190,6 +5155,11 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   rt.Call(TargetFunction(), InputCount());
   ASSERT(locs()->out(0).fpu_reg() == FA0);
+
+  if (preserve_intrinsic_registers) {
+    __ PopRegister(ARGS_DESC_REG);
+    __ PopRegister(CODE_REG);
+  }
 }
 
 LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,
@@ -5055,10 +6025,13 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreDFieldToOffset(value, out_reg, ValueOffset());
       break;
     case kUnboxedFloat:
+      __ fcvt_d_s(FpuTMP, value);
+      __ StoreDFieldToOffset(FpuTMP, out_reg, ValueOffset());
+      break;
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
-      UNIMPLEMENTED();
+      __ StoreQFieldToOffset(value, out_reg, ValueOffset());
       break;
     default:
       UNREACHABLE();
@@ -5315,12 +6288,20 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
       break;
     }
 
-    case kUnboxedFloat:
+    case kUnboxedFloat: {
+      const FRegister result = locs()->out(0).fpu_reg();
+      __ LoadDFieldFromOffset(result, box, ValueOffset());
+      __ fcvt_s_d(result, result);
+      break;
+    }
+
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
-    case kUnboxedInt32x4:
-      UNIMPLEMENTED();
+    case kUnboxedInt32x4: {
+      const FRegister result = locs()->out(0).fpu_reg();
+      __ LoadQFieldFromOffset(result, box, ValueOffset());
       break;
+    }
 
     default:
       UNREACHABLE();
@@ -5370,7 +6351,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       break;
 
     default:
