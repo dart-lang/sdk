@@ -1094,6 +1094,15 @@
           ]
         },
         {
+          "name": "build iOS shared library",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "--os=ios",
+            "runtime:dart_jit_library"
+          ]
+        },
+        {
           "name": "vm tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
@@ -1103,15 +1112,6 @@
           ],
           "fileset": "vm",
           "shards": 16
-        },
-        {
-          "name": "build iOS shared library",
-          "script": "tools/build.py",
-          "arguments": [
-            "--codesigning-identity=-",
-            "--os=ios",
-            "runtime:dart_jit_library"
-          ]
         }
       ]
     },
