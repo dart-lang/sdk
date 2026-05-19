@@ -7619,11 +7619,29 @@ class Bytecode : public Object {
 
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
+
+  intptr_t recorded_coverage_binary_offset() const {
+    return untag()->recorded_coverage_binary_offset_;
+  }
+  void set_recorded_coverage_binary_offset(intptr_t value) const {
+    StoreNonPointer(&untag()->recorded_coverage_binary_offset_, value);
+  }
+
+  ArrayPtr coverage_array() const { return untag()->coverage_array(); }
+  ArrayPtr EnsureCoverageArray(Thread* thread) const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   bool HasLocalVariablesInfo() const {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     return (local_variables_binary_offset() != 0);
+#else
+    return false;
+#endif
+  }
+
+  bool HasRecordedCoverage() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return (recorded_coverage_binary_offset() != 0);
 #else
     return false;
 #endif

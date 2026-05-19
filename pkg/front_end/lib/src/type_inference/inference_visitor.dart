@@ -667,7 +667,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceInvocation(
     InstanceInvocation node,
     DartType typeContext,

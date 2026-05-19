@@ -52,7 +52,12 @@ import 'object_table.dart'
         topLevelClassName;
 import 'options.dart' show BytecodeOptions;
 import 'recognized_methods.dart' show RecognizedMethods;
-import 'source_positions.dart' show LineStarts, SourcePositions;
+import 'source_positions.dart'
+    show
+        LineStarts,
+        RecordedCoverageArray,
+        RecordedCoverageType,
+        SourcePositions;
 
 // This symbol is used as the name in assert assignable's to indicate it comes
 // from an explicit 'as' check.  This will cause the runtime to throw the right
@@ -1238,6 +1243,22 @@ class BytecodeGenerator extends RecursiveVisitor {
     maxSourcePosition = math.max(maxSourcePosition, fileOffset);
   }
 
+  void _recordCoverage(TreeNode? call) {
+    if (call == null) return;
+    final offset = call is AssertStatement
+        ? call.conditionStartOffset
+        : call.fileOffset;
+    // If there is no source position, coverage cannot be recorded.
+    if (offset == TreeNode.noOffset) return;
+    asm.recordCoverage(RecordedCoverageType.regular, offset);
+  }
+
+  void _recordBranchTargetCoverage(TreeNode target) {
+    // If there is no source position, coverage cannot be recorded.
+    if (target.fileOffset == TreeNode.noOffset) return;
+    asm.recordCoverage(RecordedCoverageType.branchTarget, target.fileOffset);
+  }
+
   void _generateNode(TreeNode? node) {
     if (node == null) {
       return;
@@ -1469,6 +1490,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (totalArgCount >= argumentsLimit) {
       throw 'Too many arguments';
+    }
+    // Only record coverage for non-synthetic calls.
+    if ((asm.currentSourcePositionFlags & SourcePositions.syntheticFlag) == 0) {
+      _recordCoverage(node);
     }
     if (isUnchecked) {
       asm.emitUncheckedDirectCall(cpIndex, totalArgCount);
@@ -2066,6 +2091,7 @@ class BytecodeGenerator extends RecursiveVisitor {
           asm.exceptionsTable,
           finalizeSourcePositions(),
           finalizeLocalVariables(),
+          finalizeRecordedCoverage(),
           nullableFields,
           closures ?? const <ClosureDeclaration>[],
           parameterFlags,
@@ -2121,6 +2147,14 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     bytecodeComponent.localVariables.add(localVariables);
     return localVariables;
+  }
+
+  RecordedCoverageArray? finalizeRecordedCoverage() {
+    if (asm.recordedCoverageArray.isEmpty) {
+      return null;
+    }
+    bytecodeComponent.recordedCoverage.add(asm.recordedCoverageArray);
+    return asm.recordedCoverageArray;
   }
 
   void _genPrologue(TreeNode node, FunctionNode? function) {
@@ -2813,6 +2847,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.exceptionsTable,
       finalizeSourcePositions(),
       finalizeLocalVariables(),
+      finalizeRecordedCoverage(),
       capturesOnlyFinalNotLateVars,
       node.id.toInt(),
     );
@@ -3527,6 +3562,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         targetName,
         argDesc,
       );
+      _recordCoverage(node);
       if (isDynamic) {
         assert(!isUnchecked);
         asm.emitDynamicCall(callCpIndex, totalArgCount);
@@ -3628,6 +3664,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       // Duplicate receiver (closure) for UncheckedClosureCall.
       asm.emitPush(receiverTemp);
       final argDescCpIndex = cp.addArgDescByArguments(args, hasReceiver: true);
+      _recordCoverage(node);
       asm.emitUncheckedClosureCall(argDescCpIndex, totalArgCount);
       return;
     }
@@ -3670,6 +3707,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     // Duplicate receiver (closure) for UncheckedClosureCall.
     _genLoadVar(node.variable);
     final argDescCpIndex = cp.addArgDescByArguments(args, hasReceiver: true);
+    _recordCoverage(node);
     asm.emitUncheckedClosureCall(argDescCpIndex, totalArgCount);
   }
 
@@ -4254,7 +4292,16 @@ class BytecodeGenerator extends RecursiveVisitor {
     final Label done = new Label();
     asm.emitJumpIfNoAsserts(done);
 
-    _genConditionAndJumpIf(node.condition, true, done);
+    // To only introduce one RecordCoverage instruction for each assert,
+    // insert it between evaluating the condition and the jump.
+    final negated = _genCondition(node.condition);
+    _recordCoverage(node);
+    asm.emitSourcePosition();
+    if (negated) {
+      asm.emitJumpIfFalse(done);
+    } else {
+      asm.emitJumpIfTrue(done);
+    }
 
     final fileUri = node.location!.file;
     final source = node.enclosingComponent!.uriToSource[fileUri]!;
@@ -4356,6 +4403,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     asm.emitCheckStack(++currentLoopDepth);
 
+    _recordBranchTargetCoverage(node.body);
     _generateNode(node.body);
 
     _genConditionAndJumpIf(node.condition, true, join);
@@ -4406,6 +4454,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         _genConditionAndJumpIf(condition, false, done);
       }
 
+      _recordBranchTargetCoverage(node.body);
       _generateNode(node.body);
 
       if (locals.currentContextSize > 0) {
@@ -4445,12 +4494,14 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _genConditionAndJumpIf(node.condition, false, otherwisePart);
 
+    _recordBranchTargetCoverage(node.then);
     _generateNode(node.then);
 
     if (node.otherwise != null) {
       final Label done = new Label();
       asm.emitJump(done);
       asm.bind(otherwisePart);
+      _recordBranchTargetCoverage(node.otherwise!);
       _generateNode(node.otherwise);
       asm.bind(done);
     } else {
@@ -4563,6 +4614,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       final Label caseLabel = caseLabels[i];
 
       asm.bind(caseLabel);
+      _recordBranchTargetCoverage(switchCase.body);
       _generateNode(switchCase.body);
 
       // Front-end issues a compile-time error if there is a fallthrough
@@ -4705,6 +4757,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final tryCatches = this.tryCatches ??= <TryCatch, TryBlock>{};
     tryCatches[node] = tryBlock; // Used by rethrow.
 
+    _recordBranchTargetCoverage(node.body);
     _generateNode(node.body);
     asm.emitJump(done);
 
@@ -4753,6 +4806,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         _genStoreVar(stackTraceVar);
       }
 
+      _recordBranchTargetCoverage(catchClause.body);
       _generateNode(catchClause.body);
 
       _leaveScope();
@@ -4785,6 +4839,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         <TryFinally, List<FinallyBlock>>{};
     finallyBlocks[node] = <FinallyBlock>[];
 
+    _recordBranchTargetCoverage(node.body);
     _generateNode(node.body);
 
     if (!asm.isUnreachable) {
@@ -4807,6 +4862,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     for (var finallyBlock in finallyBlocks[node]!) {
       asm.bind(finallyBlock.entry);
       _restoreContextForTryBlock(node);
+      _recordBranchTargetCoverage(node.finalizer);
       _generateNode(node.finalizer);
       finallyBlock.generateContinuation();
     }
@@ -4903,6 +4959,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _genConditionAndJumpIf(node.condition, false, done);
 
+    _recordBranchTargetCoverage(node.body);
     _generateNode(node.body);
 
     asm.emitJump(join);

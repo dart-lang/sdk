@@ -11547,6 +11547,16 @@ void Function::RestoreICDataMap(
 }
 
 ArrayPtr Function::GetCoverageArray() const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (HasBytecode()) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    const auto& bytecode = Bytecode::Handle(GetBytecode());
+    return bytecode.coverage_array();
+#else
+    return Array::null();
+#endif
+  }
+#endif
   const Array& arr = Array::Handle(ic_data_array());
   if (arr.IsNull()) {
     return Array::null();
@@ -19075,6 +19085,35 @@ LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
     set_var_descriptors(var_descs);
   }
   return var_descs.ptr();
+#else
+  UNREACHABLE();
+#endif
+}
+
+ArrayPtr Bytecode::EnsureCoverageArray(Thread* thread) const {
+#if defined(DART_DYNAMIC_MODULES)
+  // Should only be called for bytecode with RecordCoverage instructions.
+  ASSERT(HasRecordedCoverage());
+  if (coverage_array() == Array::null()) {
+    Zone* const zone = thread->zone();
+    bytecode::BytecodeRecordedCoverageIterator it(zone, *this);
+    const auto& array =
+        Array::Handle(zone, Array::New(2 * it.NumEntries(), Heap::kOld));
+    auto& smi = Smi::Handle(zone);
+    // The coverage array has two consecutive entries for each logical
+    // index: the encoded coverage position and the hit count.
+    for (intptr_t i = 0; it.MoveNext(); i += 2) {
+      smi = Smi::New(it.EncodedCoveragePosition());
+      array.SetAt(i, smi);
+      smi = Smi::New(0);
+      array.SetAt(i + 1, smi);
+    }
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (coverage_array() == Array::null()) {
+      untag()->set_coverage_array(array.ptr());
+    }
+  }
+  return coverage_array();
 #else
   UNREACHABLE();
 #endif

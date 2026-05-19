@@ -4935,6 +4935,22 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
+// Lazily allocates a coverage array for bytecode prior to recording coverage.
+//
+// Arg0: Bytecode object that needs an allocated coverage array.
+DEFINE_RUNTIME_ENTRY(AllocateBytecodeCoverageArray, 1) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& bytecode = Bytecode::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& coverage_array =
+      Array::Handle(zone, bytecode.EnsureCoverageArray(thread));
+  arguments.SetReturn(coverage_array);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&
+        // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 DEFINE_RUNTIME_ENTRY(FatalError, 1) {
   const String& message = String::CheckedHandle(zone, arguments.ArgAt(0));
   FATAL("%s", message.ToCString());

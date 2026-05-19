@@ -433,6 +433,7 @@ class _InitializerBuilder {
         libraryBuilder: libraryBuilder,
         typeInferrer: _typeInferrer,
         superParameterArguments: superParameterArguments,
+        parameters: parameters,
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
         contextAllocationStrategy: contextAllocationStrategy,
@@ -628,6 +629,7 @@ class _InitializerBuilder {
     required SourceLibraryBuilder libraryBuilder,
     required TypeInferrer typeInferrer,
     required _SuperParameterArguments? superParameterArguments,
+    required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -825,11 +827,9 @@ class _InitializerBuilder {
         )..fileOffset = _bodyBuilderContext.memberNameOffset;
       }
     }
-    // The [parameters] and [internalThisVariable] won't be used in the implicit
-    // super initializer.
     return _inferInitializer(
       initializer,
-      parameters: [],
+      parameters: parameters,
       internalThisVariable: internalThisVariable,
       scopeProviderInfo: scopeProviderInfo,
       contextAllocationStrategy: contextAllocationStrategy,

@@ -335,6 +335,31 @@ class TypeInferrerImpl implements TypeInferrer {
       contextAllocationStrategy:
           InferenceVisitorBase.createContextAllocationStrategy(),
     );
+
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = visitor.beginFunctionBodyInference(
+        [
+          for (VariableDeclaration positionalParameter
+              in redirectingFactoryFunction.positionalParameters)
+            new InternalPositionalParameter(
+              astVariable: positionalParameter as PositionalParameter,
+              isImplicitlyTyped: false,
+              fileOffset: positionalParameter.fileOffset,
+            ),
+          for (VariableDeclaration namedParameter
+              in redirectingFactoryFunction.namedParameters)
+            new InternalNamedParameter(
+              astVariable: namedParameter as NamedParameter,
+              isImplicitlyTyped: false,
+              fileOffset: namedParameter.fileOffset,
+            ),
+        ],
+        internalThisVariable: null,
+        scopeProviderInfo: null,
+      );
+    }
+
     List<Argument> arguments = [];
     int positionalCount = 0;
     for (VariableDeclaration parameter
@@ -409,6 +434,11 @@ class TypeInferrerImpl implements TypeInferrer {
       staticTarget: target,
     );
     visitor.checkCleanState();
+
+    if (scopeProviderInfo != null) {
+      visitor.endFunctionBodyInference(scopeProviderInfo);
+    }
+
     DartType resultType = result.inferredType;
     if (resultType is TypeDeclarationType) {
       return resultType.typeArguments;
