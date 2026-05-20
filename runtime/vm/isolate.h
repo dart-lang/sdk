@@ -1838,27 +1838,34 @@ class EnterIsolateGroupScope {
 // operate on an individual isolate.
 class NoActiveIsolateScope : public StackResource {
  public:
-  NoActiveIsolateScope() : NoActiveIsolateScope(Thread::Current()) {}
-  explicit NoActiveIsolateScope(Thread* thread)
+  explicit NoActiveIsolateScope(bool allow_no_thread = false)
+      : NoActiveIsolateScope(Thread::Current(), allow_no_thread) {}
+  explicit NoActiveIsolateScope(Thread* thread, bool allow_no_thread = false)
       : StackResource(thread), thread_(thread) {
-    outer_ = thread_->no_active_isolate_scope_;
-    saved_isolate_ = thread_->isolate_;
+    ASSERT(allow_no_thread || thread_ != nullptr);
+    if (thread_ != nullptr) {
+      outer_ = thread_->no_active_isolate_scope_;
+      saved_isolate_ = thread_->isolate_;
 
-    thread_->no_active_isolate_scope_ = this;
-    thread_->isolate_ = nullptr;
+      thread_->no_active_isolate_scope_ = this;
+      thread_->isolate_ = nullptr;
+    }
   }
   ~NoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == nullptr);
-    thread_->isolate_ = saved_isolate_;
-    thread_->no_active_isolate_scope_ = outer_;
+    ASSERT(thread_ == nullptr || thread_->isolate_ == nullptr);
+    ASSERT(thread_ != nullptr || saved_isolate_ == nullptr);
+    if (thread_ != nullptr) {
+      thread_->isolate_ = saved_isolate_;
+      thread_->no_active_isolate_scope_ = outer_;
+    }
   }
 
  private:
   friend class ActiveIsolateScope;
 
-  Thread* thread_;
-  Isolate* saved_isolate_;
-  NoActiveIsolateScope* outer_;
+  Thread* thread_ = nullptr;
+  Isolate* saved_isolate_ = nullptr;
+  NoActiveIsolateScope* outer_ = nullptr;
 };
 
 class ActiveIsolateScope : public StackResource {
