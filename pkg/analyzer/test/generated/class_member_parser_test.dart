@@ -2993,8 +2993,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 FieldDeclaration
-  abstractKeyword: abstract
   externalKeyword: external
+  abstractKeyword: abstract
   fields: VariableDeclarationList
     type: NamedType
       name: int
@@ -3062,8 +3062,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 FieldDeclaration
-  abstractKeyword: abstract
   staticKeyword: static
+  abstractKeyword: abstract
   fields: VariableDeclarationList
     type: NamedType
       name: int
@@ -3131,8 +3131,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 FieldDeclaration
-  abstractKeyword: abstract
   externalKeyword: external
+  abstractKeyword: abstract
   fields: VariableDeclarationList
     type: NamedType
       name: int

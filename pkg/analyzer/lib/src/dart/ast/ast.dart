@@ -5200,12 +5200,12 @@ abstract final class ClassTypeAlias implements TypeAlias {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', isSuper: true),
     GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('sealedKeyword'),
     GenerateNodeProperty('baseKeyword'),
     GenerateNodeProperty('interfaceKeyword'),
     GenerateNodeProperty('finalKeyword'),
-    GenerateNodeProperty('augmentKeyword', isSuper: true),
     GenerateNodeProperty('mixinKeyword'),
     GenerateNodeProperty('typedefKeyword', isSuper: true),
     GenerateNodeProperty('name', isSuper: true),
@@ -5267,12 +5267,12 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   ClassTypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required super.augmentKeyword,
     required this.abstractKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
-    required super.augmentKeyword,
     required this.mixinKeyword,
     required super.typedefKeyword,
     required super.name,
@@ -5301,6 +5301,9 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
     if (abstractKeyword case var abstractKeyword?) {
       return abstractKeyword;
     }
@@ -5315,9 +5318,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     }
     if (finalKeyword case var finalKeyword?) {
       return finalKeyword;
-    }
-    if (augmentKeyword case var augmentKeyword?) {
-      return augmentKeyword;
     }
     if (mixinKeyword case var mixinKeyword?) {
       return mixinKeyword;
@@ -5364,12 +5364,12 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
     ..addToken('finalKeyword', finalKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addToken('name', name)
@@ -12398,11 +12398,11 @@ abstract final class FieldDeclaration implements ClassMember {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('abstractKeyword', tokenGroupId: 0),
     GenerateNodeProperty('augmentKeyword', tokenGroupId: 0),
-    GenerateNodeProperty('covariantKeyword', tokenGroupId: 0),
     GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
     GenerateNodeProperty('staticKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('abstractKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('covariantKeyword', tokenGroupId: 0),
     GenerateNodeProperty('fields'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -12411,15 +12411,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     implements FieldDeclaration {
   @generated
   @override
-  final Token? abstractKeyword;
-
-  @generated
-  @override
   final Token? augmentKeyword;
-
-  @generated
-  @override
-  final Token? covariantKeyword;
 
   @generated
   @override
@@ -12428,6 +12420,14 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   final Token? staticKeyword;
+
+  @generated
+  @override
+  final Token? abstractKeyword;
+
+  @generated
+  @override
+  final Token? covariantKeyword;
 
   @generated
   VariableDeclarationListImpl _fields;
@@ -12440,11 +12440,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   FieldDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required this.abstractKeyword,
     required this.augmentKeyword,
-    required this.covariantKeyword,
     required this.externalKeyword,
     required this.staticKeyword,
+    required this.abstractKeyword,
+    required this.covariantKeyword,
     required VariableDeclarationListImpl fields,
     required this.semicolon,
   }) : _fields = fields {
@@ -12473,11 +12473,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   Token get firstTokenAfterCommentAndMetadata {
     if (Token.lexicallyFirst(
-          abstractKeyword,
           augmentKeyword,
-          covariantKeyword,
           externalKeyword,
           staticKeyword,
+          abstractKeyword,
+          covariantKeyword,
         )
         case var result?) {
       return result;
@@ -12491,11 +12491,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('externalKeyword', externalKeyword)
     ..addToken('staticKeyword', staticKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addNode('fields', fields)
     ..addToken('semicolon', semicolon);
 
@@ -12596,8 +12596,8 @@ abstract final class FieldFormalParameter implements FormalParameter {
       withOverride: false,
       type: _TypeLiteral<ParameterKind>,
     ),
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
     GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('thisKeyword'),
@@ -12622,8 +12622,8 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
     required super.comment,
     required super.metadata,
     required super.kind,
-    required super.covariantKeyword,
     required super.requiredKeyword,
+    required super.covariantKeyword,
     required super.constFinalOrVarKeyword,
     required super.type,
     required this.thisKeyword,
@@ -12652,11 +12652,11 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
     }
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
@@ -12674,8 +12674,8 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('thisKeyword', thisKeyword)
@@ -13897,11 +13897,11 @@ sealed class FormalParameterImpl extends AstNodeImpl
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
     }
-    if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    }
     if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
+    }
+    if (requiredKeyword case var requiredKeyword?) {
+      return requiredKeyword;
     }
     throw StateError('Expected at least one non-null');
   }
@@ -28850,8 +28850,8 @@ abstract final class RegularFormalParameter implements FormalParameter {}
       withOverride: false,
       type: _TypeLiteral<ParameterKind>,
     ),
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
     GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('name', isSuper: true),
@@ -28866,8 +28866,8 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     required super.comment,
     required super.metadata,
     required super.kind,
-    required super.covariantKeyword,
     required super.requiredKeyword,
+    required super.covariantKeyword,
     required super.constFinalOrVarKeyword,
     required super.type,
     required super.name,
@@ -28893,11 +28893,11 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
     }
-    if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    }
     if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
+    }
+    if (requiredKeyword case var requiredKeyword?) {
+      return requiredKeyword;
     }
     throw StateError('Expected at least one non-null');
   }
@@ -28905,11 +28905,11 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
     }
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
@@ -28932,8 +28932,8 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('name', name)
@@ -31173,8 +31173,8 @@ abstract final class SuperFormalParameter implements FormalParameter {
       withOverride: false,
       type: _TypeLiteral<ParameterKind>,
     ),
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
     GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('superKeyword'),
@@ -31199,8 +31199,8 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
     required super.comment,
     required super.metadata,
     required super.kind,
-    required super.covariantKeyword,
     required super.requiredKeyword,
+    required super.covariantKeyword,
     required super.constFinalOrVarKeyword,
     required super.type,
     required this.superKeyword,
@@ -31229,11 +31229,11 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
     }
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
@@ -31251,8 +31251,8 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('superKeyword', superKeyword)
@@ -32876,8 +32876,8 @@ abstract final class TopLevelVariableDeclaration
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
-    GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('externalKeyword'),
+    GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -32890,11 +32890,11 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  final Token? abstractKeyword;
+  final Token? externalKeyword;
 
   @generated
   @override
-  final Token? externalKeyword;
+  final Token? abstractKeyword;
 
   @generated
   VariableDeclarationListImpl _variables;
@@ -32908,8 +32908,8 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
-    required this.abstractKeyword,
     required this.externalKeyword,
+    required this.abstractKeyword,
     required VariableDeclarationListImpl variables,
     required this.semicolon,
   }) : _variables = variables {
@@ -32931,11 +32931,11 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     if (augmentKeyword case var augmentKeyword?) {
       return augmentKeyword;
     }
-    if (abstractKeyword case var abstractKeyword?) {
-      return abstractKeyword;
-    }
     if (externalKeyword case var externalKeyword?) {
       return externalKeyword;
+    }
+    if (abstractKeyword case var abstractKeyword?) {
+      return abstractKeyword;
     }
     return variables.beginToken;
   }
@@ -32953,8 +32953,8 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('externalKeyword', externalKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
     ..addNode('variables', variables)
     ..addToken('semicolon', semicolon);
 

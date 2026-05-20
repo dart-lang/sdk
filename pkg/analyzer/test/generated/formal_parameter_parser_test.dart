@@ -1398,8 +1398,8 @@ FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
-    covariantKeyword: covariant
     requiredKeyword: required
+    covariantKeyword: covariant
     type: NamedType
       name: A
     name: a
@@ -1422,8 +1422,8 @@ FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
-    covariantKeyword: covariant
     requiredKeyword: required
+    covariantKeyword: covariant
     type: NamedType
       name: A
     name: a
@@ -1880,8 +1880,8 @@ void f(void g({required covariant int a})) {}
     var node = parseResult.findNode.regularFormalParameter('a}');
     assertParsedNodeText(node, r'''
 RegularFormalParameter
-  covariantKeyword: covariant
   requiredKeyword: required
+  covariantKeyword: covariant
   type: NamedType
     name: int
   name: a

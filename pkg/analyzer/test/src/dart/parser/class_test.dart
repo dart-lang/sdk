@@ -2518,8 +2518,8 @@ ClassDeclaration
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
-        covariantKeyword: covariant
         requiredKeyword: required
+        covariantKeyword: covariant
         type: NamedType
           name: int
         name: it
@@ -2549,8 +2549,8 @@ ClassDeclaration
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
-        covariantKeyword: covariant
         requiredKeyword: required
+        covariantKeyword: covariant
         constFinalOrVarKeyword: final
         type: NamedType
           name: int
@@ -2579,8 +2579,8 @@ ClassDeclaration
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
-        covariantKeyword: covariant
         requiredKeyword: required
+        covariantKeyword: covariant
         constFinalOrVarKeyword: var
         type: NamedType
           name: int
@@ -2641,8 +2641,8 @@ ClassDeclaration
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
-        covariantKeyword: covariant
         requiredKeyword: required
+        covariantKeyword: covariant
         constFinalOrVarKeyword: var
         type: NamedType
           name: int
