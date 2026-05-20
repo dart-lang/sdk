@@ -5950,6 +5950,23 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateStaticCall(deopt_id(), source(), function(), args_info,
                                locs(), *call_ic_data, rebind_rule_,
                                entry_kind());
+  if (function().IsFactory()) {
+    TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
+    if (type_usage_info != nullptr) {
+      const Class& klass = Class::Handle(function().Owner());
+      if (klass.NumTypeArguments() > 0) {
+        if (type_args_len() > 0) {
+          RegisterTypeArgumentsUse(compiler->function(), type_usage_info, klass,
+                                   ArgumentAt(0),
+                                   /*convert_to_instance_type_arguments=*/true);
+        } else {
+          type_usage_info->UseTypeArgumentsInInstanceCreation(
+              klass, TypeArguments::Handle(
+                         zone, klass.GetDeclarationInstanceTypeArguments()));
+        }
+      }
+    }
+  }
 }
 
 CachableIdempotentCallInstr::CachableIdempotentCallInstr(
