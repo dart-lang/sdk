@@ -45,9 +45,8 @@ class AnalysisSetSubscriptionsHandler extends LegacyHandler {
         );
     server.setAnalysisSubscriptions(subMap);
     // Forward the request to the plugins.
-    var converter = RequestConverter();
     server.pluginManager.setAnalysisSetSubscriptionsParams(
-      converter.convertAnalysisSetSubscriptionsParams(params),
+      params.asPluginProtocol,
     );
     sendResult(AnalysisSetSubscriptionsResult());
   }

@@ -1612,6 +1612,15 @@
           ]
         },
         {
+          "name": "build dart debug - split to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--no-clang",
+            "create_sdk"
+          ]
+        },
+        {
           "name": "build dart release",
           "script": "tools/build.py",
           "arguments": [
@@ -1622,13 +1631,12 @@
           ]
         },
         {
-          "name": "build dart product",
+          "name": "build dart release - split to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=product",
+            "--mode=release",
             "--no-clang",
-            "runtime",
-            "runtime_precompiled"
+            "create_sdk"
           ]
         }
       ]

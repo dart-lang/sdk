@@ -202,6 +202,16 @@ bool SourceReport::ShouldSkipField(const Field& field) {
       return true;
     }
   }
+
+  // Static const fields from compiled code will not have an initializer
+  // function, just an implicit static getter (which is skipped).
+  // Static const fields in bytecode _do_ have initializer functions,
+  // though, so skip them to ensure they aren't reported in the coverage
+  // information so as to match coverage for compile code.
+  if (field.is_static() && field.is_const()) {
+    return true;
+  }
+
   return false;
 }
 

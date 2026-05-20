@@ -634,13 +634,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         typeArguments = [];
       }
 
-      _thisVariable =
-          libraryBuilder
-              .loader
-              .target
-              .backendTarget
-              .flags
-              .isClosureContextLoweringEnabled
+      _thisVariable = libraryBuilder.loader.isClosureContextLoweringEnabled
           ?
             // Coverage-ignore(suite): Not run.
             (new PositionalParameter(

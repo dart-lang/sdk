@@ -216,6 +216,10 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     return null;
   }
 
+  bool get isClosureContextLoweringEnabled {
+    return target.backendTarget.flags.isClosureContextLoweringEnabled;
+  }
+
   int byteCount = 0;
 
   UriOffset? currentUriForCrashReporting;
@@ -2971,8 +2975,7 @@ severity: $severity
           hierarchyBuilder,
           sourceClasses,
           sourceExtensionTypes,
-          isClosureContextLoweringEnabled:
-              target.backendTarget.flags.isClosureContextLoweringEnabled,
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         );
     typeInferenceEngine.membersBuilder = membersBuilder;
     ticker.logMs("Built class hierarchy members");

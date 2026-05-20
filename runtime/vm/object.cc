@@ -26186,8 +26186,12 @@ uint32_t TypedData::CanonicalizeHash() const {
     return 1;
   }
   uint32_t hash = len;
-  for (intptr_t i = 0; i < len; i++) {
-    hash = CombineHashes(len, GetUint8(i));
+  const intptr_t chunks = len / kInt32Size;
+  for (intptr_t i = 0; i < chunks; i++) {
+    hash = CombineHashes(hash, GetUint32(i * kInt32Size));
+  }
+  for (intptr_t i = chunks * kInt32Size; i < len; i++) {
+    hash = CombineHashes(hash, GetUint8(i));
   }
   return FinalizeHash(hash, kHashBits);
 }

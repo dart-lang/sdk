@@ -36,16 +36,13 @@ class AnalysisUpdateContentHandler extends LegacyHandler {
     }
 
     server.updateContent(request.id, params.files);
-    //
+
     // Forward the request to the plugins.
-    //
-    var converter = RequestConverter();
     server.pluginManager.setAnalysisUpdateContentParams(
-      converter.convertAnalysisUpdateContentParams(params),
+      params.asPluginProtocol,
     );
-    //
+
     // Send the response.
-    //
     sendResult(AnalysisUpdateContentResult());
   }
 }

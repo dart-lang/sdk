@@ -1343,12 +1343,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter!);
       if (!_fragment.modifiers.isFinal) {
         VariableDeclaration parameter =
-            libraryBuilder
-                .loader
-                .target
-                .backendTarget
-                .flags
-                .isClosureContextLoweringEnabled
+            libraryBuilder.loader.isClosureContextLoweringEnabled
             ?
               // Coverage-ignore(suite): Not run.
               (new PositionalParameter(

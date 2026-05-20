@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic /* scope=[
+  #ctx1: not-captured VariableContext([
+    local-variable const x;
+  ]),
+] */ {
+  x := #C1;
+  return #C1;
+}
+
+constants  {
+  #C1 = ""
+}

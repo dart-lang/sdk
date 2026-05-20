@@ -1995,6 +1995,9 @@ void Simulator::DecodeSystem(Instr* instr) {
   if (instr->InstructionBits() == kDMB_ISH) {
     // Format(instr, "dmb ish");
     memory_.FlushAll();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
     std::atomic_thread_fence(std::memory_order_seq_cst);
     return;
   }

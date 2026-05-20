@@ -1050,13 +1050,8 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
-      isClosureContextLoweringEnabled: builder
-          .libraryBuilder
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled,
+      isClosureContextLoweringEnabled:
+          builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
     return fragment.isOperator
         ? new _ExtensionInstanceOperatorEncoding(
@@ -1188,13 +1183,8 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
-          isClosureContextLoweringEnabled: builder
-              .libraryBuilder
-              .loader
-              .target
-              .backendTarget
-              .flags
-              .isClosureContextLoweringEnabled,
+          isClosureContextLoweringEnabled:
+              builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );
     return fragment.isOperator
         ? new _ExtensionTypeInstanceOperatorEncoding(

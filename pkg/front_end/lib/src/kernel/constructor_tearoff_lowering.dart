@@ -363,12 +363,8 @@ DelayedDefaultValueCloner _createParameters(
   Substitution substitution,
   SourceLibraryBuilder libraryBuilder,
 ) {
-  bool isClosureContextLoweringEnabled = libraryBuilder
-      .loader
-      .target
-      .backendTarget
-      .flags
-      .isClosureContextLoweringEnabled;
+  bool isClosureContextLoweringEnabled =
+      libraryBuilder.loader.isClosureContextLoweringEnabled;
 
   VariableDeclaration createTearOffParameter(
     VariableDeclaration constructorParameter, {

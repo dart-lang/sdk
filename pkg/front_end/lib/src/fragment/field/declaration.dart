@@ -650,9 +650,6 @@ class RegularFieldDeclaration
             .builder
             .libraryBuilder
             .loader
-            .target
-            .backendTarget
-            .flags
             .isClosureContextLoweringEnabled,
       );
     } else {

@@ -940,12 +940,8 @@ class Resolver {
                 fileUri: fileUri,
                 hasImmediatelyDeclaredInitializer: false,
                 wildcardIndex: wildcardIndex,
-                isClosureContextLoweringEnabled: libraryBuilder
-                    .loader
-                    .target
-                    .backendTarget
-                    .flags
-                    .isClosureContextLoweringEnabled,
+                isClosureContextLoweringEnabled:
+                    libraryBuilder.loader.isClosureContextLoweringEnabled,
                 variable: formal,
               );
             },

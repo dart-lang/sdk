@@ -791,7 +791,6 @@ char* Dart::InitializeIsolateGroup(Thread* T,
       ICData::Init();
       StubCode::Init();
       T->InitVMConstants();
-      T->set_thread_locals(Array::empty_array());
       Symbols::Init(IG);
       Object::FinishInit(IG);
       Api::InitHandles();
@@ -856,6 +855,8 @@ ErrorPtr Dart::InitializeIsolate(Thread* T,
     I->set_field_table(T, IG->initial_field_table()->Clone(I));
     I->field_table()->MarkReadyToUse();
   }
+
+  T->set_thread_locals(Object::empty_array());
 
   const auto& error =
       Error::Handle(Z, I->isolate_object_store()->PreallocateObjects());

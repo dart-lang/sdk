@@ -445,10 +445,12 @@ if (!using_sanitizer && current_os == "linux" &&
     }
   } else if (current_cpu == "riscv64") {
     # Fuchsia Clang is missing the riscv64 MSAN runtime.
-    sanitizers += [
-      "asan",
-      "tsan",
-    ]
+    sanitizers += [ "asan" ]
+
+    # gcc tsan is broken on Ubuntu Noble.
+    if (is_clang) {
+      sanitizers += [ "tsan" ]
+    }
   }
 
   foreach(sanitizer, sanitizers) {

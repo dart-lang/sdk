@@ -183,12 +183,8 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
       );
 
-  bool get isClosureContextLoweringEnabled => libraryBuilder
-      .loader
-      .target
-      .backendTarget
-      .flags
-      .isClosureContextLoweringEnabled;
+  bool get isClosureContextLoweringEnabled =>
+      libraryBuilder.loader.isClosureContextLoweringEnabled;
 
   InferenceVisitorBase _createInferenceVisitor({
     required Uri fileUri,

@@ -2263,12 +2263,8 @@ class FragmentFactoryImpl implements FragmentFactory {
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       wildcardIndex: wildcardIndex,
       publicName: publicName,
-      isClosureContextLoweringEnabled: _compilationUnit
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled,
+      isClosureContextLoweringEnabled:
+          _compilationUnit.loader.isClosureContextLoweringEnabled,
     );
     return formal;
   }

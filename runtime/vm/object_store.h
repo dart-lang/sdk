@@ -225,6 +225,7 @@ class ObjectPointerVisitor;
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
   R_(Array, dart_args_1)                                                       \
   R_(Array, dart_args_2)                                                       \
+  RW(Array, thread_locals)                                                     \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \
   R_(GrowableObjectArray, error_listeners)

@@ -426,12 +426,7 @@ class BodyBuilderImpl extends StackListenerImpl
       uri.isScheme("org-dartlang-sdk");
 
   bool get isClosureContextLoweringEnabled {
-    return libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .flags
-        .isClosureContextLoweringEnabled;
+    return libraryBuilder.loader.isClosureContextLoweringEnabled;
   }
 
   @override

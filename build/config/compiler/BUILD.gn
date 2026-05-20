@@ -130,8 +130,8 @@ config("compiler") {
       cflags += [ "-fsanitize=address" ]
       if (is_win) {
         # Windows directly calls link.exe instead of the compiler driver when
-        # linking.  Hence, pass the runtime libraries instead of -fsanitize=address
-        # or -fsanitize=fuzzer.
+        # linking. Hence, pass the runtime libraries instead of
+        # -fsanitize=address or -fsanitize=fuzzer.
         _clang_lib_dir =
             "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc"
         libs = [ "$_clang_lib_dir/clang_rt.asan_dynamic.lib" ]
@@ -688,6 +688,11 @@ if (is_win) {
     default_warning_flags += [
       "-Wno-ignored-qualifiers",  # Warnings in BoringSSL headers
     ]
+    if (is_tsan && current_cpu == "riscv64") {
+      default_warning_flags += [
+        "-Wno-tsan",  # Use of std::atomic_thread_fence in the STL.
+      ]
+    }
   }
 
   if (is_mac || is_ios) {
