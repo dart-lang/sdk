@@ -29,7 +29,7 @@ augment class A {
   }
 
   test_class_instanceField_int_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? foo;
 }
@@ -98,7 +98,7 @@ augment class A {
   }
 
   test_class_instanceMethod_void_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -110,7 +110,7 @@ augment class A {
   }
 
   test_class_staticField_int_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int? foo;
 }
@@ -220,7 +220,7 @@ augment mixin M {
   }
 
   test_topLevelFunction_int_int_withImportPrefix() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
 import 'dart:core' as core;
 
@@ -264,7 +264,7 @@ augment core.int foo();
   }
 
   test_topLevelFunction_void_nothing() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 
 augment foo();
@@ -272,7 +272,7 @@ augment foo();
   }
 
   test_topLevelFunction_void_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 
 augment void foo();
@@ -280,7 +280,7 @@ augment void foo();
   }
 
   test_topLevelFunction_void_void_viaTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef VoidAlias = void;
 
 void foo() {}
@@ -310,7 +310,7 @@ augment final String? foo = null;
   }
 
   test_topLevelVariable_int_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int? foo;
 
 augment int? foo;

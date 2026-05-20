@@ -18,52 +18,40 @@ class NoAdjacentStringsInListTest extends LintRuleTest {
   String get lintRule => LintNames.no_adjacent_strings_in_list;
 
   test_adjacentStrings_three() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var list = [
-  'a'
+  [!'a'
   'b'
-  'c'
+  'c'!]
 ];
-''',
-      [lint(15, 15)],
-    );
+''');
   }
 
   test_forElement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var list = [
-  for (var v in []) 'a'
-  'b'
+  for (var v in []) [!'a'
+  'b'!]
 ];
-''',
-      [lint(33, 9)],
-    );
+''');
   }
 
   test_ifElement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var list = [
-  if (1 == 2) 'a'
-  'b'
+  if (1 == 2) [!'a'
+  'b'!]
 ];
-''',
-      [lint(27, 9)],
-    );
+''');
   }
 
   test_ifElementWithElse_inElse() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var list = [
   if (1 == 2) 'a'
-  else 'b' 'c'
+  else [!'b' 'c'!]
 ];
-''',
-      [lint(38, 7)],
-    );
+''');
   }
 
   test_ifElementWithElse_inThen() async {
@@ -77,16 +65,13 @@ var list = [
   }
 
   test_listLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var list = [
-  'a'
-  'b',
+  [!'a'
+  'b'!],
   'c',
 ];
-''',
-      [lint(15, 9)],
-    );
+''');
   }
 
   test_listLiteral_plusOperator() async {
@@ -100,16 +85,13 @@ var list = [
   }
 
   test_setLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var set = {
-  'a'
-  'b',
+  [!'a'
+  'b'!],
   'c',
 };
-''',
-      [lint(14, 9)],
-    );
+''');
   }
 
   test_setLiteral_plusOperator() async {
@@ -123,16 +105,13 @@ var set = {
   }
 
   test_switchPattern() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   List<String?> row = [];
   switch (row) {
-    case ['one' 'two', var name!]:
+    case [[!'one' 'two'!], var name!/**/]:
   }
 }
-''',
-      [lint(64, 11)],
-    );
+''');
   }
 }

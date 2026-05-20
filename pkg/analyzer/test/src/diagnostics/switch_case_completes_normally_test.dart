@@ -33,7 +33,7 @@ mixin SwitchCaseCompletesNormallyTestCases on PubPackageResolutionTest {
   bool get _patternsEnabled;
 
   test_break() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -61,7 +61,7 @@ void f(int a) {
   }
 
   test_continue_loop() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   while (true) {
     switch (a) {
@@ -76,7 +76,7 @@ void f(int a) {
   }
 
   test_for_whatever() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -91,7 +91,7 @@ void f(int a) {
   }
 
   test_lastCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a) {
   switch (a) {
     case 0:
@@ -102,7 +102,7 @@ f(int a) {
   }
 
   test_methodInvocation_never() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -135,7 +135,7 @@ void f(int a) {
   }
 
   test_return() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -148,7 +148,7 @@ void f(int a) {
   }
 
   test_return2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -162,7 +162,7 @@ void f(int a) {
   }
 
   test_throw() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -175,7 +175,7 @@ void f(int a) {
   }
 
   test_while_true() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:

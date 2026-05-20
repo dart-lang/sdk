@@ -18,68 +18,56 @@ class PreferConditionalAssignmentTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_conditional_assignment;
 
   test_field_ifEqNull() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? x;
 
   void f(String s) {
-    if (x == null) {
+    [!if (x == null) {
       x = s;
-    }
+    }!]
   }
 }
-''',
-      [lint(49, 35)],
-    );
+''');
   }
 
   test_field_ifEqNull_conditionWrappedInParens() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? x;
   void f(String s) {
-    if ((x == null)) {
+    [!if ((x == null)) {
       x = s;
-    }
+    }!]
   }
 }
-''',
-      [lint(48, 37)],
-    );
+''');
   }
 
   test_field_ifEqNull_eachWrappedInParens() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? x;
   void f(String s) {
-    if ((x) == (null)) {
+    [!if ((x) == (null)) {
       x = s;
-    }
+    }!]
   }
 }
-''',
-      [lint(48, 39)],
-    );
+''');
   }
 
   test_field_ifEqNull_statementBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? x;
   String? f(String s) {
-    if (x == null)
-      x = s;
+    [!if (x == null)
+      x = s;!]
     return x;
   }
 }
-''',
-      [lint(51, 27)],
-    );
+''');
   }
 
   test_field_ifHasElse() async {
@@ -112,19 +100,16 @@ class C {
   }
 
   test_field_onSameTarget() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? x;
   void f(C a) {
-    if (a.x == null) {
+    [!if (a.x == null) {
       a.x = '';
-    }
+    }!]
   }
 }
-''',
-      [lint(43, 40)],
-    );
+''');
   }
 
   test_field_unrelatedAssignment() async {

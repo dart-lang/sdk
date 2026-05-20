@@ -1091,7 +1091,7 @@ class A {
   }
 
   void test_library_library() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 @A()
 library test;
 
@@ -1589,7 +1589,7 @@ class D extends C {
   }
 
   void test_override_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   set a(int p) {}
 }

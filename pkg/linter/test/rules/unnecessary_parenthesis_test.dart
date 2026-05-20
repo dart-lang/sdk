@@ -100,15 +100,12 @@ void f() {
   }
 
   test_binaryExpressionInside_constructorFieldInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   bool f;
-  C() : f = (true && false);
+  C() : f = [!(true && false)!];
 }
-''',
-      [lint(32, 15)],
-    );
+''');
   }
 
   test_binaryExpressionInside_isExpression() async {
@@ -120,25 +117,19 @@ void f(num a, num b) {
   }
 
   test_binaryExpressionInside_namedArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f({required int p}) {
-  f(p: (1 + 3));
+  f(p: [!(1 + 3)!]);
 }
-''',
-      [lint(34, 7)],
-    );
+''');
   }
 
   test_binaryExpressionInside_positionalArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  f((1 + 3));
+  f([!(1 + 3)!]);
 }
-''',
-      [lint(20, 7)],
-    );
+''');
   }
 
   test_binaryExpressionInside_prefixExpression() async {
@@ -148,41 +139,32 @@ var x = ~(1 | 2);
   }
 
   test_binaryExpressionInside_recordLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 Record f() {
-  return (1, (2 + 2));
+  return (1, [!(2 + 2)!]);
 }
-''',
-      [lint(26, 7)],
-    );
+''');
   }
 
   test_binaryExpressionInside_returnExpression() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 bool f() {
-  return (1 > 1);
+  return [!(1 > 1)!];
 }
-''',
-      [lint(20, 7)],
-    );
+''');
   }
 
   test_binaryExpressionInside_switchStatementVariable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  switch ((5 == 6)) {
+  switch ([!(5 == 6)!]) {
     case true:
       return;
     default:
       return;
   }
 }
-''',
-      [lint(21, 8)],
-    );
+''');
   }
 
   test_binaryExpressionInside_variableDeclarationInitializer() async {
@@ -194,14 +176,11 @@ void f() {
   }
 
   test_binaryExpressionInside_whileCondition() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  while ((1 == 1)) {}
+  while ([!(1 == 1)!]) {}
 }
-''',
-      [lint(20, 8)],
-    );
+''');
   }
 
   test_binaryOperationInside_binaryOperation() async {
@@ -255,14 +234,11 @@ abstract class A {
   }
 
   test_conditionalExpressionInside_argument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  print((1 == 1 ? 2 : 3));
+  print([!(1 == 1 ? 2 : 3)!]);
 }
-''',
-      [lint(24, 16)],
-    );
+''');
   }
 
   test_conditionalExpressionInside_argumentList() async {
@@ -280,14 +256,11 @@ int f() => (1 == 1 ? 2 : 3);
   }
 
   test_conditionalExpressionInside_ifCondition() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if ((1 == 1 ? true : false)) {}
+  if ([!(1 == 1 ? true : false)!]) {}
 }
-''',
-      [lint(17, 23)],
-    );
+''');
   }
 
   test_conditionalExpressionInside_listLiteral() async {
@@ -299,14 +272,11 @@ void f() {
   }
 
   test_conditionalExpressionInside_stringInterpolation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  '${(1 == 1 ? 2 : 3)}';
+  '${[!(1 == 1 ? 2 : 3)!]}';
 }
-''',
-      [lint(16, 16)],
-    );
+''');
   }
 
   test_conditionalExpressionInside_targetOfMethodInvocation() async {
@@ -371,15 +341,12 @@ class C {
   }
 
   test_constructorTearoffInside() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {}
 void f() {
-  (C.new)();
+  [!(C.new)!]();
 }
-''',
-      [lint(24, 7)],
-    );
+''');
   }
 
   test_constructorTearoffInside_instantiatedThenCalled() async {
@@ -391,36 +358,27 @@ void f() {
   }
 
   test_constructorTearoffInstantiatedInside() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  (List<int>.filled)(3, 0);
+  [!(List<int>.filled)!](3, 0);
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_constructorTearoffInstantiatedInside_assignment() async {
-    await assertDiagnostics(
-      r'''
-var x = (List<int>.filled);
-''',
-      [lint(8, 18)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [!(List<int>.filled)!];
+''');
   }
 
   test_constructorTearoffReferenceInside() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {}
 void f() {
   var cNew = C.new;
-  (cNew)();
+  [!(cNew)!]();
 }
-''',
-      [lint(44, 6)],
-    );
+''');
   }
 
   test_equalityInside_constructorFieldInitializer() async {
@@ -433,12 +391,9 @@ class C {
   }
 
   test_equalityInside_expressionBody() async {
-    await assertDiagnostics(
-      r'''
-bool f() => (1 == 1);
-''',
-      [lint(12, 8)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+bool f() => [!(1 == 1)!];
+''');
   }
 
   test_expressionInside_targetOfMethodInvocation() async {
@@ -473,12 +428,9 @@ class C {
   }
 
   test_functionExpressionInside_assignment() async {
-    await assertDiagnostics(
-      r'''
-var f = (() => null);
-''',
-      [lint(8, 12)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var f = [!(() => null)!];
+''');
   }
 
   test_functionExpressionInside_binaryExpression() async {
@@ -535,23 +487,17 @@ void f() {
   }
 
   test_intLiteralInside_recordLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  var x = (1, (2));
+  var x = (1, [!(2)!]);
 }
-''',
-      [lint(25, 3)],
-    );
+''');
   }
 
   test_listLiteral() async {
-    await assertDiagnostics(
-      r'''
-final items = [1, (DateTime.now())];
-''',
-      [lint(18, 16)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+final items = [1, [!(DateTime.now())!]];
+''');
   }
 
   test_notEqualInside_returnExpression() async {
@@ -636,25 +582,19 @@ void f(bool? b) {
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4062')
   test_parenthesizedPattern_nonPatternOutside() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(num n) {
-  if (1 case (int())) {}
+  if[! (1 cas!]e (int())) {}
 }
-''',
-      [lint(20, 7)],
-    );
+''');
   }
 
   test_positionalArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print((1 + 2));
+  print([!(1 + 2)!]);
 }
-''',
-      [lint(19, 7)],
-    );
+''');
   }
 
   test_postfixExpressionInside_targetOfMethodInvocation() async {
@@ -685,36 +625,27 @@ abstract class A {
   }
 
   test_prefixedIdentifierInside_recordLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  var x = ((''.isEmpty), 2);
+  var x = ([!(''.isEmpty)!], 2);
 }
-''',
-      [lint(22, 12)],
-    );
+''');
   }
 
   test_prefixedIdentifierInside_targetOfMethodCall() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  (0.isEven).toString();
+  [!(0.isEven)!].toString();
 }
-''',
-      [lint(13, 10)],
-    );
+''');
   }
 
   test_prefixedIdentifierInside_targetOfPropertyAccess() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  (0.sign).isEven;
+  [!(0.sign)!].isEven;
 }
-''',
-      [lint(13, 8)],
-    );
+''');
   }
 
   test_prefixExpressionInside_targetOfMethodInvocation() async {
@@ -726,62 +657,47 @@ void f(bool b) {
   }
 
   test_propertyAccessInside_prefixExpression() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  !([].isEmpty);
+  ![!([].isEmpty)!];
 }
-''',
-      [lint(14, 12)],
-    );
+''');
   }
 
   test_propertyAccessInside_recordLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 Record f() {
-  return (1.isEven, (2.isEven));
+  return (1.isEven, [!(2.isEven)!]);
 }
-''',
-      [lint(33, 10)],
-    );
+''');
   }
 
   test_recordInside_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  (int,) r = ((3,));
+  (int,) r = [!((3,))!];
 }
-''',
-      [lint(24, 6)],
-    );
+''');
   }
 
   test_recordInside_namedParam() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  g(i: ((3,)));
+  g(i: [!((3,))!]);
 }
 
 void g({required (int,) i}) {}
-''',
-      [lint(18, 6)],
-    );
+''');
   }
 
   test_recordInside_param() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  g(((3,)));
+  g([!((3,))!]);
 }
 
 void g((int,) i) {}
-''',
-      [lint(15, 6)],
-    );
+''');
   }
 
   test_setLiteralInside_binaryExpression() async {
@@ -805,14 +721,11 @@ void f() {
   }
 
   test_setLiteralInside_propertyAccess_functionArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print(({1, 2, 3}).length);
+  print([!({1, 2, 3})!].length);
 }
-''',
-      [lint(19, 11)],
-    );
+''');
   }
 
   test_setLiteralInside_targetOfGenericTearoff() async {
@@ -824,80 +737,59 @@ void f() {
   }
 
   test_simpleIdentifierInside_assignmentRightSide() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int a) {
-  a = (a);
+  a = [!(a)!];
 }
-''',
-      [lint(22, 3)],
-    );
+''');
   }
 
   test_simpleIdentifierInside_conditionalExpressionCondition() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(bool a) {
-  (a) ? 2 : 3;
+  [!(a)!] ? 2 : 3;
 }
-''',
-      [lint(19, 3)],
-    );
+''');
   }
 
   test_simpleIdentifierInside_conditionalExpressionElseExpression() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int a) {
-  1 == 2 ? true : (a); // LINT
+  1 == 2 ? true : [!(a)!]; // LINT
 }
-''',
-      [lint(34, 3)],
-    );
+''');
   }
 
   test_simpleIdentifierInside_conditionalExpressionThenExpression() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int a) {
-  1 == 2 ? (a) : false; // LINT
+  1 == 2 ? [!(a)!] : false; // LINT
 }
-''',
-      [lint(27, 3)],
-    );
+''');
   }
 
   test_simpleIdentifierInside_expressionStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int a) {
-  (a);
+  [!(a)!];
 }
-''',
-      [lint(18, 3)],
-    );
+''');
   }
 
   test_simpleIdentifierInside_functionArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int a) {
-  print((a));
+  print([!(a)!]);
 }
-''',
-      [lint(24, 3)],
-    );
+''');
   }
 
   test_simpleIdentifierInside_methodInvocation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Function fn) {
-  (fn)(3);
+  [!(fn)!](3);
 }
-''',
-      [lint(24, 4)],
-    );
+''');
   }
 
   test_singleElementRecordWithNoTrailingCommaInside_assignment() async {
@@ -987,36 +879,27 @@ void f() {
   }
 
   test_stringLiteralInside() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  '' + ('');
+  '' + [!('')!];
 }
-''',
-      [lint(18, 4)],
-    );
+''');
   }
 
   test_stringLiteralInside_variableDeclarationInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  var x = ('');
+  var x = [!('')!];
 }
-''',
-      [lint(21, 4)],
-    );
+''');
   }
 
   test_switchExpressionInside_argument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Object? x) {
-  print((switch (x) { _ => 0 }));
+  print([!(switch (x) { _ => 0 })!]);
 }
-''',
-      [lint(28, 23)],
-    );
+''');
   }
 
   test_switchExpressionInside_expressionStatement() async {
@@ -1037,14 +920,11 @@ void f(Object v) {
   }
 
   test_switchExpressionInside_variableDeclaration() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Object? x) {
-  final v = (switch (x) { _ => 0 });
+  final v = [!(switch (x) { _ => 0 })!];
 }
-''',
-      [lint(32, 23)],
-    );
+''');
   }
 
   test_targetOfGetterInNullableExtension() async {

@@ -938,7 +938,7 @@ main() {
   }
 
   test_basic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 var b = 1 + 2;
 ''');
@@ -1025,7 +1025,7 @@ export 'dart:core' show dynamic;
 
     // Analyze, this will read the element model for `dart:core`.
     // There was a bug that `root::dart:core::dynamic` had no element set.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 p.dynamic f() {}
 ''');
@@ -1344,7 +1344,7 @@ void f(func o) {}
   }
 
   test_formalParameter_promotion() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   if (a != null) {
     a.isEven;
@@ -1463,7 +1463,7 @@ var a = 4.2;
   }
 
   test_getFilesWithTopLevelDeclarations_cached() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 var b = 1 + 2;
 ''');
@@ -1887,7 +1887,7 @@ var b = a;
 
   test_part_notInLibrary_libraryDoesNotExist() async {
     // TODO(scheglov): Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 ''');
   }
@@ -2399,7 +2399,7 @@ part of 'test.dart';
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void f(A a) {}
@@ -2422,7 +2422,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of my.lib;
 
 void func() {
@@ -2447,7 +2447,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 
 void func() {
@@ -2541,7 +2541,7 @@ void func() {
   }
 
   test_switchCase_implementsEquals_enum() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum MyEnum {a, b, c}
 
 void f(MyEnum myEnum) {
@@ -2556,7 +2556,7 @@ void f(MyEnum myEnum) {
   }
 
   test_switchCase_implementsEquals_enum_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 enum MyEnum {a, b, c}
 

@@ -63,13 +63,10 @@ typedef _Td = void Function();
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime() async {
-    await assertDiagnostics(
-      r'''
-typedef _Td = int Function();
+    await assertDiagnosticsFromMarkdown(r'''
+typedef [!_Td!] = int Function();
 late _Td td;
-''',
-      [lint(8, 3)],
-    );
+''');
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime_declaredInPart() async {
@@ -77,13 +74,10 @@ late _Td td;
 part 'test.dart';
 late _Td td;
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'lib.dart';
-typedef _Td = void Function();
-''',
-      [lint(28, 3)],
-    );
+typedef [!_Td!] = void Function();
+''');
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime_usedInPart() async {
@@ -91,31 +85,22 @@ typedef _Td = void Function();
 part of 'test.dart';
 late _Td td;
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part 'part.dart';
-typedef _Td = void Function();
-''',
-      [lint(26, 3)],
-    );
+typedef [!_Td!] = void Function();
+''');
   }
 
   test_private_genericFunctionTypeAlias_usedZeroTimes() async {
-    await assertDiagnostics(
-      r'''
-typedef _Td = int Function();
-''',
-      [lint(8, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef [!_Td!] = int Function();
+''');
   }
 
   test_private_legacyTypeAlias_usedZeroTimes() async {
-    await assertDiagnostics(
-      r'''
-typedef int _Td();
-''',
-      [lint(12, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef int [!_Td!]();
+''');
   }
 
   test_public_genericFunctionTypeAlias_usedZeroTimes() async {

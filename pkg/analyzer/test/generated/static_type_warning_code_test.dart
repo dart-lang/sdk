@@ -538,7 +538,7 @@ g(A<NoSuchType> a) {
 @reflectiveTest
 class StrongModeStaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_legalAsyncGeneratorReturnType_function_supertypeOfStream() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async* { yield 42; }
 dynamic f2() async* { yield 42; }
 Object f3() async* { yield 42; }
@@ -551,7 +551,7 @@ Stream<int> f8() async* { yield 42; }
   }
 
   test_legalAsyncReturnType_function_supertypeOfFuture() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async { return 42; }
 dynamic f2() async { return 42; }
 Object f3() async { return 42; }
@@ -564,7 +564,7 @@ Future<int> f8() async { return 42; }
   }
 
   test_legalSyncGeneratorReturnType_function_supertypeOfIterable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() sync* { yield 42; }
 dynamic f2() sync* { yield 42; }
 Object f3() sync* { yield 42; }

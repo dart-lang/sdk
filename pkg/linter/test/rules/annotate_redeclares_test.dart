@@ -29,16 +29,13 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 extension type E(A a) implements A {
-  void m() {}
+  void [!m!]() {}
 }
-''',
-      [lint(63, 1)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -68,18 +65,15 @@ augment extension type E(A a) {
   }
 
   test_method() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   void m() {}
 }
 
 extension type E(A a) implements A {
-  void m() {}
+  void [!m!]() {}
 }
-''',
-      [lint(71, 1)],
-    );
+''');
   }
 
   test_method_annotated() async {
@@ -97,17 +91,14 @@ extension type E(A a) implements A {
   }
 
   test_setter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int i = 0;
 }
 
 extension type E(A a) implements A {
-  set i(int i) {}
+  set [!i!](int i) {}
 }
-''',
-      [lint(69, 1)],
-    );
+''');
   }
 }

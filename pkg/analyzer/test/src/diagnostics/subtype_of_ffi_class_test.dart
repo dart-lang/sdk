@@ -111,7 +111,7 @@ class C extends Pointer {
   }
 
   test_Struct() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   external Pointer notEmpty;
@@ -160,7 +160,7 @@ class C extends Uint8 {}
   }
 
   test_Union() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Union {
   external Pointer notEmpty;
@@ -213,7 +213,7 @@ class C implements ffi.Double {}
   }
 
   test_Finalizable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Finalizable {}
 ''');

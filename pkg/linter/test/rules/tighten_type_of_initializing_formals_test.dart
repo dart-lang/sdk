@@ -19,8 +19,7 @@ class TightenTypeOfInitializingFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.tighten_type_of_initializing_formals;
 
   test_superInit() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String? a;
   A(this.a);
@@ -31,47 +30,38 @@ class B extends A {
 }
 
 class C extends A {
-  C(super.a) : assert(a != null);
+  C([!super.a!]) : assert(a != null);
 }
-''',
-      [lint(107, 7)],
-    );
+''');
   }
 
   test_thisInit_asserts() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String? p;
-  A(this.p) : assert(p != null);
-  A.a(this.p) : assert(null != p);
+  A(/*[0*/this.p/*0]*/) : assert(p != null);
+  A.a(/*[1*/this.p/*1]*/) : assert(null != p);
 }
-''',
-      [lint(27, 6), lint(62, 6)],
-    );
+''');
   }
 
   test_thisInit_asserts_newSyntax() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String? p;
-  new(this.p) : assert(p != null);
+  new([!this.p!]) : assert(p != null);
 }
-''',
-      [lint(29, 6)],
-    );
+''');
   }
 
   test_thisInit_asserts_positionalParams() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(
-    this.p1,
+    /*[0*/this.p1/*0]*/,
     String? p2,
     this.p3, {
-    this.p4,
+    /*[1*/this.p4/*1]*/,
     this.p5,
   }) : assert(p1 != null),
        assert(p2 != null),
@@ -84,21 +74,16 @@ class A {
   String? p4;
   String? p5;
 }
-''',
-      [lint(19, 7), lint(63, 7)],
-    );
+''');
   }
 
   test_thisInit_asserts_primaryConstructor() async {
-    await assertDiagnostics(
-      r'''
-class A(this.p) {
+    await assertDiagnosticsFromMarkdown(r'''
+class A([!this.p!]) {
   String? p;
   this : assert(p != null);
 }
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   test_thisInit_asserts_primaryConstructor_declaring() async {

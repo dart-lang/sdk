@@ -26,13 +26,10 @@ class A {}''',
   }
 
   test_hasMultipleNewlines() async {
-    await assertDiagnostics(
-      r'''
-class A {}
-
-''',
-      [lint(10, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class A {}[!
+!]
+''');
   }
 
   test_hasNoEol() async {

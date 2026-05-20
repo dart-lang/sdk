@@ -35,20 +35,17 @@ abstract class A {
   }
 
   test_extension() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int x = 0;
 }
 
 extension E on A {
-  void setX(int x) {
+  void [!setX!](int x) {
     this.x = x;
   }
 }
-''',
-      [lint(52, 4)],
-    );
+''');
   }
 
   test_inheritedFromSuperclass() async {
@@ -107,28 +104,22 @@ class A {
   }
 
   test_setterLike_blockBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   int x = 0;
-  void setX(int x) {
+  void [!setX!](int x) {
     this.x = x;
   }
 }
-''',
-      [lint(39, 4)],
-    );
+''');
   }
 
   test_setterLike_expressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   int x = 0;
-  void setX(int x) => this.x = x;
+  void [!setX!](int x) => this.x = x;
 }
-''',
-      [lint(39, 4)],
-    );
+''');
   }
 }

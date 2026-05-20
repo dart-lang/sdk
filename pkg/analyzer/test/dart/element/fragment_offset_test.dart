@@ -44,7 +44,7 @@ class FragmentOffsetTest extends PubPackageResolutionTest {
   }
 
   test_bindPatternVariableFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore: unused_local_variable
   var (int i,) = (0,);
@@ -59,7 +59,7 @@ void f() {
   }
 
   test_classFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 ''');
     var classDeclaration = findNode.classDeclaration('C');
@@ -71,7 +71,7 @@ class C {}
   }
 
   test_classFragment_classTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class C = Object with M;
 ''');
@@ -115,7 +115,7 @@ class {}
   }
 
   test_constructorFragment_implicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 ''');
     var classDeclaration = findNode.classDeclaration('C');
@@ -147,7 +147,7 @@ class C {
   }
 
   test_constructorFragment_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.foo();
 }
@@ -161,7 +161,7 @@ class C {
   }
 
   test_constructorFragment_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
 }
@@ -175,7 +175,7 @@ class C {
   }
 
   test_dynamicFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic d;
 ''');
     var namedType =
@@ -187,7 +187,7 @@ dynamic d;
   }
 
   test_enumFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { e1 }
 ''');
     var enumDeclaration = findNode.enumDeclaration('E');
@@ -215,7 +215,7 @@ enum { e1 }
   }
 
   test_extensionFragment_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the extension declaration isn't at offset 0
 
 /// Documentation comment
@@ -230,7 +230,7 @@ extension E on int {}
   }
 
   test_extensionFragment_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension on int {}
 ''');
     var extensionDeclaration = findNode.extensionDeclaration('on int');
@@ -242,7 +242,7 @@ extension on int {}
   }
 
   test_extensionTypeFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {}
 ''');
     var extensionTypeDeclaration = findNode.extensionTypeDeclaration('E');
@@ -272,7 +272,7 @@ extension type(int i) {}
   }
 
   test_fieldFormalParameterFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int i;
   C(this.i);
@@ -307,7 +307,7 @@ class C {
   }
 
   test_fieldFormalParameterFragment_withDefaultValue() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int i;
   C({this.i = 0});
@@ -322,7 +322,7 @@ class C {
   }
 
   test_fieldFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? x;
 }
@@ -336,7 +336,7 @@ class C {
   }
 
   test_fieldFragment_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static const int x = 0;
 }
@@ -350,7 +350,7 @@ class C {
   }
 
   test_fieldFragment_enum_constant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { e1 }
 ''');
     var enumConstantDeclaration = findNode.enumConstantDeclaration('e1');
@@ -362,7 +362,7 @@ enum E { e1 }
   }
 
   test_fieldFragment_enum_values() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { e1 }
 ''');
     var enumDeclaration = findNode.enumDeclaration('E');
@@ -376,7 +376,7 @@ enum E { e1 }
   }
 
   test_formalParameterFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {}
 ''');
     var parameter = findNode.regularFormalParameter('x');
@@ -424,7 +424,7 @@ void f(void (int x)) {}
   }
 
   test_formalParameterFragment_ofImplicitSetter_member_implicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? x;
 }
@@ -443,7 +443,7 @@ class C {
   }
 
   test_formalParameterFragment_ofImplicitSetter_topLevel_implicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
     var topLevelVariableDeclaration = findNode
@@ -463,7 +463,7 @@ int? x;
   }
 
   test_formalParameterFragment_withDefaultValue() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({int x = 0}) {}
 ''');
     var parameter = findNode.regularFormalParameter('x');
@@ -475,7 +475,7 @@ void f({int x = 0}) {}
   }
 
   test_genericFunctionTypeFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the generic function type isn't at offset 0
 
 void Function(int x)? f;
@@ -491,7 +491,7 @@ void Function(int x)? f;
   }
 
   test_getterFragment_member() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int get foo => 0;
 }
@@ -505,7 +505,7 @@ class C {
   }
 
   test_getterFragment_member_implicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? x;
 }
@@ -522,7 +522,7 @@ class C {
   }
 
   test_getterFragment_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 ''');
     var getterDeclaration = findNode.functionDeclaration('foo');
@@ -534,7 +534,7 @@ int get foo => 0;
   }
 
   test_getterFragment_topLevel_implicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
     var topLevelVariableDeclaration = findNode
@@ -552,7 +552,7 @@ int? x;
   }
 
   test_joinPatternVariableFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   switch ((0,) as dynamic) {
     // ignore: unused_local_variable
@@ -572,7 +572,7 @@ void f() {
   }
 
   test_labelFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore: unused_label
   L: while(true) {}
@@ -587,7 +587,7 @@ void f() {
   }
 
   test_libraryFragment_first_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // Comment to ensure that the library declaration isn't at offset 0
 library L;
 
@@ -602,7 +602,7 @@ class C {}
   }
 
   test_libraryFragment_first_unnamed_withLibraryDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // Comment to ensure that the library declaration isn't at offset 0
 library;
 
@@ -613,7 +613,7 @@ class C {}
   }
 
   test_libraryFragment_first_unnamed_withoutLibraryDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // Comment to ensure that the class declaration isn't at offset 0
 class C {}
 ''');
@@ -658,7 +658,7 @@ class C {}
   }
 
   test_local_variable_fragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore: unused_local_variable
   int i = 0;
@@ -673,7 +673,7 @@ void f() {
   }
 
   test_local_variable_fragment_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore: unused_local_variable
   const int i = 0;
@@ -688,7 +688,7 @@ void f() {
   }
 
   test_localFunctionFragment_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore: unused_element
   void g() {}
@@ -705,7 +705,7 @@ void f() {
   }
 
   test_localFunctionFragment_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f() {
   return () {};
 }
@@ -719,7 +719,7 @@ dynamic f() {
   }
 
   test_methodFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void foo() {}
 }
@@ -733,7 +733,7 @@ class C {
   }
 
   test_mixinFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 ''');
     var mixinDeclaration = findNode.mixinDeclaration('M');
@@ -761,7 +761,7 @@ mixin {}
   }
 
   test_neverFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Never n = throw '';
 ''');
     var namedType =
@@ -773,7 +773,7 @@ Never n = throw '';
   }
 
   test_prefixFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
 import 'dart:async' as a;
 ''');
@@ -786,7 +786,7 @@ import 'dart:async' as a;
   }
 
   test_prefixFragment_inMultipleImports() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
 import 'dart:async' as a; // first
 // ignore: unused_import
@@ -816,7 +816,7 @@ import 'dart:async' as;
   }
 
   test_setterFragment_member() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   set foo(int value) {}
 }
@@ -830,7 +830,7 @@ class C {
   }
 
   test_setterFragment_member_implicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? x;
 }
@@ -847,7 +847,7 @@ class C {
   }
 
   test_setterFragment_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 set foo(int value) {}
 ''');
     var setterDeclaration = findNode.functionDeclaration('foo');
@@ -859,7 +859,7 @@ set foo(int value) {}
   }
 
   test_setterFragment_topLevel_implicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
     var topLevelVariableDeclaration = findNode
@@ -877,7 +877,7 @@ int? x;
   }
 
   test_superFormalParameterFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   B(int i);
 }
@@ -915,7 +915,7 @@ class C extends B {
   }
 
   test_superFormalParameterFragment_withDefaultValue() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   B({int? i});
 }
@@ -933,7 +933,7 @@ class C extends B {
   }
 
   test_topLevelFunctionFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 ''');
     var topLevelFunctionDeclaration = findNode.functionDeclaration('foo');
@@ -945,7 +945,7 @@ void foo() {}
   }
 
   test_topLevelVariableFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
     var topLevelVariableDeclaration = findNode
@@ -960,7 +960,7 @@ int? x;
   }
 
   test_topLevelVariableFragment_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const int x = 0;
 ''');
     var topLevelVariableDeclaration = findNode
@@ -975,7 +975,7 @@ const int x = 0;
   }
 
   test_typeAliasFragment_functionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef void F();
 ''');
     var functionTypeAlias = findNode.functionTypeAlias('F');
@@ -1003,7 +1003,7 @@ typedef void();
   }
 
   test_typeAliasFragment_genericTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef T = int;
 ''');
     var genericTypeAlias = findNode.genericTypeAlias('T');
@@ -1031,7 +1031,7 @@ typedef = int;
   }
 
   test_typeParameterFragment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 ''');
     var typeParameter = findNode.typeParameter('T');

@@ -27,16 +27,13 @@ enum E {
 }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment enum E {
-  Xy;
+  [!Xy!];
 }
-''',
-      [lint(38, 2)],
-    );
+''');
   }
 
   test_augmentationTopLevelVariable() async {
@@ -44,14 +41,11 @@ augment enum E {
 part 'test.dart';
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
-const PI = 3.14;
-''',
-      [lint(25, 2)],
-    );
+const [!PI!] = 3.14;
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -89,55 +83,43 @@ augment const PI = 3.1415;
   }
 
   test_destructuredConstField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static const AA = (1, );
+  static const [!AA!] = (1, );
 }
-''',
-      [lint(25, 2)],
-    );
+''');
   }
 
   test_destructuredConstVariable() async {
-    await assertDiagnostics(
-      r'''
-const AA = (1, );
-''',
-      [lint(6, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const [!AA!] = (1, );
+''');
   }
 
   test_destructuredFinalVariable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  final (AA, ) = (1, );
+  final ([!AA!], ) = (1, );
 }
-''',
-      [lint(20, 2)],
-    );
+''');
   }
 
   test_destructuredObjectField_switch() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   var a;
 }
 
 f(A a) {
   switch (a) {
-    case A(a: int a_b):
+    case A(a: int /*[0*/a_b/*0]*/):
   }
   switch (a) {
-    case A(a: int a_b?):
-    case A(a: int a_b!):
+    case A(a: int /*[1*/a_b/*1]*/?):
+    case A(a: int /*[2*/a_b/*2]*/!):
   }
 }
-''',
-      [lint(64, 3), lint(107, 3), lint(132, 3)],
-    );
+''');
   }
 
   test_destructuredObjectField_switch_ok() async {
@@ -159,26 +141,20 @@ f(A a) {
   }
 
   test_enumValue_upperFirstLetter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum Foo {
   bar,
-  Baz,
+  [!Baz!],
 }
-''',
-      [lint(20, 3)],
-    );
+''');
   }
 
   test_recordFieldDestructured() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f(Object o) {
-  if (o case (x: int x_x, z: int z)) { }
+  if (o case (x: int [!x_x!], z: int z)) { }
 }
-''',
-      [lint(35, 3)],
-    );
+''');
   }
 
   test_recordFieldDestructured_ok() async {
@@ -190,12 +166,9 @@ f(Object o) {
   }
 
   test_recordTypeDeclarations() async {
-    await assertDiagnostics(
-      r'''
-const RR = (x: 1);
-''',
-      [lint(6, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const [!RR!] = (x: 1);
+''');
   }
 
   test_recordTypeDeclarations_ok() async {
@@ -205,31 +178,22 @@ const r = (x: 1);
   }
 
   test_staticField_allCaps() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  static const DEBUG = false;
+  static const [!DEBUG!] = false;
 }
-''',
-      [lint(25, 5)],
-    );
+''');
   }
 
   test_topLevel_allCaps() async {
-    await assertDiagnostics(
-      r'''
-const PI = 3.14;
-''',
-      [lint(6, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const [!PI!] = 3.14;
+''');
   }
 
   test_topLevel_screamingSnake() async {
-    await assertDiagnostics(
-      r'''
-const CCC_CCC = 1000;
-''',
-      [lint(6, 7)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const [!CCC_CCC!] = 1000;
+''');
   }
 }

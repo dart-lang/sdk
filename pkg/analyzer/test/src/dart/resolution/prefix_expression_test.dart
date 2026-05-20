@@ -355,7 +355,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 part of 'a.dart';
 
 augment class A {
@@ -388,7 +388,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 part of 'a.dart';
 
 augment class A {
@@ -499,7 +499,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 part of 'a.dart';
 
 augment class A {

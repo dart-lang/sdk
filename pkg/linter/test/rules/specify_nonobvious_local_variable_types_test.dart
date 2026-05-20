@@ -46,28 +46,22 @@ class A {
   }
 
   test_forEach_inferredList() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  for (var i in [1, 2, 'Hello'.length]) {
+  for ([!var i!] in [1, 2, 'Hello'.length]) {
     print(i);
   }
 }
-''',
-      [lint(13, 5)],
-    );
+''');
   }
 
   test_forEach_listWithNonObviousElement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
   int j = "Hello".length;
-  for (var i in [j, 1, j + 1]) { }
+  for ([!var i!] in [j, 1, j + 1]) { }
 }
-''',
-      [lint(39, 5)],
-    );
+''');
   }
 
   test_forEach_noDeclaredType() async {
@@ -96,17 +90,14 @@ f() {
   }
 
   test_genericInvocation_paramIsType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 String f() {
-  final h = bar('');
+  [!final h = bar('')!];
   return h;
 }
 
 T bar<T>(T d) => d;
-''',
-      [lint(15, 17)],
-    );
+''');
   }
 
   test_genericInvocation_paramIsType_ok() async {
@@ -121,17 +112,14 @@ T bar<T>(T d) => d;
   }
 
   test_genericInvocation_typeNeededForInference() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  var h = bar('');
+  [!var h = bar('')!];
   return h;
 }
 
 T bar<T>(dynamic d) => d;
-''',
-      [lint(8, 15)],
-    );
+''');
   }
 
   test_genericInvocation_typeNeededForInference_ok() async {
@@ -146,17 +134,14 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeParamProvided() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 String f() {
-  var h = bar<String>('');
+  [!var h = bar<String>('')!];
   return h;
 }
 
 T bar<T>(dynamic d) => d;
-''',
-      [lint(15, 23)],
-    );
+''');
   }
 
   test_genericInvocation_typeParamProvided_ok() async {
@@ -171,18 +156,15 @@ T bar<T>(dynamic d) => d;
   }
 
   test_instanceCreation_generic() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  var a = A(1);
+  [!var a = A(1)!];
 }
 
 class A<X> {
   A(X x);
 }
-''',
-      [lint(8, 12)],
-    );
+''');
   }
 
   test_instanceCreation_generic_ok1() async {
@@ -290,14 +272,11 @@ f() {
   }
 
   test_local_multiple() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  var a = 'a' + 'a', b = 'b' * 2;
+  var /*[0*/a = 'a' + 'a'/*0]*/, /*[1*/b = 'b' * 2/*1]*/;
 }
-''',
-      [lint(12, 13), lint(27, 11)],
-    );
+''');
   }
 
   test_local_multiple_ok() async {
@@ -319,17 +298,14 @@ f() {
   }
 
   test_local_promotion() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
   num local = 2;
   if (local is! int) return;
-  var x = local;
+  [!var x = local!];
   return x;
 }
-''',
-      [lint(54, 13)],
-    );
+''');
   }
 
   test_pattern_list_destructured() async {

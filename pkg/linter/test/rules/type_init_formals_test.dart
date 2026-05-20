@@ -63,14 +63,11 @@ class A({required String this.s}) {
   }
 
   test_requiredParam_inPrimaryConstructor_unnecessaryType() async {
-    await assertDiagnostics(
-      r'''
-class A({required String this.s}) {
+    await assertDiagnosticsFromMarkdown(r'''
+class A({required [!String!] this.s}) {
   String s;
 }
-''',
-      [lint(18, 6)],
-    );
+''');
   }
 
   test_requiredParam_tightening() async {
@@ -83,43 +80,34 @@ class A {
   }
 
   test_requiredParam_unnecessaryNullableType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String? s;
-  A({required String? this.s});
+  A({required [!String?!] this.s});
 }
-''',
-      [lint(37, 7)],
-    );
+''');
   }
 
   test_requiredParam_unnecessaryType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String s = '';
-  A({required String this.s});
+  A({required [!String!] this.s});
 }
-''',
-      [lint(41, 6)],
-    );
+''');
   }
 
   test_super() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String? a;
   A({this.a});
 }
 
 class B extends A {
-  B({String? super.a});
+  B({[!String?!] super.a});
 }
-''',
-      [lint(66, 7)],
-    );
+''');
   }
 
   test_typed_fieldIsDynamic() async {
@@ -132,15 +120,12 @@ class C {
   }
 
   test_typed_sameAsField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   int x;
-  C(int this.x);
+  C([!int!] this.x);
 }
-''',
-      [lint(23, 3)],
-    );
+''');
   }
 
   test_typed_subtypeOfField() async {

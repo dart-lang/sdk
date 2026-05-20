@@ -30,16 +30,13 @@ class C {
   }
 
   test_constructorFieldFormal_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
   int p;
-  C(var this.p);
+  C([!var!] this.p);
 }
-''',
-      [lint(37, 3)],
-    );
+''');
   }
 
   test_constructorSimple_noVar() async {
@@ -52,15 +49,12 @@ class C {
   }
 
   test_constructorSimple_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
-  C(var p);
+  C([!var!] p);
 }
-''',
-      [lint(28, 3)],
-    );
+''');
   }
 
   test_extension_method_noVar() async {
@@ -73,15 +67,12 @@ extension E on int {
   }
 
   test_extension_method_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 extension E on int {
-  void f(var p) {}
+  void f([!var!] p) {}
 }
-''',
-      [lint(44, 3)],
-    );
+''');
   }
 
   test_extensionType_method_noVar() async {
@@ -94,15 +85,12 @@ extension type E(int i) {
   }
 
   test_extensionType_method_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 extension type E(int i) {
-  void f(var p) {}
+  void f([!var!] p) {}
 }
-''',
-      [lint(49, 3)],
-    );
+''');
   }
 
   test_functionExpression_noVar() async {
@@ -113,13 +101,10 @@ var f = (int value) {};
   }
 
   test_functionExpression_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-var f = (var value) {};
-''',
-      [lint(23, 3)],
-    );
+var f = ([!var!] value) {};
+''');
   }
 
   test_functionTyped_fieldFormal_noVar() async {
@@ -133,16 +118,13 @@ class C {
   }
 
   test_functionTyped_fieldFormal_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
   final void Function(int) f;
-  C(void this.f(var p));
+  C(void this.f([!var!] p));
 }
-''',
-      [lint(70, 3)],
-    );
+''');
   }
 
   test_functionTyped_noVar() async {
@@ -153,13 +135,10 @@ void f(int p()) {}
   }
 
   test_functionTyped_parameter_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f(void g(var p)) {}
-''',
-      [lint(28, 3)],
-    );
+void f(void g([!var!] p)) {}
+''');
   }
 
   test_functionTyped_superFormal_noVar() async {
@@ -175,18 +154,15 @@ class B extends A {
   }
 
   test_functionTyped_superFormal_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class A {
   A(void f(int p));
 }
 class B extends A {
-  B(void super.f(var p));
+  B(void super.f([!var!] p));
 }
-''',
-      [lint(83, 3)],
-    );
+''');
   }
 
   test_functionTyped_var() async {
@@ -207,15 +183,12 @@ void f(void g(int p)) {}
   }
 
   test_localFunction_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 void f() {
-  void g(var p) {}
+  void g([!var!] p) {}
 }
-''',
-      [lint(34, 3)],
-    );
+''');
   }
 
   test_mixin_method_noVar() async {
@@ -228,15 +201,12 @@ mixin M {
   }
 
   test_mixin_method_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 mixin M {
-  void f(var p) {}
+  void f([!var!] p) {}
 }
-''',
-      [lint(33, 3)],
-    );
+''');
   }
 
   test_operator_noVar() async {
@@ -249,15 +219,12 @@ class C {
   }
 
   test_operator_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
-  int operator +(var other) => 0;
+  int operator +([!var!] other) => 0;
 }
-''',
-      [lint(41, 3)],
-    );
+''');
   }
 
   test_optionalNamed_noVar() async {
@@ -268,13 +235,10 @@ void f({int? p}) {}
   }
 
   test_optionalNamed_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f({var p}) {}
-''',
-      [lint(22, 3)],
-    );
+void f({[!var!] p}) {}
+''');
   }
 
   test_optionalPositional_noVar() async {
@@ -285,13 +249,10 @@ void f([int? p]) {}
   }
 
   test_optionalPositional_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f([var p]) {}
-''',
-      [lint(22, 3)],
-    );
+void f([[!var!] p]) {}
+''');
   }
 
   test_optionalPositionalWithDefault_noVar() async {
@@ -302,13 +263,10 @@ void f([int p = 0]) {}
   }
 
   test_optionalPositionalWithDefault_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f([var p = 0]) {}
-''',
-      [lint(22, 3)],
-    );
+void f([[!var!] p = 0]) {}
+''');
   }
 
   test_requiredNamed_noVar() async {
@@ -319,13 +277,10 @@ void f({required int p}) {}
   }
 
   test_requiredNamed_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f({required var p}) {}
-''',
-      [lint(31, 3)],
-    );
+void f({required [!var!] p}) {}
+''');
   }
 
   test_requiredPositional_noVar() async {
@@ -336,23 +291,17 @@ void f(int p) {}
   }
 
   test_requiredPositional_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f(var p) {}
-''',
-      [lint(21, 3)],
-    );
+void f([!var!] p) {}
+''');
   }
 
   test_requiredPositional_wildcard() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f(var _) {}
-''',
-      [lint(21, 3)],
-    );
+void f([!var!] _) {}
+''');
   }
 
   test_setter_noVar() async {
@@ -363,13 +312,10 @@ set f(int value) {}
   }
 
   test_setter_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-set f(var value) {}
-''',
-      [lint(20, 3)],
-    );
+set f([!var!] value) {}
+''');
   }
 
   test_super_noVar() async {
@@ -416,13 +362,10 @@ typedef F = void Function(var x);
   }
 
   test_typedef_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-typedef String Type(var value);
-''',
-      [lint(34, 3)],
-    );
+typedef String Type([!var!] value);
+''');
   }
 
   test_var_type() async {

@@ -509,15 +509,14 @@ class C {
   }
 
   test_secondaryToSecondary_explicitInvocation_nonMatching() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class D extends C {
   final String w;
 
   D(
     this.w,
-    super.y,
-    super.x,
+    /*[0*/super.y/*0]*/,
+    /*[1*/super.x/*1]*/,
   ) : super.named();
 }
 
@@ -527,9 +526,7 @@ class C {
 
   C.named(this.x, this.y);
 }
-''',
-      [lint(60, 7), lint(73, 7)],
-    );
+''');
   }
 
   test_secondaryToSecondary_implicitInvocation_matchingWithGap() async {
@@ -575,15 +572,14 @@ class C {
   }
 
   test_secondaryToSecondary_implicitInvocation_nonMatching() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class D extends C {
   final String w;
 
   D(
     this.w,
-    super.y,
-    super.x,
+    /*[0*/super.y/*0]*/,
+    /*[1*/super.x/*1]*/,
   );
 }
 
@@ -593,20 +589,17 @@ class C {
 
   C(this.x, this.y);
 }
-''',
-      [lint(60, 7), lint(73, 7)],
-    );
+''');
   }
 
   test_secondaryToSecondary_implicitInvocation_nonMatching_omittedOptional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class D extends C {
   final String w;
 
   D(
     this.w,
-    super.y,
+    [!super.y!],
   );
 }
 
@@ -616,9 +609,7 @@ class C {
 
   C(this.x, [this.y]);
 }
-''',
-      [lint(60, 7)],
-    );
+''');
   }
 
   test_secondaryToSecondary_implicitInvocation_nonMatching_tooMany() async {

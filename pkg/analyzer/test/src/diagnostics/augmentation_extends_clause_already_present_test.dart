@@ -56,7 +56,7 @@ augment class B extends A {}
   }
 
   test_notPresent() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B {}

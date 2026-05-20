@@ -434,7 +434,7 @@ class DeadCodeTest_Language219 extends PubPackageResolutionTest
     with WithLanguage219Mixin, DeadCodeTestCases_Language212 {
   @override
   test_lateWildCardVariable_initializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   // Not a wildcard variable.
   late var _ = 0;
@@ -451,7 +451,7 @@ mixin DeadCodeTestCases_Language212 on PubPackageResolutionTest {
   }
 
   test_afterForEachWithBreakLabel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(List<Object> values) {
   named: {
     for (var x in values) {
@@ -467,7 +467,7 @@ f(List<Object> values) {
   }
 
   test_afterForWithBreakLabel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   named: {
     for (int i = 0; i < 7; i++) {
@@ -482,7 +482,7 @@ f() {
   }
 
   test_afterTryCatch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   try {
     return f();
@@ -559,7 +559,7 @@ class A {
   }
 
   test_constructorInitializerWithThrow_thenEmptyBlockBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A() : x = throw 0 {}
@@ -568,7 +568,7 @@ class A {
   }
 
   test_constructorInitializerWithThrow_thenEmptyBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A() : x = throw 0;
@@ -602,7 +602,7 @@ class A {
   }
 
   test_continueInSwitch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   for (;; 1) {
     switch (i) {
@@ -625,7 +625,7 @@ f() {
   }
 
   test_deadBlock_conditionalElse_debugConst() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool DEBUG = true;
 f() {
   DEBUG ? 1 : 2;
@@ -655,7 +655,7 @@ f() {
   }
 
   test_deadBlock_conditionalThen_debugConst() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool DEBUG = false;
 f() {
   DEBUG ? 1 : 2;
@@ -685,7 +685,7 @@ f() {
   }
 
   test_deadBlock_else_debugConst() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool DEBUG = true;
 f() {
   if(DEBUG) {} else {}
@@ -715,7 +715,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_prefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const bool DEBUG = false;
 }
@@ -730,7 +730,7 @@ f() {
 class A {
   static const bool DEBUG = false;
 }''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib2.dart';
 f() {
   if(A.DEBUG) {}
@@ -744,7 +744,7 @@ class A {
   static const bool DEBUG = false;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib2.dart' as LIB;
 f() {
   if(LIB.A.DEBUG) {}
@@ -753,7 +753,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_simpleIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool DEBUG = false;
 f() {
   if(DEBUG) {}
@@ -808,7 +808,7 @@ f() {
   }
 
   test_deadBlock_while_debugConst() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool DEBUG = false;
 f() {
   while(DEBUG) {}
@@ -934,7 +934,7 @@ f() {
   }
 
   test_deadOperandLHS_and_debugConst() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool DEBUG = false;
 f() {
   bool b = DEBUG && false;
@@ -988,7 +988,7 @@ f() {
   }
 
   test_documentationComment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// text
 int f() => 0;
 ''');
@@ -1681,7 +1681,7 @@ f() {
   }
 
   test_lateWildCardVariable_noInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   late var _;
 }
@@ -1689,7 +1689,7 @@ f() {
   }
 
   test_notUnassigned_propertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? i) {
   (i)?.sign;
 }
@@ -1697,7 +1697,7 @@ void f(int? i) {
   }
 
   test_potentiallyAssigned_propertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
   int? i;
   if (b) {
@@ -1880,7 +1880,7 @@ f() {
   }
 
   test_statementAfterIfWithoutElse() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   if (1 < 0) {
     return;

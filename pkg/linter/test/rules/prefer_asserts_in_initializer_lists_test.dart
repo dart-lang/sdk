@@ -31,17 +31,14 @@ class A {
   }
 
   test_assertContainsFieldFormalParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   int? f;
   C({this.f}) {
-    assert(f != null);
+    [!assert!](f != null);
   }
 }
-''',
-      [lint(40, 6)],
-    );
+''');
   }
 
   test_assertContainsInstanceMethod() async {
@@ -142,44 +139,35 @@ class D extends C {
   }
 
   test_assertContainsParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   C(int? p) {
-    assert(p != null);
+    [!assert!](p != null);
   }
 }
-''',
-      [lint(28, 6)],
-    );
+''');
   }
 
   test_assertContainsParameter_consecutive() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   C(int? p) {
-    assert(p != null);
-    assert(p != null);
+    /*[0*/assert/*0]*/(p != null);
+    /*[1*/assert/*1]*/(p != null);
   }
 }
-''',
-      [lint(28, 6), lint(51, 6)],
-    );
+''');
   }
 
   test_assertContainsParameter_usedInInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   int? f;
   C({int? f}) : f = f ?? 7 {
-    assert(f != null);
+    [!assert!](f != null);
   }
 }
-''',
-      [lint(53, 6)],
-    );
+''');
   }
 
   test_assertContainsSimpleParameter() async {
@@ -196,61 +184,49 @@ class C {
   }
 
   test_assertContainsStaticMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   static int? m() => null;
   C() {
-    assert(m() != null);
+    [!assert!](m() != null);
   }
 }
-''',
-      [lint(49, 6)],
-    );
+''');
   }
 
   test_assertContainsStaticProperty() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   static int? get f => null;
   C() {
-    assert(f != null);
+    [!assert!](f != null);
   }
 }
-''',
-      [lint(51, 6)],
-    );
+''');
   }
 
   test_assertContainsTopLevelMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 int? m() => null;
 
 class C {
   C() {
-    assert(m() != null);
+    [!assert!](m() != null);
   }
 }
-''',
-      [lint(41, 6)],
-    );
+''');
   }
 
   test_assertContainsTopLevelProperty() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 int? get f => null;
 
 class C {
   C() {
-    assert(f != null);
+    [!assert!](f != null);
   }
 }
-''',
-      [lint(43, 6)],
-    );
+''');
   }
 
   test_assertFollowsStatement() async {
@@ -265,16 +241,13 @@ class C {
   }
 
   test_extensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int? i) {
   E.e(this.i) {
-    assert(i != null);
+    [!assert!](i != null);
   }
 }
-''',
-      [lint(47, 6)],
-    );
+''');
   }
 
   test_extensionType_initializer() async {
@@ -286,30 +259,24 @@ extension type E(int? i) {
   }
 
   test_extensionType_primaryConstructorBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int? i) {
   this {
-    assert(i != null);
+    [!assert!](i != null);
   }
 }
-''',
-      [lint(40, 6)],
-    );
+''');
   }
 
   test_firstStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A.named(a) {
-    assert(a != null);
+    [!assert!](a != null);
   }
 }
 
-''',
-      [lint(29, 6)],
-    );
+''');
   }
 
   test_initializer() async {
@@ -351,16 +318,13 @@ class A {
   }
 
   test_primaryConstructorBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C(int? x) {
   this {
-    assert(x != null);
+    [!assert!](x != null);
   }
 }
-''',
-      [lint(31, 6)],
-    );
+''');
   }
 
   test_primaryConstructorBody_dependsOnInstanceProperty() async {
@@ -375,8 +339,7 @@ class C(var int x) {
   }
 
   test_super() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   final int a;
   A(this.a);
@@ -384,11 +347,9 @@ class A {
 
 class B extends A {
   B(super.a) {
-    assert(a != 0);
+    [!assert!](a != 0);
   }
 }
-''',
-      [lint(80, 6)],
-    );
+''');
   }
 }

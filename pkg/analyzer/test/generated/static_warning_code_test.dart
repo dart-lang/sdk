@@ -34,7 +34,7 @@ class E extends C implements D {}''',
   }
 
   test_typePromotion_functionType_arg_InterToDyn() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef FuncDyn(x);
 typedef FuncA(A a);
 class A {}
@@ -47,7 +47,7 @@ f(FuncA f) {
   }
 
   test_voidReturnForGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class S {
   void get value {}
 }''');

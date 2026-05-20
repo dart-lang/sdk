@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,13 +17,13 @@ main() {
 @reflectiveTest
 class DoStatementTest extends ParserDiagnosticsTest {
   void test_do_statement_condition_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a assert (true); }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -62,13 +61,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -102,14 +101,15 @@ CompilationUnit
   }
 
   void test_do_statement_condition_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a break; }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.breakOutsideOfLoop, 21, 5),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -143,14 +143,15 @@ CompilationUnit
   }
 
   void test_do_statement_condition_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a continue; }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.continueOutsideOfLoop, 21, 8),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -184,13 +185,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a do {} while (true); }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -232,13 +233,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.expectedToken, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -269,13 +270,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a for (var x in y) {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -320,13 +321,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a if (true) {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -366,13 +367,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a l: {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -411,13 +412,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a int f() {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -461,13 +462,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a void f() {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -511,13 +512,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a var x; }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -555,13 +556,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a return; }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -595,13 +596,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a switch (x) {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -640,13 +641,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a try {} finally {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -686,13 +687,13 @@ CompilationUnit
   }
 
   void test_do_statement_condition_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a while (true) {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -732,15 +733,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do assert (true); }
+//                    ^
+// [diag.expectedToken] Expected to find ';'.
+//                      ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.expectedToken, 24, 1),
-      error(diag.missingIdentifier, 24, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -775,15 +776,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.expectedToken, 12, 1),
-      error(diag.missingIdentifier, 12, 1),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -814,15 +815,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do break; }
+//            ^
+// [diag.expectedToken] Expected to find ';'.
+//              ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedToken, 16, 1),
-      error(diag.missingIdentifier, 16, 1),
-      error(diag.expectedToken, 14, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -853,15 +854,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do continue; }
+//               ^
+// [diag.expectedToken] Expected to find ';'.
+//                 ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 19, 1),
-      error(diag.missingIdentifier, 19, 1),
-      error(diag.expectedToken, 17, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -892,15 +893,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do do {} while (true); }
+//                         ^
+// [diag.expectedToken] Expected to find ';'.
+//                           ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.expectedToken, 29, 1),
-      error(diag.missingIdentifier, 29, 1),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -939,15 +940,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do }
+//    ^^
+// [diag.expectedToken] Expected to find ';'.
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 9, 1),
-      error(diag.expectedToken, 6, 2),
-      error(diag.expectedToken, 9, 1),
-      error(diag.expectedToken, 9, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -979,15 +980,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do for (var x in y) {} }
+//                         ^
+// [diag.expectedToken] Expected to find ';'.
+//                           ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.expectedToken, 29, 1),
-      error(diag.missingIdentifier, 29, 1),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1029,15 +1030,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do if (true) {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
-      error(diag.expectedToken, 22, 1),
-      error(diag.missingIdentifier, 22, 1),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1074,15 +1075,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do l: {} }
+//           ^
+// [diag.expectedToken] Expected to find ';'.
+//             ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 15, 1),
-      error(diag.expectedToken, 15, 1),
-      error(diag.missingIdentifier, 15, 1),
-      error(diag.expectedToken, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1118,15 +1119,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do int f() {} }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.expectedToken, 20, 1),
-      error(diag.missingIdentifier, 20, 1),
-      error(diag.expectedToken, 18, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1167,15 +1168,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do void f() {} }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.expectedToken, 21, 1),
-      error(diag.missingIdentifier, 21, 1),
-      error(diag.expectedToken, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1216,15 +1217,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do var x; }
+//            ^
+// [diag.expectedToken] Expected to find ';'.
+//              ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedToken, 16, 1),
-      error(diag.missingIdentifier, 16, 1),
-      error(diag.expectedToken, 14, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1259,15 +1260,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do return; }
+//             ^
+// [diag.expectedToken] Expected to find ';'.
+//               ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 17, 1),
-      error(diag.expectedToken, 17, 1),
-      error(diag.missingIdentifier, 17, 1),
-      error(diag.expectedToken, 15, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1298,15 +1299,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do switch (x) {} }
+//                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                     ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.expectedToken, 23, 1),
-      error(diag.missingIdentifier, 23, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1342,15 +1343,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do try {} finally {} }
+//                       ^
+// [diag.expectedToken] Expected to find ';'.
+//                         ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 27, 1),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1387,15 +1388,15 @@ CompilationUnit
   }
 
   void test_do_statement_keyword_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do while (true) {} }
+//                     ^
+// [diag.expectedToken] Expected to find ';'.
+//                       ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 25, 1),
-      error(diag.expectedToken, 25, 1),
-      error(diag.missingIdentifier, 25, 1),
-      error(diag.expectedToken, 23, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1432,16 +1433,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { assert (true); }
+//                        ^
+// [diag.expectedToken] Expected to find ';'.
+//                         ^
+// [diag.expectedToken][column 28][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 28][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 28][length 0] Expected an identifier.
+// [diag.expectedToken][column 28][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
-      error(diag.expectedToken, 28, 0),
-      error(diag.expectedToken, 28, 0),
-      error(diag.missingIdentifier, 28, 0),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1480,16 +1481,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { {} }
+//            ^
+// [diag.expectedToken] Expected to find ';'.
+//             ^
+// [diag.expectedToken][column 16][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 16][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 16][length 0] Expected an identifier.
+// [diag.expectedToken][column 16][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedToken, 16, 0),
-      error(diag.expectedToken, 16, 0),
-      error(diag.missingIdentifier, 16, 0),
-      error(diag.expectedToken, 14, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1524,16 +1525,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { break; }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                 ^
+// [diag.expectedToken][column 20][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 20][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 20][length 0] Expected an identifier.
+// [diag.expectedToken][column 20][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.expectedToken, 20, 0),
-      error(diag.expectedToken, 20, 0),
-      error(diag.missingIdentifier, 20, 0),
-      error(diag.expectedToken, 18, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1568,16 +1569,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { continue; }
+//                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^
+// [diag.expectedToken][column 23][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 23][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 23][length 0] Expected an identifier.
+// [diag.expectedToken][column 23][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.expectedToken, 23, 0),
-      error(diag.expectedToken, 23, 0),
-      error(diag.missingIdentifier, 23, 0),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1612,16 +1613,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { do {} while (true); }
+//                             ^
+// [diag.expectedToken] Expected to find ';'.
+//                              ^
+// [diag.expectedToken][column 33][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 33][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 33][length 0] Expected an identifier.
+// [diag.expectedToken][column 33][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedToken, 33, 0),
-      error(diag.expectedToken, 33, 0),
-      error(diag.missingIdentifier, 33, 0),
-      error(diag.expectedToken, 31, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1664,16 +1665,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { }
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.expectedToken][column 13][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 13][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 13][length 0] Expected an identifier.
+// [diag.expectedToken][column 13][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 1),
-      error(diag.expectedToken, 13, 0),
-      error(diag.expectedToken, 13, 0),
-      error(diag.missingIdentifier, 13, 0),
-      error(diag.expectedToken, 11, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1704,16 +1705,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { for (var x in y) {} }
+//                             ^
+// [diag.expectedToken] Expected to find ';'.
+//                              ^
+// [diag.expectedToken][column 33][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 33][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 33][length 0] Expected an identifier.
+// [diag.expectedToken][column 33][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedToken, 33, 0),
-      error(diag.expectedToken, 33, 0),
-      error(diag.missingIdentifier, 33, 0),
-      error(diag.expectedToken, 31, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1759,16 +1760,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { if (true) {} }
+//                      ^
+// [diag.expectedToken] Expected to find ';'.
+//                       ^
+// [diag.expectedToken][column 26][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 26][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 26][length 0] Expected an identifier.
+// [diag.expectedToken][column 26][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
-      error(diag.expectedToken, 26, 0),
-      error(diag.expectedToken, 26, 0),
-      error(diag.missingIdentifier, 26, 0),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1809,16 +1810,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { l: {} }
+//               ^
+// [diag.expectedToken] Expected to find ';'.
+//                ^
+// [diag.expectedToken][column 19][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 19][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 19][length 0] Expected an identifier.
+// [diag.expectedToken][column 19][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 19, 0),
-      error(diag.expectedToken, 19, 0),
-      error(diag.missingIdentifier, 19, 0),
-      error(diag.expectedToken, 17, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1858,16 +1859,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { int f() {} }
+//                    ^
+// [diag.expectedToken] Expected to find ';'.
+//                     ^
+// [diag.expectedToken][column 24][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 24][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 24][length 0] Expected an identifier.
+// [diag.expectedToken][column 24][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.expectedToken, 24, 0),
-      error(diag.expectedToken, 24, 0),
-      error(diag.missingIdentifier, 24, 0),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1912,16 +1913,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { void f() {} }
+//                     ^
+// [diag.expectedToken] Expected to find ';'.
+//                      ^
+// [diag.expectedToken][column 25][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 25][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 25][length 0] Expected an identifier.
+// [diag.expectedToken][column 25][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 25, 1),
-      error(diag.expectedToken, 25, 0),
-      error(diag.expectedToken, 25, 0),
-      error(diag.missingIdentifier, 25, 0),
-      error(diag.expectedToken, 23, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1966,16 +1967,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { var x; }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                 ^
+// [diag.expectedToken][column 20][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 20][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 20][length 0] Expected an identifier.
+// [diag.expectedToken][column 20][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.expectedToken, 20, 0),
-      error(diag.expectedToken, 20, 0),
-      error(diag.missingIdentifier, 20, 0),
-      error(diag.expectedToken, 18, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2014,16 +2015,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { return; }
+//                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^
+// [diag.expectedToken][column 21][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 21][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 21][length 0] Expected an identifier.
+// [diag.expectedToken][column 21][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.expectedToken, 21, 0),
-      error(diag.expectedToken, 21, 0),
-      error(diag.missingIdentifier, 21, 0),
-      error(diag.expectedToken, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2058,16 +2059,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { switch (x) {} }
+//                       ^
+// [diag.expectedToken] Expected to find ';'.
+//                        ^
+// [diag.expectedToken][column 27][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 27][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 27][length 0] Expected an identifier.
+// [diag.expectedToken][column 27][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedToken, 27, 0),
-      error(diag.expectedToken, 27, 0),
-      error(diag.missingIdentifier, 27, 0),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2107,16 +2108,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { try {} finally {} }
+//                           ^
+// [diag.expectedToken] Expected to find ';'.
+//                            ^
+// [diag.expectedToken][column 31][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 31][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 31][length 0] Expected an identifier.
+// [diag.expectedToken][column 31][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.expectedToken, 31, 0),
-      error(diag.expectedToken, 31, 0),
-      error(diag.missingIdentifier, 31, 0),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2157,16 +2158,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftBrace_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do { while (true) {} }
+//                         ^
+// [diag.expectedToken] Expected to find ';'.
+//                          ^
+// [diag.expectedToken][column 29][length 0] Expected to find 'while'.
+// [diag.expectedToken][column 29][length 0] Expected to find '('.
+// [diag.missingIdentifier][column 29][length 0] Expected an identifier.
+// [diag.expectedToken][column 29][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.expectedToken, 29, 0),
-      error(diag.expectedToken, 29, 0),
-      error(diag.missingIdentifier, 29, 0),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2207,10 +2208,11 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( assert (true); }
+//                               ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 33, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2248,13 +2250,13 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( {} }
+//                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                     ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2287,15 +2289,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( break; }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 5),
-      error(diag.breakOutsideOfLoop, 20, 5),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2329,15 +2332,16 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( continue; }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 8),
-      error(diag.continueOutsideOfLoop, 20, 8),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2371,14 +2375,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( do {} while (true); }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 2),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2420,14 +2425,14 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.missingIdentifier, 20, 1),
-      error(diag.expectedToken, 18, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2458,14 +2463,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( for (var x in y) {} }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 3),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2510,14 +2516,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( if (true) {} }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 2),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2557,15 +2564,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( l: {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.missingIdentifier, 21, 1),
-      error(diag.unexpectedToken, 21, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2603,14 +2610,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( int f() {} }
+//                      ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                           ^
+// [diag.expectedToken] Expected to find ';'.
+//                             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.namedFunctionExpression, 24, 1),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2647,14 +2655,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( void f() {} }
+//                       ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                            ^
+// [diag.expectedToken] Expected to find ';'.
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.namedFunctionExpression, 25, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2691,14 +2700,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( var x; }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 3),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2736,14 +2746,14 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( return; }
+//                  ^^^^^^
+// [diag.unexpectedToken] Unexpected text 'return'.
+//                        ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.unexpectedToken, 20, 6),
-      error(diag.missingIdentifier, 26, 1),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2774,13 +2784,13 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( switch (x) {} }
+//                              ^
+// [diag.expectedToken] Expected to find ';'.
+//                                ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedToken, 32, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2817,14 +2827,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( try {} finally {} }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 3),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2864,14 +2875,15 @@ CompilationUnit
   }
 
   void test_do_statement_leftParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while ( while (true) {} }
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 20, 5),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2911,15 +2923,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} assert (true); }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 6),
-      error(diag.expectedToken, 12, 6),
-      error(diag.missingIdentifier, 12, 6),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2957,15 +2969,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.expectedToken, 12, 1),
-      error(diag.missingIdentifier, 12, 1),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2999,16 +3011,16 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} break; }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 5),
-      error(diag.expectedToken, 12, 5),
-      error(diag.missingIdentifier, 12, 5),
-      error(diag.expectedToken, 10, 1),
-      error(diag.breakOutsideOfLoop, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3042,16 +3054,16 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} continue; }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 8),
-      error(diag.expectedToken, 12, 8),
-      error(diag.missingIdentifier, 12, 8),
-      error(diag.expectedToken, 10, 1),
-      error(diag.continueOutsideOfLoop, 12, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3085,15 +3097,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} do {} while (true); }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 2),
-      error(diag.expectedToken, 12, 2),
-      error(diag.missingIdentifier, 12, 2),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3135,15 +3147,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.expectedToken, 12, 1),
-      error(diag.missingIdentifier, 12, 1),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3174,15 +3186,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} for (var x in y) {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 3),
-      error(diag.expectedToken, 12, 3),
-      error(diag.missingIdentifier, 12, 3),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3227,15 +3239,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} if (true) {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 2),
-      error(diag.expectedToken, 12, 2),
-      error(diag.missingIdentifier, 12, 2),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3275,15 +3287,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} l: {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.expectedToken, 12, 1),
-      error(diag.missingIdentifier, 12, 1),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3322,15 +3334,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} int f() {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 3),
-      error(diag.expectedToken, 12, 3),
-      error(diag.missingIdentifier, 12, 3),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3374,15 +3386,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} void f() {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 4),
-      error(diag.expectedToken, 12, 4),
-      error(diag.missingIdentifier, 12, 4),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3426,15 +3438,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} var x; }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 3),
-      error(diag.expectedToken, 12, 3),
-      error(diag.missingIdentifier, 12, 3),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3472,15 +3484,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} return; }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 6),
-      error(diag.expectedToken, 12, 6),
-      error(diag.missingIdentifier, 12, 6),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3514,15 +3526,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} switch (x) {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 6),
-      error(diag.expectedToken, 12, 6),
-      error(diag.missingIdentifier, 12, 6),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3561,15 +3573,15 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} try {} finally {} }
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^
+// [diag.expectedToken] Expected to find 'while'.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 3),
-      error(diag.expectedToken, 12, 3),
-      error(diag.missingIdentifier, 12, 3),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3609,10 +3621,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightBrace_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (true) {} }
+//                     ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 23, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3646,10 +3659,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) assert (true); }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3687,10 +3701,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3724,13 +3739,13 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) break; }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.breakOutsideOfLoop, 22, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3764,13 +3779,13 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) continue; }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.continueOutsideOfLoop, 22, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3804,10 +3819,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) do {} while (true); }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3849,10 +3865,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3883,10 +3900,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) for (var x in y) {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3931,10 +3949,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) if (true) {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3974,10 +3993,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) l: {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4016,10 +4036,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) int f() {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4063,10 +4084,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) void f() {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4110,10 +4132,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) var x; }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4151,10 +4174,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) return; }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4188,10 +4212,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) switch (x) {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4230,10 +4255,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) try {} finally {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4273,10 +4299,11 @@ CompilationUnit
   }
 
   void test_do_statement_rightParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while (a) while (true) {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4316,14 +4343,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while assert (true); }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 6),
-      error(diag.missingIdentifier, 18, 6),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4361,14 +4388,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 18, 1),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4402,15 +4429,15 @@ CompilationUnit
   }
 
   void test_do_statement_while_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while break; }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 5),
-      error(diag.missingIdentifier, 18, 5),
-      error(diag.expectedToken, 12, 5),
-      error(diag.breakOutsideOfLoop, 18, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4444,15 +4471,15 @@ CompilationUnit
   }
 
   void test_do_statement_while_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while continue; }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 8),
-      error(diag.missingIdentifier, 18, 8),
-      error(diag.expectedToken, 12, 5),
-      error(diag.continueOutsideOfLoop, 18, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4486,14 +4513,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while do {} while (true); }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 2),
-      error(diag.missingIdentifier, 18, 2),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4535,14 +4562,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 18, 1),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4573,14 +4600,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while for (var x in y) {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 3),
-      error(diag.missingIdentifier, 18, 3),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4625,14 +4652,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while if (true) {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 2),
-      error(diag.missingIdentifier, 18, 2),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4672,14 +4699,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while l: {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.missingIdentifier, 18, 1),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4718,14 +4745,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while int f() {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 3),
-      error(diag.missingIdentifier, 18, 3),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4769,14 +4796,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while void f() {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 4),
-      error(diag.missingIdentifier, 18, 4),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4820,14 +4847,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while var x; }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 3),
-      error(diag.missingIdentifier, 18, 3),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4865,14 +4892,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while return; }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 6),
-      error(diag.missingIdentifier, 18, 6),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4906,14 +4933,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while switch (x) {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 6),
-      error(diag.missingIdentifier, 18, 6),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4952,14 +4979,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while try {} finally {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 3),
-      error(diag.missingIdentifier, 18, 3),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4999,14 +5026,14 @@ CompilationUnit
   }
 
   void test_do_statement_while_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { do {} while while (true) {} }
+//          ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 5),
-      error(diag.missingIdentifier, 18, 5),
-      error(diag.expectedToken, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

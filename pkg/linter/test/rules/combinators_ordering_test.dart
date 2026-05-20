@@ -29,12 +29,9 @@ import 'dart:math' hide max, min;
   }
 
   test_hideCombinator_import_unsorted() async {
-    await assertDiagnostics(
-      r'''
-import 'dart:math' hide min, max;
-''',
-      [lint(19, 13)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+import 'dart:math' [!hide min, max!];
+''');
   }
 
   test_showCombinator_export_sorted() async {
@@ -44,12 +41,9 @@ export 'dart:math' show max, min;
   }
 
   test_showCombinator_export_unsorted() async {
-    await assertDiagnostics(
-      r'''
-export 'dart:math' show min, max;
-''',
-      [lint(19, 13)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+export 'dart:math' [!show min, max!];
+''');
   }
 
   test_showCombinator_import_sorted() async {
@@ -59,11 +53,8 @@ import 'dart:math' show max, min;
   }
 
   test_showCombinator_import_unsorted() async {
-    await assertDiagnostics(
-      r'''
-import 'dart:math' show min, max;
-''',
-      [lint(19, 13)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+import 'dart:math' [!show min, max!];
+''');
   }
 }

@@ -511,7 +511,7 @@ augment class A {
   augment int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -552,7 +552,7 @@ augment class A {
   int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -699,7 +699,7 @@ augment class A {
   static int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -738,7 +738,7 @@ augment class A {
   static void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -930,7 +930,7 @@ augment mixin A {
   int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {}
@@ -969,7 +969,7 @@ augment mixin A {
   static int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {}
@@ -1008,7 +1008,7 @@ augment mixin A {
   static void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {}

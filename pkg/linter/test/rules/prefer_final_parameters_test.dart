@@ -30,15 +30,12 @@ void f(String p) {
   }
 
   test_closure() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-var f = (Object p) {
+var f = ([!Object p!]) {
   print(p);
 };
-''',
-      [lint(23, 8)],
-    );
+''');
   }
 
   test_closure_final() async {
@@ -60,15 +57,12 @@ void f(final List<int> x) {
   }
 
   test_closure_untyped() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 void f(final List<int> x) {
-  x.forEach((e) => print(e + 4));
+  x.forEach(([!e!]) => print(e + 4));
 }
-''',
-      [lint(55, 1)],
-    );
+''');
   }
 
   test_closure_wildcard() async {
@@ -88,31 +82,25 @@ class C {
   }
 
   test_constructor_usedInBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
   int x = 0;
-  C(String p) {
+  C([!String p!]) {
     x = p.length;
   }
 }
-''',
-      [lint(41, 8)],
-    );
+''');
   }
 
   test_constructor_usedInInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
   String x = '';
-  C(String x): this.x = x;
+  C([!String x!]): this.x = x;
 }
-''',
-      [lint(45, 8)],
-    );
+''');
   }
 
   test_constructor_usedInInitializer_final() async {
@@ -172,17 +160,14 @@ void f(int p) {
   }
 
   test_method() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
-  void m(String p) {
+  void m([!String p!]) {
     print(p);
   }
 }
-''',
-      [lint(33, 8)],
-    );
+''');
   }
 
   test_method_final() async {
@@ -215,17 +200,14 @@ class C {
   }
 
   test_operator() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
-  C operator +(C other) {
+  C operator +([!C other!]) {
     return other;
   }
 }
-''',
-      [lint(39, 7)],
-    );
+''');
   }
 
   test_operator_final() async {
@@ -259,16 +241,13 @@ void f(int a, int b) {
   }
 
   test_setter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
   int x = 0;
-  void set f(int y) => x = y;
+  void set f([!int y!]) => x = y;
 }
-''',
-      [lint(50, 5)],
-    );
+''');
   }
 
   test_setter_final() async {
@@ -318,13 +297,10 @@ class B extends A {
   }
 
   test_topLevelFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f(int p) => print(p);
-''',
-      [lint(21, 5)],
-    );
+void f([!int p!]) => print(p);
+''');
   }
 
   test_topLevelFunction_final() async {
@@ -345,15 +321,12 @@ void f(final String p, final String p2) {
   }
 
   test_topLevelFunction_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f({String? p}) {
+void f({[!String? p!]}) {
   print(p);
 }
-''',
-      [lint(22, 9)],
-    );
+''');
   }
 
   test_topLevelFunction_named_final() async {
@@ -380,15 +353,12 @@ void f({final String? _}) { }
   }
 
   test_topLevelFunction_namedRequired() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f({required String p}) {
+void f({[!required String p!]}) {
   print(p);
 }
-''',
-      [lint(22, 17)],
-    );
+''');
   }
 
   test_topLevelFunction_namedRequired_final() async {
@@ -415,15 +385,12 @@ void f({required String _}) { }
   }
 
   test_topLevelFunction_optional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f([String? p]) {
+void f([[!String? p!]]) {
   print(p);
 }
-''',
-      [lint(22, 9)],
-    );
+''');
   }
 
   test_topLevelFunction_optional_final() async {

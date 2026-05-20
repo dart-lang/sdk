@@ -299,7 +299,7 @@ void f() {
   }
 
   test_class_definesCall() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int call(int x) { return x; }
 }
@@ -309,7 +309,7 @@ int f(A a) {
   }
 
   test_class_extends_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A extends B implements C {}
 class B {}
 class C {}''');
@@ -439,7 +439,7 @@ void f() {
   }
 
   test_empty() async {
-    await assertNoErrorsInCode('');
+    await resolveTestCodeWithDiagnostics('');
   }
 
   test_entryPoint_exported() async {
@@ -447,7 +447,7 @@ void f() {
 main() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
 ''');
 
@@ -459,7 +459,7 @@ export 'a.dart';
   }
 
   test_entryPoint_local() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {}
 ''');
 
@@ -471,7 +471,7 @@ main() {}
   }
 
   test_entryPoint_none() async {
-    await assertNoErrorsInCode('');
+    await resolveTestCodeWithDiagnostics('');
 
     var library = result.libraryElement;
     expect(library.entryPoint, isNull);
@@ -481,7 +481,7 @@ main() {}
     newFile('$testPackageLibPath/a.dart', r'''
 enum EEE {A, B, C}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 void f(EEE e) {}
@@ -489,7 +489,7 @@ void f(EEE e) {}
   }
 
   test_extractedMethodAsConstant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class Comparable<T> {
   int compareTo(T other);
   static int compare(Comparable a, Comparable b) => a.compareTo(b);
@@ -500,7 +500,7 @@ class A {
   }
 
   test_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   int y;
@@ -538,7 +538,7 @@ f() {
   }
 
   test_forLoops_nonConflicting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   for (int i = 0; i < 3; i++) {
   }
@@ -548,7 +548,7 @@ f() {
   }
 
   test_functionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef bool P(e);
 class A {
   late P p;
@@ -559,7 +559,7 @@ class A {
   }
 
   test_getter_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   get x => null;
@@ -620,7 +620,7 @@ class A {}''');
     newFile('$testPackageLibPath/lib2.dart', r'''
 set foo(value) {}''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' hide foo;
 import 'lib2.dart';
 
@@ -636,7 +636,7 @@ f(int x) {
   return x * x;
 }''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as _a;
 main() {
   _a.f(0);
@@ -703,7 +703,7 @@ class H extends D<W> {
     newFile('$testPackageLibPath/sub folder/a.dart', r'''
 foo() {}''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'sub folder/a.dart';
 
 main() {
@@ -712,7 +712,7 @@ main() {
   }
 
   test_indexExpression_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   List<int> a = [];
   a[0];
@@ -735,7 +735,7 @@ f() {
   }
 
   test_indirectOperatorThroughCall() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   B call() { return new B(); }
 }
@@ -754,7 +754,7 @@ main() {
   }
 
   test_invoke_dynamicThroughGetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   List get X => [() => 0];
   m(A a) {
@@ -791,7 +791,7 @@ class C = Object with A;''',
   }
 
   test_isValidMixin_factoryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class A {
   factory A() => throw 0;
 }
@@ -802,7 +802,7 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_super_toString() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class A {
   toString() {
     return super.toString();
@@ -815,7 +815,7 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin class A {}
 class C = Object with A;''');
 
@@ -824,7 +824,7 @@ class C = Object with A;''');
   }
 
   test_labels_switch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void doSwitch(int target) {
   switch (target) {
     l0: case 0:
@@ -838,7 +838,7 @@ void doSwitch(int target) {
   }
 
   test_labels_switch_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void doSwitch(int target) {
   switch (target) {
@@ -864,7 +864,7 @@ main() {
   }
 
   test_metadata_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A class C<A> {}''');
 
@@ -884,7 +884,7 @@ Annotation
   }
 
   test_metadata_classTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A class C<A> = D with E;
 class D {}
@@ -907,7 +907,7 @@ Annotation
   }
 
   test_metadata_enum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const A = null;
 @A enum E { A, B }
 ''');
@@ -928,7 +928,7 @@ Annotation
   }
 
   test_metadata_extension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A extension E<A> on List<A> {}''');
 
@@ -948,7 +948,7 @@ Annotation
   }
 
   test_metadata_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   @A int f = 1;
@@ -959,7 +959,7 @@ class C {
   }
 
   test_metadata_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   int f;
@@ -971,7 +971,7 @@ class C {
   }
 
   test_metadata_function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A f() {}''');
 
@@ -980,7 +980,7 @@ const A = null;
   }
 
   test_metadata_function_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A f<A>() {}''');
 
@@ -1000,7 +1000,7 @@ Annotation
   }
 
   test_metadata_functionTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const A = null;
 @A typedef F<A>(int A);
 ''');
@@ -1021,7 +1021,7 @@ Annotation
   }
 
   test_metadata_functionTypedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f(@A int p(int x)) {}''');
 
@@ -1030,7 +1030,7 @@ f(@A int p(int x)) {}''');
   }
 
   test_metadata_functionTypedParameter_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f(@A int p<A>(int x)) {}''');
 
@@ -1050,7 +1050,7 @@ Annotation
   }
 
   test_metadata_genericTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A typedef F<A> = A Function();
 ''');
@@ -1071,7 +1071,7 @@ Annotation
   }
 
   test_metadata_libraryDirective() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @A library lib;
 const A = null;''');
 
@@ -1080,7 +1080,7 @@ const A = null;''');
   }
 
   test_metadata_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   @A void m() {}
@@ -1091,7 +1091,7 @@ class C {
   }
 
   test_metadata_method_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   @A void m<A>() {}
@@ -1113,7 +1113,7 @@ Annotation
   }
 
   test_metadata_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A mixin M<A> on Object {}''');
 
@@ -1133,7 +1133,7 @@ Annotation
   }
 
   test_metadata_namedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f({@A int p = 0}) {}''');
 
@@ -1142,7 +1142,7 @@ f({@A int p = 0}) {}''');
   }
 
   test_metadata_positionalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f([@A int p = 0]) {}''');
 
@@ -1151,7 +1151,7 @@ f([@A int p = 0]) {}''');
   }
 
   test_metadata_simpleParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f(@A p1, @A int p2) {}''');
 
@@ -1160,7 +1160,7 @@ f(@A p1, @A int p2) {}''');
   }
 
   test_metadata_typedef() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A typedef F<A>();''');
 
@@ -1179,7 +1179,7 @@ Annotation
   }
 
   test_method_fromMixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   bar() => 1;
 }
@@ -1194,7 +1194,7 @@ class C extends B with A {
   }
 
   test_method_fromMixins() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   void f() {}
@@ -1217,7 +1217,7 @@ SimpleIdentifier
   }
 
   test_method_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   void f() {}
@@ -1241,7 +1241,7 @@ SimpleIdentifier
   }
 
   test_method_fromMixins_invoked_from_outside_class() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   void f() {}
@@ -1264,7 +1264,7 @@ SimpleIdentifier
   }
 
   test_method_fromSuperclassMixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void m1() {}
 }
@@ -1278,7 +1278,7 @@ f(C c) {
   }
 
   test_methodCascades() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void m1() {}
   void m2() {}
@@ -1291,7 +1291,7 @@ class A {
   }
 
   test_methodCascades_withSetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   String name = '';
   void m1() {}
@@ -1306,14 +1306,14 @@ class A {
   }
 
   test_resolveAgainstNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(p) {
   return null == p;
 }''');
   }
 
   test_setter_static() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 set s(x) {
 }
 

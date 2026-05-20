@@ -280,19 +280,19 @@ class PluginSession {
   final PluginIsolate _isolate;
 
   /// The completer used to signal when the plugin has stopped.
-  Completer<void> pluginStoppedCompleter = Completer<void>();
+  final Completer<void> pluginStoppedCompleter = Completer<void>();
 
   /// The channel used to communicate with the plugin.
   ServerCommunicationChannel? channel;
 
   /// The index of the next request to be sent to the plugin.
+  @visibleForTesting
   int requestId = 0;
 
   /// A table mapping the id's of requests to the functions used to handle the
   /// response to those requests.
   @visibleForTesting
-  // ignore: library_private_types_in_public_api
-  Map<String, _PendingRequest> pendingRequests = <String, _PendingRequest>{};
+  final pendingRequests = <String, _PendingRequest>{};
 
   /// A boolean indicating whether the plugin is compatible with the version of
   /// the plugin API being used by this server.

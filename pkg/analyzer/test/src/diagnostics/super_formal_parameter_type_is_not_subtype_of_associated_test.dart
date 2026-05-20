@@ -32,7 +32,7 @@ class B extends A<int> {
   }
 
   test_generic_requiredPositional_explicit_same() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T a);
 }
@@ -44,7 +44,7 @@ class B extends A<num> {
   }
 
   test_generic_requiredPositional_explicit_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T a);
 }
@@ -71,7 +71,7 @@ class B extends A {
   }
 
   test_requiredNamed_explicit_same() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required num a});
 }
@@ -83,7 +83,7 @@ class B extends A {
   }
 
   test_requiredNamed_explicit_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required num a});
 }
@@ -95,7 +95,7 @@ class B extends A {
   }
 
   test_requiredNamed_inherited() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int a});
 }
@@ -138,7 +138,7 @@ class B extends A {
   }
 
   test_requiredPositional_explicit_same() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(num a);
 }
@@ -150,7 +150,7 @@ class B extends A {
   }
 
   test_requiredPositional_explicit_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(num a);
 }
@@ -162,7 +162,7 @@ class B extends A {
   }
 
   test_requiredPositional_inherited() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }

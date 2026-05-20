@@ -35,20 +35,14 @@ library foo;
   }
 
   test_titlecase() async {
-    await assertDiagnostics(
-      '''
-library Foo;
-''',
-      [lint(8, 3)],
-    );
+    await assertDiagnosticsFromMarkdown('''
+library [!Foo!];
+''');
   }
 
   test_uppercaseInDots() async {
-    await assertDiagnostics(
-      '''
-library one.Two.three;
-''',
-      [lint(8, 13)],
-    );
+    await assertDiagnosticsFromMarkdown('''
+library [!one.Two.three!];
+''');
   }
 }

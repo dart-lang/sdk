@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -23,14 +22,14 @@ main() {
 @reflectiveTest
 class AngleBracketsTest extends ParserDiagnosticsTest {
   void test_typeArguments_inner_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 List<List<int>
+//           ^
+// [diag.expectedToken] Expected to find '>'.
+// [diag.expectedToken] Expected to find ';'.
+//            ^
+// [diag.missingIdentifier][column 15][length 0] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 15, 0),
-      error(diag.expectedToken, 13, 1),
-      error(diag.expectedToken, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -59,10 +58,11 @@ CompilationUnit
   }
 
   void test_typeArguments_inner_last2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 List<List<int> f;
+//           ^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -91,14 +91,14 @@ CompilationUnit
   }
 
   void test_typeArguments_inner_notLast() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 Map<List<int, List<String>>
+//                        ^
+// [diag.expectedToken] Expected to find '>'.
+// [diag.expectedToken] Expected to find ';'.
+//                         ^
+// [diag.missingIdentifier][column 28][length 0] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 28, 0),
-      error(diag.expectedToken, 26, 1),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -135,10 +135,11 @@ CompilationUnit
   }
 
   void test_typeArguments_inner_notLast2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 Map<List<int, List<String>> f;
+//                        ^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 26, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -175,10 +176,11 @@ CompilationUnit
   }
 
   void test_typeArguments_missing_comma() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 List<int double> f;
+//       ^^^^^^
+// [diag.expectedToken] Expected to find ','.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 9, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -203,14 +205,14 @@ CompilationUnit
   }
 
   void test_typeArguments_outer_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 List<int
+//   ^^^
+// [diag.expectedToken] Expected to find '>'.
+// [diag.expectedToken] Expected to find ';'.
+//      ^
+// [diag.missingIdentifier][column 9][length 0] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 9, 0),
-      error(diag.expectedToken, 5, 3),
-      error(diag.expectedToken, 5, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -233,10 +235,11 @@ CompilationUnit
   }
 
   void test_typeArguments_outer_last2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 List<int f;
+//   ^^^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 5, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -259,14 +262,13 @@ CompilationUnit
   }
 
   void test_typeParameters_extraGt() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T>>() => null;
+// [diag.missingFunctionParameters][column 1][length 1] Functions must have an explicit list of parameters.
+//  ^
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.topLevelOperator] Operators must be declared within a class.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingFunctionParameters, 0, 1),
-      error(diag.missingFunctionBody, 4, 1),
-      error(diag.topLevelOperator, 4, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -302,13 +304,12 @@ CompilationUnit
   }
 
   void test_typeParameters_funct() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T extends Function()() => null;
+// [diag.missingFunctionParameters][column 1][length 1] Functions must have an explicit list of parameters.
+//                   ^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.missingFunctionParameters, 0, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -340,13 +341,12 @@ CompilationUnit
   }
 
   void test_typeParameters_funct2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T extends Function<X>()() => null;
+// [diag.missingFunctionParameters][column 1][length 1] Functions must have an explicit list of parameters.
+//                      ^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.missingFunctionParameters, 0, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -384,10 +384,11 @@ CompilationUnit
   }
 
   void test_typeParameters_gtEq() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T>=() => null;
+//  ^
+// [diag.unexpectedToken] Unexpected text '='.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 4, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -413,10 +414,11 @@ CompilationUnit
   }
 
   void test_typeParameters_gtGtEq() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T extends List<int>>=() => null;
+//                    ^
+// [diag.unexpectedToken] Unexpected text '='.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -451,13 +453,12 @@ CompilationUnit
   }
 
   void test_typeParameters_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T() => null;
+// [diag.missingFunctionParameters][column 1][length 1] Functions must have an explicit list of parameters.
+//^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 2, 1),
-      error(diag.missingFunctionParameters, 0, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -483,13 +484,12 @@ CompilationUnit
   }
 
   void test_typeParameters_outer_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T extends List<int>() => null;
+// [diag.missingFunctionParameters][column 1][length 1] Functions must have an explicit list of parameters.
+//                  ^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.missingFunctionParameters, 0, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -528,12 +528,12 @@ CompilationUnit
 @reflectiveTest
 class BracesTest extends ParserDiagnosticsTest {
   void test_statement_if_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
   if (x != null) {
 }
+// [diag.expectedToken][column 1][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 26, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -568,13 +568,13 @@ CompilationUnit
   }
 
   void test_statement_if_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
   if (x != null) {
   while (x == null) {}
 }
+// [diag.expectedToken][column 1][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 49, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -623,17 +623,16 @@ CompilationUnit
   }
 
   void test_unit_functionBody_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
 class C {}
+// [diag.expectedIdentifierButGotKeyword][column 1][length 5] 'class' can't be used as an identifier because it's a keyword.
+// [diag.expectedToken][column 1][length 5] Expected to find ';'.
+// [diag.missingStatement][column 1][length 5] Expected a statement.
+//    ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.expectedToken][column 11][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.expectedIdentifierButGotKeyword, 7, 5),
-      error(diag.expectedToken, 7, 5),
-      error(diag.missingStatement, 7, 5),
-      error(diag.expectedToken, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -666,11 +665,11 @@ CompilationUnit
   }
 
   void test_unit_functionBody_function() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
 g(y) => y;
+// [diag.expectedToken][column 11][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 18, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -706,10 +705,10 @@ CompilationUnit
   }
 
   void test_unit_functionBody_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
+// [diag.expectedToken][column 7][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 7, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -730,11 +729,11 @@ CompilationUnit
   }
 
   void test_unit_functionBody_variable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
 int y = 0;
+// [diag.expectedToken][column 11][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 18, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -771,13 +770,12 @@ CompilationUnit
 @reflectiveTest
 class BracketsTest extends ParserDiagnosticsTest {
   void test_indexOperator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) => l[x
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.expectedToken][column 12][length 1] Expected to find ']'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -804,13 +802,12 @@ CompilationUnit
   }
 
   void test_indexOperator_nullAware() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) => l?[x
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.expectedToken][column 13][length 1] Expected to find ']'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 1),
-      error(diag.expectedToken, 11, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -838,10 +835,11 @@ CompilationUnit
   }
 
   void test_listLiteral_inner_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [[0], [1];
+//               ^
+// [diag.expectedToken] Expected to find ']'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -874,10 +872,11 @@ CompilationUnit
   }
 
   void test_listLiteral_inner_notLast() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [[0], [1, [2]];
+//                    ^
+// [diag.expectedToken] Expected to find ']'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -916,10 +915,11 @@ CompilationUnit
   }
 
   void test_listLiteral_missing_comma() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [0 1];
+//         ^
+// [diag.expectedToken] Expected to find ','.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 11, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -944,13 +944,12 @@ CompilationUnit
   }
 
   void test_listLiteral_outer_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [0, 1
+//          ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.expectedToken][column 14][length 1] Expected to find ']'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 14, 1),
-      error(diag.expectedToken, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -979,16 +978,15 @@ CompilationUnit
 @reflectiveTest
 class ParenthesesTest extends ParserDiagnosticsTest {
   void test_if_last() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
   if (x
+//    ^
+// [diag.expectedToken] Expected to find ';'.
 }
+// [diag.missingIdentifier][column 1][length 1] Expected an identifier.
+// [diag.expectedToken][column 1][length 1] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 15, 1),
-      error(diag.missingIdentifier, 15, 1),
-      error(diag.expectedToken, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1020,13 +1018,14 @@ CompilationUnit
   }
 
   void test_if_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
   if (x
   while(x != null) {}
+//^
+// [diag.expectedToken] Expected to find ')'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1067,14 +1066,12 @@ CompilationUnit
   }
 
   void test_parameterList_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x
 class C {}
+// [diag.missingFunctionBody][column 1][length 5] A function body must be provided.
+// [diag.expectedToken][column 1][length 1] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingFunctionBody, 4, 5),
-      error(diag.expectedToken, 4, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1102,13 +1099,12 @@ CompilationUnit
   }
 
   void test_parameterList_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x
+// ^
+// [diag.missingFunctionBody][column 4][length 0] A function body must be provided.
+// [diag.expectedToken][column 4][length 1] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 4, 1),
-      error(diag.missingFunctionBody, 4, 0),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

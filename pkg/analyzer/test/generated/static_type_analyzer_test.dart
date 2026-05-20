@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class StaticTypeAnalyzerTest extends PubPackageResolutionTest {
   test_flatten_derived() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class Derived<T> implements Future<T> {}
 late Derived<dynamic> derivedDynamic;
 late Derived<int> derivedInt;
@@ -116,8 +116,8 @@ late B2 b;
 
   test_flatten_simple() async {
     // No code needs to be analyzed but we still need to call
-    // assertNoErrorsInCode to get the typeProvider initialized.
-    await assertNoErrorsInCode('');
+    // resolveTestCodeWithDiagnostics to get the typeProvider initialized.
+    await resolveTestCodeWithDiagnostics('');
     var intType = typeProvider.intType;
     var dynamicType = typeProvider.dynamicType;
     var futureDynamicType = typeProvider.futureDynamicType;
@@ -168,7 +168,7 @@ late B2 b;
   }
 
   test_visitAdjacentStrings() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 'a' 'b';
 ''');
     expect(
@@ -178,7 +178,7 @@ test() => 'a' 'b';
   }
 
   test_visitAsExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   test() => this as B;
 }
@@ -190,7 +190,7 @@ late B b;
   }
 
   test_visitAwaitExpression_flattened() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Future<Future<int>> e) async => await e;
 ''');
     InterfaceType futureIntType = typeProvider.futureType(typeProvider.intType);
@@ -198,7 +198,7 @@ test(Future<Future<int>> e) async => await e;
   }
 
   test_visitAwaitExpression_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Future<int> e) async => await e;
 ''');
     // await e, where e has type Future<int>
@@ -207,7 +207,7 @@ test(Future<int> e) async => await e;
   }
 
   test_visitBooleanLiteral_false() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => false;
 ''');
     expect(
@@ -217,7 +217,7 @@ test() => false;
   }
 
   test_visitBooleanLiteral_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => true;
 ''');
     expect(
@@ -227,14 +227,14 @@ test() => true;
   }
 
   test_visitCascadeExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(String a) => a..length;
 ''');
     expect(findNode.cascade('a..length').staticType, typeProvider.stringType);
   }
 
   test_visitConditionalExpression_differentTypes() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) => b ? 1.0 : 0;
 ''');
     expect(
@@ -244,7 +244,7 @@ test(bool b) => b ? 1.0 : 0;
   }
 
   test_visitConditionalExpression_sameTypes() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) => b ? 1 : 0;
 ''');
     expect(
@@ -254,7 +254,7 @@ test(bool b) => b ? 1 : 0;
   }
 
   test_visitDoubleLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 4.33;
 ''');
     expect(
@@ -264,7 +264,7 @@ test() => 4.33;
   }
 
   test_visitInstanceCreationExpression_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C.m();
 }
@@ -276,7 +276,7 @@ late C c;
   }
 
   test_visitInstanceCreationExpression_typeParameters() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<E> {}
 class I {}
 test() => new C<I>();
@@ -291,7 +291,7 @@ late I i;
   }
 
   test_visitInstanceCreationExpression_unnamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 test() => new C();
 late C c;
@@ -301,7 +301,7 @@ late C c;
   }
 
   test_visitIntegerLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 42;
 ''');
     var node = findNode.integerLiteral('42');
@@ -309,7 +309,7 @@ test() => 42;
   }
 
   test_visitIsExpression_negated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object a) => a is! String;
 ''');
     expect(
@@ -319,7 +319,7 @@ test(Object a) => a is! String;
   }
 
   test_visitIsExpression_notNegated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object a) => a is String;
 ''');
     expect(
@@ -329,14 +329,14 @@ test(Object a) => a is String;
   }
 
   test_visitMethodInvocation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 m() => 0;
 test() => m();
 ''');
   }
 
   test_visitNullLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => null;
 ''');
     expect(
@@ -346,7 +346,7 @@ test() => null;
   }
 
   test_visitParenthesizedExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => (0);
 ''');
     expect(
@@ -356,7 +356,7 @@ test() => (0);
   }
 
   test_visitSimpleStringLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 'a';
 ''');
     expect(
@@ -366,7 +366,7 @@ test() => 'a';
   }
 
   test_visitStringInterpolation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 test() => "a${'b'}c";
 ''');
     expect(
@@ -376,7 +376,7 @@ test() => "a${'b'}c";
   }
 
   test_visitSuperExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -390,7 +390,7 @@ late B b;
   }
 
   test_visitSymbolLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => #a;
 ''');
     expect(
@@ -400,7 +400,7 @@ test() => #a;
   }
 
   test_visitThisExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B extends A {
   test() => this;
@@ -412,7 +412,7 @@ late B b;
   }
 
   test_visitThrowExpression_withValue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => throw 0;
 ''');
     var node = findNode.throw_('throw 0');

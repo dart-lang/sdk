@@ -532,7 +532,7 @@ int Function(int, int) foo = f;
   }
 
   test_functionTearoff_genericInstantiation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int Function() foo(int Function<T extends int>() f) {
   return f;
 }
@@ -597,7 +597,7 @@ void f(int i) {
   }
 
   test_ifNullAssignment_superType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(int i) {
   num? n;
   n ??= i;

@@ -83,14 +83,11 @@ augment class A {
   }
 
   test_basicClass() async {
-    await assertDiagnostics(
-      r'''
-class C {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!C!] {
   static void f() {}
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_class_empty() async {
@@ -184,14 +181,11 @@ class C {
   }
 
   test_finalClass() async {
-    await assertDiagnostics(
-      r'''
-final class C {
+    await assertDiagnosticsFromMarkdown(r'''
+final class [!C!] {
   static void f() {}
 }
-''',
-      [lint(12, 1)],
-    );
+''');
   }
 
   test_sealedClass() async {

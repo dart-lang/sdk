@@ -149,7 +149,7 @@ class B extends C  {
   }
 
   test_class_implements_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -165,7 +165,7 @@ class B implements C  {
   }
 
   test_class_implements_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {

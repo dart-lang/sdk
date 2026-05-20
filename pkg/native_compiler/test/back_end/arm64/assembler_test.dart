@@ -398,6 +398,10 @@ void main() {
         'blr lr\n',
       );
     });
+    test('breakpoint', () {
+      asm.breakpoint();
+      expectDisassembly('brk #0x0\n');
+    });
     test('inlineAllocation - object size 16', () {
       final slowPath = Label();
       asm.inlineAllocation(
@@ -1637,7 +1641,16 @@ void main() {
         'ret r1\n',
       );
     });
-
+    test('brk', () {
+      asm.brk(0x1234);
+      expectDisassembly('brk #0x1234\n');
+      expectThrows(() {
+        asm.brk(-1);
+      });
+      expectThrows(() {
+        asm.brk(0x10000);
+      });
+    });
     test('scvtf', () {
       asm.scvtf(V0, R0);
       asm.scvtf(V1, R2, .s32);

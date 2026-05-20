@@ -18,60 +18,45 @@ class PreferIfNullOperatorsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_if_null_operators;
 
   test_null_eqEq_nullable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int? p) {
-  null == p ? 1 : p;
+  [!null == p ? 1 : p!];
 }
-''',
-      [lint(19, 17)],
-    );
+''');
   }
 
   test_null_notEq_nullable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int? p) {
-  null != p ? p : 2;
+  [!null != p ? p : 2!];
 }
-''',
-      [lint(19, 17)],
-    );
+''');
   }
 
   test_nullable_eqEq_null() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int? p) {
-  p == null ? 1 : p;
+  [!p == null ? 1 : p!];
 }
-''',
-      [lint(19, 17)],
-    );
+''');
   }
 
   test_nullable_notEq_null() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int? p) {
-  p != null ? p : 2;
+  [!p != null ? p : 2!];
 }
-''',
-      [lint(19, 17)],
-    );
+''');
   }
 
   test_nullablePrefixedIdentifier_notEq_null() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(C c) {
-  c.d != null ? c.d : 7;
+  [!c.d != null ? c.d : 7!];
 }
 class C {
   int? get d => 7;
 }
-''',
-      [lint(16, 21)],
-    );
+''');
   }
 }

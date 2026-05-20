@@ -27,7 +27,7 @@ class HasDependentDotShorthandTest extends PubPackageResolutionTest {
   }
 
   test_constructorInvocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(X x);
   A.named(X x);
@@ -39,7 +39,7 @@ A<A> a = A(.named(null));
   }
 
   test_constructorInvocation_explicitTypeArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(X x);
   A.named(X x);
@@ -51,7 +51,7 @@ A<A> a = A<A>(.named(null));
   }
 
   test_constructorInvocation_nested() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(X x);
   A.named(X x);
@@ -65,7 +65,7 @@ A<A> a = A(id(.named(null)));
   }
 
   test_constructorInvocation_noTypeParametersInParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(int x);
 }
@@ -76,7 +76,7 @@ A<String> a = A(.parse('0'));
   }
 
   test_functionExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 E Function() e = () => .a;
@@ -85,7 +85,7 @@ E Function() e = () => .a;
   }
 
   test_functionExpression_list() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 List<E> Function() e = () => [.a];
@@ -94,7 +94,7 @@ List<E> Function() e = () => [.a];
   }
 
   test_list() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 List<E> e = [.b];
@@ -103,7 +103,7 @@ List<E> e = [.b];
   }
 
   test_map() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 Map<String, E> e = {'test': .b};
@@ -112,7 +112,7 @@ Map<String, E> e = {'test': .b};
   }
 
   test_methodInvocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 T f<T>(T t) => t;
 
@@ -122,7 +122,7 @@ E e = f(.a);
   }
 
   test_methodInvocation_filterTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named();
 }
@@ -139,7 +139,7 @@ bar<T extends A>(T t) {
   }
 
   test_methodInvocation_functionType_parameter_blockBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function() s) => s();
@@ -152,7 +152,7 @@ E e = f(() { return t(.a); });
   }
 
   test_methodInvocation_functionType_parameter_blockBody_independent() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function() s) => s();
@@ -165,7 +165,7 @@ E e = f(() { return eFn(.a); });
   }
 
   test_methodInvocation_functionType_parameter_expressionBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function() s) => s();
@@ -176,7 +176,7 @@ E e = f(() => .a);
   }
 
   test_methodInvocation_functionType_parameter_expressionBody2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function(S) s, S input) => s(input);
@@ -187,7 +187,7 @@ E e = f((E _) => .a, E.b);
   }
 
   test_methodInvocation_functionType_returnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S Function(T) f<T, S>(T t, S s) => (T t) => s;
@@ -198,7 +198,7 @@ E Function(E) e = f(E.a, .b);
   }
 
   test_methodInvocation_functionType_returnType2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S Function(T) f<T, S>(T t, S s) => (T t) => s;
@@ -209,7 +209,7 @@ E Function(E) e = f(.a, E.b);
   }
 
   test_methodInvocation_list() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(List<S> s) => s[0];
@@ -220,7 +220,7 @@ E e = f([.a, .b]);
   }
 
   test_methodInvocation_multipleTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 E d(E e) => e;
@@ -235,7 +235,7 @@ E e = f(d(.a), g(.b));
   }
 
   test_methodInvocation_multipleTypeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 E d(E e) => e;
@@ -250,7 +250,7 @@ E e = f(d(.a), E.b);
   }
 
   test_methodInvocation_noTypeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c; }
 
 T id<T>(T t) => t;
@@ -263,7 +263,7 @@ E e = idE(id(.b));
   }
 
   test_methodInvocation_singleTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
@@ -274,7 +274,7 @@ E e = f(.a, .b);
   }
 
   test_methodInvocation_singleTypeParameter_explicitTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
@@ -285,7 +285,7 @@ E e = f<E>(.a, .b);
   }
 
   test_methodInvocation_singleTypeParameter_functionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T? Function() d<T>(T t) => () { return t;};
@@ -296,7 +296,7 @@ E? Function() e = d(.a);
   }
 
   test_methodInvocation_singleTypeParameter_functionType_nested() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T? Function() d<T>(T t) => () { return t;};
@@ -308,7 +308,7 @@ E? Function() e = d(f(.a, .b));
   }
 
   test_methodInvocation_singleTypeParameter_independent() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
@@ -319,7 +319,7 @@ E e = f(E.a, .b);
   }
 
   test_methodInvocation_singleTypeParameter_nested() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
@@ -330,7 +330,7 @@ E e = f(f(.a, .b), .c);
   }
 
   test_methodInvocation_singleTypeParameter_nested_independent() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
@@ -341,7 +341,7 @@ E e = f(E.a, f(.b, .c));
   }
 
   test_set() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 Set<E> e = {.b};

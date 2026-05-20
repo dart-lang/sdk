@@ -144,6 +144,19 @@ final tests = <IsolateTest>[
     expect(scripts.length, 1);
     expect(scripts[0].uri!, endsWith('get_source_report_test.dart'));
 
+    // With `libraryFilters` and `librariesAlreadyCompiled`
+    coverage = await service.getSourceReport(
+      isolateId,
+      [SourceReportKind.kCoverage],
+      scriptId: scriptId,
+      tokenPos: func.location!.tokenPos!,
+      endTokenPos: func.location!.endTokenPos!,
+      libraryFilters: [scripts[0].uri!],
+      librariesAlreadyCompiled: [scripts[0].uri!],
+    );
+    scripts = coverage.scripts!;
+    expect(scripts[0].uri!, endsWith('get_source_report_test.dart'));
+
     // Full isolate
     coverage = await service.getSourceReport(
       isolateId,

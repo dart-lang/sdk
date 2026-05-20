@@ -131,8 +131,7 @@ void switchString() {
 class NoDuplicateCaseValuesTestLanguage219 extends BaseNoDuplicateCaseValuesTest
     with LanguageVersion219Mixin {
   test_duplicateConstClassValue() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class ConstClass {
   final int v;
   const ConstClass(this.v);
@@ -145,18 +144,15 @@ void switchConstClass() {
     case const ConstClass(1):
     case const ConstClass(2):
     case const ConstClass(3):
-    case const ConstClass(2):
+    case [!const ConstClass(2)!]:
     default:
   }
 }
-''',
-      [lint(242, 19)],
-    );
+''');
   }
 
   test_duplicateEnumValue() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum E {
   one,
   two,
@@ -170,18 +166,15 @@ void switchEnum() {
     case E.one:
     case E.two:
     case E.three:
-    case E.two:
+    case [!E.two!]:
     default:
   }
 }
-''',
-      [lint(144, 5)],
-    );
+''');
   }
 
   test_duplicateIntConstant() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void switchInt() {
   const int A = 1;
   int v = 5;
@@ -189,20 +182,17 @@ void switchInt() {
   switch (v) {
     case 1:
     case 2:
-    case A:
-    case 2:
+    case /*[0*/A/*0]*/:
+    case /*[1*/2/*1]*/:
     case 3:
     default:
   }
 }
-''',
-      [lint(100, 1), lint(112, 1)],
-    );
+''');
   }
 
   test_duplicateStringConstant() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void switchString() {
   const String A = 'a';
   String v = 'aa';
@@ -210,14 +200,12 @@ void switchString() {
   switch (v) {
     case 'aa':
     case 'bb':
-    case A + A:
-    case 'bb':
+    case /*[0*/A + A/*0]*/:
+    case /*[1*/'bb'/*1]*/:
     case A + 'b':
     default:
   }
 }
-''',
-      [lint(120, 5), lint(136, 4)],
-    );
+''');
   }
 }

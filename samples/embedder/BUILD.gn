@@ -70,14 +70,6 @@ _all_configs = [
     dart_shared_lib = "../../runtime/engine:dart_engine_aot_shared"
     dart_static_lib = "../../runtime/engine:dart_engine_aot_static"
     snapshot_target = "aot_snapshot"
-
-    # AOT snapshots as shared libraries on Windows are not
-    # supported, and in fact we don't build AOT samples on
-    # Windows. However, GN evaluation model will still
-    # evaluate the `aot_snapshot` template on Windows,
-    # and it will fail the assert if as_shared_library is
-    # true, and the current platform is Windows.
-    as_shared_library = !is_win
   },
 ]
 

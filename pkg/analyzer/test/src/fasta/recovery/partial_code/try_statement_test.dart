@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,13 +17,12 @@ main() {
 @reflectiveTest
 class TryStatementTest extends ParserDiagnosticsTest {
   void test_try_statement_catch_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch assert (true); }
+//                 ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 6),
-      error(diag.expectedCatchClauseBody, 19, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -66,10 +64,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch {} }
+//                 ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
 ''');
-    parseResult.assertErrors([error(diag.catchSyntax, 19, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -104,14 +103,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch break; }
+//                 ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 5),
-      error(diag.expectedCatchClauseBody, 19, 5),
-      error(diag.breakOutsideOfLoop, 19, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -149,14 +147,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch continue; }
+//                 ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 8),
-      error(diag.expectedCatchClauseBody, 19, 8),
-      error(diag.continueOutsideOfLoop, 19, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -194,13 +191,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch do {} while (true); }
+//                 ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 2),
-      error(diag.expectedCatchClauseBody, 19, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -246,13 +242,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch }
+//                 ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 1),
-      error(diag.expectedCatchClauseBody, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -287,13 +282,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch for (var x in y) {} }
+//                 ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 3),
-      error(diag.expectedCatchClauseBody, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -342,14 +336,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e assert (true); }
+//                    ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 6),
-      error(diag.expectedCatchClauseBody, 22, 6),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -391,13 +385,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e {} }
+//                    ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -432,15 +425,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e break; }
+//                    ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 5),
-      error(diag.expectedCatchClauseBody, 22, 5),
-      error(diag.breakOutsideOfLoop, 22, 5),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -478,15 +471,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e continue; }
+//                    ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 8),
-      error(diag.expectedCatchClauseBody, 22, 8),
-      error(diag.continueOutsideOfLoop, 22, 8),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -524,14 +517,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e do {} while (true); }
+//                    ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 2),
-      error(diag.expectedCatchClauseBody, 22, 2),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -577,13 +570,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e }
+//                    ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
-      error(diag.expectedCatchClauseBody, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -618,14 +610,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e for (var x in y) {} }
+//                    ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 3),
-      error(diag.expectedCatchClauseBody, 22, 3),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -674,14 +666,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e if (true) {} }
+//                    ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 2),
-      error(diag.expectedCatchClauseBody, 22, 2),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -725,14 +717,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e l: {} }
+//                    ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 1),
-      error(diag.expectedCatchClauseBody, 22, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -775,14 +766,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e int f() {} }
+//                    ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 3),
-      error(diag.expectedCatchClauseBody, 22, 3),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -830,14 +821,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e void f() {} }
+//                    ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 4),
-      error(diag.expectedCatchClauseBody, 22, 4),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -885,14 +876,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e var x; }
+//                    ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 3),
-      error(diag.expectedCatchClauseBody, 22, 3),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -934,14 +925,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e return; }
+//                    ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 6),
-      error(diag.expectedCatchClauseBody, 22, 6),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -979,14 +970,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e switch (x) {} }
+//                    ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 6),
-      error(diag.expectedCatchClauseBody, 22, 6),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1029,14 +1020,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e try {} finally {} }
+//                    ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 3),
-      error(diag.expectedCatchClauseBody, 22, 3),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1080,14 +1071,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifier_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e while (true) {} }
+//                    ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 22, 5),
-      error(diag.expectedCatchClauseBody, 22, 5),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1131,14 +1122,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  assert (true); }
+//                      ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 6),
-      error(diag.expectedCatchClauseBody, 24, 6),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1183,15 +1174,16 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  {} }
+//                      ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+//                       ^
+// [diag.expectedToken] Expected to find '}'.
+//                         ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.catchSyntax, 24, 1),
-      error(diag.expectedToken, 25, 1),
-      error(diag.expectedCatchClauseBody, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1229,15 +1221,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  break; }
+//                      ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 5),
-      error(diag.expectedCatchClauseBody, 24, 5),
-      error(diag.breakOutsideOfLoop, 24, 5),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1278,15 +1270,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  continue; }
+//                      ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 8),
-      error(diag.expectedCatchClauseBody, 24, 8),
-      error(diag.continueOutsideOfLoop, 24, 8),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1327,14 +1319,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  do {} while (true); }
+//                      ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 2),
-      error(diag.expectedCatchClauseBody, 24, 2),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1383,14 +1375,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  }
+//                      ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.catchSyntax, 24, 1),
-      error(diag.expectedCatchClauseBody, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1428,14 +1419,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  for (var x in y) {} }
+//                      ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 3),
-      error(diag.expectedCatchClauseBody, 24, 3),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1487,14 +1478,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  if (true) {} }
+//                      ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 2),
-      error(diag.expectedCatchClauseBody, 24, 2),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1541,17 +1532,17 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  l: {} }
+//                      ^
+// [diag.expectedToken] Expected to find ';'.
+//                       ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.catchSyntaxExtraParameters, 25, 1),
-      error(diag.expectedCatchClauseBody, 25, 1),
-      error(diag.missingIdentifier, 25, 1),
-      error(diag.unexpectedToken, 25, 1),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1596,14 +1587,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  int f() {} }
+//                          ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 28, 1),
-      error(diag.expectedCatchClauseBody, 28, 1),
-      error(diag.expectedToken, 28, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1652,14 +1642,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  void f() {} }
+//                      ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 4),
-      error(diag.expectedCatchClauseBody, 24, 4),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1710,14 +1700,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  var x; }
+//                      ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 3),
-      error(diag.expectedCatchClauseBody, 24, 3),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1762,14 +1752,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  return; }
+//                      ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 6),
-      error(diag.expectedCatchClauseBody, 24, 6),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1810,14 +1800,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  switch (x) {} }
+//                      ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 6),
-      error(diag.expectedCatchClauseBody, 24, 6),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1863,14 +1853,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  try {} finally {} }
+//                      ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 3),
-      error(diag.expectedCatchClauseBody, 24, 3),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1917,14 +1907,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierComma_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e,  while (true) {} }
+//                      ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 5),
-      error(diag.expectedCatchClauseBody, 24, 5),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1971,14 +1961,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s assert (true); }
+//                       ^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 6),
-      error(diag.expectedCatchClauseBody, 25, 6),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2023,13 +2013,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s {} }
+//                       ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 1),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2067,15 +2056,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s break; }
+//                       ^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 5),
-      error(diag.expectedCatchClauseBody, 25, 5),
-      error(diag.breakOutsideOfLoop, 25, 5),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2116,15 +2105,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s continue; }
+//                       ^^^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 8),
-      error(diag.expectedCatchClauseBody, 25, 8),
-      error(diag.continueOutsideOfLoop, 25, 8),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2165,14 +2154,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s do {} while (true); }
+//                       ^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 2),
-      error(diag.expectedCatchClauseBody, 25, 2),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2221,13 +2210,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s }
+//                       ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 25, 1),
-      error(diag.expectedCatchClauseBody, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2265,14 +2253,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s for (var x in y) {} }
+//                       ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 3),
-      error(diag.expectedCatchClauseBody, 25, 3),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2324,14 +2312,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s if (true) {} }
+//                       ^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 2),
-      error(diag.expectedCatchClauseBody, 25, 2),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2378,14 +2366,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s l: {} }
+//                       ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 1),
-      error(diag.expectedCatchClauseBody, 25, 1),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2432,14 +2419,14 @@ CompilationUnit
 
   void
   test_try_statement_catch_identifierCommaIdentifier_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s int f() {} }
+//                       ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 3),
-      error(diag.expectedCatchClauseBody, 25, 3),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2490,14 +2477,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s void f() {} }
+//                       ^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 4),
-      error(diag.expectedCatchClauseBody, 25, 4),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2548,14 +2535,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s var x; }
+//                       ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 3),
-      error(diag.expectedCatchClauseBody, 25, 3),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2600,14 +2587,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s return; }
+//                       ^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 6),
-      error(diag.expectedCatchClauseBody, 25, 6),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2648,14 +2635,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s switch (x) {} }
+//                       ^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 6),
-      error(diag.expectedCatchClauseBody, 25, 6),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2701,14 +2688,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s try {} finally {} }
+//                       ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 3),
-      error(diag.expectedCatchClauseBody, 25, 3),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2755,14 +2742,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_identifierCommaIdentifier_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s while (true) {} }
+//                       ^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 25, 5),
-      error(diag.expectedCatchClauseBody, 25, 5),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2809,13 +2796,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch if (true) {} }
+//                 ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 2),
-      error(diag.expectedCatchClauseBody, 19, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2859,13 +2845,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch l: {} }
+//                 ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 1),
-      error(diag.expectedCatchClauseBody, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2908,14 +2893,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( assert (true); }
+//                   ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 6),
-      error(diag.expectedCatchClauseBody, 21, 6),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2957,15 +2942,16 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( {} }
+//                   ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+//                    ^
+// [diag.expectedToken] Expected to find '}'.
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.catchSyntax, 21, 1),
-      error(diag.expectedToken, 22, 1),
-      error(diag.expectedCatchClauseBody, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3000,15 +2986,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( break; }
+//                   ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 5),
-      error(diag.expectedCatchClauseBody, 21, 5),
-      error(diag.breakOutsideOfLoop, 21, 5),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3046,15 +3032,15 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( continue; }
+//                   ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 8),
-      error(diag.expectedCatchClauseBody, 21, 8),
-      error(diag.continueOutsideOfLoop, 21, 8),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3092,14 +3078,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( do {} while (true); }
+//                   ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 2),
-      error(diag.expectedCatchClauseBody, 21, 2),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3145,14 +3131,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( }
+//                   ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.catchSyntax, 21, 1),
-      error(diag.expectedCatchClauseBody, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3187,14 +3172,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( for (var x in y) {} }
+//                   ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 3),
-      error(diag.expectedCatchClauseBody, 21, 3),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3243,14 +3228,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( if (true) {} }
+//                   ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 2),
-      error(diag.expectedCatchClauseBody, 21, 2),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3294,17 +3279,17 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( l: {} }
+//                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.catchSyntax, 22, 1),
-      error(diag.expectedCatchClauseBody, 22, 1),
-      error(diag.missingIdentifier, 22, 1),
-      error(diag.unexpectedToken, 22, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3346,14 +3331,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( int f() {} }
+//                       ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 25, 1),
-      error(diag.expectedCatchClauseBody, 25, 1),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3399,14 +3383,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( void f() {} }
+//                   ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 4),
-      error(diag.expectedCatchClauseBody, 21, 4),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3454,14 +3438,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( var x; }
+//                   ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 3),
-      error(diag.expectedCatchClauseBody, 21, 3),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3503,14 +3487,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( return; }
+//                   ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 6),
-      error(diag.expectedCatchClauseBody, 21, 6),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3548,14 +3532,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( switch (x) {} }
+//                   ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 6),
-      error(diag.expectedCatchClauseBody, 21, 6),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3598,14 +3582,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( try {} finally {} }
+//                   ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 3),
-      error(diag.expectedCatchClauseBody, 21, 3),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3649,14 +3633,14 @@ CompilationUnit
   }
 
   void test_try_statement_catch_leftParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch ( while (true) {} }
+//                   ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 21, 5),
-      error(diag.expectedCatchClauseBody, 21, 5),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3700,13 +3684,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch int f() {} }
+//                 ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 3),
-      error(diag.expectedCatchClauseBody, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3754,13 +3737,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch void f() {} }
+//                 ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 4),
-      error(diag.expectedCatchClauseBody, 19, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3808,13 +3790,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch var x; }
+//                 ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 3),
-      error(diag.expectedCatchClauseBody, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3856,13 +3837,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch return; }
+//                 ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 6),
-      error(diag.expectedCatchClauseBody, 19, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3900,10 +3880,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) assert (true); }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3948,10 +3929,9 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) {} }
 ''');
-    parseResult.assertErrors([]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3989,13 +3969,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) break; }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedCatchClauseBody, 24, 1),
-      error(diag.breakOutsideOfLoop, 26, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4036,13 +4016,13 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) continue; }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedCatchClauseBody, 24, 1),
-      error(diag.continueOutsideOfLoop, 26, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4083,10 +4063,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) do {} while (true); }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4135,10 +4116,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4176,10 +4158,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) for (var x in y) {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4231,10 +4214,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) if (true) {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4281,10 +4265,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) l: {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4330,10 +4315,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) int f() {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4384,10 +4370,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) void f() {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4438,10 +4425,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) var x; }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4486,10 +4474,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) return; }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4530,10 +4519,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) switch (x) {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4579,10 +4569,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) try {} finally {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4629,10 +4620,11 @@ CompilationUnit
   }
 
   void test_try_statement_catch_rightParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e, s) while (true) {} }
+//                      ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4679,13 +4671,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch switch (x) {} }
+//                 ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 6),
-      error(diag.expectedCatchClauseBody, 19, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4728,13 +4719,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch try {} finally {} }
+//                 ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 3),
-      error(diag.expectedCatchClauseBody, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4778,13 +4768,12 @@ CompilationUnit
   }
 
   void test_try_statement_catch_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch while (true) {} }
+//                 ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 19, 5),
-      error(diag.expectedCatchClauseBody, 19, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4828,10 +4817,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally assert (true); }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4877,10 +4867,9 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally {} }
 ''');
-    parseResult.assertErrors([]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4919,13 +4908,13 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally break; }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
+//                                ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedFinallyClauseBody, 26, 7),
-      error(diag.breakOutsideOfLoop, 34, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4967,13 +4956,13 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally continue; }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
+//                                ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedFinallyClauseBody, 26, 7),
-      error(diag.continueOutsideOfLoop, 34, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5015,10 +5004,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally do {} while (true); }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5068,10 +5058,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5110,10 +5101,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally for (var x in y) {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5166,10 +5158,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally if (true) {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5217,10 +5210,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally l: {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5267,10 +5261,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally int f() {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5322,10 +5317,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally void f() {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5377,10 +5373,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally var x; }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5426,10 +5423,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally return; }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5471,10 +5469,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally switch (x) {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5521,10 +5520,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally try {} finally {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5572,10 +5572,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_catch_noBlock_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} catch (e) {} finally while (true) {} }
+//                        ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 26, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5623,10 +5624,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally assert (true); }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5662,10 +5664,9 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally {} }
 ''');
-    parseResult.assertErrors([]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5694,13 +5695,13 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally break; }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
+//                   ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedFinallyClauseBody, 13, 7),
-      error(diag.breakOutsideOfLoop, 21, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5732,13 +5733,13 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally continue; }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
+//                   ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedFinallyClauseBody, 13, 7),
-      error(diag.continueOutsideOfLoop, 21, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5770,10 +5771,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally do {} while (true); }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5813,10 +5815,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5845,10 +5848,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally for (var x in y) {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5891,10 +5895,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally if (true) {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5932,10 +5937,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally l: {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5972,10 +5978,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally int f() {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6017,10 +6024,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally void f() {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6062,10 +6070,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally var x; }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6101,10 +6110,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally return; }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6136,10 +6146,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally switch (x) {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6176,10 +6187,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally try {} finally {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6217,10 +6229,11 @@ CompilationUnit
   }
 
   void test_try_statement_finally_noCatch_noBlock_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} finally while (true) {} }
+//           ^^^^^^^
+// [diag.expectedFinallyClauseBody] A finally clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedFinallyClauseBody, 13, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6258,13 +6271,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try assert (true); }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6296,10 +6308,11 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6324,14 +6337,14 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try break; }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
+//        ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-      error(diag.breakOutsideOfLoop, 10, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6359,14 +6372,14 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try continue; }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
+//        ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-      error(diag.continueOutsideOfLoop, 10, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6394,13 +6407,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try do {} while (true); }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6436,13 +6448,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6467,13 +6478,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try for (var x in y) {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6512,13 +6522,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try if (true) {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6552,13 +6561,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try l: {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6591,13 +6599,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try int f() {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6635,13 +6642,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try void f() {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6679,13 +6685,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try var x; }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6717,13 +6722,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try return; }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6751,13 +6755,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try switch (x) {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6790,13 +6793,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try try {} finally {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6830,13 +6832,12 @@ CompilationUnit
   }
 
   void test_try_statement_keyword_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try while (true) {} }
+//    ^^^
+// [diag.expectedTryStatementBody] A try statement must have a body, even if it is empty.
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTryStatementBody, 6, 3),
-      error(diag.missingCatchOrFinally, 6, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6870,10 +6871,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} assert (true); }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6905,10 +6907,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6936,13 +6939,13 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} break; }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
+//           ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingCatchOrFinally, 6, 3),
-      error(diag.breakOutsideOfLoop, 13, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -6970,13 +6973,13 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} continue; }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
+//           ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingCatchOrFinally, 6, 3),
-      error(diag.continueOutsideOfLoop, 13, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7004,10 +7007,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} do {} while (true); }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7043,10 +7047,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7071,10 +7076,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} for (var x in y) {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7113,10 +7119,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} if (true) {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7150,10 +7157,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} l: {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7186,10 +7194,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} int f() {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7227,10 +7236,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} void f() {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7268,10 +7278,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} var x; }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7303,10 +7314,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} return; }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7334,10 +7346,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} switch (x) {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7370,10 +7383,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} try {} finally {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7407,10 +7421,11 @@ CompilationUnit
   }
 
   void test_try_statement_noCatchOrFinally_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} while (true) {} }
+//    ^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 6, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7444,13 +7459,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on assert (true); }
+//              ^^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 6),
-      error(diag.expectedCatchClauseBody, 16, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7490,10 +7504,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on {} }
+//              ^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([error(diag.expectedTypeName, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7526,14 +7541,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on break; }
+//              ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 5),
-      error(diag.expectedCatchClauseBody, 16, 5),
-      error(diag.breakOutsideOfLoop, 16, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7569,13 +7583,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch assert (true); }
+//                      ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 6),
-      error(diag.expectedCatchClauseBody, 24, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7620,10 +7633,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch {} }
+//                      ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
 ''');
-    parseResult.assertErrors([error(diag.catchSyntax, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7661,14 +7675,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch break; }
+//                      ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 5),
-      error(diag.expectedCatchClauseBody, 24, 5),
-      error(diag.breakOutsideOfLoop, 24, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7709,14 +7722,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch continue; }
+//                      ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 8),
-      error(diag.expectedCatchClauseBody, 24, 8),
-      error(diag.continueOutsideOfLoop, 24, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7757,13 +7769,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch do {} while (true); }
+//                      ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 2),
-      error(diag.expectedCatchClauseBody, 24, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7812,13 +7823,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch }
+//                      ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 1),
-      error(diag.expectedCatchClauseBody, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7856,13 +7866,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch for (var x in y) {} }
+//                      ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 3),
-      error(diag.expectedCatchClauseBody, 24, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7914,14 +7923,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e assert (true); }
+//                         ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 6),
-      error(diag.expectedCatchClauseBody, 27, 6),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -7966,13 +7975,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e {} }
+//                         ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 1),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8010,15 +8018,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e break; }
+//                         ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 5),
-      error(diag.expectedCatchClauseBody, 27, 5),
-      error(diag.breakOutsideOfLoop, 27, 5),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8059,15 +8067,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e continue; }
+//                         ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 8),
-      error(diag.expectedCatchClauseBody, 27, 8),
-      error(diag.continueOutsideOfLoop, 27, 8),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8108,14 +8116,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e do {} while (true); }
+//                         ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 2),
-      error(diag.expectedCatchClauseBody, 27, 2),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8164,13 +8172,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e }
+//                         ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedCatchClauseBody, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8208,14 +8215,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e for (var x in y) {} }
+//                         ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 3),
-      error(diag.expectedCatchClauseBody, 27, 3),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8267,14 +8274,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e if (true) {} }
+//                         ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 2),
-      error(diag.expectedCatchClauseBody, 27, 2),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8321,14 +8328,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e l: {} }
+//                         ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 1),
-      error(diag.expectedCatchClauseBody, 27, 1),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8374,14 +8380,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e int f() {} }
+//                         ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 3),
-      error(diag.expectedCatchClauseBody, 27, 3),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8432,14 +8438,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e void f() {} }
+//                         ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 4),
-      error(diag.expectedCatchClauseBody, 27, 4),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8490,14 +8496,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e var x; }
+//                         ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 3),
-      error(diag.expectedCatchClauseBody, 27, 3),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8542,14 +8548,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e return; }
+//                         ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 6),
-      error(diag.expectedCatchClauseBody, 27, 6),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8590,14 +8596,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e switch (x) {} }
+//                         ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 6),
-      error(diag.expectedCatchClauseBody, 27, 6),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8643,14 +8649,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e try {} finally {} }
+//                         ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 3),
-      error(diag.expectedCatchClauseBody, 27, 3),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8697,14 +8703,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifier_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e while (true) {} }
+//                         ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 27, 5),
-      error(diag.expectedCatchClauseBody, 27, 5),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8751,14 +8757,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  assert (true); }
+//                           ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 6),
-      error(diag.expectedCatchClauseBody, 29, 6),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8806,15 +8812,16 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  {} }
+//                           ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+//                            ^
+// [diag.expectedToken] Expected to find '}'.
+//                              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.catchSyntax, 29, 1),
-      error(diag.expectedToken, 30, 1),
-      error(diag.expectedCatchClauseBody, 32, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8855,15 +8862,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  break; }
+//                           ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 5),
-      error(diag.expectedCatchClauseBody, 29, 5),
-      error(diag.breakOutsideOfLoop, 29, 5),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8907,15 +8914,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  continue; }
+//                           ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 8),
-      error(diag.expectedCatchClauseBody, 29, 8),
-      error(diag.continueOutsideOfLoop, 29, 8),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -8959,14 +8966,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  do {} while (true); }
+//                           ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 2),
-      error(diag.expectedCatchClauseBody, 29, 2),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9018,14 +9025,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  }
+//                           ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.catchSyntax, 29, 1),
-      error(diag.expectedCatchClauseBody, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9066,14 +9072,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  for (var x in y) {} }
+//                           ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 3),
-      error(diag.expectedCatchClauseBody, 29, 3),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9128,14 +9134,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  if (true) {} }
+//                           ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 2),
-      error(diag.expectedCatchClauseBody, 29, 2),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9185,17 +9191,17 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  l: {} }
+//                           ^
+// [diag.expectedToken] Expected to find ';'.
+//                            ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.catchSyntaxExtraParameters, 30, 1),
-      error(diag.expectedCatchClauseBody, 30, 1),
-      error(diag.missingIdentifier, 30, 1),
-      error(diag.unexpectedToken, 30, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9243,14 +9249,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  int f() {} }
+//                               ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 33, 1),
-      error(diag.expectedCatchClauseBody, 33, 1),
-      error(diag.expectedToken, 33, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9302,14 +9307,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  void f() {} }
+//                           ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 4),
-      error(diag.expectedCatchClauseBody, 29, 4),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9363,14 +9368,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  var x; }
+//                           ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 3),
-      error(diag.expectedCatchClauseBody, 29, 3),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9418,14 +9423,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  return; }
+//                           ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 6),
-      error(diag.expectedCatchClauseBody, 29, 6),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9469,14 +9474,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  switch (x) {} }
+//                           ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 6),
-      error(diag.expectedCatchClauseBody, 29, 6),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9525,14 +9530,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  try {} finally {} }
+//                           ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 3),
-      error(diag.expectedCatchClauseBody, 29, 3),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9582,14 +9587,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierComma_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e,  while (true) {} }
+//                           ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 29, 5),
-      error(diag.expectedCatchClauseBody, 29, 5),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9639,14 +9644,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s assert (true); }
+//                            ^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 6),
-      error(diag.expectedCatchClauseBody, 30, 6),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9694,13 +9699,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s {} }
+//                            ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9741,15 +9745,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s break; }
+//                            ^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 5),
-      error(diag.expectedCatchClauseBody, 30, 5),
-      error(diag.breakOutsideOfLoop, 30, 5),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9793,15 +9797,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s continue; }
+//                            ^^^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 8),
-      error(diag.expectedCatchClauseBody, 30, 8),
-      error(diag.continueOutsideOfLoop, 30, 8),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9845,14 +9849,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s do {} while (true); }
+//                            ^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 2),
-      error(diag.expectedCatchClauseBody, 30, 2),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9904,13 +9908,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s }
+//                            ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
-      error(diag.expectedCatchClauseBody, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -9951,14 +9954,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s for (var x in y) {} }
+//                            ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 3),
-      error(diag.expectedCatchClauseBody, 30, 3),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10013,14 +10016,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s if (true) {} }
+//                            ^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 2),
-      error(diag.expectedCatchClauseBody, 30, 2),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10070,14 +10073,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s l: {} }
+//                            ^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 1),
-      error(diag.expectedCatchClauseBody, 30, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10127,14 +10129,14 @@ CompilationUnit
 
   void
   test_try_statement_on_catch_identifierCommaIdentifier_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s int f() {} }
+//                            ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 3),
-      error(diag.expectedCatchClauseBody, 30, 3),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10189,14 +10191,14 @@ CompilationUnit
 
   void
   test_try_statement_on_catch_identifierCommaIdentifier_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s void f() {} }
+//                            ^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 4),
-      error(diag.expectedCatchClauseBody, 30, 4),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10250,14 +10252,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s var x; }
+//                            ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 3),
-      error(diag.expectedCatchClauseBody, 30, 3),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10305,14 +10307,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s return; }
+//                            ^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 6),
-      error(diag.expectedCatchClauseBody, 30, 6),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10356,14 +10358,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s switch (x) {} }
+//                            ^^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 6),
-      error(diag.expectedCatchClauseBody, 30, 6),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10412,14 +10414,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s try {} finally {} }
+//                            ^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 3),
-      error(diag.expectedCatchClauseBody, 30, 3),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10469,14 +10471,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_identifierCommaIdentifier_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s while (true) {} }
+//                            ^^^^^
+// [diag.catchSyntaxExtraParameters] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntaxExtraParameters, 30, 5),
-      error(diag.expectedCatchClauseBody, 30, 5),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10526,13 +10528,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch if (true) {} }
+//                      ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 2),
-      error(diag.expectedCatchClauseBody, 24, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10579,13 +10580,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch l: {} }
+//                      ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 1),
-      error(diag.expectedCatchClauseBody, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10631,14 +10631,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( assert (true); }
+//                        ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 6),
-      error(diag.expectedCatchClauseBody, 26, 6),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10683,15 +10683,16 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( {} }
+//                        ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+//                         ^
+// [diag.expectedToken] Expected to find '}'.
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.catchSyntax, 26, 1),
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedCatchClauseBody, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10729,15 +10730,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( break; }
+//                        ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 5),
-      error(diag.expectedCatchClauseBody, 26, 5),
-      error(diag.breakOutsideOfLoop, 26, 5),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10778,15 +10779,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( continue; }
+//                        ^^^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 8),
-      error(diag.expectedCatchClauseBody, 26, 8),
-      error(diag.continueOutsideOfLoop, 26, 8),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10827,14 +10828,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( do {} while (true); }
+//                        ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 2),
-      error(diag.expectedCatchClauseBody, 26, 2),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10883,14 +10884,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( }
+//                        ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
-      error(diag.catchSyntax, 26, 1),
-      error(diag.expectedCatchClauseBody, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10928,14 +10928,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( for (var x in y) {} }
+//                        ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 3),
-      error(diag.expectedCatchClauseBody, 26, 3),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -10987,14 +10987,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( if (true) {} }
+//                        ^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 2),
-      error(diag.expectedCatchClauseBody, 26, 2),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11041,17 +11041,17 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( l: {} }
+//                        ^
+// [diag.expectedToken] Expected to find ';'.
+//                         ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
-      error(diag.catchSyntax, 27, 1),
-      error(diag.expectedCatchClauseBody, 27, 1),
-      error(diag.missingIdentifier, 27, 1),
-      error(diag.unexpectedToken, 27, 1),
-      error(diag.expectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11096,14 +11096,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( int f() {} }
+//                            ^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 30, 1),
-      error(diag.expectedCatchClauseBody, 30, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11152,14 +11151,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( void f() {} }
+//                        ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 4),
-      error(diag.expectedCatchClauseBody, 26, 4),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11210,14 +11209,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( var x; }
+//                        ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 3),
-      error(diag.expectedCatchClauseBody, 26, 3),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11262,14 +11261,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( return; }
+//                        ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 6),
-      error(diag.expectedCatchClauseBody, 26, 6),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11310,14 +11309,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( switch (x) {} }
+//                        ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 6),
-      error(diag.expectedCatchClauseBody, 26, 6),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11363,14 +11362,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( try {} finally {} }
+//                        ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 3),
-      error(diag.expectedCatchClauseBody, 26, 3),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11417,14 +11416,14 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_leftParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch ( while (true) {} }
+//                        ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                        ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 26, 5),
-      error(diag.expectedCatchClauseBody, 26, 5),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11471,13 +11470,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch int f() {} }
+//                      ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 3),
-      error(diag.expectedCatchClauseBody, 24, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11528,13 +11526,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch void f() {} }
+//                      ^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 4),
-      error(diag.expectedCatchClauseBody, 24, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11585,13 +11582,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch var x; }
+//                      ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 3),
-      error(diag.expectedCatchClauseBody, 24, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11636,13 +11632,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch return; }
+//                      ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 6),
-      error(diag.expectedCatchClauseBody, 24, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11683,10 +11678,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) assert (true); }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11734,10 +11730,9 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) {} }
 ''');
-    parseResult.assertErrors([]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11778,13 +11773,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) break; }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                             ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedCatchClauseBody, 29, 1),
-      error(diag.breakOutsideOfLoop, 31, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11828,13 +11823,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) continue; }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                             ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedCatchClauseBody, 29, 1),
-      error(diag.continueOutsideOfLoop, 31, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11878,10 +11873,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) do {} while (true); }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11933,10 +11929,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -11977,10 +11974,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) for (var x in y) {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12035,10 +12033,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) if (true) {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12088,10 +12087,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) l: {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12140,10 +12140,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) int f() {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12197,10 +12198,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) void f() {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12254,10 +12256,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) var x; }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12305,10 +12308,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) return; }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12352,10 +12356,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) switch (x) {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12404,10 +12409,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) try {} finally {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12457,10 +12463,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_rightParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch (e, s) while (true) {} }
+//                           ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12510,13 +12517,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch switch (x) {} }
+//                      ^^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 6),
-      error(diag.expectedCatchClauseBody, 24, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12562,13 +12568,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch try {} finally {} }
+//                      ^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 3),
-      error(diag.expectedCatchClauseBody, 24, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12615,13 +12620,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_catch_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A catch while (true) {} }
+//                      ^^^^^
+// [diag.catchSyntax] 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.catchSyntax, 24, 5),
-      error(diag.expectedCatchClauseBody, 24, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12668,14 +12672,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on continue; }
+//              ^^^^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 8),
-      error(diag.expectedCatchClauseBody, 16, 8),
-      error(diag.continueOutsideOfLoop, 16, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12711,13 +12714,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on do {} while (true); }
+//              ^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 2),
-      error(diag.expectedCatchClauseBody, 16, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12761,13 +12763,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on }
+//              ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 1),
-      error(diag.expectedCatchClauseBody, 16, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12800,13 +12801,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on for (var x in y) {} }
+//              ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 3),
-      error(diag.expectedCatchClauseBody, 16, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12853,10 +12853,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A assert (true); }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12896,10 +12897,9 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A {} }
 ''');
-    parseResult.assertErrors([]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12932,13 +12932,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A break; }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedCatchClauseBody, 16, 1),
-      error(diag.breakOutsideOfLoop, 18, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -12974,13 +12974,13 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A continue; }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+//                ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedCatchClauseBody, 16, 1),
-      error(diag.continueOutsideOfLoop, 18, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13016,10 +13016,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A do {} while (true); }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13063,10 +13064,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13099,10 +13101,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A for (var x in y) {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13149,10 +13152,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A if (true) {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13194,10 +13198,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A l: {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13238,10 +13243,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A int f() {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13287,10 +13293,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A void f() {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13336,10 +13343,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A var x; }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13379,10 +13387,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A return; }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13418,10 +13427,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A switch (x) {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13462,10 +13472,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A try {} finally {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13507,10 +13518,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_identifier_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on A while (true) {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13552,13 +13564,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on if (true) {} }
+//              ^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 2),
-      error(diag.expectedCatchClauseBody, 16, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13600,15 +13611,15 @@ CompilationUnit
   }
 
   void test_try_statement_on_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on l: {} }
+//              ^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ';'.
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedCatchClauseBody, 16, 1),
-      error(diag.missingIdentifier, 17, 1),
-      error(diag.expectedToken, 16, 1),
-      error(diag.unexpectedToken, 17, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13648,10 +13659,11 @@ CompilationUnit
   }
 
   void test_try_statement_on_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on int f() {} }
+//              ^^^
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedCatchClauseBody, 16, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13695,13 +13707,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on void f() {} }
+//              ^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 4),
-      error(diag.expectedCatchClauseBody, 16, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13745,13 +13756,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on var x; }
+//              ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 3),
-      error(diag.expectedCatchClauseBody, 16, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13791,13 +13801,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on return; }
+//              ^^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 6),
-      error(diag.expectedCatchClauseBody, 16, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13833,13 +13842,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on switch (x) {} }
+//              ^^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 6),
-      error(diag.expectedCatchClauseBody, 16, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13880,13 +13888,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on try {} finally {} }
+//              ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 3),
-      error(diag.expectedCatchClauseBody, 16, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -13928,13 +13935,12 @@ CompilationUnit
   }
 
   void test_try_statement_on_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { try {} on while (true) {} }
+//              ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedCatchClauseBody] A catch clause must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 16, 5),
-      error(diag.expectedCatchClauseBody, 16, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

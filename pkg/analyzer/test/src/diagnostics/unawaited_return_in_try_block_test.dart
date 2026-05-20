@@ -16,13 +16,13 @@ main() {
 @reflectiveTest
 class UnawaitedReturnInTryBlockTest extends PubPackageResolutionTest {
   Future<void> test_arrowFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async => Future.value(42);
 ''');
   }
 
   Future<void> test_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo(dynamic v) async {
   try {
     return v;
@@ -47,7 +47,7 @@ foo() async {
   }
 
   Future<void> test_finallyBlock() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async {
   try {
   } finally {
@@ -124,7 +124,7 @@ Future<void> foo() async {
   }
 
   Future<void> test_insideClosure() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo() {
   try {
     () async {
@@ -230,7 +230,7 @@ Future<int> foo() async {
   }
 
   Future<void> test_nonFuture() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async {
   try {
     return 0;
@@ -241,7 +241,7 @@ Future<int> foo() async {
   }
 
   Future<void> test_notAsync() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() {
   try {
     return Future.value(42);
@@ -282,7 +282,7 @@ Future<int> foo<T extends Future<int>>(T v) async {
   }
 
   Future<void> test_withinTryCatch() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async {
   try {} catch (_) {
     return Future.value(42);

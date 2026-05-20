@@ -753,12 +753,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     _asm.ldr(
       scratch1Reg,
-      _asm.address(objectReg, vmOffsets.Object_tags_offset, .u8),
+      _asm.address(
+        objectReg,
+        vmOffsets.Object_tags_offset - heapObjectTag,
+        .u8,
+      ),
       .u8,
     );
     _asm.ldr(
       scratch2Reg,
-      _asm.address(valueReg, vmOffsets.Object_tags_offset, .u8),
+      _asm.address(valueReg, vmOffsets.Object_tags_offset - heapObjectTag, .u8),
       .u8,
     );
     _asm.and(
@@ -901,7 +905,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitNullCheck(NullCheck instr) {
-    _asm.unimplemented('Unimplemented: code generation for NullCheck');
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    if (operandReg != resultReg) {
+      _asm.mov(resultReg, operandReg);
+    }
+    final Label slowPath = addSlowPath(() {
+      _asm.callRuntime(RuntimeEntry.NullCastError, 0);
+      _asm.breakpoint();
+    });
+    _asm.cmp(resultReg, nullReg);
+    _asm.b(slowPath, .equal);
   }
 
   int _getNumberOfInputsForSubtypeTestCache(
@@ -1018,7 +1032,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _asm.b(done, .equal);
           _asm.ldr(
             TypeTestingStub.dstTypeReg,
-            _asm.address(
+            _asm.fieldAddress(
               typeArgsReg,
               vmOffsets.TypeArguments_types_offset +
                   index * objectLayout.compressedWordSize,
@@ -1029,7 +1043,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         }
         _asm.ldr(
           tempReg,
-          _asm.address(
+          _asm.fieldAddress(
             TypeTestingStub.dstTypeReg,
             vmOffsets.AbstractType_type_test_stub_entry_point_offset,
           ),
@@ -1197,7 +1211,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.b(done, .equal);
       _asm.ldr(
         resultReg,
-        _asm.address(
+        _asm.fieldAddress(
           typeArgsReg,
           vmOffsets.TypeArguments_types_offset +
               index * objectLayout.compressedWordSize,

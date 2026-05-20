@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,13 +17,12 @@ main() {
 @reflectiveTest
 class InstanceCreationTest extends ParserDiagnosticsTest {
   void test_instance_creation_expression_const_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => const;
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 12, 1),
-      error(diag.expectedToken, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -50,13 +48,12 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_const_leftParen_named_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => const A.b(;
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 17, 1),
-      error(diag.expectedToken, 17, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -88,13 +85,12 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_const_leftParen_unnamed_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => const A(;
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 15, 1),
-      error(diag.expectedToken, 15, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -123,13 +119,12 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_const_name_dot_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => const A.;
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 15, 1),
-      error(diag.expectedToken, 15, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -158,10 +153,11 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_const_name_named_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => const A.b;
+//             ^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -190,10 +186,11 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_const_name_unnamed_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => const A;
+//           ^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -219,13 +216,12 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_new_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => new;
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 10, 1),
-      error(diag.expectedToken, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -251,13 +247,12 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_new_leftParen_named_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => new A.b(;
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 15, 1),
-      error(diag.expectedToken, 15, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -289,13 +284,12 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_new_leftParen_unnamed_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => new A(;
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 1),
-      error(diag.expectedToken, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -324,13 +318,12 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_new_name_dot_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => new A.;
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 1),
-      error(diag.expectedToken, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -359,10 +352,11 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_new_name_named_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => new A.b;
+//           ^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -391,10 +385,11 @@ CompilationUnit
   }
 
   void test_instance_creation_expression_new_name_unnamed_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => new A;
+//         ^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 11, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

@@ -26,7 +26,7 @@ void main() {
 @reflectiveTest
 class Dart2InferenceTest extends PubPackageResolutionTest {
   test_assertInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 T foo<T>(int _) => throw 0;
 
 class C {
@@ -83,7 +83,7 @@ AssertInitializer
   }
 
   test_assertStatement_message() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 T foo<T>(int _) => throw 0;
 
 void f() {
@@ -330,7 +330,7 @@ var y = {null: null};
   }
 
   test_logicalAnd() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 T foo<T>() => throw 0;
 
 void f() {
@@ -374,7 +374,7 @@ BinaryExpression
   }
 
   test_logicalOr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 T foo<T>() => throw 0;
 
 void f() {

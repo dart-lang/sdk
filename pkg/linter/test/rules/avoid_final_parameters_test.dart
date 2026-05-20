@@ -43,15 +43,12 @@ class C {
   }
 
   test_constructorSimple_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
-  C(final int p);
+  C([!final!] int p);
 }
-''',
-      [lint(28, 5)],
-    );
+''');
   }
 
   test_constructorSimple_noFinal() async {
@@ -64,16 +61,13 @@ class C {
   }
 
   test_enum_constructor_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 enum E {
   a(1);
-  const E(final int p);
+  const E([!final!] int p);
 }
-''',
-      [lint(41, 5)],
-    );
+''');
   }
 
   test_enum_constructor_noFinal() async {
@@ -87,16 +81,13 @@ enum E {
   }
 
   test_enum_method_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 enum E {
   a;
-  void f(final p) {}
+  void f([!final!] p) {}
 }
-''',
-      [lint(37, 5)],
-    );
+''');
   }
 
   test_enum_method_noFinal() async {
@@ -110,15 +101,12 @@ enum E {
   }
 
   test_extension_method_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 extension E on int {
-  void f(final p) {}
+  void f([!final!] p) {}
 }
-''',
-      [lint(44, 5)],
-    );
+''');
   }
 
   test_extension_method_noFinal() async {
@@ -131,15 +119,12 @@ extension E on int {
   }
 
   test_extensionType_method_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 extension type E(int i) {
-  void f(final p) {}
+  void f([!final!] p) {}
 }
-''',
-      [lint(49, 5)],
-    );
+''');
   }
 
   test_extensionType_method_noFinal() async {
@@ -152,13 +137,10 @@ extension type E(int i) {
   }
 
   test_functionExpression_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-var f = (final int value) {};
-''',
-      [lint(23, 5)],
-    );
+var f = ([!final!] int value) {};
+''');
   }
 
   test_functionExpression_noFinal() async {
@@ -169,16 +151,13 @@ var f = (int value) {};
   }
 
   test_functionTyped_fieldFormal_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
   final void Function(int) f;
-  C(void this.f(final p));
+  C(void this.f([!final!] p));
 }
-''',
-      [lint(70, 5)],
-    );
+''');
   }
 
   test_functionTyped_fieldFormal_noFinal() async {
@@ -210,13 +189,10 @@ void f(int p()) {}
   }
 
   test_functionTyped_parameter_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f(void g(final p)) {}
-''',
-      [lint(28, 5)],
-    );
+void f(void g([!final!] p)) {}
+''');
   }
 
   test_functionTyped_parameter_noFinal() async {
@@ -227,18 +203,15 @@ void f(void g(int p)) {}
   }
 
   test_functionTyped_superFormal_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class A {
   A(void f(int p));
 }
 class B extends A {
-  B(void super.f(final p));
+  B(void super.f([!final!] p));
 }
-''',
-      [lint(83, 5)],
-    );
+''');
   }
 
   test_functionTyped_superFormal_noFinal() async {
@@ -254,15 +227,12 @@ class B extends A {
   }
 
   test_localFunction_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 void f() {
-  void g(final p) {}
+  void g([!final!] p) {}
 }
-''',
-      [lint(34, 5)],
-    );
+''');
   }
 
   test_localFunction_noFinal() async {
@@ -275,15 +245,12 @@ void f() {
   }
 
   test_mixin_method_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 mixin M {
-  void f(final p) {}
+  void f([!final!] p) {}
 }
-''',
-      [lint(33, 5)],
-    );
+''');
   }
 
   test_mixin_method_noFinal() async {
@@ -296,15 +263,12 @@ mixin M {
   }
 
   test_operator_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
 class C {
-  int operator +(final int other) => 0;
+  int operator +([!final!] int other) => 0;
 }
-''',
-      [lint(41, 5)],
-    );
+''');
   }
 
   test_operator_noFinal() async {
@@ -317,13 +281,10 @@ class C {
   }
 
   test_optionalNamed_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f({final int? p}) {}
-''',
-      [lint(22, 5)],
-    );
+void f({[!final!] int? p}) {}
+''');
   }
 
   test_optionalNamed_noFinal() async {
@@ -334,13 +295,10 @@ void f({int? p}) {}
   }
 
   test_optionalPositional_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f([final int? p]) {}
-''',
-      [lint(22, 5)],
-    );
+void f([[!final!] int? p]) {}
+''');
   }
 
   test_optionalPositional_noFinal() async {
@@ -351,13 +309,10 @@ void f([int? p]) {}
   }
 
   test_optionalPositionalWithDefault_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f([final int p = 0]) {}
-''',
-      [lint(22, 5)],
-    );
+void f([[!final!] int p = 0]) {}
+''');
   }
 
   test_optionalPositionalWithDefault_noFinal() async {
@@ -368,13 +323,10 @@ void f([int p = 0]) {}
   }
 
   test_requiredNamed_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f({required final int? p}) {}
-''',
-      [lint(31, 5)],
-    );
+void f({required [!final!] int? p}) {}
+''');
   }
 
   test_requiredNamed_noFinal() async {
@@ -385,13 +337,10 @@ void f({required int p}) {}
   }
 
   test_requiredPositional_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f(final int p) {}
-''',
-      [lint(21, 5)],
-    );
+void f([!final!] int p) {}
+''');
   }
 
   test_requiredPositional_noFinal() async {
@@ -404,23 +353,17 @@ void f(int p) {}
   test_requiredPositional_wildcard() async {
     // Wildcards are treated just like any param.
     // https://github.com/dart-lang/linter/issues/5045
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-void f(final int _) {}
-''',
-      [lint(21, 5)],
-    );
+void f([!final!] int _) {}
+''');
   }
 
   test_setter_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-set f(final int value) {}
-''',
-      [lint(20, 5)],
-    );
+set f([!final!] int value) {}
+''');
   }
 
   test_setter_noFinal() async {
@@ -465,13 +408,10 @@ class B extends A {
   }
 
   test_typedef_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart=3.12
-typedef String Type(final value);
-''',
-      [lint(34, 5)],
-    );
+typedef String Type([!final!] value);
+''');
   }
 
   test_typedef_genericFunctionType_final() async {

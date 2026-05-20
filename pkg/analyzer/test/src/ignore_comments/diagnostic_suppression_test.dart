@@ -76,7 +76,7 @@ var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
   }
 
   test_ignoreForFileWithMuchWhitespace() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 //ignore_for_file:   unused_element , unnecessary_cast
 int x = (0 as int);  //UNNECESSARY_CAST
 String _foo = ''; //UNUSED_ELEMENT
@@ -84,21 +84,21 @@ String _foo = ''; //UNUSED_ELEMENT
   }
 
   test_ignoreForFileWithTypeMatchesLint() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // ignore_for_file: type=lint
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''');
   }
 
   test_ignoreForFileWithTypeMatchesUpperCase() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // ignore_for_file: TYPE=LINT
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''');
   }
 
   test_ignoreForFileWithTypeMatchesWarning() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // ignore_for_file: type=warning
 void f() {
   var x = 1;
@@ -118,7 +118,7 @@ int _x = 1;
   }
 
   test_ignoreOnlyDiagnosticWithTrailingComment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = (0 as int); // ignore: unnecessary_cast
 ''');
   }
@@ -147,7 +147,7 @@ String _foo = ''; // ignore: $ignoredCode
   }
 
   test_ignoreTypeMatches() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // ignore: type=lint
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''');
@@ -175,7 +175,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 
   test_ignoreUniqueName() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 // ignore: deprecated_member_use
@@ -187,7 +187,7 @@ int x = f();
   }
 
   test_ignoreUpperCase() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = (0 as int); // ignore: UNNECESSARY_CAST
 ''');
   }
@@ -231,7 +231,7 @@ String y = 3; //INVALID_ASSIGNMENT
   }
 
   test_multipleCodesInIgnore() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = 3;
 // ignore: unnecessary_cast, $ignoredCode
 int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
@@ -239,7 +239,7 @@ int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
   }
 
   test_multipleCodesInIgnoreForFile() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = (0 as int); //UNNECESSARY_CAST
 String _foo = ''; //UNUSED_ELEMENT
 // ignore_for_file: unnecessary_cast,$ignoredCode
@@ -247,7 +247,7 @@ String _foo = ''; //UNUSED_ELEMENT
   }
 
   test_multipleCodesInIgnoreTrailingComment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = 3;
 int _y = x as int; // ignore: unnecessary_cast, $ignoredCode
 ''');

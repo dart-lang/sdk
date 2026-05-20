@@ -19,8 +19,7 @@ class UseNamedConstantsTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_constantPattern_ifCase() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A(this.value);
   final int value;
@@ -29,17 +28,14 @@ class A {
 }
 
 void f(A a) {
-  if (a case const A(0)) {}
+  if (a case const [!A(0)!]) {}
 }
-''',
-      [lint(117, 4)],
-    );
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_constantPattern_switch() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A(this.value);
   final int value;
@@ -50,42 +46,34 @@ class A {
 
 void f(A a) {
   switch (a) {
-    case const A(1):
+    case const [!A(1)!]:
   }
 }
-''',
-      [lint(155, 4)],
-    );
+''');
   }
 
   test_dotShorthand() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  const A a = .new(0);
+  const A a = [!.new(0)!];
 }
 class A {
   const A(int value);
   static const zero = A(0);
 }
-''',
-      [lint(25, 7)],
-    );
+''');
   }
 
   test_dotShorthand_const() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  A a = const .new(0);
+  A a = [!const .new(0)!];
 }
 class A {
   const A(int value);
   static const zero = A(0);
 }
-''',
-      [lint(19, 13)],
-    );
+''');
   }
 
   test_duplicate_inDefinition() async {
@@ -99,63 +87,51 @@ class A {
   }
 
   test_extensionType() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 void f() {
-  const a = A(0);
+  const a = [!A(0)!];
 }
 extension type const A(int i) {
   static const zero = A(0);
 }
-''',
-      [lint(23, 4)],
-    );
+''');
   }
 
   test_reconstructed_sameAsPrivateName() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  const A(1);
+  [!const A(1)!];
 }
 class A {
   const A(int value);
   // ignore: unused_field
   static const _zero = A(0);
 }
-''',
-      [lint(13, 10)],
-    );
+''');
   }
 
   test_reconstructed_sameAsPublicName_explicitConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  const A(0);
+  [!const A(0)!];
 }
 class A {
   const A(int value);
   static const zero = A(0);
 }
-''',
-      [lint(13, 10)],
-    );
+''');
   }
 
   test_reconstructed_sameAsPublicName_implicitConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  const a = A(0);
+  const a = [!A(0)!];
 }
 class A {
   const A(int value);
   static const zero = A(0);
 }
-''',
-      [lint(23, 4)],
-    );
+''');
   }
 
   test_usesNamed() async {

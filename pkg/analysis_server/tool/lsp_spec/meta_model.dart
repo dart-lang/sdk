@@ -23,6 +23,17 @@ bool isNullType(TypeBase t) =>
 bool isObjectType(TypeBase t) =>
     resolveTypeAlias(t).dartTypeWithTypeArgs == 'Object';
 
+class AbstractGetter extends Member {
+  final TypeBase type;
+
+  AbstractGetter({
+    required super.name,
+    super.comment,
+    super.isProposed,
+    required this.type,
+  });
+}
+
 class ArrayType extends TypeBase {
   final TypeBase elementType;
 
@@ -201,7 +212,7 @@ class MapType extends TypeBase {
       '<${indexType.dartTypeWithTypeArgs}, ${valueType.dartTypeWithTypeArgs}>';
 }
 
-/// Base class for members ([Constant] and [Fields]s) parsed from the LSP JSON
+/// Base class for members ([Constant] and [Field]s) parsed from the LSP JSON
 /// model.
 abstract class Member extends LspEntity {
   Member({required super.name, super.comment, super.isProposed});

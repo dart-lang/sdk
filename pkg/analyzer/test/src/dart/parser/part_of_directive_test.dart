@@ -2,24 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PartOfDirectiveParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PartOfDirectiveParserTest extends ParserDiagnosticsTest {
   test_name() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of my.library;
+//      ^^^^^^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([error(diag.partOfName, 8, 10)]);
 
     var node = parseResult.findNode.singlePartOfDirective;
     assertParsedNodeText(node, r'''
@@ -36,11 +38,10 @@ PartOfDirective
   }
 
   test_name_preEnhancedParts() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.4
 part of my.library;
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singlePartOfDirective;
     assertParsedNodeText(node, r'''
@@ -57,10 +58,9 @@ PartOfDirective
   }
 
   test_uri() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singlePartOfDirective;
     assertParsedNodeText(node, r'''

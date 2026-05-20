@@ -21,15 +21,12 @@ class DiagnosticDescribeAllPropertiesTest extends LintRuleTest {
   String get lintRule => LintNames.diagnostic_describe_all_properties;
 
   test_field() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
-  bool p = false;
+  bool [!p!] = false;
 }
-''',
-      [lint(86, 1)],
-    );
+''');
   }
 
   test_field_collectionOfWidgets() async {
@@ -86,13 +83,10 @@ class MyWidget with Diagnosticable {
   }
 
   test_field_originPrimaryConstructor_default_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/foundation.dart';
-class MyWidget([final String p = '']) with Diagnosticable {}
-''',
-      [lint(71, 1)],
-    );
+class MyWidget([final String [!p!] = '']) with Diagnosticable {}
+''');
   }
 
   test_field_originPrimaryConstructor_privateNamed_string() async {
@@ -104,13 +98,10 @@ class MyWidget({final String? _p}) with Diagnosticable {}
   }
 
   test_field_originPrimaryConstructor_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/foundation.dart';
-class MyWidget(final String p) with Diagnosticable {}
-''',
-      [lint(70, 1)],
-    );
+class MyWidget(final String [!p!]) with Diagnosticable {}
+''');
   }
 
   test_field_originPrimaryConstructor_string_described() async {
@@ -149,15 +140,12 @@ class MyWidget with Diagnosticable {
   }
 
   test_field_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
-  String p = '';
+  String [!p!] = '';
 }
-''',
-      [lint(88, 1)],
-    );
+''');
   }
 
   test_field_widget() async {
@@ -170,15 +158,12 @@ class MyWidget with Diagnosticable {
   }
 
   test_getter_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
-  String get p => '';
+  String get [!p!] => '';
 }
-''',
-      [lint(92, 1)],
-    );
+''');
   }
 
   test_getter_widget() async {

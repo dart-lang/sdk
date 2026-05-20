@@ -227,17 +227,20 @@ class RemoveLexemeTest extends FixProcessorTest {
 
   Future<void> test_abstract_static_field() async {
     await resolveTestCode('''
+// @dart = 3.5
 abstract class A {
   abstract static int? i;
 }
 ''');
     await assertHasFix('''
+// @dart = 3.5
 abstract class A {
   static int? i;
 }
 ''');
   }
 
+  @FailingTest(reason: 'The code snippet and test name do not match')
   Future<void> test_abstract_static_method() async {
     await resolveTestCode('''
 abstract class A {

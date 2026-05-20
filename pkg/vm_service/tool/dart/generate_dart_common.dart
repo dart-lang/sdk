@@ -455,6 +455,8 @@ class TypeRef {
 
   bool get isArray => arrayDepth > 0;
 
+  bool get isMap => name == 'Map';
+
   bool get isSimple =>
       arrayDepth == 0 &&
       (name == 'int' ||

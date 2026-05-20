@@ -1803,7 +1803,7 @@ augment class A {
   augment set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -1860,7 +1860,7 @@ augment class A {
   set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -1972,7 +1972,7 @@ augment class A {
   augment static set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -2029,7 +2029,7 @@ augment class A {
   static set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -2076,7 +2076,7 @@ AssignmentExpression
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofExtensionName_augmentationAugments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {
   static set foo(int _) {}
 }
@@ -2128,7 +2128,7 @@ AssignmentExpression
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofExtensionName_augmentationDeclares() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {}
 
 augment extension A {
@@ -2809,7 +2809,7 @@ augment class A {
   augment set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -2868,7 +2868,7 @@ augment class A {
   set foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -4886,7 +4886,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_superSetter_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
 }
@@ -4954,7 +4954,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_thisGetter_superGetter_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int x = 0;
 }
@@ -4991,7 +4991,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_thisGetter_thisSetter_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int get x => 0;
   set x(num _) {}
@@ -5025,7 +5025,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_thisGetter_thisSetter_fromMixins_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M1 {
   int get x => 0;
   set x(num _) {}
@@ -5066,7 +5066,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_thisGetter_thisSetter_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int? get x => 0;
   set x(num? _) {}

@@ -18,18 +18,15 @@ class NoSelfAssignmentsTest extends LintRuleTest {
   String get lintRule => LintNames.no_self_assignments;
 
   test_classMemberAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   static String foo = "foo";
 }
 
 void main() {
-  C.foo = C.foo;
+  [!C.foo = C.foo!];
 }
-''',
-      [lint(58, 13)],
-    );
+''');
   }
 
   test_classMemberAssignmentUnrelated() async {
@@ -47,18 +44,15 @@ void main() {
   }
 
   test_fieldAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   int x = 5;
 
   C(int x) {
-    x = x;
+    [!x = x!];
   }
 }
-''',
-      [lint(41, 5)],
-    );
+''');
   }
 
   test_fieldAssignmentDifferentTargets() async {
@@ -98,18 +92,15 @@ class C {
   }
 
   test_fieldAssignmentExplicitSameVar() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   int x = 5;
 
   void update(C other) {
-    other.x = other.x;
+    [!other.x = other.x!];
   }
 }
-''',
-      [lint(53, 17)],
-    );
+''');
   }
 
   test_fieldAssignmentThisAndDifferentTarget() async {
@@ -135,8 +126,7 @@ class C {
   }
 
   test_propertyAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   int _x = 5;
 
@@ -147,11 +137,9 @@ class C {
   }
 
   void example() {
-    x = x;
+    [!x = x!];
   }
 }
-''',
-      [lint(102, 5)],
-    );
+''');
   }
 }

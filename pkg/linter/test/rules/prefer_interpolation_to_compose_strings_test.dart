@@ -30,12 +30,9 @@ final a = 'foo' + 'bar' + 'baz';
   }
 
   test_stringLiteral_toStringInvocation() async {
-    await assertDiagnostics(
-      r'''
-final b = 'foo' + 7.toString();
-''',
-      [lint(10, 20)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+final b = [!'foo' + 7.toString()!];
+''');
   }
 
   test_stringLiteral_toStringInvocation_withArguments() async {
@@ -51,48 +48,31 @@ class A {
   }
 
   test_stringLiteral_variableString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = 'bar' + a;
-''',
-      [lint(27, 9)],
-    );
+final b = [!'bar' + a!];
+''');
   }
 
   test_stringLiteral_variableString_insideInterpolation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = '${'bar' + a}' + a;
-''',
-      [
-        // `'${'bar' + a}' + a` is reported.
-        lint(27, 18),
-        // As is `'bar' + a`; separate diagnostic.
-        lint(30, 9),
-      ],
-    );
+final b = /*[0*/'${/*[1*/'bar' + a/*1]*/}' + a/*0]*/;
+''');
   }
 
   test_stringLiteral_variableString_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = 'bar' + a + 'baz';
-''',
-      [lint(27, 9)],
-    );
+final b = [!'bar' + a!] + 'baz';
+''');
   }
 
   test_stringLiteral_variableString_variableString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = 'bar' + a + a;
-''',
-      [lint(27, 9)],
-    );
+final b = [!'bar' + a!] + a;
+''');
   }
 
   /// #2490
@@ -139,43 +119,31 @@ void f() {
   }
 
   test_variableString_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = a + 'bar';
-''',
-      [lint(27, 9)],
-    );
+final b = [!a + 'bar'!];
+''');
   }
 
   test_variableString_stringLiteral_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = a + 'bar' + 'baz';
-''',
-      [lint(27, 9)],
-    );
+final b = [!a + 'bar'!] + 'baz';
+''');
   }
 
   test_variableString_stringLiteral_stringLiteral_variableString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = a + 'bar' + 'baz' + a;
-''',
-      [lint(27, 9), lint(39, 9)],
-    );
+final b = /*[0*/a + 'bar'/*0]*/ + /*[1*/'baz' + a/*1]*/;
+''');
   }
 
   test_variableString_stringLiteral_variableString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final b = a + 'bar' + a;
-''',
-      [lint(27, 9)],
-    );
+final b = [!a + 'bar'!] + a;
+''');
   }
 
   /// #2490
@@ -195,13 +163,10 @@ final c = a + a;
   }
 
   test_variableString_variableString_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final a = 'foo';
-final c = a + a + 'bar';
-''',
-      [lint(31, 9)],
-    );
+final c = a + [!a + 'bar'!];
+''');
   }
 
   test_variableString_variableString_variableString() async {

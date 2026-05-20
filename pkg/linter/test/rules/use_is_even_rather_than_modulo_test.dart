@@ -53,22 +53,16 @@ const b = a % 2 == 0;
   }
 
   test_moduloTwoEqualEqualOne_intTypedExpression() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var a = 3;
-var b = a % 2 == 0;
-''',
-      [lint(19, 10)],
-    );
+var b = [!a % 2 == 0!];
+''');
   }
 
   test_moduloTwoEqualEqualOne_literalInt() async {
-    await assertDiagnostics(
-      r'''
-var a = 13 % 2 == 1;
-''',
-      [lint(8, 11)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var a = [!13 % 2 == 1!];
+''');
   }
 
   test_moduloTwoEqualEqualThree() async {
@@ -78,12 +72,9 @@ var a = 1 % 2 == 3 - 3;
   }
 
   test_moduloTwoEqualEqualZero_literalInt() async {
-    await assertDiagnostics(
-      r'''
-var a = 1 % 2 == 0;
-''',
-      [lint(8, 10)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var a = [!1 % 2 == 0!];
+''');
   }
 
   test_moduloTwoGreaterOrEqualZero_literalInt() async {

@@ -152,7 +152,7 @@ mixin Bar implements Foo {}
   }
 
   test_withinLibrary_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 import 'package:meta/meta.dart';
 @sealed class Foo {}

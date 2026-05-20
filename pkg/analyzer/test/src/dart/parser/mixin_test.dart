@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -18,10 +17,9 @@ main() {
 @reflectiveTest
 class MixinDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment_implementsClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M implements B {}
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -39,10 +37,9 @@ MixinDeclaration
   }
 
   test_augment_typeParameters_withBound() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M<T extends int> {}
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -64,12 +61,13 @@ MixinDeclaration
   }
 
   test_blockBody_constructor_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin A {
   A.named();
+//^
+// [diag.mixinDeclaresConstructor] Mixins can't declare constructors.
 }
 ''');
-    parseResult.assertErrors([error(diag.mixinDeclaresConstructor, 12, 1)]);
 
     // Mixins cannot have constructors.
     // So, we don't put them into AST at all.
@@ -85,12 +83,11 @@ MixinDeclaration
   }
 
   test_blockBody_field() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin M {
   static final int F = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
 MixinDeclaration
@@ -117,12 +114,11 @@ MixinDeclaration
   }
 
   test_blockBody_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
 MixinDeclaration
@@ -146,12 +142,11 @@ MixinDeclaration
   }
 
   test_blockBody_method() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
 MixinDeclaration
@@ -176,12 +171,11 @@ MixinDeclaration
   }
 
   test_blockBody_primaryConstructorBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin A {
   this;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -200,12 +194,11 @@ MixinDeclaration
   }
 
   test_blockBody_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin M {
   set foo(int _) {}
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
 MixinDeclaration
@@ -233,10 +226,9 @@ MixinDeclaration
   }
 
   test_emptyBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin M;
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -249,13 +241,12 @@ MixinDeclaration
   }
 
   test_emptyBody_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 mixin M;
+//     ^
+// [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
 ''');
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabled, 23, 1),
-    ]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -268,12 +259,11 @@ MixinDeclaration
   }
 
   test_field_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -299,12 +289,11 @@ MixinDeclaration
   }
 
   test_field_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment static int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -331,12 +320,11 @@ MixinDeclaration
   }
 
   test_field_augment_static_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment static final int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -364,12 +352,11 @@ MixinDeclaration
   }
 
   test_getter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -394,12 +381,11 @@ MixinDeclaration
   }
 
   test_getter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment static int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -425,12 +411,11 @@ MixinDeclaration
   }
 
   test_method_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -456,12 +441,11 @@ MixinDeclaration
   }
 
   test_method_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment static void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -488,10 +472,9 @@ MixinDeclaration
   }
 
   test_nameWithTypeParameters_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M<T> {}
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -510,12 +493,11 @@ MixinDeclaration
   }
 
   test_operator_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment int operator+(int other) => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -547,10 +529,11 @@ MixinDeclaration
   }
 
   test_primaryConstructor_const_typeName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin const A() {}
+//    ^^^^^
+// [diag.mixinPrimaryConstructor] Mixins can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 6, 5)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -564,11 +547,12 @@ MixinDeclaration
   }
 
   test_primaryConstructor_const_typeName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 mixin const A() {}
+//    ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 20, 5)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -582,10 +566,11 @@ MixinDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin const A {}
+//    ^^^^^
+// [diag.mixinPrimaryConstructor] Mixins can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 6, 5)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -599,11 +584,12 @@ MixinDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 mixin const A {}
+//    ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 20, 5)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -617,10 +603,11 @@ MixinDeclaration
   }
 
   test_primaryConstructor_const_typeName_periodName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin const A.name() {}
+//    ^^^^^
+// [diag.mixinPrimaryConstructor] Mixins can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 6, 5)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -634,11 +621,12 @@ MixinDeclaration
   }
 
   test_primaryConstructor_const_typeName_periodName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 mixin const A.name() {}
+//    ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 20, 5)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -652,10 +640,11 @@ MixinDeclaration
   }
 
   test_primaryConstructor_typeName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin A() {}
+//     ^
+// [diag.mixinPrimaryConstructor] Mixins can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 7, 1)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -669,11 +658,12 @@ MixinDeclaration
   }
 
   test_primaryConstructor_typeName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 mixin A() {}
+//     ^
+// [diag.unexpectedToken] Unexpected text '('.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 21, 1)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -687,10 +677,11 @@ MixinDeclaration
   }
 
   test_primaryConstructor_typeName_periodName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin A.name() {}
+//     ^
+// [diag.mixinPrimaryConstructor] Mixins can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 7, 1)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -704,11 +695,12 @@ MixinDeclaration
   }
 
   test_primaryConstructor_typeName_periodName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 mixin A.name() {}
+//     ^
+// [diag.unexpectedToken] Unexpected text '.'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 21, 1)]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -722,12 +714,11 @@ MixinDeclaration
   }
 
   test_setter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment
@@ -756,12 +747,11 @@ MixinDeclaration
   }
 
   test_setter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
   augment static set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
 MixinDeclaration
   augmentKeyword: augment

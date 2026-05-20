@@ -39,7 +39,7 @@ class A() {
   }
 
   test_primary_superIsLast() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   int x;
   this : x = 0, super();
@@ -71,7 +71,7 @@ class A {
   }
 
   test_typeName_superIsLast() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   A() : x = 1, super();

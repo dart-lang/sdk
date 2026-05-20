@@ -231,13 +231,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertHasTestErrors();
   }
 
-  Future<void> assertNoErrorsInCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-
-    assertErrorsInResolvedUnit(result, const []);
-  }
-
   void assertNoErrorsInResult() {
     assertErrorsInResult(const []);
   }

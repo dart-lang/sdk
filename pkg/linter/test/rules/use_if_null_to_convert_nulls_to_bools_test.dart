@@ -25,23 +25,17 @@ bool r = e == false;
   }
 
   test_equalEqual_true() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 bool? e;
-bool r = e == true;
-''',
-      [lint(18, 9)],
-    );
+bool r = [!e == true!];
+''');
   }
 
   test_notEqual_false() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 bool? e;
-bool r = e != false;
-''',
-      [lint(18, 10)],
-    );
+bool r = [!e != false!];
+''');
   }
 
   test_notEqual_true() async {

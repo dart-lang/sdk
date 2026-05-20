@@ -581,7 +581,6 @@ $code
   }
 
   void test_visitClassTypeAlias_abstractAugment() {
-    // TODO(scheglov): Is this the right order of modifiers?
     var code = 'augment abstract class C = S with M;';
     var findNode = _parseStringToFindNode('''
 $code
@@ -1142,6 +1141,24 @@ abstract class A {
     _assertSource(code, findNode.emptyFunctionBody(code));
   }
 
+  void test_visitEnumConstantDeclaration_augment() {
+    var code = 'augment v';
+    var findNode = _parseStringToFindNode('''
+augment enum E {
+  $code
+}
+''');
+    _assertSource(code, findNode.enumConstantDeclaration(code));
+  }
+
+  void test_visitEnumDeclaration_augment() {
+    var code = 'augment enum E {v}';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.enumDeclaration('enum E'));
+  }
+
   void test_visitEnumDeclaration_constant_arguments_named() {
     var findNode = _parseStringToFindNode(r'''
 enum E {
@@ -1393,6 +1410,14 @@ $code
     _assertSource(code, findNode.singleExtensionTypeDeclaration);
   }
 
+  void test_visitExtensionType_augment() {
+    var code = 'augment extension type E(int it) {}';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.singleExtensionTypeDeclaration);
+  }
+
   void test_visitExtensionType_implements() {
     var code = 'extension type E(int it) implements num {}';
     var findNode = _parseStringToFindNode('''
@@ -1419,10 +1444,40 @@ class A {
     _assertSource(code, findNode.fieldDeclaration(code));
   }
 
+  void test_visitFieldDeclaration_abstract_external() {
+    var code = 'abstract external var a;';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource('external abstract var a;', findNode.fieldDeclaration(code));
+  }
+
+  void test_visitFieldDeclaration_abstract_static() {
+    var code = 'abstract static var a;';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource('static abstract var a;', findNode.fieldDeclaration(code));
+  }
+
   void test_visitFieldDeclaration_augment() {
     var code = 'augment var a = 0;';
     var findNode = _parseStringToFindNode('''
 augment class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.fieldDeclaration(code));
+  }
+
+  void test_visitFieldDeclaration_covariant() {
+    var code = 'covariant var a;';
+    var findNode = _parseStringToFindNode('''
+class A {
   $code
 }
 ''');
@@ -1878,6 +1933,12 @@ void f () {
     _assertSource(code, findNode.forStatement(code));
   }
 
+  void test_visitFunctionDeclaration_augment() {
+    var code = 'augment void f() {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionDeclaration(code));
+  }
+
   void test_visitFunctionDeclaration_external() {
     var code = 'external void f();';
     var findNode = _parseStringToFindNode(code);
@@ -1978,6 +2039,14 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.functionExpressionInvocation(code));
+  }
+
+  void test_visitFunctionTypeAlias_augment() {
+    var code = 'augment typedef void F();';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.functionTypeAlias(code));
   }
 
   void test_visitFunctionTypeAlias_generic() {
@@ -3798,6 +3867,14 @@ void f() {
     _assertSource(code, findNode.throw_(code));
   }
 
+  void test_visitTopLevelVariableDeclaration_abstract() {
+    var code = 'abstract var a;';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
+  }
+
   void test_visitTopLevelVariableDeclaration_augment() {
     var code = 'augment var a = 0;';
     var findNode = _parseStringToFindNode('''
@@ -3808,6 +3885,14 @@ $code
 
   void test_visitTopLevelVariableDeclaration_external() {
     var code = 'external var a;';
+    var findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.topLevelVariableDeclaration(code));
+  }
+
+  void test_visitTopLevelVariableDeclaration_external_abstract() {
+    var code = 'external abstract var a;';
     var findNode = _parseStringToFindNode('''
 $code
 ''');

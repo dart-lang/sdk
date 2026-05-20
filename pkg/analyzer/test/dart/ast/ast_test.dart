@@ -5,11 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../src/dart/resolution/node_text_expectations.dart';
 import '../../src/diagnostics/parser_diagnostics.dart';
 
 void main() {
@@ -36,69 +36,66 @@ void main() {
     defineReflectiveTests(SuperFormalParameterTest);
     defineReflectiveTests(VariableDeclarationTest);
     defineReflectiveTests(WithClauseImplTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ConstructorDeclarationTest extends ParserDiagnosticsTest {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   factory const external A();
+//        ^^^^^
+// [diag.modifierOutOfOrder] The modifier 'const' should be before the modifier 'factory'.
+//              ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'external' should be before the modifier 'factory'.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.modifierOutOfOrder, 20, 5),
-      error(diag.modifierOutOfOrder, 26, 8),
-    ]);
 
     var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.factoryKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_all_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   external const factory A();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_constOnly() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.constKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_externalOnly() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   external A();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_factoryOnly() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.factoryKeyword);
@@ -875,60 +872,55 @@ class InterpolationStringTest extends ParserDiagnosticsTest {
 @reflectiveTest
 class MethodDeclarationTest extends ParserDiagnosticsTest {
   void test_firstTokenAfterCommentAndMetadata_external() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   external void foo();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.methodDeclaration('foo()');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   external get foo;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.methodDeclaration('get foo');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_operator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   external operator +(int other);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.methodDeclaration('external operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.methodDeclaration('get foo');
     expect(node.firstTokenAfterCommentAndMetadata, node.propertyKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_operator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   operator +(int other) => 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.methodDeclaration('operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.operatorKeyword);
@@ -981,10 +973,9 @@ void f() {
 @reflectiveTest
 class NodeListTest extends ParserDiagnosticsTest {
   void test_getBeginToken_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = f();
 ''');
-    parseResult.assertNoErrors();
 
     var argumentList = parseResult.findNode.argumentList('()');
     var nodeList = argumentList.arguments;
@@ -992,10 +983,9 @@ final x = f();
   }
 
   void test_getBeginToken_nonEmpty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = f(0, 1);
 ''');
-    parseResult.assertNoErrors();
 
     var argumentList = parseResult.findNode.argumentList('(0');
     var nodeList = argumentList.arguments;
@@ -1004,10 +994,9 @@ final x = f(0, 1);
   }
 
   void test_getEndToken_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = f();
 ''');
-    parseResult.assertNoErrors();
 
     var argumentList = parseResult.findNode.argumentList('()');
     var nodeList = argumentList.arguments;
@@ -1015,10 +1004,9 @@ final x = f();
   }
 
   void test_getEndToken_nonEmpty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = f(0, 1);
 ''');
-    parseResult.assertNoErrors();
 
     var argumentList = parseResult.findNode.argumentList('(0');
     var nodeList = argumentList.arguments;
@@ -1027,11 +1015,10 @@ final x = f(0, 1);
   }
 
   void test_indexOf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = f(0, 1, 2);
 final y = 42;
 ''');
-    parseResult.assertNoErrors();
 
     var argumentList = parseResult.findNode.argumentList('(0');
     var nodeList = argumentList.arguments;
@@ -1050,11 +1037,10 @@ final y = 42;
   }
 
   void test_set_negative() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = f(0);
 final y = 42;
 ''');
-    parseResult.assertNoErrors();
 
     var argumentList = parseResult.findNode.argumentList('(0');
     var nodeList = argumentList.arguments;
@@ -1068,11 +1054,10 @@ final y = 42;
   }
 
   void test_set_tooBig() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = f(0);
 final y = 42;
 ''');
-    parseResult.assertNoErrors();
 
     var argumentList = parseResult.findNode.argumentList('(0');
     var nodeList = argumentList.arguments;
@@ -1478,10 +1463,9 @@ void f() {
 class SimpleStringLiteralTest extends ParserDiagnosticsTest {
   void test_contentsEnd() {
     void assertContentsEnd(String code, int expected) {
-      var parseResult = parseStringWithErrors('''
+      var parseResult = parseTestCodeWithDiagnostics('''
 final v = $code;
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.contentsEnd - node.offset, expected);
     }
@@ -1507,10 +1491,9 @@ final v = $code;
 
   void test_contentsOffset() {
     void assertContentsOffset(String code, int expected) {
-      var parseResult = parseStringWithErrors('''
+      var parseResult = parseTestCodeWithDiagnostics('''
 final v = $code;
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.contentsOffset - node.offset, expected);
     }
@@ -1536,10 +1519,9 @@ final v = $code;
 
   void test_isMultiline() {
     void assertIsMultiline(String code, bool expected) {
-      var parseResult = parseStringWithErrors('''
+      var parseResult = parseTestCodeWithDiagnostics('''
 final v = $code;
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.isMultiline, expected);
     }
@@ -1559,10 +1541,9 @@ final v = $code;
 
   void test_isRaw() {
     void assertIsRaw(String code, bool expected) {
-      var parseResult = parseStringWithErrors('''
+      var parseResult = parseTestCodeWithDiagnostics('''
 final v = $code;
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.isRaw, expected);
     }
@@ -1582,10 +1563,9 @@ final v = $code;
 
   void test_isSingleQuoted() {
     void assertIsSingleQuoted(String code, bool expected) {
-      var parseResult = parseStringWithErrors('''
+      var parseResult = parseTestCodeWithDiagnostics('''
 final v = $code;
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.isSingleQuoted, expected);
     }
@@ -1627,60 +1607,54 @@ final x = [...?foo];
 class StringInterpolationTest extends ParserDiagnosticsTest {
   void test_contentsOffsetEnd() {
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = 'a${bb}ccc';
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.contentsOffset, 11);
       expect(node.contentsEnd, 20);
     }
 
     {
-      var parseResult = parseStringWithErrors(r"""
+      var parseResult = parseTestCodeWithDiagnostics(r"""
 final v = '''a${bb}ccc''';
 """);
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.contentsOffset, 13);
       expect(node.contentsEnd, 22);
     }
 
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = """a${bb}ccc""";
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.contentsOffset, 13);
       expect(node.contentsEnd, 22);
     }
 
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = r'a${bb}ccc';
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral('ccc');
       expect(node.contentsOffset, 12);
       expect(node.contentsEnd, 21);
     }
 
     {
-      var parseResult = parseStringWithErrors(r"""
+      var parseResult = parseTestCodeWithDiagnostics(r"""
 final v = r'''a${bb}ccc''';
 """);
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral('ccc');
       expect(node.contentsOffset, 14);
       expect(node.contentsEnd, 23);
     }
 
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = r"""a${bb}ccc""";
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.simpleStringLiteral('ccc');
       expect(node.contentsOffset, 14);
       expect(node.contentsEnd, 23);
@@ -1689,98 +1663,88 @@ final v = r"""a${bb}ccc""";
 
   void test_isMultiline() {
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = 'a${bb}ccc';
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isFalse);
     }
 
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = "a${bb}ccc";
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isFalse);
     }
 
     {
-      var parseResult = parseStringWithErrors(r"""
+      var parseResult = parseTestCodeWithDiagnostics(r"""
 final v = '''a${bb}ccc''';
 """);
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
 
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = """a${bb}ccc""";
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
   }
 
   void test_isRaw() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = 'a${bb}ccc';
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.stringInterpolation('ccc');
     expect(node.isRaw, isFalse);
   }
 
   void test_isSingleQuoted() {
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = 'a${bb}ccc';
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
     }
 
     {
-      var parseResult = parseStringWithErrors(r"""
+      var parseResult = parseTestCodeWithDiagnostics(r"""
 final v = '''a${bb}ccc''';
 """);
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
     }
 
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = "a${bb}ccc";
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isFalse);
     }
 
     {
-      var parseResult = parseStringWithErrors(r'''
+      var parseResult = parseTestCodeWithDiagnostics(r'''
 final v = """a${bb}ccc""";
 ''');
-      parseResult.assertNoErrors();
       var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isFalse);
     }
   }
 
   void test_this_followedByDollar() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   void m(int foo) {
     '$this$foo';
   }
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.stringInterpolation('this');
     assertParsedNodeText(node, r'''
 StringInterpolation
@@ -1828,11 +1792,10 @@ class A {
 @reflectiveTest
 class VariableDeclarationTest extends _AstTest {
   void test_getDocumentationComment_onGrandParent() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// text
 var a = 0;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.variableDeclaration('a =');
     expect(node.documentationComment, isNotNull);
   }

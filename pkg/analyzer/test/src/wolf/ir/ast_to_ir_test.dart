@@ -64,7 +64,7 @@ class AstToIRTest extends AstToIRTestBase {
   void Function(Object?)? _onYield;
 
   Future<void> checkBinaryOp(String op) async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   external int operator $op(int other);
 }
@@ -84,7 +84,7 @@ test(C c, int other) => c $op other;
   }
 
   Future<void> checkBinaryOpEq(String op) async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   external C operator $op(int other);
 }
@@ -146,7 +146,7 @@ test(List<C> list, int other) => list.first $op= other;
   );
 
   test_adjacentStrings() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 'foo' " " 'bar';
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -170,7 +170,7 @@ test() => 'foo' " " 'bar';
   test_assignmentExpression_leftShiftEq() => checkBinaryOpEq('<<');
 
   test_assignmentExpression_local_compound_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123;
   i += 456;
@@ -185,7 +185,7 @@ test() {
   }
 
   test_assignmentExpression_local_compound_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123;
   return i += 456;
@@ -199,7 +199,7 @@ test() {
   }
 
   test_assignmentExpression_local_ifNull_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 test(int? i) {
   int? j = i;
@@ -218,7 +218,7 @@ test(int? i) {
   }
 
   test_assignmentExpression_local_ifNull_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 test(int? i) {
   int? j = i; // ignore: unused_local_variable
@@ -236,7 +236,7 @@ test(int? i) {
   }
 
   test_assignmentExpression_local_simple_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i;
   i = 123;
@@ -251,7 +251,7 @@ test() {
   }
 
   test_assignmentExpression_local_simple_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i; // ignore: unused_local_variable
   return i = 123;
@@ -269,7 +269,7 @@ test() {
   test_assignmentExpression_modEq() => checkBinaryOpEq('%');
 
   test_assignmentExpression_parameter_compound_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) {
   i += 456;
   return i;
@@ -283,7 +283,7 @@ test(int i) {
   }
 
   test_assignmentExpression_parameter_compound_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) => i += 456;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -294,7 +294,7 @@ test(int i) => i += 456;
   }
 
   test_assignmentExpression_parameter_ifNull_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 test(int? i) {
   i ??= hook(123, '123');
@@ -312,7 +312,7 @@ test(int? i) {
   }
 
   test_assignmentExpression_parameter_ifNull_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 test(int? i) => i ??= hook(123, '123');
 ''');
@@ -327,7 +327,7 @@ test(int? i) => i ??= hook(123, '123');
   }
 
   test_assignmentExpression_parameter_simple_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) {
   i = 123;
   return i;
@@ -341,7 +341,7 @@ test(int i) {
   }
 
   test_assignmentExpression_parameter_simple_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) => i = 123;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -354,7 +354,7 @@ test(int i) => i = 123;
   test_assignmentExpression_plusEq() => checkBinaryOpEq('+');
 
   test_assignmentExpression_property_nullShorting_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List? l) => l?.length -= 2;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -369,7 +369,7 @@ test(List? l) => l?.length -= 2;
   }
 
   test_assignmentExpression_property_nullShorting_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 class C {
   int? p;
@@ -402,7 +402,7 @@ test(C? c) => c?.p ??= hook(123, '123');
   }
 
   test_assignmentExpression_property_nullShorting_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List? l) => l?.length = 3;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -417,7 +417,7 @@ test(List? l) => l?.length = 3;
   }
 
   test_assignmentExpression_property_prefixedIdentifier_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => l.length -= 2;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -431,7 +431,7 @@ test(List l) => l.length -= 2;
   }
 
   test_assignmentExpression_property_prefixedIdentifier_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 class C {
   int? p;
@@ -463,7 +463,7 @@ test(C c) => c.p ??= hook(123, '123');
   }
 
   test_assignmentExpression_property_prefixedIdentifier_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => l.length = 3;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -477,7 +477,7 @@ test(List l) => l.length = 3;
   }
 
   test_assignmentExpression_property_propertyAccess_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => (l).length -= 2;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -491,7 +491,7 @@ test(List l) => (l).length -= 2;
   }
 
   test_assignmentExpression_property_propertyAccess_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 class C {
   int? p;
@@ -523,7 +523,7 @@ test(C c) => (c).p ??= hook(123, '123');
   }
 
   test_assignmentExpression_property_propertyAccess_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => (l).length = 3;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -537,7 +537,7 @@ test(List l) => (l).length = 3;
   }
 
   test_assignmentExpression_property_simpleIdentifier_compound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on List {
   test() => length -= 2;
 }
@@ -552,7 +552,7 @@ extension E on List {
   }
 
   test_assignmentExpression_property_simpleIdentifier_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int? hook(int? x, String s);
 class C {
   int? p;
@@ -583,7 +583,7 @@ class C {
   }
 
   test_assignmentExpression_property_simpleIdentifier_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on List {
   test() => length = 3;
 }
@@ -604,7 +604,7 @@ extension E on List {
   test_assignmentExpression_timesEq() => checkBinaryOpEq('*');
 
   test_awaitExpression_future() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Future f) async => await f;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -620,7 +620,7 @@ test(Future f) async => await f;
   }
 
   test_binaryExpression_and() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
 ''');
@@ -653,7 +653,7 @@ test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
   test_binaryExpression_divide() => checkBinaryOp('/');
 
   test_binaryExpression_equal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object? x, Object? y) => x == y;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -672,7 +672,7 @@ test(Object? x, Object? y) => x == y;
   test_binaryExpression_greaterThanOrEqual() => checkBinaryOp('>=');
 
   test_binaryExpression_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external Object? hook(Object? x, String s);
 test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
 ''');
@@ -705,7 +705,7 @@ test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
   test_binaryExpression_mod() => checkBinaryOp('%');
 
   test_binaryExpression_notEqual() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object? x, Object? y) => x != y;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -720,7 +720,7 @@ test(Object? x, Object? y) => x != y;
   }
 
   test_binaryExpression_or() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') || hook(y, 'y');
 ''');
@@ -749,7 +749,7 @@ test(bool x, bool y) => hook(x, 'x') || hook(y, 'y');
   test_binaryExpression_times() => checkBinaryOp('*');
 
   test_block() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) {
   i = 123;
   i = 456;
@@ -765,7 +765,7 @@ test(int i) {
   }
 
   test_blockFunctionBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   return 123;
 }
@@ -778,7 +778,7 @@ test() {
   }
 
   test_booleanLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => true;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -787,7 +787,7 @@ test() => true;
   }
 
   test_breakStatement_fromDoLoop() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   do {
     result.add(count--);
@@ -803,7 +803,7 @@ test(int count, List<int> result) {
   }
 
   test_breakStatement_fromForStatement_forParts() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   for (var i = 0; i < count; i++) {
     result.add(i);
@@ -819,7 +819,7 @@ test(int count, List<int> result) {
   }
 
   test_breakStatement_fromWhileLoop() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   while (count-- > 0) {
     result.add(count);
@@ -835,7 +835,7 @@ test(int count, List<int> result) {
   }
 
   test_conditionalExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) => b ? 1 : 2;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -848,7 +848,7 @@ test(bool b) => b ? 1 : 2;
   }
 
   test_continueStatement_inDoLoop() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   do {
     if ((--count).isEven) continue;
@@ -864,7 +864,7 @@ test(int count, List<int> result) {
   }
 
   test_continueStatement_inForStatement_forParts() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   for (var i = 0; i < count; i++) {
     if (i.isEven) continue;
@@ -880,7 +880,7 @@ test(int count, List<int> result) {
   }
 
   test_continueStatement_inWhileLoop() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   while (count-- > 0) {
     if (count.isEven) continue;
@@ -896,7 +896,7 @@ test(int count, List<int> result) {
   }
 
   test_doStatement_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   do {
     result.add(count--);
@@ -917,7 +917,7 @@ test(int count, List<int> result) {
   }
 
   test_doubleLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 1.5;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -926,7 +926,7 @@ test() => 1.5;
   }
 
   test_expressionFunctionBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 0;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -936,7 +936,7 @@ test() => 0;
   }
 
   test_expressionStatement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) {
   i = 123;
   return i;
@@ -950,7 +950,7 @@ test(int i) {
   }
 
   test_forStatement_forParts_withDeclaration() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   for (var i = 0; i < count; i++) {
     result.add(i);
@@ -971,7 +971,7 @@ test(int count, List<int> result) {
   }
 
   test_ifStatement_noElse() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) {
   Object? result;
   if (b /*test*/) {
@@ -989,7 +989,7 @@ test(bool b) {
   }
 
   test_ifStatement_noElse_earlyReturn() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) {
   if (b /*test*/) {
     return 1;
@@ -1005,7 +1005,7 @@ test(bool b) {
   }
 
   test_ifStatement_withElse() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) {
   Object? result;
   if (b /*test*/) {
@@ -1026,7 +1026,7 @@ test(bool b) {
   }
 
   test_ifStatement_withElse_earlyReturn() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) {
   if (b /*test*/) {
     return 1;
@@ -1045,7 +1045,7 @@ test(bool b) {
   }
 
   test_integerLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 123;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1054,7 +1054,7 @@ test() => 123;
   }
 
   test_isExpression_inverted() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object? o) => o is! String;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1066,7 +1066,7 @@ test(Object? o) => o is! String;
   }
 
   test_isExpression_uninverted() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object? o) => o is String;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1078,7 +1078,7 @@ test(Object? o) => o is String;
   }
 
   test_methodInvocation_identical() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object? x, Object? y) => identical(x, y);
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1093,7 +1093,7 @@ test(Object? x, Object? y) => identical(x, y);
   }
 
   test_methodInvocation_identical_decoy() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external bool identical(Object? x, Object? y);
 test(Object? x, Object? y) => identical(x, y); // invocation
 ''');
@@ -1112,7 +1112,7 @@ test(Object? x, Object? y) => identical(x, y); // invocation
   }
 
   test_methodInvocation_instanceMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(String s1, String s2) => s1.contains(s2);
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1124,7 +1124,7 @@ test(String s1, String s2) => s1.contains(s2);
   }
 
   test_methodInvocation_instanceMethod_implicitThis() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   external int f(int x);
   test(int x) => f(x); // invocation
@@ -1144,7 +1144,7 @@ class C {
   }
 
   test_methodInvocation_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external String f();
 test(String? s) => s?.contains(f());
 ''');
@@ -1174,7 +1174,7 @@ test(String? s) => s?.contains(f());
   }
 
   test_methodInvocation_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(String s) => int.parse(s);
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1186,7 +1186,7 @@ test(String s) => int.parse(s);
   }
 
   test_methodInvocation_staticMethod_inScope() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   external static int f(int x);
   test(int x) => f(x); // invocation
@@ -1205,7 +1205,7 @@ class C {
   }
 
   test_methodInvocation_topLevelFunction_nullary() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int f();
 test() => f(); // invocation
 ''');
@@ -1218,7 +1218,7 @@ test() => f(); // invocation
   }
 
   test_methodInvocation_topLevelFunction_oneNamedArgument() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int f(int x, {required int y});
 test(int x, int y) => f(x, y: y); // invocation
 ''');
@@ -1238,7 +1238,7 @@ test(int x, int y) => f(x, y: y); // invocation
   }
 
   test_methodInvocation_topLevelFunction_positionalArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int f(int x, int y);
 test(int x, int y) => f(x, y); // invocation
 ''');
@@ -1251,7 +1251,7 @@ test(int x, int y) => f(x, y); // invocation
   }
 
   test_methodInvocation_topLevelFunction_twoNamedArguments() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external int f({required int x, required int y});
 test(int x, int y) => f(y: y, x: x);
 ''');
@@ -1271,7 +1271,7 @@ test(int x, int y) => f(y: y, x: x);
   }
 
   test_methodInvocation_typeArguments_explicit() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 external f<T, U>();
 test() => f<int, String>();
 ''');
@@ -1287,7 +1287,7 @@ test() => f<int, String>();
   }
 
   test_multipleParameters_first() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i, int j) => i;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1295,7 +1295,7 @@ test(int i, int j) => i;
   }
 
   test_multipleParameters_second() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i, int j) => j;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1303,7 +1303,7 @@ test(int i, int j) => j;
   }
 
   test_noReturnAtEndOfFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {}
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1311,7 +1311,7 @@ test() {}
   }
 
   test_nullLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => null;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1320,7 +1320,7 @@ test() => null;
   }
 
   test_parenthesizedExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) => (i);
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1331,7 +1331,7 @@ test(int i) => (i);
   }
 
   test_parenthesizedExpression_stopsNullShorting() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List<Object?>? list) => (list?.first).hashCode;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1344,7 +1344,7 @@ test(List<Object?>? list) => (list?.first).hashCode;
   }
 
   test_postfixExpression_decrement_property_nullShorting() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List? l) => l?.length--;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1358,7 +1358,7 @@ test(List? l) => l?.length--;
   }
 
   test_postfixExpression_decrement_property_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => l.length--;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1371,7 +1371,7 @@ test(List l) => l.length--;
   }
 
   test_postfixExpression_decrement_property_propertyAccess() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => (l).length--;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1384,7 +1384,7 @@ test(List l) => (l).length--;
   }
 
   test_postfixExpression_decrement_property_simpleIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on List {
   test() => length--;
 }
@@ -1399,7 +1399,7 @@ extension E on List {
   }
 
   test_postfixExpression_increment_local_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123;
   i++;
@@ -1414,7 +1414,7 @@ test() {
   }
 
   test_postfixExpression_increment_local_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123;
   return i++;
@@ -1428,7 +1428,7 @@ test() {
   }
 
   test_postfixExpression_increment_parameter_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) {
   i++;
   return i;
@@ -1442,7 +1442,7 @@ test(int i) {
   }
 
   test_postfixExpression_increment_parameter_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) => i++;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1453,7 +1453,7 @@ test(int i) => i++;
   }
 
   test_prefixExpression_decrement_property_nullShorting() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List? l) => --l?.length;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1467,7 +1467,7 @@ test(List? l) => --l?.length;
   }
 
   test_prefixExpression_decrement_property_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => --l.length;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1480,7 +1480,7 @@ test(List l) => --l.length;
   }
 
   test_prefixExpression_decrement_property_propertyAccess() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List l) => --(l).length;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1493,7 +1493,7 @@ test(List l) => --(l).length;
   }
 
   test_prefixExpression_decrement_property_simpleIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on List {
   test() => --length;
 }
@@ -1508,7 +1508,7 @@ extension E on List {
   }
 
   test_prefixExpression_increment_local_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123;
   ++i; // increment
@@ -1523,7 +1523,7 @@ test() {
   }
 
   test_prefixExpression_increment_local_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123;
   return ++i;
@@ -1537,7 +1537,7 @@ test() {
   }
 
   test_prefixExpression_increment_parameter_sideEffect() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) {
   ++i; // increment
   return i;
@@ -1551,7 +1551,7 @@ test(int i) {
   }
 
   test_prefixExpression_increment_parameter_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) => ++i;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1562,7 +1562,7 @@ test(int i) => ++i;
   }
 
   test_prefixExpression_not() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(bool b) => !b;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1574,7 +1574,7 @@ test(bool b) => !b;
   }
 
   test_propertyAccess_allowsNullShorting() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List<Object?>? list) => list?.first.hashCode;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1587,7 +1587,7 @@ test(List<Object?>? list) => list?.first.hashCode;
   }
 
   test_propertyAccess_nestedNullShorting() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(List<Object?>? list) => list?.first?.hashCode;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1606,7 +1606,7 @@ test(List<Object?>? list) => list?.first?.hashCode;
   }
 
   test_propertyGet_nullShorting() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(String? s) => s?.length;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1618,7 +1618,7 @@ test(String? s) => s?.length;
   }
 
   test_propertyGet_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) => i.isEven;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1630,7 +1630,7 @@ test(int i) => i.isEven;
   }
 
   test_propertyGet_propertyAccess() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() => 'foo'.length;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1641,7 +1641,7 @@ test() => 'foo'.length;
   }
 
   test_propertyGet_simpleIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on String {
   test() => length;
 }
@@ -1652,7 +1652,7 @@ extension E on String {
   }
 
   test_returnStatement_noValue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   return;
   return 1; // ignore: dead_code
@@ -1664,7 +1664,7 @@ test() {
   }
 
   test_returnStatement_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   return 123;
   return 1; // ignore: dead_code
@@ -1678,7 +1678,7 @@ test() {
   }
 
   test_simpleIdentifier_local() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   var i = 123;
   return i;
@@ -1690,7 +1690,7 @@ test() {
   }
 
   test_simpleIdentifier_parameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int i) => i;
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1699,7 +1699,7 @@ test(int i) => i;
   }
 
   test_stringInterpolation_withBraces() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 test(int x) => 'x = ${x}';
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1710,7 +1710,7 @@ test(int x) => 'x = ${x}';
   }
 
   test_stringInterpolation_withoutBraces() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 test(int x) => 'x = $x';
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1721,7 +1721,7 @@ test(int x) => 'x = $x';
   }
 
   test_stringLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 test() => 'foo';
 ''');
     analyze(findNode.singleFunctionDeclaration);
@@ -1730,7 +1730,7 @@ test() => 'foo';
   }
 
   test_thisExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   test() => this;
 }
@@ -1742,7 +1742,7 @@ class C {
   }
 
   test_variableDeclarationList_singleVariable_initialized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123;
   return i;
@@ -1755,7 +1755,7 @@ test() {
   }
 
   test_variableDeclarationList_singleVariable_uninitialized_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i; // ignore: unused_local_variable
   return 123;
@@ -1769,7 +1769,7 @@ test() {
   }
 
   test_variableDeclarationList_singleVariable_uninitialized_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int? i;
   return i;
@@ -1800,7 +1800,7 @@ test() {
   }
 
   test_variableDeclarationList_twoVariables_first() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123, j = 456; // ignore: unused_local_variable
   return i;
@@ -1814,7 +1814,7 @@ test() {
   }
 
   test_variableDeclarationList_twoVariables_second() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123, j = 456; // ignore: unused_local_variable
   return j;
@@ -1828,7 +1828,7 @@ test() {
   }
 
   test_variableDeclarationStatement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i = 123; // ignore: unused_local_variable
 }
@@ -1843,7 +1843,7 @@ test() {
   }
 
   test_whileStatement_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(int count, List<int> result) {
   while (count-- > 0) {
     result.add(count);
@@ -1860,7 +1860,7 @@ test(int count, List<int> result) {
   }
 
   test_yieldStatement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 test(Object? o) sync* {
   yield o;
 }
