@@ -89,26 +89,20 @@ void f() {
   }
 
   test_extensionTypeWrapsString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(String s) implements Object {}
 void f() {
-  throw E('hello');
+  throw [!E('hello')!];
 }
-''',
-      [lint(67, 10)],
-    );
+''');
   }
 
   test_int() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  throw 7;
+  throw [!7!];
 }
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_never() async {
@@ -122,24 +116,18 @@ Never e() => throw Exception();
   }
 
   test_object() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  throw Object();
+  throw [!Object()!];
 }
-''',
-      [lint(19, 8)],
-    );
+''');
   }
 
   test_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  throw 'hello';
+  throw [!'hello'!];
 }
-''',
-      [lint(19, 7)],
-    );
+''');
   }
 }

@@ -27,59 +27,44 @@ class C {
   }
 
   test_finalField_onEnum() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum E {
   e;
-  final f = () {};
+  final [!f = () {}!];
 }
-''',
-      [lint(22, 9)],
-    );
+''');
   }
 
   test_finalField_onMixin() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 mixin M {
-  final f = () {};
+  final [!f = () {}!];
 }
-''',
-      [lint(18, 9)],
-    );
+''');
   }
 
   test_finalField_onPrivateClass() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {
-  final f = () {};
+  final [!f = () {}!];
 }
-''',
-      [lint(19, 9)],
-    );
+''');
   }
 
   test_instanceField_private_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  final _f = () {};
+  final [!_f = () {}!];
 }
-''',
-      [lint(18, 10)],
-    );
+''');
   }
 
   test_instanceVariable_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  final f = () {};
+  final [!f = () {}!];
 }
-''',
-      [lint(18, 9)],
-    );
+''');
   }
 
   test_instanceVariable_public() async {
@@ -100,14 +85,11 @@ void f() {
   }
 
   test_localVariable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  var g = () {};
+  var [!g = () {}!];
 }
-''',
-      [lint(17, 9)],
-    );
+''');
   }
 
   test_localVariable_nonFunctionLiteral() async {
@@ -128,14 +110,11 @@ void f() {
   }
 
   test_staticField_final() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  static final f = () {};
+  static final [!f = () {}!];
 }
-''',
-      [lint(25, 9)],
-    );
+''');
   }
 
   test_staticField_nonFinal() async {
@@ -147,21 +126,15 @@ class C {
   }
 
   test_topLevelVariable_final() async {
-    await assertDiagnostics(
-      r'''
-final f = () {};
-''',
-      [lint(6, 9)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+final [!f = () {}!];
+''');
   }
 
   test_topLevelVariable_private_final() async {
-    await assertDiagnostics(
-      r'''
-final _f = () {};
-''',
-      [lint(6, 10)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+final [!_f = () {}!];
+''');
   }
 
   test_topLevelVariable_private_nonFinal() async {

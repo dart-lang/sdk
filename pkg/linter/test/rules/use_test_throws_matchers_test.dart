@@ -39,19 +39,16 @@ export 'src/frontend/expect.dart';
   }
 
   test_failInTry() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:test_api/test_api.dart';
 
 void f() {
   try {
     f();
-    fail('fail');
+    [!fail('fail');!]
   } catch (e) {}
 }
-''',
-      [lint(74, 13)],
-    );
+''');
   }
 
   test_failWithExpectInCatch() async {

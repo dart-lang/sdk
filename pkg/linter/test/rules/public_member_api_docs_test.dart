@@ -27,12 +27,9 @@ class PublicMemberApiDocsExtensionTypesTest extends LintRuleTest {
   String get lintRule => LintNames.public_member_api_docs;
 
   test_extensionTypeDeclaration() async {
-    await assertDiagnostics(
-      r'''
-extension type E(int i) { }
-''',
-      [lint(15, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+extension type [!E!](int i) { }
+''');
   }
 
   test_field_instance() async {
@@ -48,27 +45,21 @@ extension type E(int i) {
   }
 
   test_field_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 /// Doc.
 extension type E(int i) {
-  static int? f;
+  static int? [!f!];
 }
-''',
-      [lint(49, 1)],
-    );
+''');
   }
 
   test_method() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 /// Doc.
 extension type E(int i) {
-  void m() { }
+  void [!m!]() { }
 }
-''',
-      [lint(42, 1)],
-    );
+''');
   }
 
   test_method_private() async {
@@ -91,38 +82,24 @@ class PublicMemberApiDocsTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/4526
   test_abstractFinalConstructor() async {
-    await assertDiagnostics(
-      r'''
-abstract final class S {
+    await assertDiagnosticsFromMarkdown(r'''
+abstract final class /*[0*/S/*0]*/ {
   S();
 }
 
-final class A extends S {}
-''',
-      [
-        lint(21, 1),
-        // No lint on `S()` declaration
-        lint(47, 1),
-      ],
-    );
+final class /*[1*/A/*1]*/ extends S {}
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4526
   test_abstractInterfaceConstructor() async {
-    await assertDiagnostics(
-      r'''
-abstract interface class S {
+    await assertDiagnosticsFromMarkdown(r'''
+abstract interface class /*[0*/S/*0]*/ {
   S();
 }
 
-final class A extends S {}
-''',
-      [
-        lint(25, 1),
-        // No lint on `S()` declaration
-        lint(51, 1),
-      ],
-    );
+final class /*[1*/A/*1]*/ extends S {}
+''');
   }
 
   test_annotatedEnumValue() async {
@@ -140,69 +117,47 @@ enum A {
   }
 
   test_constructor_namedGenerative() async {
-    await assertDiagnostics(
-      r'''
-class C {
-  C.c();
+    await assertDiagnosticsFromMarkdown(r'''
+class /*[0*/C/*0]*/ {
+  C./*[1*/c/*1]*/();
 }
-''',
-      [lint(6, 1), lint(14, 1)],
-    );
+''');
   }
 
   test_constructor_newSyntax() async {
-    await assertDiagnostics(
-      r'''
-class C {
-  new();
+    await assertDiagnosticsFromMarkdown(r'''
+class /*[0*/C/*0]*/ {
+  /*[1*/new/*1]*/();
 }
-''',
-      [lint(6, 1), lint(12, 3)],
-    );
+''');
   }
 
   test_constructor_unnamedFactory() async {
-    await assertDiagnostics(
-      r'''
-class C {
+    await assertDiagnosticsFromMarkdown(r'''
+class /*[0*/C/*0]*/ {
   C._();
 
-  factory C() => C._();
+  factory /*[1*/C/*1]*/() => C._();
 }
-''',
-      [lint(6, 1), lint(30, 1)],
-    );
+''');
   }
 
   test_constructor_unnamedGenerative() async {
-    await assertDiagnostics(
-      r'''
-class C {
-  C();
+    await assertDiagnosticsFromMarkdown(r'''
+class /*[0*/C/*0]*/ {
+  /*[1*/C/*1]*/();
 }
-''',
-      [lint(6, 1), lint(12, 1)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertDiagnostics(
-      r'''
-enum A {
-  a,b,c;
-  int x() => 0;
-  int get y => 1;
+    await assertDiagnosticsFromMarkdown(r'''
+enum /*[0*/A/*0]*/ {
+  /*[1*/a/*1]*/,/*[2*/b/*2]*/,/*[3*/c/*3]*/;
+  int /*[4*/x/*4]*/() => 0;
+  int get /*[5*/y/*5]*/ => 1;
 }
-''',
-      [
-        lint(5, 1),
-        lint(11, 1),
-        lint(13, 1),
-        lint(15, 1),
-        lint(24, 1),
-        lint(44, 1),
-      ],
-    );
+''');
   }
 
   test_enum_privateConstant() async {
@@ -231,14 +186,11 @@ enum A {
 
   /// https://github.com/dart-lang/linter/issues/3525
   test_extension() async {
-    await assertDiagnostics(
-      r'''
-extension E on Object {
-  void f() { }
+    await assertDiagnosticsFromMarkdown(r'''
+extension /*[0*/E/*0]*/ on Object {
+  void /*[1*/f/*1]*/() { }
 }
-''',
-      [lint(10, 1), lint(31, 1)],
-    );
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4521
@@ -351,14 +303,11 @@ var f = 1;
   }
 
   test_mixin_method() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 /// A mixin M.
 mixin M {
-  String m() => '';
-}''',
-      [lint(34, 1)],
-    );
+  String [!m!]() => '';
+}''');
   }
 
   test_mixin_overridingMethod_OK() async {
@@ -375,14 +324,11 @@ mixin M {
 part 'test.dart';
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
-class A { }
-''',
-      [lint(25, 1)],
-    );
+class [!A!] { }
+''');
   }
 
   test_primaryConstructor_bodyPartNoDoc() async {
@@ -419,31 +365,21 @@ class [!C!](var int x);
 
   /// https://github.com/dart-lang/linter/issues/4526
   test_sealedConstructor() async {
-    await assertDiagnostics(
-      r'''
-sealed class S {
+    await assertDiagnosticsFromMarkdown(r'''
+sealed class /*[0*/S/*0]*/ {
   S();
 }
 
-final class A extends S {}
-''',
-      [
-        lint(13, 1),
-        // No lint on `S()` constructor declaration.
-        lint(39, 1),
-      ],
-    );
+final class /*[1*/A/*1]*/ extends S {}
+''');
   }
 
   test_topLevelMembers() async {
-    await assertDiagnostics(
-      r'''
-int g = 1;
-typedef T = void Function();
-int get z => 0;
-''',
-      [lint(4, 1), lint(19, 1), lint(48, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+int /*[0*/g/*0]*/ = 1;
+typedef /*[1*/T/*1]*/ = void Function();
+int get /*[2*/z/*2]*/ => 0;
+''');
   }
 
   test_topLevelMembers_private() async {

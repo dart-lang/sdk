@@ -18,18 +18,15 @@ class UnnecessaryNewTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_new;
 
   test_named_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A.named();
 }
 
 void f() {
-  new A.named();
+  [!new!] A.named();
 }
-''',
-      [lint(39, 3)],
-    );
+''');
   }
 
   test_named_noNew() async {
@@ -57,18 +54,15 @@ void f() {
   }
 
   test_unnamed_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A();
 }
 
 void f() {
-  new A();
+  [!new!] A();
 }
-''',
-      [lint(39, 3)],
-    );
+''');
   }
 
   test_unnamed_newName_const() async {
@@ -84,18 +78,15 @@ void f() {
   }
 
   test_unnamed_newName_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A();
 }
 
 void f() {
-  new A.new();
+  [!new!] A.new();
 }
-''',
-      [lint(39, 3)],
-    );
+''');
   }
 
   test_unnamed_noNew() async {

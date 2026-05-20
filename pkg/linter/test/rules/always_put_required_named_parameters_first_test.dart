@@ -25,30 +25,24 @@ class AlwaysPutRequiredNamedParametersFirstTest extends LintRuleTest {
   String get lintRule => LintNames.always_put_required_named_parameters_first;
 
   test_constructor_requiredAfterOptional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   C.f({
     int? a,
-    required int? b,
+    required int? [!b!],
   });
 }
-''',
-      [lint(48, 1)],
-    );
+''');
   }
 
   test_constructor_requiredAfterOptional_fieldFormal() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  C({this.a, required this.b});
+  C({this.a, required this.[!b!]});
   int? a;
   int b;
 }
-''',
-      [lint(37, 1)],
-    );
+''');
   }
 
   test_constructor_requiredAfterRequired() async {
@@ -63,19 +57,16 @@ class C {
   }
 
   test_constructor_requiredAnnotationAfterOptional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 class C {
   C.f({
     int? a,
-    @required int? b,
+    @required int? [!b!],
   });
 }
-''',
-      [lint(124, 1)],
-    );
+''');
   }
 
   test_constructor_requiredAnnotationAfterRequiredAnnotation() async {
@@ -92,21 +83,15 @@ class C {
   }
 
   test_primaryConstructor_requiredAfterOptional() async {
-    await assertDiagnostics(
-      r'''
-class C({int? a, required int? b});
-''',
-      [lint(31, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class C({int? a, required int? [!b!]});
+''');
   }
 
   test_primaryConstructor_requiredAfterOptional_declaring() async {
-    await assertDiagnostics(
-      r'''
-class C({final int? a, required var int? b});
-''',
-      [lint(41, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class C({final int? a, required var int? [!b!]});
+''');
   }
 
   test_primaryConstructor_requiredAfterRequired() async {
@@ -116,24 +101,18 @@ class C({required int? a, required int? b});
   }
 
   test_topLevelFunction_requiredAfterOptional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f({
   int? a,
-  required int? b,
+  required int? [!b!],
 }) {}
-''',
-      [lint(35, 1)],
-    );
+''');
   }
 
   test_topLevelFunction_requiredAfterOptional_default() async {
-    await assertDiagnostics(
-      r'''
-void f({int a = 0, required int? b}) {}
-''',
-      [lint(33, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f({int a = 0, required int? [!b!]}) {}
+''');
   }
 
   test_topLevelFunction_requiredAfterRequired() async {
@@ -146,17 +125,14 @@ void f({
   }
 
   test_topLevelFunction_requiredAnnotationAfterOptional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 void f({
   int? a,
-  @required int? b,
+  @required int? [!b!],
 }) {}
-''',
-      [lint(111, 1)],
-    );
+''');
   }
 
   test_topLevelFunction_requiredAnnotationAfterRequiredAnnotation() async {

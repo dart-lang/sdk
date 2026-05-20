@@ -66,14 +66,11 @@ class C {
   }
 
   test_forPart_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (var __ = 0; ; ) {}
+  for (var [!__!] = 0; ; ) {}
 }
-''',
-      [lint(22, 2)],
-    );
+''');
   }
 
   test_forPart_used() async {
@@ -85,12 +82,9 @@ void f() {
   }
 
   test_function_parameter_unused() async {
-    await assertDiagnostics(
-      r'''
-void f(int _, int __) {}
-''',
-      [lint(18, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(int _, int [!__!]) {}
+''');
   }
 
   test_function_parameter_unused_preWildcards() async {
@@ -110,14 +104,11 @@ void f(int _, int __) {
   }
 
   test_local_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  var __ = 0;
+  var [!__!] = 0;
 }
-''',
-      [lint(17, 2)],
-    );
+''');
   }
 
   test_local_used() async {
@@ -130,14 +121,11 @@ void f() {
   }
 
   test_localFunction_parameter_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  g(int __) {}
+  g(int [!__!]) {}
 }
-''',
-      [lint(19, 2)],
-    );
+''');
   }
 
   test_localFunction_parameter_used() async {

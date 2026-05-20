@@ -45,19 +45,16 @@ Widget f() {
   }
 
   test_colorArgument_andChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 Widget containerWithColorAndChild() {
-  return Container(
+  return [!Container!](
     color: Color(0xffffffff),
     child: SizedBox(),
   );
 }
-''',
-      [lint(87, 9)],
-    );
+''');
   }
 
   test_colorArgument_named_moreArguments() async {

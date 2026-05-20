@@ -43,16 +43,13 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  bool operator ==(Object other) => false;
+  bool operator [!==!](Object other) => false;
 }
-''',
-      [lint(53, 2)],
-    );
+''');
   }
 
   test_enum_missingHash() async {
@@ -96,15 +93,12 @@ class C {
   }
 
   test_equalsEquals_noHashCode() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   @override
-  bool operator ==(Object other) => false;
+  bool operator [!==!](Object other) => false;
 }
-''',
-      [lint(38, 2)],
-    );
+''');
   }
 
   test_extensionType_missingHash() async {
@@ -122,27 +116,21 @@ extension type E(Object o) {
   }
 
   test_hashCode_noEqualsEquals() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   @override
-  int get hashCode => 7;
+  int get [!hashCode!] => 7;
 }
-''',
-      [lint(32, 8)],
-    );
+''');
   }
 
   test_hashCodeField_missingEqualsEquals() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   @override
-  final int hashCode = 7;
+  final int [!hashCode!] = 7;
 }
-''',
-      [lint(34, 8)],
-    );
+''');
   }
 
   test_neither() async {

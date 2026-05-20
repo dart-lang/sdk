@@ -40,15 +40,12 @@ augment class A {
   }
 
   test_field_final_noInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  final x;
+  final [!x!];
   C(this.x);
 }
-''',
-      [lint(18, 1)],
-    );
+''');
   }
 
   test_field_typed() async {
@@ -60,37 +57,28 @@ class C {
   }
 
   test_field_var_noInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  var x;
+  var [!x!];
 }
-''',
-      [lint(16, 1)],
-    );
+''');
   }
 
   test_field_var_noInitializer_notFirst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   var a = 5,
-      b;
+      [!b!];
 }
-''',
-      [lint(29, 1)],
-    );
+''');
   }
 
   test_field_var_noInitializer_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  static var x;
+  static var [!x!];
 }
-''',
-      [lint(23, 1)],
-    );
+''');
   }
 
   test_forEachLoopVariable_final() async {
@@ -102,14 +90,11 @@ void f() {
   }
 
   test_forLoopVariable_var_noInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (var i, j = 0; j < 5; i = j, j++) {}
+  for (var [!i!], j = 0; j < 5; i = j, j++) {}
 }
-''',
-      [lint(22, 1)],
-    );
+''');
   }
 
   test_localVariable_var_initializer() async {
@@ -122,15 +107,12 @@ void f() {
   }
 
   test_localVariable_var_noInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   // ignore: unused_local_variable
-  var x;
+  var [!x!];
 }
-''',
-      [lint(52, 1)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -158,11 +140,8 @@ var x = 4;
   }
 
   test_topLevelVariable_var_noInitializer() async {
-    await assertDiagnostics(
-      r'''
-var x;
-''',
-      [lint(4, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var [!x!];
+''');
   }
 }

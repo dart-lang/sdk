@@ -18,85 +18,64 @@ class AvoidTypeToStringTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_type_to_string;
 
   test_extensionOnType_implicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension E on Type {
   void f() {
-    toString();
+    [!toString!]();
   }
 }
-''',
-      [lint(39, 8)],
-    );
+''');
   }
 
   test_extensionType_implicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int i) {
   m() {
-    runtimeType.toString();
+    runtimeType.[!toString!]();
   }
 }
-''',
-      [lint(50, 8)],
-    );
+''');
   }
 
   test_extensionType_instance() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int i) {
   m() {
-    E(i).runtimeType.toString();
+    E(i).runtimeType.[!toString!]();
   }
 }
-''',
-      [lint(55, 8)],
-    );
+''');
   }
 
   test_mixinOnType_explicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 mixin M on Type {
-  late var x = this.toString();
+  late var x = this.[!toString!]();
 }
-''',
-      [lint(38, 8)],
-    );
+''');
   }
 
   test_mixinOnType_implicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 mixin M on Type {
-  late var x = toString();
+  late var x = [!toString!]();
 }
-''',
-      [lint(33, 8)],
-    );
+''');
   }
 
   test_runtimeType() async {
-    await assertDiagnostics(
-      r'''
-var x = 7.runtimeType.toString();
-''',
-      [lint(22, 8)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = 7.runtimeType.[!toString!]();
+''');
   }
 
   test_type_tearoff() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  foo(7.runtimeType.toString);
+  foo(7.runtimeType.[!toString!]);
 }
 void foo(String Function() p) {}
-''',
-      [lint(31, 8)],
-    );
+''');
   }
 
   test_typeImplementsType_withToStringOverride() async {
@@ -112,97 +91,73 @@ class Type2 with M implements Type {
   }
 
   test_typeThatExtendsTypeThatImplementsType() async {
-    await assertDiagnostics(
-      r'''
-var x = Type3().toString();
+    await assertDiagnosticsFromMarkdown(r'''
+var x = Type3().[!toString!]();
 class Type2 implements Type {}
 class Type3 extends Type2 {}
-''',
-      [lint(16, 8)],
-    );
+''');
   }
 
   test_typeThatImplementsType() async {
-    await assertDiagnostics(
-      r'''
-var x = Type2().toString();
+    await assertDiagnosticsFromMarkdown(r'''
+var x = Type2().[!toString!]();
 class Type2 implements Type {}
-''',
-      [lint(16, 8)],
-    );
+''');
   }
 
   test_typeThatImplementsType_explicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Type2 implements Type {
-  late var x = this.toString();
+  late var x = this.[!toString!]();
 }
-''',
-      [lint(50, 8)],
-    );
+''');
   }
 
   test_typeThatImplementsType_implicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Type2 implements Type {
-  late var x = toString();
+  late var x = [!toString!]();
 }
-''',
-      [lint(45, 8)],
-    );
+''');
   }
 
   test_typeThatImplementsType_super() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Type2 implements Type {
-  late var x = super.toString();
+  late var x = super.[!toString!]();
 }
-''',
-      [lint(51, 8)],
-    );
+''');
   }
 
   test_typeThatImplementsType_tearoff() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Type2 implements Type {}
 void f(Type2 t) {
-  foo(t.toString);
+  foo(t.[!toString!]);
 }
 void foo(String Function() p) {}
-''',
-      [lint(57, 8)],
-    );
+''');
   }
 
   test_typeThatImplementsType_tearoff_explicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Type2 implements Type {
   void f() {
-    foo(this.toString);
+    foo(this.[!toString!]);
   }
   void foo(String Function() p) {}
 }
-''',
-      [lint(56, 8)],
-    );
+''');
   }
 
   test_typeThatImplementsType_tearoff_implicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Type2 implements Type {
   void f() {
-    foo(toString);
+    foo([!toString!]);
   }
   void foo(String Function() p) {}
 }
-''',
-      [lint(51, 8)],
-    );
+''');
   }
 }

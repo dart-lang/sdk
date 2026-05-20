@@ -18,16 +18,13 @@ class AvoidTypesAsParameterNamesTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_types_as_parameter_names;
 
   test_catchClauseParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {}
 
 void f() {
-  try {} catch (C) {}
+  try {} catch ([!C!]) {}
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 
   test_classTypeParameter_instanceMethodTypeParameter() async {
@@ -47,28 +44,22 @@ class A<X> {
   }
 
   test_constructor_factory() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {}
 class B {
-  factory (A) => B._();
+  factory ([!A!]) => B._();
   B._();
 }
-''',
-      [lint(32, 1)],
-    );
+''');
   }
 
   test_constructor_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {}
 class B {
-  new (A);
+  new ([!A!]);
 }
-''',
-      [lint(28, 1)],
-    );
+''');
   }
 
   test_constructor_primary_declaring() async {
@@ -81,36 +72,27 @@ class B(final A);
   }
 
   test_constructor_primary_requiredPositional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {}
-class B(A);
-''',
-      [lint(19, 1)],
-    );
+class B([!A!]);
+''');
   }
 
   test_extensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int i) { }
 
-void f(E) { }
-''',
-      [lint(36, 1)],
-    );
+void f([!E!]) { }
+''');
   }
 
   test_factoryParameter_shadowingTypeParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C<X> {
-  factory C(X) => C.name();
+  factory C([!X!]) => C.name();
   C.name();
 }
-''',
-      [lint(25, 1)],
-    );
+''');
   }
 
   test_fieldFormalParameter_missingType() async {
@@ -123,30 +105,21 @@ class C {
   }
 
   test_functionTypedParameter_missingName() async {
-    await assertDiagnostics(
-      r'''
-void f(void g(int)) {}
-''',
-      [lint(14, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(void g([!int!])) {}
+''');
   }
 
   test_functionTypedParameter_missingType_named() async {
-    await assertDiagnostics(
-      r'''
-void f(void g({int})) {}
-''',
-      [lint(15, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(void g({[!int!]})) {}
+''');
   }
 
   test_functionTypedParameter_missingType_optionalPositional() async {
-    await assertDiagnostics(
-      r'''
-void f(void g([int])) {}
-''',
-      [lint(15, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(void g([[!int!]])) {}
+''');
   }
 
   test_functionTypedParameter_noShadowing() async {
@@ -176,12 +149,9 @@ void f(int Function<T>(T) g) {}
   }
 
   test_parameter_shadowingTypeParameter() async {
-    await assertDiagnostics(
-      r'''
-void f<X>(X) {}
-''',
-      [lint(10, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f<X>([!X!]) {}
+''');
   }
 
   test_parameterIsFunctionName() async {
@@ -192,55 +162,40 @@ void g() {}
   }
 
   test_parameterIsTypedefName() async {
-    await assertDiagnostics(
-      r'''
-void f(T) {}
+    await assertDiagnosticsFromMarkdown(r'''
+void f([!T!]) {}
 typedef T = int;
-''',
-      [lint(7, 1)],
-    );
+''');
   }
 
   test_super() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String a;
   A(this.a);
 }
 class B extends A {
-  B(super.String);
+  B(super.[!String!]);
 }
-''',
-      [lint(67, 6)],
-    );
+''');
   }
 
   test_typedefParameter_legacy_missingType() async {
-    await assertDiagnostics(
-      r'''
-typedef void T(int);
-''',
-      [lint(15, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef void T([!int!]);
+''');
   }
 
   test_typedefParameter_legacy_missingType_named() async {
-    await assertDiagnostics(
-      r'''
-typedef void T({int});
-''',
-      [lint(16, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef void T({[!int!]});
+''');
   }
 
   test_typedefParameter_legacy_missingType_optionalPositional() async {
-    await assertDiagnostics(
-      r'''
-typedef void f([int]);
-''',
-      [lint(16, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef void f([[!int!]]);
+''');
   }
 
   test_typedefParameter_legacy_noShadowing() async {
@@ -262,34 +217,25 @@ typedef T = int Function(int);
   }
 
   test_typeParameter_class() async {
-    await assertDiagnostics(
-      r'''
-class A<Object> {}
-''',
-      [lint(8, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class A<[!Object!]> {}
+''');
   }
 
   test_typeParameter_function() async {
-    await assertDiagnostics(
-      r'''
-void f<int>() {}
-''',
-      [lint(7, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f<[!int!]>() {}
+''');
   }
 
   test_typeParameter_instanceMethod_class() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<X> {
-  C instanceMethod<C>(C c) => c;
+  C instanceMethod<[!C!]>(C c) => c;
 }
 
 class C {}
-''',
-      [lint(32, 1)],
-    );
+''');
   }
 
   test_typeParameter_wildcard() async {

@@ -18,25 +18,19 @@ class UnsafeVarianceTest extends LintRuleTest {
   String get lintRule => 'unsafe_variance';
 
   test_class_getter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<X> {
-  void Function([X])? get func2 => null;
+  void Function([[!X!]])? get func2 => null;
 }
-''',
-      [lint(30, 1)],
-    );
+''');
   }
 
   test_class_method_bound() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<X> {
-  int Function<Y extends X>() m2() => <Y extends X>() => 2;
+  int Function<Y extends [!X!]>() m2() => <Y extends X>() => 2;
 }
-''',
-      [lint(38, 1)],
-    );
+''');
   }
 
   test_class_method_parameter() async {
@@ -49,50 +43,38 @@ class A<X> {
   }
 
   test_class_method_return() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<X> {
-  X Function(X) m1() => (X x) => x;
+  X Function([!X!]) m1() => (X x) => x;
 }
-''',
-      [lint(26, 1)],
-    );
+''');
   }
 
   test_class_method_return_typedef() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<X> {
-  Func<X> m1() => (X x) => x;
+  Func<[!X!]> m1() => (X x) => x;
 }
 typedef Func<X> = X Function(X);
-''',
-      [lint(20, 1)],
-    );
+''');
   }
 
   test_class_variable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<X> {
-  void Function(X) func;
+  void Function([!X!]) func;
   A(this.func);
 }
-''',
-      [lint(29, 1)],
-    );
+''');
   }
 
   test_enum_getter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum E<X> {
   e;
-  void Function([X])? get func2 => null;
+  void Function([[!X!]])? get func2 => null;
 }
-''',
-      [lint(34, 1)],
-    );
+''');
   }
 
   test_extension_getter() async {
@@ -112,14 +94,11 @@ extension type A<X>(X x) {
   }
 
   test_mixin_getter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 mixin A<X> {
-  void Function([X])? get func2;
+  void Function([[!X!]])? get func2;
 }
-''',
-      [lint(30, 1)],
-    );
+''');
   }
 
   test_static_class_member() async {

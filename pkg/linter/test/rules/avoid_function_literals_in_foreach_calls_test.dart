@@ -47,16 +47,13 @@ void f(Map<String, int>? people) {
   }
 
   test_functionExpression_targetDoesNotHaveMethodChain() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<List<String>> people) {
   people
       .first
-      .forEach((person) => print('$person!'));
+      .[!forEach!]((person) => print('$person!'));
 }
-''',
-      [lint(65, 7)],
-    );
+''');
   }
 
   test_functionExpression_targetHasCascade() async {
@@ -94,42 +91,33 @@ void f(List<String> people) {
   }
 
   test_functionExpression_targetInIrrelevantNestedCascade() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<List<List<String>>> lists) {
   final lists2 = lists..forEach((list) {
-    list.forEach((item) {
+    list.[!forEach!]((item) {
       print(item);
     });
   });
 }
-''',
-      [lint(91, 7)],
-    );
+''');
   }
 
   test_functionExpressionWithBlockBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<String> people) {
-  people.forEach((person) {
+  people.[!forEach!]((person) {
     print('$person!');
   });
 }
-''',
-      [lint(39, 7)],
-    );
+''');
   }
 
   test_functionExpressionWithExpressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<String> people) {
-  people.forEach((person) => print('$person!'));
+  people.[!forEach!]((person) => print('$person!'));
 }
-''',
-      [lint(39, 7)],
-    );
+''');
   }
 
   test_nonFunctionExpression() async {

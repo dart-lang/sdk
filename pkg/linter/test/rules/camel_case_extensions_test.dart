@@ -32,21 +32,15 @@ augment extension e { }
   }
 
   test_lowerCase() async {
-    await assertDiagnostics(
-      r'''
-extension fooBar on Object {}
-''',
-      [lint(10, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+extension [!fooBar!] on Object {}
+''');
   }
 
   test_underscore() async {
-    await assertDiagnostics(
-      r'''
-extension Foo_Bar on Object { }
-''',
-      [lint(10, 7)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+extension [!Foo_Bar!] on Object { }
+''');
   }
 
   test_unnamed() async {

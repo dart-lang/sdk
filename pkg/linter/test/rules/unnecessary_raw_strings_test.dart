@@ -18,12 +18,9 @@ class UnnecessaryRawStringsTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_raw_strings;
 
   test_doubleQuotes_raw() async {
-    await assertDiagnostics(
-      r'''
-var s = r"a b c d";
-''',
-      [lint(8, 10)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var s = [!r"a b c d"!];
+''');
   }
 
   test_doubleQuotes_raw_containsBackslash() async {
@@ -45,12 +42,9 @@ var s = 'a b c d';
   }
 
   test_singleQuote_raw() async {
-    await assertDiagnostics(
-      r'''
-var s = r'a b c d';
-''',
-      [lint(8, 10)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var s = [!r'a b c d'!];
+''');
   }
 
   test_singleQuote_raw_containsBackslash() async {
@@ -66,12 +60,9 @@ var s = r'a b c$d';
   }
 
   test_tripleDoubleQuotes_raw() async {
-    await assertDiagnostics(
-      r'''
-var s = r"""a b c d""";
-''',
-      [lint(8, 14)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var s = [!r"""a b c d"""!];
+''');
   }
 
   test_tripleDoubleQuotes_raw_containsBackslash() async {
@@ -87,12 +78,9 @@ var s = r"""a b c$d""";
   }
 
   test_tripleSingleQuote_raw() async {
-    await assertDiagnostics(
-      r"""
-var s = r'''a b c d''';
-""",
-      [lint(8, 14)],
-    );
+    await assertDiagnosticsFromMarkdown(r"""
+var s = [!r'''a b c d'''!];
+""");
   }
 
   test_tripleSingleQuote_raw_containsBackslash() async {

@@ -18,18 +18,15 @@ class DeprecatedConsistencyTest extends LintRuleTest {
   String get lintRule => LintNames.deprecated_consistency;
 
   test_classDeprecated_factoryConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 @deprecated
 class A {
   @deprecated
   A._();
 
-  factory A() => A._();
+  factory [!A!]() => A._();
 }
-''',
-      [lint(56, 1)],
-    );
+''');
   }
 
   test_classDeprecated_factoryConstructor_deprecated() async {
@@ -46,15 +43,12 @@ class A {
   }
 
   test_classDeprecated_generativeConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 @deprecated
 class A {
-  A();
+  [!A!]();
 }
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 
   test_classDeprecated_generativeConstructor_deprecated() async {
@@ -68,25 +62,19 @@ class A {
   }
 
   test_classDeprecated_newSyntax() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 @deprecated
 class A {
-  new();
+  [!new!]();
 }
-''',
-      [lint(24, 3)],
-    );
+''');
   }
 
   test_classDeprecated_primaryConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 @deprecated
-class A();
-''',
-      [lint(18, 1)],
-    );
+class [!A!]();
+''');
   }
 
   test_classDeprecated_primaryConstructor_deprecated() async {
@@ -100,25 +88,19 @@ class A() {
   }
 
   test_classDeprecated_primaryConstructor_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 @deprecated
-class A.named();
-''',
-      [lint(18, 7)],
-    );
+class [!A.named!]();
+''');
   }
 
   test_constructorFieldFormalDeprecated_field() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  String? a;
+  String? [!a!];
   A({@deprecated this.a});
 }
-''',
-      [lint(20, 1)],
-    );
+''');
   }
 
   test_constructorFieldFormalDeprecated_fieldDeprecated() async {
@@ -145,13 +127,10 @@ class B extends A {
   }
 
   test_extensionTypeDeprecated_primaryConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 @deprecated
-extension type E(int i) {}
-''',
-      [lint(27, 1)],
-    );
+extension type [!E!](int i) {}
+''');
   }
 
   test_extensionTypeDeprecated_primaryConstructor_deprecated() async {
@@ -165,16 +144,13 @@ extension type E(int i) {
   }
 
   test_fieldDeprecated_fieldFormalParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   @deprecated
   String? a;
-  A({this.a});
+  A({[!this.a!]});
 }
-''',
-      [lint(42, 6)],
-    );
+''');
   }
 
   test_fieldDeprecated_fieldFormalParameter_deprecated() async {
@@ -213,15 +189,12 @@ class A({@deprecated this.a = 1}) {
   }
 
   test_primaryConstructor_thisParameter_fieldDeprecated() async {
-    await assertDiagnostics(
-      r'''
-class A(this.a) {
+    await assertDiagnosticsFromMarkdown(r'''
+class A([!this.a!]) {
   @deprecated
   int a;
 }
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   test_repro_62759() async {

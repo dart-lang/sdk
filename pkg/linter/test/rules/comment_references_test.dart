@@ -18,13 +18,10 @@ class CommentReferencesTest extends LintRuleTest {
   String get lintRule => LintNames.comment_references;
 
   test_false() async {
-    await assertDiagnostics(
-      r'''
-/// [false]
+    await assertDiagnosticsFromMarkdown(r'''
+/// [[!false!]]
 class C {}
-''',
-      [lint(5, 5)],
-    );
+''');
   }
 
   test_field() async {
@@ -135,13 +132,10 @@ class C {}
   }
 
   test_null() async {
-    await assertDiagnostics(
-      r'''
-/// [null]
+    await assertDiagnosticsFromMarkdown(r'''
+/// [[!null!]]
 class C {}
-''',
-      [lint(5, 4)],
-    );
+''');
   }
 
   test_parameter() async {
@@ -167,17 +161,14 @@ class A {
   test_parameter_constructor_privateNamed_invalid() async {
     // See https://github.com/dart-lang/sdk/issues/62768#issuecomment-3963248264
     // for context on why a lint is expected here.
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   final int _x;
 
-  /// [x]
+  /// [[!x!]]
   A({required this._x});
 }
-''',
-      [lint(34, 1)],
-    );
+''');
   }
 
   test_parameter_constructor_privateNamed_valid() async {
@@ -271,23 +262,17 @@ class C {}
   }
 
   test_this() async {
-    await assertDiagnostics(
-      r'''
-/// [this]
+    await assertDiagnosticsFromMarkdown(r'''
+/// [[!this!]]
 class C {}
-''',
-      [lint(5, 4)],
-    );
+''');
   }
 
   test_true() async {
-    await assertDiagnostics(
-      r'''
-/// [true]
+    await assertDiagnosticsFromMarkdown(r'''
+/// [[!true!]]
 class C {}
-''',
-      [lint(5, 4)],
-    );
+''');
   }
 
   test_typeAlias() async {
@@ -315,42 +300,30 @@ class C {}
   }
 
   test_unknownElement() async {
-    await assertDiagnostics(
-      r'''
-/// Text [y].
+    await assertDiagnosticsFromMarkdown(r'''
+/// Text [[!y!]].
 class C {}
-''',
-      [lint(10, 1)],
-    );
+''');
   }
 
   test_unknownElement_dottedName() async {
-    await assertDiagnostics(
-      r'''
-/// Parameter [y.z].
+    await assertDiagnosticsFromMarkdown(r'''
+/// Parameter [[!y.z!]].
 class C {}
-''',
-      [lint(15, 3)],
-    );
+''');
   }
 
   test_unknownElement_followedByColon() async {
-    await assertDiagnostics(
-      r'''
-/// Parameter [y]: z.
+    await assertDiagnosticsFromMarkdown(r'''
+/// Parameter [[!y!]]: z.
 void f(int x) {}
-''',
-      [lint(15, 1)],
-    );
+''');
   }
 
   test_unknownElement_twiceDottedName() async {
-    await assertDiagnostics(
-      r'''
-/// Parameter [x.y.z].
+    await assertDiagnosticsFromMarkdown(r'''
+/// Parameter [[!x.y.z!]].
 class C {}
-''',
-      [lint(15, 5)],
-    );
+''');
   }
 }

@@ -46,116 +46,89 @@ enum E(int x) {
   }
 
   test_enum_primaryConstructorBody_afterMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum E(int x) {
   v(1);
   void f() {}
-  this;
+  [!this!];
 }
-''',
-      [lint(40, 4)],
-    );
+''');
   }
 
   test_extensionType_primaryConstructorBody_afterMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int x) {
   void f() {}
-  this;
+  [!this!];
 }
-''',
-      [lint(42, 4)],
-    );
+''');
   }
 
   test_fieldBeforeConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   final a = 0;
-  A();
+  [!A!]();
 }
-''',
-      [lint(36, 1)],
-    );
+''');
   }
 
   test_fieldBeforeConstructor_newHead_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   final a = 0;
-  new named();
+  [!new named!]();
 }
-''',
-      [lint(36, 9)],
-    );
+''');
   }
 
   test_fieldBeforeConstructor_newHead_unnamed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   final a = 0;
-  new();
+  [!new!]();
 }
-''',
-      [lint(36, 3)],
-    );
+''');
   }
 
   test_method_betweenConstructors_withPrimaryConstructorBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C() {
   this;
   void f() {}
-  C.named() : this();
+  [!C.named!]() : this();
 }
-''',
-      [lint(36, 7)],
-    );
+''');
   }
 
   test_methodBeforeConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   void f();
-  const A();
+  const [!A!]();
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 
   test_methodBeforeConstructor_extensionType() async {
     // Since the check logic is shared w/ classes and enums, one test should
     // provide sufficient coverage for extension types.
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(Object o) {
   void f() {}
-  E.e(this.o);
+  [!E.e!](this.o);
 }
-''',
-      [lint(45, 3)],
-    );
+''');
   }
 
   test_methodBeforeConstructors() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   void f();
-  A();
-  A.named();
+  /*[0*/A/*0]*/();
+  /*[1*/A.named/*1]*/();
 }
-''',
-      [lint(33, 1), lint(40, 7)],
-    );
+''');
   }
 
   test_ok() async {
@@ -169,15 +142,12 @@ enum A {
   }
 
   test_primaryConstructorBody_afterMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C() {
   void f() {}
-  this;
+  [!this!];
 }
-''',
-      [lint(28, 4)],
-    );
+''');
   }
 
   test_primaryConstructorBody_amongConstructors() async {
@@ -199,27 +169,21 @@ class C() {
   }
 
   test_staticFieldBeforeConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   static final a = 0;
-  A();
+  [!A!]();
 }
-''',
-      [lint(43, 1)],
-    );
+''');
   }
 
   test_unsorted() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum A {
   a,b,c;
   int f() => 0;
-  const A();
+  const [!A!]();
 }
-''',
-      [lint(42, 1)],
-    );
+''');
   }
 }

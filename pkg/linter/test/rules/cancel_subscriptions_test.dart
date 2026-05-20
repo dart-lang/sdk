@@ -29,16 +29,13 @@ extension type E(StreamSubscription _s) implements StreamSubscription {}
   }
 
   test_extensionType_implementsStreamSubscription_notCanceled() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 void f(Stream stream) {
-  E e = E(stream.listen((_) {}));
+  E [!e = E(stream.listen((_) {}))!];
 }
 extension type E(StreamSubscription _s) implements StreamSubscription {}
-''',
-      [lint(49, 28)],
-    );
+''');
   }
 
   test_extensionType_representation_notCanceled() async {
@@ -91,15 +88,12 @@ void f(Stream stream) {
   }
 
   test_localVariable_notCanceled() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 void f(Stream stream) {
-  StreamSubscription s = stream.listen((_) {});
+  StreamSubscription [!s = stream.listen((_) {})!];
 }
-''',
-      [lint(66, 25)],
-    );
+''');
   }
 
   test_parameter_notCanceled() async {
@@ -222,18 +216,15 @@ class A {
   }
 
   test_privateField_notCanceled() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 class A {
-  late StreamSubscription _subscription;
+  late StreamSubscription [!_subscription!];
   void f(Stream stream) {
     _subscription = stream.listen((_) {});
   }
 }
-''',
-      [lint(57, 13)],
-    );
+''');
   }
 
   test_privateField_originPrimaryConstructor_canceled() async {
@@ -251,33 +242,27 @@ class A(var StreamSubscription _subscription) {
   }
 
   test_privateField_originPrimaryConstructor_notCanceled() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 // ignore: unused_field_from_primary_constructor
-class A(var StreamSubscription _subscription) {
+class A([!var StreamSubscription _subscription!]) {
   void f(Stream stream) {
     _subscription = stream.listen((_) {});
   }
 }
-''',
-      [lint(78, 36)],
-    );
+''');
   }
 
   test_publicField_notCanceled() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 class A {
-  late StreamSubscription subscription;
+  late StreamSubscription [!subscription!];
   void f(Stream stream) {
     subscription = stream.listen((_) {});
   }
 }
-''',
-      [lint(57, 12)],
-    );
+''');
   }
 
   test_topLevelVariable_notCanceled() async {

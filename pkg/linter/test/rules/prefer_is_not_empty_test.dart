@@ -26,14 +26,11 @@ void f(Iterable<int> p) {
   }
 
   test_iterable_isEmpty_not() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Iterable<int> p) {
-  !p.isEmpty;
+  [!!p.isEmpty!];
 }
-''',
-      [lint(28, 10)],
-    );
+''');
   }
 
   test_list_isEmpty() async {
@@ -43,30 +40,21 @@ var x = [].isEmpty;
   }
 
   test_list_isEmpty_doubleParens_not() async {
-    await assertDiagnostics(
-      r'''
-var x = !(([4].isEmpty));
-''',
-      [lint(8, 16)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [!!(([4].isEmpty))!];
+''');
   }
 
   test_list_isEmpty_not() async {
-    await assertDiagnostics(
-      r'''
-var x = ![1].isEmpty;
-''',
-      [lint(8, 12)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [!![1].isEmpty!];
+''');
   }
 
   test_list_isEmpty_parens_not() async {
-    await assertDiagnostics(
-      r'''
-var x = !([3].isEmpty);
-''',
-      [lint(8, 14)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [!!([3].isEmpty)!];
+''');
   }
 
   test_map_isEmpty() async {
@@ -76,11 +64,8 @@ var x = {}.isEmpty;
   }
 
   test_map_isEmpty_not() async {
-    await assertDiagnostics(
-      r'''
-var x = !{2: 'a'}.isEmpty;
-''',
-      [lint(8, 17)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [!!{2: 'a'}.isEmpty!];
+''');
   }
 }

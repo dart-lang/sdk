@@ -40,40 +40,31 @@ class A {
   }
 
   test_staticGetter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A.named();
-  static A get getter => A.named();
+  static A get [!getter!] => A.named();
 }
-''',
-      [lint(38, 6)],
-    );
+''');
   }
 
   test_staticMethod_expressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A.named();
-  static A staticM() => A.named();
+  static A [!staticM!]() => A.named();
 }
-''',
-      [lint(34, 7)],
-    );
+''');
   }
 
   test_staticMethod_expressionBody_extensionType() async {
     // Since the check logic is shared, one test should be sufficient to verify
     // extension types are supported.
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int i) {
-  static E make(int i) => E(i);
+  static E [!make!](int i) => E(i);
 }
-''',
-      [lint(37, 4)],
-    );
+''');
   }
 
   test_staticMethod_generic() async {
@@ -86,18 +77,15 @@ class A {
   }
 
   test_staticMethod_referenceToConstructedInstanceOfClass() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A.named();
-  static A instanceM() {
+  static A [!instanceM!]() {
     final a = A.named();
     return a;
   }
 }
-''',
-      [lint(34, 9)],
-    );
+''');
   }
 
   test_staticMethod_referenceToExistingInstanceOfClass() async {

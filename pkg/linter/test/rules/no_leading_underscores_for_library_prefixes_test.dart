@@ -26,12 +26,9 @@ class NoLeadingUnderscoresForLibraryPrefixesTest extends LintRuleTest {
   String get lintRule => LintNames.no_leading_underscores_for_library_prefixes;
 
   test_leadingUnderscore() async {
-    await assertDiagnostics(
-      r'''
-import 'dart:async' as _async;
-''',
-      [lint(23, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+import 'dart:async' as [!_async!];
+''');
   }
 
   test_snakeCase() async {
@@ -41,12 +38,9 @@ import 'dart:async' as dart_async;
   }
 
   test_underscores() async {
-    await assertDiagnostics(
-      r'''
-import 'dart:async' as __;
-''',
-      [lint(23, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+import 'dart:async' as [!__!];
+''');
   }
 
   test_wildcard() async {

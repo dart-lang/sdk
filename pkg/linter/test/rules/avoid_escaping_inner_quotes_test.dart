@@ -26,25 +26,19 @@ void f() {
   }
 
   test_doubleQuotes_escapedQuote() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print("\"");
+  print([!"\""!]);
 }
-''',
-      [lint(19, 4)],
-    );
+''');
   }
 
   test_doubleQuotes_escapedQuote_withInterpolation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print("\"$f");
+  print([!"\"$f"!]);
 }
-''',
-      [lint(19, 6)],
-    );
+''');
   }
 
   test_doubleQuotes_escapedQuote_withSingleQuote() async {
@@ -64,14 +58,11 @@ void f() {
   }
 
   test_singleQuotes() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(String d) {
-  print('a\'b\'c ${d.length}');
+  print([!'a\'b\'c ${d.length}'!]);
 }
-''',
-      [lint(27, 21)],
-    );
+''');
   }
 
   test_singleQuotes_empty() async {
@@ -83,14 +74,11 @@ void f() {
   }
 
   test_singleQuotes_escapedQuote() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print('\'');
+  print([!'\''!]);
 }
-''',
-      [lint(19, 4)],
-    );
+''');
   }
 
   test_singleQuotes_escapedQuote_withDoubleQuote() async {
@@ -110,13 +98,10 @@ void f() {
   }
 
   test_singleQuotes_escapedQuote_withInterpolation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print('\'$f');
+  print([!'\'$f'!]);
 }
-''',
-      [lint(19, 6)],
-    );
+''');
   }
 }

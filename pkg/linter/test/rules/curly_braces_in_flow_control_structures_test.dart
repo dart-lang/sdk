@@ -27,39 +27,30 @@ void f() {
   }
 
   test_doWhile_singeStatement_sameLineAsDo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  do print('');
+  do [!print('');!]
   while (true);
 }
-''',
-      [lint(16, 10)],
-    );
+''');
   }
 
   test_doWhile_singleStatement_lineAfterDo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   do
-    print('');
+    [!print('');!]
   while (true);
 }
-''',
-      [lint(20, 10)],
-    );
+''');
   }
 
   test_doWhile_singleStatement_sameLineAsDoAndWhile() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  do print(''); while (true);
+  do [!print('');!] while (true);
 }
-''',
-      [lint(16, 10)],
-    );
+''');
   }
 
   test_forEachLoop_block_sameLine() async {
@@ -71,26 +62,20 @@ void f(List<int> l) {
   }
 
   test_forEachLoop_singleStatement_lineAfter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> l) {
   for (var i in l)
-    return;
+    [!return;!]
 }
-''',
-      [lint(45, 7)],
-    );
+''');
   }
 
   test_forEachLoop_singleStatement_sameLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> l) {
-  for (var i in l) return;
+  for (var i in l) [!return;!]
 }
-''',
-      [lint(41, 7)],
-    );
+''');
   }
 
   test_forLoop_emptyBlock_sameLine() async {
@@ -102,26 +87,20 @@ void f() {
   }
 
   test_forLoop_singleStatement_lineAfter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   for (;;)
-    return;
+    [!return;!]
 }
-''',
-      [lint(26, 7)],
-    );
+''');
   }
 
   test_forLoop_singleStatement_sameLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (;;) return;
+  for (;;) [!return;!]
 }
-''',
-      [lint(22, 7)],
-    );
+''');
   }
 
   test_ifStatement_block_sameLine() async {
@@ -142,28 +121,22 @@ void f() {
   }
 
   test_ifStatement_singleStatement_lineAfter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (1 == 2)
-    return;
+    [!return;!]
 }
-''',
-      [lint(29, 7)],
-    );
+''');
   }
 
   test_ifStatement_singleStatement_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (1 == 2) print(
+  if (1 == 2) [!print(
     'First argument'
-    'Second argument');
+    'Second argument');!]
 }
-''',
-      [lint(25, 51)],
-    );
+''');
   }
 
   test_ifStatement_singleStatement_sameLine() async {
@@ -175,15 +148,12 @@ void f() {
   }
 
   test_ifStatement_singleStatement_sameLine_multiLineCondition() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (1 ==
-      2) return;
+      2) [!return;!]
 }
-''',
-      [lint(31, 7)],
-    );
+''');
   }
 
   test_ifStatementElse_block_sameLine() async {
@@ -196,28 +166,22 @@ void f() {
   }
 
   test_ifStatementElse_singleStatement_lineAfter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (1 == 2) {}
   else
-    return;
+    [!return;!]
 }
-''',
-      [lint(39, 7)],
-    );
+''');
   }
 
   test_ifStatementElse_singleStatement_sameLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (1 == 2) {}
-  else return;
+  else [!return;!]
 }
-''',
-      [lint(35, 7)],
-    );
+''');
   }
 
   test_ifStatementElseIf_block_sameLine_multiLine() async {
@@ -230,28 +194,22 @@ void f() {
   }
 
   test_ifStatementElseIf_singleStatement_lineAfter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (1 == 2) {}
   else if (1 == 2)
-    return;
+    [!return;!]
 }
-''',
-      [lint(51, 7)],
-    );
+''');
   }
 
   test_ifStatementElseIf_singleStatement_sameLine_lineAfterIfCondition() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (1 == 2) {
-  } else if (1 == 3) return;
+  } else if (1 == 3) [!return;!]
 }
-''',
-      [lint(48, 7)],
-    );
+''');
   }
 
   test_whileLoop_block_sameLine() async {
@@ -263,25 +221,19 @@ void f() {
   }
 
   test_whileLoop_singleStatement_nextLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   while (true)
-    return;
+    [!return;!]
 }
-''',
-      [lint(30, 7)],
-    );
+''');
   }
 
   test_whileLoop_singleStatement_sameLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  while (true) return;
+  while (true) [!return;!]
 }
-''',
-      [lint(26, 7)],
-    );
+''');
   }
 }

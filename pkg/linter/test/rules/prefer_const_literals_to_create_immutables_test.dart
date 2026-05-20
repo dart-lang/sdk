@@ -41,17 +41,14 @@ int e() => 7;
   }
 
   test_extensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 
 @immutable
 extension type E(List<int> i) { }
 
-var e = E([1]);
-''',
-      [lint(90, 3)],
-    );
+var e = E([![1]!]);
+''');
   }
 
   test_listLiteral_const() async {
@@ -79,47 +76,38 @@ var x = C(const [
   }
 
   test_listLiteral_nested_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(List<Object> p);
 }
-var x = C([
-  [],
-]);
-''',
-      [lint(93, 9), lint(97, 2)],
-    );
+var x = C(/*[0*/[
+  /*[1*/[]/*1]*/,
+]/*0]*/);
+''');
   }
 
   test_listLiteral_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(List<Object> p);
 }
-var x = C([]);
-''',
-      [lint(93, 2)],
-    );
+var x = C([![]!]);
+''');
   }
 
   test_listLiteral_noConst_instantiationAnnotation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @Immutable('')
 class C {
   const C(List<Object> p);
 }
-var x = C([]);
-''',
-      [lint(97, 2)],
-    );
+var x = C([![]!]);
+''');
   }
 
   test_listLiteral_notConstable_noConst() async {
@@ -157,101 +145,80 @@ var x = C(((const {})));
   }
 
   test_mapLiteral_inParens_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(Object? p);
 }
-var x = C((({})));
-''',
-      [lint(90, 2)],
-    );
+var x = C((([!{}!])));
+''');
   }
 
   test_mapLiteral_intToDouble_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(Map<int, Object?> p);
 }
-var x = C({1: 1.0});
-''',
-      [lint(98, 8)],
-    );
+var x = C([!{1: 1.0}!]);
+''');
   }
 
   test_mapLiteral_intToInstantiation_const() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(Object? p);
 }
-var x = C({1: const C(null)});
-''',
-      [lint(88, 18)],
-    );
+var x = C([!{1: const C(null)}!]);
+''');
   }
 
   test_mapLiteral_intToInt_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(Map<int, Object?> p);
 }
-var x = C({1: 1});
-''',
-      [lint(98, 6)],
-    );
+var x = C([!{1: 1}!]);
+''');
   }
 
   test_mapLiteral_intToNull_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(Map<int, Object?> p);
 }
-var x = C({1: null});
-''',
-      [lint(98, 9)],
-    );
+var x = C([!{1: null}!]);
+''');
   }
 
   test_mapLiteral_intToString_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(Map<int, Object?> p);
 }
-var x = C({1: ''});
-''',
-      [lint(98, 7)],
-    );
+var x = C([!{1: ''}!]);
+''');
   }
 
   test_mapLiteral_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C(Map<int, int> p);
 }
-var x = C({1: 2});
-''',
-      [lint(94, 6)],
-    );
+var x = C([!{1: 2}!]);
+''');
   }
 
   test_missingRequiredArgument() async {
@@ -277,17 +244,14 @@ final k = K(
   }
 
   test_namedParameter_noConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C({Object? p});
 }
-var x = C(p: []);
-''',
-      [lint(93, 2)],
-    );
+var x = C(p: [![]!]);
+''');
   }
 
   test_newWithNonType() async {

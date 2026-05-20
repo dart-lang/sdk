@@ -22,22 +22,18 @@ class PreferConstConstructorsInImmutablesTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_const_constructors_in_immutables;
 
   test_assertInitializer_canBeConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 
 @immutable
 class C {
-  C.named(a) : assert(a != null);
+  [!C!].named(a) : assert(a != null);
 }
-''',
-      [lint(57, 1)],
-    );
+''');
   }
 
   test_assertInitializer_canBeConst_enumComparison() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 
 enum E { a, b }
@@ -45,11 +41,9 @@ enum E { a, b }
 @immutable
 class C {
   final E e;
-  C(this.e) : assert(e == E.a);
+  [!C!](this.e) : assert(e == E.a);
 }
-''',
-      [lint(87, 1)],
-    );
+''');
   }
 
   test_assertInitializer_cannotBeConst() async {
@@ -77,19 +71,16 @@ class B extends A {
   }
 
   test_extendsImmutable_nonConstConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
   const A();
 }
 class B extends A {
-  B();
+  [!B!]();
 }
-''',
-      [lint(91, 1)],
-    );
+''');
   }
 
   test_extendsImmutable_nonConstSuperCall() async {
@@ -122,27 +113,21 @@ extension type const E(int i) { }
   }
 
   test_extensionType_nonConstConstructor_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 extension type const E(int i) {
-  E.e(this.i);
+  [!E!].e(this.i);
 }
-''',
-      [lint(78, 1)],
-    );
+''');
   }
 
   test_extensionType_nonConstConstructor_primary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
-extension type E(int i) { }
-''',
-      [lint(59, 1)],
-    );
+extension type [!E!](int i) { }
+''');
   }
 
   test_immutable_constConstructor() async {
@@ -218,24 +203,20 @@ class C(final int i) {
   }
 
   test_immutable_constSuperCall_primary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 class C {
   const C();
 }
 @immutable
-class D(final int i) extends C {
+class [!D!](final int i) extends C {
   this : super();
 }
-''',
-      [lint(75, 1)],
-    );
+''');
   }
 
   test_immutable_enumComparisonInInitializerList() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 
 enum E { a, b }
@@ -243,25 +224,20 @@ enum E { a, b }
 @immutable
 class C {
   final bool isA;
-  C(E e) : isA = e == E.a;
+  [!C!](E e) : isA = e == E.a;
 }
-''',
-      [lint(92, 1)],
-    );
+''');
   }
 
   test_immutable_factoryConstructor_toConstConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C();
-  factory C.named() = C;
+  [!factory!] C.named() = C;
 }
-''',
-      [lint(69, 7)],
-    );
+''');
   }
 
   test_immutable_factoryConstructor_toNonConst() async {
@@ -299,17 +275,14 @@ class C with M {
   }
 
   test_immutable_implicitConstSuperCall_primary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 class C {
   const C();
 }
 @immutable
-class D(final int i) extends C;
-''',
-      [lint(75, 1)],
-    );
+class [!D!](final int i) extends C;
+''');
   }
 
   test_immutable_implicitNonConstSuperCall_primary() async {
@@ -322,54 +295,42 @@ class D(final int i) extends C;
   }
 
   test_immutable_nonConstConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
-  A();
+  [!A!]();
 }
-''',
-      [lint(56, 1)],
-    );
+''');
   }
 
   test_immutable_nonConstConstructor_newSyntax() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
-  new();
+  [!new!]();
 }
-''',
-      [lint(56, 3)],
-    );
+''');
   }
 
   test_immutable_nonConstConstructor_primary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
-class C(final int i);
-''',
-      [lint(50, 1)],
-    );
+class [!C!](final int i);
+''');
   }
 
   test_immutable_nonConstFactory() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
-  factory C() = C.named;
+  [!factory!] C() = C.named;
   const C.named();
 }
-''',
-      [lint(56, 7)],
-    );
+''');
   }
 
   test_immutable_nonConstInInitializerList() async {
@@ -384,59 +345,47 @@ class C {
   }
 
   test_immutable_nonConstInInitializerList2() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   final int _a; // ignore: unused_field
-  C(int a) : _a = a;
+  [!C!](int a) : _a = a;
 }
-''',
-      [lint(96, 1)],
-    );
+''');
   }
 
   test_immutable_nonConstInInitializerList3() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   final bool _a; // ignore: unused_field
-  C(bool a) : _a = a && a;
+  [!C!](bool a) : _a = a && a;
 }
-''',
-      [lint(97, 1)],
-    );
+''');
   }
 
   test_immutable_nonConstInInitializerList4() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   final String _a; // ignore: unused_field
-  C(bool a) : _a = '${a ? a : ''}';
+  [!C!](bool a) : _a = '${a ? a : ''}';
 }
-''',
-      [lint(99, 1)],
-    );
+''');
   }
 
   test_immutable_nonConstInInitializerList5() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   final bool f;
-  C(bool? f) : f = f ?? f == null;
+  [!C!](bool? f) : f = f ?? f == null;
 }
-''',
-      [lint(72, 1)],
-    );
+''');
   }
 
   test_immutable_nonConstInInitializerList6() async {
@@ -463,44 +412,35 @@ class D(final int i) extends C {
   }
 
   test_immutable_redirectingConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
-  C.a();
+  [!C!].a();
   C.b() : this.a();
 }
-''',
-      [lint(56, 1)],
-    );
+''');
   }
 
   test_immutable_redirectingConstructor_toConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
   const C();
-  C.named(): this();
+  [!C!].named(): this();
 }
-''',
-      [lint(69, 1)],
-    );
+''');
   }
 
   test_immutableInstantiation_nonConstConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:meta/meta.dart';
 @Immutable('')
 class A {
-  A();
+  [!A!]();
 }
-''',
-      [lint(60, 1)],
-    );
+''');
   }
 
   test_implementsImmutable() async {

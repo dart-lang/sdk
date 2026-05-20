@@ -28,39 +28,30 @@ class C {
   }
 
   test_class_new_unsorted() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   C.named();
-  C.new();
+  [!C.new!]();
 }
-''',
-      [lint(25, 5)],
-    );
+''');
   }
 
   test_class_newHead_named_unsorted() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   new named();
-  C.new();
+  [!C.new!]();
 }
-''',
-      [lint(27, 5)],
-    );
+''');
   }
 
   test_class_newHead_unnamed_unsorted() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   C.named();
-  new();
+  [!new!]();
 }
-''',
-      [lint(25, 3)],
-    );
+''');
   }
 
   test_class_primaryNamed_unnamedInBody() async {
@@ -91,17 +82,14 @@ class C {
   }
 
   test_class_unsorted() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   C.named();
-  C();
+  [!C!]();
   // ignore: unused_element
   C._();
 }
-''',
-      [lint(25, 1)],
-    );
+''');
   }
 
   test_enum_primaryNamed_unnamedInBody() async {
@@ -124,29 +112,23 @@ enum A {
   }
 
   test_enum_unsorted() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum A {
   a,b,c.aa();
   const A.aa();
-  const A();
+  const [!A!]();
 }
-''',
-      [lint(47, 1)],
-    );
+''');
   }
 
   test_extensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E.a(Object o) {
   void m() { }
   E.b(this.o);
-  E(this.o);
+  [!E!](this.o);
 }
-''',
-      [lint(63, 1)],
-    );
+''');
   }
 
   test_extensionType_invalidConstructor() async {

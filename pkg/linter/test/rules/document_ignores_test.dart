@@ -18,26 +18,20 @@ class DocumentIgnoresTest extends LintRuleTest {
   String get lintRule => LintNames.document_ignores;
 
   test_precedingDeclaration_notDocumented() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 int x = 0;
 
-// ignore: unused_element
+[!// ignore: unused_element!]
 int _y = 0;
-''',
-      [lint(12, 25)],
-    );
+''');
   }
 
   test_precedingLine_butIsTrailing_notDocumented() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 int x = 0; // Text.
-// ignore: unused_element
+[!// ignore: unused_element!]
 int _y = 0;
-''',
-      [lint(20, 25)],
-    );
+''');
   }
 
   test_precedingLine_documented() async {
@@ -66,16 +60,13 @@ int _y = 0 as int;
   }
 
   test_precedingLine_multiple_notDocumented() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // Text.
 // ignore_for_file: unused_element
 
-// ignore_for_file: unnecessary_cast
+[!// ignore_for_file: unnecessary_cast!]
 int _y = 0 as int;
-''',
-      [lint(45, 36)],
-    );
+''');
   }
 
   test_sameComment_comma_documented() async {

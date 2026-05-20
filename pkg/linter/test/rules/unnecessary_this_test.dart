@@ -18,62 +18,50 @@ class UnnecessaryNullChecksTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_this;
 
   test_closureInMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   void m1(List<int> list) {
     list.forEach((e) {
-      this.m2(e);
+      [!this!].m2(e);
     });
   }
   void m2(int x) {}
 }
-''',
-      [lint(67, 4)],
-    );
+''');
   }
 
   test_constructorBody_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   num x = 0;
   A.named(num a) {
-    this.x = a;
+    [!this!].x = a;
   }
 }
-''',
-      [lint(46, 4)],
-    );
+''');
   }
 
   test_constructorBody_methodCall() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A.named() {
-    this.m();
+    [!this!].m();
   }
 
   void m() {}
 }
-''',
-      [lint(28, 4)],
-    );
+''');
   }
 
   test_constructorBody_primary_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A.named(num a) {
   num x = 0;
   this {
-    this.x = a;
+    [!this!].x = a;
   }
 }
-''',
-      [lint(49, 4)],
-    );
+''');
   }
 
   test_constructorBody_primary_shadowedParameters() async {
@@ -99,28 +87,22 @@ class A {
   }
 
   test_constructorInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   num x = 0;
   A.c1(num x)
-      : this.x = x;
+      : [!this!].x = x;
 }
-''',
-      [lint(45, 4)],
-    );
+''');
   }
 
   test_constructorInitializer_primary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A(num x) {
   num x;
-  this : this.x = x;
+  this : [!this!].x = x;
 }
-''',
-      [lint(35, 4)],
-    );
+''');
   }
 
   test_extension_getter() async {
@@ -140,25 +122,19 @@ extension E on int? {
   }
 
   test_extensionType_inConstructorInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int i) {
-  E.e(int i) : this.i = i.hashCode;
+  E.e(int i) : [!this!].i = i.hashCode;
 }
-''',
-      [lint(41, 4)],
-    );
+''');
   }
 
   test_extensionType_inMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(Object o) {
-  String m()=> this.toString();
+  String m()=> [!this!].toString();
 }
-''',
-      [lint(44, 4)],
-    );
+''');
   }
 
   test_initializingFormalParameter() async {
@@ -186,53 +162,44 @@ class A {
   }
 
   test_localFunctionPresent_outOfScope() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   void m1() {
     if (true) {
       // ignore: unused_element
       void m2() {}
     }
-    this.m2();
+    [!this!].m2();
   }
   void m2() {}
 }
-''',
-      [lint(101, 4)],
-    );
+''');
   }
 
   test_method_ofGenericClass_noShadow_fromSelf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<T> {
   T foo() => throw 0;
 
   void bar() {
-    this.foo();
+    [!this!].foo();
   }
 }
-''',
-      [lint(55, 4)],
-    );
+''');
   }
 
   test_method_ofGenericClass_noShadow_fromSuper() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<T> {
   T foo() => throw 0;
 }
 
 class B extends A<int> {
   void bar() {
-    this.foo();
+    [!this!].foo();
   }
 }
-''',
-      [lint(82, 4)],
-    );
+''');
   }
 
   test_shadowInIfCaseClause() async {
@@ -330,19 +297,16 @@ class C {
   }
 
   test_subclass_noShadowing() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   int x = 0;
 }
 class D extends C {
   void f(int a) {
-    this.x = a;
+    [!this!].x = a;
   }
 }
-''',
-      [lint(67, 4)],
-    );
+''');
   }
 
   test_subclass_shadowedTopLevelVariable() async {

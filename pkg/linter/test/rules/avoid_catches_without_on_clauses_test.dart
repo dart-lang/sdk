@@ -31,27 +31,21 @@ void f() {
   }
 
   test_missingOnClause() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  try {} catch (e) {}
+  try {} [!catch!] (e) {}
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_missingOnClause_nonRelevantUse() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  try {} catch (e) {
+  try {} [!catch!] (e) {
     print(e);
   }
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_missingOnClause_rethrow() async {
@@ -65,26 +59,22 @@ void f() {
   }
 
   test_missingOnClause_unrelatedRethrow() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  try {} catch (e) {
+  try {} [!catch!] (e) {
     try {} on Exception catch (e) {
       print(e);
       rethrow;
     }
   }
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_missingOnClause_unrelatedRethrow_inNestedFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  try {} catch (e) {
+  try {} [!catch!] (e) {
     void g() {
       try {} on Exception catch (e) {
         print(e);
@@ -93,9 +83,7 @@ void f() {
     }
   }
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_missingOnClause_usedInCompleter_completeError() async {

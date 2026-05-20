@@ -18,14 +18,11 @@ class UnnecessaryBraceInStringInterpsTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_brace_in_string_interps;
 
   test_braces_bangAfter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print('hello ${int}!');
+  print('hello [!${int}!]!');
 }
-''',
-      [lint(26, 6)],
-    );
+''');
   }
 
   test_braces_nonSimpleIdentifier() async {
@@ -46,14 +43,11 @@ void f() {
   }
 
   test_braces_simpleIdentifier() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print('hello ${int}');
+  print('hello [!${int}!]');
 }
-''',
-      [lint(26, 6)],
-    );
+''');
   }
 
   test_braces_simpleIdentifier_numberAfter() async {
@@ -97,14 +91,11 @@ void f() {
   }
 
   test_simpleIdentifier() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void hi(String name) {
-  print('hi: ${name}');
+  print('hi: [!${name}!]');
 }
-''',
-      [lint(36, 7)],
-    );
+''');
   }
 
   test_simpleIdentifier_suffixed() async {
@@ -127,16 +118,13 @@ class A {
 
   /// https://github.com/dart-lang/linter/issues/3691
   test_thisExpression() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   void hi() {
-    print('hi: ${this}');
+    print('hi: [!${this}!]');
   }
 }
-''',
-      [lint(39, 7)],
-    );
+''');
   }
 
   test_thisExpression_suffixed() async {

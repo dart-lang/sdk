@@ -42,15 +42,12 @@ part of lib;
 library lib;
 part '$testFileName';
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.4
 // (pre enhanced-parts)
 
-part of lib;
-''',
-      [lint(40, 12)],
-    );
+[!part of lib;!]
+''');
   }
 
   test_part_of_with_string() async {

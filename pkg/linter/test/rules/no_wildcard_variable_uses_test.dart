@@ -72,17 +72,14 @@ class C {
   }
 
   test_localVar() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 f() {
   var _ = 1;
-  print(_);
+  print([!_!]);
 }
-''',
-      [lint(70, 1)],
-    );
+''');
   }
 
   test_localVar_wildcardsEnabled() async {
@@ -110,17 +107,14 @@ class C {
   }
 
   test_param() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 f(int __) {
-  print(__);
+  print([!__!]);
 }
-''',
-      [lint(64, 2)],
-    );
+''');
   }
 
   test_topLevelFunction() async {

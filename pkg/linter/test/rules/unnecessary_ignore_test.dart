@@ -65,33 +65,30 @@ class UnnecessaryIgnoreTest extends LintRuleTest {
   String get lintRule => 'unnecessary_ignore';
 
   test_file() async {
-    await assertDiagnostics(
-      r'''
-// ignore_for_file: unused_local_variable
+    await assertDiagnosticsFromMarkdown(r'''
+// ignore_for_file: [!unused_local_variable!]
 void f() {}
-''',
-      [lint(20, 21)],
-    );
+''');
   }
 
   test_file_necessaryIgnore_sharedName() async {
     // Note: the diagnostic's shared name is `invalid_null_aware_operator`, but
     // its unique name is `invalid_null_aware_operator_after_short_circuit`, so
     // this test specifically exercises the shared name of the diagnostic.
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 // ignore_for_file: invalid_null_aware_operator
 f(int? x) => x?.abs()?.isEven;
-''', []);
+''');
   }
 
   test_file_necessaryIgnore_uniqueName() async {
     // Note: the diagnostic's shared name is `invalid_null_aware_operator`, but
     // its unique name is `invalid_null_aware_operator_after_short_circuit`, so
     // this test specifically exercises the unique name of the diagnostic.
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 // ignore_for_file: invalid_null_aware_operator_after_short_circuit
 f(int? x) => x?.abs()?.isEven;
-''', []);
+''');
   }
 
   test_file_unrecognizedDiagnostic() async {
@@ -102,33 +99,30 @@ void f() {}
   }
 
   test_line() async {
-    await assertDiagnostics(
-      r'''
-// ignore: unused_local_variable
+    await assertDiagnosticsFromMarkdown(r'''
+// ignore: [!unused_local_variable!]
 void f() {}
-''',
-      [lint(11, 21)],
-    );
+''');
   }
 
   test_line_necessaryIgnore_sharedName() async {
     // Note: the diagnostic's shared name is `invalid_null_aware_operator`, but
     // its unique name is `invalid_null_aware_operator_after_short_circuit`, so
     // this test specifically exercises the shared name of the diagnostic.
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 // ignore: invalid_null_aware_operator
 f(int? x) => x?.abs()?.isEven;
-''', []);
+''');
   }
 
   test_line_necessaryIgnore_uniqueName() async {
     // Note: the diagnostic's shared name is `invalid_null_aware_operator`, but
     // its unique name is `invalid_null_aware_operator_after_short_circuit`, so
     // this test specifically exercises the unique name of the diagnostic.
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 // ignore: invalid_null_aware_operator_after_short_circuit
 f(int? x) => x?.abs()?.isEven;
-''', []);
+''');
   }
 
   test_line_unrecognizedDiagnostic() async {

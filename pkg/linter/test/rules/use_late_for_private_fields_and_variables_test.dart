@@ -33,25 +33,19 @@ extension type E(int i) {
   }
 
   test_extensionType_staticField() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 extension type E(int i) {
-  static int? _i;
+  static int? [!_i!];
 }
-''',
-      [lint(40, 2)],
-    );
+''');
   }
 
   test_instanceField_private() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 class C {
-  int? _i;
+  int? [!_i!];
 }
-''',
-      [lint(17, 2)],
-    );
+''');
   }
 
   test_instanceField_private_assignedInConstructorInitializer() async {
@@ -221,36 +215,27 @@ m() {
   }
 
   test_staticField_private_onClass() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 class C {
-  static int? _i;
+  static int? [!_i!];
 }
-''',
-      [lint(24, 2)],
-    );
+''');
   }
 
   test_staticField_private_onExtension() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 extension E on int {
-  static int? _i;
+  static int? [!_i!];
 }
-''',
-      [lint(35, 2)],
-    );
+''');
   }
 
   test_staticField_public_onPrivateExtension() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 extension _E on int {
-  static int? i;
+  static int? [!i!];
 }
-''',
-      [lint(36, 1)],
-    );
+''');
   }
 
   test_staticField_public_onPublicExtension() async {
@@ -262,26 +247,20 @@ extension E on int {
   }
 
   test_staticField_public_onUnnamedExtension() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 extension on int {
-  static int? i;
+  static int? [!i!];
 }
-''',
-      [lint(33, 1)],
-    );
+''');
   }
 
   test_topLevel_assigned() async {
-    await assertDiagnostics(
-      '''
-int? _i;
+    await assertDiagnosticsFromMarkdown('''
+int? [!_i!];
 void f() {
   _i = 1;
 }
-''',
-      [lint(5, 2)],
-    );
+''');
   }
 
   test_topLevel_declaredInPart() async {
@@ -292,23 +271,17 @@ void f() {
   _i = 1;
 }
 ''');
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 part of 'lib.dart';
 
-int? _i;
-''',
-      [lint(26, 2)],
-    );
+int? [!_i!];
+''');
   }
 
   test_topLevel_neverUsed() async {
-    await assertDiagnostics(
-      '''
-int? _i;
-''',
-      [lint(5, 2)],
-    );
+    await assertDiagnosticsFromMarkdown('''
+int? [!_i!];
+''');
   }
 
   test_topLevel_onlyAssignedNull() async {
@@ -339,27 +312,21 @@ f() {
   }
 
   test_topLevel_onlyNullChecked() async {
-    await assertDiagnostics(
-      '''
-int? _i;
+    await assertDiagnosticsFromMarkdown('''
+int? [!_i!];
 f() {
   _i!.abs();
 }
-''',
-      [lint(5, 2)],
-    );
+''');
   }
 
   test_topLevel_onlyNullChecked_beforePassedAsArgument() async {
-    await assertDiagnostics(
-      '''
-int? _i;
+    await assertDiagnosticsFromMarkdown('''
+int? [!_i!];
 f(int i) {
   f(_i!);
 }
-''',
-      [lint(5, 2)],
-    );
+''');
   }
 
   test_topLevel_onlyNullTest() async {
@@ -397,13 +364,10 @@ void f() {
   _i = 1;
 }
 ''');
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 part 'part.dart';
 
-int? _i;
-''',
-      [lint(24, 2)],
-    );
+int? [!_i!];
+''');
   }
 }
