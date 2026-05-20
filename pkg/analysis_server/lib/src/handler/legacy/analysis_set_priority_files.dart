@@ -39,9 +39,8 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
 
     server.setPriorityFiles(request.id, params.files);
     // Forward the request to the plugins.
-    var converter = RequestConverter();
     server.pluginManager.setAnalysisSetPriorityFilesParams(
-      converter.convertAnalysisSetPriorityFilesParams(params),
+      params.asPluginProtocol,
     );
     sendResult(AnalysisSetPriorityFilesResult());
   }

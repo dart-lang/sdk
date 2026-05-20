@@ -19,43 +19,34 @@ void main() {
 
 @reflectiveTest
 class RequestConverterTest extends ProtocolTestUtilities {
-  RequestConverter converter = RequestConverter();
-
-  void test_convertAnalysisService() {
-    var kindMap = <plugin.AnalysisService, server.AnalysisService>{
+  void test_analysisService() {
+    var kindMap = {
       plugin.AnalysisService.FOLDING: server.AnalysisService.FOLDING,
       plugin.AnalysisService.HIGHLIGHTS: server.AnalysisService.HIGHLIGHTS,
       plugin.AnalysisService.NAVIGATION: server.AnalysisService.NAVIGATION,
       plugin.AnalysisService.OCCURRENCES: server.AnalysisService.OCCURRENCES,
       plugin.AnalysisService.OUTLINE: server.AnalysisService.OUTLINE,
     };
-    kindMap.forEach((
-      plugin.AnalysisService pluginKind,
-      server.AnalysisService serverKind,
-    ) {
-      expect(converter.convertAnalysisService(serverKind), pluginKind);
+    kindMap.forEach((pluginKind, serverKind) {
+      expect(serverKind.asPluginProtocol, pluginKind);
     });
   }
 
-  void test_convertAnalysisSetPriorityFilesParams() {
-    var files = <String>['a', 'b', 'c'];
-    var result = converter.convertAnalysisSetPriorityFilesParams(
-      server.AnalysisSetPriorityFilesParams(files),
-    );
-    expect(result, isNotNull);
+  void test_analysisSetPriorityFilesParams() {
+    var files = ['a', 'b', 'c'];
+    var result = server.AnalysisSetPriorityFilesParams(files).asPluginProtocol;
     expect(result.files, files);
   }
 
-  void test_convertAnalysisSetSubscriptionsParams() {
-    var serverSubscriptions = <server.AnalysisService, List<String>>{
-      server.AnalysisService.HIGHLIGHTS: <String>['a', 'b'],
-      server.AnalysisService.OUTLINE: <String>['c'],
-      server.AnalysisService.OVERRIDES: <String>['d', 'e'],
+  void test_analysisSetSubscriptionsParams() {
+    var serverSubscriptions = {
+      server.AnalysisService.HIGHLIGHTS: ['a', 'b'],
+      server.AnalysisService.OUTLINE: ['c'],
+      server.AnalysisService.OVERRIDES: ['d', 'e'],
     };
-    var result = converter.convertAnalysisSetSubscriptionsParams(
-      server.AnalysisSetSubscriptionsParams(serverSubscriptions),
-    );
-    expect(result, isNotNull);
+    var result = server.AnalysisSetSubscriptionsParams(
+      serverSubscriptions,
+    ).asPluginProtocol;
     var pluginSubscriptions = result.subscriptions;
     expect(pluginSubscriptions, hasLength(2));
     expect(
@@ -65,15 +56,14 @@ class RequestConverterTest extends ProtocolTestUtilities {
     expect(pluginSubscriptions[plugin.AnalysisService.OUTLINE], hasLength(1));
   }
 
-  void test_convertAnalysisUpdateContentParams() {
-    var serverFiles = <String, Object>{
+  void test_analysisUpdateContentParams() {
+    var serverFiles = {
       'file1': AddContentOverlay('content1'),
       'file2': AddContentOverlay('content2'),
     };
-    var result = converter.convertAnalysisUpdateContentParams(
-      server.AnalysisUpdateContentParams(serverFiles),
-    );
-    expect(result, isNotNull);
+    var result = server.AnalysisUpdateContentParams(
+      serverFiles,
+    ).asPluginProtocol;
     var pluginFiles = result.files;
     expect(pluginFiles, hasLength(2));
     expect(pluginFiles['file1'], const TypeMatcher<AddContentOverlay>());
