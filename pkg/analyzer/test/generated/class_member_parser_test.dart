@@ -3052,29 +3052,6 @@ FieldDeclaration
 ''');
   }
 
-  void test_parseField_abstract_static() {
-    var parseResult = parseStringWithErrors(r'''
-class C {
-  abstract static int? i;
-}
-''');
-    parseResult.assertErrors([error(diag.abstractStaticField, 12, 8)]);
-    var node = parseResult.findNode.singleClassMember;
-    assertParsedNodeText(node, r'''
-FieldDeclaration
-  staticKeyword: static
-  abstractKeyword: abstract
-  fields: VariableDeclarationList
-    type: NamedType
-      name: int
-      question: ?
-    variables
-      VariableDeclaration
-        name: i
-  semicolon: ;
-''');
-  }
-
   void test_parseField_const_late() {
     var parseResult = parseStringWithErrors(r'''
 class C {

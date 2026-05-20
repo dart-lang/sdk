@@ -6046,7 +6046,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', endToken));
 
     if (abstractToken != null) {
-      if (staticToken != null) {
+      if (staticToken != null && !enableAugmentations) {
         handleRecoverableError(
           fe_diag.abstractStaticField,
           abstractToken,

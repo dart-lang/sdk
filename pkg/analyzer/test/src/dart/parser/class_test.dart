@@ -1407,6 +1407,69 @@ ClassDeclaration
 ''');
   }
 
+  test_field_static_abstract() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  static abstract int? foo;
+}
+''');
+    parseResult.assertExpectedDiagnostics();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+            question: ?
+          variables
+            VariableDeclaration
+              name: foo
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_static_abstract_language305() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.5
+class A {
+  static abstract int? foo;
+//       ^^^^^^^^
+// [diag.abstractStaticField] Static fields can't be declared 'abstract'.
+}
+''');
+    parseResult.assertExpectedDiagnostics();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+            question: ?
+          variables
+            VariableDeclaration
+              name: foo
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_getter_augment() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {
