@@ -96,7 +96,7 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
 @pragma("vm:entry-point")
 abstract interface class IsolateGroup {
   @patch
-  static Object _runSync(Object computation) =>
+  static Object? _runSync(Object computation) =>
       throw UnsupportedError("_runSync");
 }
 
