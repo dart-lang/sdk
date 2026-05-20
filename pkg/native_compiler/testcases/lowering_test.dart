@@ -85,4 +85,17 @@ class C<T> {
   }
 }
 
+class D<S, T> {}
+
+class E<T, U> extends D<String, T> {}
+
+class F extends E<num, double> {}
+
+void allocateObjects<K>() {
+  print(D<int, double>());
+  print(E<int, double>());
+  print(E<K, List<K>>());
+  print(F());
+}
+
 void main() {}

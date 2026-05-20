@@ -1301,13 +1301,11 @@ final class AllocateObject extends Definition with CanThrow, Pure {
     Definition? typeArguments,
   ) : super(inputCount: typeArguments != null ? 1 : 0) {
     if (typeArguments != null) {
-      assert(
-        (type.dartType as ast.InterfaceType)
-            .classNode
-            .typeParameters
-            .isNotEmpty,
-      );
       setInputAt(0, typeArguments);
+    } else {
+      assert(
+        (type.dartType as ast.InterfaceType).classNode.typeParameters.isEmpty,
+      );
     }
   }
 

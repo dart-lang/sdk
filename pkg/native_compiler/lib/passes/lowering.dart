@@ -7,12 +7,14 @@ import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/runtime/object_layout.dart';
+import 'package:native_compiler/runtime/type_utils.dart';
 
 /// IR lowering for native back-end.
 ///
@@ -163,6 +165,59 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
         break;
     }
     instr.removeFromGraph();
+  }
+
+  @override
+  void visitAllocateObject(AllocateObject instr) {
+    // Convert type arguments to the instance type arguments.
+    final cls = (instr.type.dartType as ast.InterfaceType).classNode;
+    if (!hasInstantiatorTypeArguments(cls)) {
+      assert(!instr.hasTypeArguments);
+      return;
+    }
+    final typeArgs = instr.typeArguments;
+    final types = switch (typeArgs) {
+      TypeArguments() => typeArgs.types,
+      Constant(
+        value: ConstantValue(constant: TypeArgumentsConstant(:var types)),
+      ) =>
+        types,
+      Null() => const <ast.DartType>[],
+      _ =>
+        throw 'Unexpected type arguments ${typeArgs.runtimeType} ${IrToText.instruction(typeArgs)}',
+    };
+    assert(types.length == cls.typeParameters.length);
+    final instanceTypes = flattenInstantiatorTypeArguments(cls, types);
+    if (typeArgs is TypeArguments) {
+      final instanceTypeArgs = TypeArguments(
+        graph,
+        instr.sourcePosition,
+        instanceTypes,
+        inputCount: typeArgs.inputCount,
+      );
+      for (var i = 0, n = typeArgs.inputCount; i < n; ++i) {
+        instanceTypeArgs.setInputAt(i, typeArgs.inputDefAt(i));
+      }
+      instanceTypeArgs.insertBefore(instr);
+      instr.replaceInputAt(0, instanceTypeArgs);
+    } else {
+      final instanceTypeArgs = instr.graph.getConstant(
+        ConstantValue(TypeArgumentsConstant(instanceTypes)),
+      );
+      if (instr.hasTypeArguments) {
+        instr.replaceInputAt(0, instanceTypeArgs);
+      } else {
+        final replacement = AllocateObject(
+          graph,
+          instr.sourcePosition,
+          instr.type,
+          instanceTypeArgs,
+        );
+        replacement.insertBefore(instr);
+        instr.replaceUsesWith(replacement);
+        instr.removeFromGraph();
+      }
+    }
   }
 
   @override
