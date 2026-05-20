@@ -818,6 +818,11 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     callRuntime(RuntimeEntry.FatalError, 1);
   }
 
+  @override
+  void breakpoint() {
+    brk(0);
+  }
+
   /// Generate code for inline object allocation.
   void inlineAllocation(
     Register resultReg,
@@ -1896,6 +1901,11 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           opcode |
           rn.encodingRn(),
     );
+  }
+
+  void brk(int imm) {
+    assert(_isUint(16, imm));
+    emit(B31 | B30 | B28 | B26 | B21 | (imm << 5));
   }
 
   void scvtf(

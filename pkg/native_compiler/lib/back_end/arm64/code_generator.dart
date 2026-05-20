@@ -901,7 +901,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitNullCheck(NullCheck instr) {
-    _asm.unimplemented('Unimplemented: code generation for NullCheck');
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    if (operandReg != resultReg) {
+      _asm.mov(resultReg, operandReg);
+    }
+    final Label slowPath = addSlowPath(() {
+      _asm.callRuntime(RuntimeEntry.NullCastError, 0);
+      _asm.breakpoint();
+    });
+    _asm.cmp(resultReg, nullReg);
+    _asm.b(slowPath, .equal);
   }
 
   int _getNumberOfInputsForSubtypeTestCache(

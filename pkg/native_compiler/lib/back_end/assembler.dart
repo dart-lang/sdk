@@ -202,6 +202,7 @@ abstract base class Assembler {
   void callStub(Code stub);
 
   void unimplemented(String message);
+  void breakpoint();
 }
 
 /// Assembler output buffer holding 32-bit instructions.
