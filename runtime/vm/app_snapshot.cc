@@ -7546,7 +7546,6 @@ class ProgramDeserializationRoots : public DeserializationRoots {
 
     if (Snapshot::IncludesCode(d->kind())) {
       d->thread()->InitVMConstants();
-      d->thread()->set_thread_locals(Array::empty_array());
     }
 
     auto object_store = isolate_group->object_store();
