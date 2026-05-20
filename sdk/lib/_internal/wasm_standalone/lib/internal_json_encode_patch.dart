@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_embedder' as embedder;
-import "dart:_js_helper" show jsStringFromDartString, JSExternWrapperExt;
-import 'dart:_string' show JSStringImpl;
+import 'dart:_string' show embedderStringFromDartString, JSStringImpl;
 import 'dart:_wasm';
 
-String jsonEncode(String object) => JSStringImpl.fromRef(
-  embedder.jsonEncodeString(jsStringFromDartString(object).wrappedExternRef),
+String jsonEncode(String object) => JSStringImpl.fromRefUnchecked(
+  embedder.jsonEncodeString(
+    embedderStringFromDartString(object).wrappedExternRef,
+  ),
 );

@@ -17,7 +17,7 @@
   (global $MyConstClass (ref $MyConstClass)
     (i32.const 108)
     (i32.const 0)
-    (i32.const 103)
+    (i32.const 60)
     (i32.const 0)
     (global.get $.h0-nonshared-const)
     (struct.new $JSExternWrapper)

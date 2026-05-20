@@ -425,11 +425,13 @@ Future<CompilationResult> _runTfaPhase(
     );
   }
 
-  js.performJSInteropTransformations(
-    component.libraries,
-    coreTypes,
-    classHierarchy,
-  );
+  if (!options.translatorOptions.standalone) {
+    js.performJSInteropTransformations(
+      component.libraries,
+      coreTypes,
+      classHierarchy,
+    );
+  }
 
   final librariesToTransform = component.libraries;
   final constantEvaluator = ConstantEvaluator(
@@ -635,25 +637,30 @@ Future<CompilationResult> _runCodegenPhase(
   });
   await Future.wait(writeFutures);
 
-  final jsRuntimeFinalizer = js.RuntimeFinalizer(
-    coreTypes,
-    translator.interopMemberNamer,
-  );
+  if (!options.translatorOptions.standalone) {
+    final jsRuntimeFinalizer = js.RuntimeFinalizer(
+      coreTypes,
+      translator.interopMemberNamer,
+    );
 
-  final jsRuntime = jsRuntimeFinalizer.generate(
-    moduleOutputData.mainModule.moduleImportName,
-    translator.functions.translatedProcedures,
-    translator.internalizedStringsForJSRuntime,
-    translator.options.requireJsStringBuiltin,
-    translator.options.enableDeferredLoading ||
-        translator.options.enableMultiModuleStressTestMode,
-  );
+    final jsRuntime = jsRuntimeFinalizer.generate(
+      moduleOutputData.mainModule.moduleImportName,
+      translator.functions.translatedProcedures,
+      translator.internalizedStringsForJSRuntime,
+      translator.options.requireJsStringBuiltin,
+      translator.options.enableDeferredLoading ||
+          translator.options.enableMultiModuleStressTestMode,
+    );
 
-  final supportJs = _generateSupportJs(options.translatorOptions);
+    final supportJs = _generateSupportJs(options.translatorOptions);
 
-  final deferredMapFile = options.deferredMapUri;
-  if (deferredMapFile != null) {
-    await writeDeferredMapFile(component, coreTypes, options, loadingMap);
+    final deferredMapFile = options.deferredMapUri;
+    if (deferredMapFile != null) {
+      await writeDeferredMapFile(component, coreTypes, options, loadingMap);
+    }
+
+    await ioManager.writeJsRuntime(jsRuntime);
+    await ioManager.writeSupportJs(supportJs);
   }
 
   final wasmOutputFilename = path.basename(options.outputFile);
@@ -665,9 +672,6 @@ Future<CompilationResult> _runCodegenPhase(
         )!,
       )
       .toSet();
-
-  await ioManager.writeJsRuntime(jsRuntime);
-  await ioManager.writeSupportJs(supportJs);
 
   if (options.recordedUsesFile != null) {
     record_use.LoadingUnit loadingUnitForNode(TreeNode node) {

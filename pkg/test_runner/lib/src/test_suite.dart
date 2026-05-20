@@ -1078,13 +1078,15 @@ class StandardTestSuite extends TestSuite {
           Path('$outputDir/$nameNoExt.support.js'),
         );
 
-        content = dart2wasmHtml(
-          testFile.path.toNativePath(),
-          wasmPath,
-          mjsPath,
-          supportJsPath,
-          configuration.isDart2wasmStandalone,
-        );
+        final title = testFile.path.toNativePath();
+        content = configuration.isDart2wasmStandalone
+            ? dart2WasmStandaloneHtml(title, wasmPath)
+            : dart2wasmHtml(
+                testFile.path.toNativePath(),
+                wasmPath,
+                mjsPath,
+                supportJsPath,
+              );
       } else if (configuration.compiler == Compiler.ddc) {
         var ddcConfig =
             configuration.compilerConfiguration as DevCompilerConfiguration;

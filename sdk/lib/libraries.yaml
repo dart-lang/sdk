@@ -253,7 +253,7 @@ wasm_standalone:
         - _internal/wasm_standalone/lib/regexp_patch.dart
         - _internal/wasm_standalone/lib/stack_trace_patch.dart
         - _internal/wasm_standalone/lib/string_buffer_patch.dart
-        - _internal/wasm/lib/string_patch.dart # TODO(53884): Rewrite without JS interop in _internal/wasm_standalone
+        - _internal/wasm_standalone/lib/string_patch.dart
         - _internal/wasm_standalone/lib/stopwatch_patch.dart
         - _internal/wasm/lib/sync_star_patch.dart
         - _internal/wasm_standalone/lib/uri_patch.dart
@@ -282,15 +282,11 @@ wasm_standalone:
       patches:
         - _internal/wasm_standalone/lib/boxed_double_patch.dart
     _string:
-      uri: _internal/wasm/lib/js_string.dart # TODO(53884): Rewrite without JS interop in _internal/wasm_standalone
+      uri: _internal/wasm_standalone/lib/embedder_string.dart
     _typed_data:
       uri: _internal/wasm/lib/typed_data.dart
       patches:
         - _internal/wasm_standalone/lib/typed_data_copy_from_js.dart
-    _js_helper: # TODO(53884): Remove once other wasm_standalone patches no longer reference this
-      uri: _internal/wasm/lib/js_helper.dart
-      patches:
-        - _internal/wasm/lib/js_helper_patch.dart
     _internal:
       uri: internal/internal.dart
       patches:
@@ -302,12 +298,17 @@ wasm_standalone:
       - _internal/vm_shared/lib/check_valid_weak_target_patch.dart
     _wasm:
       uri: _wasm/wasm_types.dart
-      patches: _internal/wasm/lib/wasm_types_patch.dart # TODO(53884): Remove once other wasm_standalone patches no longer reference this
+      patches: _internal/wasm_standalone/lib/wasm_types_patch.dart
     math:
       uri: math/math.dart
       patches:
         - _internal/wasm/lib/math_patch.dart
         - _internal/wasm_standalone/lib/math_externs_patch.dart
+    js_interop:
+      # TODO(63166): Remove js_interop from wasm_standalone. It's fundamentally unsupported, but
+      # currently added as a stub because APIs in dart:_wasm reference it.
+      uri: _internal/wasm_standalone/lib/js_interop.dart
+      support_conditional_import: false
 
 wasm_js_common:
   include:
@@ -343,6 +344,16 @@ wasm_js_common:
       patches:
         - _internal/wasm/lib/math_patch.dart
         - _internal/wasm/lib/math_externs_patch.dart
+    _js_string_convert:
+      uri: _internal/wasm/lib/js_string_convert.dart
+    _js_types:
+      uri: _internal/wasm/lib/js_types.dart
+    js_interop:
+      uri: js_interop/js_interop.dart
+      patches: _internal/wasm/lib/js_interop_patch.dart
+    js_interop_unsafe:
+      uri: js_interop_unsafe/js_interop_unsafe.dart
+      patches: _internal/wasm/lib/js_interop_unsafe_patch.dart
 
 wasm_common:
   libraries:
@@ -362,10 +373,6 @@ wasm_common:
       uri: _http/http.dart
       patches:
         - _internal/js_shared/lib/http_patch.dart
-    _js_string_convert:
-      uri: _internal/wasm/lib/js_string_convert.dart
-    _js_types:
-      uri: _internal/wasm/lib/js_types.dart
     _list:
       uri: _internal/wasm/lib/list.dart
     _object_helper:
@@ -398,12 +405,6 @@ wasm_common:
       uri: isolate/isolate.dart
       patches:
         - "_internal/wasm/lib/isolate_patch.dart"
-    js_interop:
-      uri: js_interop/js_interop.dart
-      patches: _internal/wasm/lib/js_interop_patch.dart
-    js_interop_unsafe:
-      uri: js_interop_unsafe/js_interop_unsafe.dart
-      patches: _internal/wasm/lib/js_interop_unsafe_patch.dart
 
 dart2js:
   include:

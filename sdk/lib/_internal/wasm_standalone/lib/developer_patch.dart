@@ -4,7 +4,7 @@
 
 import 'dart:_embedder' as embedder;
 import 'dart:_internal' show patch;
-import 'dart:_js_helper' show jsStringFromDartString, JSExternWrapperExt;
+import 'dart:_string' show embedderStringFromDartString;
 import 'dart:_wasm';
 import 'dart:async' show Zone;
 import 'dart:isolate';
@@ -15,7 +15,7 @@ bool debugger({bool when = true, String? message}) {
     embedder.debugger(
       message == null
           ? WasmExternRef.nullRef
-          : jsStringFromDartString(message).wrappedExternRef,
+          : embedderStringFromDartString(message).wrappedExternRef,
     );
   }
 
@@ -193,7 +193,7 @@ void _reportTaskEvent(
     WasmI32.fromInt(taskId),
     WasmI32.fromInt(flowId),
     WasmI32.fromInt(type),
-    jsStringFromDartString(name).wrappedExternRef,
-    jsStringFromDartString(argumentsAsJson).wrappedExternRef,
+    embedderStringFromDartString(name).wrappedExternRef,
+    embedderStringFromDartString(argumentsAsJson).wrappedExternRef,
   );
 }

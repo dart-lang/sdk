@@ -295,7 +295,7 @@
           "_internal/wasm_standalone/lib/regexp_patch.dart",
           "_internal/wasm_standalone/lib/stack_trace_patch.dart",
           "_internal/wasm_standalone/lib/string_buffer_patch.dart",
-          "_internal/wasm/lib/string_patch.dart",
+          "_internal/wasm_standalone/lib/string_patch.dart",
           "_internal/wasm_standalone/lib/stopwatch_patch.dart",
           "_internal/wasm/lib/sync_star_patch.dart",
           "_internal/wasm_standalone/lib/uri_patch.dart",
@@ -334,18 +334,12 @@
         ]
       },
       "_string": {
-        "uri": "_internal/wasm/lib/js_string.dart"
+        "uri": "_internal/wasm_standalone/lib/embedder_string.dart"
       },
       "_typed_data": {
         "uri": "_internal/wasm/lib/typed_data.dart",
         "patches": [
           "_internal/wasm_standalone/lib/typed_data_copy_from_js.dart"
-        ]
-      },
-      "_js_helper": {
-        "uri": "_internal/wasm/lib/js_helper.dart",
-        "patches": [
-          "_internal/wasm/lib/js_helper_patch.dart"
         ]
       },
       "_internal": {
@@ -361,7 +355,7 @@
       },
       "_wasm": {
         "uri": "_wasm/wasm_types.dart",
-        "patches": "_internal/wasm/lib/wasm_types_patch.dart"
+        "patches": "_internal/wasm_standalone/lib/wasm_types_patch.dart"
       },
       "math": {
         "uri": "math/math.dart",
@@ -369,6 +363,10 @@
           "_internal/wasm/lib/math_patch.dart",
           "_internal/wasm_standalone/lib/math_externs_patch.dart"
         ]
+      },
+      "js_interop": {
+        "uri": "_internal/wasm_standalone/lib/js_interop.dart",
+        "support_conditional_import": false
       }
     }
   },
@@ -419,6 +417,20 @@
           "_internal/wasm/lib/math_patch.dart",
           "_internal/wasm/lib/math_externs_patch.dart"
         ]
+      },
+      "_js_string_convert": {
+        "uri": "_internal/wasm/lib/js_string_convert.dart"
+      },
+      "_js_types": {
+        "uri": "_internal/wasm/lib/js_types.dart"
+      },
+      "js_interop": {
+        "uri": "js_interop/js_interop.dart",
+        "patches": "_internal/wasm/lib/js_interop_patch.dart"
+      },
+      "js_interop_unsafe": {
+        "uri": "js_interop_unsafe/js_interop_unsafe.dart",
+        "patches": "_internal/wasm/lib/js_interop_unsafe_patch.dart"
       }
     }
   },
@@ -447,12 +459,6 @@
         "patches": [
           "_internal/js_shared/lib/http_patch.dart"
         ]
-      },
-      "_js_string_convert": {
-        "uri": "_internal/wasm/lib/js_string_convert.dart"
-      },
-      "_js_types": {
-        "uri": "_internal/wasm/lib/js_types.dart"
       },
       "_list": {
         "uri": "_internal/wasm/lib/list.dart"
@@ -497,14 +503,6 @@
         "patches": [
           "_internal/wasm/lib/isolate_patch.dart"
         ]
-      },
-      "js_interop": {
-        "uri": "js_interop/js_interop.dart",
-        "patches": "_internal/wasm/lib/js_interop_patch.dart"
-      },
-      "js_interop_unsafe": {
-        "uri": "js_interop_unsafe/js_interop_unsafe.dart",
-        "patches": "_internal/wasm/lib/js_interop_unsafe_patch.dart"
       }
     }
   },

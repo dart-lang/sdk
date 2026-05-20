@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show patch;
+import "dart:_internal" show patch, unsafeCast;
 import "dart:_string" show StringUncheckedOperations;
+import "dart:_string_helper" show skipLeadingWhitespace, skipTrailingWhitespace;
 import "dart:_wasm";
 import "dart:_error_utils";
 
@@ -53,11 +54,11 @@ class int {
     int? radix,
     int? Function(String)? onError,
   ) {
-    int end = source.lastNonWhitespace() + 1;
+    int end = skipTrailingWhitespace(source, source.length);
     if (end == 0) {
       return _handleFormatError(onError, source, source.length, radix, null);
     }
-    int start = source.firstNonWhitespace();
+    int start = skipLeadingWhitespace(source, 0);
 
     int first = source.codeUnitAtUnchecked(start);
     int sign = 1;

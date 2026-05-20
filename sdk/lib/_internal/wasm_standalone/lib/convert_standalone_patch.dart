@@ -4,8 +4,8 @@
 
 import "dart:_embedder" as embedder;
 import "dart:_internal" show patch, unsafeCast;
-import "dart:_js_helper" show jsStringFromDartString, JSExternWrapperExt;
 import "dart:_string";
+import "dart:_string_helper";
 import "dart:_wasm";
 
 @patch
@@ -21,12 +21,13 @@ class _Utf8Decoder {
 class _StringParser {
   @patch
   static WasmArray<WasmI16> stringToCharCodeArray(String string, int end) {
-    final externRef = unsafeCast<JSStringImpl>(string).wrappedExternRef;
     final array = WasmArray<WasmI16>(end);
     if (string.length == end) {
-      jsStringIntoCharCodeArray(externRef, array, 0.toWasmI32());
+      final externRef = unsafeCast<JSStringImpl>(string).wrappedExternRef;
+      embedder.stringToCodeUnits(externRef, array, 0.toWasmI32());
     } else {
-      for (int i = 0; i < end; ++i) array.write(i, jsCharCodeAt(externRef, i));
+      for (int i = 0; i < end; ++i)
+        array.write(i, string.codeUnitAtUnchecked(i));
     }
 
     return array;

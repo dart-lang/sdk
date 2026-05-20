@@ -74,6 +74,75 @@ external WasmExternRef stringFromAsciiBytes(
   WasmI32 length,
 );
 
+@pragma("wasm:import", "dart.stringLength")
+external WasmI32 stringLength(WasmExternRef? string);
+@pragma("wasm:import", "dart.stringEquals")
+external WasmI32 stringEquals(WasmExternRef? a, WasmExternRef? b);
+@pragma("wasm:import", "dart.stringCompare")
+external WasmI32 stringCompare(WasmExternRef? a, WasmExternRef? b);
+@pragma("wasm:import", "dart.stringCodeUnitAt")
+external WasmI32 stringCodeUnitAt(WasmExternRef? a, WasmI32 index);
+@pragma("wasm:import", "dart.stringIndexOfString")
+external WasmI32 stringIndexOfString(
+  WasmExternRef? a,
+  WasmExternRef? b,
+  WasmI32 start,
+);
+@pragma("wasm:import", "dart.stringLastIndexOfString")
+external WasmI32 stringLastIndexOfString(
+  WasmExternRef? a,
+  WasmExternRef? b,
+  WasmI32 start,
+);
+
+/// Specialization for [String.replaceAll] where the pattern is an embedder-
+/// managed string.
+@pragma("wasm:import", "dart.stringReplaceAllString")
+external WasmExternRef? stringReplaceAllString(
+  WasmExternRef? string,
+  WasmExternRef? needle,
+  WasmExternRef? replacement,
+);
+
+/// Specialization for [String.replaceAll] where the pattern is an embedder-
+/// managed regular expression.
+@pragma("wasm:import", "dart.stringReplaceAllRegExp")
+external WasmExternRef? stringReplaceAllRegExp(
+  WasmExternRef? string,
+  WasmExternRef? needle,
+  WasmExternRef? replacement,
+);
+@pragma("wasm:import", "dart.stringSubstring")
+external WasmExternRef? stringSubstring(
+  WasmExternRef? a,
+  WasmI32 start,
+  WasmI32 end,
+);
+@pragma("wasm:import", "dart.stringToLowerCase")
+external WasmExternRef? stringToLowerCase(WasmExternRef? string);
+@pragma("wasm:import", "dart.stringToUpperCase")
+external WasmExternRef? stringToUpperCase(WasmExternRef? string);
+@pragma("wasm:import", "dart.stringConcat")
+external WasmExternRef? stringConcat(WasmExternRef? a, WasmExternRef? b);
+@pragma("wasm:import", "dart.stringRepeat")
+external WasmExternRef? stringRepeat(WasmExternRef? string, WasmI32 times);
+@pragma("wasm:import", "dart.stringReplaceRange")
+external WasmExternRef? stringReplaceRange(
+  WasmExternRef? string,
+  WasmI32 start,
+  WasmI32 end,
+  WasmExternRef? replacement,
+);
+
+/// Writes code units of [string] into [outArray], starting at array position
+/// [startIndex].
+@pragma("wasm:import", "dart.stringToCodeUnits")
+external WasmVoid stringToCodeUnits(
+  WasmExternRef? string,
+  WasmArray<WasmI16> outArray,
+  WasmI32 startIndex,
+);
+
 /// Get the frequency of ticks reported by [monotonicClockTicks] in Hz.
 ///
 /// Currently, the only supported values are 1kHz and 1MHz. Attempting to use

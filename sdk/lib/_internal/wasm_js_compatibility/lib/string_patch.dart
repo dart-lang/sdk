@@ -120,10 +120,3 @@ class String {
     );
   }
 }
-
-extension _StringExt on String {
-  int firstNonWhitespace() =>
-      unsafeCast<JSStringImpl>(this).firstNonWhitespace();
-
-  int lastNonWhitespace() => unsafeCast<JSStringImpl>(this).lastNonWhitespace();
-}

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_embedder';
+import 'dart:_error_utils' show RangeErrorUtils;
 import 'dart:_internal' show patch;
-import 'dart:_js_helper';
 import 'dart:_string';
 import 'dart:_wasm';
 
@@ -35,6 +35,7 @@ class StringBuffer {
 
   @patch
   void writeCharCode(int charCode) {
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(charCode, 0x10ffff);
     stringBufferWriteCharCode(_hostBuffer, WasmI32.fromInt(charCode));
   }
 
@@ -75,7 +76,7 @@ class StringBuffer {
   void _writeString(String str) {
     stringBufferWriteString(
       _hostBuffer,
-      jsStringFromDartString(str).wrappedExternRef,
+      embedderStringFromDartString(str).wrappedExternRef,
     );
   }
 }
