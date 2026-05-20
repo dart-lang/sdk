@@ -270,6 +270,29 @@ void bad() {
 
 @reflectiveTest
 class PubspecFixTest extends BulkFixProcessorTest {
+  Future<void> test_dedupe_devPackages_against_packages() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  b: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/lib.dart', '''
+import 'package:b/b.dart';
+''');
+
+    var testFile = newFile('$testPackageTestPath/test.dart', '''
+import 'package:b/b.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
   Future<void> test_delete_change() async {
     var content = '''
 name: test

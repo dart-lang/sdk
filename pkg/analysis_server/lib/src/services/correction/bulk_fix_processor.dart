@@ -423,7 +423,7 @@ class BulkFixProcessor {
         var result = await _runPubspecValidatorAndFixGenerator(
           FileSource(pubspecFile),
           pubspecDeps.packages,
-          pubspecDeps.devPackages,
+          pubspecDeps.devPackages.difference(pubspecDeps.packages),
           context.contextRoot.resourceProvider,
         );
         if (result.isNotEmpty) {
