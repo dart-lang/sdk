@@ -4,7 +4,7 @@
 
 import 'dart:_embedder';
 import 'dart:_internal' show patch;
-import 'dart:_js_helper';
+import 'dart:_string';
 import 'dart:_wasm';
 
 @patch
@@ -21,7 +21,7 @@ class double {
   @patch
   static double? tryParse(String source) {
     final parseResult = doubleTryParse(
-      jsStringFromDartString(source).wrappedExternRef,
+      embedderStringFromDartString(source).wrappedExternRef,
     );
     if (parseResult.isNull) {
       return null;

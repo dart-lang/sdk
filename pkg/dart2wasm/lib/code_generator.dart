@@ -1129,9 +1129,11 @@ abstract class AstCodeGenerator
     b.rethrow_(tryBlock);
 
     // Handle JS exceptions.
-    b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
-    translateStatement(node.finalizer);
-    b.rethrow_(tryBlock);
+    if (!translator.options.standalone) {
+      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
+      translateStatement(node.finalizer);
+      b.rethrow_(tryBlock);
+    }
 
     b.end(); // tryBlock
 
@@ -6201,6 +6203,12 @@ class LambdaCallTarget extends CallTarget {
 /// Note that the guard type can be nullable, but the value for the exception
 /// needs to be non-null regardless of the guard type, as per Dart semantics.
 bool guardCanMatchJSException(Translator translator, DartType guard) {
+  if (translator.options.standalone) {
+    // Standalone mode doesn't run in a JavaScript context and doesn't have JS
+    // exceptions.
+    return false;
+  }
+
   return translator.typeEnvironment.isSubtypeOf(
     InterfaceType(translator.jsValueClass, Nullability.nonNullable),
     guard.extensionTypeErasure,

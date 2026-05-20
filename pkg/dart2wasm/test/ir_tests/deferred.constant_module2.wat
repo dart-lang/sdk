@@ -21,7 +21,7 @@
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 11 funcref)
   (global $"\"globalH0Foo\"" (ref $JSExternWrapper)
-    (i32.const 102)
+    (i32.const 58)
     (i32.const 0)
     (global.get $.globalH0Foo)
     (struct.new $JSExternWrapper))

@@ -9,7 +9,7 @@
   (type $_Type <...>)
   (global $"\")\"_11" (import "$" "2") (ref $JSExternWrapper))
   (global $_InterfaceType (import "$" "0") (ref $_InterfaceType))
-  (table $$.% (import "$" "%") 742 funcref)
+  (table $$.% (import "$" "%") 765 funcref)
   (table $$.' (import "$" "'") 20 funcref)
   (global $"\">.takeT(\"" (ref $JSExternWrapper) <...>)
   (global $"\"Foo<\"" (ref $JSExternWrapper) <...>)

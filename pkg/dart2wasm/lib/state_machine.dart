@@ -386,7 +386,7 @@ class ExceptionHandlerStack {
         canHandleJSExceptions |= handler.canHandleJSExceptions;
       }
 
-      if (canHandleJSExceptions) {
+      if (canHandleJSExceptions && !codeGen.translator.options.standalone) {
         b.catch_legacy(codeGen.translator.getJsExceptionTag(b.moduleBuilder));
 
         final jsExceptionLocal = codeGen.addLocal(

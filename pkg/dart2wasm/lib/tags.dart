@@ -43,6 +43,8 @@ class ExceptionTags {
   }
 
   w.Tag _importJsExceptionTag() {
+    assert(!translator.options.standalone);
+
     final w.FunctionType tagType = translator.typesBuilder.defineFunction(
       const [w.RefType.extern(nullable: true)],
       const [],

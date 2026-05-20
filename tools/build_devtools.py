@@ -93,6 +93,7 @@ def main():
             elif os.path.exists(args.output):
                 os.remove(args.output)
             shutil.copytree(build_dir, args.output)
+            shutil.rmtree(build_dir)
 
         print('DevTools build successful.')
         return 0

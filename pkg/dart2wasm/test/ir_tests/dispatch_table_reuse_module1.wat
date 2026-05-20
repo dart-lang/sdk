@@ -7,7 +7,7 @@
   (type $WasmListBase <...>)
   (type $_Type <...>)
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 12 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 666 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 670 funcref)
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $"runTest <noInline>")))
   (func $"runTest <noInline>"

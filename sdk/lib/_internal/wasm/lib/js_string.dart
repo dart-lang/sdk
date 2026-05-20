@@ -308,61 +308,7 @@ final class JSStringImpl extends js.JSExternWrapper
     String Function(Match)? onMatch,
     String Function(String)? onNonMatch,
   }) {
-    if (onMatch == null) onMatch = _matchString;
-    if (onNonMatch == null) onNonMatch = _stringIdentity;
-    if (from is String) {
-      final patternLength = from.length;
-      if (patternLength == 0) {
-        // Pattern is the empty string.
-        StringBuffer buffer = StringBuffer();
-        int i = 0;
-        buffer.write(onNonMatch(""));
-        final length = this.length;
-        while (i < length) {
-          buffer.write(onMatch(StringMatch(i, this, "")));
-          // Special case to avoid splitting a surrogate pair.
-          int code = codeUnitAt(i);
-          if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
-            // Leading surrogate;
-            code = codeUnitAt(i + 1);
-            if ((code & ~0x3FF) == 0xDC00) {
-              // Matching trailing surrogate.
-              buffer.write(onNonMatch(substring(i, i + 2)));
-              i += 2;
-              continue;
-            }
-          }
-          buffer.write(onNonMatch(this[i]));
-          i++;
-        }
-        buffer.write(onMatch(StringMatch(i, this, "")));
-        buffer.write(onNonMatch(""));
-        return buffer.toString();
-      }
-      StringBuffer buffer = StringBuffer();
-      int startIndex = 0;
-      final length = this.length;
-      while (startIndex < length) {
-        int position = indexOf(from, startIndex);
-        if (position == -1) {
-          break;
-        }
-        buffer.write(onNonMatch(substring(startIndex, position)));
-        buffer.write(onMatch(StringMatch(position, this, from)));
-        startIndex = position + patternLength;
-      }
-      buffer.write(onNonMatch(substring(startIndex)));
-      return buffer.toString();
-    }
-    StringBuffer buffer = StringBuffer();
-    int startIndex = 0;
-    for (Match match in from.allMatches(this)) {
-      buffer.write(onNonMatch(substring(startIndex, match.start)));
-      buffer.write(onMatch(match));
-      startIndex = match.end;
-    }
-    buffer.write(onNonMatch(substring(startIndex)));
-    return buffer.toString();
+    return splitMapJoinImpl(this, from, onMatch, onNonMatch);
   }
 
   String _replaceRange(int start, int end, String replacement) {
@@ -435,32 +381,7 @@ final class JSStringImpl extends js.JSExternWrapper
         (re as js.JSValue).toExternRef,
       );
     } else {
-      final result = <String>[];
-      // End of most recent match. That is, start of next part to add to result.
-      int start = 0;
-      // Length of most recent match.
-      // Set >0, so no match on the empty string causes the result to be [""].
-      int length = 1;
-      for (var match in pattern.allMatches(this)) {
-        int matchStart = match.start;
-        int matchEnd = match.end;
-        length = matchEnd - matchStart;
-        if (length == 0 && start == matchStart) {
-          // An empty match right after another match is ignored.
-          // This includes an empty match at the start of the string.
-          continue;
-        }
-        int end = matchStart;
-        result.add(substring(start, end));
-        start = matchEnd;
-      }
-      if (start < this.length || length > 0) {
-        // An empty match at the end of the string does not cause a "" at the
-        // end.  A non-empty match ending at the end of the string does add a
-        // "".
-        result.add(substring(start));
-      }
-      return result;
+      return genericSplitImpl(this, pattern);
     }
   }
 
@@ -514,98 +435,6 @@ final class JSStringImpl extends js.JSExternWrapper
         : JSStringImpl.fromRefUnchecked(upperCaseRef);
   }
 
-  // Characters with Whitespace property (Unicode 6.3).
-  // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
-  // 0020          ; White_Space # Zs       SPACE
-  // 0085          ; White_Space # Cc       <control-0085>
-  // 00A0          ; White_Space # Zs       NO-BREAK SPACE
-  // 1680          ; White_Space # Zs       OGHAM SPACE MARK
-  // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
-  // 2028          ; White_Space # Zl       LINE SEPARATOR
-  // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
-  // 202F          ; White_Space # Zs       NARROW NO-BREAK SPACE
-  // 205F          ; White_Space # Zs       MEDIUM MATHEMATICAL SPACE
-  // 3000          ; White_Space # Zs       IDEOGRAPHIC SPACE
-  //
-  // BOM: 0xFEFF
-  static bool _isWhitespace(int codeUnit) {
-    // Most codeUnits should be less than 256. Special case with a smaller
-    // switch.
-    if (codeUnit < 256) {
-      switch (codeUnit) {
-        case 0x09:
-        case 0x0A:
-        case 0x0B:
-        case 0x0C:
-        case 0x0D:
-        case 0x20:
-        case 0x85:
-        case 0xA0:
-          return true;
-        default:
-          return false;
-      }
-    }
-    switch (codeUnit) {
-      case 0x1680:
-      case 0x2000:
-      case 0x2001:
-      case 0x2002:
-      case 0x2003:
-      case 0x2004:
-      case 0x2005:
-      case 0x2006:
-      case 0x2007:
-      case 0x2008:
-      case 0x2009:
-      case 0x200A:
-      case 0x2028:
-      case 0x2029:
-      case 0x202F:
-      case 0x205F:
-      case 0x3000:
-      case 0xFEFF:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  static const int spaceCodeUnit = 0x20;
-  static const int carriageReturnCodeUnit = 0x0D;
-  static const int nelCodeUnit = 0x85;
-
-  /// Finds the index of the first non-whitespace character, or the
-  /// end of the string. Start looking at position [index].
-  static int _skipLeadingWhitespace(JSStringImpl string, int index) {
-    final stringLength = string.length;
-    while (index < stringLength) {
-      int codeUnit = string._codeUnitAtUnchecked(index);
-      if (codeUnit != spaceCodeUnit &&
-          codeUnit != carriageReturnCodeUnit &&
-          !_isWhitespace(codeUnit)) {
-        break;
-      }
-      index++;
-    }
-    return index;
-  }
-
-  /// Finds the index after the last non-whitespace character, or 0.
-  /// Start looking at position [index - 1].
-  static int _skipTrailingWhitespace(JSStringImpl string, int index) {
-    while (index > 0) {
-      int codeUnit = string._codeUnitAtUnchecked(index - 1);
-      if (codeUnit != spaceCodeUnit &&
-          codeUnit != carriageReturnCodeUnit &&
-          !_isWhitespace(codeUnit)) {
-        break;
-      }
-      index--;
-    }
-    return index;
-  }
-
   // dart2wasm can't use JavaScript trim directly, because JavaScript does not
   // trim the NEXT LINE (NEL) character (0x85).
   @override
@@ -625,7 +454,7 @@ final class JSStringImpl extends js.JSExternWrapper
     final int firstCode = result._codeUnitAtUnchecked(0);
     int startIndex = 0;
     if (firstCode == nelCodeUnit) {
-      startIndex = _skipLeadingWhitespace(result, 1);
+      startIndex = skipLeadingWhitespace(result, 1);
       if (startIndex == resultLength) return "";
     }
 
@@ -635,7 +464,7 @@ final class JSStringImpl extends js.JSExternWrapper
     // Therefore we don't need to verify that endIndex > startIndex.
     final int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == nelCodeUnit) {
-      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+      endIndex = skipTrailingWhitespace(result, endIndex - 1);
     }
 
     if (startIndex == 0 && endIndex == resultLength) {
@@ -664,7 +493,7 @@ final class JSStringImpl extends js.JSExternWrapper
     // Check NEL.
     int firstCode = result._codeUnitAtUnchecked(0);
     if (firstCode == nelCodeUnit) {
-      startIndex = _skipLeadingWhitespace(result, 1);
+      startIndex = skipLeadingWhitespace(result, 1);
     }
 
     if (startIndex == 0) {
@@ -692,7 +521,7 @@ final class JSStringImpl extends js.JSExternWrapper
     int endIndex = resultLength;
     int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == nelCodeUnit) {
-      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+      endIndex = skipTrailingWhitespace(result, endIndex - 1);
     }
 
     if (endIndex == resultLength) {
@@ -850,32 +679,7 @@ final class JSStringImpl extends js.JSExternWrapper
 
   @override
   String toString() => this;
-
-  int firstNonWhitespace() {
-    final length = this.length;
-    int first = 0;
-    for (; first < length; first++) {
-      if (!_isWhitespace(_codeUnitAtUnchecked(first))) {
-        break;
-      }
-    }
-    return first;
-  }
-
-  int lastNonWhitespace() {
-    int last = length - 1;
-    for (; last >= 0; last--) {
-      if (!_isWhitespace(_codeUnitAtUnchecked(last))) {
-        break;
-      }
-    }
-    return last;
-  }
 }
-
-String _matchString(Match match) => match[0]!;
-
-String _stringIdentity(String string) => string;
 
 // NOTE: The [replacement] does not need special escaping it will be used
 // as-is (due to passing `() => r` to the JS `replaceAll()` call)

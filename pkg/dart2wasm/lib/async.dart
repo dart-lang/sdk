@@ -324,20 +324,22 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.local_set(exceptionLocal);
     callCompleteError();
 
-    // Handle JS exceptions.
-    b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
+    if (!translator.options.standalone) {
+      // Handle JS exceptions.
+      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-    final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
-    b.local_tee(jsExceptionLocal);
+      final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
+      b.local_tee(jsExceptionLocal);
 
-    call(translator.boxJsException.reference);
-    b.local_tee(exceptionLocal); // ref null #Top
+      call(translator.boxJsException.reference);
+      b.local_tee(exceptionLocal); // ref null #Top
 
-    b.local_get(jsExceptionLocal);
-    call(translator.jsExceptionStackTrace.reference);
-    b.local_set(stackTraceLocal);
+      b.local_get(jsExceptionLocal);
+      call(translator.jsExceptionStackTrace.reference);
+      b.local_set(stackTraceLocal);
 
-    callCompleteError();
+      callCompleteError();
+    }
 
     b.end(); // try
 
