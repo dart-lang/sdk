@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -25,14 +24,15 @@ main() {
 @reflectiveTest
 class AnnotationTest extends ParserDiagnosticsTest {
   void test_typeArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 const annotation = null;
 class A<E> {}
 class C {
   m() => new A<@annotation C>();
+//             ^^^^^^^^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
 }
 ''');
-    parseResult.assertErrors([error(diag.annotationOnTypeArgument, 64, 11)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -98,13 +98,13 @@ CompilationUnit
 @reflectiveTest
 class MiscellaneousTest extends ParserDiagnosticsTest {
   void test_classTypeAlias_withBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class B = Object with A {}
+//                    ^
+// [diag.expectedToken] Expected to find ';'.
+//                      ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
-      error(diag.expectedExecutable, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -125,12 +125,11 @@ CompilationUnit
   }
 
   void test_getter_parameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int get g(x) => 0;
+//       ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
 ''');
-    parseResult.assertErrors([
-      error(diag.getterWithParameters, 9, 1), // Let's guess
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -155,12 +154,13 @@ CompilationUnit
   }
 
   void test_identifier_afterNamedArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 a() {
   b(c: c(d: d(e: null f,),),);
+//                    ^
+// [diag.expectedToken] Expected to find ','.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 28, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -216,14 +216,13 @@ CompilationUnit
   }
 
   void test_invalidRangeCheck() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f(x) {
   while (1 < x < 3) {}
+//             ^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.equalityCannotBeEqualityOperand, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -262,10 +261,11 @@ CompilationUnit
   }
 
   void test_listLiteralType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 List<int> ints = List<int>[];
+//               ^^^^
+// [diag.literalWithClass] A list literal can't be prefixed by 'List'.
 ''');
-    parseResult.assertErrors([error(diag.literalWithClass, 17, 4)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -298,10 +298,11 @@ CompilationUnit
   }
 
   void test_mapLiteralType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 Map<int, int> map = Map<int, int>{};
+//                  ^^^
+// [diag.literalWithClass] A map literal can't be prefixed by 'Map'.
 ''');
-    parseResult.assertErrors([error(diag.literalWithClass, 20, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -339,11 +340,12 @@ CompilationUnit
   }
 
   void test_mixin_using_with_clause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 mixin M {}
 mixin N with M {}
+//      ^^^^
+// [diag.mixinWithClause] A mixin can't have a with clause.
 ''');
-    parseResult.assertErrors([error(diag.mixinWithClause, 19, 4)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -364,14 +366,13 @@ CompilationUnit
   }
 
   void test_multipleRedirectingInitializers() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A() : this.a(), this.b();
   A.a() {}
   A.b() {}
 }
 ''');
-    parseResult.assertErrors([]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -438,15 +439,16 @@ CompilationUnit
   }
 
   void test_parenInMapLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {}
 final Map v = {
   'a': () => new C(),
   'b': () => new C()),
+//                  ^
+// [diag.expectedToken] Expected to find '}'.
   'c': () => new C(),
 };
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 69, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -517,10 +519,10 @@ CompilationUnit
 @reflectiveTest
 class ModifiersTest extends ParserDiagnosticsTest {
   void test_classDeclaration_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 static class A {}
+// [diag.extraneousModifier][column 1][length 6] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -536,11 +538,11 @@ CompilationUnit
   }
 
   void test_methodDeclaration_const_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 main() {}
 const int get foo => 499;
+// [diag.extraneousModifier][column 1][length 5] Can't have modifier 'const' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 10, 5)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -570,11 +572,11 @@ CompilationUnit
   }
 
   void test_methodDeclaration_const_method() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 main() {}
 const int foo() => 499;
+// [diag.extraneousModifier][column 1][length 5] Can't have modifier 'const' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 10, 5)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -606,11 +608,11 @@ CompilationUnit
   }
 
   void test_methodDeclaration_const_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 main() {}
 const set foo(v) => 499;
+// [diag.extraneousModifier][column 1][length 5] Can't have modifier 'const' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 10, 5)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -648,13 +650,11 @@ CompilationUnit
 @reflectiveTest
 class MultipleTypeTest extends ParserDiagnosticsTest {
   void test_topLevelVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 String void bar() { }
+// [diag.missingConstFinalVarOrType][column 1][length 6] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken][column 1][length 6] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingConstFinalVarOrType, 0, 6),
-      error(diag.expectedToken, 0, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -685,14 +685,15 @@ CompilationUnit
 @reflectiveTest
 class PunctuationTest extends ParserDiagnosticsTest {
   void test_extraComma_extendsClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A { }
 class B { }
 class Foo extends A, B {
+//                 ^
+// [diag.multipleExtendsClauses] Each class definition can have at most one extends clause.
   Foo() { }
 }
 ''');
-    parseResult.assertErrors([error(diag.multipleExtendsClauses, 43, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -737,12 +738,13 @@ CompilationUnit
   }
 
   void test_extraSemicolon_afterLastClassMember() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   foo() {};
+//        ^
+// [diag.expectedClassMember] Expected a class member.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedClassMember, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -768,10 +770,11 @@ CompilationUnit
   }
 
   void test_extraSemicolon_afterLastTopLevelMember() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 foo() {};
+//      ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 8, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -790,12 +793,13 @@ CompilationUnit
   }
 
   void test_extraSemicolon_beforeFirstClassMember() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   ;foo() {}
+//^
+// [diag.expectedClassMember] Expected a class member.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedClassMember, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -821,10 +825,10 @@ CompilationUnit
   }
 
   void test_extraSemicolon_beforeFirstTopLevelMember() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 ;foo() {}
+// [diag.unexpectedToken][column 1][length 1] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 0, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -843,13 +847,14 @@ CompilationUnit
   }
 
   void test_extraSemicolon_betweenClassMembers() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   foo() {};
+//        ^
+// [diag.expectedClassMember] Expected a class member.
   bar() {}
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedClassMember, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -884,11 +889,12 @@ CompilationUnit
   }
 
   void test_extraSemicolon_betweenTopLevelMembers() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 foo() {};
+//      ^
+// [diag.unexpectedToken] Unexpected text ';'.
 bar() {}
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 8, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -921,10 +927,11 @@ CompilationUnit
 @reflectiveTest
 class VarianceModifierTest extends ParserDiagnosticsTest {
   void test_extraModifier_inClass() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A<in out X> {}
+//         ^^^
+// [diag.multipleVarianceModifiers] Each type parameter can have at most one variance modifier.
 ''');
-    parseResult.assertErrors([error(diag.multipleVarianceModifiers, 11, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

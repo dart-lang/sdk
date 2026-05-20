@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -18,10 +17,9 @@ main() {
 @reflectiveTest
 class ExtensionDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -36,10 +34,9 @@ ExtensionDeclaration
   }
 
   test_augment_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E<T> {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -60,12 +57,11 @@ ExtensionDeclaration
   }
 
   test_augment_hasOnClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E on int {}
+//                  ^^
+// [diag.extensionAugmentationHasOnClause] Extension augmentations can't have 'on' clauses.
 ''');
-    parseResult.assertErrors([
-      error(diag.extensionAugmentationHasOnClause, 20, 2),
-    ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -84,12 +80,11 @@ ExtensionDeclaration
   }
 
   test_body_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionDeclaration
@@ -117,12 +112,11 @@ ExtensionDeclaration
   }
 
   test_body_method() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionDeclaration
@@ -151,12 +145,11 @@ ExtensionDeclaration
   }
 
   test_body_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on int {
   set foo(int _) {}
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionDeclaration
@@ -188,10 +181,9 @@ ExtensionDeclaration
   }
 
   test_declaration_emptyBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on int;
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -208,13 +200,12 @@ ExtensionDeclaration
   }
 
   test_emptyBody_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension E on int;
+//                ^
+// [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
 ''');
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabled, 34, 1),
-    ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -231,12 +222,11 @@ ExtensionDeclaration
   }
 
   test_field_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment static int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -263,12 +253,11 @@ ExtensionDeclaration
   }
 
   test_field_augment_static_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment static final int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -296,12 +285,11 @@ ExtensionDeclaration
   }
 
   test_getter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -326,12 +314,11 @@ ExtensionDeclaration
   }
 
   test_getter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment static int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -357,12 +344,11 @@ ExtensionDeclaration
   }
 
   test_method_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -388,12 +374,11 @@ ExtensionDeclaration
   }
 
   test_method_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment static void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -420,12 +405,11 @@ ExtensionDeclaration
   }
 
   test_operator_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment int operator+(int other) => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -457,10 +441,11 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_const_typeName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension const A() on int {}
+//        ^^^^^
+// [diag.extensionPrimaryConstructor] Extensions can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 10, 5)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -478,11 +463,12 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_const_typeName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 extension const A() on int {}
+//        ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 24, 5)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -500,10 +486,11 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension const A on int {}
+//        ^^^^^
+// [diag.extensionPrimaryConstructor] Extensions can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 10, 5)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -521,11 +508,12 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 extension const A on int {}
+//        ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 24, 5)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -543,10 +531,11 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_const_typeName_periodName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension const A.name() on int {}
+//        ^^^^^
+// [diag.extensionPrimaryConstructor] Extensions can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 10, 5)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -564,11 +553,12 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_const_typeName_periodName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 extension const A.name() on int {}
+//        ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 24, 5)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -586,10 +576,11 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_typeName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension A() on int {}
+//         ^
+// [diag.extensionPrimaryConstructor] Extensions can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 11, 1)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -607,11 +598,12 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_typeName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 extension A() on int {}
+//         ^
+// [diag.unexpectedToken] Unexpected text '('.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 25, 1)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -629,10 +621,11 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_typeName_periodName_formalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension A.name() on int {}
+//         ^
+// [diag.extensionPrimaryConstructor] Extensions can't have primary constructors.
 ''');
-    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 11, 1)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -650,11 +643,12 @@ ExtensionDeclaration
   }
 
   test_primaryConstructor_typeName_periodName_formalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart=3.10
 extension A.name() on int {}
+//         ^
+// [diag.unexpectedToken] Unexpected text '.'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 25, 1)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -672,12 +666,11 @@ ExtensionDeclaration
   }
 
   test_primaryConstructorBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension A on int {
   this;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -700,12 +693,11 @@ ExtensionDeclaration
   }
 
   test_setter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -734,12 +726,11 @@ ExtensionDeclaration
   }
 
   test_setter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
   augment static set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
 ExtensionDeclaration
   augmentKeyword: augment

@@ -6,6 +6,39 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 
+/// Returns [content] with generated diagnostic expectation marker lines removed.
+String removeDiagnosticExpectations(String content) {
+  var lines = _Line.parse(content);
+  var buffer = StringBuffer();
+  var isFirstLine = true;
+  for (var line in lines) {
+    if (_LineMarker.isMarker(line)) {
+      continue;
+    }
+
+    if (isFirstLine) {
+      isFirstLine = false;
+    } else {
+      buffer.writeln();
+    }
+    buffer.write(line.text);
+  }
+  return buffer.toString();
+}
+
+/// Returns [content] with one trailing line terminator removed, if present.
+///
+/// Diagnostic expectation tests often use multiline string literals where the
+/// final line terminator exists only to keep the closing quote on its own line.
+String removeTrailingLineTerminator(String content) {
+  if (content.endsWith('\r\n')) {
+    return content.substring(0, content.length - 2);
+  } else if (content.endsWith('\n') || content.endsWith('\r')) {
+    return content.substring(0, content.length - 1);
+  }
+  return content;
+}
+
 /// Returns [content] with canonical diagnostic expectation markers.
 ///
 /// Existing diagnostic expectation marker lines are removed before the new

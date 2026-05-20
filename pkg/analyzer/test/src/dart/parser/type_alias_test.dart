@@ -2,24 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeAliasParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TypeAliasParserTest extends ParserDiagnosticsTest {
   test_legacy_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment typedef void A();
+// [diag.typedefAugmentation][column 1][length 7] Type aliases can't be augmented.
 ''');
-    parseResult.assertErrors([error(diag.typedefAugmentation, 0, 7)]);
 
     var node = parseResult.findNode.singleFunctionTypeAlias;
     assertParsedNodeText(node, r'''
@@ -37,10 +38,10 @@ FunctionTypeAlias
   }
 
   test_modern_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment typedef A = int;
+// [diag.typedefAugmentation][column 1][length 7] Type aliases can't be augmented.
 ''');
-    parseResult.assertErrors([error(diag.typedefAugmentation, 0, 7)]);
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''
@@ -58,10 +59,11 @@ GenericTypeAlias
   test_modern_missingName() {
     // Does not look good.
     // https://github.com/dart-lang/sdk/issues/56912
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 typedef = int;
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 8, 1)]);
 
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

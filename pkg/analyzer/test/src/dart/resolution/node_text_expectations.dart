@@ -167,6 +167,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'ParserDiagnosticsTest',
+      methodName: 'parseTestCodeWithDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'assertDartObjectText',
       argument: _ArgumentIndex(1),

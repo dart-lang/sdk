@@ -2,27 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import 'parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionTypedParameterVarTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FunctionTypedParameterVarTest extends ParserDiagnosticsTest {
   test_superFormalParameter_var_functionTyped() async {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 class A {
   A(var super.a<T>());
+//  ^^^
+// [diag.functionTypedParameterVar] Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.
 }
 ''');
-    parseResult.assertErrors([error(diag.functionTypedParameterVar, 30, 3)]);
 
     var node = parseResult.findNode.superFormalParameter('super.a');
     assertParsedNodeText(node, r'''
