@@ -20,8 +20,8 @@ import 'package:analyzer/dart/element/element.dart';
 
 final _manager = LspRefactorManager._();
 
-/// A base class for refactoring commands that need to create Refactorings from
-/// client-supplied arguments.
+/// A base class for the legacy refactoring commands (EXTRACT_WIDGET, etc.) that
+/// need to create [Refactoring]s from client-supplied arguments.
 abstract class AbstractRefactorCommandHandler
     extends SimpleEditCommandHandler<AnalysisServer>
     with PositionalArgCommandHandler {
