@@ -3,29 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../tool/lsp_spec/meta_model.dart' as ast;
 
 void main() {
-  group('dartType mapping', () {
-    test('handles basic types', () {
-      expect(_simple('string').dartType, equals('String'));
-      expect(_simple('boolean').dartType, equals('bool'));
-      expect(_simple('object').dartType, equals('Object?'));
-      expect(_simple('int').dartType, equals('int'));
-      expect(_simple('num').dartType, equals('num'));
-    });
-
-    test('handles union types', () {
-      expect(
-        _union(['string', 'int']).dartTypeWithTypeArgs,
-        equals('Either2<int, String>'),
-      );
-    });
-
-    test('handles arrays', () {
-      expect(_array('string').dartTypeWithTypeArgs, equals('List<String>'));
-    });
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DartTest);
   });
 }
 
@@ -35,3 +19,25 @@ ast.TypeReference _simple(String name) => ast.TypeReference(name);
 
 ast.UnionType _union(List<String> names) =>
     ast.UnionType(names.map(_simple).toList());
+
+@reflectiveTest
+class DartTest {
+  void test_mapping_arrays() {
+    expect(_array('string').dartTypeWithTypeArgs, equals('List<String>'));
+  }
+
+  void test_mapping_basicTypes() {
+    expect(_simple('string').dartType, equals('String'));
+    expect(_simple('boolean').dartType, equals('bool'));
+    expect(_simple('object').dartType, equals('Object?'));
+    expect(_simple('int').dartType, equals('int'));
+    expect(_simple('num').dartType, equals('num'));
+  }
+
+  void test_mapping_unionTypes() {
+    expect(
+      _union(['string', 'int']).dartTypeWithTypeArgs,
+      equals('Either2<int, String>'),
+    );
+  }
+}
