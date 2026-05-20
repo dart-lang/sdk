@@ -3425,6 +3425,9 @@ DART_FORCE_INLINE void Simulator::InstructionDecodeImpl(Instr* instr) {
     } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISH)) {
       // Format(instr, "dmb ish");
       memory_.FlushAll();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
       std::atomic_thread_fence(std::memory_order_seq_cst);
     } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISHST)) {
       // Format(instr, "dmb ishst");
