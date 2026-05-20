@@ -45,7 +45,7 @@ abstract interface class VmServiceInterface {
 
   /// Invoked by the Dart Development Service (DDS) immediately after it
   /// connects.
-  /// 
+  ///
   /// [uri] is a HTTP URI pointing to the connected DDS instance.
   ///
   /// When invoked, the VM service implementation should enter single-client
@@ -180,7 +180,7 @@ class VmServerConnection {
           m.args.where((arg) => !arg.optional).forEach((MethodArg arg) {
             if (arg.type.isArray) {
               gen.write(
-                  "${arg.type.listCreationRef}.from(params${nullCheck()}['${arg.name}'] ?? []), ");
+                  "(params${nullCheck()}['${arg.name}'] as List? ?? []).cast(), ");
             } else {
               gen.write("params${nullCheck()}['${arg.name}'], ");
             }
@@ -189,9 +189,12 @@ class VmServerConnection {
           var namedArgs = m.args.where((arg) => arg.optional);
           if (namedArgs.isNotEmpty) {
             for (var arg in namedArgs) {
-              if (arg.name == 'scope') {
+              if (arg.type.isMap) {
                 gen.writeln(
-                    "${arg.name}: params${nullCheck()}['${arg.name}']?.cast<String, String>(), ");
+                    "${arg.name}: (params${nullCheck()}['${arg.name}'] as Map?)?.cast(), ");
+              } else if (arg.type.isArray) {
+                gen.writeln(
+                    "${arg.name}: (params${nullCheck()}['${arg.name}'] as List?)?.cast(), ");
               } else {
                 gen.writeln(
                     "${arg.name}: params${nullCheck()}['${arg.name}'], ");
