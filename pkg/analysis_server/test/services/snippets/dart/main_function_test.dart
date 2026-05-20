@@ -25,7 +25,7 @@ class MainFunctionTest extends DartSnippetProducerTest {
   String get prefix => MainFunction.prefix;
 
   Future<void> test_noParams_testFolder() => testInFile(
-    convertPath('$testPackageLibPath/test/foo_test.dart'),
+    convertPath('$testPackageTestPath/foo_test.dart'),
     expectArgsParameter: false,
   );
 

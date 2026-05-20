@@ -493,6 +493,19 @@ class PubPackage extends WorkspacePackageImpl {
     return _sdkVersionConstraint;
   }
 
+  Folder? get _generatedPackageRoot {
+    var packageName = _name;
+    if (packageName == null) {
+      return null;
+    }
+
+    var generatedRoot = _generatedPathParts.fold(root, (current, segment) {
+      return current.getChildAssumingFolder(segment);
+    });
+
+    return generatedRoot.getChildAssumingFolder(packageName);
+  }
+
   @override
   bool contains(Source source) {
     var uri = source.uri;
@@ -513,7 +526,13 @@ class PubPackage extends WorkspacePackageImpl {
 
   @override
   bool isInTestDirectory(File file) {
-    return root.getChildAssumingFolder('test').contains(file.path);
+    if (super.isInTestDirectory(file)) {
+      return true;
+    }
+
+    var generatedPackageRoot = _generatedPackageRoot;
+    return generatedPackageRoot != null &&
+        isInTestDirectoryUnder(generatedPackageRoot, file);
   }
 
   @override
@@ -530,27 +549,24 @@ class PubPackage extends WorkspacePackageImpl {
   bool sourceIsInPublicApi(Source source) {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
-    var libFolder = root.getChildAssumingFolder('lib');
-    if (libFolder.contains(filePath)) {
+
+    bool sourceIsInPublicApiUnder(Folder root, String filePath) {
+      var libFolder = root.getChildAssumingFolder('lib');
+      if (!libFolder.contains(filePath)) {
+        return false;
+      }
+
       // A file in "$root/lib" is public iff it is not in "$root/lib/src".
       var libSrcFolder = libFolder.getChildAssumingFolder('src');
       return !libSrcFolder.contains(filePath);
     }
 
-    Folder intermediateFolder = root;
-    for (String part in _generatedPathParts) {
-      intermediateFolder = intermediateFolder.getChildAssumingFolder(part);
+    if (sourceIsInPublicApiUnder(root, filePath)) {
+      return true;
     }
-    libFolder = intermediateFolder
-        .getChildAssumingFolder('test')
-        .getChildAssumingFolder('lib');
 
-    if (libFolder.contains(filePath)) {
-      // A file in "$generated/lib" is public iff it is not in
-      // "$generated/lib/src".
-      var libSrcFolder = libFolder.getChildAssumingFolder('src');
-      return !libSrcFolder.contains(filePath);
-    }
-    return false;
+    var generatedPackageRoot = _generatedPackageRoot;
+    return generatedPackageRoot != null &&
+        sourceIsInPublicApiUnder(generatedPackageRoot, filePath);
   }
 }

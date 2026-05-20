@@ -638,7 +638,7 @@ class BlazeWorkspacePackage extends WorkspacePackageImpl {
     // "in a test directory."
     return root.shortName == 'testing' ||
         root.path.contains('/testing/') ||
-        root.getChildAssumingFolder('test').contains(file.path);
+        super.isInTestDirectory(file);
   }
 
   @override

@@ -520,10 +520,10 @@ class LibraryAnalyzer {
         diagnosticReporter,
         _typeProvider,
         _libraryElement,
-        unit,
         typeSystem: _typeSystem,
         analysisOptions: _analysisOptions,
         workspacePackage: _library.file.workspacePackage,
+        inTestDirectory: fileAnalysis.file.isInTestDirectory,
       ),
     );
 

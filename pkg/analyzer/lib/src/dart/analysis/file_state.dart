@@ -561,6 +561,11 @@ class FileState {
   @override
   int get hashCode => uri.hashCode;
 
+  /// Whether this file is in a "test" directory of its workspace package.
+  bool get isInTestDirectory {
+    return workspacePackage?.isInTestDirectory(resource) ?? false;
+  }
+
   FileKind get kind => _kind!;
 
   /// Return information about line in the file.
