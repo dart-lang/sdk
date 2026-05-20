@@ -263,9 +263,6 @@ class MethodDeclarationImpl
         isClosureContextLoweringEnabled: enclosingClassBuilder
             .libraryBuilder
             .loader
-            .target
-            .backendTarget
-            .flags
             .isClosureContextLoweringEnabled,
       );
     }

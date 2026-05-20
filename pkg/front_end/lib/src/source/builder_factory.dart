@@ -377,11 +377,8 @@ class BuilderFactory {
     ConstructorEncodingStrategy encodingStrategy =
         new ConstructorEncodingStrategy(
           _declarationBuilder!,
-          isClosureContextLoweringEnabled: _loader
-              .target
-              .backendTarget
-              .flags
-              .isClosureContextLoweringEnabled,
+          isClosureContextLoweringEnabled:
+              _loader.isClosureContextLoweringEnabled,
         );
 
     ConstructorReferences constructorReferences = new ConstructorReferences(

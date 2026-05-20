@@ -190,13 +190,8 @@ class ExtensionInstancePropertyEncodingStrategy
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
-      isClosureContextLoweringEnabled: builder
-          .libraryBuilder
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled,
+      isClosureContextLoweringEnabled:
+          builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
     return new ExtensionInstanceGetterEncoding(
       fragment,
@@ -221,13 +216,8 @@ class ExtensionInstancePropertyEncodingStrategy
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
-      isClosureContextLoweringEnabled: builder
-          .libraryBuilder
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled,
+      isClosureContextLoweringEnabled:
+          builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
     return new ExtensionInstanceSetterEncoding(
       fragment,
@@ -280,13 +270,8 @@ class ExtensionTypeInstancePropertyEncodingStrategy
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
-          isClosureContextLoweringEnabled: builder
-              .libraryBuilder
-              .loader
-              .target
-              .backendTarget
-              .flags
-              .isClosureContextLoweringEnabled,
+          isClosureContextLoweringEnabled:
+              builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );
     return new ExtensionTypeInstanceGetterEncoding(
       fragment,
@@ -311,13 +296,8 @@ class ExtensionTypeInstancePropertyEncodingStrategy
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
-          isClosureContextLoweringEnabled: builder
-              .libraryBuilder
-              .loader
-              .target
-              .backendTarget
-              .flags
-              .isClosureContextLoweringEnabled,
+          isClosureContextLoweringEnabled:
+              builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );
     return new ExtensionTypeInstanceSetterEncoding(
       fragment,

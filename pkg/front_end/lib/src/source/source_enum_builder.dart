@@ -239,12 +239,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
     if (needsSynthesizedDefaultConstructor) {
-      bool isClosureContextLoweringEnabled = libraryBuilder
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled;
+      bool isClosureContextLoweringEnabled =
+          libraryBuilder.loader.isClosureContextLoweringEnabled;
       ConstructorEncodingStrategy encodingStrategy =
           new ConstructorEncodingStrategy(
             this,

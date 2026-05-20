@@ -149,13 +149,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   // TODO(cstefantsova): Replace this flag by implementing the default
   // strategy.
-  bool get isClosureContextLoweringEnabled => _inferrer
-      .libraryBuilder
-      .loader
-      .target
-      .backendTarget
-      .flags
-      .isClosureContextLoweringEnabled;
+  bool get isClosureContextLoweringEnabled =>
+      _inferrer.libraryBuilder.loader.isClosureContextLoweringEnabled;
 
   AssignedVariablesImpl get assignedVariables => _inferrer.assignedVariables;
 

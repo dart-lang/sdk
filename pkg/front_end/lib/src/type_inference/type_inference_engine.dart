@@ -376,12 +376,8 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     InferenceDataForTesting? dataForTesting,
   }) {
     AssignedVariablesImpl assignedVariables;
-    bool isClosureContextLoweringEnabled = libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .flags
-        .isClosureContextLoweringEnabled;
+    bool isClosureContextLoweringEnabled =
+        libraryBuilder.loader.isClosureContextLoweringEnabled;
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       dataForTesting.flowAnalysisResult.assignedVariables =

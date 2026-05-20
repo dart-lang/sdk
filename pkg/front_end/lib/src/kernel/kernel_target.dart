@@ -1078,12 +1078,8 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    bool isClosureContextLoweringEnabled = libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .flags
-        .isClosureContextLoweringEnabled;
+    bool isClosureContextLoweringEnabled =
+        libraryBuilder.loader.isClosureContextLoweringEnabled;
 
     VariableDeclaration copyFormal(
       VariableDeclaration formal, {
