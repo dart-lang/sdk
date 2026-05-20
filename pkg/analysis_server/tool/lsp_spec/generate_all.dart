@@ -10,7 +10,13 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 import 'codegen_dart.dart';
+import 'custom/completion.dart';
+import 'custom/dart_migrate.dart';
+import 'custom/editable_arguments.dart';
 import 'custom/interactive_forms.dart';
+import 'custom/interactive_refactors.dart';
+import 'custom/outlines.dart';
+import 'custom/widget_preview.dart';
 import 'meta_model.dart';
 import 'utils.dart';
 
@@ -255,196 +261,7 @@ List<LspEntity> getCustomClasses() {
       field('range', type: 'Range'),
       field('label', type: 'string'),
     ]),
-    interface('Element', [
-      field('range', type: 'Range', canBeUndefined: true),
-      field('name', type: 'string'),
-      field('kind', type: 'string'),
-      field('parameters', type: 'string', canBeUndefined: true),
-      field('typeParameters', type: 'string', canBeUndefined: true),
-      field('returnType', type: 'string', canBeUndefined: true),
-    ]),
-    interface('PublishOutlineParams', [
-      field('uri', type: 'Uri'),
-      field('outline', type: 'Outline'),
-    ]),
-    interface('Outline', [
-      field('element', type: 'Element'),
-      field('range', type: 'Range'),
-      field('codeRange', type: 'Range'),
-      field('children', type: 'Outline', array: true, canBeUndefined: true),
-    ]),
-    interface('PublishFlutterOutlineParams', [
-      field('uri', type: 'Uri'),
-      field('outline', type: 'FlutterOutline'),
-    ]),
-    interface('FlutterOutline', [
-      field('kind', type: 'string'),
-      field('label', type: 'string', canBeUndefined: true),
-      field('className', type: 'string', canBeUndefined: true),
-      field('variableName', type: 'string', canBeUndefined: true),
-      field(
-        'attributes',
-        type: 'FlutterOutlineAttribute',
-        array: true,
-        canBeUndefined: true,
-      ),
-      field('dartElement', type: 'Element', canBeUndefined: true),
-      field('range', type: 'Range'),
-      field('codeRange', type: 'Range'),
-      field(
-        'children',
-        type: 'FlutterOutline',
-        array: true,
-        canBeUndefined: true,
-      ),
-    ]),
-    interface('FlutterOutlineAttribute', [
-      field('name', type: 'string'),
-      field('label', type: 'string'),
-      field('valueRange', type: 'Range', canBeUndefined: true),
-    ]),
-    interface(
-      'FlutterWidgetPreviews',
-      [
-        field(
-          'scriptUris',
-          array: true,
-          type: 'Uri',
-          comment: 'The URIs for the updated scripts.',
-        ),
-        Field(
-          name: 'namespaces',
-          type: MapType(TypeReference.string, TypeReference.string),
-          allowsNull: false,
-          allowsUndefined: false,
-          comment:
-              'A set of library URIs and the prefixes used for types in '
-              '"previewAnnotation" sources.',
-        ),
-        field(
-          'previews',
-          type: 'FlutterWidgetPreviewDetails',
-          array: true,
-          comment: 'The current set of previews in the script.',
-        ),
-      ],
-      comment:
-          'The set of widget previews defined in a script of an analyzed '
-          'Flutter project.',
-    ),
-    interface(
-      'FlutterWidgetPreviewDetails',
-      [
-        field(
-          'scriptUri',
-          type: 'Uri',
-          comment:
-              'The file:// URI pointing to the script in which the '
-              'preview is defined.',
-        ),
-        field(
-          'libraryUri',
-          type: 'Uri',
-          comment:
-              'The unresolved URI pointing to the library in which the '
-              'preview is defined. This is either a package: or dart: URI.',
-        ),
-        field(
-          'position',
-          type: 'Position',
-          comment:
-              'The source location at which the Preview annotation was applied.',
-        ),
-        field(
-          'packageName',
-          type: 'string',
-          canBeNull: true,
-          comment:
-              'The name of the package in which this annotated preview '
-              'function was defined.'
-              '\n\n For example, if this preview is defined in '
-              '"package:foo/src/bar.dart", this will have the value "foo".\n\n'
-              'This should only be null if the preview is defined in a file '
-              "that's not part of a Flutter package (e.g., is defined in a "
-              'test).',
-        ),
-        field(
-          'functionName',
-          type: 'string',
-          comment: 'The name of the function returning the preview.',
-        ),
-        field(
-          'isBuilder',
-          type: 'bool',
-          comment:
-              'Set to true if the preview function is returning a '
-              '`WidgetBuilder` instead of a `Widget`.',
-        ),
-        field(
-          'previewAnnotation',
-          type: 'string',
-          comment:
-              'An equivalent Dart expression to the applied preview '
-              'annotation, with namespaces applied to individual types and '
-              'constant values evaluated.\n\nThis can be any object which '
-              'extends `Preview` or `MultiPreview`.',
-        ),
-        field(
-          'isMultiPreview',
-          type: 'bool',
-          comment:
-              'Set to true if `previewAnnotation` represents a `MultiPreview`.',
-        ),
-        field(
-          'hasError',
-          type: 'bool',
-          comment:
-              'Set to true if there is an error that will prevent this preview '
-              'from being rendered.',
-        ),
-        field(
-          'dependencyHasErrors',
-          type: 'bool',
-          comment:
-              'Set to true if there is an error in a dependency that will '
-              'prevent this preview from being rendered.',
-        ),
-      ],
-      comment:
-          'A representation of a widget preview declaration containing all '
-          'information needed to import the preview into the widget previewer.',
-    ),
-    interface(
-      // Used as a base class for all resolution data classes.
-      'CompletionItemResolutionInfo',
-      [],
-    ),
-    interface('DartCompletionResolutionInfo', [
-      field(
-        'file',
-        type: 'string',
-        comment:
-            'The file where the completion is being inserted.\n\n'
-            'This is used to compute where to add the import.',
-      ),
-      field(
-        'importUris',
-        type: 'string',
-        array: true,
-        comment: 'The URIs to be imported if this completion is selected.',
-      ),
-      field(
-        'ref',
-        type: 'string',
-        canBeUndefined: true,
-        comment:
-            'The encoded ElementLocation2 of the item being completed.\n\n'
-            'This is used to provide documentation in the resolved response.',
-      ),
-    ], baseType: 'CompletionItemResolutionInfo'),
-    interface('PubPackageCompletionItemResolutionInfo', [
-      field('packageName', type: 'string'),
-    ], baseType: 'CompletionItemResolutionInfo'),
+
     // Custom types for experimental SnippetTextEdits
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
     interface('SnippetTextEdit', [
@@ -465,129 +282,7 @@ List<LspEntity> getCustomClasses() {
             'fetched later.',
       ),
     ]),
-    interface('EditableArguments', [
-      field('textDocument', type: 'TextDocumentIdentifier'),
-      field('name', type: 'string', canBeUndefined: true),
-      field('documentation', type: 'string', canBeUndefined: true),
-      // TODO(dantup): field('refactors', ...),
-      field('arguments', type: 'EditableArgument', array: true),
-      field('range', type: 'Range', comment: 'The range of the invocation.'),
-    ]),
-    interface('EditableArgument', [
-      field(
-        'name',
-        type: 'string',
-        comment: 'The name of the corresponding parameter.',
-      ),
-      field('documentation', type: 'string', canBeUndefined: true),
-      field(
-        'type',
-        type: 'string',
-        comment:
-            'The kind of parameter.\n\nThis is not necessarily the Dart type, '
-            'it is from a defined set of values that clients may understand '
-            'how to edit.',
-      ),
-      Field(
-        name: 'value',
-        type: TypeReference.lspAny,
-        allowsNull: false,
-        allowsUndefined: true,
-        comment:
-            'The current value for this argument (provided only if '
-            'hasArgument=true).\n\nThis is only included if an explicit value '
-            'is given in the code and is a valid literal for the kind of '
-            'parameter. For expressions or named constants, this will not be '
-            'included and displayValue can be shown as the current value '
-            'instead.\n\nA value of `null` when hasArgument=true means the '
-            'argument has an explicit null value and not that defaultValue is '
-            'being used.',
-      ),
-      field(
-        'hasArgument',
-        type: 'boolean',
-        comment:
-            'Whether an explicit argument exists for this parameter in the '
-            'code.\n\nThis will be true even if the explicit argument is the '
-            'same value as the parameter default or null.',
-      ),
-      Field(
-        name: 'defaultValue',
-        type: TypeReference.lspAny,
-        allowsNull: false,
-        allowsUndefined: true,
-        comment:
-            'The default value for this parameter if no argument is supplied.'
-            '\n\nSetting the argument to this value does not remove it from '
-            'the argument list.',
-      ),
-      field(
-        'displayValue',
-        type: 'string',
-        canBeUndefined: true,
-        comment:
-            'A string that can be displayed to indicate the value for this '
-            'argument.\n\nThis will be populated in cases where the source '
-            'code is not literally the same as the value field, for example an '
-            'expression or named constant.',
-      ),
-      field(
-        'isRequired',
-        type: 'boolean',
-        comment: 'Whether an argument is required for this parameter.',
-      ),
-      field(
-        'isNullable',
-        type: 'boolean',
-        comment:
-            'Whether this argument can be `null`.\n\nIt is possible for an '
-            'argument to be required, but still allow an explicit `null`.',
-      ),
-      field(
-        'isDeprecated',
-        type: 'boolean',
-        comment: 'Whether the parameter is deprecated.',
-      ),
-      field(
-        'isEditable',
-        type: 'boolean',
-        comment:
-            'Whether this argument can be add/edited.\n\nIf not, '
-            'notEditableReason will contain an explanation for why.',
-      ),
-      field(
-        'notEditableReason',
-        type: 'String',
-        canBeUndefined: true,
-        comment:
-            'If isEditable is false, contains a human-readable '
-            'description of why.',
-      ),
-      field(
-        'options',
-        type: 'string',
-        array: true,
-        canBeUndefined: true,
-        comment:
-            'The set of values allowed for this argument if it is an enum.\n\n'
-            'Values are qualified in the form `EnumName.valueName`.',
-      ),
-      // TODO(dantup): field('properties', ...),
-    ]),
-    interface('EditArgumentParams', [
-      field('textDocument', type: 'TextDocumentIdentifier'),
-      field('position', type: 'Position'),
-      field('edit', type: 'ArgumentEdit'),
-    ]),
-    interface('ArgumentEdit', [
-      field('name', type: 'string'),
-      Field(
-        name: 'newValue',
-        type: TypeReference.lspAny,
-        allowsNull: true,
-        allowsUndefined: false,
-      ),
-    ]),
+
     TypeAlias(
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(
@@ -599,82 +294,6 @@ List<LspEntity> getCustomClasses() {
       ),
       renameReferences: false,
     ),
-    //
-    // Support for the original (Dart-specific) interactive-refactors.
-    //
-    interface(
-      'CommandParameter',
-      [
-        field(
-          'parameterLabel',
-          type: 'String',
-          comment:
-              'A human-readable label to be displayed in the UI affordance '
-              'used to prompt the user for the value of the parameter.',
-        ),
-        AbstractGetter(
-          name: 'kind',
-          type: TypeReference.string,
-          comment:
-              'The kind of this parameter. The client may use different '
-              'UIs based on this value.',
-        ),
-        AbstractGetter(
-          name: 'defaultValue',
-          type: TypeReference.lspAny,
-          comment:
-              'An optional default value for the parameter. The type of '
-              'this value may vary between parameter kinds but must always be '
-              'something that can be converted directly to/from JSON.',
-        ),
-      ],
-      abstract: true,
-      comment:
-          'Information about one of the arguments needed by the command.'
-          '\n\n'
-          'A list of parameters is sent in the `data` field of the '
-          '`CodeActionLiteral` returned by the server. The values of the '
-          'parameters should appear in the `args` field of the `Command` sent '
-          'to the server in the same order as the corresponding parameters.',
-    ),
-    interface(
-      'SaveUriCommandParameter',
-      [
-        field('kind', type: 'saveUri', literal: true),
-        field(
-          'defaultValue',
-          type: 'String',
-          canBeNull: true,
-          canBeUndefined: true,
-          comment: 'An optional default URI for the parameter.',
-        ),
-        field(
-          'parameterTitle',
-          type: 'String',
-          comment: 'A title that may be displayed on a file dialog.',
-        ),
-        field(
-          'actionLabel',
-          type: 'String',
-          comment: 'A label for the file dialogs action button.',
-        ),
-        Field(
-          name: 'filters',
-          type: MapType(TypeReference.string, ArrayType(TypeReference.string)),
-          allowsNull: true,
-          allowsUndefined: true,
-          comment:
-              'A set of file filters for a file dialog. '
-              'Keys of the map are textual names ("Dart") and the value '
-              'is a list of file extensions (["dart"]).',
-        ),
-      ],
-      baseType: 'CommandParameter',
-      comment: 'Information about a Save URI argument needed by the command.',
-    ),
-
-    // Support for the new (Go-specified) interactive-refactors.
-    ...interactiveFormClasses,
 
     // Types for `dart/textDocument/summary`.
     interface('DartTextDocumentSummaryParams', [
@@ -684,34 +303,26 @@ List<LspEntity> getCustomClasses() {
       field('summary', type: 'String', canBeNull: true),
     ]),
 
-    // Types for `dart/workspace/migrate`.
-    interface('DartMigrateParams', [
-      field(
-        'uris',
-        type: 'DocumentUri',
-        array: true,
-        comment:
-            'The URIs of the directories (packages or workspaces) to migrate. '
-            'Individual file URIs are not supported.',
-      ),
-    ]),
-    interface('DartMigrateResult', [
-      field(
-        'summary',
-        type: 'String',
-        canBeNull: true,
-        comment:
-            'A summary of the migration results, detailing which fixes '
-            'succeeded, which fixes failed to be applied, and the new '
-            'SDK version constraint applied to the pubspec.yaml.',
-      ),
-      field(
-        'edit',
-        type: 'WorkspaceEdit',
-        canBeNull: true,
-        comment: 'The edits to be applied to the workspace.',
-      ),
-    ]),
+    // Strongly typed classes for `completionItem/resolve`.
+    ...completionResolutionClasses,
+
+    // Support for the Outline notifications.
+    ...outlineClasses,
+
+    // Support for the Flutter Widget Preview.
+    ...flutterWidgetPreviewClasses,
+
+    // Support for Editable Arguments used by the Property Editor.
+    ...editableArgumentsClasses,
+
+    // Support for `dart/workspace/migrate`.
+    ...dartMigrateClasses,
+
+    // Support for the original (Dart-specific) interactive-refactors.
+    ...interactiveRefactorsClasses,
+
+    // Support for the new (Go-specified) interactive-refactors.
+    ...interactiveFormClasses,
   ];
   return customTypes;
 }
@@ -727,16 +338,4 @@ Future<List<LspEntity>> getSpecClasses(ArgResults args) async {
   model = LspMetaModelCleaner().cleanModel(model);
 
   return model.types;
-}
-
-class AbstractGetter extends Member {
-  // ignore:unreachable_from_main
-  final TypeBase type;
-
-  AbstractGetter({
-    required super.name,
-    super.comment,
-    super.isProposed,
-    required this.type,
-  });
 }

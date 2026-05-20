@@ -13,7 +13,6 @@ import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
-import 'generate_all.dart';
 import 'meta_model.dart';
 
 final formatter = DartFormatter(

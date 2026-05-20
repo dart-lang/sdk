@@ -877,6 +877,7 @@ Either2<int, String> _eitherIntString(Object? value) {
 typedef DocumentUri = Uri;
 
 typedef LSPAny = Object?;
+
 typedef LSPObject = Object;
 
 typedef LSPUri = Uri;
