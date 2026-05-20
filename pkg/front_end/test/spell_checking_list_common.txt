@@ -3361,6 +3361,7 @@ unhelpful
 unicode
 unified
 uniformity
+uniformly
 unifying
 unimplemented
 uninitialized
