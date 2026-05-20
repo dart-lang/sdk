@@ -112,4 +112,20 @@ void main() {
       expect(b, isNot(equals(a)));
     });
   });
+
+  group('interactive forms', () {
+    test('can deserialize FormFields into the correct subclasses', () {
+      var stringField = FormField.fromJson({
+        'type': {'kind': 'string'},
+        'description': '',
+      });
+      expect(stringField.type, isA<FormFieldTypeString>());
+
+      var boolField = FormField.fromJson({
+        'type': {'kind': 'bool'},
+        'description': '',
+      });
+      expect(boolField.type, isA<FormFieldTypeBool>());
+    });
+  });
 }

@@ -185,10 +185,13 @@ class DartdevRunner extends CommandRunner<int> {
     // We don't want to run analytics when we're running in a CI environment
     // unless we're explicitly testing analytics for dartdev.
     final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
+    final envSuppressAnalytics =
+        io.Platform.environment[DashEnvVar.suppressAnalytics.name] == 'true';
     bool suppressAnalytics =
         !topLevelResults.flag('analytics') ||
         topLevelResults.flag('suppress-analytics') ||
-        implicitlySuppressAnalytics;
+        implicitlySuppressAnalytics ||
+        envSuppressAnalytics;
 
     if (topLevelResults.wasParsed('analytics')) {
       io.stderr.writeln(
@@ -200,6 +203,7 @@ class DartdevRunner extends CommandRunner<int> {
     final disableAnalytics = topLevelResults.flag('disable-analytics');
 
     if (!implicitlySuppressAnalytics &&
+        !envSuppressAnalytics &&
         suppressAnalytics &&
         (enableAnalytics || disableAnalytics)) {
       // This isn't an error if we're implicitly disabling analytics because
@@ -210,6 +214,29 @@ class DartdevRunner extends CommandRunner<int> {
       );
       return 254;
     }
+
+    // Propagate analytics environment variables to subtools.
+
+    // Since VmInteropHandler.setEnvironmentVariable is non-overwriting by design
+    // in C++, we unset the variable first to ensure the explicitly resolved
+    // value takes precedence.
+    VmInteropHandler.setEnvironmentVariable(
+      DashEnvVar.suppressAnalytics.name,
+      null,
+    );
+
+    VmInteropHandler.setEnvironmentVariable(
+      DashEnvVar.suppressAnalytics.name,
+      suppressAnalytics.toString(),
+    );
+    final envTool = io.Platform.environment[DashEnvVar.tool.name];
+    if (envTool == null) {
+      VmInteropHandler.setEnvironmentVariable(
+        DashEnvVar.tool.name,
+        DashTool.dartTool.label,
+      );
+    }
+
     // The Analytics instance used to report information back to Google Analytics;
     // see lib/src/unified_analytics.dart.
     _unifiedAnalytics ??= createUnifiedAnalytics(

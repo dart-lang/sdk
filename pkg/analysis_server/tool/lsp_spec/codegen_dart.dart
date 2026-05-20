@@ -163,7 +163,7 @@ String _formatCode(String code) {
   try {
     code = formatter.format(code);
   } catch (e) {
-    print('Failed to format code, returning unformatted code.');
+    print('Failed to format code, returning unformatted code: $e');
   }
   return code;
 }
@@ -275,7 +275,9 @@ String _makeValidIdentifier(String identifier) {
     'Object': 'Obj',
     'String': 'Str',
     'class': 'class_',
+    'default': 'defaultValue',
     'enum': 'enum_',
+    'new': 'new_',
     'null': 'null_',
   };
   return map[identifier] ?? identifier;
@@ -321,17 +323,22 @@ String _rewriteCommentReference(String comment) {
 
 /// Sorts [content] as a Dart library.
 String _sortContent(String content) {
-  var parseResult = parseString(content: content);
-  var codeOptions = CodeStyleOptionsImpl(useFormatter: true);
-  codeOptions.options = AnalysisOptionsImpl();
-  var sorter = MemberSorter(
-    content,
-    parseResult.unit,
-    codeOptions,
-    parseResult.lineInfo,
-  );
-  var edits = sorter.sort();
-  return SourceEdit.applySequence(content, edits);
+  try {
+    var parseResult = parseString(content: content);
+    var codeOptions = CodeStyleOptionsImpl(useFormatter: true);
+    codeOptions.options = AnalysisOptionsImpl();
+    var sorter = MemberSorter(
+      content,
+      parseResult.unit,
+      codeOptions,
+      parseResult.lineInfo,
+    );
+    var edits = sorter.sort();
+    return SourceEdit.applySequence(content, edits);
+  } catch (e) {
+    print('Failed to sort code, returning unsorted code: $e');
+  }
+  return content;
 }
 
 /// Sorts subtypes into a consistent order.
@@ -540,9 +547,11 @@ void _writeCanParseType(
   buffer.writeln('}');
 }
 
-void _writeConst(IndentableStringBuffer buffer, Constant cons) {
-  _writeDocCommentsAndAnnotations(buffer, cons);
-  buffer.writeIndentedln('static const ${cons.name} = ${cons.valueAsLiteral};');
+void _writeConst(IndentableStringBuffer buffer, Constant constant) {
+  _writeDocCommentsAndAnnotations(buffer, constant);
+  buffer.writeIndentedln(
+    'static const ${constant.name} = ${constant.valueAsLiteral};',
+  );
 }
 
 void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
@@ -564,7 +573,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
         var valueCode = isLiteral
             ? ' = ${(field.type as LiteralType).valueAsLiteral}'
             : '';
-        return '$requiredKeyword this.${field.name}$valueCode, ';
+        return '$requiredKeyword this.${field.dartSafeName}$valueCode, ';
       }).join(),
     )
     ..write('})');
@@ -672,7 +681,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
       return;
     }
     _writeDocCommentsAndAnnotations(buffer, cons);
-    var memberName = _makeValidIdentifier(cons.name);
+    var memberName = cons.dartSafeName;
     var value = cons.valueAsLiteral;
     buffer.writeIndentedln(
       'static const $memberName = $namespaceName$constructorName($value);',
@@ -709,8 +718,8 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
   for (var field in _getAllFields(interface)) {
     buffer.write(' && ');
     var type = resolveTypeAlias(field.type);
-    var thisName = field.name;
-    var otherName = 'other.${field.name}';
+    var thisName = field.dartSafeName;
+    var otherName = 'other.${field.dartSafeName}';
     if (type is ArrayType || type is MapType) {
       buffer.write(
         'const DeepCollectionEquality().equals($thisName, $otherName)',
@@ -732,6 +741,7 @@ void _writeField(
   Field field,
 ) {
   _writeDocCommentsAndAnnotations(buffer, field);
+  var fieldName = field.dartSafeName;
   var needsNullable =
       (field.allowsNull || field.allowsUndefined) &&
       !isNullableAnyType(field.type);
@@ -742,7 +752,7 @@ void _writeField(
     ..writeIndented('final ')
     ..write(field.type.dartTypeWithTypeArgs)
     ..write(needsNullable ? '?' : '')
-    ..writeln(' ${field.name};');
+    ..writeln(' $fieldName;');
 }
 
 void _writeFromJsonCode(
@@ -949,7 +959,7 @@ void _writeFromJsonConstructor(
   } else {
     for (var field in allFields) {
       // Add a local variable to allow type promotion (and avoid multiple lookups).
-      var localName = _makeValidIdentifier(field.name);
+      var localName = field.dartSafeName;
       var localNameJson = '${localName}Json';
       buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
       buffer.writeIndented('final $localName = ');
@@ -963,7 +973,11 @@ void _writeFromJsonConstructor(
     }
     buffer
       ..writeIndented('return ${interface.name}(')
-      ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
+      ..write(
+        allFields
+            .map((field) => '${field.dartSafeName}: ${field.dartSafeName}, ')
+            .join(),
+      )
       ..writeln(');');
   }
   buffer
@@ -1006,9 +1020,9 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
         return 'lspHashCode(${field.name})';
       } else {
         if (fields.length == 1) {
-          return '${field.name}.hashCode';
+          return '${field.dartSafeName}.hashCode';
         }
-        return field.name;
+        return field.dartSafeName;
       }
     }),
     ',',
@@ -1087,13 +1101,13 @@ void _writeJsonMapAssignment(
   var shouldBeOmittedIfNoValue = field.allowsUndefined;
   if (shouldBeOmittedIfNoValue) {
     buffer
-      ..writeIndentedln('if (${field.name} != null) {')
+      ..writeIndentedln('if (${field.dartSafeName} != null) {')
       ..indent();
   }
   // Use the correct null operator depending on whether the value could be null.
   var nullOp = field.allowsNull || field.allowsUndefined ? '?' : '';
   buffer.writeIndented('''$mapName['${field.name}'] = ''');
-  _writeToJsonCode(buffer, field.type, field.name, nullOp);
+  _writeToJsonCode(buffer, field.type, field.dartSafeName, nullOp);
   buffer.writeln(';');
   if (shouldBeOmittedIfNoValue) {
     buffer
@@ -1401,4 +1415,8 @@ class IndentableStringBuffer extends StringBuffer {
     write(_indentString);
     writeln(obj);
   }
+}
+
+extension on LspEntity {
+  String get dartSafeName => _makeValidIdentifier(name);
 }
