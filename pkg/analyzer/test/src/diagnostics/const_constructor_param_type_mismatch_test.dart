@@ -123,7 +123,7 @@ const C constant = const C(0);
   }
 
   test_int_to_double_reference_from_other_library_other_file_before() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final double d;
   const C(this.d);
@@ -143,7 +143,7 @@ const D constant2 = const D(constant);
   }
 
   test_int_to_double_single_library() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final double d;
   const C(this.d);
@@ -159,7 +159,7 @@ class C {
   const C([this.x = 0]);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'other.dart';
 const c = C();
 ''');
@@ -177,7 +177,7 @@ class C {
     var otherFileResult = await resolveFile(other);
     expect(otherFileResult.diagnostics, isEmpty);
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'other.dart';
 const c = C();
 ''');
@@ -284,7 +284,7 @@ var v = const A('foo');
   }
 
   test_superFormalParameter_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({int a = 0});
 }
@@ -298,7 +298,7 @@ class B extends A {
   }
 
   test_superFormalParameter_inherited() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({int a = 0});
 }
@@ -312,7 +312,7 @@ const b = const B();
   }
 
   test_superFormalParameter_inherited_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A({int a = 0});
 }

@@ -43,7 +43,7 @@ f() { return const G<B>(); }
   }
 
   test_const_matching() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 class G<E extends A> {
@@ -69,7 +69,7 @@ enum E<T extends int> {
   }
 
   test_enum_superBounded() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E<T extends E<T>> {
   v<Never>()
 }
@@ -230,7 +230,7 @@ void bar() {
   }
 
   test_functionReference_matching() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo<T extends num>(T a) {}
 void bar() {
   foo<int>;
@@ -239,7 +239,7 @@ void bar() {
   }
 
   test_functionReference_regularBounded() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo<T>(T a) {}
 void bar() {
   foo<String>;
@@ -324,7 +324,7 @@ void f(CB<FB<F>> a) {}
   }
 
   test_genericFunctionTypeArgument_regularBounded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F1 = T Function<T>(T);
 typedef F2 = S Function<S>(S);
 class CB<T extends F1> {}
@@ -364,7 +364,7 @@ var b = 1 is G<B>;
   }
 
   test_metadata_matching() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T extends num> {
   const A();
 }
@@ -405,7 +405,7 @@ void f() {}
   }
 
   test_methodInvocation_genericFunctionTypeArgument_match() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function<T extends num>();
 void f<T extends void Function<X extends num>()>() {}
 void g() {
@@ -521,7 +521,7 @@ f() { return new G<B>(); }
   }
 
   test_new_matching() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 class G<E extends A> {}
@@ -555,7 +555,7 @@ typedef X = G<B>;
   }
 
   test_nonFunctionTypeAlias_body_typeArgument_regularBounded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 class G<T extends A> {}
@@ -564,7 +564,7 @@ typedef X = G<B>;
   }
 
   test_nonFunctionTypeAlias_body_typeArgument_superBounded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T extends A<T>> {}
 typedef X = List<A>;
 ''');
@@ -583,7 +583,7 @@ typedef X = G<B>;
   }
 
   test_nonFunctionTypeAlias_interfaceType_body_regularBounded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 typedef X<T> = A;
 ''');
@@ -625,7 +625,7 @@ void f(X<String> a) {}
   }
 
   test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 typedef X<T extends A> = Map<int, T>;
@@ -712,7 +712,7 @@ F<B> fff = (throw 42);
   }
 
   test_ofFunctionTypeAlias_hasBound2_matching() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class MyClass<T> {}
 typedef MyFunction<T, P extends MyClass<T>>();
 class A<T, P extends MyClass<T>> {
@@ -722,7 +722,7 @@ class A<T, P extends MyClass<T>> {
   }
 
   test_ofFunctionTypeAlias_hasBound_matching() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 typedef F<T extends A>();
@@ -732,7 +732,7 @@ F<B> fb = (throw 0);
   }
 
   test_ofFunctionTypeAlias_noBound_matching() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F<T>();
 F<int> f1 = (throw 0);
 F<String> f2 = (throw 0);
@@ -776,7 +776,7 @@ class X<T extends A> {
   }
 
   test_regression_42196() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef G<X> = Function(X);
 class A<X extends G<A<X,Y>>, Y extends X> {}
 
@@ -789,7 +789,7 @@ main() {
   }
 
   test_regression_42196_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef G<X> = Function(X);
 class A<X extends G<A<X, Y>>, Y extends Never> {}
 
@@ -802,7 +802,7 @@ main() {
   }
 
   test_regression_42196_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef G<X> = Function(X);
 class A<X extends G<A<X, Y>>, Y extends Never> {}
 
@@ -815,7 +815,7 @@ main() {
   }
 
   test_superBounded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<X extends A<X>> {}
 
 A get foo => throw 0;

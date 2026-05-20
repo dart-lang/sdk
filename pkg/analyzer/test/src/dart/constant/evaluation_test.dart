@@ -31,7 +31,7 @@ main() {
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
   test_asExpression_fromExtensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(42);
@@ -46,7 +46,7 @@ int 42
   }
 
   test_asExpression_fromExtensionType_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int? it) {}
 
 const x = null as E;
@@ -59,7 +59,7 @@ Null null
   }
 
   test_asExpression_null_neverQuestion() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = null as Never?;
 ''');
     var result = _topLevelVar('x');
@@ -70,7 +70,7 @@ Null null
   }
 
   test_asExpression_toExtensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = 42 as E;
@@ -83,7 +83,7 @@ int 42
   }
 
   test_binaryExpression_extensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(2);
@@ -131,7 +131,7 @@ E
   }
 
   test_dotShorthand_equalEqual_constructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -162,7 +162,7 @@ const v = .new() == A();
   }
 
   test_dotShorthand_equalEqual_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   static const A field = A();
@@ -230,7 +230,7 @@ const a = .id;
   }
 
   test_dotShorthand_propertyAccess() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   static const A field = A();
@@ -248,7 +248,7 @@ A
   }
 
   test_dotShorthand_propertyAccess_enum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E { a }
 const E e = .a;
 ''');
@@ -279,7 +279,7 @@ enum E {
 
   /// Enum constants can reference other constants.
   test_enum_enhanced_constants() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E {
   v1(42), v2(v1);
   final Object? a;
@@ -435,7 +435,7 @@ E
   }
 
   test_equalEqual_bool_bool_false() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = true == false;
 ''');
     var result = _topLevelVar('v');
@@ -446,7 +446,7 @@ bool false
   }
 
   test_equalEqual_bool_bool_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = true == true;
 ''');
     var result = _topLevelVar('v');
@@ -457,7 +457,7 @@ bool true
   }
 
   test_equalEqual_double_object() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = 1.2 == Object();
 ''');
     var result = _topLevelVar('v');
@@ -468,7 +468,7 @@ bool false
   }
 
   test_equalEqual_int_int_false() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = 1 == 2;
 ''');
     var result = _topLevelVar('v');
@@ -479,7 +479,7 @@ bool false
   }
 
   test_equalEqual_int_int_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = 1 == 1;
 ''');
     var result = _topLevelVar('v');
@@ -490,7 +490,7 @@ bool true
   }
 
   test_equalEqual_int_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const int? a = 1;
 const v = a == null;
 ''');
@@ -502,7 +502,7 @@ bool false
   }
 
   test_equalEqual_int_object() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = 1 == Object();
 ''');
     var result = _topLevelVar('v');
@@ -513,7 +513,7 @@ bool false
   }
 
   test_equalEqual_int_userClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -552,7 +552,7 @@ const v = 1 == a;
   }
 
   test_equalEqual_list_matchingTypeArgs_explicit() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = <int>[] == <int>[];
 ''');
     var result = _topLevelVar('v');
@@ -563,7 +563,7 @@ bool true
   }
 
   test_equalEqual_list_matchingTypeArgs_inferred() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = [1, 2] == [1, 2];
 ''');
     var result = _topLevelVar('v');
@@ -574,7 +574,7 @@ bool true
   }
 
   test_equalEqual_list_mismatchedTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const <int>[] == const <num>[];
 ''');
     var result = _topLevelVar('v');
@@ -585,7 +585,7 @@ bool false
   }
 
   test_equalEqual_map_matchingTypeArgs_explicit() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = <String, int>{} == <String, int>{};
 ''');
     var result = _topLevelVar('v');
@@ -596,7 +596,7 @@ bool true
   }
 
   test_equalEqual_map_matchingTypeArgs_inferred() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = {'x': 1, 'y': 2} == {'x': 1, 'y': 2};
 ''');
     var result = _topLevelVar('v');
@@ -607,7 +607,7 @@ bool true
   }
 
   test_equalEqual_map_mismatchedTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const <String, int>{} == const <String, num>{};
 ''');
     var result = _topLevelVar('v');
@@ -618,7 +618,7 @@ bool false
   }
 
   test_equalEqual_null_object() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const Object? a = null;
 const v = a == Object();
 ''');
@@ -630,7 +630,7 @@ bool false
   }
 
   test_equalEqual_set_matchingTypeArgs_explicit() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = <int>{} == <int>{};
 ''');
     var result = _topLevelVar('v');
@@ -641,7 +641,7 @@ bool true
   }
 
   test_equalEqual_set_matchingTypeArgs_inferred() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = {1, 2} == {1, 2};
 ''');
     var result = _topLevelVar('v');
@@ -652,7 +652,7 @@ bool true
   }
 
   test_equalEqual_set_mismatchedTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const <int>{} == const <num>{};
 ''');
     var result = _topLevelVar('v');
@@ -663,7 +663,7 @@ bool false
   }
 
   test_equalEqual_string_object() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = 'foo' == Object();
 ''');
     var result = _topLevelVar('v');
@@ -706,7 +706,7 @@ const v = A() == 0;
   }
 
   test_equalEqual_userClass_hasPrimitiveEquality_false() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int f;
   const A(this.f);
@@ -738,7 +738,7 @@ const v = A() == 0;
   }
 
   test_equalEqual_userClass_hasPrimitiveEquality_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int f;
   const A(this.f);
@@ -768,14 +768,14 @@ const v = A() == A();
   }
 
   test_hasPrimitiveEquality_bool() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = true;
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_class_hasEqEq() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const A();
 
 class A {
@@ -787,7 +787,7 @@ class A {
   }
 
   test_hasPrimitiveEquality_class_hasEqEq_language219() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 const v = const A();
 
@@ -800,7 +800,7 @@ class A {
   }
 
   test_hasPrimitiveEquality_class_hasHashCode() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const A();
 
 class A {
@@ -812,7 +812,7 @@ class A {
   }
 
   test_hasPrimitiveEquality_class_hasHashCode_language219() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 const v = const A();
 
@@ -825,7 +825,7 @@ class A {
   }
 
   test_hasPrimitiveEquality_class_hasNone() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const A();
 
 class A {
@@ -836,14 +836,14 @@ class A {
   }
 
   test_hasPrimitiveEquality_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = 1.2;
 ''');
     _assertHasPrimitiveEqualityFalse('v');
   }
 
   test_hasPrimitiveEquality_functionReference_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = A.foo;
 
 class A {
@@ -854,7 +854,7 @@ class A {
   }
 
   test_hasPrimitiveEquality_functionReference_topLevelFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = foo;
 
 void foo() {}
@@ -863,84 +863,84 @@ void foo() {}
   }
 
   test_hasPrimitiveEquality_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = 0;
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_list() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const [0];
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_map() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const <int, String>{0: ''};
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = null;
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_record_named_false() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = (f1: true, f2: 1.2);
 ''');
     _assertHasPrimitiveEqualityFalse('v');
   }
 
   test_hasPrimitiveEquality_record_named_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = (f1: true, f2: 0);
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_record_positional_false() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = (true, 1.2);
 ''');
     _assertHasPrimitiveEqualityFalse('v');
   }
 
   test_hasPrimitiveEquality_record_positional_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = (true, 0);
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_set() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = const {0};
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_symbol() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = #foo.bar;
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_hasPrimitiveEquality_type() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const v = int;
 ''');
     _assertHasPrimitiveEqualityTrue('v');
   }
 
   test_identical_extensionType_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type E(int it) {}
 
 class A {
@@ -961,7 +961,7 @@ A
   }
 
   test_identical_extensionType_types_recursive() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = identical(ExList<ExInt>, List<int>);
 
 extension type const ExInt(int value) implements int {}
@@ -975,7 +975,7 @@ bool true
   }
 
   test_identical_type_functionType_different() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = identical(typeof<void Function()>, typeof<void Function()?>);
 typedef typeof<T> = T;
 ''');
@@ -987,7 +987,7 @@ bool false
   }
 
   test_identical_type_functionType_same() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = identical(typeof<void Function()>, typeof<void Function()>);
 typedef typeof<T> = T;
 ''');
@@ -999,7 +999,7 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_differentTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const c = identical(C<int>, C<String>);
 ''');
@@ -1011,7 +1011,7 @@ bool false
   }
 
   test_identical_typeLiteral_explicitTypeArgs_differentTypes() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
 const c = identical(C<int>, D<int>);
@@ -1024,7 +1024,7 @@ bool false
   }
 
   test_identical_typeLiteral_explicitTypeArgs_sameType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const c = identical(C<int>, C<int>);
 ''');
@@ -1036,7 +1036,7 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_simpleTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC = C<int>;
 const c = identical(C<int>, TC);
@@ -1049,7 +1049,7 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC<T> = C<T>;
 const c = identical(C<int>, TC<int>);
@@ -1062,7 +1062,7 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias_differentTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC<T> = C<T>;
 const c = identical(C<int>, TC<String>);
@@ -1075,7 +1075,7 @@ bool false
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias_implicitTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC<T> = C<T>;
 const c = identical(C<dynamic>, TC);
@@ -1088,7 +1088,7 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias_implicitTypeArgs_bound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T extends num> {}
 typedef TC<T extends num> = C<T>;
 const c = identical(C<num>, TC);
@@ -1101,7 +1101,7 @@ bool true
   }
 
   test_identical_typeLiteral_simple_differentTypes() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = identical(int, String);
 ''');
     var result = _topLevelVar('c');
@@ -1112,7 +1112,7 @@ bool false
   }
 
   test_identical_typeLiteral_simple_sameType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = identical(int, int);
 ''');
     var result = _topLevelVar('c');
@@ -1131,7 +1131,7 @@ class A<T> {
 const Object a = const A(0);
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 const b = a;
@@ -1152,7 +1152,7 @@ A<int>
   }
 
   test_instanceCreationExpression_custom_generic_extensionType_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 class C<T> {
@@ -1174,7 +1174,7 @@ C<int>
   }
 
   test_instanceCreationExpression_custom_generic_extensionType_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 class C<T> {
@@ -1202,7 +1202,7 @@ C<int>
   }
 
   test_instanceCreationExpression_extensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = E(42);
@@ -1216,7 +1216,7 @@ int 42
   }
 
   test_isExpression_fromExtensionType_false() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(42);
@@ -1230,7 +1230,7 @@ bool false
   }
 
   test_isExpression_fromExtensionType_true() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(42);
@@ -1244,7 +1244,7 @@ bool true
   }
 
   test_isExpression_toExtensionType_false() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(String it) {}
 
 const x = 42 is E;
@@ -1257,7 +1257,7 @@ bool false
   }
 
   test_isExpression_toExtensionType_true() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = 42 is E;
@@ -1270,7 +1270,7 @@ bool true
   }
 
   test_listLiteral_extensionType_explicitType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = <E>[];
@@ -1285,7 +1285,7 @@ List
   }
 
   test_listLiteral_extensionType_inferredType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = [E(0), E(1)];
@@ -1305,7 +1305,7 @@ List
   }
 
   test_mapLiteral_extensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = {E(0): E(1)};
@@ -1331,7 +1331,7 @@ Map
 const a = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 void f(Object? x) {
@@ -1341,7 +1341,7 @@ void f(Object? x) {
   }
 
   test_privateNamedParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final int _x;
   final int _y;
@@ -1365,7 +1365,7 @@ C
   }
 
   test_propertyAccess_nullAware_dynamic_length_notNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic d = 'foo';
 const int? c = d?.length;
 ''');
@@ -1377,7 +1377,7 @@ int 3
   }
 
   test_propertyAccess_nullAware_dynamic_length_null() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic d = null;
 const int? c = d?.length;
 ''');
@@ -1389,7 +1389,7 @@ Null null
   }
 
   test_propertyAccess_nullAware_list_length_null() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const List? l = null;
 const int? c = l?.length;
 ''');
@@ -1401,7 +1401,7 @@ Null null
   }
 
   test_propertyAccess_nullAware_string_length_notNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const String? s = 'foo';
 const int? c = s?.length;
 ''');
@@ -1413,7 +1413,7 @@ int 3
   }
 
   test_propertyAccess_nullAware_string_length_null() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const String? s = null;
 const int? c = s?.length;
 ''');
@@ -1425,7 +1425,7 @@ Null null
   }
 
   test_recordTypeAnnotation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = ('',) is (int,);
 ''');
     var result = _topLevelVar('a');
@@ -1487,7 +1487,7 @@ const v2 = v1 + 2;
   }
 
   test_visitBinaryExpression_extensionType_implementsInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type const A(int it) implements int {}
 
 const v1 = A(1);
@@ -1501,7 +1501,7 @@ int 3
   }
 
   test_visitBinaryExpression_gt_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 2 > 3;
 ''');
     var result = _topLevelVar('c');
@@ -1512,7 +1512,7 @@ bool false
   }
 
   test_visitBinaryExpression_gte_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 2 >= 3;
 ''');
     var result = _topLevelVar('c');
@@ -1523,7 +1523,7 @@ bool false
   }
 
   test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 8;
 ''');
     var result = _topLevelVar('c');
@@ -1535,7 +1535,7 @@ int 0xffffff
   }
 
   test_visitBinaryExpression_gtGtGt_negative_moreBits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 33;
 ''');
     var result = _topLevelVar('c');
@@ -1546,7 +1546,7 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_negative_moreThan64Bits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 65;
 ''');
     var result = _topLevelVar('c');
@@ -1568,7 +1568,7 @@ const c = 0xFFFFFFFF >>> -2;
   }
 
   test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 0;
 ''');
     var result = _topLevelVar('c');
@@ -1580,7 +1580,7 @@ int 0xffffffff
   }
 
   test_visitBinaryExpression_gtGtGt_positive_fewerBits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 3;
 ''');
     var result = _topLevelVar('c');
@@ -1592,7 +1592,7 @@ int 0x1f
   }
 
   test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 9;
 ''');
     var result = _topLevelVar('c');
@@ -1603,7 +1603,7 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_positive_moreThan64Bits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 65;
 ''');
     var result = _topLevelVar('c');
@@ -1625,7 +1625,7 @@ const c = 0xFF >>> -2;
   }
 
   test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 0;
 ''');
     var result = _topLevelVar('c');
@@ -1637,7 +1637,7 @@ int 0xff
   }
 
   test_visitBinaryExpression_lt_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 2 < 3;
 ''');
     var result = _topLevelVar('c');
@@ -1648,7 +1648,7 @@ bool true
   }
 
   test_visitBinaryExpression_lte_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 2 <= 3;
 ''');
     var result = _topLevelVar('c');
@@ -1699,7 +1699,7 @@ const c = null ? 1 : 0;
   }
 
   test_visitConditionalExpression_instantiatedFunctionType_variable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T p, {T? q}) {}
 
 const void Function<T>(T p) g = f;
@@ -1718,7 +1718,7 @@ void Function(int, {int? q})
   }
 
   test_visitConditionalExpression_unknownCondition() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? 0 : 1;
 ''');
@@ -1822,7 +1822,7 @@ class A {
   }
 
   test_visitConstructorReference_generic_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.foo();
 }
@@ -1839,7 +1839,7 @@ C<int> Function()
   }
 
   test_visitConstructorReference_generic_unnamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
 }
@@ -1856,7 +1856,7 @@ C<int> Function()
   }
 
   test_visitConstructorReference_identical_aliasIsNotGeneric() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC = C<int>;
 const a = identical(MyC.new, C<int>.new);
@@ -1869,7 +1869,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentBound() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC.new, C.new);
@@ -1882,7 +1882,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C<T, int>;
 const a = identical(MyC.new, C.new);
@@ -1895,7 +1895,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C;
 const a = identical(MyC.new, C.new);
@@ -1908,7 +1908,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentOrder() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T, U> = C<U, T>;
 const a = identical(MyC.new, C.new);
@@ -1921,7 +1921,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, C<int>.new);
@@ -1934,7 +1934,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_mixedInstantiations() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, (MyC.new)<int>);
@@ -1947,7 +1947,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
@@ -1960,7 +1960,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_mixedInstantiations() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC<int>.new, (MyC.new)<int>);
@@ -1973,7 +1973,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends Object?> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
@@ -1986,7 +1986,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_futureOr() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class C<T extends FutureOr<num>> {}
 typedef MyC<T extends num> = C<T>;
@@ -2000,7 +2000,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_uninstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC.new, MyC.new);
@@ -2013,7 +2013,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_differentClasses() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
 const a = identical(C<int>.new, D<int>.new);
@@ -2026,7 +2026,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_differentConstructors() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
   C.named();
@@ -2041,7 +2041,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_differentTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<String>.new);
 ''');
@@ -2053,7 +2053,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_sameElement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<int>.new);
 ''');
@@ -2065,7 +2065,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_inferredTypeArgs_sameElement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const C<int> Function() c1 = C.new;
 const c2 = C<int>.new;
@@ -2079,7 +2079,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_notInstantiated_differentClasses() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
 const a = identical(C.new, D.new);
@@ -2092,7 +2092,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_notInstantiated_differentConstructors() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
   C.named();
@@ -2107,7 +2107,7 @@ bool false
   }
 
   test_visitConstructorReference_identical_notInstantiated_sameElement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C.new, C.new);
 ''');
@@ -2119,7 +2119,7 @@ bool true
   }
 
   test_visitConstructorReference_identical_onlyOneHasTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C.new);
 ''');
@@ -2131,7 +2131,7 @@ bool false
   }
 
   test_visitConstructorReference_nonGeneric_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.foo();
 }
@@ -2148,7 +2148,7 @@ C<int> Function()
   }
 
   test_visitConstructorReference_nonGeneric_unnamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C();
 }
@@ -2179,7 +2179,7 @@ class C<T> {
   }
 
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const b = true;
 void foo<T>(T a) {}
 void bar<T>(T a) {}
@@ -2196,7 +2196,7 @@ void Function(int)
   }
 
   test_visitFunctionReference_explicitTypeArgs_complexExpression_differentTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const b = true;
 void foo<T>(String a, T b) {}
 void bar<T>(T a, String b) {}
@@ -2213,7 +2213,7 @@ void Function(String, int)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_constantType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 const g = f<int>;
 ''');
@@ -2305,7 +2305,7 @@ class C<U> {
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentElements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = identical(foo<int>, bar<int>);
@@ -2318,7 +2318,7 @@ bool false
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentTypeArgs() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<String>);
 ''');
@@ -2330,7 +2330,7 @@ bool false
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_onlyOneHasTypeArgs() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo);
 ''');
@@ -2342,7 +2342,7 @@ bool false
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_sameElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<int>);
 ''');
@@ -2354,7 +2354,7 @@ bool true
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_sameElement_runtimeTypeEquality() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 void foo<T>(T a) {}
 const g = identical(foo<Object>, foo<FutureOr<Object>>);
@@ -2367,7 +2367,7 @@ bool true
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_differentElements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = identical(foo<int>, bar<int>);
@@ -2380,7 +2380,7 @@ bool false
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_differentTypeArgs() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<String>);
 ''');
@@ -2392,7 +2392,7 @@ bool false
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_onlyOneHasTypeArgs() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo);
 ''');
@@ -2404,7 +2404,7 @@ bool false
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_sameElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<int>);
 ''');
@@ -2416,7 +2416,7 @@ bool true
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_sameElement_runtimeTypeEquality() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 void foo<T>(T a) {}
 const g = identical(foo<Object>, foo<FutureOr<Object>>);
@@ -2429,7 +2429,7 @@ bool true
   }
 
   test_visitFunctionReference_identical_implicitTypeArgs_differentTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(String) g = foo;
@@ -2443,7 +2443,7 @@ bool false
   }
 
   test_visitFunctionReference_identical_implicitTypeArgs_sameTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(int) g = foo;
@@ -2457,7 +2457,7 @@ bool true
   }
 
   test_visitFunctionReference_identical_uninstantiated_sameElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const c = identical(foo, foo);
 ''');
@@ -2469,7 +2469,7 @@ bool true
   }
 
   test_visitFunctionReference_implicitTypeArgs_identical_differentTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(String) g = foo;
@@ -2483,7 +2483,7 @@ bool false
   }
 
   test_visitFunctionReference_implicitTypeArgs_identical_sameTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(int) g = foo;
@@ -2497,7 +2497,7 @@ bool true
   }
 
   test_visitFunctionReference_uninstantiated_complexExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const b = true;
 void foo<T>(T a) {}
 void bar<T>(T a) {}
@@ -2512,7 +2512,7 @@ void Function<T>(T)
   }
 
   test_visitFunctionReference_uninstantiated_functionName() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 const g = f;
 ''');
@@ -2525,7 +2525,7 @@ void Function<T>(T)
   }
 
   test_visitFunctionReference_uninstantiated_identical_sameElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const c = identical(foo, foo);
 ''');
@@ -2554,7 +2554,7 @@ test() {
   }
 
   test_visitFunctionReference_wildcard_top() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void _() {}
 const c = _;
 ''');
@@ -2681,7 +2681,7 @@ const a = B();
   }
 
   test_visitInstanceCreationExpression_noArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -2710,7 +2710,7 @@ const a = A();
   }
 
   test_visitInstanceCreationExpression_simpleArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A(int x);
 }
@@ -2810,7 +2810,7 @@ bool true
   }
 
   test_visitIsExpression_is_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is A;
 class A {}
@@ -2823,7 +2823,7 @@ bool false
   }
 
   test_visitIsExpression_is_null_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is A?;
 class A {}
@@ -2836,7 +2836,7 @@ bool true
   }
 
   test_visitIsExpression_is_null_object() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is Object;
 ''');
@@ -2887,7 +2887,7 @@ bool false
   }
 
   test_visitIsExpression_isNot_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is! A;
 class A {}
@@ -2937,7 +2937,7 @@ const x = [1, if (1) 2 else 3, 4];
   }
 
   test_visitListLiteral_listElement_explicitType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = <String>['a', 'b', 'c'];
 ''');
     var result = _topLevelVar('x');
@@ -2953,7 +2953,7 @@ List
   }
 
   test_visitListLiteral_listElement_explicitType_functionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = <void Function()>[];
 ''');
     var result = _topLevelVar('x');
@@ -2978,7 +2978,7 @@ class A {
   }
 
   test_visitListLiteral_listElement_field_static() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const String bar = '';
   const A();
@@ -2988,7 +2988,7 @@ class A {
   }
 
   test_visitListLiteral_listElement_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = ['a', 'b', 'c'];
 ''');
     var result = _topLevelVar('x');
@@ -3004,7 +3004,7 @@ List
   }
 
   test_visitListLiteral_listElement_variableElements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 const b = 2;
 const c = [a, 1, b];
@@ -3036,7 +3036,7 @@ const x = <int>[...a];
   }
 
   test_visitListLiteral_spreadElement_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 const List<String> x = [
   'anotherString',
@@ -3054,7 +3054,7 @@ List
   }
 
   test_visitListLiteral_spreadElement_set() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = {'string'};
 const List<String> x = [
   'anotherString',
@@ -3107,7 +3107,7 @@ void f<T>(Object? x) {
   }
 
   test_visitPrefixedIdentifier_function() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f(int a) {}
 const g = self.f;
@@ -3121,7 +3121,7 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericFunction_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f<T>(T a) {}
 const void Function(int) g = self.f;
@@ -3137,7 +3137,7 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericFunction_instantiatedNonIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const b = false;
 const g1 = f;
@@ -3155,7 +3155,7 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericFunction_instantiatedPrefixed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f<T>(T a) {}
 const g = f;
@@ -3172,7 +3172,7 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericVariable_uninstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f<T>(T a) {}
 const g = f;
@@ -3218,7 +3218,7 @@ class RequiresNonEmptyList {
   }
 
   test_visitPrefixExpression_bitNot() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = ~42;
 ''');
     var result = _topLevelVar('c');
@@ -3261,7 +3261,7 @@ const v2 = -v1;
   }
 
   test_visitPrefixExpression_extensionType_implementsInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type const A(int it) implements int {}
 
 const v1 = A(1);
@@ -3275,7 +3275,7 @@ int -1
   }
 
   test_visitPrefixExpression_logicalNot() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = !true;
 ''');
     var result = _topLevelVar('c');
@@ -3298,7 +3298,7 @@ const c = -true;
   }
 
   test_visitPrefixExpression_negated_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = -42.3;
 ''');
     var result = _topLevelVar('c');
@@ -3309,7 +3309,7 @@ double -42.3
   }
 
   test_visitPrefixExpression_negated_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = -42;
 ''');
     var result = _topLevelVar('c');
@@ -3320,7 +3320,7 @@ int -42
   }
 
   test_visitPropertyAccess_length_complex() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const x = ('qwe' + 'rty').length;
 ''');
     var result = _topLevelVar('x');
@@ -3331,7 +3331,7 @@ int 6
   }
 
   test_visitPropertyAccess_length_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const x = 'Dvorak'.length;
 ''');
     var result = _topLevelVar('x');
@@ -3342,7 +3342,7 @@ int 6
   }
 
   test_visitPropertyAccess_staticMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class C {
   static void f(int a) {}
@@ -3358,7 +3358,7 @@ void Function(int)
   }
 
   test_visitPropertyAccess_staticMethod_generic_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class C {
   static void f<T>(T a) {}
@@ -3376,7 +3376,7 @@ void Function(int)
   }
 
   test_visitPropertyAccess_staticMethod_ofExtension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   static int f(String s) => 7;
@@ -3392,7 +3392,7 @@ int Function(String)
   }
 
   test_visitPropertyAccess_staticMethod_ofExtensionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension type ET(int it) {
   static int f(String s) => 7;
@@ -3408,7 +3408,7 @@ int Function(String)
   }
 
   test_visitRecordLiteral_inConstructorInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final bool b;
   const A(r) : b = r is (int, ) ? true : true;
@@ -3417,7 +3417,7 @@ class A {
   }
 
   test_visitRecordLiteral_mixedTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = (0, f1: 10, f2: 2.3);
 ''');
     var result = _topLevelVar('x');
@@ -3433,7 +3433,7 @@ Record(int, {int f1, double f2})
   }
 
   test_visitRecordLiteral_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = (f1: 10, f2: -3);
 ''');
     var result = _topLevelVar('x');
@@ -3457,7 +3457,7 @@ final bar = '';
   }
 
   test_visitRecordLiteral_objectField_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final (T, T) record;
   const A(T a) : record = (a, a);
@@ -3483,7 +3483,7 @@ A<int>
   }
 
   test_visitRecordLiteral_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = (20, 0, 7);
 ''');
     var result = _topLevelVar('x');
@@ -3508,7 +3508,7 @@ final bar = '';
   }
 
   test_visitRecordLiteral_withoutEnvironment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = (1, 'b', c: false);
 ''');
     var result = _topLevelVar('a');
@@ -3565,7 +3565,7 @@ const anotherList = [...ambiguous];
   }
 
   test_visitSetOrMapLiteral_map_complexKey() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -3634,7 +3634,7 @@ const c = const {if (nonBool) 'a' : 1};
   }
 
   test_visitSetOrMapLiteral_map_mapElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {'a' : 'm', 'b' : 'n', 'c' : 'o'};
 ''');
     var result = _topLevelVar('x');
@@ -3655,7 +3655,7 @@ Map
   }
 
   test_visitSetOrMapLiteral_map_spread() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const x = {'string': 1};
 const Map<String, int> alwaysInclude = {
   'anotherString': 0,
@@ -3690,7 +3690,7 @@ const Map<String, int> alwaysInclude = {
   }
 
   test_visitSetOrMapLiteral_map_spread_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 const Map<String, int> x = {
   'anotherString': 0,
@@ -3709,7 +3709,7 @@ Map
   }
 
   test_visitSetOrMapLiteral_set_double_zeros() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final double x;
   const C(this.x);
@@ -3770,7 +3770,7 @@ const c = const {if (nonBool) 3};
   }
 
   test_visitSetOrMapLiteral_set_spread_list() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = ['string'];
 const Set<String> x = {
   'anotherString',
@@ -3788,7 +3788,7 @@ Set
   }
 
   test_visitSetOrMapLiteral_set_spread_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 const Set<String> x = {
   'anotherString',
@@ -3805,7 +3805,7 @@ Set
   }
 
   test_visitSimpleIdentifier_className() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = C;
 class C {}
 ''');
@@ -3819,7 +3819,7 @@ Type
   }
 
   test_visitSimpleIdentifier_extensionTypeName() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = E;
 extension type E(int it);
 ''');
@@ -3833,7 +3833,7 @@ Type
   }
 
   test_visitSimpleIdentifier_extensionTypeObject() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = E(0);
 extension type const E(int it);
 ''');
@@ -3846,7 +3846,7 @@ int 0
   }
 
   test_visitSimpleIdentifier_function() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(int a) {}
 const g = f;
 ''');
@@ -3859,7 +3859,7 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericFunction_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const void Function(int) g = f;
 ''');
@@ -3874,7 +3874,7 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericFunction_nonGeneric() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(int a) {}
 const void Function(int) g = f;
 ''');
@@ -3887,7 +3887,7 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericVariable_instantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const g = f;
 const void Function(int) h = g;
@@ -3903,7 +3903,7 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericVariable_uninstantiated() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const g = f;
 const h = g;
@@ -3917,7 +3917,7 @@ void Function<T>(T)
   }
 
   test_visitSimpleIdentifier_instantiatedFunctionType_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, {T? b}) {}
 
 class C {
@@ -3936,7 +3936,7 @@ void Function(int, {int? b})
   }
 
   test_visitSimpleIdentifier_instantiatedFunctionType_parameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, {T? b}) {}
 
 class C {
@@ -3963,7 +3963,7 @@ C
   }
 
   test_visitSimpleIdentifier_instantiatedFunctionType_variable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, {T? b}) {}
 
 const void Function<T>(T a) g = f;
@@ -4231,7 +4231,7 @@ const c = {1, ...{2, 3}, 4};
   }
 
   test_visitAdjacentInterpolation_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 'abc' 'def';
 ''');
     var result = _topLevelVar('c');
@@ -4307,7 +4307,7 @@ class B {
   }
 
   test_visitAsExpression_potentialConst() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -4320,7 +4320,7 @@ class MyClass {
   }
 
   test_visitBinaryExpression_add_double_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 2.3 + 3.2;
 ''');
     var result = _topLevelVar('c');
@@ -4348,7 +4348,7 @@ const c = C() + 1;
   }
 
   test_visitBinaryExpression_add_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 2 + 3;
 ''');
     var result = _topLevelVar('c');
@@ -4359,7 +4359,7 @@ int 5
   }
 
   test_visitBinaryExpression_add_string_string() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 'a' + 'b';
 ''');
     var result = _topLevelVar('c');
@@ -4370,7 +4370,7 @@ String ab
   }
 
   test_visitBinaryExpression_and_bool_bool() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = true && false;
 ''');
     var result = _topLevelVar('c');
@@ -4460,7 +4460,7 @@ const c = a & b;
   }
 
   test_visitBinaryExpression_and_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 74 & 42;
 ''');
     var result = _topLevelVar('c');
@@ -4483,7 +4483,7 @@ const c = 3 & false;
   }
 
   test_visitBinaryExpression_divide_double_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3.2 / 2.3;
 ''');
     var result = _topLevelVar('c');
@@ -4494,7 +4494,7 @@ double 1.3913043478260871
   }
 
   test_visitBinaryExpression_divide_double_double_byZero() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3.2 / 0.0;
 ''');
     var result = _topLevelVar('c');
@@ -4505,7 +4505,7 @@ double Infinity
   }
 
   test_visitBinaryExpression_divide_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3 / 2;
 ''');
     var result = _topLevelVar('c');
@@ -4516,7 +4516,7 @@ double 1.5
   }
 
   test_visitBinaryExpression_divide_int_int_byZero() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3 / 0;
 ''');
     var result = _topLevelVar('c');
@@ -4559,7 +4559,7 @@ bool false
   }
 
   test_visitBinaryExpression_minus_double_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3.2 - 2.3;
 ''');
     var result = _topLevelVar('c');
@@ -4570,7 +4570,7 @@ double 0.9000000000000004
   }
 
   test_visitBinaryExpression_minus_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3 - 2;
 ''');
     var result = _topLevelVar('c');
@@ -4581,7 +4581,7 @@ int 1
   }
 
   test_visitBinaryExpression_notEqual_bool_bool() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = true != false;
 ''');
     var result = _topLevelVar('c');
@@ -4592,7 +4592,7 @@ bool true
   }
 
   test_visitBinaryExpression_notEqual_int_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 2 != 3;
 ''');
     var result = _topLevelVar('c');
@@ -4627,7 +4627,7 @@ const c = 2 != a;
   }
 
   test_visitBinaryExpression_notEqual_string_string() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 'a' != 'b';
 ''');
     var result = _topLevelVar('c');
@@ -4843,7 +4843,7 @@ const c = 3 ^ false;
   }
 
   test_visitBoolLiteral_false() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = false;
 ''');
     var result = _topLevelVar('c');
@@ -4855,7 +4855,7 @@ bool false
   }
 
   test_visitBoolLiteral_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = true;
 ''');
     var result = _topLevelVar('c');
@@ -5031,7 +5031,7 @@ const c = identical(0, 0.0) ? 1 : new Object();
   }
 
   test_visitDoubleLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3.45;
 ''');
     var result = _topLevelVar('c');
@@ -5051,7 +5051,7 @@ const double d = 3;
   }
 
   test_visitIntegerLiteral_integer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = 3;
 ''');
     var result = _topLevelVar('c');
@@ -5062,7 +5062,7 @@ int 3
   }
 
   test_visitIsExpression_is_functionType_badTypes() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void foo(int a) {}
 const c = foo is void Function(String);
 ''');
@@ -5074,7 +5074,7 @@ bool false
   }
 
   test_visitIsExpression_is_functionType_nonFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = false is void Function();
 ''');
     var result = _topLevelVar('c');
@@ -5085,7 +5085,7 @@ bool false
   }
 
   test_visitIsExpression_is_instanceOfSuperclass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is B;
 class A {
@@ -5103,7 +5103,7 @@ bool false
   }
 
   test_visitIsExpression_is_instanceOfUnrelatedClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is B;
 class A {
@@ -5153,7 +5153,7 @@ bool true
   }
 
   test_visitIsExpression_isNot_instanceOfSuperclass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is! B;
 class A {
@@ -5171,7 +5171,7 @@ bool true
   }
 
   test_visitIsExpression_isNot_instanceOfUnrelatedClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is! B;
 class A {
@@ -5189,7 +5189,7 @@ bool true
   }
 
   test_visitNullLiteral_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const c = null;
 ''');
     var result = _topLevelVar('c');
@@ -5200,7 +5200,7 @@ Null null
   }
 
   test_visitParenthesizedExpression_string() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = ('a');
 ''');
     var result = _topLevelVar('a');
@@ -5217,7 +5217,7 @@ extension type const E(int it) {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as prefix;
 
 const x = prefix.E.v;
@@ -5281,7 +5281,7 @@ const v2 = v1.length;
   }
 
   test_visitPropertyAccess_length_extensionType_implementsString() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension type const A(String it) implements String {}
 
 const v1 = A('abc');
@@ -5336,7 +5336,7 @@ const a = dynamic;
   }
 
   test_visitSimpleIdentifier_variable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = 42;
 const b = a;
 ''');
@@ -5364,14 +5364,14 @@ test() {
   }
 
   test_visitSimpleIdentifier_wildcard_top() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const _ = true;
 const c = _;
 ''');
   }
 
   test_visitSimpleIdentifier_withoutEnvironment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = b;
 const b = 3;''');
     var result = _topLevelVar('a');
@@ -5382,7 +5382,7 @@ int 3
   }
 
   test_visitSimpleStringLiteral_valid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 'abc';
 ''');
     var result = _topLevelVar('c');
@@ -5405,7 +5405,7 @@ const c = 'a${f()}c';
   }
 
   test_visitStringInterpolation_valid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 'a${3}c';
 ''');
     var result = _topLevelVar('c');
@@ -5557,7 +5557,7 @@ const a = const A<int?>();
   }
 
   test_assertInitializer_assertIsNot_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : assert(0 is! String);
 }
@@ -5677,7 +5677,7 @@ const c = const A(E.a);
   }
 
   test_assertInitializer_enum_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 class A {
   const A(E e) : assert(e != E.a);
@@ -5792,7 +5792,7 @@ const a = const A(1);
   }
 
   test_assertInitializer_intInDoubleContext_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A(double x): assert((x + 3) / 2 == 1.5);
 }
@@ -6008,7 +6008,7 @@ const a = const A(0);
   }
 
   test_assertInitializer_usingArgument_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A(int x): assert(x > 0);
 }
@@ -6026,7 +6026,7 @@ A
   }
 
   test_bool_fromEnvironment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('a');
 const b = bool.fromEnvironment('b', defaultValue: true);
 ''');
@@ -6049,7 +6049,7 @@ bool true
 
   /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsInterop() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_interop');
 ''');
     var result = _topLevelVar('a');
@@ -6061,7 +6061,7 @@ const a = bool.fromEnvironment('dart.library.js_interop');
 
   /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsUtil() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 ''');
     var result = _topLevelVar('a');
@@ -6072,7 +6072,7 @@ const a = bool.fromEnvironment('dart.library.js_util');
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list_eqeq_known() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = [3, if (a) ...[1] else ...[1, 2], 4];
 const left = [3, 1, 2, 4] == b;
@@ -6091,7 +6091,7 @@ const right = b == [3, 1, 2, 4];
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list_eqeq_unknown() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = [3, if (a) ...[1] else ...[1, 2], 4];
 const left = [3, if (a) ...[1] else ...[1, 2], 4] == b;
@@ -6110,7 +6110,7 @@ const right = b == [3, if (a) ...[1] else ...[1, 2], 4];
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 ''');
@@ -6122,7 +6122,7 @@ const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map_eqeq_known() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 const left = {3:'3', 2:'2', 4:'4'} == b;
@@ -6141,7 +6141,7 @@ const right = b == {3:'3', 2:'2', 4:'4'};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map_eqeq_unknown() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 const left = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'} == b;
@@ -6175,7 +6175,7 @@ class A {
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = {3, if (a) ...[1] else ...[1, 2], 4};
 ''');
@@ -6187,7 +6187,7 @@ const x = {3, if (a) ...[1] else ...[1, 2], 4};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set_eqeq_known() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3, if (a) ...[1] else ...[1, 2], 4};
 const left = {3, 1, 4} == b;
@@ -6206,7 +6206,7 @@ const right = b == {3, 1, 4};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set_eqeq_unknown() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3, if (a) ...[1] else ...[1, 2], 4};
 const left = {3, if (a) ...[1] else ...[1, 2], 4} == b;
@@ -6240,7 +6240,7 @@ class A {
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = [3, if (a) ...[1] else ...[1, 2], 4];
 ''');
@@ -6267,7 +6267,7 @@ class A {
   }
 
   test_bool_hasEnvironment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = bool.hasEnvironment('a');
 ''');
     assertDartObjectText(_topLevelVar('a'), '''
@@ -6448,7 +6448,7 @@ const a = A(0);
   }
 
   test_class_primaryConstructor_assert_true() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   this : assert(x > 0);
 }
@@ -6465,7 +6465,7 @@ A
   }
 
   test_class_primaryConstructor_constructorFieldInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y;
   this : y = x + 1;
@@ -6614,7 +6614,7 @@ A
   }
 
   test_class_primaryConstructor_fieldInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
 }
@@ -6643,7 +6643,7 @@ class const A(int x) {
   }
 
   test_class_primaryConstructor_fieldInitializer_multipleInvocations() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
 }
@@ -6671,7 +6671,7 @@ A
   }
 
   test_class_primaryConstructor_fieldInitializer_topLevel_constant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = 1;
 class const A() {
   final int y = x + 2;
@@ -6717,7 +6717,7 @@ class const A(int p) {
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalNamed_noArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A({final int x = 1});
 const a = A();
 ''');
@@ -6731,7 +6731,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalNamed_withArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A({final int x = 1});
 const a = A(x: 2);
 ''');
@@ -6747,7 +6747,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalPositional_noArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A([final int x = 1]);
 const a = A();
 ''');
@@ -6761,7 +6761,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalPositional_withArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A([final int x = 1]);
 const a = A(2);
 ''');
@@ -6777,7 +6777,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_requiredNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A({required final int x});
 const a = A(x: 1);
 ''');
@@ -6793,7 +6793,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(final int x);
 const a = A(1);
 ''');
@@ -6809,7 +6809,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalNamed_noArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A({this.x = 1}) {
   final int x;
 }
@@ -6825,7 +6825,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalNamed_withArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A({this.x = 1}) {
   final int x;
 }
@@ -6843,7 +6843,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalPositional_noArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A([this.x = 1]) {
   final int x;
 }
@@ -6859,7 +6859,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalPositional_withArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A([this.x = 1]) {
   final int x;
 }
@@ -6877,7 +6877,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A({required this.x}) {
   final int x;
 }
@@ -6895,7 +6895,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredNamed_generic_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A<T>({required this.f}) {
   final T f;
 }
@@ -6916,7 +6916,7 @@ A<int>
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(this.x) {
   final int x;
 }
@@ -6934,7 +6934,7 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredPositional_generic_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A<T>(this.f) {
   final T f;
 }
@@ -6955,7 +6955,7 @@ A<int>
   }
 
   test_class_primaryConstructor_formalParameter_normal_usedInSuperInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -6982,7 +6982,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalNamed_noArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A({this.x = 1});
@@ -7005,7 +7005,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalNamed_withArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A({this.x = 1});
@@ -7030,7 +7030,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalPositional_noArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A([this.x = 1]);
@@ -7053,7 +7053,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalPositional_withArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A([this.x = 1]);
@@ -7078,7 +7078,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_requiredNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A({required this.x});
@@ -7103,7 +7103,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -7168,7 +7168,7 @@ class const B() extends A {
   }
 
   test_class_primaryConstructor_redirect_fieldInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
   const A.named(int z) : this(z * 2);
@@ -7213,7 +7213,7 @@ A
   }
 
   test_class_primaryConstructor_superParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -7268,7 +7268,7 @@ const A a = .new();
   }
 
   test_dotShorthand_assertInitializer_assertIsNot_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : assert(0 is! String);
 }
@@ -7314,7 +7314,7 @@ const A a = .new(.a);
   }
 
   test_dotShorthand_assertInitializer_enum_true() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 class A {
   const A(E e) : assert(e != .a);
@@ -7363,7 +7363,7 @@ B
   }
 
   test_dotShorthand_bool_fromEnvironment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const bool a = .fromEnvironment('a');
 const bool b = .fromEnvironment('b', defaultValue: true);
 ''');
@@ -7385,7 +7385,7 @@ bool true
   }
 
   test_dotShorthand_bool_hasEnvironment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const bool a = .hasEnvironment('a');
 ''');
     assertDartObjectText(_topLevelVar('a'), '''
@@ -7401,7 +7401,7 @@ bool true
   }
 
   test_dotShorthand_constantArgument_issue60963() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -7426,7 +7426,7 @@ class C {
   const C({this.one = 1});
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 const C c = .new();
 ''');
@@ -7448,7 +7448,7 @@ class C {
   const C(int x, {this.one = 1});
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 const C c = .new(1);
 ''');
@@ -7715,7 +7715,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 class B {
   final A v;
@@ -7726,7 +7726,7 @@ B f1() => const B(A.instance);
   }
 
   test_fieldInitializer_functionReference_withTypeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void g<U>(U a) {}
 class A<T> {
   final void Function(T) f;
@@ -7750,7 +7750,7 @@ A<int>
   }
 
   test_fieldInitializer_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(): f = T;
@@ -7772,7 +7772,7 @@ A<int>
   }
 
   test_fieldInitializer_typeParameter_implicitTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(): f = T;
@@ -7794,7 +7794,7 @@ A<dynamic>
   }
 
   test_fieldInitializer_typeParameter_typeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T, U> {
   final Object f, g;
   const A(): f = T, g = U;
@@ -7853,7 +7853,7 @@ const a = const A<int>();
   }
 
   test_fieldInitializer_visitAsExpression_potentialConstType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const num three = 3;
 
 class C<T extends num> {
@@ -7868,7 +7868,7 @@ void main() {
   }
 
   test_int_fromEnvironment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = int.fromEnvironment('a');
 const b = int.fromEnvironment('b', defaultValue: 42);
 ''');
@@ -7961,7 +7961,7 @@ class A {
   }
 
   test_redirectingConstructor_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(): this.named(T);
@@ -7984,7 +7984,7 @@ A<int>
   }
 
   test_redirectingFactoryConstructor_chain() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const factory A.foo(int a) = B<int>.bar;
 }
@@ -8015,7 +8015,7 @@ C<int>
   }
 
   test_string_fromEnvironment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const a = String.fromEnvironment('a');
 ''');
     assertDartObjectText(_topLevelVar('a'), '''
@@ -8031,7 +8031,7 @@ String test
   }
 
   test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredNamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   final int b;
@@ -8069,7 +8069,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredPositional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   final int b;
@@ -8108,7 +8108,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredNamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -8143,7 +8143,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredNamed_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -8180,7 +8180,7 @@ B<int>
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredPositional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -8214,7 +8214,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredPositional_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -8250,7 +8250,7 @@ B<int>
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredNamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -8285,7 +8285,7 @@ B
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredNamed_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -8322,7 +8322,7 @@ B<int>
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredPositional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -8356,7 +8356,7 @@ B
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredPositional_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -8443,7 +8443,7 @@ const f = const E('0.0');
   }
 
   test_superInitializer_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(Object t): f = t;
@@ -8477,7 +8477,7 @@ B<int>
   }
 
   test_superInitializer_typeParameter_superNonGeneric() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final Object f;
   const A(Object t): f = t;
@@ -8509,7 +8509,7 @@ B<int>
   }
 
   test_wildcard_regularInitializer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int _;
   const A(this._);
@@ -8546,7 +8546,7 @@ class A {
   }
 
   test_wildcard_superInitializer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int _;
   const A(this._);
@@ -8609,7 +8609,7 @@ B
   }
 
   test_wildcard_superInitializer_multiple_requiredPositional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int _;
   final int y;

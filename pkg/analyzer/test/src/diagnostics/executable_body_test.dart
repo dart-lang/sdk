@@ -63,7 +63,7 @@ class C {
   }
 
   test_class_getter_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external int get foo;
 }
@@ -71,7 +71,7 @@ class C {
   }
 
   test_class_getter_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class C {
   external int get foo;
@@ -93,7 +93,7 @@ class A {
   }
 
   test_class_getter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo;
   augment static int get foo => 0;
@@ -113,7 +113,7 @@ class A {
   }
 
   test_class_getter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   external static int get foo;
 }
@@ -121,7 +121,7 @@ class A {
   }
 
   test_class_getter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   external static int get foo;
@@ -130,7 +130,7 @@ class A {
   }
 
   test_class_getter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo => 0;
 }
@@ -151,7 +151,7 @@ class A {
   }
 
   test_class_getter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   static int get foo => 0;
@@ -223,7 +223,7 @@ class C {
   }
 
   test_class_method_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external void foo();
 }
@@ -231,7 +231,7 @@ class C {
   }
 
   test_class_method_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class C {
   external void foo();
@@ -253,7 +253,7 @@ class A {
   }
 
   test_class_method_instance_hasBody_augmentation_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
   augment void foo();
@@ -262,7 +262,7 @@ class A {
   }
 
   test_class_method_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo();
   augment static void foo() {}
@@ -282,7 +282,7 @@ class A {
   }
 
   test_class_method_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   external static void foo();
 }
@@ -290,7 +290,7 @@ class A {
   }
 
   test_class_method_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   external static void foo();
@@ -299,7 +299,7 @@ class A {
   }
 
   test_class_method_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
 }
@@ -320,7 +320,7 @@ class A {
   }
 
   test_class_method_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   static void foo() {}
@@ -375,7 +375,7 @@ class C {
   }
 
   test_class_operator_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external int operator +(int other);
 }
@@ -383,7 +383,7 @@ class C {
   }
 
   test_class_operator_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class C {
   external int operator +(int other);
@@ -426,7 +426,7 @@ class C {
   }
 
   test_class_setter_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   external void set foo(int v);
 }
@@ -434,7 +434,7 @@ class C {
   }
 
   test_class_setter_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class C {
   external void set foo(int v);
@@ -456,7 +456,7 @@ class A {
   }
 
   test_class_setter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _);
   augment static set foo(int _) {}
@@ -476,7 +476,7 @@ class A {
   }
 
   test_class_setter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   external static set foo(int _);
 }
@@ -484,7 +484,7 @@ class A {
   }
 
   test_class_setter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   external static set foo(int _);
@@ -493,7 +493,7 @@ class A {
   }
 
   test_class_setter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _) {}
 }
@@ -514,7 +514,7 @@ class A {
   }
 
   test_class_setter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   static set foo(int _) {}
@@ -544,7 +544,7 @@ class A {
   }
 
   test_enum_getter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static int get foo;
@@ -566,7 +566,7 @@ enum E {
   }
 
   test_enum_getter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external static int get foo;
@@ -575,7 +575,7 @@ enum E {
   }
 
   test_enum_getter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 enum E {
   v;
@@ -585,7 +585,7 @@ enum E {
   }
 
   test_enum_getter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static int get foo => 0;
@@ -594,7 +594,7 @@ enum E {
   }
 
   test_enum_getter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 enum E {
   v;
@@ -627,7 +627,7 @@ enum E {
   }
 
   test_enum_method_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo();
@@ -649,7 +649,7 @@ enum E {
   }
 
   test_enum_method_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external static void foo();
@@ -658,7 +658,7 @@ enum E {
   }
 
   test_enum_method_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 enum E {
   v;
@@ -668,7 +668,7 @@ enum E {
   }
 
   test_enum_method_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo() {}
@@ -677,7 +677,7 @@ enum E {
   }
 
   test_enum_method_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 enum E {
   v;
@@ -710,7 +710,7 @@ enum E {
   }
 
   test_enum_setter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static set foo(int _);
@@ -732,7 +732,7 @@ enum E {
   }
 
   test_enum_setter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external static set foo(int _);
@@ -741,7 +741,7 @@ enum E {
   }
 
   test_enum_setter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 enum E {
   v;
@@ -751,7 +751,7 @@ enum E {
   }
 
   test_enum_setter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static set foo(int _) {}
@@ -760,7 +760,7 @@ enum E {
   }
 
   test_enum_setter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 enum E {
   v;
@@ -793,7 +793,7 @@ enum E {
   }
 
   test_extension_getter_instance_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo;
   augment int get foo => 0;
@@ -813,7 +813,7 @@ extension E on int {
   }
 
   test_extension_getter_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external int get foo;
 }
@@ -821,7 +821,7 @@ extension E on int {
   }
 
   test_extension_getter_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   external int get foo;
@@ -830,7 +830,7 @@ extension E on int {
   }
 
   test_extension_getter_instance_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
 }
@@ -838,7 +838,7 @@ extension E on int {
   }
 
   test_extension_getter_instance_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   int get foo => 0;
@@ -868,7 +868,7 @@ extension E on int {
   }
 
   test_extension_getter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static int get foo;
   augment static int get foo => 0;
@@ -888,7 +888,7 @@ extension E on int {
   }
 
   test_extension_getter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external static int get foo;
 }
@@ -896,7 +896,7 @@ extension E on int {
   }
 
   test_extension_getter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   external static int get foo;
@@ -905,7 +905,7 @@ extension E on int {
   }
 
   test_extension_getter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static int get foo => 0;
 }
@@ -913,7 +913,7 @@ extension E on int {
   }
 
   test_extension_getter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   static int get foo => 0;
@@ -943,7 +943,7 @@ extension E on int {
   }
 
   test_extension_method_instance_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo();
   augment void foo() {}
@@ -963,7 +963,7 @@ extension E on int {
   }
 
   test_extension_method_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external void foo();
 }
@@ -971,7 +971,7 @@ extension E on int {
   }
 
   test_extension_method_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   external void foo();
@@ -980,7 +980,7 @@ extension E on int {
   }
 
   test_extension_method_instance_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
 }
@@ -988,7 +988,7 @@ extension E on int {
   }
 
   test_extension_method_instance_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   void foo() {}
@@ -1018,7 +1018,7 @@ extension E on int {
   }
 
   test_extension_method_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void foo();
   augment static void foo() {}
@@ -1038,7 +1038,7 @@ extension E on int {
   }
 
   test_extension_method_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external static void foo();
 }
@@ -1046,7 +1046,7 @@ extension E on int {
   }
 
   test_extension_method_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   external static void foo();
@@ -1055,7 +1055,7 @@ extension E on int {
   }
 
   test_extension_method_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void foo() {}
 }
@@ -1063,7 +1063,7 @@ extension E on int {
   }
 
   test_extension_method_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   static void foo() {}
@@ -1125,7 +1125,7 @@ extension E on int {
   }
 
   test_extension_setter_instance_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   set foo(int _);
   augment set foo(int _) {}
@@ -1145,7 +1145,7 @@ extension E on int {
   }
 
   test_extension_setter_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external set foo(int _);
 }
@@ -1153,7 +1153,7 @@ extension E on int {
   }
 
   test_extension_setter_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   external set foo(int _);
@@ -1162,7 +1162,7 @@ extension E on int {
   }
 
   test_extension_setter_instance_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   set foo(int _) {}
 }
@@ -1170,7 +1170,7 @@ extension E on int {
   }
 
   test_extension_setter_instance_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   set foo(int _) {}
@@ -1200,7 +1200,7 @@ extension E on int {
   }
 
   test_extension_setter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static set foo(int _);
   augment static set foo(int _) {}
@@ -1220,7 +1220,7 @@ extension E on int {
   }
 
   test_extension_setter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external static set foo(int _);
 }
@@ -1228,7 +1228,7 @@ extension E on int {
   }
 
   test_extension_setter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   external static set foo(int _);
@@ -1237,7 +1237,7 @@ extension E on int {
   }
 
   test_extension_setter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static set foo(int _) {}
 }
@@ -1245,7 +1245,7 @@ extension E on int {
   }
 
   test_extension_setter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension E on int {
   static set foo(int _) {}
@@ -1275,7 +1275,7 @@ extension E on int {
   }
 
   test_extensionType_getter_instance_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   int get foo;
   augment int get foo => 0;
@@ -1295,7 +1295,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external int get foo;
 }
@@ -1303,7 +1303,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   external int get foo;
@@ -1312,7 +1312,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_instance_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   int get foo => 0;
 }
@@ -1320,7 +1320,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_instance_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   int get foo => 0;
@@ -1350,7 +1350,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static int get foo;
   augment static int get foo => 0;
@@ -1370,7 +1370,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external static int get foo;
 }
@@ -1378,7 +1378,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   external static int get foo;
@@ -1387,7 +1387,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static int get foo => 0;
 }
@@ -1395,7 +1395,7 @@ extension type E(int i) {
   }
 
   test_extensionType_getter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   static int get foo => 0;
@@ -1425,7 +1425,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_instance_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   void foo();
   augment void foo() {}
@@ -1445,7 +1445,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external void foo();
 }
@@ -1453,7 +1453,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   external void foo();
@@ -1462,7 +1462,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_instance_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   void foo() {}
 }
@@ -1470,7 +1470,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_instance_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   void foo() {}
@@ -1500,7 +1500,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static void foo();
   augment static void foo() {}
@@ -1520,7 +1520,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external static void foo();
 }
@@ -1528,7 +1528,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   external static void foo();
@@ -1537,7 +1537,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static void foo() {}
 }
@@ -1545,7 +1545,7 @@ extension type E(int i) {
   }
 
   test_extensionType_method_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   static void foo() {}
@@ -1575,7 +1575,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_instance_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   set foo(int _);
   augment set foo(int _) {}
@@ -1595,7 +1595,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_instance_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external set foo(int _);
 }
@@ -1603,7 +1603,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_instance_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   external set foo(int _);
@@ -1612,7 +1612,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_instance_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   set foo(int _) {}
 }
@@ -1620,7 +1620,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_instance_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   set foo(int _) {}
@@ -1650,7 +1650,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static set foo(int _);
   augment static set foo(int _) {}
@@ -1670,7 +1670,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external static set foo(int _);
 }
@@ -1678,7 +1678,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   external static set foo(int _);
@@ -1687,7 +1687,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static set foo(int _) {}
 }
@@ -1695,7 +1695,7 @@ extension type E(int i) {
   }
 
   test_extensionType_setter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 extension type E(int i) {
   static set foo(int _) {}
@@ -1725,7 +1725,7 @@ extension type E(int i) {
   }
 
   test_local_function_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void foo() {}
   foo();
@@ -1734,7 +1734,7 @@ void f() {
   }
 
   test_mixin_getter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo;
   augment static int get foo => 0;
@@ -1754,7 +1754,7 @@ mixin M {
   }
 
   test_mixin_getter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   external static int get foo;
 }
@@ -1762,7 +1762,7 @@ mixin M {
   }
 
   test_mixin_getter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 mixin M {
   external static int get foo;
@@ -1771,7 +1771,7 @@ mixin M {
   }
 
   test_mixin_getter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo => 0;
 }
@@ -1779,7 +1779,7 @@ mixin M {
   }
 
   test_mixin_getter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 mixin M {
   static int get foo => 0;
@@ -1809,7 +1809,7 @@ mixin M {
   }
 
   test_mixin_method_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo();
   augment static void foo() {}
@@ -1829,7 +1829,7 @@ mixin M {
   }
 
   test_mixin_method_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   external static void foo();
 }
@@ -1837,7 +1837,7 @@ mixin M {
   }
 
   test_mixin_method_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 mixin M {
   external static void foo();
@@ -1846,7 +1846,7 @@ mixin M {
   }
 
   test_mixin_method_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo() {}
 }
@@ -1854,7 +1854,7 @@ mixin M {
   }
 
   test_mixin_method_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 mixin M {
   static void foo() {}
@@ -1884,7 +1884,7 @@ mixin M {
   }
 
   test_mixin_setter_static_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(int _);
   augment static set foo(int _) {}
@@ -1904,7 +1904,7 @@ mixin M {
   }
 
   test_mixin_setter_static_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   external static set foo(int _);
 }
@@ -1912,7 +1912,7 @@ mixin M {
   }
 
   test_mixin_setter_static_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 mixin M {
   external static set foo(int _);
@@ -1921,7 +1921,7 @@ mixin M {
   }
 
   test_mixin_setter_static_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(int _) {}
 }
@@ -1929,7 +1929,7 @@ mixin M {
   }
 
   test_mixin_setter_static_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 mixin M {
   static set foo(int _) {}
@@ -1959,7 +1959,7 @@ mixin M {
   }
 
   test_topLevel_function_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo();
 augment void foo() {}
 ''');
@@ -2009,20 +2009,20 @@ external void foo() => null;
   }
 
   test_topLevel_function_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 external void foo();
 ''');
   }
 
   test_topLevel_function_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 external void foo();
 ''');
   }
 
   test_topLevel_function_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 ''');
   }
@@ -2038,7 +2038,7 @@ augment void foo() {}
   }
 
   test_topLevel_function_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 void foo() {}
 ''');
@@ -2062,7 +2062,7 @@ void foo();
   }
 
   test_topLevel_getter_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int get foo;
 augment int get foo => 0;
 ''');
@@ -2078,20 +2078,20 @@ augment int get foo;
   }
 
   test_topLevel_getter_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 external int get foo;
 ''');
   }
 
   test_topLevel_getter_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 external int get foo;
 ''');
   }
 
   test_topLevel_getter_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 ''');
   }
@@ -2107,7 +2107,7 @@ augment int get foo => 1;
   }
 
   test_topLevel_getter_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 int get foo => 0;
 ''');
@@ -2131,7 +2131,7 @@ int get foo;
   }
 
   test_topLevel_setter_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 set foo(int _);
 augment set foo(int _) {}
 ''');
@@ -2147,20 +2147,20 @@ augment set foo(int _);
   }
 
   test_topLevel_setter_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 external set foo(int _);
 ''');
   }
 
   test_topLevel_setter_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 external set foo(int _);
 ''');
   }
 
   test_topLevel_setter_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 set foo(int _) {}
 ''');
   }
@@ -2176,7 +2176,7 @@ augment set foo(int _) {}
   }
 
   test_topLevel_setter_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 set foo(int _) {}
 ''');

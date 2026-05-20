@@ -533,9 +533,9 @@ var a = <int, String>{1};
     assertType(setOrMapLiteral('{'), 'Map<int, String>');
   }
 
-  @failingTest
+  @SkippedTest() // TODO(scheglov): fix it
   test_noContext_typeArgs_expressions_conflictingTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = <int>{1 : 2, 3 : 4};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');

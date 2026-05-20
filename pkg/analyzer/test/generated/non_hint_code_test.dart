@@ -67,7 +67,7 @@ f(message) {
   }
 
   test_propagatedFieldType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A { }
 class X<T> {
   final x = <T>[];
@@ -82,7 +82,7 @@ class Z {
   }
 
   test_undefinedMethod_assignmentExpression_inSubtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {
   operator +(B b) {return new B();}
@@ -96,7 +96,7 @@ f(a, a2) {
   }
 
   test_undefinedMethod_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class D<T extends dynamic> {
   fieldAccess(T t) => t.abc;
   methodAccess(T t) => t.xyz(1, 2, 'three');
@@ -105,7 +105,7 @@ class D<T extends dynamic> {
   }
 
   test_undefinedMethod_unionType_all() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int m(int x) => 0;
 }
@@ -125,7 +125,7 @@ f(A a, B b) {
   }
 
   test_undefinedMethod_unionType_some() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int m(int x) => 0;
 }

@@ -26,7 +26,7 @@ augment abstract base class A {}
   }
 
   test_class_abstractBase_abstractBase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract base class A {}
 augment abstract base class A {}
 ''');
@@ -127,7 +127,7 @@ augment sealed class A {}
   }
 
   test_mixin_base_base() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 base mixin A {}
 augment base mixin A {}
 ''');

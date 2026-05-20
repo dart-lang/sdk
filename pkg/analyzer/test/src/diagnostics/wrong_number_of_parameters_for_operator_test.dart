@@ -97,7 +97,7 @@ class A {
   }
 
   Future<void> _checkCorrect(String name, String parameters) async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   operator $name($parameters) {}
 }

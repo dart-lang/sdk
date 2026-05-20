@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class TopLevelInstanceGetterTest extends PubPackageResolutionTest {
   test_call() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int Function() get g => () => 0;
 }
@@ -26,7 +26,7 @@ var b = a.g();
   }
 
   test_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int g = 0;
 }
@@ -36,7 +36,7 @@ var b = new A().g;
   }
 
   test_field_call() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int Function() g = () => 0;
 }
@@ -52,7 +52,7 @@ class A {
   int f = 0;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 var b = new A().f;
 ''');
@@ -60,7 +60,7 @@ var b = new A().f;
   }
 
   test_field_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int g = 0;
 }
@@ -71,7 +71,7 @@ var b = a.g;
   }
 
   test_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get g => 0;
 }
@@ -81,7 +81,7 @@ var b = new A().g;
   }
 
   test_implicitlyTyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   get g => 0;
 }
@@ -91,7 +91,7 @@ var b = new A().g;
   }
 
   test_implicitlyTyped_call() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   get g => () => 0;
 }
@@ -102,7 +102,7 @@ var b = a.g();
   }
 
   test_implicitlyTyped_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var g = 0;
 }
@@ -112,7 +112,7 @@ var b = new A().g;
   }
 
   test_implicitlyTyped_field_call() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var g = () => 0;
 }
@@ -123,7 +123,7 @@ var b = a.g();
   }
 
   test_implicitlyTyped_field_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var g = 0;
 }
@@ -134,7 +134,7 @@ var b = a.g;
   }
 
   test_implicitlyTyped_fn() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -146,7 +146,7 @@ var b = f(a.x);
   }
 
   test_implicitlyTyped_fn_explicit_type_params() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -158,7 +158,7 @@ var b = f<int>(a.x);
   }
 
   test_implicitlyTyped_fn_not_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -170,7 +170,7 @@ var b = f(a.x);
   }
 
   test_implicitlyTyped_indexExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int operator[](int value) => 0;
@@ -182,7 +182,7 @@ var b = a[a.x];
   }
 
   test_implicitlyTyped_invoke() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -193,7 +193,7 @@ var b = (<T>(y) => 0)(a.x);
   }
 
   test_implicitlyTyped_invoke_explicit_type_params() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -204,7 +204,7 @@ var b = (<T>(y) => 0)<int>(a.x);
   }
 
   test_implicitlyTyped_invoke_not_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -215,7 +215,7 @@ var b = ((y) => 0)(a.x);
   }
 
   test_implicitlyTyped_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int f<T>(int x) => 0;
@@ -227,7 +227,7 @@ var b = a.f(a.x);
   }
 
   test_implicitlyTyped_method_explicit_type_params() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int f<T>(x) => 0;
@@ -239,7 +239,7 @@ var b = a.f<int>(a.x);
   }
 
   test_implicitlyTyped_method_not_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int f(x) => 0;
@@ -251,7 +251,7 @@ var b = a.f(a.x);
   }
 
   test_implicitlyTyped_new() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -265,7 +265,7 @@ var b = new B(a.x);
   }
 
   test_implicitlyTyped_new_explicit_type_params() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -279,7 +279,7 @@ var b = new B<int>(a.x);
   }
 
   test_implicitlyTyped_new_explicit_type_params_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -298,7 +298,7 @@ class B<T> {
   B(x);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
@@ -310,7 +310,7 @@ var b = new foo.B<int>(a.x);
   }
 
   test_implicitlyTyped_new_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -324,7 +324,7 @@ var b = new B.named(a.x);
   }
 
   test_implicitlyTyped_new_not_generic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -338,7 +338,7 @@ var b = new B(a.x);
   }
 
   test_implicitlyTyped_new_not_generic_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -357,7 +357,7 @@ class B {
   B(x);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
@@ -374,7 +374,7 @@ class B<T> {
   B(T x);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
@@ -386,7 +386,7 @@ var b = new foo.B(a.x);
   }
 
   test_implicitlyTyped_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   get g => 0;
 }
@@ -397,7 +397,7 @@ var b = a.g;
   }
 
   test_implicitlyTyped_propertyAccessLhs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   var x = new B();
   int operator[](int value) => 0;
@@ -412,7 +412,7 @@ var b = (a.x).y;
   }
 
   test_prefixedIdentifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get g => 0;
 }

@@ -2615,13 +2615,13 @@ $code
 ''', expectedErrors);
   }
 
-  Future<void> assertNoErrorsInCode2({
+  Future<void> resolveTestCodeWithDiagnostics2({
     required String externalCode,
     required String code,
   }) async {
     newFile(externalLibPath, externalCode);
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import '$externalLibUri';
 $code
 ''');

@@ -36,7 +36,7 @@ void f() { // \u2066
   /// https://github.com/flutter/flutter/pull/93029
   test_file_ok() async {
     // Raw strings preserve the escapes.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var u202a = '\u202AInteractive text\u202C';
 ''');
   }

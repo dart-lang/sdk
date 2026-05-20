@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class ClassElementTest extends PubPackageResolutionTest {
   test_lookUpInheritedConcreteGetter_declared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -28,7 +28,7 @@ class A {
   }
 
   test_lookUpInheritedConcreteGetter_declared_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -50,7 +50,7 @@ class A {
   int get _foo => 0;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -63,7 +63,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteGetter_declared_hasExtends_private_sameLibrary() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   // ignore:unused_element
   int get _foo => 0;
@@ -82,7 +82,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteGetter_declared_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static int get foo => 0;
 }
@@ -96,7 +96,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -111,7 +111,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_abstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   int get foo;
 }
@@ -123,7 +123,7 @@ abstract class B extends A {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_hasWith() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -142,7 +142,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_hasWith2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -165,7 +165,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_hasWith3() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -186,7 +186,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_hasWith4() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -203,7 +203,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_hasWith5() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 mixin M1 {
@@ -224,7 +224,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_hasWith_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -243,7 +243,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static int get foo => 0;
 }
@@ -255,7 +255,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_withImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -274,7 +274,7 @@ class C extends A implements B {}
   }
 
   test_lookUpInheritedConcreteGetter_hasImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -301,7 +301,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteGetter_undeclared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 ''');
     var A = findElement2.class_('A');
@@ -309,7 +309,7 @@ class A {}
   }
 
   test_lookUpInheritedConcreteMethod_declared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -319,7 +319,7 @@ class A {
   }
 
   test_lookUpInheritedConcreteMethod_declared_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -341,7 +341,7 @@ class A {
   void _foo() {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -354,7 +354,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteMethod_declared_hasExtends_private_sameLibrary() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   // ignore:unused_element
   void _foo() {}
@@ -373,7 +373,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteMethod_declared_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void foo() {}
 }
@@ -387,7 +387,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -402,7 +402,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_abstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   void foo();
 }
@@ -414,7 +414,7 @@ abstract class B extends A {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_hasWith() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -433,7 +433,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_hasWith2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -456,7 +456,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_hasWith3() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -477,7 +477,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_hasWith4() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -494,7 +494,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_hasWith5() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 mixin M1 {
@@ -515,7 +515,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_hasWith_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -534,7 +534,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void foo() {}
 }
@@ -546,7 +546,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_withImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -565,7 +565,7 @@ class C extends A implements B {}
   }
 
   test_lookUpInheritedConcreteMethod_hasImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -592,7 +592,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteMethod_undeclared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 ''');
     var A = findElement2.class_('A');
@@ -600,7 +600,7 @@ class A {}
   }
 
   test_lookUpInheritedConcreteSetter_declared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -610,7 +610,7 @@ class A {
   }
 
   test_lookUpInheritedConcreteSetter_declared_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -632,7 +632,7 @@ class A {
   set _foo(int _) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -645,7 +645,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteSetter_declared_hasExtends_private_sameLibrary() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   // ignore:unused_element
   set _foo(int _) {}
@@ -664,7 +664,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteSetter_declared_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static set foo(int _) {}
 }
@@ -678,7 +678,7 @@ class B extends A {
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -693,7 +693,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_abstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   set foo(int _);
 }
@@ -705,7 +705,7 @@ abstract class B extends A {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_hasWith() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -724,7 +724,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_hasWith2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -747,7 +747,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_hasWith3() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -768,7 +768,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_hasWith4() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -785,7 +785,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_hasWith5() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 
 mixin M1 {
@@ -806,7 +806,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_hasWith_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -825,7 +825,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static set foo(int _) {}
 }
@@ -837,7 +837,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_withImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -856,7 +856,7 @@ class C extends A implements B {}
   }
 
   test_lookUpInheritedConcreteSetter_hasImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -883,7 +883,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedConcreteSetter_undeclared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 ''');
     var A = findElement2.class_('A');
@@ -891,7 +891,7 @@ class A {}
   }
 
   test_lookUpInheritedMethod_declared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -901,7 +901,7 @@ class A {
   }
 
   test_lookUpInheritedMethod_declared_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -923,7 +923,7 @@ class A {
   void _foo() {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -936,7 +936,7 @@ class B extends A {
   }
 
   test_lookUpInheritedMethod_declared_hasExtends_private_sameLibrary() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   // ignore:unused_element
   void _foo() {}
@@ -955,7 +955,7 @@ class B extends A {
   }
 
   test_lookUpInheritedMethod_declared_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void foo() {}
 }
@@ -969,7 +969,7 @@ class B extends A {
   }
 
   test_lookUpInheritedMethod_hasExtends() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -984,7 +984,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedMethod_hasExtends_hasWith() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -1003,7 +1003,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedMethod_hasExtends_hasWith2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -1026,7 +1026,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedMethod_hasExtends_hasWith3() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -1047,7 +1047,7 @@ class B extends A with M1, M2 {}
   }
 
   test_lookUpInheritedMethod_hasExtends_hasWith4() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -1064,7 +1064,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedMethod_hasExtends_hasWith_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -1083,7 +1083,7 @@ class B extends A with M {}
   }
 
   test_lookUpInheritedMethod_hasExtends_static() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void foo() {}
 }
@@ -1095,7 +1095,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedMethod_hasExtends_withImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -1114,7 +1114,7 @@ class C extends A implements B {}
   }
 
   test_lookUpInheritedMethod_hasImplements() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
@@ -1144,7 +1144,7 @@ class B extends A {}
   }
 
   test_lookUpInheritedMethod_undeclared() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 ''');
     var A = findElement2.class_('A');

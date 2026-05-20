@@ -692,7 +692,7 @@ BinaryExpression
 
 mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {
   test_bangEq() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a != b;
 }
@@ -784,7 +784,7 @@ BinaryExpression
   }
 
   test_eqEq_dynamic_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(dynamic a) {
   a == 0;
 }
@@ -848,7 +848,7 @@ BinaryExpression
   }
 
   test_eqEq_int_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a == b;
 }
@@ -930,7 +930,7 @@ BinaryExpression
   }
 
   test_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int? a, double b) {
   a ?? b;
 }
@@ -955,7 +955,7 @@ BinaryExpression
   }
 
   test_logicalAnd() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool a, bool b) {
   a && b;
 }
@@ -980,7 +980,7 @@ BinaryExpression
   }
 
   test_logicalOr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool a, bool b) {
   a || b;
 }
@@ -1005,7 +1005,7 @@ BinaryExpression
   }
 
   test_minus_int_context_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a - f());
@@ -1032,7 +1032,7 @@ MethodInvocation
   }
 
   test_minus_int_double() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, double b) {
   a - b;
 }
@@ -1057,7 +1057,7 @@ BinaryExpression
   }
 
   test_minus_int_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a - b;
 }
@@ -1082,7 +1082,7 @@ BinaryExpression
   }
 
   test_mod_int_context_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a % f());
@@ -1109,7 +1109,7 @@ MethodInvocation
   }
 
   test_mod_int_double() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, double b) {
   a % b;
 }
@@ -1134,7 +1134,7 @@ BinaryExpression
   }
 
   test_mod_int_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a % b;
 }
@@ -1159,7 +1159,7 @@ BinaryExpression
   }
 
   test_plus_double_context_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(double a) {
   h(a + f());

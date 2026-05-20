@@ -372,7 +372,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         A() : this.x = [];
       }
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
       unit,
       "A",
@@ -427,7 +427,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         List<String> f0 = ["hello"];
       }
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
 
     VariableDeclaration field = AstFinder.getFieldInClass(unit, "A", "f0");
 
@@ -2122,7 +2122,7 @@ MethodInvocation
         get map => { 43: [] };
       }
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
     Asserter<InterfaceType> assertMapOfIntToListOfInt = _isMapOf(
@@ -3093,7 +3093,7 @@ class B<T2, U2> {
   factory B() = A.named;
 }
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
 
     var b = unit.declarations[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
@@ -3110,7 +3110,7 @@ class B<T2, U2> {
   }
 
   test_redirectedConstructor_self() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A();
   factory A.redirected() = A;
@@ -3119,7 +3119,7 @@ class A<T> {
   }
 
   test_redirectedConstructor_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> implements B<T, U> {
   A();
 }
@@ -3149,7 +3149,7 @@ class B<T2, U2> {
         A.named(List<String> x);
       }
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
       unit,
@@ -3297,7 +3297,7 @@ class B<T2, U2> {
         A() : super([]);
       }
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
       unit,
@@ -3369,7 +3369,7 @@ main() {
     import "dart:async";
     dynamic test(FutureOr<int> x) => (x is int) && (x.abs() == 0);
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
   }
 
   test_futureOr_promotion2() async {
@@ -3393,7 +3393,7 @@ main() {
     dynamic test<T extends num>(FutureOr<T> x) => (x is T) &&
                                                   (x.abs() == 0);
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
   }
 
   test_futureOr_promotion4() async {
@@ -3527,7 +3527,7 @@ FunctionDeclaration
   }
 
   test_genericFunction_parameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(T f<T>(T x)) {}
 ''');
 
@@ -3643,7 +3643,7 @@ class D<S> {
 
   test_genericFunction_upwardsAndDownwards() async {
     // Regression tests for https://github.com/dart-lang/sdk/issues/27586.
-    await assertNoErrorsInCode(r'List<num> x = [1, 2];');
+    await resolveTestCodeWithDiagnostics(r'List<num> x = [1, 2];');
     expectInitializerType('x', 'List<num>');
   }
 
@@ -4185,7 +4185,7 @@ main() {
 
   test_genericMethod_nestedBound() async {
     // Just validate that there is no warning on the call to `.abs()`.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T extends num> {
   void method<U extends T>(U u) {
     u.abs();
@@ -4466,7 +4466,7 @@ class B extends A {
   }
 
   test_genericMethod_override_differentContextsSameBounds() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
         class GenericMethodBounds<T> {
   Type get t => T;
   GenericMethodBounds<E> foo<E extends T>() => new GenericMethodBounds<E>();
@@ -4650,9 +4650,9 @@ void test<S>(T Function<T>(T) pf) {
     _assertLocalVarType('paramTearOff', "T Function<T>(T)");
   }
 
-  @failingTest
+  @SkippedTest() // TODO(scheglov): fix it
   test_genericMethod_tearoff_instantiated() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(E e) => null;
   static T g<T>(T e) => null;
@@ -5368,7 +5368,7 @@ dynamic set g(int x) => null;
   }
 
   test_setterWithExplicitVoidType_returningVoid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void returnsVoid() {}
 class A {
   void set f(String s) => returnsVoid();
@@ -5392,7 +5392,7 @@ set g(int x) => 42;
   }
 
   test_setterWithNoVoidType_returningVoid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void returnsVoid() {}
 class A {
   set f(String s) => returnsVoid();
@@ -5469,7 +5469,7 @@ main() {
 @reflectiveTest
 class StrongModeTypePropagationTest extends PubPackageResolutionTest {
   test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef bool F<E>(E argument);
 
 abstract class Base {

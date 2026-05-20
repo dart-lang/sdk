@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class ElementDisplayStringTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 abstract class B<T> extends A {}
 ''');
@@ -29,7 +29,7 @@ abstract class B<T> extends A {}
   }
 
   test_extension_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension StringExtension on String {}
 ''');
 
@@ -39,7 +39,7 @@ extension StringExtension on String {}
   }
 
   test_extension_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension on String {}
 ''');
 
@@ -49,7 +49,7 @@ extension on String {}
   }
 
   test_extensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type MyString<T>(String it) implements String {}
 ''');
 
@@ -62,7 +62,7 @@ extension type MyString<T>(String it) implements String {}
   }
 
   test_longMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   String? longMethodName(String? aaa, [String? bbb = 'a', String? ccc]);
 }
@@ -83,7 +83,7 @@ String? longMethodName(
   }
 
   test_longMethod_functionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   String? longMethodName(
     String? aaa, 
@@ -111,7 +111,7 @@ String? longMethodName(
   }
 
   test_maybeWriteTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 A f() {
   throw 0;
@@ -122,7 +122,7 @@ A f() {
   }
 
   test_maybeWriteTypeAlias_nullability_nonNullableAliasedType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 A f1() {
   throw 0;
@@ -139,7 +139,7 @@ A? f2() {
   }
 
   test_maybeWriteTypeAlias_nullability_nullableAliasedType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = int?;
 A f1() {
   throw 0;
@@ -156,7 +156,7 @@ A? f2() {
   }
 
   test_maybeWriteTypeAlias_typeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = List<T>;
 A<int> f() {
   throw 0;
@@ -167,7 +167,7 @@ A<int> f() {
   }
 
   test_property_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 String get a => '';
 ''');
 
@@ -176,7 +176,7 @@ String get a => '';
   }
 
   test_property_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 set a(String value) {}
 ''');
 
@@ -185,7 +185,7 @@ set a(String value) {}
   }
 
   test_shortMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   String? m(String? a, [String? b]);
 }
@@ -202,7 +202,7 @@ abstract class A {
   }
 
   test_writeClassElement_base() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 base class A {}
 ''');
     var element = findElement2.class_('A');
@@ -210,7 +210,7 @@ base class A {}
   }
 
   test_writeClassElement_extends() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {}
 class A extends B {}
 ''');
@@ -219,7 +219,7 @@ class A extends B {}
   }
 
   test_writeClassElement_final() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 ''');
     var element = findElement2.class_('A');
@@ -227,7 +227,7 @@ final class A {}
   }
 
   test_writeClassElement_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {}
 class A implements B {}
 ''');
@@ -236,7 +236,7 @@ class A implements B {}
   }
 
   test_writeClassElement_interface() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 interface class A {}
 ''');
     var element = findElement2.class_('A');
@@ -244,7 +244,7 @@ interface class A {}
   }
 
   test_writeClassElement_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class A {}
 ''');
     var element = findElement2.class_('A');
@@ -252,7 +252,7 @@ mixin class A {}
   }
 
   test_writeClassElement_sealed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 ''');
     var element = findElement2.class_('A');
@@ -260,7 +260,7 @@ sealed class A {}
   }
 
   test_writeClassElement_superInterfaces() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class E {}
 mixin W {}
 class I {}
@@ -271,7 +271,7 @@ class A extends E with W implements I {}
   }
 
   test_writeClassElement_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T, S extends num>{}
 ''');
     var element = findElement2.class_('A');
@@ -279,7 +279,7 @@ class A<T, S extends num>{}
   }
 
   test_writeClassElement_with() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin B {}
 class A with B {}
 ''');
@@ -288,7 +288,7 @@ class A with B {}
   }
 
   test_writeConstructorElement_explicit_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {
   A.named();
 }
@@ -298,7 +298,7 @@ final class A {
   }
 
   test_writeConstructorElement_explicit_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {
   A();
 }
@@ -308,7 +308,7 @@ final class A {
   }
 
   test_writeConstructorElement_formalParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {
   A(int a, bool b, {String? c});
 }
@@ -318,7 +318,7 @@ final class A {
   }
 
   test_writeConstructorElement_synthetic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 ''');
     var element = findElement2.unnamedConstructor('A');
@@ -343,7 +343,7 @@ import 'src/f.dart';
   }
 
   test_writeDynamicType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {}
 ''');
     var element = findElement2.parameter('x');
@@ -351,7 +351,7 @@ void f(x) {}
   }
 
   test_writeEnumElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {a, b}
 ''');
     var element = findElement2.enum_('E');
@@ -359,7 +359,7 @@ enum E {a, b}
   }
 
   test_writeEnumElement_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 enum E implements A {a, b}
 ''');
@@ -368,7 +368,7 @@ enum E implements A {a, b}
   }
 
   test_writeEnumElement_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 enum E with M {a, b}
 ''');
@@ -377,7 +377,7 @@ enum E with M {a, b}
   }
 
   test_writeEnumElement_superInterfaces() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class C {}
 enum E with M implements C {a, b}
@@ -387,7 +387,7 @@ enum E with M implements C {a, b}
   }
 
   test_writeEnumElement_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E<T> {a, b}
 ''');
     var element = findElement2.enum_('E');
@@ -395,7 +395,7 @@ enum E<T> {a, b}
   }
 
   test_writeFormalParameterElement_isNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({required int? a}){}
 ''');
     var element = findElement2.parameter('a');
@@ -403,7 +403,7 @@ void f({required int? a}){}
   }
 
   test_writeFormalParameterElement_isOptionalPositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([int? a]){}
 ''');
     var element = findElement2.parameter('a');
@@ -411,7 +411,7 @@ void f([int? a]){}
   }
 
   test_writeGenericFunctionTypeElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void Function(int a)? f;
 ''');
     var tf = findNode.singleGenericFunctionType.declaredFragment!;
@@ -440,7 +440,7 @@ void f() {
   }
 
   test_writeLibraryElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library f;
 ''');
     var element = findElement2.libraryElement;
@@ -511,7 +511,7 @@ void f() {
   }
 
   test_writeMixinElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 ''');
     var element = findElement2.mixin('M');
@@ -519,7 +519,7 @@ mixin M {}
   }
 
   test_writeMixinElement_base() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 base mixin M {}
 ''');
     var element = findElement2.mixin('M');
@@ -527,7 +527,7 @@ base mixin M {}
   }
 
   test_writeMixinElement_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A{}
 mixin M implements A {}
 ''');
@@ -536,7 +536,7 @@ mixin M implements A {}
   }
 
   test_writeMixinElement_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M<T, S extends num> {}
 ''');
     var element = findElement2.mixin('M');
@@ -598,7 +598,7 @@ import 'src/f.dart' as a;
   }
 
   test_writeRecordType_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = ({int a, String b});
 ''');
     var typeAlias = findElement2.typeAlias('A');
@@ -606,7 +606,7 @@ typedef A = ({int a, String b});
   }
 
   test_writeRecordType_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = (int, String)?;
 ''');
     var typeAlias = findElement2.typeAlias('A');
@@ -614,7 +614,7 @@ typedef A = (int, String)?;
   }
 
   test_writeRecordType_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = (int, String);
 ''');
     var typeAlias = findElement2.typeAlias('A');
@@ -622,7 +622,7 @@ typedef A = (int, String);
   }
 
   test_writeRecordType_positionalAndNamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = (int, String, {bool flag});
 ''');
     var typeAlias = findElement2.typeAlias('A');
@@ -630,7 +630,7 @@ typedef A = (int, String, {bool flag});
   }
 
   test_writeRecordType_singlePositional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = (int,);
 ''');
     var typeAlias = findElement2.typeAlias('A');
@@ -638,7 +638,7 @@ typedef A = (int,);
   }
 
   test_writeSetterElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set f(int value) {}
 }
@@ -648,7 +648,7 @@ class A {
   }
 
   test_writeTopLevelFunctionElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() => 0;
 ''');
     var function = findElement2.topFunction('f');
@@ -656,7 +656,7 @@ int f() => 0;
   }
 
   test_writeTopLevelFunctionElement_formalParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x, String y) {}
 ''');
     var function = findElement2.topFunction('f');
@@ -664,7 +664,7 @@ void f(int x, String y) {}
   }
 
   test_writeTopLevelFunctionElement_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T, S extends num>() {}
 ''');
     var function = findElement2.topFunction('f');
@@ -672,7 +672,7 @@ void f<T, S extends num>() {}
   }
 
   test_writeTypeAliasElement_withAliasedElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 ''');
     var typeAlias = findElement2.typeAlias('A');
@@ -680,7 +680,7 @@ typedef A = int;
   }
 
   test_writeTypeAliasElement_withAliasedElement_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = List<T>;
 ''');
     var typeAlias = findElement2.typeAlias('A');
@@ -688,7 +688,7 @@ typedef A<T> = List<T>;
   }
 
   test_writeTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Map<String, double> a = {'A': 1.5};
 ''');
     var element = findElement2.topVar('a');
@@ -696,7 +696,7 @@ Map<String, double> a = {'A': 1.5};
   }
 
   test_writeTypeParameterElement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>() {}
 ''');
     var element = findElement2.typeParameter('T');
@@ -704,7 +704,7 @@ void f<T extends num>() {}
   }
 
   test_writeTypeParameterElement_covariant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<in T> {}
 ''');
     var elementA = findElement2.typeParameter('T');
@@ -712,7 +712,7 @@ class A<in T> {}
   }
 
   test_writeTypeParameterType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) {}
 ''');
     var typeAlias = findElement2.parameter('t');
@@ -720,7 +720,7 @@ void f<T>(T t) {}
   }
 
   test_writeTypeParameterType_promotedBound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>(T t) {
   if (t is int) {
     t;
@@ -732,7 +732,7 @@ void f<T extends num>(T t) {
   }
 
   test_writeTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {}
 class C implements A, B {}

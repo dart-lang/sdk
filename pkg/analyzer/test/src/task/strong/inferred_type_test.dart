@@ -50,7 +50,7 @@ var g = () async => futureInt;
   }
 
   test_asyncClosureReturnType_future() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var f = () async => 0;
 ''');
     var f = _resultLibraryElement.topLevelVariables[0];
@@ -417,7 +417,7 @@ main() {
   }
 
   test_bottom() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = null;
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
@@ -425,7 +425,7 @@ var v = null;
   }
 
   test_bottom_inClosure() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = () => null;
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
@@ -676,7 +676,7 @@ main() {
   }
 
   test_constructors_inferFromArguments_factory_callsConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A<T> f = new A();
   A();
@@ -791,7 +791,7 @@ main() {
 
   test_constructors_reverseTypeParameters() async {
     // Regression for https://github.com/dart-lang/sdk/issues/26990
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class Pair<T, U> {
   T t;
   U u;
@@ -950,7 +950,7 @@ var t3 = [
   }
 
   test_downwardsInferenceAnnotations() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class Foo {
   const Foo(List<String> l);
   const Foo.named(List<String> l);
@@ -2732,7 +2732,7 @@ typedef void F<V>(V v);
   }
 
   test_genericMethods_inferGenericFunctionParameterType2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> extends D<T> {
   f<U>(g) => null;
 }
@@ -2767,7 +2767,7 @@ typedef V F<V>();
 
   test_genericMethods_inferGenericMethodType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25668
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   T m<T>(T x) => x;
 }
@@ -2870,7 +2870,7 @@ var v = generic((F f) => null, (G g) => null);
   }
 
   test_infer_assignToIndex() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List<double> a = <double>[];
 var b = (a[0] = 1.0);
 ''');
@@ -2930,7 +2930,7 @@ var d = (c = 1);
   }
 
   test_infer_binary_custom() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator +(other) => 1;
   double operator -(other) => 2.0;
@@ -2941,7 +2941,7 @@ var v_minus = new A() - 'bar';
   }
 
   test_infer_binary_doubleDouble() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a_equal = 1.0 == 2.0;
 var a_notEqual = 1.0 != 2.0;
 var a_add = 1.0 + 2.0;
@@ -2958,7 +2958,7 @@ var a_modulo = 1.0 % 2.0;
   }
 
   test_infer_binary_doubleInt() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a_equal = 1.0 == 2;
 var a_notEqual = 1.0 != 2;
 var a_add = 1.0 + 2;
@@ -2975,7 +2975,7 @@ var a_modulo = 1.0 % 2;
   }
 
   test_infer_binary_intDouble() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a_equal = 1 == 2.0;
 var a_notEqual = 1 != 2.0;
 var a_add = 1 + 2.0;
@@ -2992,7 +2992,7 @@ var a_modulo = 1 % 2.0;
   }
 
   test_infer_binary_intInt() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a_equal = 1 == 2;
 var a_notEqual = 1 != 2;
 var a_bitXor = 1 ^ 2;
@@ -3014,14 +3014,14 @@ var a_modulo = 1 % 2;
   }
 
   test_infer_conditional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a = 1 == 2 ? 1 : 2.0;
 var b = 1 == 2 ? 1.0 : 2;
 ''');
   }
 
   test_infer_prefixExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a_not = !true;
 var a_complement = ~1;
 var a_negate = -1;
@@ -3029,7 +3029,7 @@ var a_negate = -1;
   }
 
   test_infer_prefixExpression_custom() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
   int operator ~() => 1;
@@ -3055,7 +3055,7 @@ var d = t ? 1 : (throw 2);
   }
 
   test_infer_typeCast() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 class B<T> extends A<T> {
   foo() {}
@@ -3069,7 +3069,7 @@ main() {
   }
 
   test_infer_typedListLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a = <int>[];
 var b = <double>[1.0, 2.0, 3.0];
 var c = <List<int>>[];
@@ -3078,7 +3078,7 @@ var d = <dynamic>[1, 2.0, false];
   }
 
   test_infer_typedMapLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a = <int, String>{0: 'aaa', 1: 'bbb'};
 var b = <double, int>{1.1: 1, 2.2: 2};
 var c = <List<int>, Map<String, double>>{};
@@ -3089,7 +3089,7 @@ var f = <dynamic, dynamic>{};
   }
 
   test_infer_use_of_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   void f() {}
 }
@@ -3285,7 +3285,7 @@ import 'test.dart';
 var x = 2; // ok to infer
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 var y = x; // now ok :)
 
@@ -3304,7 +3304,7 @@ import 'test.dart';
 class A { static var x = 2; }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 class B { static var y = A.x; }
 
@@ -3562,7 +3562,7 @@ class D {
   }
 
   test_inferParameterType_setter_fromSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C extends D {
   set foo(x) {}
 }
@@ -3575,7 +3575,7 @@ class D {
   }
 
   test_inferred_nonstatic_field_depends_on_static_field_complex() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   static var x = 'x';
   var y = {
@@ -3593,7 +3593,7 @@ class C {
   }
 
   test_inferred_nonstatic_field_depends_on_toplevel_var_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var x = 'x';
 class C {
   var y = x;
@@ -3797,7 +3797,7 @@ var x = f().g;
   }
 
   test_inferredType_fromTopLevelExecutableTearoff() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = print;
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
@@ -3838,7 +3838,7 @@ var x = f().g();
   }
 
   test_inferredType_isEnum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E { v1 }
 final x = E.v1;
 ''');
@@ -3847,7 +3847,7 @@ final x = E.v1;
   }
 
   test_inferredType_isEnumValues() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E { v1 }
 final x = E.values;
 ''');
@@ -3856,7 +3856,7 @@ final x = E.values;
   }
 
   test_inferredType_isTypedef() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef void F();
 final x = <String, F>{};
 ''');
@@ -3865,7 +3865,7 @@ final x = <String, F>{};
   }
 
   test_inferredType_isTypedef_parameterized() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef T F<T>();
 final x = <String, F<int>>{};
 ''');
@@ -3958,7 +3958,7 @@ var v = [f, g];
   }
 
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   static final f = (bool b) =>
       (int i) => {i: b};
@@ -3969,7 +3969,7 @@ class C {
   }
 
   test_inferredType_viaClosure_typeDependsOnArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   static final f = (bool b) => b;
 }
@@ -3979,7 +3979,7 @@ class C {
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   static final f = (bool b) => 1;
 }
@@ -3989,7 +3989,7 @@ class C {
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_topLevel() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 final f = (bool b) => 1;
 ''');
     var f = _resultLibraryElement.topLevelVariables[0];
@@ -3998,7 +3998,7 @@ final f = (bool b) => 1;
 
   test_inferReturnOfStatementLambda() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26139
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List<String> strings() {
   var stuff = [].expand((i) {
     return <String>[];
@@ -4022,7 +4022,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 final m1 = a1;
 final m2 = A.a2;
@@ -4062,7 +4062,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' show a1, A;
 import 'a.dart' as p show a2, A;
 const t1 = 1;
@@ -4548,7 +4548,7 @@ test() {
   }
 
   test_inferVariableVoid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {}
 var x = f();
   ''');
@@ -4558,7 +4558,7 @@ var x = f();
   }
 
   test_lambdaDoesNotHavePropagatedTypeHint() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List<String> getListOfString() => const <String>[];
 
 void foo() {
@@ -4635,7 +4635,7 @@ test2() {
   }
 
   test_listLiteralsCanInferNull_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var x = [null];
 ''');
     var x = _resultLibraryElement.topLevelVariables[0];
@@ -4750,7 +4750,7 @@ test1() {
   }
 
   test_mapLiteralsCanInferNull_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var x = { null: null };
 ''');
     var x = _resultLibraryElement.topLevelVariables[0];
@@ -4967,7 +4967,7 @@ test5() {
   }
 
   test_propagateInferenceTransitively2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int x = 42;
 }
@@ -4995,7 +4995,7 @@ void main() {
   }
 
   test_referenceToTypedef() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef void F();
 final x = F;
 ''');
@@ -5126,7 +5126,7 @@ main() {
   }
 
   test_unsafeBlockClosureInference_constructorCall_explicitDynamicParam() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C(T x());
 }
@@ -5138,7 +5138,7 @@ var v = new C<dynamic>(() { return 1; });
   }
 
   test_unsafeBlockClosureInference_constructorCall_explicitTypeParam() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C(T x());
 }
@@ -5171,7 +5171,7 @@ main() {
   }
 
   test_unsafeBlockClosureInference_constructorCall_noTypeParam() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C(x());
 }
@@ -5183,7 +5183,7 @@ var v = new C(() { return 1; });
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<dynamic>(() { return 1; });
 ''');
@@ -5195,7 +5195,7 @@ var v = f<dynamic>(() { return 1; });
   // Failing without null safety.
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
     // Note: (f<dynamic>) is not a valid syntax.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(() { return 1; });
 ''');
@@ -5205,7 +5205,7 @@ var v = (f<dynamic>)(() { return 1; });
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<dynamic>(() { return 1; });
 ''');
@@ -5215,7 +5215,7 @@ var v = (f)<dynamic>(() { return 1; });
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<int>(() { return 1; });
 ''');
@@ -5229,7 +5229,7 @@ var v = f<int>(() { return 1; });
   // Failing without null safety.
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
     // Note: (f<int>) is not a valid syntax.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<int>)(() { return 1; });
 ''');
@@ -5239,7 +5239,7 @@ var v = (f<int>)(() { return 1; });
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<int>(() { return 1; });
 ''');
@@ -5461,7 +5461,7 @@ main() {
   }
 
   test_unsafeBlockClosureInference_methodCall_noTypeParam() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   double f(x) => 1.0;
 }

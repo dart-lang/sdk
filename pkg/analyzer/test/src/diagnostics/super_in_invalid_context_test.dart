@@ -40,7 +40,7 @@ class B extends A {
   }
 
   test_class_field_instance_late() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int foo() => 0;
 }
@@ -201,7 +201,7 @@ mixin M on A {
   }
 
   test_mixin_field_instance_late() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }

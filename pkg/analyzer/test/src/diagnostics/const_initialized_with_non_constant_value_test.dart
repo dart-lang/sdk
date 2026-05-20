@@ -74,7 +74,7 @@ const a = new A();
   test_newInstance_externalFactoryConstConstructor() async {
     // We can't evaluate "const A()" because its constructor is external.  But
     // the code is correct--we shouldn't report an error.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   external const factory A();
 }

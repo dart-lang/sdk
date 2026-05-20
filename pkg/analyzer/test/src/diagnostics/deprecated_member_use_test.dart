@@ -210,18 +210,6 @@ $code
 ''', expectedDiagnostics);
   }
 
-  Future<void> assertNoErrorsInCode2({
-    required String externalCode,
-    required String code,
-  }) async {
-    newFile(externalLibPath, externalCode);
-
-    await assertNoErrorsInCode('''
-import '$externalLibUri';
-$code
-''');
-  }
-
   Future<void> resolveTestCodeWithDiagnostics2({
     required String externalCode,
     required String code,
@@ -771,7 +759,7 @@ class C {
   }
 
   test_inDeprecatedDefaultFormalParameter() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 class C {
@@ -785,7 +773,7 @@ f({@deprecated C? c = const C()}) {}
   }
 
   test_inDeprecatedEnum() async {
-    await assertNoErrorsInCode2(
+    await resolveTestCodeWithDiagnostics2(
       externalCode: r'''
 @deprecated
 void f() {}
@@ -1409,7 +1397,7 @@ void f(A a) {
 mixin A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 @deprecated

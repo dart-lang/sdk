@@ -28,7 +28,7 @@ class TopLevelInferenceErrorsTest extends ElementsBaseTest {
   }
 
   test_initializer_assign() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t1 = a += 1;
 var t2 = a = 2;
@@ -36,7 +36,7 @@ var t2 = a = 2;
   }
 
   test_initializer_binary_onlyLeft() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t = (a = 1) + (a = 2);
 ''');
@@ -47,7 +47,7 @@ var t = (a = 1) + (a = 2);
   }
 
   test_initializer_boolean() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t1 = ((a = 1) == 0) || ((a = 2) == 0);
 var t2 = ((a = 1) == 0) && ((a = 2) == 0);
@@ -56,14 +56,14 @@ var t3 = !((a = 1) == 0);
   }
 
   test_initializer_cascade() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var t = (a = 1)..isEven;
 ''');
   }
 
   test_initializer_classField_instance_instanceCreation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 class B {
   var t1 = new A<int>();
@@ -73,7 +73,7 @@ class B {
   }
 
   test_initializer_classField_static_instanceCreation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 class B {
   static var t1 = 1;
@@ -83,7 +83,7 @@ class B {
   }
 
   test_initializer_conditional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var b = true;
 var t = b
@@ -103,7 +103,7 @@ var b = a;
   }
 
   test_initializer_equality() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t1 = ((a = 1) == 0) == ((a = 2) == 0);
 var t2 = ((a = 1) == 0) != ((a = 2) == 0);
@@ -111,7 +111,7 @@ var t2 = ((a = 1) == 0) != ((a = 2) == 0);
   }
 
   test_initializer_extractIndex() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = [0, 1.2];
 var b0 = a[0];
 var b1 = a[1];
@@ -119,14 +119,14 @@ var b1 = a[1];
   }
 
   test_initializer_functionLiteral_blockBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var t = (int p) {};
 ''');
     assertType(findElement2.topVar('t').type, 'Null Function(int)');
   }
 
   test_initializer_functionLiteral_expressionBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var t = (int p) => (a = 1);
 ''');
@@ -134,7 +134,7 @@ var t = (int p) => (a = 1);
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var t = (int a, b,int c, d) => 0;
 ''');
     assertType(
@@ -144,14 +144,14 @@ var t = (int a, b,int c, d) => 0;
   }
 
   test_initializer_hasTypeAnnotation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 int t = (a = 1);
 ''');
   }
 
   test_initializer_identifier() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int top_function() => 0;
 var top_variable = 0;
 int get top_getter => 0;
@@ -172,7 +172,7 @@ var t7 = new A().instance_method;
   }
 
   test_initializer_identifier_error() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var b = (a = 1);
 var c = b;
@@ -180,21 +180,21 @@ var c = b;
   }
 
   test_initializer_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int? a = 1;
 var t = a ?? 2;
 ''');
   }
 
   test_initializer_instanceCreation_withoutTypeParameters() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 var t = new A();
 ''');
   }
 
   test_initializer_instanceCreation_withTypeParameters() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 var t1 = new A<int>();
 var t2 = new A();
@@ -202,7 +202,7 @@ var t2 = new A();
   }
 
   test_initializer_instanceGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int f = 1;
 }
@@ -211,7 +211,7 @@ var a = new A().f;
   }
 
   test_initializer_methodInvocation_function() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int f1() => 0;
 T f2<T>() => throw 0;
 var t1 = f1();
@@ -221,7 +221,7 @@ var t3 = f2<int>();
   }
 
   test_initializer_methodInvocation_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int m1() => 0;
   T m2<T>() => throw 0;
@@ -238,7 +238,7 @@ var t3 = a.m2<int>();
   }
 
   test_initializer_postfixIncDec() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t1 = a++;
 var t2 = a--;
@@ -246,7 +246,7 @@ var t2 = a--;
   }
 
   test_initializer_prefixIncDec() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t1 = ++a;
 var t2 = --a;
@@ -262,21 +262,21 @@ var t2 = --a;
   }
 
   test_initializer_typedList() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t = <int>[a = 1];
 ''');
   }
 
   test_initializer_typedMap() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t = <int, int>{(a = 1) : (a = 2)};
 ''');
   }
 
   test_initializer_untypedList() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t = [
     a = 1,
@@ -287,7 +287,7 @@ var t = [
   }
 
   test_initializer_untypedMap() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = 1;
 var t = {
     (a = 1) :
@@ -349,7 +349,7 @@ class C implements A, B {
       String operator = operators[i];
       code += 'var t$i = (a = 1) $operator (a = 2);\n';
     }
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
   }
 }
 

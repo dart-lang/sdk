@@ -281,7 +281,7 @@ class IgnoreInfoTest extends PubPackageResolutionTest {
   );
 
   Future<List<IgnoredElement>> _parseIgnoredElements(String comment) async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 $comment
 int x = 1;
 ''');

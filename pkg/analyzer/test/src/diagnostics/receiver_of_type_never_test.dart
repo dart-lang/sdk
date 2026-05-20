@@ -133,7 +133,7 @@ BinaryExpression
   }
 
   test_binaryExpression_neverQ_eqEq() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x == 1 + 2;
 }
@@ -253,7 +253,7 @@ BinaryExpression
   }
 
   test_conditionalExpression_falseBranch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c, Never x) {
   c ? 0 : x;
 }
@@ -261,7 +261,7 @@ void f(bool c, Never x) {
   }
 
   test_conditionalExpression_trueBranch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c, Never x) {
   c ? x : 0;
 }
@@ -539,7 +539,7 @@ AssignmentExpression
   }
 
   test_invocationArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(g, Never x) {
   g(x);
 }
@@ -1005,7 +1005,7 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_neverQ_read_hashCode() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.hashCode;
 }
@@ -1029,7 +1029,7 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_neverQ_tearOff_toString() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.toString;
 }

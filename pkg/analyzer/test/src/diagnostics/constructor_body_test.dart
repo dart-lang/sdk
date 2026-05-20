@@ -343,7 +343,7 @@ class C {
   }
 
   test_class_secondaryConstructor_factory_factoryHead_named_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory named();
   augment factory named() => throw 0;
@@ -363,7 +363,7 @@ class A {
   }
 
   test_class_secondaryConstructor_factory_factoryHead_named_external_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   external factory named();
 }
@@ -371,7 +371,7 @@ class A {
   }
 
   test_class_secondaryConstructor_factory_factoryHead_named_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory named() => throw 0;
 }
@@ -421,7 +421,7 @@ class A {
   }
 
   test_class_secondaryConstructor_factory_typeName_named_external_noBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   external factory A.named();
@@ -430,7 +430,7 @@ class A {
   }
 
   test_class_secondaryConstructor_factory_typeName_named_hasBody_language305() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 class A {
   factory A.named() => throw 0;
@@ -460,7 +460,7 @@ class A {
   }
 
   test_class_secondaryConstructor_factory_typeName_unnamed_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A._();
   factory A();
@@ -564,7 +564,7 @@ class A {
   }
 
   test_class_secondaryConstructor_generative_unnamed_augmentation_hasBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
   augment A() {}

@@ -30,21 +30,21 @@ int f(num n) {
   }
 
   test_conditional_and_is() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   return (n is int && n > 0) ? n & 0x0F : 0;
 }''');
   }
 
   test_conditional_is() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
   }
 
   test_conditional_isNot() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
 }
@@ -52,7 +52,7 @@ int f(num n) {
   }
 
   test_conditional_or_is() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
 }
@@ -60,7 +60,7 @@ int f(num n) {
   }
 
   test_for() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> list) {
   num sum = 0; // ignore: unused_local_variable
   for (int i = 0; i < list.length; i++) {
@@ -85,7 +85,7 @@ void f(List<int> list) {
   }
 
   test_if_and_is() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   if (n is int && n > 0) {
     return n & 0x0F;
@@ -95,7 +95,7 @@ int f(num n) {
   }
 
   test_if_is() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   if (n is int) {
     return n & 0x0F;
@@ -105,7 +105,7 @@ int f(num n) {
   }
 
   test_if_isNot() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
@@ -117,7 +117,7 @@ int f(num n) {
   }
 
   test_if_isNot_abrupt() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
@@ -128,7 +128,7 @@ int f(num n) {
   }
 
   test_if_or_is() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   if (n is! int || n < 0) {
     return 0;
@@ -274,7 +274,7 @@ MethodInvocation
 
   test_mutatedOutsideScope() async {
     // https://code.google.com/p/dart/issues/detail?id=22732
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Base {
 }
 
@@ -306,7 +306,7 @@ void g(Base x) {
     newFile('$testPackageLibPath/a.dart', '''
 dynamic get hashCode => 42;
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as helper;
 main() {
   helper.hashCode;
@@ -315,7 +315,7 @@ main() {
   }
 
   test_objectAccessInference_disabled_for_local_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 dynamic get hashCode => null;
 main() {
   hashCode; // marker
@@ -327,7 +327,7 @@ main() {
     newFile('$testPackageLibPath/a.dart', '''
 dynamic toString = (int x) => x + 42;
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as helper;
 main() {
   helper.toString();

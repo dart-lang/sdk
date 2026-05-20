@@ -39,7 +39,7 @@ abstract class B = Object with Enum;
   }
 
   test_coreLib_dartCoreEnum_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 abstract class A with Enum {}
 abstract class B = Object with Enum;
