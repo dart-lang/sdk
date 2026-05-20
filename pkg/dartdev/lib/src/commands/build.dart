@@ -139,14 +139,25 @@ then that is used instead.''',
         valueHelp: 'path',
         help: 'Path to output Ninja depfile',
       )
+      ..addOption(
+        'target-sanitizer',
+        help: 'Build with a specific target sanitizer.',
+        allowed: Sanitizer.available().map((s) => s.name).toList(),
+        defaultsTo: 'none',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
   @override
   Future<int> run() async {
+    final args = argResults!;
+    final sanitizer = Sanitizer.fromString(args.option('target-sanitizer'))!;
+    final targetDartAotRuntime = sdk.dartAotRuntimeFor(
+      sanitizer: sanitizer.name,
+    );
     if (!checkArtifactExists(sdk.genKernelSnapshot) ||
         !checkArtifactExists(sdk.genSnapshot) ||
-        !checkArtifactExists(sdk.dartAotRuntime) ||
+        !checkArtifactExists(targetDartAotRuntime) ||
         !checkArtifactExists(sdk.dart)) {
       return 255;
     }
@@ -156,7 +167,6 @@ then that is used instead.''',
       stderr.writeln("'dart build' is not supported on x86 architectures.");
       return 64;
     }
-    final args = argResults!;
 
     var target = args.option('target');
     if (target == null) {
@@ -205,6 +215,7 @@ then that is used instead.''',
       verbose: verbose,
       verbosity: verbosity,
       depFile: depFile,
+      sanitizer: sanitizer,
     );
   }
 
@@ -218,6 +229,7 @@ then that is used instead.''',
     required List<String> enabledExperiments,
     required bool verbose,
     required String verbosity,
+    Sanitizer sanitizer = Sanitizer.none,
     bool progressUpdatesOnStderr = false,
     String? depFile,
   }) async {
@@ -273,6 +285,8 @@ then that is used instead.''',
     pubspecUri ??= await DartNativeAssetsBuilder.findWorkspacePubspec(
       packageConfigUri,
     );
+    // TODO(https://github.com/dart-lang/native/issues/2497): Pass the sanitizer
+    // to the native assets builder.
     final builder = DartNativeAssetsBuilder(
       pubspecUri: pubspecUri,
       packageConfigUri: packageConfigUri,
@@ -315,13 +329,15 @@ then that is used instead.''',
         );
         final generator = KernelGenerator(
           genSnapshot: sdk.genSnapshot,
-          targetDartAotRuntime: sdk.dartAotRuntime,
+          targetDartAotRuntime: sdk.dartAotRuntimeFor(
+            sanitizer: sanitizer.name,
+          ),
           kind: Kind.exe,
           sourceFile: e.sourceEntryPoint.toFilePath(),
           outputFile: outputExeUri.toFilePath(),
           verbose: verbose,
           verbosity: verbosity,
-          defines: [],
+          defines: [...sanitizer.defines],
           packages: packageConfigUri.toFilePath(),
           targetOS: targetOS,
           enableExperiment: enabledExperiments.join(','),
@@ -395,6 +411,9 @@ Use linkMode as dynamic library instead.""",
 
         await snapshotGenerator.generate(
           nativeAssets: nativeAssetsYamlUri?.toFilePath(),
+          extraOptions: [
+            ...sanitizer.genSnapshotFlags,
+          ],
         );
 
         if (targetOS == OS.macOS) {

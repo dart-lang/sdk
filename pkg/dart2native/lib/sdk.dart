@@ -38,10 +38,19 @@ class Sdk {
         'dartvm',
       );
 
-  String get dartAotRuntime => _executablePathFor(
-        'dartaotruntime',
-        forceProductInBuildRoot: true,
-      );
+  String dartAotRuntimeFor({
+    String? sanitizer,
+  }) {
+    final name = sanitizer != null && sanitizer != 'none'
+        ? 'dartaotruntime_$sanitizer'
+        : 'dartaotruntime';
+    return _executablePathFor(
+      name,
+      forceProductInBuildRoot: true,
+    );
+  }
+
+  String get dartAotRuntime => dartAotRuntimeFor();
 
   String get genSnapshot => _executablePathFor(
         'gen_snapshot',
