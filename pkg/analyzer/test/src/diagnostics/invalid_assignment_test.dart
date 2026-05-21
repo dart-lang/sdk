@@ -6,12 +6,14 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidAssignment_ImplicitCallReferenceTest);
     defineReflectiveTests(InvalidAssignmentTest);
     defineReflectiveTests(InvalidAssignmentWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -886,8 +888,7 @@ f(C c) {
   }
 
   test_promotedTypeParameter_regress35306() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 class C extends D {}
@@ -896,31 +897,31 @@ class D {}
 void f<X extends A, Y extends B>(X x) {
   if (x is Y) {
     A a = x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
     B b = x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
     X x2 = x;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'x2' isn't used.
     Y y = x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 127, 1),
-        error(diag.unusedLocalVariable, 140, 1),
-        error(diag.unusedLocalVariable, 153, 2),
-        error(diag.unusedLocalVariable, 167, 1),
-      ],
-    );
+''');
   }
 
   void test_recordType_localVariable_initializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   (int, int) r = (a: 1, b: 2);
+//               ^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type '({int a, int b})' can't be assigned to a variable of type '(int, int)'.
   print(r);
 }
-''',
-      [error(diag.invalidAssignment, 28, 12)],
-    );
+''');
   }
 
   void test_recordType_parameter() async {

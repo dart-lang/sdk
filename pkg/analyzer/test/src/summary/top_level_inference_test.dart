@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/node_text_expectations.dart';
@@ -93,13 +92,14 @@ var t = b
   }
 
   test_initializer_dependencyCycle() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = b;
+//  ^
+// [diag.topLevelCycle] The type of 'a' can't be inferred because it depends on itself through the cycle: a, b.
 var b = a;
-''',
-      [error(diag.topLevelCycle, 4, 1), error(diag.topLevelCycle, 15, 1)],
-    );
+//  ^
+// [diag.topLevelCycle] The type of 'b' can't be inferred because it depends on itself through the cycle: a, b.
+''');
   }
 
   test_initializer_equality() async {
@@ -297,38 +297,28 @@ var t = {
   }
 
   test_override_conflictFieldType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   int aaa = 0;
+//    ^^^
+// [context 1] The member being overridden.
 }
 abstract class B {
   String aaa = '0';
+//       ^^^
+// [context 2] The member being overridden.
 }
 class C implements A, B {
   var aaa;
+//    ^^^
+// [diag.invalidOverride][context 1] 'C.aaa' ('dynamic Function()') isn't a valid override of 'A.aaa' ('int Function()').
+// [diag.invalidOverride][context 2] 'C.aaa' ('dynamic Function()') isn't a valid override of 'B.aaa' ('String Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          109,
-          3,
-          contextMessages: [message(testFile, 64, 3)],
-        ),
-        error(
-          diag.invalidOverride,
-          109,
-          3,
-          contextMessages: [message(testFile, 25, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_override_conflictParameterType_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   void mmm(int a);
 }
@@ -337,10 +327,10 @@ abstract class B {
 }
 class C implements A, B {
   void mmm(a) {}
+//     ^^^
+// [diag.noCombinedSuperSignature] Can't infer missing types in 'C' from overridden methods: A.mmm (void Function(int)), B.mmm (void Function(String)).
 }
-''',
-      [error(diag.noCombinedSuperSignature, 116, 3)],
-    );
+''');
   }
 
   Future<void> _assertErrorOnlyLeft(List<String> operators) async {

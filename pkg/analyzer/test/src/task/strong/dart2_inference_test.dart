@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -167,8 +166,7 @@ void main() {
   }
 
   test_compoundAssignment_simpleIdentifier_topLevel() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
@@ -181,10 +179,10 @@ void set topLevel(A value) {}
 
 main() {
   var /*@type=B*/ v = topLevel += 1;
+//                ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 152, 1)],
-    );
+''');
     _assertTypeAnnotations();
   }
 

@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrictModeTest);
     defineReflectiveTests(TypePropagationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,14 +20,13 @@ main() {
 @reflectiveTest
 class StrictModeTest extends PubPackageResolutionTest {
   test_assert_is() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num n) {
   assert (n is int);
   return n & 0x0F;
-}''',
-      [error(diag.undefinedOperator, 47, 1)],
-    );
+//         ^
+// [diag.undefinedOperator] The operator '&' isn't defined for the type 'num'.
+}''');
   }
 
   test_conditional_and_is() async {
@@ -71,17 +71,16 @@ void f(List<int> list) {
   }
 
   test_forEach() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> list) {
   num sum = 0; // ignore: unused_local_variable
   for (num n in list) {
     sum += n & 0x0F;
+//           ^
+// [diag.undefinedOperator] The operator '&' isn't defined for the type 'num'.
   }
 }
-''',
-      [error(diag.undefinedOperator, 110, 1)],
-    );
+''');
   }
 
   test_if_and_is() async {
@@ -140,14 +139,13 @@ int f(num n) {
   }
 
   test_localVar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() {
   num n = 1234;
   return n & 0x0F;
-}''',
-      [error(diag.undefinedOperator, 37, 1)],
-    );
+//         ^
+// [diag.undefinedOperator] The operator '&' isn't defined for the type 'num'.
+}''');
   }
 }
 

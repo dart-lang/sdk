@@ -10,10 +10,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonErrorResolverTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -76,14 +78,13 @@ export 'lib2.dart' show C;
 library lib;
 class N {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib.dart';
 export 'lib.dart';
-''',
-      [error(diag.duplicateExport, 37, 10)],
-    );
+//     ^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''');
   }
 
   test_ambiguousImport_dart_implicitHide() async {
@@ -139,17 +140,16 @@ library lib2;
 class N {}
 class N2 {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 import 'lib2.dart' show N, N2;
+//                      ^
+// [diag.unusedShownName] The name N is shown, but isn't used.
 main() {
   new N1();
   new N2();
 }
-''',
-      [error(diag.unusedShownName, 44, 1)],
-    );
+''');
   }
 
   test_annotated_partOfDeclaration() async {
@@ -342,15 +342,14 @@ main() {
   }
 
   test_assignmentToFinal_prefixNegate() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   -x;
 }
-''',
-      [error(diag.unusedLocalVariable, 14, 1)],
-    );
+''');
   }
 
   test_assignmentToFinalNoSetter_prefixedIdentifier() async {
@@ -428,15 +427,14 @@ dynamic f() async {}
   }
 
   test_async_expression_function_type() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Future<int> F(int i);
 main() {
   F f = (int i) async => i;
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'f' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 43, 1)],
-    );
+''');
   }
 
   test_async_flattened() async {
@@ -556,27 +554,25 @@ f() async {}
   }
 
   test_asyncForInWrongContext_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(list) async {
   await for (var e in list) {
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 33, 1)],
-    );
+''');
   }
 
   test_asyncForInWrongContext_asyncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(list) async* {
   await for (var e in list) {
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 34, 1)],
-    );
+''');
   }
 
   test_await_flattened() async {
@@ -663,14 +659,13 @@ typedef Foo(param);
   }
 
   test_builtInIdentifierAsType_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   dynamic x;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 16, 1)],
-    );
+''');
   }
 
   test_castFrom() async {
@@ -678,18 +673,17 @@ f() {
     // substitution in the `newSet` parameter of `Set.castFrom`, we wind up with
     // a synthetic `ParameterMember` that belongs to no library.  We need to
     // make sure this doesn't lead to a crash.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 void testNewSet(Set<C> setEls) {
   var customNewSet;
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'customNewSet' isn't used.
   Set.castFrom<C, Object>(setEls,
       newSet: <T>() => customNewSet = new Set<T>());
 }
-''',
-      [error(diag.unusedLocalVariable, 51, 12)],
-    );
+''');
   }
 
   test_class_type_alias_documentationComment() async {
@@ -802,17 +796,16 @@ class C extends A {
   }
 
   test_constConstructorWithNonConstSuper_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.a();
 }
 class B extends A {
   const B(): super();
+//           ^^^^^^^
+// [diag.undefinedConstructorInInitializerDefault] The class 'A' doesn't have an unnamed constructor.
 }
-''',
-      [error(diag.undefinedConstructorInInitializerDefault, 54, 7)],
-    );
+''');
   }
 
   test_constConstructorWithNonFinalField_finalInstanceVar() async {
@@ -1081,14 +1074,13 @@ A a = new A();
   }
 
   test_dynamicIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = dynamic;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 15, 1)],
-    );
+''');
   }
 
   test_empty_generator_async() async {
@@ -1516,32 +1508,31 @@ test() {
 
   test_importDuplicatedLibraryName() async {
     newFile("$testPackageLibPath/lib.dart", "library lib;");
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library test;
 import 'lib.dart';
+//     ^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib.dart'.
 import 'lib.dart';
-''',
-      [
-        error(diag.unusedImport, 21, 10),
-        error(diag.unusedImport, 40, 10),
-        error(diag.duplicateImport, 40, 10),
-      ],
-    );
+//     ^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
+// [diag.unusedImport] Unused import: 'lib.dart'.
+''');
   }
 
   test_importDuplicatedLibraryUnnamed() async {
     newFile("$testPackageLibPath/lib1.dart", '');
     newFile("$testPackageLibPath/lib2.dart", '');
     // No warning on duplicate import (https://github.com/dart-lang/sdk/issues/24156)
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library test;
 import 'lib1.dart';
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib1.dart'.
 import 'lib2.dart';
-''',
-      [error(diag.unusedImport, 21, 11), error(diag.unusedImport, 41, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib2.dart'.
+''');
   }
 
   test_importOfNonLibrary_libraryDeclared() async {
@@ -1724,15 +1715,14 @@ class A {
   static var _m;
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
+//^^
+// [diag.unusedElement] The declaration '_m' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 41, 2)],
-    );
+''');
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
@@ -1742,15 +1732,14 @@ class A {
   static _m() {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
+//^^
+// [diag.unusedElement] The declaration '_m' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 41, 2)],
-    );
+''');
   }
 
   test_instantiateGenericFunctionWithNamedParameterAsGenericArg() async {
@@ -1892,22 +1881,21 @@ main() {
   }
 
   test_invalidIdentifierInAsync() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {
     int async;
+//      ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'async' isn't used.
     int await;
+//      ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'await' isn't used.
     int yield;
+//      ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'yield' isn't used.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 26, 5),
-        error(diag.unusedLocalVariable, 41, 5),
-        error(diag.unusedLocalVariable, 56, 5),
-      ],
-    );
+''');
   }
 
   test_invalidMethodOverrideNamedParamType() async {
@@ -2091,21 +2079,19 @@ f(S s) async {
   }
 
   test_issue_32394() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
 
 void main() {
   String p = z;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'p' isn't used.
+//           ^
+// [diag.invalidAssignment] A value of type 'List<String>' can't be assigned to a variable of type 'String'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 93, 1),
-        error(diag.invalidAssignment, 97, 1),
-      ],
-    );
+''');
     var z = result.unit.declaredFragment!.element.topLevelVariables
         .where((e) => e.name == 'z')
         .single;
@@ -2153,16 +2139,15 @@ int f(v) {
   }
 
   test_librarySource_of_type_substituted_synthetic_parameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Map<int, T> f<T>(T t) => throw '';
 Map<double, T> g<T>(T t) => throw '';
 h(bool b) {
   Map<num, String> m = (b ? f : g)('x');
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 104, 1)],
-    );
+''');
     var parameter = findNode.stringLiteral("'x'").correspondingParameter;
     expect(parameter!.library, isNull);
     expect(parameter.library?.firstFragment.source, isNull);
@@ -2408,18 +2393,17 @@ f(bool pb, pd) {
   }
 
   test_nonBoolNegationExpression_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f1(bool dynamic) {
   !dynamic;
 }
 f2() {
   bool dynamic = true;
+//     ^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'dynamic' isn't used.
   !dynamic;
 }
-''',
-      [error(diag.unusedLocalVariable, 47, 7)],
-    );
+''');
   }
 
   test_nonBoolOperand_and_bool() async {
@@ -2545,14 +2529,13 @@ f() {
   }
 
   test_nonConstMapAsExpressionStatement_notExpressionStatement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   var m = {'a' : 0, 'b' : 1};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_nonConstMapAsExpressionStatement_typeArguments() async {
@@ -2572,18 +2555,17 @@ main() {
   }
 
   test_nonConstValueInInitializer_binary_bool() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final v;
   const A.a1(bool p) : v = p && true;
   const A.a2(bool p) : v = true && p;
   const A.b1(bool p) : v = p || true;
   const A.b2(bool p) : v = true || p;
+//                              ^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 167, 4)],
-    );
+''');
   }
 
   test_nonConstValueInInitializer_binary_dynamic() async {
@@ -2823,17 +2805,16 @@ main() {}
   test_parameterScope_local() async {
     // Parameter names shouldn't conflict with the name of the function they
     // are enclosed in.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   g(g) {
+//^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
     h(g);
   }
 }
 h(x) {}
-''',
-      [error(diag.unusedElement, 8, 1)],
-    );
+''');
   }
 
   test_parameterScope_method() async {
@@ -2896,45 +2877,42 @@ class B<S> extends A<S> {
   }
 
   test_referenceToDeclaredVariableInInitializer_constructorName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.x() {}
 }
 f() {
   var x = new A.x();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 1)],
-    );
+''');
   }
 
   test_referenceToDeclaredVariableInInitializer_methodName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   x() {}
 }
 f(A a) {
   var x = a.x();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 36, 1)],
-    );
+''');
   }
 
   test_referenceToDeclaredVariableInInitializer_propertyName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var x;
 }
 f(A a) {
   var x = a.x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 36, 1)],
-    );
+''');
   }
 
   test_regress34906() async {
@@ -3141,19 +3119,18 @@ void f(A<V> p) {
   }
 
   test_typePromotion_if_inClosure_assignedAfter_inSameFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   f(Object p) {
+//^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
     if (p is String) {
       p.length;
     }
     p = 0;
   };
 }
-''',
-      [error(diag.unusedElement, 11, 1)],
-    );
+''');
   }
 
   test_typePromotion_if_is_and_left() async {

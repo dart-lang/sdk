@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementDisplayStringTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -326,12 +327,11 @@ final class A {}
   }
 
   test_writeDirectiveUri() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'src/f.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 12)],
-    );
+//     ^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'src/f.dart'.
+''');
     var import =
         findElement2.libraryFragment.libraryImports[0] as LibraryImportImpl;
     expect(import.displayString(), "import package:test/src/f.dart");
@@ -427,14 +427,13 @@ nonexistentType a;
   }
 
   test_writeLabelElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   f: 0;
+//^^
+// [diag.unusedLabel] The label 'f' isn't used.
 }
-''',
-      [error(diag.unusedLabel, 13, 2)],
-    );
+''');
     var element = findElement2.label('f');
     expect(element.displayString(), 'f');
   }
@@ -448,64 +447,59 @@ library f;
   }
 
   test_writeLibraryExport() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'src/f.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 12)],
-    );
+//     ^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'src/f.dart'.
+''');
     var export =
         findElement2.libraryFragment.libraryExports.single as LibraryExportImpl;
     expect(export.displayString(), "export package:test/src/f.dart");
   }
 
   test_writeLibraryImport() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'src/f.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 12)],
-    );
+//     ^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'src/f.dart'.
+''');
     var import =
         findElement2.libraryFragment.libraryImports[0] as LibraryImportImpl;
     expect(import.displayString(), "import package:test/src/f.dart");
   }
 
   test_writeLocalFunctionElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g() {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g()");
   }
 
   test_writeLocalFunctionElement_formalParameters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g(int a, bool b, {String? c}) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g(int a, bool b, {String? c})");
   }
 
   test_writeLocalFunctionElement_typeParameters() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T, S extends num>() {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g<T, S extends num>()");
   }
@@ -549,36 +543,35 @@ mixin M<T, S extends num> {}
   }
 
   test_writeNeverType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Never a;
-''',
-      [error(diag.notInitializedNonNullableVariable, 6, 1)],
-    );
+//    ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'a' must be initialized.
+''');
     var element = findElement2.topVar('a');
     expect(element.displayString(), "Never a");
   }
 
   test_writePartInclude() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'src/f.dart';
-''',
-      [error(diag.uriDoesNotExist, 5, 12)],
-    );
+//   ^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/src/f.dart'.
+''');
     var element =
         findElement2.libraryFragment.partIncludes.single as PartIncludeImpl;
     expect(element.displayString(), 'part package:test/src/f.dart');
   }
 
   test_writePrefixElement_multipleImports() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'src/f.dart' as a;
+//     ^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'src/f.dart'.
 import 'src/bar.dart' as a;
-''',
-      [error(diag.uriDoesNotExist, 7, 12), error(diag.uriDoesNotExist, 33, 14)],
-    );
+//     ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'src/bar.dart'.
+''');
     var prefix = findElement2.prefix('a');
     expect(
       prefix.displayString(),
@@ -587,12 +580,11 @@ import 'src/bar.dart' as a;
   }
 
   test_writePrefixElement_singleImport() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'src/f.dart' as a;
-''',
-      [error(diag.uriDoesNotExist, 7, 12)],
-    );
+//     ^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'src/f.dart'.
+''');
     var prefix = findElement2.prefix('a');
     expect(prefix.displayString(), "import 'src/f.dart' as a;");
   }

@@ -4,14 +4,15 @@
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
-import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../src/dart/resolution/context_collection_resolution.dart';
+import '../../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ErrorSuppressionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -31,48 +32,46 @@ class ErrorSuppressionTest extends PubPackageResolutionTest {
   }
 
   test_codeMismatch() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // ignore: $ignoredCode
 int x = '';
+//      ^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
 int _y = 0; //INVALID_ASSIGNMENT
-''',
-      [error(diag.invalidAssignment, 34, 2), error(diag.unusedElement, 42, 2)],
-    );
+//  ^^
+// [diag.unusedElement] The declaration '_y' isn't referenced.
+''');
   }
 
   test_ignoreFirstOfMultiple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // ignore: unnecessary_cast
 int x = (0 as int);
 // ... but no ignore here ...
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
-''',
-      [error(diag.argumentTypeNotAssignable, 90, 2)],
-    );
+//          ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'num'.
+''');
   }
 
   test_ignoreFirstOfMultipleWithTrailingComment() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int x = (0 as int); // ignore: unnecessary_cast
 // ... but no ignore here ...
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
-''',
-      [error(diag.argumentTypeNotAssignable, 90, 2)],
-    );
+//          ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'num'.
+''');
   }
 
   test_ignoreForFile() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int x = (0 as int); //UNNECESSARY_CAST
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
+//          ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'num'.
 // ignore_for_file: unnecessary_cast
-''',
-      [error(diag.argumentTypeNotAssignable, 51, 2)],
-    );
+''');
   }
 
   test_ignoreForFileWithMuchWhitespace() async {
@@ -107,14 +106,13 @@ void f() {
   }
 
   test_ignoreForFileWithTypeMismatchLintVsWarning() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // ignore_for_file: type=lint
 int a = 0;
 int _x = 1;
-''',
-      [error(diag.unusedElement, 45, 2)],
-    );
+//  ^^
+// [diag.unusedElement] The declaration '_x' isn't referenced.
+''');
   }
 
   test_ignoreOnlyDiagnosticWithTrailingComment() async {
@@ -124,26 +122,24 @@ int x = (0 as int); // ignore: unnecessary_cast
   }
 
   test_ignoreSecondDiagnostic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //UNNECESSARY_CAST
 int x = (0 as int);
+//       ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 // ignore: unused_element
 String _foo = ''; //UNUSED_ELEMENT
-''',
-      [error(diag.unnecessaryCast, 28, 8)],
-    );
+''');
   }
 
   test_ignoreSecondDiagnosticWithTrailingComment() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //UNNECESSARY_CAST
 int x = (0 as int);
+//       ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 String _foo = ''; // ignore: $ignoredCode
-''',
-      [error(diag.unnecessaryCast, 28, 8)],
-    );
+''');
   }
 
   test_ignoreTypeMatches() async {
@@ -154,23 +150,21 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
   }
 
   test_ignoreTypeMismatchLintVsWarning() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // ignore: type=lint
 int _x = 1;
-''',
-      [error(diag.unusedElement, 25, 2)],
-    );
+//  ^^
+// [diag.unusedElement] The declaration '_x' isn't referenced.
+''');
   }
 
   test_ignoreTypeWithBadType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // ignore: type=wrong
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
-''',
-      [error(diag.avoidTypesAsParameterNamesFormalParameter, 34, 3)],
-    );
+//          ^^^
+// [diag.avoidTypesAsParameterNamesFormalParameter] The parameter name 'int' matches a visible type name.
+''');
   }
 
   test_ignoreUniqueName() async {
@@ -193,41 +187,36 @@ int x = (0 as int); // ignore: UNNECESSARY_CAST
   }
 
   test_invalidCode() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // ignore: right_format_wrong_code
 int x = '';
+//      ^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
-''',
-      [
-        error(diag.invalidAssignment, 43, 2),
-        error(diag.argumentTypeNotAssignable, 59, 2),
-      ],
-    );
+//          ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'num'.
+''');
   }
 
   test_missingCodes() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int x = 3;
 // ignore:
 String y = x + ''; //INVALID_ASSIGNMENT, ARGUMENT_TYPE_NOT_ASSIGNABLE
-''',
-      [
-        error(diag.invalidAssignment, 33, 6),
-        error(diag.argumentTypeNotAssignable, 37, 2),
-      ],
-    );
+//         ^^^^^^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'String'.
+//             ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'num'.
+''');
   }
 
   test_missingMetadataSuffix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
-''',
-      [error(diag.invalidAssignment, 40, 1)],
-    );
+//         ^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+''');
   }
 
   test_multipleCodesInIgnore() async {
@@ -254,37 +243,33 @@ int _y = x as int; // ignore: unnecessary_cast, $ignoredCode
   }
 
   test_multipleCommentsPreceding() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int x = (0 as int); //This is the first comment...
+//       ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 // ignore: $ignoredCode
 String _foo = ''; //UNUSED_ELEMENT
-''',
-      [error(diag.unnecessaryCast, 9, 8)],
-    );
+''');
   }
 
   test_noIgnores() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int x = ''; //INVALID_ASSIGNMENT
+//      ^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
-''',
-      [
-        error(diag.invalidAssignment, 8, 2),
-        error(diag.argumentTypeNotAssignable, 45, 2),
-      ],
-    );
+//          ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'num'.
+''');
   }
 
   test_trailingCommentDoesNotCountAsAbove() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int x = (0 as int); // ignore: unnecessary_cast
 int y = (0 as int);
-''',
-      [error(diag.unnecessaryCast, 57, 8)],
-    );
+//       ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
+''');
   }
 
   test_undefinedFunctionWithinFlutterCanBeIgnored() async {

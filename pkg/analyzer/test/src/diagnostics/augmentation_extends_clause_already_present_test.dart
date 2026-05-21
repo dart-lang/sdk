@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AugmentationExtendsClauseAlreadyPresentTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,42 +18,30 @@ main() {
 class AugmentationExtendsClauseAlreadyPresentTest
     extends PubPackageResolutionTest {
   test_alreadyPresent() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment class B extends A {}
-''',
-      [
-        error(
-          diag.augmentationExtendsClauseAlreadyPresent,
-          49,
-          7,
-          contextMessages: [message(testFile, 18, 1)],
-        ),
-      ],
-    );
+//              ^^^^^^^
+// [diag.augmentationExtendsClauseAlreadyPresent][context 1] The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+''');
   }
 
   test_alreadyPresent2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment class B {}
 augment class B extends A {}
-''',
-      [
-        error(
-          diag.augmentationExtendsClauseAlreadyPresent,
-          68,
-          7,
-          contextMessages: [message(testFile, 18, 1)],
-        ),
-      ],
-    );
+//              ^^^^^^^
+// [diag.augmentationExtendsClauseAlreadyPresent][context 1] The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+''');
   }
 
   test_notPresent() async {

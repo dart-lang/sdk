@@ -6,11 +6,13 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonHintCodeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,23 +20,21 @@ main() {
 class NonHintCodeTest extends PubPackageResolutionTest {
   test_issue20904BuggyTypePromotionAtIfJoin_1() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(message, dynamic_) {
   if (message is Function) {
     message = dynamic_;
   }
   int s = message;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 's' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 86, 1)],
-    );
+''');
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_3() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(message) {
   var dynamic_;
   if (message is Function) {
@@ -43,16 +43,15 @@ f(message) {
     return;
   }
   int s = message;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 's' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 115, 1)],
-    );
+''');
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_4() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(message) {
   if (message is Function) {
     message = '';
@@ -60,10 +59,10 @@ f(message) {
     return;
   }
   String s = message;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 's' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 96, 1)],
-    );
+''');
   }
 
   test_propagatedFieldType() async {

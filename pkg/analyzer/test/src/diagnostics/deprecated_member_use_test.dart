@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1408,19 +1407,18 @@ class B = Object with A;
   test_namedParameterMissingName() async {
     // This is a regression test; previously this code would cause an analyzer
     // crash in DeprecatedMemberUseVerifier.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C({this.});
+//         ^^^^^
+// [diag.initializingFormalForNonExistentField] '' isn't a field in the enclosing class.
+//              ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 var z = C(x: '');
-''',
-      [
-        error(diag.initializingFormalForNonExistentField, 21, 5),
-        error(diag.missingIdentifier, 26, 1),
-        error(diag.undefinedNamedParameter, 42, 1),
-      ],
-    );
+//        ^
+// [diag.undefinedNamedParameter] The named parameter 'x' isn't defined.
+''');
   }
 
   test_operator() async {

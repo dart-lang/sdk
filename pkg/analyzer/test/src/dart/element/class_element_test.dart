@@ -4,14 +4,15 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassElementTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -286,16 +287,14 @@ abstract class B implements A {}
   }
 
   test_lookUpInheritedConcreteGetter_recursive() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
 class B extends A {}
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveInterfaceInheritance, 27, 1),
-      ],
-    );
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+''');
     var B = findElement2.class_('B');
     assertElementNull(B._lookUpInheritedConcreteGetter('foo'));
   }
@@ -577,16 +576,14 @@ abstract class B implements A {}
   }
 
   test_lookUpInheritedConcreteMethod_recursive() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
 class B extends A {}
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveInterfaceInheritance, 27, 1),
-      ],
-    );
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+''');
     var B = findElement2.class_('B');
     assertElementNull(B._lookUpInheritedConcreteMethod('foo'));
   }
@@ -868,16 +865,14 @@ abstract class B implements A {}
   }
 
   test_lookUpInheritedConcreteSetter_recursive() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
 class B extends A {}
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveInterfaceInheritance, 27, 1),
-      ],
-    );
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+''');
     var B = findElement2.class_('B');
     assertElementNull(B._lookUpInheritedConcreteSetter('foo'));
   }
@@ -1129,16 +1124,14 @@ abstract class B implements A {}
   }
 
   test_lookUpInheritedMethod_recursive() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
 class B extends A {}
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveInterfaceInheritance, 27, 1),
-      ],
-    );
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+''');
     var B = findElement2.class_('B');
     assertElementNull(B._lookUpInheritedMethod('foo'));
   }

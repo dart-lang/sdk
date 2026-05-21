@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -3069,13 +3068,12 @@ linter:
     - omit_local_variable_types
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.uriDoesNotExist, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
+''');
   }
 
   test_getResolvedUnit_part_empty_lints() async {
@@ -3087,13 +3085,12 @@ linter:
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.partOfNonPart, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfNonPart] The included part 'package:test/a.dart' must have a part-of directive.
+''');
   }
 
   test_getResolvedUnit_part_hasPartOfName_notThisLibrary_lints() async {
@@ -3107,13 +3104,12 @@ linter:
 part of other.lib;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.partOfDifferentLibrary, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfDifferentLibrary] Expected this library to be part of 'my.lib', not 'other.lib'.
+''');
   }
 
   test_getResolvedUnit_part_hasPartOfUri_notThisLibrary_lints() async {
@@ -3127,13 +3123,12 @@ linter:
 part of 'not_test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.partOfDifferentLibrary, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfDifferentLibrary] Expected this library to be part of 'package:test/test.dart', not 'package:test/a.dart'.
+''');
   }
 
   test_getResolvedUnit_part_library() async {

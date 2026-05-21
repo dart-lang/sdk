@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -846,13 +845,12 @@ analyzer:
     implicit-casts: false
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_file_inPackage() async {
@@ -862,13 +860,12 @@ analyzer:
     implicit-casts: false
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_file_inThirdParty() async {
@@ -926,15 +923,14 @@ linter:
     - omit_local_variable_types
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int a = 0;
+//^^^
+// [diag.omitLocalVariableTypes] Unnecessary type annotation on a local variable.
   a;
 }
-''',
-      [error(diag.omitLocalVariableTypes, 11, 3)],
-    );
+''');
   }
 
   test_basic() async {
@@ -1032,21 +1028,13 @@ p.dynamic f() {}
   }
 
   Future<void> test_errors_hasNullSuffix() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 String f(Map<int, String> a) {
   return a[0];
+//       ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String?' can't be returned from the function 'f' because it has a return type of 'String'.
 }
-''',
-      [
-        error(
-          diag.returnOfInvalidTypeFromFunction,
-          40,
-          4,
-          messageContains: ["'String'", 'String?'],
-        ),
-      ],
-    );
+''');
   }
 
   test_findReferences_class() async {
@@ -2572,21 +2560,19 @@ void f(MyEnum myEnum) {
   }
 
   test_unknown_uri() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo:bar';
-''',
-      [error(diag.uriDoesNotExist, 7, 9)],
-    );
+//     ^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'foo:bar'.
+''');
   }
 
   test_warning() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
-''',
-      [error(diag.unusedImport, 7, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+''');
   }
 
   void _assertResolvedFiles(List<File> expected, {bool andClear = true}) {
