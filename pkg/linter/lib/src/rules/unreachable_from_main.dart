@@ -705,8 +705,11 @@ extension on Declaration {
         return self.namePart.typeName.lexeme;
       case ConstructorDeclaration():
         var name = self.name?.lexeme ?? 'new';
-        // TODO(scheglov): support primary constructors
-        return '${self.typeName!.name}.$name';
+        var typeName =
+            self.typeName ??
+            self.declaredFragment?.element.enclosingElement.name ??
+            'unknown';
+        return '$typeName.$name';
       case EnumConstantDeclaration():
         return self.name.lexeme;
       case EnumDeclaration():
