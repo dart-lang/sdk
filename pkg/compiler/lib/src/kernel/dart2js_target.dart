@@ -98,6 +98,9 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
+  bool get supportsLetVariableCapture => false;
+
+  @override
   int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
 
   @override

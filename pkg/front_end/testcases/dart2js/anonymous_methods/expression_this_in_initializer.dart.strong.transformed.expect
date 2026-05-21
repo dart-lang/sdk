@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int x;
+  constructor n1() → self::A
+    : self::A::x = block {
+      final synthesized core::int anonymous#this = 42;
+      core::int #t1;
+      #t1 = anonymous#this;
+    } =>#t1, super core::Object::•()
+    ;
+  constructor n2() → self::A
+    : self::A::x = block {
+      final synthesized core::String anonymous#this = "abc";
+      core::int #t2;
+      #t2 = anonymous#this.{core::String::length}{core::int};
+    } =>#t2, super core::Object::•()
+    ;
+  constructor n3() → self::A
+    : self::A::x = block {
+      final synthesized () → core::int anonymous#this = #C1;
+      core::int #t3;
+      #t3 = anonymous#this(){() → core::int};
+    } =>#t3, super core::Object::•()
+    ;
+  constructor n4() → self::A
+    : self::A::x = block {
+      final synthesized core::String anonymous#this = "def";
+      core::int #t4;
+      #t4 = anonymous#this.{core::Object::toString}(){() → core::String}.{core::String::length}{core::int};
+    } =>#t4, super core::Object::•()
+    ;
+  static synthetic method _#n1#tearOff() → self::A
+    return new self::A::n1();
+  static synthetic method _#n2#tearOff() → self::A
+    return new self::A::n2();
+  static synthetic method _#n3#tearOff() → self::A
+    return new self::A::n3();
+  static synthetic method _#n4#tearOff() → self::A
+    return new self::A::n4();
+}
+static method f() → core::int
+  return 5;
+static method main() → void {
+  new self::A::n1();
+  new self::A::n2();
+  new self::A::n3();
+  new self::A::n4();
+}
+
+constants  {
+  #C1 = static-tearoff self::f
+}

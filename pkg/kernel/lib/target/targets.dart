@@ -447,6 +447,13 @@ abstract class Target {
   /// Targets can opt in to using this node for general inlining.
   bool get supportsFileUriExpression => false;
 
+  /// Whether this target supports capturing `Let` variables.
+  ///
+  /// If the target does not support capturing `Let` variables then a `Let`
+  /// expression whose variable may be captured in a nested function literal
+  /// will be lowered to a block expression with a variable declaration.
+  bool get supportsLetVariableCapture => true;
+
   /// Bit mask of [LateLowering] values for the late lowerings that should
   /// be performed by the CFE.
   ///

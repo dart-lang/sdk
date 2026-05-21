@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    core::int p = 1;
+    core::int #t1;
+    #t1 = p;
+  }
+  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : block {
+    core::int p = anonymous#receiver as core::int;
+    core::int #t2;
+    #t2 = p;
+  } =>#t2;
+  let final core::int #t3 = 1 in block {
+    {
+      core::int p = #t3;
+      core::int #t4;
+      #t4 = let dynamic #t5 = p in p;
+    }
+  } =>#t3;
+  let final core::int #t6 = 1 in #t6 == null ?{core::int} #t6 : block {
+    let synthesized core::int anonymous#receiver = #t6 in anonymous#receiver == null ?{core::int?} null : block {
+      core::int p = anonymous#receiver as core::int;
+      core::int #t7;
+      #t7 = let dynamic #t8 = p in p;
+    } =>#t7;
+  } =>#t6;
+}

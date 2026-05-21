@@ -30,20 +30,20 @@ static method test() → void {
 Try removing the parameter type, or make it a supertype of the receiver type.
   1.(String p) => p; // Error
      ^" in 1 as{TypeError} core::String in p;
-  let core::int #t1 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_explicitly_wrongly_typed.dart:7:7: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+  let synthesized core::int anonymous#receiver = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_explicitly_wrongly_typed.dart:7:7: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
 Try removing the parameter type, or make it a supertype of the receiver type.
   1?.(String p) => p; // Error
-      ^" in 1 as{TypeError} core::String in #t1 == null ?{core::String?} null : let core::String p = #t1 as core::String in p;
-  let final core::int #t2 = 1 in block {
+      ^" in 1 as{TypeError} core::String in anonymous#receiver == null ?{core::String?} null : let core::String p = anonymous#receiver as core::String in p;
+  let final core::int #t1 = 1 in block {
     let core::String p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_explicitly_wrongly_typed.dart:8:7: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
 Try removing the parameter type, or make it a supertype of the receiver type.
   1..(String p) => p; // Error
-      ^" in #t2 as{TypeError} core::String in let dynamic #t3 = p in p;
-  } =>#t2;
-  let final core::int #t4 = 1 in #t4 == null ?{core::int} #t4 : block {
-    let core::int #t5 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_explicitly_wrongly_typed.dart:9:8: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+      ^" in #t1 as{TypeError} core::String in let dynamic #t2 = p in p;
+  } =>#t1;
+  let final core::int #t3 = 1 in #t3 == null ?{core::int} #t3 : block {
+    let synthesized core::int anonymous#receiver = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_explicitly_wrongly_typed.dart:9:8: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
 Try removing the parameter type, or make it a supertype of the receiver type.
   1?..(String p) => p; // Error
-       ^" in #t4 as{TypeError} core::String in #t5 == null ?{core::int?} null : let core::String p = #t5 as core::String in let dynamic #t6 = p in p;
-  } =>#t4;
+       ^" in #t3 as{TypeError} core::String in anonymous#receiver == null ?{core::int?} null : let core::String p = anonymous#receiver as core::String in let dynamic #t4 = p in p;
+  } =>#t3;
 }

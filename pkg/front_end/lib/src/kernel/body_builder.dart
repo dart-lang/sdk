@@ -8037,11 +8037,20 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void handleImplicitFormalParameters(Token punctuation) {
     debugEvent("handleImplicitFormalParameters");
-    Token token = punctuation; // fallback offset
     Expression receiver = toValue(peek());
-    Variable variable = intern.createVariableDeclarationForValue(receiver)
-      ..isSynthesized = true;
-    variable.fileOffset = offsetForToken(token);
+    Variable variable;
+    // If `variable` is captured in a nested function literal, dart2js
+    // requires the variable to have a name. It is sufficient to use
+    // `anonymous#this` because no user-written variable can have that name,
+    // and we never have access to more than one of these variables. It does
+    // not disrupt other backends that this name exists.
+    variable = intern.createVariableDeclaration(
+      offsetForToken(punctuation),
+      "anonymous#this",
+      initializer: receiver,
+      isFinal: true,
+      isSynthesized: true,
+    );
     _thisVariables.push(variable);
     _parameterlessAnonymousMethodDepth++;
 

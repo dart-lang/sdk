@@ -11876,11 +11876,34 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body = bodyResult.expression;
     }
 
+    Expression createLetOrBlock() {
+      if (!libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .supportsLetVariableCapture) {
+        Variable resultVar = new Variable(null, isSynthesized: true)
+          ..type = inferredType
+          ..fileOffset = node.fileOffset;
+        return new BlockExpression(
+          new Block([
+            extern.createVariableStatement(node.variable),
+            extern.createVariableStatement(resultVar),
+            new ExpressionStatement(new VariableSet(resultVar, body))
+              ..fileOffset = node.fileOffset,
+          ]),
+          new VariableGet(resultVar),
+        )..fileOffset = node.fileOffset;
+      } else {
+        return new Let(node.variable, body)..fileOffset = node.fileOffset;
+      }
+    }
+
     Expression replacement;
     if (node.isNullAware) {
       Variable tempVar =
           new Variable(
-              null,
+              "anonymous#receiver",
               initializer: node.variable.initializer!,
               isSynthesized: true,
             )
@@ -11895,8 +11918,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = node.fileOffset
             ..parent = node.variable;
 
-      Expression elseExpression = new Let(node.variable, body)
-        ..fileOffset = node.fileOffset;
+      Expression elseExpression = createLetOrBlock();
 
       replacement = new Let(
         tempVar,
@@ -11910,7 +11932,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       inferredType = inferredType.withDeclaredNullability(Nullability.nullable);
     } else {
-      replacement = new Let(node.variable, body)..fileOffset = node.fileOffset;
+      replacement = createLetOrBlock();
     }
 
     if (node.isParameterless) {
