@@ -4,13 +4,11 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'ast_builder_test.dart' as ast_builder;
 import 'recovery/test_all.dart' as recovery;
 import 'token_utils_test.dart' as token_utils;
 
 main() {
   defineReflectiveSuite(() {
-    ast_builder.main();
     recovery.main();
     token_utils.main();
   }, name: 'fasta');

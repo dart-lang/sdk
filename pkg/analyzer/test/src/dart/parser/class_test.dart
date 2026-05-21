@@ -1129,6 +1129,88 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_formalParameter_super() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  A(super.a);
+}
+''');
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: a
+''');
+  }
+
+  test_constructor_typeName_formalParameter_super_withSuperInitializer() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+abstract class A {
+  final int f1;
+  final int f2;
+  const A(this.f1, this.f2);
+}
+
+class B extends A {
+  const B(super.f1): super(2);
+}
+''');
+
+    var node = parseResult.findNode.constructor('B(');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  typeName: SimpleIdentifier
+    token: B
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SuperFormalParameter
+      superKeyword: super
+      period: .
+      name: f1
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 2
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_initializer_assignmentWithSuperCallAsTarget() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  A() : super() = 0;
+//      ^^^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+//      ^^^^^^^^^^^
+// [diag.invalidInitializer] Not a valid initializer.
+}
+''');
+
+    var node = parseResult.findNode.constructor('A()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_constructor_typeName_named() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
@@ -1193,6 +1275,54 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
 ''');
+  }
+
+  test_constructor_typeName_wrongName() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  B() : super();
+//^
+// [diag.invalidConstructorName] The name of a constructor must match the name of the enclosing class.
+}
+''');
+
+    var node = parseResult.findNode.constructor('B()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: B
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  void test_extendsClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C extends (int, int) {}
+//              ^^^^^^^^^^
+// [diag.expectedNamedTypeExtends] Expected a class name.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class C');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class @0
+  namePart: NameWithTypeParameters
+    typeName: C @6
+  body: BlockClassBody
+    leftBracket: { @27
+    rightBracket: } @28
+''', withOffsets: true);
   }
 
   test_field_augment() {
@@ -1474,6 +1604,28 @@ ClassDeclaration
 ''');
   }
 
+  void test_getter_sameNameAsClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  get A => 0;
+//    ^
+// [diag.memberWithClassName] A class member can't have the same name as the enclosing class.
+}
+''');
+
+    var node = parseResult.findNode.methodDeclaration('get A');
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  propertyKeyword: get
+  name: A
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+    semicolon: ;
+''');
+  }
+
   test_getter_static_body_empty() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
@@ -1515,6 +1667,32 @@ MethodDeclaration
   body: EmptyFunctionBody
     semicolon: ;
 ''');
+  }
+
+  void test_implementsClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C implements A, (int, int), B {}
+//                    ^^^^^^^^^^
+// [diag.expectedNamedTypeImplements] Expected the name of a class or mixin.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class C');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class @0
+  namePart: NameWithTypeParameters
+    typeName: C @6
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @8
+    interfaces
+      NamedType
+        name: A @19
+      NamedType
+        name: B @34
+  body: BlockClassBody
+    leftBracket: { @36
+    rightBracket: } @37
+''', withOffsets: true);
   }
 
   test_method_augment() {
@@ -1657,6 +1835,277 @@ MethodDeclaration
     rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  void test_modifiers_abstract_final_base() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+abstract final base class A {}
+//       ^^^^^^^^^^
+// [diag.abstractFinalBaseClass] An 'abstract' class can't be declared as both 'final' and 'base'.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  abstractKeyword: abstract
+  baseKeyword: base
+  finalKeyword: final
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_abstract_final_interface() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+abstract final interface class A {}
+//       ^^^^^^^^^^^^^^^
+// [diag.abstractFinalInterfaceClass] An 'abstract' class can't be declared as both 'final' and 'interface'.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  abstractKeyword: abstract
+  interfaceKeyword: interface
+  finalKeyword: final
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_abstract_sealed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+abstract sealed class A {}
+//       ^^^^^^
+// [diag.abstractSealedClass] A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  abstractKeyword: abstract
+  sealedKeyword: sealed
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_base() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+base class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  baseKeyword: base
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_final() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+final class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  finalKeyword: final
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_final_mixinClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+final mixin class A {}
+// [diag.finalMixinClass][column 1][length 5] A mixin class can't be declared 'final'.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  finalKeyword: final
+  mixinKeyword: mixin
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_interface() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+interface class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  interfaceKeyword: interface
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_interface_mixinClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+interface mixin class A {}
+// [diag.interfaceMixinClass][column 1][length 9] A mixin class can't be declared 'interface'.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  interfaceKeyword: interface
+  mixinKeyword: mixin
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_mixinClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+mixin class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  mixinKeyword: mixin
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_sealed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+sealed class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  sealedKeyword: sealed
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_sealed_abstract() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+sealed abstract class A {}
+// [diag.abstractSealedClass][column 1][length 6] A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  abstractKeyword: abstract
+  sealedKeyword: sealed
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_sealed_mixinClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+sealed mixin class A {}
+// [diag.sealedMixinClass][column 1][length 6] A mixin class can't be declared 'sealed'.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  sealedKeyword: sealed
+  mixinKeyword: mixin
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -3274,6 +3723,253 @@ MethodDeclaration
     rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  void test_typeAlias_implementsClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C = Object with M implements A, (int, int), B;
+//                                    ^^^^^^^^^^
+// [diag.expectedNamedTypeImplements] Expected the name of a class or mixin.
+mixin M {}
+''');
+
+    var node = parseResult.findNode.classTypeAlias('class C');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class @0
+  name: C @6
+  equals: = @8
+  superclass: NamedType
+    name: Object @10
+  withClause: WithClause
+    withKeyword: with @17
+    mixinTypes
+      NamedType
+        name: M @22
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @24
+    interfaces
+      NamedType
+        name: A @35
+      NamedType
+        name: B @50
+  semicolon: ; @51
+''', withOffsets: true);
+  }
+
+  void test_typeAlias_mixinClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+mixin M {}
+/// text
+mixin class A = Object with M;
+''');
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
+  mixinKeyword: mixin
+  typedefKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
+  void test_typeAlias_modifiers_base() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+mixin M {}
+/// text
+base class A = Object with M;
+''');
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
+  baseKeyword: base
+  typedefKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
+  void test_typeAlias_modifiers_final() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+mixin M {}
+/// text
+final class A = Object with M;
+''');
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
+  finalKeyword: final
+  typedefKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
+  void test_typeAlias_modifiers_interface() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+mixin M {}
+/// text
+interface class A = Object with M;
+''');
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
+  interfaceKeyword: interface
+  typedefKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
+  void test_typeAlias_modifiers_sealed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+mixin M {}
+/// text
+sealed class A = Object with M;
+''');
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  documentationComment: Comment
+    tokens
+      /// text
+  sealedKeyword: sealed
+  typedefKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
+  void test_typeAlias_notNamedType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C = A Function() with M;
+//        ^^^^^^^^^^^^
+// [diag.expectedNamedTypeExtends] Expected a class name.
+''');
+    var node = parseResult.findNode.classTypeAlias('class');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: C
+  equals: =
+  superclass: NamedType
+    name: identifier <synthetic>
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
+  void test_typeAlias_withClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C = Object with A, (int, int), B;
+//                       ^^^^^^^^^^
+// [diag.expectedNamedTypeWith] Expected a mixin name.
+''');
+
+    var node = parseResult.findNode.classTypeAlias('class C');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class @0
+  name: C @6
+  equals: = @8
+  superclass: NamedType
+    name: Object @10
+  withClause: WithClause
+    withKeyword: with @17
+    mixinTypes
+      NamedType
+        name: A @22
+      NamedType
+        name: B @37
+  semicolon: ; @38
+''', withOffsets: true);
+  }
+
+  void test_withClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C with A, (int, int), B {}
+//              ^^^^^^^^^^
+// [diag.expectedNamedTypeWith] Expected a mixin name.
+''');
+
+    var node = parseResult.findNode.classDeclaration('class C');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: A
+      NamedType
+        name: B
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 }

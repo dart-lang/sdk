@@ -404,6 +404,34 @@ ExtensionDeclaration
 ''');
   }
 
+  void test_onClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension E on (int, int) {}
+''');
+
+    var node = parseResult.findNode.extensionDeclaration('extension E');
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension @0
+  name: E @10
+  onClause: ExtensionOnClause
+    onKeyword: on @12
+    extendedType: RecordTypeAnnotation
+      leftParenthesis: ( @15
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int @16
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int @21
+      rightParenthesis: ) @24
+  body: BlockClassBody
+    leftBracket: { @26
+    rightBracket: } @27
+''', withOffsets: true);
+  }
+
   test_operator_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {
