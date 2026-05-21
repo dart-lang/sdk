@@ -366,7 +366,7 @@ class ClassInfoCollector {
       translator.coreTypes.recordClass,
       translator.index.getClass("dart:core", "_Type"),
       translator.index.getClass("dart:_list", "WasmListBase"),
-      translator.index.getClass("dart:_string", "JSStringImpl"),
+      translator.stringImplClass,
     };
     for (final name in const <String>[
       "ByteBuffer",
@@ -911,7 +911,7 @@ class ClassIdNumbering {
     final fixedOrder = <Class, int>{
       translator.coreTypes.boolClass: -9,
       translator.coreTypes.numClass: -8,
-      translator.jsStringClass: -7,
+      translator.stringImplClass: -7,
       translator.typeClass: -6,
       translator.listBaseClass: -5,
       translator.hashFieldBaseClass: -4,

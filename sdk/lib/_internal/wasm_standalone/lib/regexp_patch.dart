@@ -23,7 +23,7 @@ class RegExp {
 
   @patch
   static String escape(String text) {
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       regexpEscape(embedderStringFromDartString(text).wrappedExternRef),
     );
   }

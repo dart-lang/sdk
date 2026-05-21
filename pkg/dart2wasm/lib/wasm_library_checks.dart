@@ -20,8 +20,13 @@ void checkDartWasmApiUseIfImported(
   Iterable<Library> libraries,
   CoreTypes coreTypes,
   DiagnosticReporter diagnosticReporter,
+  bool isStandalone,
 ) {
-  final checks = _DartWasmLibraryChecks(coreTypes, diagnosticReporter);
+  final checks = _DartWasmLibraryChecks(
+    coreTypes,
+    isStandalone,
+    diagnosticReporter,
+  );
   for (final library in libraries) {
     // Skip the check if the library doesn't import dart:_wasm.
     // TODO: This misses libraries importing dart:_wasm through an export.
@@ -44,9 +49,16 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
   final CoreTypes coreTypes;
 
   @override
+  final bool isStandalone;
+
+  @override
   LibraryIndex get index => coreTypes.index;
 
-  _DartWasmLibraryChecks(this.coreTypes, this._diagnosticReporter);
+  _DartWasmLibraryChecks(
+    this.coreTypes,
+    this.isStandalone,
+    this._diagnosticReporter,
+  );
 
   @override
   void visitLibrary(Library library) {

@@ -23,7 +23,7 @@ dynamic _parseJson(
 ) {
   final listener = _JsonListener(reviver);
   final parser = _StringParser(listener);
-  parser.setNewChunk(unsafeCast<JSStringImpl>(source), source.length);
+  parser.setNewChunk(source, source.length);
   parser.parse(0);
   parser.close();
   return listener.result;

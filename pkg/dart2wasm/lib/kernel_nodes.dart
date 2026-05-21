@@ -10,16 +10,20 @@ import 'package:kernel/library_index.dart';
 /// compiler.
 mixin KernelNodes {
   LibraryIndex get index;
+  bool get isStandalone;
 
   CoreTypes get coreTypes;
 
   // dart:_internal classes
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
 
+  String get _stringImplClassName =>
+      isStandalone ? "EmbedderStringImpl" : "JSStringImpl";
+
   // dart:_js_types classes
-  late final Class jsStringClass = index.getClass(
+  late final Class stringImplClass = index.getClass(
     "dart:_string",
-    "JSStringImpl",
+    _stringImplClassName,
   );
 
   // dart:collection classes
@@ -374,34 +378,34 @@ mixin KernelNodes {
   );
 
   // dart:_js_types procedures
-  late final Procedure jsStringEquals = index.getProcedure(
+  late final Procedure stringImplEquals = index.getProcedure(
     "dart:_string",
-    "JSStringImpl",
+    _stringImplClassName,
     "==",
   );
-  late final Procedure jsStringInterpolate = index.getProcedure(
+  late final Procedure stringImplInterpolate = index.getProcedure(
     "dart:_string",
-    "JSStringImpl",
+    _stringImplClassName,
     "_interpolate",
   );
-  late final Procedure jsStringInterpolate1 = index.getProcedure(
+  late final Procedure stringImplInterpolate1 = index.getProcedure(
     "dart:_string",
-    "JSStringImpl",
+    _stringImplClassName,
     "_interpolate1",
   );
-  late final Procedure jsStringInterpolate2 = index.getProcedure(
+  late final Procedure stringImplInterpolate2 = index.getProcedure(
     "dart:_string",
-    "JSStringImpl",
+    _stringImplClassName,
     "_interpolate2",
   );
-  late final Procedure jsStringInterpolate3 = index.getProcedure(
+  late final Procedure stringImplInterpolate3 = index.getProcedure(
     "dart:_string",
-    "JSStringImpl",
+    _stringImplClassName,
     "_interpolate3",
   );
-  late final Procedure jsStringInterpolate4 = index.getProcedure(
+  late final Procedure stringImplInterpolate4 = index.getProcedure(
     "dart:_string",
-    "JSStringImpl",
+    _stringImplClassName,
     "_interpolate4",
   );
 

@@ -2911,19 +2911,19 @@ abstract class AstCodeGenerator
         translateExpression(expression, nullableObjectType);
       }
       if (expressions.length == 1) {
-        target = translator.jsStringInterpolate1;
+        target = translator.stringImplInterpolate1;
       } else if (expressions.length == 2) {
-        target = translator.jsStringInterpolate2;
+        target = translator.stringImplInterpolate2;
       } else if (expressions.length == 3) {
-        target = translator.jsStringInterpolate3;
+        target = translator.stringImplInterpolate3;
       } else {
         assert(expressions.length == 4);
-        target = translator.jsStringInterpolate4;
+        target = translator.stringImplInterpolate4;
       }
     } else {
       final nullableObjectType = translator.coreTypes.objectNullableRawType;
       makeArrayFromExpressions(expressions, nullableObjectType);
-      target = translator.jsStringInterpolate;
+      target = translator.stringImplInterpolate;
     }
     return translator.outputOrVoid(call(target.reference));
   }
@@ -5271,7 +5271,7 @@ class SwitchInfo {
       } else if (check<IntLiteral, IntConstant>()) {
         equalsMember = translator.boxedIntEquals;
       } else if (check<StringLiteral, StringConstant>()) {
-        equalsMember = translator.jsStringEquals;
+        equalsMember = translator.stringImplEquals;
       } else {
         compare = (switchExprLocal, pushCaseExpr) {
           // Virtual call to `Object.==`.
@@ -5392,7 +5392,7 @@ class SwitchInfo {
       compare = (switchExprLocal, pushCaseExpr) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
-        codeGen.call(translator.jsStringEquals.reference);
+        codeGen.call(translator.stringImplEquals.reference);
       };
     } else if (switchExprClass.isEnum) {
       // If this is an applicable switch over enums, create a jump table.

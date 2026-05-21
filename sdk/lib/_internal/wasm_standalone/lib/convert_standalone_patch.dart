@@ -23,7 +23,7 @@ class _StringParser {
   static WasmArray<WasmI16> stringToCharCodeArray(String string, int end) {
     final array = WasmArray<WasmI16>(end);
     if (string.length == end) {
-      final externRef = unsafeCast<JSStringImpl>(string).wrappedExternRef;
+      final externRef = unsafeCast<EmbedderStringImpl>(string).wrappedExternRef;
       embedder.stringToCodeUnits(externRef, array, 0.toWasmI32());
     } else {
       for (int i = 0; i < end; ++i)
@@ -37,16 +37,18 @@ class _StringParser {
 @patch
 double _parseValidFloat(String string) {
   return embedder
-      .doubleParseInfallible(unsafeCast<JSStringImpl>(string).wrappedExternRef)
+      .doubleParseInfallible(
+        unsafeCast<EmbedderStringImpl>(string).wrappedExternRef,
+      )
       .toDouble();
 }
 
 @patch
 String _stringFromCharCodeArray(WasmArray<WasmI16> array, int start, int end) {
-  return JSStringImpl.fromCharCodeArray(array, start, end);
+  return EmbedderStringImpl.fromCharCodeArray(array, start, end);
 }
 
 @patch
 String _stringFromAsciiBytes(WasmArray<WasmI8> source, int start, int end) {
-  return JSStringImpl.fromAsciiBytes(source, start, end);
+  return EmbedderStringImpl.fromAsciiBytes(source, start, end);
 }

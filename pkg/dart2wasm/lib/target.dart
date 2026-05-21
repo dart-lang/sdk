@@ -116,7 +116,7 @@ class WasmTarget extends Target {
   Class? _wasmDefaultSet;
   Class? _wasmImmutableMap;
   Class? _wasmImmutableSet;
-  Class? _jsString;
+  Class? _stringImpl;
   Class? _closure;
   Class? _boxedInt;
   Class? _boxedDouble;
@@ -452,6 +452,7 @@ class WasmTarget extends Target {
       libraries,
       coreTypes,
       diagnosticReporter,
+      mode == .standalone,
     );
 
     awaitTrans.transformLibraries(libraries, hierarchy, coreTypes);
@@ -613,18 +614,11 @@ class WasmTarget extends Target {
 
   @override
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
-    return _jsString ??= coreTypes.index.getClass(
+    return _stringImpl ??= coreTypes.index.getClass(
       "dart:_string",
-      "JSStringImpl",
+      mode == .standalone ? "EmbedderStringImpl" : "JSStringImpl",
     );
   }
-
-  // In dart2wasm we can't assume that `x == "hello"` means `x`'s class is
-  // `concreteStringLiteralClass("hello")`, it may also be `JSStringImpl` when
-  // it's obtained from a JS call, or `TwoByteString` when it's a substring of a
-  // `TwoByteString`.
-  @override
-  bool get canInferStringClassAfterEqualityComparison => false;
 
   @override
   Class concreteClosureClass(CoreTypes coreTypes) {
