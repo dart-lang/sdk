@@ -85272,6 +85272,198 @@ int get a => 0;
     );
   }
 
+  test_manifest_metadata_genericFunctionType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(T)>[])
+void foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(T)>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    exportMapId: #M3
+    exportMap
+      A: #M0
+      foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(T)>[])
+void foo() {}
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredGetters
+      b: #M4
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(T)>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    declaredVariables
+      b: #M5
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+    exportMapId: #M6
+    exportMap
+      A: #M0
+      b: #M4
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_metadata_genericFunctionType_nested() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(void Function<U extends T>(T, U))>[])
+void foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(voidFunction<UextendsT>(T,U))>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 4, 8, 1, 1, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              0 = null
+              22 = typeParameter 1
+              22 = typeParameter 1
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    exportMapId: #M3
+    exportMap
+      A: #M0
+      foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(void Function<U extends T>(T, U))>[])
+void foo() {}
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredGetters
+      b: #M4
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(voidFunction<UextendsT>(T,U))>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 4, 8, 1, 1, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              0 = null
+              22 = typeParameter 1
+              22 = typeParameter 1
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    declaredVariables
+      b: #M5
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+    exportMapId: #M6
+    exportMap
+      A: #M0
+      b: #M4
+      foo: #M2
+''',
+    );
+  }
+
   test_manifest_metadata_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
