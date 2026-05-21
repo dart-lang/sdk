@@ -36,6 +36,7 @@ class Module implements Serializable {
   late final Imports _imports;
   late final List<int> _watchPoints;
   late final Uri? _sourceMapUrl;
+  late final List<ExtraCustomSection> _extraCustomSections;
 
   Module.uninitialized() : _initialized = false;
 
@@ -54,6 +55,7 @@ class Module implements Serializable {
     Imports imports,
     List<int> watchPoints,
     Uri? sourceMapUrl,
+    List<ExtraCustomSection> extraCustomSections,
   ) {
     if (_initialized) throw 'Already initialized';
 
@@ -72,6 +74,7 @@ class Module implements Serializable {
     _imports = imports;
     _watchPoints = watchPoints;
     _sourceMapUrl = sourceMapUrl;
+    _extraCustomSections = extraCustomSections;
   }
 
   String? get moduleName => _moduleName;
@@ -88,6 +91,7 @@ class Module implements Serializable {
   Imports get imports => _imports;
   List<int> get watchPoints => _watchPoints;
   Uri? get sourceMapUrl => _sourceMapUrl;
+  List<ExtraCustomSection> get extraCustomSections => _extraCustomSections;
 
   /// Serialize a module to its binary representation.
   @override
@@ -130,6 +134,9 @@ class Module implements Serializable {
     ).serialize(s);
     RemovableIfUnusedSection(functions).serialize(s);
     SourceMapSection(sourceMapUrl).serialize(s);
+    for (final customSection in _extraCustomSections) {
+      customSection.serialize(s);
+    }
   }
 
   static (Map<int, List<Deserializer>>, Map<String, List<Deserializer>>)
@@ -275,18 +282,26 @@ class Module implements Serializable {
     DataSection.deserialize(dataSections?.single, dataSegments, memories);
 
     final moduleName = NameSection.deserialize(
-      customSections[NameSection.customSectionName]?.single,
+      customSections.remove(NameSection.customSectionName)?.single,
       functions,
       types,
       globals,
     );
     RemovableIfUnusedSection.deserialize(
-      customSections[RemovableIfUnusedSection.customSectionName]?.single,
+      customSections.remove(RemovableIfUnusedSection.customSectionName)?.single,
       functions,
     );
     final sourceMapUrl = SourceMapSection.deserialize(
-      customSections[SourceMapSection.customSectionName]?.single,
+      customSections.remove(SourceMapSection.customSectionName)?.single,
     );
+    final extraCustomSections = <ExtraCustomSection>[];
+    customSections.forEach((name, deserializers) {
+      for (final deserializer in deserializers) {
+        extraCustomSections.add(
+          ExtraCustomSection.deserialize(deserializer, name),
+        );
+      }
+    });
 
     return module..initialize(
       moduleName ?? '',
@@ -303,6 +318,7 @@ class Module implements Serializable {
       imports,
       [],
       sourceMapUrl,
+      extraCustomSections,
     );
   }
 
