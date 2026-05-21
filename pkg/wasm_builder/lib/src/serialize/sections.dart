@@ -2,9 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import '../ir/ir.dart' as ir;
 import 'deserializer.dart';
+import 'printer.dart' show IndentPrinter;
 import 'serializer.dart';
+
+const Set<String> _reservedCustomSectionNames = {
+  NameSection.customSectionName,
+  SourceMapSection.customSectionName,
+  RemovableIfUnusedSection.customSectionName,
+};
 
 abstract class Section implements Serializable {
   final List<int> watchPoints;
@@ -1140,5 +1149,29 @@ class RemovableIfUnusedSection extends CustomSection {
         functions[functionIndex].isPure = true;
       }
     }
+  }
+}
+
+class ExtraCustomSection extends CustomSection {
+  final String name;
+  final Uint8List bytes;
+
+  ExtraCustomSection(this.name, this.bytes)
+    : assert(!_reservedCustomSectionNames.contains(name)),
+      super([]);
+
+  factory ExtraCustomSection.deserialize(Deserializer d, String name) {
+    final bytes = d.readBytes(d.length - d.offset);
+    return ExtraCustomSection(name, bytes);
+  }
+
+  @override
+  void serializeContents(Serializer s) {
+    s.writeName(name);
+    s.writeBytes(bytes);
+  }
+
+  void printTo(IndentPrinter ip) {
+    ip.writeln('(custom "$name" (${bytes.length} bytes data))');
   }
 }

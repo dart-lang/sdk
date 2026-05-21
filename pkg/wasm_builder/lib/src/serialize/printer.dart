@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import '../ir/ir.dart' as ir;
+import 'sections.dart' show ExtraCustomSection;
 
 class ModulePrinter {
   final ir.Module _module;
@@ -45,6 +46,11 @@ class ModulePrinter {
     _module,
     enqueueMemory,
   );
+  late final extraCustomSectionNamer = ExtraCustomSectionNamer(
+    settings.scrubAbsoluteUris,
+    _module,
+    enqueueExtraCustomSection,
+  );
 
   final _types = <ir.DefType, String>{};
   final _tags = <ir.Tag, String>{};
@@ -56,6 +62,7 @@ class ModulePrinter {
   final _functions = <ir.BaseFunction, String>{};
   final _dataSegments = <ir.BaseDataSegment, String>{};
   final _memories = <ir.Memory, String>{};
+  final _customSections = <ExtraCustomSection, String>{};
 
   final _typeQueue = Queue<ir.DefType>();
   final _functionsQueue = Queue<ir.DefinedFunction>();
@@ -228,6 +235,15 @@ class ModulePrinter {
     }
   }
 
+  void enqueueExtraCustomSection(ExtraCustomSection section) {
+    if (!_customSections.containsKey(section)) {
+      _customSections[section] = '';
+      final ip = newIrPrinter();
+      section.printTo(ip);
+      _customSections[section] = ip.getText();
+    }
+  }
+
   String print() {
     while (_functionsQueue.isNotEmpty || _typeQueue.isNotEmpty) {
       while (_functionsQueue.isNotEmpty) {
@@ -342,6 +358,11 @@ class ModulePrinter {
 
       printOrdered(_module.functions.defined, functionNamer, _functions);
       printOrdered(_module.dataSegments.defined, dataNamer, _dataSegments);
+      printOrdered(
+        _module.extraCustomSections,
+        extraCustomSectionNamer,
+        _customSections,
+      );
     });
     mp.write(')');
     return mp.getText();
@@ -881,6 +902,23 @@ class MemoryNamer extends Namer<ir.Memory> {
       memory,
       memory is ir.ImportedMemory ? '${memory.module}.${memory.name}' : null,
       'memory',
+      activateOnReferenceCallback,
+    );
+  }
+}
+
+class ExtraCustomSectionNamer extends Namer<ExtraCustomSection> {
+  ExtraCustomSectionNamer(super.scubUris, super.module, super.onReference);
+
+  @override
+  String name(
+    ExtraCustomSection section, {
+    bool activateOnReferenceCallback = true,
+  }) {
+    return super._name(
+      section,
+      section.name,
+      'extraCustomSection',
       activateOnReferenceCallback,
     );
   }

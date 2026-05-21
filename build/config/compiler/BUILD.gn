@@ -687,6 +687,7 @@ if (is_win) {
   } else {
     default_warning_flags += [
       "-Wno-ignored-qualifiers",  # Warnings in BoringSSL headers
+      "-Wno-stringop-overflow",  # ICU in gcc 16
     ]
     if (is_tsan && current_cpu == "riscv64") {
       default_warning_flags += [
