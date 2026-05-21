@@ -242,7 +242,7 @@ class ValueKinds {
         NullValues.NominalParameters,
       );
   static const ValueKind VariableDeclarationListOrNull =
-      const SingleValueKind<List<type.VariableDeclaration>>(
+      const SingleValueKind<List<type.Variable>>(
         NullValues.VariableDeclarationList,
       );
 }

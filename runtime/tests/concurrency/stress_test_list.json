@@ -3443,7 +3443,6 @@
   "../../../tests/standalone/io/http_auth_test.dart",
   "../../../tests/standalone/io/http_big_header_test.dart",
   "../../../tests/standalone/io/http_bind_test.dart",
-  "../../../tests/standalone/io/http_client_connect_test.dart",
   "../../../tests/standalone/io/http_client_exception_test.dart",
   "../../../tests/standalone/io/http_client_request_test.dart",
   "../../../tests/standalone/io/http_close_test.dart",

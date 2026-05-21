@@ -49,7 +49,7 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -93,14 +93,14 @@ sealed class MethodEncoding implements InferredTypeListener {
     ClassHierarchyBase hierarchy,
   );
 
-  VariableDeclaration? getTearOffParameter(int index);
+  Variable? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 }
 
@@ -161,7 +161,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  Variable? get thisVariable => null;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -381,7 +381,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) => null;
+  Variable? getTearOffParameter(int index) => null;
 
   @override
   void onInferredType(DartType type) {
@@ -394,7 +394,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -459,7 +459,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   ///
   /// This map is used to set the default values on the closure parameters when
   /// these have been built.
-  Map<VariableDeclaration, VariableDeclaration>? _extensionTearOffParameterMap;
+  Map<Variable, Variable>? _extensionTearOffParameterMap;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -490,7 +490,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   Procedure? get readTarget => _extensionTearOff;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable;
+  Variable? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -780,7 +780,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     return _extensionTearOffParameterMap?[_fragment
         .declaredFormals![index]
         .variable];
@@ -797,7 +797,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -878,11 +878,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       }
     }
 
-    VariableDeclaration copyParameter(
-      VariableDeclaration parameter,
-      DartType type,
-    ) {
-      VariableDeclaration newParameter;
+    Variable copyParameter(Variable parameter, DartType type) {
+      Variable newParameter;
       switch (parameter) {
         case PositionalParameter():
           // Coverage-ignore(suite): Not run.
@@ -902,7 +899,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
             isLowered: parameter.isLowered,
             isRequired: parameter.isRequired,
           )..fileOffset = parameter.fileOffset;
-        case VariableDeclaration():
+        case Variable():
           newParameter = extern.createParameterVariable(
             parameter.name,
             type: type,
@@ -916,7 +913,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       return newParameter;
     }
 
-    VariableDeclaration extensionThis = copyParameter(
+    Variable extensionThis = copyParameter(
       procedure.function.positionalParameters.first,
       substitution.substituteType(
         procedure.function.positionalParameters.first.type,
@@ -926,7 +923,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     DartType closureReturnType = substitution.substituteType(
       procedure.function.returnType,
     );
-    List<VariableDeclaration> closurePositionalParameters = [];
+    List<Variable> closurePositionalParameters = [];
     List<Expression> closurePositionalArguments = [];
 
     for (
@@ -934,8 +931,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       position < procedure.function.positionalParameters.length;
       position++
     ) {
-      VariableDeclaration parameter =
-          procedure.function.positionalParameters[position];
+      Variable parameter = procedure.function.positionalParameters[position];
       if (position == 0) {
         /// Pass `this` as a captured variable.
         closurePositionalArguments.add(
@@ -943,18 +939,18 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         );
       } else {
         DartType type = substitution.substituteType(parameter.type);
-        VariableDeclaration newParameter = copyParameter(parameter, type);
+        Variable newParameter = copyParameter(parameter, type);
         closurePositionalParameters.add(newParameter);
         closurePositionalArguments.add(
           extern.createVariableGet(newParameter, fileOffset: fileOffset),
         );
       }
     }
-    List<VariableDeclaration> closureNamedParameters = [];
+    List<Variable> closureNamedParameters = [];
     List<NamedExpression> closureNamedArguments = [];
-    for (VariableDeclaration parameter in procedure.function.namedParameters) {
+    for (Variable parameter in procedure.function.namedParameters) {
       DartType type = substitution.substituteType(parameter.type);
-      VariableDeclaration newParameter = copyParameter(parameter, type);
+      Variable newParameter = copyParameter(parameter, type);
       closureNamedParameters.add(newParameter);
       closureNamedArguments.add(
         extern.createNamedExpression(

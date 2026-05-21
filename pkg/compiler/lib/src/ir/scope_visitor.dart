@@ -53,7 +53,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   /// Keep track of the mutated local variables so that we don't need to box
   /// non-mutated variables. We know these are only VariableDeclarations because
   /// type variable types and `this` types can't be mutated!
-  final Set<ir.VariableDeclaration> _mutatedVariables = {};
+  final Set<ir.Variable> _mutatedVariables = {};
 
   /// The set of variables that are accessed in some form, whether they are
   /// mutated or not.
@@ -187,12 +187,11 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
   void attachCapturedScopeVariables(ir.TreeNode node) {
-    Set<ir.VariableDeclaration> capturedVariablesForScope =
-        <ir.VariableDeclaration>{};
+    Set<ir.Variable> capturedVariablesForScope = <ir.Variable>{};
 
     for (ir.Node variable in _scopeVariables) {
       // No need to box non-assignable elements.
-      if (variable is ir.VariableDeclaration) {
+      if (variable is ir.Variable) {
         if (variable.isConst) continue;
         if (!_mutatedVariables.contains(variable)) continue;
         if (_capturedVariables.contains(variable)) {
@@ -307,10 +306,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     return const EvaluationComplexity.lazy();
   }
 
-  void _handleVariableDeclaration(
-    ir.VariableDeclaration node,
-    VariableUse usage,
-  ) {
+  void _handleVariableDeclaration(ir.Variable node, VariableUse usage) {
     if (!node.isInitializingFormal) {
       _scopeVariables.add(node);
     }
@@ -325,11 +321,11 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   EvaluationComplexity visitLegacyVariableStatement(
     ir.LegacyVariableStatement node,
   ) {
-    return defaultVariableDeclaration(node.variable);
+    return defaultVariable(node.variable);
   }
 
   @override
-  EvaluationComplexity defaultVariableDeclaration(ir.VariableDeclaration node) {
+  EvaluationComplexity defaultVariable(ir.Variable node) {
     _handleVariableDeclaration(node.variable, SimpleVariableUse.localType);
     return const EvaluationComplexity.lazy();
   }
@@ -343,10 +339,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ variable,
     VariableUse usage,
   ) {
-    assert(
-      variable is ir.VariableDeclaration ||
-          variable is TypeVariableTypeWithContext,
-    );
+    assert(variable is ir.Variable || variable is TypeVariableTypeWithContext);
     if (_isInsideClosure && !_inCurrentContext(variable)) {
       // If the element is not declared in the current function and the element
       // is not the closure itself we need to mark the element as free variable.
@@ -365,7 +358,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
             .add(usage);
       }
     }
-    if (_inTry && variable is ir.VariableDeclaration) {
+    if (_inTry && variable is ir.Variable) {
       _currentScopeInfo.localsUsedInTryOrSync.add(variable);
     }
   }
@@ -500,8 +493,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
   @override
   EvaluationComplexity visitForStatement(ir.ForStatement node) {
-    List<ir.VariableDeclaration> boxedLoopVariables =
-        <ir.VariableDeclaration>[];
+    List<ir.Variable> boxedLoopVariables = <ir.Variable>[];
     enterNewScope(node, () {
       // First visit initialized variables and update steps so we can easily
       // check if a loop variable was captured in one of these subexpressions.
@@ -648,10 +640,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   /// Return true if [variable]'s context is the same as the current executable
   /// context.
   bool _inCurrentContext(ir.Node variable) {
-    assert(
-      variable is ir.VariableDeclaration ||
-          variable is TypeVariableTypeWithContext,
-    );
+    assert(variable is ir.Variable || variable is TypeVariableTypeWithContext);
     if (variable is TypeVariableTypeWithContext) {
       return variable.context == _executableContext;
     }
@@ -877,10 +866,10 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
         ? MemberParameterVariableUse(parent)
         : LocalParameterVariableUse(parent as ir.LocalFunction);
     visitNodesInContext(node.typeParameters, parameterUsage);
-    for (ir.VariableDeclaration declaration in node.positionalParameters) {
+    for (ir.Variable declaration in node.positionalParameters) {
       _handleVariableDeclaration(declaration, parameterUsage);
     }
-    for (ir.VariableDeclaration declaration in node.namedParameters) {
+    for (ir.Variable declaration in node.namedParameters) {
       _handleVariableDeclaration(declaration, parameterUsage);
     }
     visitInContext(

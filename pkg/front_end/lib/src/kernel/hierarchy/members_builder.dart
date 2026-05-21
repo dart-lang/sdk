@@ -310,6 +310,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 }
 
-int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
+int compareNamedParameters(Variable a, Variable b) {
   return a.name!.compareTo(b.name!);
 }

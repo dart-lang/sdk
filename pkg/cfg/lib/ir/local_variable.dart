@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ast show VariableDeclaration;
+import 'package:kernel/ast.dart' as ast show Variable;
 import 'package:cfg/ir/types.dart';
 
 /// Local variable or a function parameter.
@@ -14,7 +14,7 @@ class LocalVariable {
   final String name;
 
   /// Declaration of the variable in the AST, if any.
-  final ast.VariableDeclaration? declaration;
+  final ast.Variable? declaration;
 
   /// Index of the variable in the [FlowGraph.localVariables].
   final int index;

@@ -6,12 +6,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DynamicType,
-        Expression,
-        InvalidExpression,
-        VariableDeclaration;
+    show DartType, DynamicType, Expression, InvalidExpression, Variable;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/extension_scope.dart';
@@ -149,10 +144,10 @@ class CatchParameterBuilder extends NamedBuilderImpl
   NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
-  VariableDeclaration get variable => _variable!.asVariableDeclaration;
+  Variable get variable => _variable!.asVariableDeclaration;
 
   @override
-  VariableDeclaration build(SourceLibraryBuilder library) {
+  Variable build(SourceLibraryBuilder library) {
     if (_variable == null) {
       bool isTypeOmitted = type is OmittedTypeBuilder;
       DartType? builtType = type.build(library, TypeUse.parameterType);
@@ -244,7 +239,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   final FormalParameterKind kind;
 
   /// The variable declaration created for this formal parameter.
-  VariableDeclaration? _variable;
+  Variable? _variable;
 
   /// The first token of the default value, if any.
   ///
@@ -289,7 +284,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
     required this.nameOffset,
     required this.isClosureContextLoweringEnabled,
     this.isPrimaryConstructorParameter = false,
-    VariableDeclaration? variable,
+    Variable? variable,
   }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
        this._defaultValueToken = defaultValueToken,
        this._wildcardIndex = wildcardIndex,
@@ -305,7 +300,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   NamedBuilder get getable => this;
 
   // An initializing formal parameter might be final without its
-  // VariableDeclaration being final. See
+  // [Variable] being final. See
   // [ProcedureBuilder.computeFormalParameterInitializerScope]..
   @override
   bool get isAssignable =>
@@ -357,10 +352,10 @@ class FormalParameterBuilder extends NamedBuilderImpl
   NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
-  VariableDeclaration get variable => _variable!.asVariableDeclaration;
+  Variable get variable => _variable!.asVariableDeclaration;
 
   @override
-  VariableDeclaration build(SourceLibraryBuilder library) {
+  Variable build(SourceLibraryBuilder library) {
     if (_variable == null) {
       bool isTypeOmitted = type is OmittedTypeBuilder;
       DartType? builtType = type.build(library, TypeUse.parameterType);
@@ -629,7 +624,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   bool get isWildcard => false;
 
   @override
-  VariableDeclaration build(SourceLibraryBuilder library) {
+  Variable build(SourceLibraryBuilder library) {
     throw new UnsupportedError("${this.runtimeType}.build");
   }
 }
@@ -656,7 +651,7 @@ abstract class ParameterBuilder {
 
   TypeBuilder get type;
 
-  VariableDeclaration build(SourceLibraryBuilder library);
+  Variable build(SourceLibraryBuilder library);
 }
 
 abstract class ParameterVariableBuilder

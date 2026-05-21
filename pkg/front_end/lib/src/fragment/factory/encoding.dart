@@ -837,7 +837,7 @@ class FactoryEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     assert(
       asyncModifier.kind == AsyncMarker.Sync,
@@ -868,7 +868,7 @@ class FactoryEncoding implements InferredTypeListener {
   FunctionSignature get signature =>
       new FunctionNodeSignature(_procedure.function);
 
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     if (_tearOff != null) {
       if (index < _tearOff.function.positionalParameters.length) {
         return _tearOff.function.positionalParameters[index];

@@ -156,7 +156,7 @@ class ConstantsBackend {
   bool get alwaysInlineConstants => true;
 
   /// Inline control of constant variables. The given constant expression
-  /// is the initializer of a [Field] or [VariableDeclaration] node.
+  /// is the initializer of a [Field] or [Variable] node.
   /// If this method returns `true`, the variable will be inlined at all
   /// points of reference and the variable itself removed (unless overridden
   /// by the `keepFields` or `keepLocals` properties).
@@ -184,7 +184,7 @@ class ConstantsBackend {
   /// All use-sites will be rewritten based on [shouldInlineConstant].
   bool get keepFields => true;
 
-  /// If `true` constant [VariableDeclaration]s are not removed from the AST
+  /// If `true` constant [Variable]s are not removed from the AST
   /// even when use-sites are inlined.
   ///
   /// All use-sites will be rewritten based on [shouldInlineConstant].
@@ -446,6 +446,13 @@ abstract class Target {
   ///
   /// Targets can opt in to using this node for general inlining.
   bool get supportsFileUriExpression => false;
+
+  /// Whether this target supports capturing `Let` variables.
+  ///
+  /// If the target does not support capturing `Let` variables then a `Let`
+  /// expression whose variable may be captured in a nested function literal
+  /// will be lowered to a block expression with a variable declaration.
+  bool get supportsLetVariableCapture => true;
 
   /// Bit mask of [LateLowering] values for the late lowerings that should
   /// be performed by the CFE.

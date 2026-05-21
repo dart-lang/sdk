@@ -577,7 +577,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       "Type has not been computed for field ${_fragment.name}.",
     );
     if (needsPromotion) {
-      VariableDeclaration variable = extern.createVariableCache(
+      Variable variable = extern.createVariableCache(
         _createFieldGet(_field!),
         _type!.withDeclaredNullability(Nullability.nullable),
       );
@@ -640,7 +640,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     Reference? reference, {
     required bool isCovariantByDeclaration,
   }) {
-    VariableDeclaration parameter = extern.createParameterVariable(
+    Variable parameter = extern.createParameterVariable(
       "${_fragment.name}#param",
       isCovariantByDeclaration: isCovariantByDeclaration,
       fileOffset: _fragment.nameOffset,
@@ -665,7 +665,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    VariableDeclaration parameter,
+    Variable parameter,
   );
 
   @override
@@ -929,7 +929,7 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    VariableDeclaration parameter,
+    Variable parameter,
   ) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBody(
@@ -1039,7 +1039,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    VariableDeclaration parameter,
+    Variable parameter,
   ) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBodyFinal(
@@ -1104,7 +1104,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    VariableDeclaration parameter,
+    Variable parameter,
   ) => throw new UnsupportedError(
     '$runtimeType._createSetterBody is not supported.',
   );
@@ -1288,7 +1288,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .getProcedureMemberName(ProcedureKind.Getter, _fragment.name)
           .attachMember(_getter!);
       if (_fragment.hasSetter) {
-        VariableDeclaration parameter = extern.createParameterVariable(
+        Variable parameter = extern.createParameterVariable(
           "#externalFieldValue",
           isSynthesized: true,
           isCovariantByDeclaration: _fragment.modifiers.isCovariant,
@@ -1342,7 +1342,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           )
           .attachMember(_getter!);
       if (!_fragment.modifiers.isFinal) {
-        VariableDeclaration parameter =
+        Variable parameter =
             libraryBuilder.loader.isClosureContextLoweringEnabled
             ?
               // Coverage-ignore(suite): Not run.
@@ -1863,7 +1863,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
         .getProcedureMemberName(ProcedureKind.Getter, _fragment.name)
         .attachMember(_getter!);
     if (_fragment.hasSetter) {
-      VariableDeclaration parameter = extern.createParameterVariable(
+      Variable parameter = extern.createParameterVariable(
         "#externalFieldValue",
         isSynthesized: true,
         isCovariantByDeclaration: _fragment.modifiers.isCovariant,

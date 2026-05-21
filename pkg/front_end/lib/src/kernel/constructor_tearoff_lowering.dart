@@ -366,8 +366,8 @@ DelayedDefaultValueCloner _createParameters(
   bool isClosureContextLoweringEnabled =
       libraryBuilder.loader.isClosureContextLoweringEnabled;
 
-  VariableDeclaration createTearOffParameter(
-    VariableDeclaration constructorParameter, {
+  Variable createTearOffParameter(
+    Variable constructorParameter, {
     required bool isPositional,
   }) {
     DartType tearOffParameterType = substitution.substituteType(
@@ -397,17 +397,16 @@ DelayedDefaultValueCloner _createParameters(
     }
   }
 
-  for (VariableDeclaration constructorParameter
-      in function.positionalParameters) {
-    VariableDeclaration tearOffParameter = createTearOffParameter(
+  for (Variable constructorParameter in function.positionalParameters) {
+    Variable tearOffParameter = createTearOffParameter(
       constructorParameter,
       isPositional: true,
     );
     tearOff.function.positionalParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
   }
-  for (VariableDeclaration constructorParameter in function.namedParameters) {
-    VariableDeclaration tearOffParameter = createTearOffParameter(
+  for (Variable constructorParameter in function.namedParameters) {
+    Variable tearOffParameter = createTearOffParameter(
       constructorParameter,
       isPositional: false,
     );
@@ -443,15 +442,13 @@ Arguments _createArguments(
   int fileOffset,
 ) {
   List<Expression> positionalArguments = [];
-  for (VariableDeclaration tearOffParameter
-      in tearOff.function.positionalParameters) {
+  for (Variable tearOffParameter in tearOff.function.positionalParameters) {
     positionalArguments.add(
       extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
     );
   }
   List<NamedExpression> namedArguments = [];
-  for (VariableDeclaration tearOffParameter
-      in tearOff.function.namedParameters) {
+  for (Variable tearOffParameter in tearOff.function.namedParameters) {
     namedArguments.add(
       extern.createNamedExpression(
         tearOffParameter.name!,

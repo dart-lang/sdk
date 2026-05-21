@@ -27,7 +27,7 @@ void main() {
   negative1Test(
     'VariableGet out of scope',
     (TestHarness test) {
-      VariableDeclaration node = test.makeVariable();
+      Variable node = test.makeVariable();
       test.addNode(VariableGet(node));
       return node;
     },
@@ -36,7 +36,7 @@ void main() {
   negative1Test(
     'VariableSet out of scope',
     (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
+      Variable variable = test.makeVariable();
       test.addNode(VariableSet(variable, new NullLiteral()));
       return variable;
     },
@@ -45,7 +45,7 @@ void main() {
   negative1Test(
     'Variable block scope',
     (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
+      Variable variable = test.makeVariable();
       test.addNode(
         Block([
           new Block([new VariableStatement(variable)]),
@@ -59,7 +59,7 @@ void main() {
   negative1Test(
     'Variable let scope',
     (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
+      Variable variable = test.makeVariable();
       test.addNode(
         LogicalExpression(
           new Let(variable, new VariableGet(variable)),
@@ -74,7 +74,7 @@ void main() {
   negative1Test(
     'Variable redeclared',
     (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
+      Variable variable = test.makeVariable();
       test.addNode(
         Procedure(
           new Name('bar'),
@@ -362,7 +362,7 @@ void main() {
       ProcedureKind.Method,
       new FunctionNode(
         new EmptyStatement(),
-        positionalParameters: [new VariableDeclaration('p')],
+        positionalParameters: [new Variable('p')],
       ),
       isStatic: true,
       fileUri: dummyUri,
@@ -398,7 +398,7 @@ void main() {
         ProcedureKind.Method,
         new FunctionNode(
           new EmptyStatement(),
-          positionalParameters: [new VariableDeclaration('p')],
+          positionalParameters: [new Variable('p')],
         ),
         isStatic: true,
         fileUri: dummyUri,
@@ -1006,8 +1006,7 @@ class TestHarness {
     enclosingLibrary.addTypedef(node);
   }
 
-  VariableDeclaration makeVariable() =>
-      new VariableDeclaration(null, isSynthesized: true);
+  Variable makeVariable() => new Variable(null, isSynthesized: true);
 
   TypeParameter makeTypeParameter([String? name]) {
     return new TypeParameter(name, objectRawType, const DynamicType());

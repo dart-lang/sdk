@@ -1247,7 +1247,7 @@ class ClosureRepresentationsForParameterCount {
 
   void registerFunction(FunctionNode functionNode) {
     int? prevIndex;
-    for (VariableDeclaration named in functionNode.namedParameters) {
+    for (Variable named in functionNode.namedParameters) {
       String name = named.name!;
       int nameIndex = nameIds.putIfAbsent(name, () => nameUnions.add());
       if (prevIndex != null) {
@@ -1358,7 +1358,7 @@ class Context {
   Context? parent;
 
   /// The variables captured by this context.
-  final List<VariableDeclaration> variables = [];
+  final List<Variable> variables = [];
 
   /// The type parameters captured by this context.
   final List<TypeParameter> typeParameters = [];
@@ -1392,7 +1392,7 @@ class Context {
 
 /// A captured variable or type parameter.
 class Capture {
-  /// The captured [VariableDeclaration] or [TypeParameter].
+  /// The captured [Variable] or [TypeParameter].
   final TreeNode variable;
 
   /// Whether the variable was captured in the initializer (if constructor
@@ -1413,7 +1413,7 @@ class Capture {
   bool written = false;
 
   Capture(this.variable, this.isInInitializer) {
-    assert(variable is VariableDeclaration || variable is TypeParameter);
+    assert(variable is Variable || variable is TypeParameter);
   }
 
   w.ValueType get type => context.struct.fields[fieldIndex].type.unpacked;
@@ -1427,7 +1427,7 @@ class Closures {
   /// [Lambda]s.
   final Map<FunctionNode, Lambda> lambdas = {};
 
-  /// Maps [VariableDeclaration]s and [TypeParameter]s in the member to
+  /// Maps [Variable]s and [TypeParameter]s in the member to
   /// [Capture]s.
   final Map<TreeNode, Capture> captures = {};
 
@@ -1554,7 +1554,7 @@ class Closures {
         assert(_member.enclosingClass != null);
         struct.fields.add(w.FieldType(_nullableThisType!));
       }
-      for (VariableDeclaration variable in context.variables) {
+      for (Variable variable in context.variables) {
         int index = struct.fields.length;
         struct.fields.add(
           w.FieldType(
@@ -1626,11 +1626,11 @@ class _CaptureFinder extends RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     if (depth > 0) {
       variableDepth[node] = depth;
     }
-    super.defaultVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override
@@ -1652,8 +1652,7 @@ class _CaptureFinder extends RecursiveVisitor {
         isInInitializer,
       );
       if (functionIsSyncStarOrAsync[declDepth]) capture.written = true;
-    } else if (variable is VariableDeclaration &&
-        variable.parent is FunctionDeclaration) {
+    } else if (variable is Variable && variable.parent is FunctionDeclaration) {
       // Variable is for a function declaration, the function needs to be
       // compiled as a closure.
       closures.closurizedFunctions.add(variable.parent as FunctionDeclaration);
@@ -1863,7 +1862,7 @@ class _ContextCollector extends RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     Capture? capture = closures.captures[node];
     if (capture != null) {
       if (isInInitializer == capture.isInInitializer) {
@@ -1871,7 +1870,7 @@ class _ContextCollector extends RecursiveVisitor {
         capture.context = currentContext!;
       }
     }
-    super.defaultVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override

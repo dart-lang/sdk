@@ -44,11 +44,11 @@ class TreeNodeIndexerVisitor extends ir.VisitorDefault<void>
   }
 
   @override
-  void defaultVariableDeclaration(ir.VariableDeclaration node) {
+  void defaultVariable(ir.Variable node) {
     if (node.parent is! ir.FunctionDeclaration) {
       registerNode(node);
     }
-    super.defaultVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override

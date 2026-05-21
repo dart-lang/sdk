@@ -67,7 +67,7 @@ abstract class Compiler {
   Map<Class, js_ast.Identifier> get classIdentifiers;
   Map<Member, String> get memberNames;
   Map<Procedure, js_ast.Identifier> get procedureIdentifiers;
-  Map<VariableDeclaration, js_ast.Identifier> get variableIdentifiers;
+  Map<Variable, js_ast.Identifier> get variableIdentifiers;
   js_ast.Fun emitFunctionIncremental(
     List<ModuleItem> items,
     Library library,
@@ -134,16 +134,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This mapping is used when generating the symbol information for the
   /// module.
   @override
-  final variableIdentifiers = <VariableDeclaration, js_ast.Identifier>{};
+  final variableIdentifiers = <Variable, js_ast.Identifier>{};
 
   /// Identifiers for kernel variables with an analogous identifier in JS.
   ///
-  /// [VariableDeclaration.name] is not necessarily a safe identifier for JS
+  /// [Variable.name] is not necessarily a safe identifier for JS
   /// transpiled code. The same name can be used in shadowing contexts. We map
   /// each kernel variable to a [js_ast.ScopedId] so that at code emission
   /// time, declarations that would be shadowed are given a unique name. If
   /// there is no risk of shadowing, the original name will be used.
-  final Map<VariableDeclaration, js_ast.ScopedId> _variableTempIds = {};
+  final Map<Variable, js_ast.ScopedId> _variableTempIds = {};
 
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
@@ -157,12 +157,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final Map<Component, String> _summaryToModule;
 
   /// The variable for the current catch clause
-  VariableDeclaration? _rethrowParameter;
+  Variable? _rethrowParameter;
 
   Set<Class>? _pendingClasses;
 
   /// Temporary variables mapped to their corresponding JavaScript variable.
-  final _tempVariables = <VariableDeclaration, js_ast.ScopedId>{};
+  final _tempVariables = <Variable, js_ast.ScopedId>{};
 
   /// Let variables collected for the given function.
   List<js_ast.ScopedId>? _letVariables;
@@ -2062,13 +2062,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           namedParameter.name: namedParameter,
       };
       DartType reifyParameter(
-        VariableDeclaration parameter,
+        Variable parameter,
         DartType fComputedParameter,
       ) => isCovariantParameter(parameter)
           ? _coreTypes.objectNullableRawType
           : fComputedParameter;
       NamedType reifyNamedParameter(
-        VariableDeclaration parameter,
+        Variable parameter,
         NamedType fComputedNamedParameter,
       ) {
         assert(parameter.name == fComputedNamedParameter.name);
@@ -2271,7 +2271,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (init is LocalInitializer) {
         // Temporary locals are created when named arguments don't appear at
         // the end of the arguments list.
-        jsInitializers.add(visitVariableDeclaration(init.variable));
+        jsInitializers.add(visitVariable(init.variable));
       } else if (init is RedirectingInitializer) {
         var rtiParam = _requiresRtiForInstantiation(init.target.enclosingClass)
             ? _rtiParam
@@ -2401,7 +2401,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (init is FieldInitializer) {
           emitFieldInit(init.field, init.value, init);
         } else if (init is LocalInitializer) {
-          body.add(visitVariableDeclaration(init.variable));
+          body.add(visitVariable(init.variable));
         } else if (init is AssertInitializer) {
           body.add(visitAssertStatement(init.statement));
         }
@@ -4194,7 +4194,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Parameter _emitParameter(
-    VariableDeclaration node, {
+    Variable node, {
     bool withoutInitializer = false,
   }) {
     var initializer = node.initializer;
@@ -4296,11 +4296,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
-    void initParameter(
-      VariableDeclaration p,
-      js_ast.Identifier jsParam,
-      bool isOptional,
-    ) {
+    void initParameter(Variable p, js_ast.Identifier jsParam, bool isOptional) {
       // When the parameter is covariant, insert the null check before the
       // covariant cast to avoid a TypeError when testing equality with null.
       if (name == '==') {
@@ -4394,7 +4390,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js.statement('if (# == null) #;', [param, call]);
   }
 
-  js_ast.Expression _defaultParamValue(VariableDeclaration p) {
+  js_ast.Expression _defaultParamValue(Variable p) {
     if (p.initializer != null) {
       return _visitExpression(p.initializer!);
     } else {
@@ -5300,7 +5296,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Catch? _visitCatch(List<Catch> clauses) {
     if (clauses.isEmpty) return null;
 
-    var caughtError = VariableDeclaration('#e', isSynthesized: true);
+    var caughtError = Variable('#e', isSynthesized: true);
     var savedRethrow = _rethrowParameter;
     _rethrowParameter = caughtError;
 
@@ -5308,12 +5304,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // don't shadow any names.
     var exceptionParameter =
         (clauses.length == 1 ? clauses[0].exception : null) ??
-        VariableDeclaration('#ex', isSynthesized: true);
+        Variable('#ex', isSynthesized: true);
 
     var stackTraceParameter =
         (clauses.length == 1 ? clauses[0].stackTrace : null) ??
         (clauses.any((c) => c.stackTrace != null)
-            ? VariableDeclaration('#st', isSynthesized: true)
+            ? Variable('#st', isSynthesized: true)
             : null);
 
     js_ast.Statement catchBody = js_ast.Throw(_emitVariableRef(caughtError));
@@ -5347,16 +5343,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement _catchClauseGuard(
     Catch node,
     js_ast.Statement otherwise,
-    VariableDeclaration exceptionParameter,
-    VariableDeclaration? stackTraceParameter,
+    Variable exceptionParameter,
+    Variable? stackTraceParameter,
   ) {
     var body = <js_ast.Statement>[];
     var vars = HashSet<String>();
 
-    void declareVariable(
-      VariableDeclaration? variable,
-      VariableDeclaration? value,
-    ) {
+    void declareVariable(Variable? variable, Variable? value) {
       if (variable == null || value == null) return;
       vars.add(variable.name!);
       if (variable.name != value.name) {
@@ -5412,7 +5405,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Statement visitVariableDeclaration(VariableDeclaration node) {
+  js_ast.Statement visitVariable(Variable node) {
     // TODO(jmesserly): casts are sometimes required here.
     // Kernel does not represent these explicitly.
     var v = _emitVariableDef(node);
@@ -5464,7 +5457,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Detects temporary variables so we can avoid displaying
   /// them in the debugger if needed.
-  bool _isTemporaryVariable(VariableDeclaration v) {
+  bool _isTemporaryVariable(Variable v) {
     // Late local variables are be exposed to the debugger for inspection and
     // evaluation by treating the backing store local variable as a regular
     // non-temporary variable.
@@ -5478,7 +5471,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Creates a temporary name recognized by the debugger.
   /// Assumes `_isTemporaryVariable(v)`  is true.
-  String? _debuggerFriendlyTemporaryVariableName(VariableDeclaration v) {
+  String? _debuggerFriendlyTemporaryVariableName(Variable v) {
     assert(_isTemporaryVariable(v));
 
     // Show extension 'this' in the debugger.
@@ -5491,7 +5484,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return null;
   }
 
-  js_ast.ScopedId _emitVariableRef(VariableDeclaration v) {
+  js_ast.ScopedId _emitVariableRef(Variable v) {
     if (_isTemporaryVariable(v)) {
       var name = _debuggerFriendlyTemporaryVariableName(v);
       name ??= 't\$${_tempVariables.length}';
@@ -5517,7 +5510,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is similar to [_emitVariableRef] but it also attaches source
   /// location information, so hover will work as expected.
-  js_ast.Identifier _emitVariableDef(VariableDeclaration v) {
+  js_ast.Identifier _emitVariableDef(Variable v) {
     var identifier = _emitVariableRef(v)..sourceInformation = _nodeStart(v);
     variableIdentifiers[v] = identifier;
     return identifier;
@@ -6732,7 +6725,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var replacementArguments = node.arguments.positional;
         var replacements = {
           for (var i = 0; i < originalParameters.length; i++)
-            originalParameters[i].accept(cloner) as VariableDeclaration:
+            originalParameters[i].accept(cloner) as Variable:
                 replacementArguments[i],
         };
         // Clone the body using the same cloner to ensure the cloned parameters

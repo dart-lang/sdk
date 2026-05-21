@@ -290,10 +290,10 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
-  /// Returns the [VariableDeclaration] for the [index]th formal parameter
+  /// Returns the [Variable] for the [index]th formal parameter
   /// declared in the constructor, factory, or method tear-off currently being
   /// built.
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     throw new UnsupportedError('${runtimeType}.getTearOffParameter');
   }
 
@@ -381,7 +381,7 @@ abstract class BodyBuilderContext {
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,

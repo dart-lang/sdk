@@ -53,7 +53,7 @@ import 'package:kernel/kernel.dart'
         TreeNode,
         TypeParameter,
         TypeParameterType,
-        VariableDeclaration,
+        Variable,
         VisitorDefault,
         VisitorVoidMixin;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
@@ -1923,8 +1923,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // overwrite as well because that mostly means that the value is
           // currently null. This can also mean that the VM can't send over the
           // information - this for instance happens for function types.
-          for (MapEntry<String, VariableDeclaration> def
-              in foundScope.variables.entries) {
+          for (MapEntry<String, Variable> def in foundScope.variables.entries) {
             DartType? existingType = usedDefinitions[def.key];
             if (existingType == null) {
               // We found a variable, but we weren't told about it.
@@ -2044,7 +2043,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
-                List<VariableDeclaration>? positionals =
+                List<Variable>? positionals =
                     subBuilder.invokeTarget?.function?.positionalParameters;
                 if (positionals != null &&
                     positionals.isNotEmpty &&
@@ -2217,7 +2216,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
-      VariableDeclaration? extensionThis;
+      Variable? extensionThis;
 
       // TODO: pass variable declarations instead of
       // parameter names for proper location detection.
@@ -2225,7 +2224,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FunctionNode parameters = new FunctionNode(
         null,
         typeParameters: typeDefinitions,
-        positionalParameters: usedDefinitions.entries.map<VariableDeclaration>((
+        positionalParameters: usedDefinitions.entries.map<Variable>((
           MapEntry<String, DartType> def,
         ) {
           VariableDeclarationImpl variable = new VariableDeclarationImpl(

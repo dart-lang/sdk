@@ -336,8 +336,8 @@ class _AwaitTransformer extends Transformer {
     // variables before the updates.
     //
     // temps.first is the flag 'first'.
-    List<VariableDeclaration> temps = <VariableDeclaration>[
-      VariableDeclaration.forValue(BoolLiteral(true), isFinal: false),
+    List<Variable> temps = <Variable>[
+      Variable.forValue(BoolLiteral(true), isFinal: false),
     ];
     List<Statement> loopBody = <Statement>[];
     List<Statement> initializers = <Statement>[
@@ -347,20 +347,16 @@ class _AwaitTransformer extends Transformer {
     List<Statement> newBody = <Statement>[body];
     for (int i = 0; i < stmt.variables.length; ++i) {
       VariableStatement decl = stmt.variables[i];
-      temps.add(
-        VariableDeclaration(
-          null,
-          type: decl.variable.type,
-          isSynthesized: true,
-        ),
-      );
+      temps.add(Variable(null, type: decl.variable.type, isSynthesized: true));
       loopBody.add(decl);
-      if (decl.initializer != null) {
+      if (decl.variable.initializer != null) {
         initializers.addAll(initEffects[i]);
         initializers.add(
-          ExpressionStatement(VariableSet(decl.variable, decl.initializer!)),
+          ExpressionStatement(
+            VariableSet(decl.variable, decl.variable.initializer!),
+          ),
         );
-        decl.initializer = null;
+        decl.variable.initializer = null;
       }
       updates.add(
         ExpressionStatement(
@@ -397,7 +393,7 @@ class _AwaitTransformer extends Transformer {
     labeled.body = WhileStatement(BoolLiteral(true), Block(loopBody))
       ..parent = labeled;
     return Block(<Statement>[
-      for (VariableDeclaration temp in temps) VariableStatement(temp),
+      for (Variable temp in temps) VariableStatement(temp),
       labeled,
     ]);
   }
@@ -458,12 +454,12 @@ class _AwaitTransformer extends Transformer {
       // the current exception after the `await`.
       //
       // TODO (omersa): We could mark [TreeNode]s with `await`s and only do this
-      catch_.exception ??= VariableDeclaration(
+      catch_.exception ??= Variable(
         null,
         type: InterfaceType(coreTypes.objectClass, Nullability.nonNullable),
         isSynthesized: true,
       )..parent = catch_;
-      catch_.stackTrace ??= VariableDeclaration(
+      catch_.stackTrace ??= Variable(
         null,
         type: InterfaceType(coreTypes.stackTraceClass, Nullability.nonNullable),
         isSynthesized: true,
@@ -501,7 +497,7 @@ class _AwaitTransformer extends Transformer {
     // code generation.
 
     // Variable for the finalizer block continuation.
-    final continuationVar = VariableDeclaration(
+    final continuationVar = Variable(
       null,
       initializer: IntLiteral(stateMachineCodeGen.continuationFallthrough),
       type: InterfaceType(coreTypes.intClass, Nullability.nonNullable),
@@ -510,7 +506,7 @@ class _AwaitTransformer extends Transformer {
 
     // When the finalizer continuation is "rethrow", this stores the exception
     // to rethrow.
-    final exceptionVar = VariableDeclaration(
+    final exceptionVar = Variable(
       null,
       type: InterfaceType(coreTypes.objectClass, Nullability.nonNullable),
       isSynthesized: true,
@@ -518,7 +514,7 @@ class _AwaitTransformer extends Transformer {
 
     // When the finalizer continuation is "rethrow", this stores the stack
     // trace of the exception in [exceptionVar].
-    final stackTraceVar = VariableDeclaration(
+    final stackTraceVar = Variable(
       null,
       type: InterfaceType(coreTypes.stackTraceClass, Nullability.nonNullable),
       isSynthesized: true,
@@ -684,7 +680,7 @@ class _ExpressionTransformer extends Transformer {
   int nameIndex = 0;
 
   /// Variables created for temporaries.
-  final List<VariableDeclaration> variables = <VariableDeclaration>[];
+  final List<Variable> variables = <Variable>[];
 
   final _AwaitTransformer _statementTransformer;
 
@@ -703,15 +699,12 @@ class _ExpressionTransformer extends Transformer {
   /// Name an expression by emitting an assignment to a temporary variable.
   Expression name(Expression expr) {
     final DartType type = expr.getStaticType(staticTypeContext);
-    final VariableDeclaration temp = allocateTemporary(nameIndex, type);
+    final Variable temp = allocateTemporary(nameIndex, type);
     statements.add(ExpressionStatement(VariableSet(temp, expr)));
     return castVariableGet(temp, type);
   }
 
-  VariableDeclaration allocateTemporary(
-    int index, [
-    DartType type = const DynamicType(),
-  ]) {
+  Variable allocateTemporary(int index, [DartType type = const DynamicType()]) {
     if (variables.length > index) {
       // Re-using a temporary. Re-type it to dynamic if we detect reuse with
       // different type.
@@ -722,13 +715,13 @@ class _ExpressionTransformer extends Transformer {
       return variables[index];
     }
     for (var i = variables.length; i <= index; i++) {
-      variables.add(VariableDeclaration(":async_temporary_$i", type: type));
+      variables.add(Variable(":async_temporary_$i", type: type));
     }
     return variables[index];
   }
 
   /// Casts a [VariableGet] with `as dynamic` if its type is not `dynamic`.
-  Expression castVariableGet(VariableDeclaration variable, DartType type) {
+  Expression castVariableGet(Variable variable, DartType type) {
     Expression expr = VariableGet(variable);
     if (type != const DynamicType()) {
       expr = AsExpression(expr, DynamicType());
@@ -1132,7 +1125,7 @@ class _ExpressionTransformer extends Transformer {
     final Block rightBody = blockOf(rightStatements);
     final InterfaceType type = staticTypeContext.typeEnvironment.coreTypes
         .boolRawType(staticTypeContext.nonNullable);
-    final VariableDeclaration result = allocateTemporary(nameIndex, type);
+    final Variable result = allocateTemporary(nameIndex, type);
     rightBody.addStatement(
       ExpressionStatement(VariableSet(result, expr.right)),
     );
@@ -1260,7 +1253,7 @@ class _ExpressionTransformer extends Transformer {
   @override
   TreeNode visitLet(Let expr) {
     final body = transform(expr.body);
-    final VariableDeclaration variable = expr.variable;
+    final Variable variable = expr.variable;
     if (seenAwait) {
       // There is an await in the body of `let var x = initializer in body` or
       // to its right.  We will produce the sequence of statements:

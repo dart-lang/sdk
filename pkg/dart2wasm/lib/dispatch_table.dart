@@ -163,7 +163,7 @@ class SelectorInfo {
               ),
           ];
           named = {
-            for (VariableDeclaration param in function.namedParameters)
+            for (Variable param in function.namedParameters)
               param.name!: typeForParam(param, param.isRequired),
           };
           returns = returnCount == 0

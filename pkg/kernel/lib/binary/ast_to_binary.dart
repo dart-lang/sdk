@@ -89,7 +89,7 @@ class BinaryPrinter
     _sink.flushAndDestroy();
   }
 
-  int _getVariableIndex(VariableDeclaration variable) {
+  int _getVariableIndex(Variable variable) {
     int? index = (_variableIndexer ??= _newVariableIndexer())[variable];
     assert(index != null, "No index found for ${variable}");
     return index!;
@@ -2476,7 +2476,7 @@ class BinaryPrinter
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariable(Variable node) {
     writeByte(Tag.VariableDeclaration);
     writeVariableDeclaration(node);
   }
@@ -2485,7 +2485,7 @@ class BinaryPrinter
     writeVariableDeclaration(node.variable);
   }
 
-  void writeVariableDeclaration(VariableDeclaration node) {
+  void writeVariableDeclaration(Variable node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -2506,11 +2506,11 @@ class BinaryPrinter
     writeList(nodes, writeVariableStatement);
   }
 
-  void writeVariableDeclarationList(List<VariableDeclaration> nodes) {
+  void writeVariableDeclarationList(List<Variable> nodes) {
     writeList(nodes, writeVariableDeclaration);
   }
 
-  void writeOptionalVariableDeclaration(VariableDeclaration? node) {
+  void writeOptionalVariableDeclaration(Variable? node) {
     if (node == null) {
       writeByte(Tag.Nothing);
     } else {
@@ -2800,7 +2800,7 @@ class BinaryPrinter
     writeNode(node.receiver);
   }
 
-  void _writeVariableReference(VariableDeclaration variable) {
+  void _writeVariableReference(Variable variable) {
     int index = _getVariableIndex(variable);
     writeUInt30(variable.binaryOffsetNoTag);
     writeUInt30(index);
@@ -3408,12 +3408,12 @@ class BinaryPrinter
 typedef bool LibraryFilter(Library _);
 
 class VariableIndexer {
-  Map<VariableDeclaration, int>? index;
+  Map<Variable, int>? index;
   List<int>? scopes;
   int stackHeight = 0;
 
-  void declare(VariableDeclaration node) {
-    (index ??= <VariableDeclaration, int>{})[node] = stackHeight++;
+  void declare(Variable node) {
+    (index ??= <Variable, int>{})[node] = stackHeight++;
   }
 
   void pushScope() {
@@ -3428,7 +3428,7 @@ class VariableIndexer {
     stackHeight += numberOfVariables;
   }
 
-  int? operator [](VariableDeclaration node) {
+  int? operator [](Variable node) {
     return index == null ? null : index![node];
   }
 }

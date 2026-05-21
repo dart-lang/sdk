@@ -215,7 +215,7 @@ class InvocationVisitor extends RecursiveVisitor {
     Arguments arguments,
     InvocationExpression invocation,
   ) {
-    List<VariableDeclaration> positionalParameters;
+    List<Variable> positionalParameters;
     if (node is Procedure) {
       positionalParameters = node.function.positionalParameters;
     } else if (node is Constructor) {
@@ -288,7 +288,7 @@ Map<Uri, Token> cache = {};
 
 void check(
   Expression argumentExpression,
-  VariableDeclaration parameter,
+  Variable parameter,
   NamedNode targetNode,
   String expectedComment,
 ) {

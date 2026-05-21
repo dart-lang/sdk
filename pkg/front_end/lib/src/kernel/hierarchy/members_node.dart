@@ -156,10 +156,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             )) {
       List<TypeParameter> declaredTypeParameters =
           declaredFunction.typeParameters;
-      List<VariableDeclaration> declaredPositional =
-          declaredFunction.positionalParameters;
-      List<VariableDeclaration> declaredNamed =
-          declaredFunction.namedParameters;
+      List<Variable> declaredPositional = declaredFunction.positionalParameters;
+      List<Variable> declaredNamed = declaredFunction.namedParameters;
       declaredNamed = declaredNamed.toList()..sort(compareNamedParameters);
 
       DartType? inferredReturnType;

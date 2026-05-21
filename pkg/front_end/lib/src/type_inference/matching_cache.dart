@@ -49,7 +49,7 @@ class MatchingCache {
   bool _isClosed = false;
 
   /// The declarations need for the cached expressions.
-  List<VariableDeclaration> _declarations = [];
+  List<Variable> _declarations = [];
 
   /// Map for the known cached keys and their corresponding expressions.
   Map<CacheKey, Cache> _cacheKeyMap = {};
@@ -65,7 +65,7 @@ class MatchingCache {
   ///   if (o case [int a, _] || [_, int a]) { ... }
   ///
   /// where a joint variable is used instead of the two declared 'a' variables.
-  Map<VariableDeclaration, VariableDeclaration> _variableAliases = {};
+  Map<Variable, Variable> _variableAliases = {};
 
   MatchingCache(
     this._matchingCacheIndex,
@@ -82,16 +82,16 @@ class MatchingCache {
   ///
   /// where a joint variable is used instead of the two declared 'a' variables.
   void declareJointVariables(
-    List<VariableDeclaration> jointVariables,
-    List<VariableDeclaration> variables1,
-    List<VariableDeclaration> variables2,
+    List<Variable> jointVariables,
+    List<Variable> variables1,
+    List<Variable> variables2,
   ) {
-    Map<String, VariableDeclaration> jointVariablesMap = {};
-    for (VariableDeclaration variable in jointVariables) {
+    Map<String, Variable> jointVariablesMap = {};
+    for (Variable variable in jointVariables) {
       jointVariablesMap[variable.name!] = variable;
     }
-    for (VariableDeclaration variable in variables1) {
-      VariableDeclaration? jointVariable = jointVariablesMap[variable.name!];
+    for (Variable variable in variables1) {
+      Variable? jointVariable = jointVariablesMap[variable.name!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
@@ -101,8 +101,8 @@ class MatchingCache {
         registerDeclaration(variable);
       }
     }
-    for (VariableDeclaration variable in variables2) {
-      VariableDeclaration? jointVariable = jointVariablesMap[variable.name!];
+    for (Variable variable in variables2) {
+      Variable? jointVariable = jointVariablesMap[variable.name!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
@@ -122,8 +122,8 @@ class MatchingCache {
   ///
   /// where a joint variable is the unaliased variable for  of the two
   /// declared 'a' variables.
-  VariableDeclaration getUnaliasedVariable(VariableDeclaration variable) {
-    VariableDeclaration? unalias = _variableAliases[variable];
+  Variable getUnaliasedVariable(Variable variable) {
+    Variable? unalias = _variableAliases[variable];
     if (unalias != null) {
       // Joint variables might themselves be joint, for instance in nested
       // or patterns.
@@ -166,7 +166,7 @@ class MatchingCache {
 
   /// Registers that the variable or local function [declaration] is need for
   /// the cached expressions.
-  void registerDeclaration(VariableDeclaration declaration) {
+  void registerDeclaration(Variable declaration) {
     assert(!_isClosed);
     _declarations.add(declaration);
   }
@@ -176,18 +176,15 @@ class MatchingCache {
   ///
   /// Once called, the matching cache is closed and no new cacheable expressions
   /// can be created.
-  Iterable<VariableDeclaration> get declarations {
+  Iterable<Variable> get declarations {
     _isClosed = true;
     return _declarations;
   }
 
-  /// Creates a [VariableDeclaration] for a temporary variable of the given
+  /// Creates a [Variable] for a temporary variable of the given
   /// [type] and registers it with [registerDeclaration].
-  VariableDeclaration createTemporaryVariable(
-    DartType type, {
-    required int fileOffset,
-  }) {
-    VariableDeclaration variable = createUninitializedVariable(
+  Variable createTemporaryVariable(DartType type, {required int fileOffset}) {
+    Variable variable = createUninitializedVariable(
       type,
       fileOffset: fileOffset,
     );
@@ -1252,13 +1249,13 @@ class Cache {
   /// non-late variable.
   ///
   /// Otherwise [_variable] is unused.
-  VariableDeclaration? _variable;
+  Variable? _variable;
 
   /// If cached using late lowering, this will be the boolean variable that
   /// tracks whether [_variable] as been initialized.
   ///
   /// Otherwise [_isSetVariable] is unused.
-  VariableDeclaration? _isSetVariable;
+  Variable? _isSetVariable;
 
   /// The name used to name [_variable], [_isSetVariable] and [_getVariable].
   final String _name;
@@ -1352,7 +1349,7 @@ class Cache {
       if (!_isLate) {
         // To avoid closurizing initializers we always inline the initializer
         // unless it is not a late variable.
-        VariableDeclaration? variable = _variable;
+        Variable? variable = _variable;
         if (variable == null) {
           variable = _variable =
               createVariableCache(
@@ -1378,8 +1375,8 @@ class Cache {
       } else {
         assert(_isLate, "Unexpected non-late cache ${cacheKey.name}");
 
-        VariableDeclaration? variable = _variable;
-        VariableDeclaration? isSetVariable = _isSetVariable;
+        Variable? variable = _variable;
+        Variable? isSetVariable = _isSetVariable;
         if (variable == null) {
           DartType? cacheType;
           for (CacheExpression expression in _accesses.values) {

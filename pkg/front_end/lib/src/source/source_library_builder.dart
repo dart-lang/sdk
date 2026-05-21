@@ -1220,10 +1220,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         );
       }
       for (int j = 0; j < positionalCount; ++j) {
-        VariableDeclaration forwarderParameter =
+        Variable forwarderParameter =
             forwarder.function.positionalParameters[j];
-        VariableDeclaration originParameter =
-            origin.function.positionalParameters[j];
+        Variable originParameter = origin.function.positionalParameters[j];
         if (originParameter.initializer != null) {
           forwarderParameter.initializer = cloner.clone(
             originParameter.initializer!,
@@ -1232,14 +1231,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
 
-      Map<String, VariableDeclaration> originNamedMap =
-          <String, VariableDeclaration>{};
-      for (VariableDeclaration originNamed in origin.function.namedParameters) {
+      Map<String, Variable> originNamedMap = <String, Variable>{};
+      for (Variable originNamed in origin.function.namedParameters) {
         originNamedMap[originNamed.name!] = originNamed;
       }
-      for (VariableDeclaration forwarderNamed
-          in forwarder.function.namedParameters) {
-        VariableDeclaration? originNamed = originNamedMap[forwarderNamed.name];
+      for (Variable forwarderNamed in forwarder.function.namedParameters) {
+        Variable? originNamed = originNamedMap[forwarderNamed.name];
         if (originNamed == null) {
           return unhandled(
             "null",

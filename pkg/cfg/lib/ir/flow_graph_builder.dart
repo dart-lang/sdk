@@ -12,7 +12,7 @@ import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart'
     as ast
-    show DartType, Name, TypeLiteralConstant, VariableDeclaration;
+    show DartType, Name, TypeLiteralConstant, Variable;
 
 /// Helper class to create IR instructions and populate [FlowGraph].
 ///
@@ -290,7 +290,7 @@ class FlowGraphBuilder {
   /// Add [LocalVariable] to the graph.
   LocalVariable declareLocalVariable(
     String name,
-    ast.VariableDeclaration? declaration,
+    ast.Variable? declaration,
     CType type,
   ) {
     final v = LocalVariable(

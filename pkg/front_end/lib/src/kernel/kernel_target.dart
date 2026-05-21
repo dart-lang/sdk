@@ -1081,11 +1081,8 @@ class KernelTarget {
     bool isClosureContextLoweringEnabled =
         libraryBuilder.loader.isClosureContextLoweringEnabled;
 
-    VariableDeclaration copyFormal(
-      VariableDeclaration formal, {
-      required bool isPositional,
-    }) {
-      VariableDeclaration copy;
+    Variable copyFormal(Variable formal, {required bool isPositional}) {
+      Variable copy;
       if (isClosureContextLoweringEnabled) {
         // Coverage-ignore-block(suite): Not run.
         if (isPositional) {
@@ -1106,7 +1103,7 @@ class KernelTarget {
           );
         }
       } else {
-        copy = new VariableDeclaration(
+        copy = new Variable(
           formal.name,
           isFinal: formal.isFinal,
           isConst: formal.isConst,
@@ -1133,19 +1130,17 @@ class KernelTarget {
         }
       }
     }
-    List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
-    List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
+    List<Variable> positionalParameters = <Variable>[];
+    List<Variable> namedParameters = <Variable>[];
     List<Expression> positional = <Expression>[];
     List<NamedExpression> named = <NamedExpression>[];
 
-    for (VariableDeclaration formal
-        in superConstructor.function.positionalParameters) {
+    for (Variable formal in superConstructor.function.positionalParameters) {
       positionalParameters.add(copyFormal(formal, isPositional: true));
       positional.add(new VariableGet(positionalParameters.last));
     }
-    for (VariableDeclaration formal
-        in superConstructor.function.namedParameters) {
-      VariableDeclaration clone = copyFormal(formal, isPositional: false);
+    for (Variable formal in superConstructor.function.namedParameters) {
+      Variable clone = copyFormal(formal, isPositional: false);
       namedParameters.add(clone);
       named.add(
         new NamedExpression(

@@ -269,7 +269,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
     currentUri = prevUri;
   }
 
-  Set<VariableDeclaration> setVariables = {};
+  Set<Variable> setVariables = {};
 
   @override
   void visitVariableSet(VariableSet node) {
@@ -377,7 +377,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
       VariableIndexer2? varIndexer =
           getVariableIndexerForTesting() as VariableIndexer2?;
       Map<String, DartType> expectedVariablesMap = {};
-      for (VariableDeclaration variable in varIndexer?.declsOrder ?? const []) {
+      for (Variable variable in varIndexer?.declsOrder ?? const []) {
         String? name = variable.name;
         if (name != null && name != "" && !variable.isSynthesized) {
           if (variable.isHoisted && !setVariables.contains(variable)) {
@@ -586,7 +586,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeVariableDeclaration(VariableDeclaration node) {
+  void writeVariableDeclaration(Variable node) {
     bool oldCheckOffset = checkOffset;
     checkOffset = true;
     super.writeVariableDeclaration(node);
@@ -595,23 +595,23 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
 }
 
 class VariableIndexer2 implements VariableIndexer {
-  List<VariableDeclaration> declsOrder = [];
-  List<VariableDeclaration> declsOrderPopped = [];
+  List<Variable> declsOrder = [];
+  List<Variable> declsOrderPopped = [];
   @override
-  Map<VariableDeclaration, int>? index;
+  Map<Variable, int>? index;
   @override
   List<int>? scopes;
   @override
   int stackHeight = 0;
 
   @override
-  int? operator [](VariableDeclaration node) {
+  int? operator [](Variable node) {
     return index == null ? null : index![node];
   }
 
   @override
-  void declare(VariableDeclaration node) {
-    (index ??= <VariableDeclaration, int>{})[node] = stackHeight++;
+  void declare(Variable node) {
+    (index ??= <Variable, int>{})[node] = stackHeight++;
     declsOrder.add(node);
   }
 

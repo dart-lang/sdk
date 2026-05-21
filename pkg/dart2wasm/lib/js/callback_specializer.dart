@@ -18,8 +18,8 @@ class CallbackSpecializer {
 
   Statement _generateDispatchCase(
     FunctionType function,
-    VariableDeclaration callbackVariable,
-    List<VariableDeclaration> positionalParameters,
+    Variable callbackVariable,
+    List<Variable> positionalParameters,
     int requiredParameterCount, {
     required bool boxExternRef,
   }) {
@@ -56,7 +56,7 @@ class CallbackSpecializer {
           const _InstantiateToBounds().substituteType(function) as FunctionType,
     );
 
-    final temp = VariableDeclaration(
+    final temp = Variable(
       null,
       initializer: callExpr,
       type: callExpr.getStaticType(_staticTypeContext),
@@ -98,28 +98,28 @@ class CallbackSpecializer {
     // before being invoked. The second argument will be a `double` indicating
     // the number of arguments passed. The third argument is a cast closure if
     // needed.
-    final callbackVariable = VariableDeclaration(
+    final callbackVariable = Variable(
       'callback',
       type: _util.nonNullableObjectType,
       isSynthesized: true,
     );
-    final argumentsLengthWasmI32 = VariableDeclaration(
+    final argumentsLengthWasmI32 = Variable(
       'argumentsLengthWasmI32',
       type: InterfaceType(_util.wasmI32Class, Nullability.nonNullable),
       isSynthesized: true,
     );
-    final castClosure = VariableDeclaration(
+    final castClosure = Variable(
       'castClosure',
       type: _util.nonNullableObjectType,
       isSynthesized: true,
     );
 
     // Initialize variable declarations.
-    List<VariableDeclaration> positionalParameters = [];
+    List<Variable> positionalParameters = [];
     List<Expression> castClosureArguments = [];
     final positionalParametersLength = function.positionalParameters.length;
     for (int i = 0; i < positionalParametersLength; i++) {
-      final parameter = VariableDeclaration(
+      final parameter = Variable(
         'x${i + 1}',
         type: _util.nullableWasmExternRefType,
         isSynthesized: true,
@@ -137,7 +137,7 @@ class CallbackSpecializer {
     List<Statement> body = [];
 
     // Convert `WasmI32` argument to Dart `int`.
-    final argumentsLength = VariableDeclaration(
+    final argumentsLength = Variable(
       'argumentsLength',
       type: _util.coreTypes.intNonNullableRawType,
       isSynthesized: true,
@@ -305,18 +305,18 @@ class CallbackSpecializer {
       FunctionNode(
         null,
         positionalParameters: [
-          VariableDeclaration(
+          Variable(
             'thisModule',
             type: _util.nonNullableWasmExternRefType,
             isSynthesized: true,
           ),
-          VariableDeclaration(
+          Variable(
             'dartFunction',
             type: _util.nonNullableWasmExternRefType,
             isSynthesized: true,
           ),
           if (needsCastClosure)
-            VariableDeclaration(
+            Variable(
               'castClosure',
               type: _util.nonNullableWasmExternRefType,
               isSynthesized: true,
@@ -362,12 +362,12 @@ class CallbackSpecializer {
   /// Returns the cast closure if needed. Otherwise, returns `null`.
   FunctionExpression? _createCastClosure(FunctionType functionType) {
     final positionalParameters = functionType.positionalParameters;
-    List<VariableDeclaration> castClosureParameters = [];
+    List<Variable> castClosureParameters = [];
     List<Statement> casts = [];
     for (int i = 0; i < positionalParameters.length; i++) {
       final type = positionalParameters[i];
       if (_needCastClosure(type)) {
-        final parameter = VariableDeclaration(
+        final parameter = Variable(
           'x${i + 1}',
           type: _util.nullableJSValueType,
           isSynthesized: true,

@@ -16,7 +16,7 @@ class Covariance {
   static const int Covariant = 2;
 
   /// Returns the covariance mask for [parameter].
-  static int covarianceFromParameter(VariableDeclaration parameter) =>
+  static int covarianceFromParameter(Variable parameter) =>
       (parameter.isCovariantByDeclaration ? Covariant : 0) |
       (parameter.isCovariantByClass ? GenericCovariantImpl : 0);
 
@@ -26,10 +26,7 @@ class Covariance {
       (field.isCovariantByClass ? GenericCovariantImpl : 0);
 
   /// Applies the [covariance] mask to [parameter].
-  static void covarianceToParameter(
-    int covariance,
-    VariableDeclaration parameter,
-  ) {
+  static void covarianceToParameter(int covariance, Variable parameter) {
     if ((covariance & Covariant) != 0) {
       parameter.isCovariantByDeclaration = true;
     }
@@ -138,7 +135,7 @@ class Covariance {
     Map<String, int>? namedParameters;
     if (function.namedParameters.isNotEmpty) {
       for (int index = 0; index < function.namedParameters.length; index++) {
-        VariableDeclaration parameter = function.namedParameters[index];
+        Variable parameter = function.namedParameters[index];
         int covariance = covarianceFromParameter(parameter);
         if (covariance != 0) {
           namedParameters ??= {};
@@ -309,7 +306,7 @@ class Covariance {
         }
       }
       if (_namedParameters != null) {
-        for (VariableDeclaration parameter in function.namedParameters) {
+        for (Variable parameter in function.namedParameters) {
           covarianceToParameter(getNamedVariance(parameter.name!), parameter);
         }
       }

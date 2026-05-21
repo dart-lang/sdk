@@ -161,7 +161,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       object is BlockExpression ||
       (object is NullLiteral &&
           // Skip implicit initializers/default values.
-          (object.parent is VariableDeclaration || object.parent is Field) &&
+          (object.parent is Variable || object.parent is Field) &&
           object.fileOffset == object.parent?.fileOffset);
 
   @override

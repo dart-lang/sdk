@@ -819,10 +819,10 @@ class AstToIr extends ast.RecursiveVisitor {
   bool _isCapturedContext(Context context) =>
       context.isCaptured(enableAsserts: enableAsserts);
 
-  bool _isCaptured(ast.VariableDeclaration v) =>
+  bool _isCaptured(ast.Variable v) =>
       _isCapturedContext(scopes.getVariableContext(v));
 
-  void _readVariable(ast.VariableDeclaration v) {
+  void _readVariable(ast.Variable v) {
     if (_isCaptured(v)) {
       builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
       builder.addLoadInstanceField(localVarIndexer.contextField(v));
@@ -831,7 +831,7 @@ class AstToIr extends ast.RecursiveVisitor {
     }
   }
 
-  void _writeVariable(ast.VariableDeclaration v) {
+  void _writeVariable(ast.Variable v) {
     if (_isCaptured(v)) {
       final value = builder.pop();
       builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
@@ -900,7 +900,7 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(ast.VariableDeclaration node) {
+  void defaultVariable(ast.Variable node) {
     final variable = node.variable;
     if (node.isConst) return;
     if (node.isLate) {
@@ -925,12 +925,12 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitLegacyVariableStatement(ast.LegacyVariableStatement node) {
-    defaultVariableDeclaration(node.variable);
+    defaultVariable(node.variable);
   }
 
   @override
   void visitVariableInitialization(ast.VariableInitialization node) {
-    defaultVariableDeclaration(node.variable);
+    defaultVariable(node.variable);
   }
 
   @override
@@ -2132,17 +2132,17 @@ class LocalVariableIndexer {
   final CoreTypes coreTypes;
   final AstToIrTypes typeTranslator;
   final Scopes scopes;
-  final Map<ast.VariableDeclaration, LocalVariable> _declaredVariables = {};
+  final Map<ast.Variable, LocalVariable> _declaredVariables = {};
   final Map<ast.TreeNode, LocalVariable> _exceptionVariables = {};
   final Map<ast.TreeNode, LocalVariable> _stackTraceVariables = {};
   final Map<Context, Definition> _contexts = {};
-  final Map<ast.VariableDeclaration, CField> _contextFields = {};
+  final Map<ast.Variable, CField> _contextFields = {};
 
   final List<LocalVariable> parameters = [];
   late final LocalVariable functionTypeParameters;
   late final LocalVariable receiver;
   late final LocalVariable closure;
-  late final ast.VariableDeclaration? receiverDeclaration;
+  late final ast.Variable? receiverDeclaration;
 
   LocalVariableIndexer(
     this.builder,
@@ -2200,7 +2200,7 @@ class LocalVariableIndexer {
     assert(parameters.length == function.numberOfParameters);
   }
 
-  LocalVariable variableForDeclaration(ast.VariableDeclaration declaration) =>
+  LocalVariable variableForDeclaration(ast.Variable declaration) =>
       _declaredVariables[declaration] ??= builder.declareLocalVariable(
         declaration.name ?? '#temp',
         declaration,
@@ -2234,7 +2234,7 @@ class LocalVariableIndexer {
   Definition contextDef(Context ctx) => _contexts[ctx]!;
 
   // TODO: share context fields between functions.
-  CField contextField(ast.VariableDeclaration variable) =>
+  CField contextField(ast.Variable variable) =>
       _contextFields[variable] ??= CField(
         ContextField(
           variable,

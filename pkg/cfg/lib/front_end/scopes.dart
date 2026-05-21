@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ast;
 
-typedef Variable = ast.VariableDeclaration;
+typedef Variable = ast.Variable;
 
 /// A unit of capturing. Contains variables and belongs to a certain [Scope].
 abstract class Context {

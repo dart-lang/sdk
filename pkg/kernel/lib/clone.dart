@@ -18,8 +18,7 @@ class CloneVisitorNotMembers
         ExpressionVisitorExperimentExclusionMixin<TreeNode>,
         StatementVisitorExperimentExclusionMixin<TreeNode>
     implements TreeVisitor<TreeNode> {
-  final Map<VariableDeclaration, VariableDeclaration> _variables =
-      <VariableDeclaration, VariableDeclaration>{};
+  final Map<Variable, Variable> _variables = <Variable, Variable>{};
   final Map<LabeledStatement, LabeledStatement> labels =
       <LabeledStatement, LabeledStatement>{};
   final Map<SwitchCase, SwitchCase> switchCases = <SwitchCase, SwitchCase>{};
@@ -52,17 +51,14 @@ class CloneVisitorNotMembers
 
   /// Returns the clone of [variable] or `null` if no clone has been created
   /// for variable.
-  VariableDeclaration? getVariableClone(VariableDeclaration variable) {
+  Variable? getVariableClone(Variable variable) {
     return _variables[variable];
   }
 
   /// Registers [clone] as the clone for [variable].
   ///
   /// Returns the [clone].
-  VariableDeclaration setVariableClone(
-    VariableDeclaration variable,
-    VariableDeclaration clone,
-  ) {
+  Variable setVariableClone(Variable variable, Variable clone) {
     return _variables[variable] = clone;
   }
 
@@ -201,14 +197,14 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitVariableGet(VariableGet node) {
-    VariableDeclaration? variable = getVariableClone(node.variable);
+    Variable? variable = getVariableClone(node.variable);
     assert(variable != null, "Missing clone for variable ${node.variable}.");
     return new VariableGet(variable!, visitOptionalType(node.promotedType));
   }
 
   @override
   TreeNode visitVariableSet(VariableSet node) {
-    VariableDeclaration? variable = getVariableClone(node.variable);
+    Variable? variable = getVariableClone(node.variable);
     assert(variable != null, "Missing clone for variable ${node.variable}.");
     return new VariableSet(variable!, clone(node.value));
   }
@@ -524,7 +520,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitLet(Let node) {
-    VariableDeclaration newVariable = clone(node.variable);
+    Variable newVariable = clone(node.variable);
     return new Let(newVariable, clone(node.body));
   }
 
@@ -618,7 +614,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    VariableDeclaration newVariable = clone(node.variable);
+    Variable newVariable = clone(node.variable);
     return new ForInStatement(
       newVariable,
       clone(node.iterable),
@@ -681,8 +677,8 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitCatch(Catch node) {
-    VariableDeclaration? newException = cloneOptional(node.exception);
-    VariableDeclaration? newStackTrace = cloneOptional(node.stackTrace);
+    Variable? newException = cloneOptional(node.exception);
+    Variable? newStackTrace = cloneOptional(node.stackTrace);
     return new Catch(
       newException,
       clone(node.body),
@@ -702,7 +698,7 @@ class CloneVisitorNotMembers
   }
 
   @override
-  TreeNode visitVariableDeclaration(VariableDeclaration node) {
+  TreeNode visitVariable(Variable node) {
     throw new UnimplementedError(
       "${this.runtimeType}.visitVariableDeclaration",
     );
@@ -759,6 +755,7 @@ class CloneVisitorNotMembers
       new LocalVariable(
           cosmeticName: node.cosmeticName,
           type: visitOptionalType(node.type),
+          initializer: cloneOptional(node.initializer),
         )
         ..flags = node.flags
         ..annotations = _cloneAnnotations(node)
@@ -773,6 +770,7 @@ class CloneVisitorNotMembers
       SyntheticVariable(
           cosmeticName: node.cosmeticName,
           type: visitType(node.type),
+          initializer: cloneOptional(node.initializer),
         )
         ..flags = node.flags
         ..annotations = _cloneAnnotations(node)
@@ -820,19 +818,13 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitVariableInitialization(VariableInitialization node) {
-    return new VariableInitialization(
-        variable: clone(node.variable),
-        initializer: cloneOptional(node.initializer),
-      )
-      ..flags = node.flags
-      ..annotations = cloneAnnotations && !node.annotations.isEmpty
-          ? node.annotations.map(clone).toList()
-          : const <Expression>[];
+    return new VariableInitialization(variable: clone(node.variable))
+      ..flags = node.flags;
   }
 
   @override
   TreeNode visitFunctionDeclaration(FunctionDeclaration node) {
-    VariableDeclaration newVariable = clone(node.variable);
+    Variable newVariable = clone(node.variable);
     // Create the declaration before cloning the body to support recursive
     // [LocalFunctionInvocation] nodes.
     FunctionDeclaration declaration = new FunctionDeclaration(
@@ -887,11 +879,9 @@ class CloneVisitorNotMembers
     List<TypeParameter> typeParameters = node.typeParameters
         .map(clone)
         .toList();
-    List<VariableDeclaration> positional = node.positionalParameters
-        .map(clone)
-        .toList();
-    List<VariableDeclaration> named = node.namedParameters.map(clone).toList();
-    VariableDeclaration? thisVariable = cloneOptional(node.thisVariable);
+    List<Variable> positional = node.positionalParameters.map(clone).toList();
+    List<Variable> named = node.namedParameters.map(clone).toList();
+    Variable? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
         : null;
@@ -1626,8 +1616,8 @@ class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
   Procedure cloneProcedureWith(
     Procedure node,
     Reference? reference, {
-    List<VariableDeclaration>? positionalParameters,
-    List<VariableDeclaration>? namedParameters,
+    List<Variable>? positionalParameters,
+    List<Variable>? namedParameters,
   }) {
     Procedure cloned = cloneProcedure(node, reference);
     if (positionalParameters != null) {

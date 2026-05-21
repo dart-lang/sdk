@@ -629,28 +629,24 @@ abstract class VariableVisitor<R> {
 }
 
 /// Helper mixin for [VariableVisitor] that implements visit methods by
-/// delegating to the [visitVariableDeclaration] method.
+/// delegating to the [visitVariable] method.
 mixin VariableVisitorDefaultMixin<R> implements VariableVisitor<R> {
-  R defaultVariableDeclaration(VariableDeclaration node);
+  R defaultVariable(Variable node);
 
   @override
-  R visitLegacyVariable(LegacyVariable node) =>
-      defaultVariableDeclaration(node);
+  R visitLegacyVariable(LegacyVariable node) => defaultVariable(node);
   @override
-  R visitPositionalParameter(PositionalParameter node) =>
-      defaultVariableDeclaration(node);
+  R visitPositionalParameter(PositionalParameter node) => defaultVariable(node);
   @override
-  R visitNamedParameter(NamedParameter node) =>
-      defaultVariableDeclaration(node);
+  R visitNamedParameter(NamedParameter node) => defaultVariable(node);
   @override
-  R visitLocalVariable(LocalVariable node) => defaultVariableDeclaration(node);
+  R visitLocalVariable(LocalVariable node) => defaultVariable(node);
   @override
-  R visitCatchVariable(CatchVariable node) => defaultVariableDeclaration(node);
+  R visitCatchVariable(CatchVariable node) => defaultVariable(node);
   @override
-  R visitThisVariable(ThisVariable node) => defaultVariableDeclaration(node);
+  R visitThisVariable(ThisVariable node) => defaultVariable(node);
   @override
-  R visitSyntheticVariable(SyntheticVariable node) =>
-      defaultVariableDeclaration(node);
+  R visitSyntheticVariable(SyntheticVariable node) => defaultVariable(node);
 }
 
 abstract class MemberVisitor<R> {
@@ -888,8 +884,7 @@ abstract class TreeVisitorDefault<R>
   @override
   R defaultStatement(Statement node) => defaultTreeNode(node);
   @override
-  R defaultVariableDeclaration(VariableDeclaration node) =>
-      defaultTreeNode(node);
+  R defaultVariable(Variable node) => defaultTreeNode(node);
   @override
   R defaultInitializer(Initializer node) => defaultTreeNode(node);
   @override
@@ -1019,8 +1014,7 @@ abstract class TreeVisitor1Default<R, A>
   @override
   R defaultStatement(Statement node, A arg) => defaultTreeNode(node, arg);
   @override
-  R defaultVariableDeclaration(VariableDeclaration node, A arg) =>
-      defaultTreeNode(node, arg);
+  R defaultVariable(Variable node, A arg) => defaultTreeNode(node, arg);
   @override
   R defaultInitializer(Initializer node, A arg) => defaultTreeNode(node, arg);
   @override
@@ -2225,10 +2219,8 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// supported with `null` as the result.
   ///
   /// This is convenience method for calling [transformOrRemove] with removal
-  /// sentinel for [VariableDeclaration] nodes.
-  VariableDeclaration? transformOrRemoveVariableDeclaration(
-    VariableDeclaration node,
-  ) {
+  /// sentinel for [Variable] nodes.
+  Variable? transformOrRemoveVariableDeclaration(Variable node) {
     return transformOrRemove(node, dummyVariableDeclaration);
   }
 
@@ -2450,15 +2442,12 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyTypeParameter);
   }
 
-  /// Transforms or removes [VariableDeclaration] nodes in [nodes] as children
+  /// Transforms or removes [Variable] nodes in [nodes] as children
   /// of [parent].
   ///
   /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [VariableDeclaration] nodes.
-  void transformVariableDeclarationList(
-    List<VariableDeclaration> nodes,
-    TreeNode parent,
-  ) {
+  /// sentinel for [Variable] nodes.
+  void transformVariableDeclarationList(List<Variable> nodes, TreeNode parent) {
     transformList(nodes, parent, dummyVariableDeclaration);
   }
 
@@ -2963,31 +2952,28 @@ abstract class VariableVisitor1<R, A> {
 }
 
 /// Helper mixin for [VariableVisitor1] that implements visit methods by
-/// delegating to the [visitVariableDeclaration] method.
+/// delegating to the [defaultVariable] method.
 mixin VariableVisitor1DefaultMixin<R, A> implements VariableVisitor1<R, A> {
-  R defaultVariableDeclaration(VariableDeclaration node, A arg);
+  R defaultVariable(Variable node, A arg);
 
   @override
   R visitLegacyVariable(LegacyVariable node, A arg) =>
-      defaultVariableDeclaration(node, arg);
+      defaultVariable(node, arg);
   @override
   R visitPositionalParameter(PositionalParameter node, A arg) =>
-      defaultVariableDeclaration(node, arg);
+      defaultVariable(node, arg);
   @override
   R visitNamedParameter(NamedParameter node, A arg) =>
-      defaultVariableDeclaration(node, arg);
+      defaultVariable(node, arg);
   @override
-  R visitLocalVariable(LocalVariable node, A arg) =>
-      defaultVariableDeclaration(node, arg);
+  R visitLocalVariable(LocalVariable node, A arg) => defaultVariable(node, arg);
   @override
-  R visitCatchVariable(CatchVariable node, A arg) =>
-      defaultVariableDeclaration(node, arg);
+  R visitCatchVariable(CatchVariable node, A arg) => defaultVariable(node, arg);
   @override
-  R visitThisVariable(ThisVariable node, A arg) =>
-      defaultVariableDeclaration(node, arg);
+  R visitThisVariable(ThisVariable node, A arg) => defaultVariable(node, arg);
   @override
   R visitSyntheticVariable(SyntheticVariable node, A arg) =>
-      defaultVariableDeclaration(node, arg);
+      defaultVariable(node, arg);
 }
 
 /// [DartTypeVisitorExperimentExclusionMixin] is intended to reduce the effects
@@ -3231,20 +3217,20 @@ mixin StatementVisitorExperimentExclusionMixin<R>
     );
   }
 
-  /// Since [VariableDeclaration] is abstract due to an experiment, it doesn't
+  /// Since [Variable] is abstract due to an experiment, it doesn't
   /// have its own visit method in [StatementVisitor]. However, for the
   /// transitional period the backends would rely on having
-  /// [visitVariableDeclaration] and on needing to override it. Since the
+  /// [visitVariable] and on needing to override it. Since the
   /// statement visitors in the backends should mix in
   /// [StatementVisitorExperimentExclusionMixin], we can deliver the abstract
-  /// declaration of [visitVariableDeclaration] to them via the mixin. At the
+  /// declaration of [visitVariable] to them via the mixin. At the
   /// same time, it allows us to redirect [visitVariableStatement] to the
-  /// overrides of [visitVariableDeclarations] the backends already have.
-  R visitVariableDeclaration(VariableDeclaration node);
+  /// overrides of [visitVariable] the backends already have.
+  R visitVariable(Variable node);
 
   @override
   R visitLegacyVariableStatement(LegacyVariableStatement node) {
-    return visitVariableDeclaration(node.variable);
+    return visitVariable(node.variable);
   }
 }
 
@@ -3255,19 +3241,19 @@ mixin StatementVisitorExperimentExclusionMixin<R>
 /// nodes. The methods throw an exception signaling that the experimental nodes
 /// aren't supported.
 mixin VariableVisitorExperimentExclusionMixin<R> implements VariableVisitor<R> {
-  /// Since [VariableDeclaration] is abstract due to an experiment, it doesn't
+  /// Since [Variable] is abstract due to an experiment, it doesn't
   /// have its own visit method in [VariableVisitor]. However, for the
   /// transitional period the backends would rely on having
-  /// [visitVariableDeclaration] and on needing to override it. Since the
+  /// [visitVariable] and on needing to override it. Since the
   /// statement visitors in the backends should mix in
   /// [VariableVisitorExperimentExclusionMixin], we can deliver the abstract
-  /// declaration of [visitVariableDeclaration] to them via the mixin. At the
+  /// declaration of [visitVariable] to them via the mixin. At the
   /// same time, it allows us to redirect [visitVariableStatement] to the
-  /// overrides of [visitVariableDeclarations] the backends already have.
-  R visitVariableDeclaration(VariableDeclaration node);
+  /// overrides of [visitVariable] the backends already have.
+  R visitVariable(Variable node);
 
   @override
-  R visitLegacyVariable(LegacyVariable node) => visitVariableDeclaration(node);
+  R visitLegacyVariable(LegacyVariable node) => visitVariable(node);
 
   @override
   R visitPositionalParameter(PositionalParameter node) {
@@ -3317,7 +3303,7 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
     );
   }
 
-  /// Since [VariableDeclaration] is abstract due to an experiment, it doesn't
+  /// Since [Variable] is abstract due to an experiment, it doesn't
   /// have its own visit method in [StatementVisitor1]. However, for the
   /// transitional period the backends would rely on having
   /// [visitVariableDeclaration] and on needing to override it. Since the
@@ -3326,7 +3312,7 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
   /// declaration of [visitVariableDeclaration] to them via the mixin. At the
   /// same time, it allows us to redirect [visitVariableStatement] to the
   /// overrides of [visitVariableDeclarations] the backends already have.
-  R visitVariableDeclaration(VariableDeclaration node, A arg);
+  R visitVariableDeclaration(Variable node, A arg);
 
   @override
   R visitLegacyVariableStatement(LegacyVariableStatement node, A arg) {

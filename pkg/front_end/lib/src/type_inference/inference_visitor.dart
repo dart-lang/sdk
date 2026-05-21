@@ -110,13 +110,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           TreeNode,
           Statement,
           Expression,
-          VariableDeclaration,
+          Variable,
           Pattern,
           InvalidExpression,
           TypeDeclarationType,
           TypeDeclaration
         >,
-        NullShortingMixin<NullAwareGuard, Expression, VariableDeclaration>,
+        NullShortingMixin<NullAwareGuard, Expression, Variable>,
         StackChecker,
         ExpressionVisitor1ExperimentExclusionMixin<
           ExpressionInferenceResult,
@@ -310,10 +310,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Null-aware access is not needed on `this`.
       return receiver;
     }
-    VariableDeclaration? receiverVariable = createVariable(
-      receiver,
-      receiverType,
-    );
+    Variable? receiverVariable = createVariable(receiver, receiverType);
     createNullAwareGuard(receiverVariable);
     Expression variableGet = createVariableGet(
       receiverVariable,
@@ -327,7 +324,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return variableGet;
   }
 
-  void createNullAwareGuard(VariableDeclaration variable) {
+  void createNullAwareGuard(Variable variable) {
     flowAnalysis.storeExpressionInfo(
       variable.initializer!,
       startNullShorting(
@@ -1852,7 +1849,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(valueType, valueResult);
     Expression value = valueResult.expression;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     if (forEffect) {
       // No need for value variable.
     } else {
@@ -1860,7 +1857,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       value = createVariableGet(valueVariable);
     }
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     if (forEffect || isPureExpression(receiver)) {
       // No need for receiver variable.
     } else {
@@ -1882,7 +1879,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = assignment;
     } else {
       assert(valueVariable != null);
-      VariableDeclaration assignmentVariable = createVariable(
+      Variable assignmentVariable = createVariable(
         assignment,
         const VoidType(),
       );
@@ -1952,7 +1949,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     receiver = ensureAssignable(extensionOnType, receiverType, receiver);
     receiverType = extensionOnType;
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
     if (isPureExpression(receiver)) {
@@ -1991,7 +1988,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readTarget.getGetterType(this);
     DartType valueType = writeTarget.getSetterType(this);
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     if (!node.forEffect && node.isPost) {
       // For postfix expressions like `a = E(o).b++` that are not for effect we
       // need to store the read value as the result after assignment.
@@ -2017,7 +2014,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType binaryType = binaryResult.inferredType;
     Expression binary = binaryResult.expression;
 
-    VariableDeclaration? binaryVariable;
+    Variable? binaryVariable;
     if (!node.forEffect && !node.isPost) {
       // For prefix expressions like `a = ++E(o).b` we need to store the binary
       // result as the result after assignment.
@@ -2035,19 +2032,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement;
     if (valueVariable != null) {
       assert(binaryVariable == null);
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable,
         createLet(writeVariable, createVariableGet(valueVariable)),
       );
     } else if (binaryVariable != null) {
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         binaryVariable,
         createLet(writeVariable, createVariableGet(binaryVariable)),
@@ -2275,7 +2266,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     if (node.isNullAware) {
       DartType nonNullReceiverType = receiverType.toNonNull();
       receiverVariable = createVariable(receiver, receiverType);
@@ -2402,7 +2393,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       //     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
       //
-      VariableDeclaration readVariable = createVariable(read, readType);
+      Variable readVariable = createVariable(read, readType);
       Expression equalsNull = createEqualsNull(
         createVariableGet(readVariable),
         fileOffset: node.fileOffset,
@@ -2487,7 +2478,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     receiver = ensureAssignable(extensionOnType, receiverType, receiver);
     receiverType = extensionOnType;
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
     if (isPureExpression(receiver)) {
@@ -2543,7 +2534,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Expression value = binaryResult.expression;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     if (node.forEffect) {
       // No need for value variable.
     } else {
@@ -2565,10 +2556,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = write;
     } else {
       assert(valueVariable != null);
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable!,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -2978,13 +2966,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       targetType.typeArguments,
     );
     List<DartType> positional = function.positionalParameters
-        .map(
-          (VariableDeclaration decl) => substitution.substituteType(decl.type),
-        )
+        .map((Variable decl) => substitution.substituteType(decl.type))
         .toList(growable: false);
     List<NamedType> named = function.namedParameters
         .map(
-          (VariableDeclaration decl) => new NamedType(
+          (Variable decl) => new NamedType(
             decl.name!,
             substitution.substituteType(decl.type),
             isRequired: decl.isRequired,
@@ -3116,14 +3102,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       targetType.typeArguments,
     );
     List<DartType> positional = function.positionalParameters
-        .map(
-          (VariableDeclaration decl) => substitution.substituteType(decl.type),
-        )
+        .map((Variable decl) => substitution.substituteType(decl.type))
         .toList(growable: false);
     List<NamedType> named = function.namedParameters
         .map(
           // Coverage-ignore(suite): Not run.
-          (VariableDeclaration decl) => new NamedType(
+          (Variable decl) => new NamedType(
             decl.name!,
             substitution.substituteType(decl.type),
             isRequired: decl.isRequired,
@@ -3341,7 +3325,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       errorTemplate: diag.forInLoopTypeNotIterable,
     );
 
-    VariableDeclaration loopVariable = extern.createUninitializedVariable(
+    Variable loopVariable = extern.createUninitializedVariable(
       elementType,
       fileOffset: node.fileOffset,
       isFinal: true,
@@ -3379,7 +3363,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       forOffset: node.fileOffset,
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
-    VariableDeclaration variable = headerResult.loopVariable;
+    Variable variable = headerResult.loopVariable;
     Expression iterable = headerResult.iterable;
 
     flowAnalysis.forEach_bodyBegin(node);
@@ -3443,7 +3427,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<VariableStatement>? variables;
     for (int index = 0; index < node.variables.length; index++) {
       VariableStatement variableStatement = node.variables[index];
-      VariableDeclaration variable = variableStatement.variable;
+      Variable variable = variableStatement.variable;
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
@@ -3559,7 +3543,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
-    VariableDeclaration variable = node.variable;
+    Variable variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
     inferMetadata(this, variable);
     DartType? returnContext = node.hasImplicitReturnType
@@ -3591,7 +3575,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   ScopeProviderInfo beginFunctionBodyInference(
-    List<VariableDeclaration> parameters, {
+    List<Variable> parameters, {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
   }) {
@@ -3615,11 +3599,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
   }
 
-  void _handleDeclarationsOfParameters(List<VariableDeclaration> parameters) {
-    for (VariableDeclaration parameter in parameters) {
+  void _handleDeclarationsOfParameters(List<Variable> parameters) {
+    for (Variable parameter in parameters) {
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      VariableDeclaration parameterAstVariable =
+      Variable parameterAstVariable =
           (parameter as InternalVariable).astVariable;
       _contextAllocationStrategy.handleDeclarationOfVariable(
         parameterAstVariable,
@@ -3743,7 +3727,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (isThisExpression(left)) {
       replacement = left;
     } else {
-      VariableDeclaration variable = createVariable(left, t1);
+      Variable variable = createVariable(left, t1);
       Expression equalsNull = createEqualsNull(
         createVariableGet(variable),
         fileOffset: lhsResult.expression.fileOffset,
@@ -3815,7 +3799,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           node.then,
           node.otherwise,
           {
-            for (VariableDeclaration variable
+            for (Variable variable
                 in node.patternGuard.pattern.declaredVariables)
               variable.name!: variable,
           },
@@ -4235,7 +4219,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expression: element.expression,
           pattern: element.patternGuard.pattern,
           variables: {
-            for (VariableDeclaration variable
+            for (Variable variable
                 in element.patternGuard.pattern.declaredVariables)
               variable.name!: variable,
           },
@@ -4354,15 +4338,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ..parent = patternVariableDeclaration;
     }
 
-    List<VariableDeclaration> declaredVariables =
+    List<Variable> declaredVariables =
         patternVariableDeclaration.pattern.declaredVariables;
     assert(declaredVariables.length == element.intermediateVariables.length);
     assert(declaredVariables.length == element.variableInitializations.length);
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
 
-      VariableDeclaration intermediateVariable =
-          element.intermediateVariables[i];
+      Variable intermediateVariable = element.intermediateVariables[i];
       intermediateVariable.initializer = inferExpression(
         intermediateVariable.initializer!,
         type,
@@ -4410,7 +4393,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ) {
       VariableStatement variableStatement =
           element.variableInitializations[index];
-      VariableDeclaration variable = variableStatement.variable;
+      Variable variable = variableStatement.variable;
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult initializerResult = inferExpression(
@@ -4517,7 +4500,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
 
-    VariableDeclaration variable = node.variable = result.loopVariable;
+    Variable variable = node.variable = result.loopVariable;
     node.iterable = result.iterable..parent = node;
 
     flowAnalysis.forEach_bodyBegin(node);
@@ -4940,7 +4923,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType = isSet
         ? typeSchemaEnvironment.setType(elementType, Nullability.nonNullable)
         : typeSchemaEnvironment.listType(elementType, Nullability.nonNullable);
-    VariableDeclaration? result;
+    Variable? result;
     if (index == 0 && elements[index] is SpreadElement) {
       SpreadElement initialSpread = elements[index] as SpreadElement;
       final bool typeMatches =
@@ -5054,7 +5037,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression element,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5132,7 +5115,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void _addExpressionElement(
     Expression element,
     InterfaceType receiverType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5154,7 +5137,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfElement element,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5205,7 +5188,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     IfCaseElement element,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5261,7 +5244,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForElement element,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5294,7 +5277,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     PatternForElement element,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5323,8 +5306,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(element, loop);
     body.add(element.patternVariableDeclaration);
-    for (VariableDeclaration intermediateVariable
-        in element.intermediateVariables) {
+    for (Variable intermediateVariable in element.intermediateVariables) {
       body.add(extern.createVariableStatement(intermediateVariable));
     }
     body.add(loop);
@@ -5334,7 +5316,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForInElement node,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5383,7 +5365,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SpreadElement element,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5397,7 +5379,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // a single 'addAll' call instead of a for-loop with calls to 'add'.
 
       // Null-aware spreads require testing the subexpression's value.
-      VariableDeclaration? temp;
+      Variable? temp;
       if (element.isNullAware) {
         temp = _createVariable(
           value,
@@ -5428,7 +5410,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body.add(statement);
     } else {
       // Null-aware spreads require testing the subexpression's value.
-      VariableDeclaration? temp;
+      Variable? temp;
       if (element.isNullAware) {
         temp = _createVariable(
           value,
@@ -5441,11 +5423,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         value = _createNullCheckedVariableGet(temp);
       }
 
-      VariableDeclaration variable = _createForInVariable(
+      Variable variable = _createForInVariable(
         element.fileOffset,
         const DynamicType(),
       );
-      VariableDeclaration castedVar = _createVariable(
+      Variable castedVar = _createVariable(
         _createImplicitAs(
           element.expression.fileOffset,
           _createVariableGet(variable),
@@ -5488,7 +5470,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     NullAwareElement element,
     InterfaceType receiverType,
     DartType elementType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body, {
     required bool isSet,
   }) {
@@ -5513,7 +5495,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nullableElementType = elementType.withDeclaredNullability(
       Nullability.nullable,
     );
-    VariableDeclaration temp = _createVariable(value, nullableElementType);
+    Variable temp = _createVariable(value, nullableElementType);
     body.add(extern.createVariableStatement(temp));
 
     Statement statement = _createIf(
@@ -5593,7 +5575,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.valueType,
       Nullability.nonNullable,
     );
-    VariableDeclaration? result;
+    Variable? result;
 
     if (index == 0 && node.entries[index] is SpreadMapEntry) {
       SpreadMapEntry initialSpread = node.entries[index] as SpreadMapEntry;
@@ -5664,7 +5646,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     if (entry is ControlFlowMapEntry) {
@@ -5741,7 +5723,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void _addNormalEntry(
     MapLiteralEntry entry,
     InterfaceType receiverType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     body.add(
@@ -5762,7 +5744,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     List<Statement> thenBody = [];
@@ -5813,7 +5795,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     List<Statement> thenBody = [];
@@ -5869,7 +5851,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     List<Statement> statements = <Statement>[];
@@ -5902,7 +5884,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     List<Statement> statements = <Statement>[];
@@ -5928,8 +5910,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(entry, loop);
     body.add(entry.patternVariableDeclaration);
-    for (VariableDeclaration intermediateVariable
-        in entry.intermediateVariables) {
+    for (Variable intermediateVariable in entry.intermediateVariables) {
       body.add(extern.createVariableStatement(intermediateVariable));
     }
     body.add(loop);
@@ -5940,7 +5921,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     List<Statement> statements;
@@ -5990,7 +5971,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     Expression value = entry.expression;
@@ -6009,7 +5990,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // a single 'addAll' call instead of a for-loop with calls to '[]='.
 
       // Null-aware spreads require testing the subexpression's value.
-      VariableDeclaration? temp;
+      Variable? temp;
       if (entry.isNullAware) {
         temp = _createVariable(
           value,
@@ -6043,7 +6024,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body.add(statement);
     } else {
       // Null-aware spreads require testing the subexpression's value.
-      VariableDeclaration? temp;
+      Variable? temp;
       if (entry.isNullAware) {
         temp = _createVariable(
           value,
@@ -6062,11 +6043,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Nullability.nonNullable,
         <DartType>[const DynamicType(), const DynamicType()],
       );
-      VariableDeclaration variable = _createForInVariable(
-        entry.fileOffset,
-        variableType,
-      );
-      VariableDeclaration keyVar = _createVariable(
+      Variable variable = _createForInVariable(entry.fileOffset, variableType);
+      Variable keyVar = _createVariable(
         _createImplicitAs(
           entry.expression.fileOffset,
           _createGetKey(
@@ -6078,7 +6056,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
         keyType,
       );
-      VariableDeclaration valueVar = _createVariable(
+      Variable valueVar = _createVariable(
         _createImplicitAs(
           entry.expression.fileOffset,
           _createGetValue(
@@ -6126,7 +6104,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType,
     DartType keyType,
     DartType valueType,
-    VariableDeclaration result,
+    Variable result,
     List<Statement> body,
   ) {
     assert(entry.isKeyNullAware || entry.isValueNullAware);
@@ -6168,10 +6146,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType nullableValueType = valueType.withDeclaredNullability(
         Nullability.nullable,
       );
-      VariableDeclaration valueTemp = _createVariable(
-        valueExpression,
-        nullableValueType,
-      );
+      Variable valueTemp = _createVariable(valueExpression, nullableValueType);
       valueExpression = _createNullCheckedVariableGet(valueTemp);
 
       IfStatement ifValueNotNullStatement = _createIf(
@@ -6191,10 +6166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType nullableKeyType = keyType.withDeclaredNullability(
         Nullability.nullable,
       );
-      VariableDeclaration keyTemp = _createVariable(
-        keyExpression,
-        nullableKeyType,
-      );
+      Variable keyTemp = _createVariable(keyExpression, nullableKeyType);
       keyExpression = _createNullCheckedVariableGet(keyTemp);
 
       IfStatement ifKeyNotNullStatement = _createIf(
@@ -6235,7 +6207,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //     #t[#keyTemp] = #valueTemp{int};
       //   }
 
-      VariableDeclaration keyTemp = _createVariable(keyExpression, keyType);
+      Variable keyTemp = _createVariable(keyExpression, keyType);
       keyExpression = _createVariableGet(keyTemp);
 
       desugaredStatement.statements.insert(
@@ -6334,7 +6306,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             }
             Expression spreadExpression = element.expression;
             if (element.isNullAware) {
-              VariableDeclaration temp = _createVariable(
+              Variable temp = _createVariable(
                 spreadExpression,
                 typeSchemaEnvironment.iterableType(
                   elementType,
@@ -6358,7 +6330,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               parts.add(makeLiteral(node.fileOffset, currentPart));
               currentPart = null;
             }
-            VariableDeclaration temp = _createVariable(
+            Variable temp = _createVariable(
               element.expression,
               elementType.withDeclaredNullability(Nullability.nullable),
             );
@@ -6475,7 +6447,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             }
             Expression spreadExpression = entry.expression;
             if (entry.isNullAware) {
-              VariableDeclaration temp = _createVariable(
+              Variable temp = _createVariable(
                 spreadExpression,
                 collectionType.withDeclaredNullability(Nullability.nullable),
               );
@@ -6511,7 +6483,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Expression desugaredExpression = new NullLiteral();
 
             if (entry.isValueNullAware) {
-              VariableDeclaration valueTemp = _createVariable(
+              Variable valueTemp = _createVariable(
                 valueExpression,
                 node.valueType.withDeclaredNullability(Nullability.nullable),
               );
@@ -6535,7 +6507,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             }
 
             if (entry.isKeyNullAware) {
-              VariableDeclaration keyTemp = _createVariable(
+              Variable keyTemp = _createVariable(
                 entry.key,
                 node.keyType.withDeclaredNullability(Nullability.nullable),
               );
@@ -6623,24 +6595,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  VariableDeclaration _createVariable(Expression expression, DartType type) {
+  Variable _createVariable(Expression expression, DartType type) {
     assert(expression.fileOffset != TreeNode.noOffset);
-    return new VariableDeclaration.forValue(expression, type: type)
+    return new Variable.forValue(expression, type: type)
       ..fileOffset = expression.fileOffset;
   }
 
-  VariableDeclaration _createForInVariable(int fileOffset, DartType type) {
+  Variable _createForInVariable(int fileOffset, DartType type) {
     assert(fileOffset != TreeNode.noOffset);
-    return new VariableDeclaration.forValue(null, type: type)
-      ..fileOffset = fileOffset;
+    return new Variable.forValue(null, type: type)..fileOffset = fileOffset;
   }
 
-  VariableGet _createVariableGet(VariableDeclaration variable) {
+  VariableGet _createVariableGet(Variable variable) {
     assert(variable.fileOffset != TreeNode.noOffset);
     return new VariableGet(variable)..fileOffset = variable.fileOffset;
   }
 
-  VariableGet _createNullCheckedVariableGet(VariableDeclaration variable) {
+  VariableGet _createNullCheckedVariableGet(Variable variable) {
     assert(variable.fileOffset != TreeNode.noOffset);
     DartType promotedType = variable.type.withDeclaredNullability(
       Nullability.nonNullable,
@@ -6908,7 +6879,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInStatement _createForInStatement(
     int fileOffset,
-    VariableDeclaration variable,
+    Variable variable,
     Expression iterable,
     Statement body, {
     bool isAsync = false,
@@ -6920,7 +6891,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Let _createNullAwareGuard(
     int fileOffset,
-    VariableDeclaration variable,
+    Variable variable,
     Expression defaultValue,
     DartType type, {
     Expression? nullCheckedValue,
@@ -7360,7 +7331,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expression: entry.expression,
           pattern: entry.patternGuard.pattern,
           variables: {
-            for (VariableDeclaration variable
+            for (Variable variable
                 in entry.patternGuard.pattern.declaredVariables)
               variable.name!: variable,
           },
@@ -7501,14 +7472,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ..parent = patternVariableDeclaration;
     }
 
-    List<VariableDeclaration> declaredVariables =
+    List<Variable> declaredVariables =
         patternVariableDeclaration.pattern.declaredVariables;
     assert(declaredVariables.length == entry.intermediateVariables.length);
     assert(declaredVariables.length == entry.variables.length);
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
 
-      VariableDeclaration intermediateVariable = entry.intermediateVariables[i];
+      Variable intermediateVariable = entry.intermediateVariables[i];
       intermediateVariable.initializer = inferExpression(
         intermediateVariable.initializer!,
         type,
@@ -7575,7 +7546,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<VariableStatement>? variables;
     for (int index = 0; index < entry.variables.length; index++) {
       VariableStatement variableStatement = entry.variables[index];
-      VariableDeclaration variable = variableStatement.variable;
+      Variable variable = variableStatement.variable;
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
@@ -7693,7 +7664,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       forOffset: node.forOffset,
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
-    VariableDeclaration variable = node.variable = result.loopVariable;
+    Variable variable = node.variable = result.loopVariable;
     node.iterable = result.iterable..parent = node;
 
     flowAnalysis.forEach_bodyBegin(node);
@@ -8542,7 +8513,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     if (!node.forEffect && node.isPost) {
       // For postfix expressions like `a = o.b++` that are not for effect we
       // need to store the read value as the result after assignment.
@@ -8575,10 +8546,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (valueVariable == null) {
       replacement = write;
     } else {
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -8606,7 +8574,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     if (!node.forEffect && node.isPost) {
       // For postfix expressions like `a = o.b++` that are not for effect we
       // need to store the read value as the result after assignment.
@@ -8641,10 +8609,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (valueVariable == null) {
       replacement = write;
     } else {
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -8671,7 +8636,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     if (!node.forEffect && node.isPost) {
       // For postfix expressions like `a = o.b++` that are not for effect we
       // need to store the read value as the result after assignment.
@@ -8705,10 +8670,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (valueVariable == null) {
       replacement = write;
     } else {
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -8737,7 +8699,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
     if (node.isNullAware) {
@@ -8779,7 +8741,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     if (!node.forEffect && node.isPost) {
       // For postfix expressions like `a = o.b++` that are not for effect we
       // need to store the read value as the result after assignment.
@@ -8825,10 +8787,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (valueVariable == null) {
       replacement = write;
     } else {
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -8867,7 +8826,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
     if (node.isNullAware) {
@@ -8969,7 +8928,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
-    VariableDeclaration receiverVariable;
+    Variable receiverVariable;
     if (node.isNullAware) {
       receiverVariable = createVariable(receiver, receiverType);
       createNullAwareGuard(receiverVariable);
@@ -9062,7 +9021,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       //     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
       //
-      VariableDeclaration readVariable = createVariable(read, readType);
+      Variable readVariable = createVariable(read, readType);
       Expression equalsNull = createEqualsNull(
         createVariableGet(readVariable),
         fileOffset: node.fileOffset,
@@ -9178,7 +9137,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       //      let v1 = a in v1 == null ? a = b : v1
       //
-      VariableDeclaration readVariable = createVariable(read, readType);
+      Variable readVariable = createVariable(read, readType);
       Expression equalsNull = createEqualsNull(
         createVariableGet(readVariable),
         fileOffset: node.fileOffset,
@@ -9294,7 +9253,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     if (!node.forEffect && !isPureExpression(receiver)) {
       receiverVariable = createVariable(receiver, receiverType);
       receiver = createVariableGet(receiverVariable);
@@ -9322,7 +9281,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult,
     ).expression;
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     if (!node.forEffect && !isPureExpression(index)) {
       indexVariable = createVariable(index, indexResult.inferredType);
       index = createVariableGet(indexVariable);
@@ -9336,7 +9295,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(valueType, valueResult);
     Expression value = valueResult.expression;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression? returnedValue;
     if (node.forEffect) {
     } else if (isPureExpression(value)) {
@@ -9366,7 +9325,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.forEffect) {
       replacement = assignment;
     } else {
-      VariableDeclaration assignmentVariable = createVariable(
+      Variable assignmentVariable = createVariable(
         assignment,
         const VoidType(),
       );
@@ -9413,7 +9372,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult,
     ).expression;
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     if (!isPureExpression(index)) {
       indexVariable = createVariable(index, indexResult.inferredType);
       index = createVariableGet(indexVariable);
@@ -9427,7 +9386,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(valueType, valueResult);
     Expression value = valueResult.expression;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression returnedValue;
     if (isPureExpression(value)) {
       returnedValue = clonePureExpression(value);
@@ -9452,10 +9411,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexSetTarget.classMember as Procedure,
     )..fileOffset = node.fileOffset;
 
-    VariableDeclaration assignmentVariable = createVariable(
-      assignment,
-      const VoidType(),
-    );
+    Variable assignmentVariable = createVariable(assignment, const VoidType());
     Expression replacement = createLet(assignmentVariable, returnedValue);
     if (valueVariable != null) {
       replacement = createLet(valueVariable, replacement);
@@ -9614,7 +9570,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     receiver = ensureAssignable(extensionOnType, receiverType, receiver);
     receiverType = extensionOnType;
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     if (!node.forEffect && !isPureExpression(receiver)) {
       receiverVariable = createVariable(receiver, receiverType);
       receiver = createVariableGet(receiverVariable);
@@ -9642,7 +9598,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(valueType, valueResult);
     Expression value = valueResult.expression;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression? returnedValue;
     if (node.forEffect) {
       // Returned value is not needed.
@@ -9671,7 +9627,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement = assignment;
     if (returnedValue != null) {
       assert(!node.forEffect);
-      VariableDeclaration assignmentVariable = createVariable(
+      Variable assignmentVariable = createVariable(
         assignment,
         const VoidType(),
       );
@@ -9712,7 +9668,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver = receiver;
     Expression writeReceiver;
     if (isPureExpression(readReceiver)) {
@@ -9756,7 +9712,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
         flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
@@ -9815,7 +9771,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext: typeContext,
     );
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression? returnedValue;
     if (node.forEffect) {
       // No need for value variable.
@@ -9869,15 +9825,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //        : readVariable
       //
       //
-      VariableDeclaration readVariable = createVariable(read, readType);
+      Variable readVariable = createVariable(read, readType);
       Expression equalsNull = createEqualsNull(
         createVariableGet(readVariable),
         fileOffset: node.testOffset,
       );
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       VariableGet variableGet = createVariableGet(readVariable);
       if (!identical(nonNullableReadType, readType)) {
         variableGet.promotedType = nonNullableReadType;
@@ -9945,7 +9898,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     Expression readIndex = indexResult.expression;
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
@@ -9996,7 +9949,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext: typeContext,
     );
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression? returnedValue;
     if (node.forEffect) {
       // No need for a value variable.
@@ -10048,15 +10001,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //        : v2
       //
 
-      VariableDeclaration readVariable = createVariable(read, readType);
+      Variable readVariable = createVariable(read, readType);
       Expression equalsNull = createEqualsNull(
         createVariableGet(readVariable),
         fileOffset: node.testOffset,
       );
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       VariableGet readVariableGet = createVariableGet(readVariable);
       if (!identical(nonNullableReadType, readType)) {
         readVariableGet.promotedType = nonNullableReadType;
@@ -10134,7 +10084,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     receiver = ensureAssignable(extensionOnType, receiverType, receiver);
     receiverType = extensionOnType;
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
     if (isPureExpression(receiver)) {
@@ -10173,7 +10123,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     Expression readIndex = indexResult.expression;
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
@@ -10228,7 +10178,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext: typeContext,
     );
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression? returnedValue;
     if (node.forEffect) {
       // No need for a value variable.
@@ -10285,15 +10235,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //           valueVariable)
       //        : readVariable
       //
-      VariableDeclaration readVariable = createVariable(read, readType);
+      Variable readVariable = createVariable(read, readType);
       Expression equalsNull = createEqualsNull(
         createVariableGet(readVariable),
         fileOffset: node.testOffset,
       );
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       VariableGet readVariableGet = createVariableGet(readVariable);
       if (!identical(nonNullableReadType, readType)) {
         readVariableGet.promotedType = nonNullableReadType;
@@ -11198,7 +11145,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver = receiver;
     Expression writeReceiver;
     if (isPureExpression(readReceiver)) {
@@ -11232,7 +11179,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
         flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
@@ -11264,7 +11211,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
-    VariableDeclaration? leftVariable;
+    Variable? leftVariable;
     Expression left;
     if (node.forEffect) {
       left = read;
@@ -11312,7 +11259,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression valueExpression;
     if (node.forEffect || node.forPostIncDec) {
       valueExpression = binary;
@@ -11352,10 +11299,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(leftVariable != null);
       assert(valueVariable == null);
 
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       inner = createLet(
         leftVariable!,
         createLet(writeVariable, createVariableGet(leftVariable)),
@@ -11371,10 +11315,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(leftVariable == null);
       assert(valueVariable != null);
 
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       inner = createLet(
         valueVariable!,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -11418,7 +11359,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     Expression readIndex = indexResult.expression;
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
@@ -11443,7 +11384,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readTarget.classMember as Procedure,
     )..fileOffset = node.readOffset;
 
-    VariableDeclaration? leftVariable;
+    Variable? leftVariable;
     Expression left;
     if (node.forEffect) {
       left = read;
@@ -11489,7 +11430,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndex,
     );
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression valueExpression;
     if (node.forEffect || node.forPostIncDec) {
       valueExpression = binary;
@@ -11526,10 +11467,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(leftVariable != null);
       assert(valueVariable == null);
 
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         leftVariable!,
         createLet(writeVariable, createVariableGet(leftVariable)),
@@ -11545,10 +11483,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(leftVariable == null);
       assert(valueVariable != null);
 
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable!,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -11625,7 +11560,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       extensionTypeArguments,
     );
 
-    VariableDeclaration? receiverVariable;
+    Variable? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
     if (isPureExpression(receiver)) {
@@ -11645,7 +11580,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
 
-    VariableDeclaration? indexVariable;
+    Variable? indexVariable;
     Expression readIndex = indexResult.expression;
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
@@ -11674,7 +11609,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
-    VariableDeclaration? leftVariable;
+    Variable? leftVariable;
     Expression left;
     if (node.forEffect) {
       left = read;
@@ -11720,7 +11655,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
-    VariableDeclaration? valueVariable;
+    Variable? valueVariable;
     Expression valueExpression;
     if (node.forEffect || node.forPostIncDec) {
       valueExpression = binary;
@@ -11764,10 +11699,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(leftVariable != null);
       assert(valueVariable == null);
 
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         leftVariable!,
         createLet(writeVariable, createVariableGet(leftVariable)),
@@ -11785,10 +11717,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(leftVariable == null);
       assert(valueVariable != null);
 
-      VariableDeclaration writeVariable = createVariable(
-        write,
-        const VoidType(),
-      );
+      Variable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
         valueVariable!,
         createLet(writeVariable, createVariableGet(valueVariable)),
@@ -11934,7 +11863,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.isCascade) {
       inferredType = initializerType;
 
-      VariableDeclaration tempVar = new VariableDeclaration(
+      Variable tempVar = new Variable(
         null,
         initializer: bodyResult.expression,
         isSynthesized: true,
@@ -11947,11 +11876,34 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body = bodyResult.expression;
     }
 
+    Expression createLetOrBlock() {
+      if (!libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .supportsLetVariableCapture) {
+        Variable resultVar = new Variable(null, isSynthesized: true)
+          ..type = inferredType
+          ..fileOffset = node.fileOffset;
+        return new BlockExpression(
+          new Block([
+            extern.createVariableStatement(node.variable),
+            extern.createVariableStatement(resultVar),
+            new ExpressionStatement(new VariableSet(resultVar, body))
+              ..fileOffset = node.fileOffset,
+          ]),
+          new VariableGet(resultVar),
+        )..fileOffset = node.fileOffset;
+      } else {
+        return new Let(node.variable, body)..fileOffset = node.fileOffset;
+      }
+    }
+
     Expression replacement;
     if (node.isNullAware) {
-      VariableDeclaration tempVar =
-          new VariableDeclaration(
-              null,
+      Variable tempVar =
+          new Variable(
+              "anonymous#receiver",
               initializer: node.variable.initializer!,
               isSynthesized: true,
             )
@@ -11966,8 +11918,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = node.fileOffset
             ..parent = node.variable;
 
-      Expression elseExpression = new Let(node.variable, body)
-        ..fileOffset = node.fileOffset;
+      Expression elseExpression = createLetOrBlock();
 
       replacement = new Let(
         tempVar,
@@ -11981,7 +11932,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       inferredType = inferredType.withDeclaredNullability(Nullability.nullable);
     } else {
-      replacement = new Let(node.variable, body)..fileOffset = node.fileOffset;
+      replacement = createLetOrBlock();
     }
 
     if (node.isParameterless) {
@@ -12385,7 +12336,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     DartType typeContext = bodyContext.returnContext;
     DartType inferredType;
-    VariableDeclaration? thisVariable = _constructorContext?.thisVariable;
+    Variable? thisVariable = _constructorContext?.thisVariable;
     if (bodyContext.isRoot && thisVariable != null) {
       // The constructor is lowered with an explicit variable for `this`. This
       // means that `return;` should be encoded as `return #this;` where `#this`
@@ -12542,7 +12493,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // Create the set: Set<E> setVar = new Set<E>();
     InterfaceType receiverType;
-    VariableDeclaration setVar = new VariableDeclaration.forValue(
+    Variable setVar = new Variable.forValue(
       new StaticInvocation(
         engine.setFactory,
         new Arguments([], types: [node.typeArgument]),
@@ -13127,7 +13078,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
       PatternSwitchCase switchCase = node.cases[caseIndex];
-      List<VariableDeclaration> jointVariablesNotInAll = [];
+      List<Variable> jointVariablesNotInAll = [];
       for (
         int headIndex = 0;
         headIndex < switchCase.patternGuards.length;
@@ -13152,11 +13103,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
 
         Map<String, DartType> inferredVariableTypes = {
-          for (VariableDeclaration variable in pattern.declaredVariables)
+          for (Variable variable in pattern.declaredVariables)
             variable.name!: variable.type,
         };
         if (headIndex == 0) {
-          for (VariableDeclaration jointVariable in switchCase.jointVariables) {
+          for (Variable jointVariable in switchCase.jointVariables) {
             DartType? inferredType = inferredVariableTypes[jointVariable.name!];
             if (inferredType != null) {
               jointVariable.type = inferredType;
@@ -13167,7 +13118,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
         } else {
           for (int i = 0; i < switchCase.jointVariables.length; ++i) {
-            VariableDeclaration jointVariable = switchCase.jointVariables[i];
+            Variable jointVariable = switchCase.jointVariables[i];
             // The error on joint variables not present in all case heads is
             // reported in BodyBuilder.
             DartType? inferredType = inferredVariableTypes[jointVariable.name!];
@@ -13447,7 +13398,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitVariableDeclaration(
+  StatementInferenceResult visitVariable(
     covariant VariableDeclarationImpl node,
   ) {
     return _inferInternalExpressionVariableDeclaration(node, node);
@@ -13789,7 +13740,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<NamedExpression> named = namedUnsorted;
     Map<String, NamedExpression>? namedElements = node.namedElements;
     List<Object> originalElementOrder = node.originalElementOrder;
-    List<VariableDeclaration>? hoistedExpressions;
+    List<Variable>? hoistedExpressions;
 
     List<DartType>? positionalTypeContexts;
     Map<String, DartType>? namedTypeContexts;
@@ -13940,7 +13891,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (needsHoisting && !isPureExpression(expression)) {
             // We hoist the value of the [NamedExpression] into a synthesized
             // variable, and replace the value with a read of the variable.
-            VariableDeclaration variable = createVariable(expression, type);
+            Variable variable = createVariable(expression, type);
             hoistedExpressions ??= [];
             hoistedExpressions.add(variable);
             element.value = createVariableGet(variable)..parent = element;
@@ -13959,7 +13910,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (needsHoisting && !isPureExpression(expression)) {
             // We hoist the positional element into a synthesized variable, and
             // replace the element in [positional] with a read of the variable.
-            VariableDeclaration variable = createVariable(expression, type);
+            Variable variable = createVariable(expression, type);
             hoistedExpressions ??= [];
             hoistedExpressions.add(variable);
             positional[positionalIndex] = createVariableGet(variable);
@@ -14011,7 +13962,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       )..fileOffset = node.fileOffset;
     }
     if (hoistedExpressions != null) {
-      for (VariableDeclaration variable in hoistedExpressions) {
+      for (Variable variable in hoistedExpressions) {
         result = createLet(variable, result);
       }
     }
@@ -14345,41 +14296,31 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration> get flow =>
+  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flow =>
       flowAnalysis;
 
   @override
-  SwitchExpressionMemberInfo<TreeNode, Expression, VariableDeclaration>
+  SwitchExpressionMemberInfo<TreeNode, Expression, Variable>
   getSwitchExpressionMemberInfo(Expression node, int index) {
     SwitchExpressionCase switchExpressionCase =
         (node as SwitchExpression).cases[index];
     Pattern pattern = switchExpressionCase.patternGuard.pattern;
-    Map<String, VariableDeclaration> variables = {
-      for (VariableDeclaration declaredVariable in pattern.declaredVariables)
+    Map<String, Variable> variables = {
+      for (Variable declaredVariable in pattern.declaredVariables)
         declaredVariable.name!: declaredVariable,
     };
-    return new SwitchExpressionMemberInfo<
-      TreeNode,
-      Expression,
-      VariableDeclaration
-    >(
-      head:
-          new CaseHeadOrDefaultInfo<TreeNode, Expression, VariableDeclaration>(
-            pattern: pattern,
-            guard: switchExpressionCase.patternGuard.guard,
-            variables: variables,
-          ),
+    return new SwitchExpressionMemberInfo<TreeNode, Expression, Variable>(
+      head: new CaseHeadOrDefaultInfo<TreeNode, Expression, Variable>(
+        pattern: pattern,
+        guard: switchExpressionCase.patternGuard.guard,
+        variables: variables,
+      ),
       expression: switchExpressionCase.expression,
     );
   }
 
   @override
-  SwitchStatementMemberInfo<
-    TreeNode,
-    Statement,
-    Expression,
-    VariableDeclaration
-  >
+  SwitchStatementMemberInfo<TreeNode, Statement, Expression, Variable>
   getSwitchStatementMemberInfo(covariant SwitchStatement node, int caseIndex) {
     SwitchCase case_ = node.cases[caseIndex];
     if (case_ is SwitchCaseImpl) {
@@ -14403,7 +14344,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               pattern: patternGuard.pattern,
               guard: patternGuard.guard,
               variables: {
-                for (VariableDeclaration variable
+                for (Variable variable
                     in patternGuard.pattern.declaredVariables)
                   variable.name!: variable,
               },
@@ -14413,7 +14354,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ],
         body: [case_.body],
         variables: {
-          for (VariableDeclaration jointVariable in case_.jointVariables)
+          for (Variable jointVariable in case_.jointVariables)
             jointVariable.name!: jointVariable,
         },
         hasLabels: case_.hasLabel,
@@ -14537,7 +14478,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void handleCase_afterCaseHeads(
     Statement node,
     int caseIndex,
-    Iterable<VariableDeclaration> variables,
+    Iterable<Variable> variables,
   ) {}
 
   @override
@@ -14613,7 +14554,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void setVariableType(VariableDeclaration variable, SharedTypeView type) {
+  void setVariableType(Variable variable, SharedTypeView type) {
     variable.type = type.unwrapTypeView();
   }
 
@@ -14844,20 +14785,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.left = (rewrite as Pattern)..parent = node;
     }
 
-    Map<String, VariableDeclaration> leftDeclaredVariablesByName = {
-      for (VariableDeclaration variable in node.left.declaredVariables)
+    Map<String, Variable> leftDeclaredVariablesByName = {
+      for (Variable variable in node.left.declaredVariables)
         variable.name!: variable,
     };
-    Map<String, VariableDeclaration> jointVariableNames = {
-      for (VariableDeclaration variable in node.orPatternJointVariables)
+    Map<String, Variable> jointVariableNames = {
+      for (Variable variable in node.orPatternJointVariables)
         variable.name!: variable,
     };
-    for (VariableDeclaration rightVariable in node.right.declaredVariables) {
+    for (Variable rightVariable in node.right.declaredVariables) {
       String rightVariableName = rightVariable.name!;
-      VariableDeclaration? leftVariable =
-          leftDeclaredVariablesByName[rightVariableName];
-      VariableDeclaration? jointVariable =
-          jointVariableNames[rightVariableName];
+      Variable? leftVariable = leftDeclaredVariablesByName[rightVariableName];
+      Variable? jointVariable = jointVariableNames[rightVariableName];
       if (leftVariable != null && jointVariable != null) {
         if (leftVariable.type != rightVariable.type ||
             leftVariable.isFinal != rightVariable.isFinal) {
@@ -16140,7 +16079,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void finishJoinedPatternVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     required JoinedPatternVariableLocation location,
     required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
@@ -16767,7 +16706,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return node is DotShorthand;
   }
 
-  CaptureKind _captureKindForVariable(VariableDeclaration variable) {
+  CaptureKind _captureKindForVariable(Variable variable) {
     int variableKey = assignedVariables.promotionKeyStore.keyForVariable(
       variable,
     );
@@ -16821,7 +16760,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult _inferInternalExpressionVariableDeclaration(
-    VariableDeclaration node,
+    Variable node,
     InternalVariable nodeVariable, {
     VariableStatement? variableStatement,
   }) {
@@ -16856,8 +16795,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (node.isLate && node.hasDeclaredInitializer) {
         // TODO(62401): Remove the cast when the flow analysis uses
         // [InternalExpressionVariable]s.
-        VariableDeclaration variable =
-            (node.variable as InternalVariable).astVariable;
+        Variable variable = (node.variable as InternalVariable).astVariable;
         if (isClosureContextLoweringEnabled) {
           _contextAllocationStrategy.handleVariablesCapturedByNode(
             node,
@@ -16933,9 +16871,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.type,
             late_lowering.computeIsSetStrategy(libraryBuilder),
           );
-      VariableDeclaration? isSetVariable;
+      Variable? isSetVariable;
       if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
-        isSetVariable = new VariableDeclaration(
+        isSetVariable = new Variable(
           late_lowering.computeLateLocalIsSetName(node.name!),
           initializer: new BoolLiteral(false)..fileOffset = fileOffset,
           type: coreTypes.boolRawType(Nullability.nonNullable),
@@ -16960,7 +16898,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression createIsSetWrite(Expression value) =>
           new VariableSet(isSetVariable!, value);
 
-      VariableDeclaration getVariable = new VariableDeclaration(
+      Variable getVariable = new Variable(
         late_lowering.computeLateLocalGetterName(node.name!),
         isLowered: true,
       )..fileOffset = fileOffset;
@@ -17016,11 +16954,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!node.isFinal || node.initializer == null) {
         nodeVariable.isLateFinalWithoutInitializer =
             node.isFinal && node.initializer == null;
-        VariableDeclaration setVariable = new VariableDeclaration(
+        Variable setVariable = new Variable(
           late_lowering.computeLateLocalSetterName(node.name!),
           isLowered: true,
         )..fileOffset = fileOffset;
-        VariableDeclaration setterParameter = new VariableDeclaration(
+        Variable setterParameter = new Variable(
           "${node.name}#param",
           type: node.type,
         )..fileOffset = fileOffset;
@@ -17054,7 +16992,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                       isSetEncoding: isSetEncoding,
                     )
               ..fileOffset = fileOffset,
-            positionalParameters: <VariableDeclaration>[setterParameter],
+            positionalParameters: <Variable>[setterParameter],
           ),
         )
         // TODO(johnniwinther): Reinsert the file offset when the vm doesn't

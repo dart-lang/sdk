@@ -16,21 +16,21 @@ class ConstructorInfo {
 
   /// All parameters of the constructor in canonical order (positional first,
   /// then named sorted by name).
-  final List<VariableDeclaration> allParameters;
+  final List<Variable> allParameters;
 
   /// Parameters that must be passed to the initializer function.
   late final List<TypeParameter> initializerTypeParameters;
-  late final List<VariableDeclaration> initializerParameters;
+  late final List<Variable> initializerParameters;
 
   /// Parameters that must be passed to the body function from the allocator.
   ///
   /// NOTE: Type parameters of a constructor always end up in fields and can be
   /// loaded from there. The constructor body therefore never needs to get them
   /// passed explicitly.
-  late final List<VariableDeclaration> bodyParameters;
+  late final List<Variable> bodyParameters;
 
   /// Parameters that constructor bodies can load via `this`.
-  final Map<VariableDeclaration, Field> parameterToField = {};
+  final Map<Variable, Field> parameterToField = {};
 
   ConstructorInfo(this.constructor, this.translator)
     : allParameters = [
@@ -108,11 +108,11 @@ class _UsageCollector extends RecursiveVisitor {
   final Translator translator;
   final Closures closures;
 
-  final variablesRead = <VariableDeclaration>{};
-  final variablesWritten = <VariableDeclaration>{};
-  final variablesCaptured = <VariableDeclaration>{};
+  final variablesRead = <Variable>{};
+  final variablesWritten = <Variable>{};
+  final variablesCaptured = <Variable>{};
   final usedTypeParameters = <TypeParameter>{};
-  final variablesStoredInFields = <VariableDeclaration, Field>{};
+  final variablesStoredInFields = <Variable, Field>{};
 
   _UsageCollector(this.translator, this.closures);
 

@@ -83,7 +83,7 @@ abstract class AstCodeGenerator
 
   bool exceptionLocationPrinted = false;
 
-  final Map<VariableDeclaration, w.Local> locals = {};
+  final Map<Variable, w.Local> locals = {};
   w.Local? thisLocal;
   w.Local? preciseThisLocal;
   w.Local? returnValueLocal;
@@ -284,7 +284,7 @@ abstract class AstCodeGenerator
 
     void setupParamLocal(
       DartType variableTypeToCheck,
-      VariableDeclaration variable,
+      Variable variable,
       int index,
       Constant? defaultValue,
       bool isRequired,
@@ -481,10 +481,10 @@ abstract class AstCodeGenerator
     for (TypeParameter typeParam in functionNode.typeParameters) {
       typeLocals[typeParam] = paramLocals[paramIndex++];
     }
-    for (VariableDeclaration param in functionNode.positionalParameters) {
+    for (Variable param in functionNode.positionalParameters) {
       locals[param] = paramLocals[paramIndex++];
     }
-    for (VariableDeclaration param in functionNode.namedParameters) {
+    for (Variable param in functionNode.namedParameters) {
       locals[param] = paramLocals[paramIndex++];
     }
 
@@ -672,10 +672,10 @@ abstract class AstCodeGenerator
     }
   }
 
-  void translateVariableDeclaration(VariableDeclaration node) {
+  void translateVariableDeclaration(Variable node) {
     final oldFileOffset = setSourceMapFileOffset(node.fileOffset);
     try {
-      visitVariableDeclaration(node);
+      visitVariable(node);
     } catch (_) {
       _printLocation(node);
       rethrow;
@@ -759,7 +759,7 @@ abstract class AstCodeGenerator
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariable(Variable node) {
     final w.ValueType type = translator.translateTypeOfLocalVariable(node);
     w.Local? local;
     final Capture? capture = closures.captures[node];
@@ -810,12 +810,9 @@ abstract class AstCodeGenerator
   /// Initialize a variable [node] to an initial value which must be left on
   /// the stack by [pushInitialValue].
   ///
-  /// This is similar to [visitVariableDeclaration] but it gives more control
+  /// This is similar to [visitVariable] but it gives more control
   /// over how the variable is initialized.
-  void initializeVariable(
-    VariableDeclaration node,
-    void Function() pushInitialValue,
-  ) {
+  void initializeVariable(Variable node, void Function() pushInitialValue) {
     final w.ValueType type = translator.translateTypeOfLocalVariable(node);
     w.Local? local;
     final Capture? capture = closures.captures[node];
@@ -1048,7 +1045,7 @@ abstract class AstCodeGenerator
       b.local_set(thrownStackTrace);
       b.local_set(thrownException);
 
-      final VariableDeclaration? exceptionDeclaration = catch_.exception;
+      final Variable? exceptionDeclaration = catch_.exception;
       if (exceptionDeclaration != null) {
         initializeVariable(exceptionDeclaration, () {
           b.local_get(thrownException);
@@ -1061,7 +1058,7 @@ abstract class AstCodeGenerator
         });
       }
 
-      final VariableDeclaration? stackTraceDeclaration = catch_.stackTrace;
+      final Variable? stackTraceDeclaration = catch_.stackTrace;
       if (stackTraceDeclaration != null) {
         initializeVariable(
           stackTraceDeclaration,
@@ -3667,7 +3664,7 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
       final typeParameter = typeParameters[i];
       typeLocals[typeParameter] = paramLocals[param++];
     }
-    void setupParameter(VariableDeclaration parameter) {
+    void setupParameter(Variable parameter) {
       // The body may assign less precise types to the parameter variable than
       // what the caller provides.
       w.Local local = paramLocals[param++];
@@ -4168,7 +4165,7 @@ abstract class ConstructorCodeGeneratorBase extends AstCodeGenerator {
 
   List<w.Local> _getConstructorArgumentLocals(
     List<TypeParameter> typeParameters,
-    List<VariableDeclaration> parameters,
+    List<Variable> parameters,
   ) {
     List<w.Local> constructorArgs = [];
 
@@ -4176,7 +4173,7 @@ abstract class ConstructorCodeGeneratorBase extends AstCodeGenerator {
       constructorArgs.add(typeLocals[typeParameters[i]]!);
     }
 
-    for (VariableDeclaration param in parameters) {
+    for (Variable param in parameters) {
       constructorArgs.add(locals[param]!);
     }
 
@@ -4185,7 +4182,7 @@ abstract class ConstructorCodeGeneratorBase extends AstCodeGenerator {
 
   int _setupConstructorParameters(
     List<TypeParameter> typeParameters,
-    List<VariableDeclaration> parameters,
+    List<Variable> parameters,
     int parameterOffset,
   ) {
     for (int i = 0; i < typeParameters.length; i++) {

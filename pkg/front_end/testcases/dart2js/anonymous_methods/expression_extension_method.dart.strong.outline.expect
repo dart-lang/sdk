@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  method foo = self::E|foo;
+  method tearoff foo = self::E|get#foo;
+}
+static extension-member method E|foo(lowered final core::int #this) → void
+  ;
+static extension-member method E|get#foo(lowered final core::int #this) → () → void
+  return () → void => self::E|foo(#this);
+static method main() → void
+  ;

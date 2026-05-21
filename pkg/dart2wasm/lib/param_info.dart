@@ -38,7 +38,7 @@ class ParameterInfo {
 
   int get paramCount => positional.length + named.length;
 
-  static Constant? _defaultValue(VariableDeclaration param) {
+  static Constant? _defaultValue(Variable param) {
     Expression? initializer = param.initializer;
     if (initializer is ConstantExpression) {
       return initializer.constant;
@@ -90,7 +90,7 @@ class ParameterInfo {
       });
 
       final named = {
-        for (VariableDeclaration param in function.namedParameters)
+        for (Variable param in function.namedParameters)
           if (param.isRequired)
             param.name!: null
           else
@@ -120,7 +120,7 @@ class ParameterInfo {
       return _defaultValue(function.positionalParameters[i]);
     });
     final named = {
-      for (VariableDeclaration param in function.namedParameters)
+      for (Variable param in function.namedParameters)
         param.name!: _defaultValue(param),
     };
     return ParameterInfo._(true, typeParamCount, positional, named);

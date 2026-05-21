@@ -82,7 +82,7 @@ void main() {
 
   FunctionNode setterFunction = new FunctionNode(
     new Block([]),
-    positionalParameters: [new VariableDeclaration("foo")],
+    positionalParameters: [new Variable("foo")],
   );
   Procedure setter = new Procedure(
     new Name("f"),

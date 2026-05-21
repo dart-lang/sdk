@@ -282,13 +282,13 @@ class _SummaryNormalizer implements StatementVisitor {
 /// modified in loops and try blocks.
 class _VariablesInfoCollector extends RecursiveVisitor {
   /// Maps declared variables to their declaration index.
-  final Map<VariableDeclaration, int> varIndex = <VariableDeclaration, int>{};
+  final Map<Variable, int> varIndex = <Variable, int>{};
 
   /// Variable declarations.
-  final List<VariableDeclaration> varDeclarations = <VariableDeclaration>[];
+  final List<Variable> varDeclarations = <Variable>[];
 
   /// Set of captured variables.
-  Set<VariableDeclaration>? captured;
+  Set<Variable>? captured;
 
   /// Set of variables which were modified for each loop, switch statement
   /// and try block statement. Doesn't include captured variables and
@@ -314,7 +314,7 @@ class _VariablesInfoCollector extends RecursiveVisitor {
 
   int get numVariables => varDeclarations.length;
 
-  bool isCaptured(VariableDeclaration variable) {
+  bool isCaptured(Variable variable) {
     final captured = this.captured;
     return captured != null && captured.contains(variable);
   }
@@ -349,11 +349,11 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   bool _isDeclaredBefore(int variableIndex, int entryDeclarationCounter) =>
       variableIndex < entryDeclarationCounter;
 
-  void _captureVariable(VariableDeclaration variable) {
-    (captured ??= <VariableDeclaration>{}).add(variable);
+  void _captureVariable(Variable variable) {
+    (captured ??= <Variable>{}).add(variable);
   }
 
-  void _useVariable(VariableDeclaration variable, bool isVarAssignment) {
+  void _useVariable(Variable variable, bool isVarAssignment) {
     final index = varIndex[variable]!;
     if (_isDeclaredBefore(index, numVariablesAtFunctionEntry)) {
       _captureVariable(variable);
@@ -409,7 +409,7 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   }
 
   @override
-  defaultVariableDeclaration(VariableDeclaration node) {
+  defaultVariable(Variable node) {
     final int index = numVariables;
     varDeclarations.add(node);
     varIndex[node] = index;
@@ -593,7 +593,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   // Cached unconditional reads of captured variables
   // (can be reused to avoid repetitive reads).
-  Map<VariableDeclaration, ReadVariable>? _capturedVariableReads;
+  Map<Variable, ReadVariable>? _capturedVariableReads;
 
   // Counts number of Joins inserted for each variable. Only used to set
   // readable names for such joins (foo_0, foo_1 etc.)
@@ -801,11 +801,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
             useTypesFrom = FunctionNode(
               null,
               positionalParameters: [
-                VariableDeclaration(
-                  "value",
-                  type: target.type,
-                  isSynthesized: true,
-                ),
+                Variable("value", type: target.type, isSynthesized: true),
               ],
             );
           } else {
@@ -979,7 +975,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     return _summary;
   }
 
-  bool _useTypeCheckForParameter(VariableDeclaration decl) {
+  bool _useTypeCheckForParameter(Variable decl) {
     return decl.isCovariantByDeclaration || decl.isCovariantByClass;
   }
 
@@ -1129,7 +1125,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     return param;
   }
 
-  void _declareVariable(VariableDeclaration decl, TypeExpr initialValue) {
+  void _declareVariable(Variable decl, TypeExpr initialValue) {
     final int varIndex = _variablesInfo.varIndex[decl]!;
     assert(_variablesInfo.varDeclarations[varIndex] == decl);
     assert(_variableValues[varIndex] == null);
@@ -1144,7 +1140,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
   }
 
-  void _writeVariable(VariableDeclaration variable, TypeExpr value) {
+  void _writeVariable(Variable variable, TypeExpr value) {
     if (_variablesInfo.isCaptured(variable)) {
       assert(_aggregateVariable[_variablesInfo.varIndex[variable]!]);
       final sharedVar = _sharedVariableBuilder.getSharedVariable(variable);
@@ -1164,7 +1160,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   TypeExpr _readReceiver() => _receiver!;
 
-  TypeExpr _readVariable(VariableDeclaration variable, TreeNode node) {
+  TypeExpr _readVariable(Variable variable, TreeNode node) {
     if (_variablesInfo.isCaptured(variable)) {
       assert(_aggregateVariable[_variablesInfo.varIndex[variable]!]);
       final cachedRead = _capturedVariableReads?[variable];
@@ -1214,8 +1210,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Join _makeJoin(int varIndex, TypeExpr value) {
-    final VariableDeclaration variable =
-        _variablesInfo.varDeclarations[varIndex];
+    final Variable variable = _variablesInfo.varDeclarations[varIndex];
     final name = '${variable.name}_${_variableVersions[varIndex]++}';
     final Join join = new Join(name, variable.type);
     join.condition = _currentCondition;
@@ -1363,7 +1358,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   // TODO(alexmarkov): Avoid declaring variables with static types.
-  void _declareVariableWithStaticType(VariableDeclaration decl) {
+  void _declareVariableWithStaticType(Variable decl) {
     final initializer = decl.initializer;
     if (initializer != null) {
       _visit(initializer);
@@ -2599,7 +2594,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitForStatement(ForStatement node) {
-    node.variables.forEach((v) => defaultVariableDeclaration(v.variable));
+    node.variables.forEach((v) => defaultVariable(v.variable));
     final List<Join?> joins = _insertJoinsForModifiedVariables(node, false);
     final trueState = _cloneVariableValues(_variableValues);
     final falseState = _cloneVariableValues(_variableValues);
@@ -2808,11 +2803,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitLegacyVariableStatement(LegacyVariableStatement node) {
-    defaultVariableDeclaration(node.variable);
+    defaultVariable(node.variable);
     return null;
   }
 
-  TypeExpr? defaultVariableDeclaration(VariableDeclaration node) {
+  TypeExpr? defaultVariable(Variable node) {
     final variable = node.variable;
     variable.annotations.forEach(_visitAnnotation);
     final initializer = variable.initializer;
@@ -2892,7 +2887,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitLocalInitializer(LocalInitializer node) {
-    defaultVariableDeclaration(node.variable);
+    defaultVariable(node.variable);
     return null;
   }
 

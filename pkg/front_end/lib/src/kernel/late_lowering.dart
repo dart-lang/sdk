@@ -65,7 +65,7 @@ Statement createGetterWithInitializer(
       // Generate:
       //
       //    return let # = _#field in isSentinel(#) ? _#field = <init> : #;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
+      Variable variable = new Variable.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type: type.withDeclaredNullability(Nullability.nullable),
       )..fileOffset = fileOffset;
@@ -89,7 +89,7 @@ Statement createGetterWithInitializer(
       // Generate:
       //
       //    return let # = _#field in # == null ? _#field = <init> : #;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
+      Variable variable = new Variable.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type: type.withDeclaredNullability(Nullability.nullable),
       )..fileOffset = fileOffset;
@@ -138,10 +138,8 @@ Statement createGetterWithInitializerWithRecheck(
         )
         ..fileOffset = fileOffset
         ..forErrorHandling = true;
-  VariableDeclaration temp = new VariableDeclaration.forValue(
-    initializer,
-    type: type,
-  )..fileOffset = fileOffset;
+  Variable temp = new Variable.forValue(initializer, type: type)
+    ..fileOffset = fileOffset;
   switch (isSetEncoding) {
     case IsSetEncoding.useIsSetField:
       // Generate:
@@ -190,7 +188,7 @@ Statement createGetterWithInitializerWithRecheck(
       //        ? let #2 = <init> in isSentinel(_#field)
       //            ? _#field = #2 : throw '...'
       //        : #1;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
+      Variable variable = new Variable.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type: type,
       )..fileOffset = fileOffset;
@@ -233,7 +231,7 @@ Statement createGetterWithInitializerWithRecheck(
       //        ? let #2 = <init> in _#field == null
       //            ? _#field = #2 : throw '...'
       //        : #1;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
+      Variable variable = new Variable.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type: type.withDeclaredNullability(Nullability.nullable),
       )..fileOffset = fileOffset;
@@ -308,7 +306,7 @@ Statement createGetterBodyWithoutInitializer(
       // Generate:
       //
       //    return let # = _#field in isSentinel(#) ? throw '...' : #;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
+      Variable variable = new Variable.forValue(
         createVariableRead()..fileOffset = fileOffset,
         type: type.withDeclaredNullability(Nullability.nullable),
       )..fileOffset = fileOffset;
@@ -332,7 +330,7 @@ Statement createGetterBodyWithoutInitializer(
       // Generate:
       //
       //    return let # = _#field in # == null ? throw '...' : #;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
+      Variable variable = new Variable.forValue(
         createVariableRead()..fileOffset = fileOffset,
         type: type.withDeclaredNullability(Nullability.nullable),
       )..fileOffset = fileOffset;
@@ -357,7 +355,7 @@ Statement createSetterBody(
   CoreTypes coreTypes,
   int fileOffset,
   String name,
-  VariableDeclaration parameter,
+  Variable parameter,
   DartType type, {
   required bool shouldReturnValue,
   required Expression createVariableWrite(Expression value),
@@ -407,7 +405,7 @@ Statement createSetterBodyFinal(
   CoreTypes coreTypes,
   int fileOffset,
   String name,
-  VariableDeclaration parameter,
+  Variable parameter,
   DartType type, {
   required bool shouldReturnValue,
   required Expression createVariableRead(),

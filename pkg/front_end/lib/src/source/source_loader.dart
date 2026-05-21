@@ -1491,7 +1491,7 @@ severity: $severity
     String? enclosingClassOrExtension,
     bool isClassInstanceMember,
     Procedure procedure,
-    VariableDeclaration? extensionThis,
+    Variable? extensionThis,
     List<VariableDeclarationImpl> extraKnownVariables,
     ExpressionEvaluationHelper expressionEvaluationHelper,
   ) async {

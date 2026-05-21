@@ -482,10 +482,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     FunctionNode function,
   ) {
     final parameterNodeLists = <List<Expression>>[];
-    for (VariableDeclaration variable in function.positionalParameters) {
+    for (Variable variable in function.positionalParameters) {
       parameterNodeLists.add(variable.annotations);
     }
-    for (VariableDeclaration variable in function.namedParameters) {
+    for (Variable variable in function.namedParameters) {
       parameterNodeLists.add(variable.annotations);
     }
 
@@ -829,7 +829,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     );
   }
 
-  ParameterDeclaration getParameterDeclaration(VariableDeclaration variable) {
+  ParameterDeclaration getParameterDeclaration(Variable variable) {
     final name = variable.name!;
     final lib = name.startsWith('_') ? enclosingMember!.enclosingLibrary : null;
     final nameHandle = objectTable.getNameHandle(lib, name);
@@ -1651,7 +1651,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _genPushContextForVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     int? currentContextLevel,
   }) {
     currentContextLevel ??= locals.currentContextLevel;
@@ -1666,13 +1666,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextIfCaptured(VariableDeclaration variable) {
+  void _genPushContextIfCaptured(Variable variable) {
     if (locals.isCaptured(variable)) {
       _genPushContextForVariable(variable);
     }
   }
 
-  void _genLoadVar(VariableDeclaration v, {int? currentContextLevel}) {
+  void _genLoadVar(Variable v, {int? currentContextLevel}) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
@@ -1692,7 +1692,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   // Stores value into variable.
   // If variable is captured, context should be pushed before value.
-  void _genStoreVar(VariableDeclaration variable) {
+  void _genStoreVar(Variable variable) {
     if (locals.isCaptured(variable)) {
       asm.emitStoreContextVar(
         locals.getVarContextId(variable),
@@ -1787,7 +1787,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.currentSourcePosition = savedSourcePosition;
   }
 
-  int _getDefaultParamConstIndex(VariableDeclaration param) {
+  int _getDefaultParamConstIndex(Variable param) {
     final paramInitializer = param.initializer;
     if (paramInitializer == null) {
       return cp.addObjectRef(null);
@@ -2398,7 +2398,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitSourcePosition();
   }
 
-  void _copyParamIfCaptured(VariableDeclaration variable) {
+  void _copyParamIfCaptured(Variable variable) {
     if (locals.isCaptured(variable)) {
       if (options.emitLocalVarInfo) {
         _declareLocalVariable(variable, enclosingFunction!.fileOffset);
@@ -2411,10 +2411,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _declareLocalVariable(
-    VariableDeclaration variable,
-    int initializedPosition,
-  ) {
+  void _declareLocalVariable(Variable variable, int initializedPosition) {
     bool isCaptured = locals.isCaptured(variable);
     // Don't add initializing formals or wildcards.
     if (variable.isInitializingFormal ||
@@ -2515,7 +2512,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   /// If member being compiled is a forwarding stub, then returns parameter
   /// types to check for the forwarding stub target.
-  Map<VariableDeclaration, DartType>? _getForwardingParameterTypes(
+  Map<Variable, DartType>? _getForwardingParameterTypes(
     FunctionNode function,
     Member? forwardingTarget,
     Substitution? forwardingSubstitution,
@@ -2526,7 +2523,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (forwardingTarget is Field) {
       if ((enclosingMember as Procedure).isGetter) {
-        return const <VariableDeclaration, DartType>{};
+        return const <Variable, DartType>{};
       } else {
         // Forwarding stub for a covariant field setter.
         assert((enclosingMember as Procedure).isSetter);
@@ -2535,14 +2532,14 @@ class BytecodeGenerator extends RecursiveVisitor {
               function.positionalParameters.length == 1 &&
               function.namedParameters.isEmpty,
         );
-        return <VariableDeclaration, DartType>{
+        return <Variable, DartType>{
           function.positionalParameters.single: forwardingSubstitution!
               .substituteType(forwardingTarget.type),
         };
       }
     }
 
-    final forwardingParams = <VariableDeclaration, DartType>{};
+    final forwardingParams = <Variable, DartType>{};
     for (int i = 0; i < function.positionalParameters.length; ++i) {
       DartType type = forwardingSubstitution!.substituteType(
         forwardingTarget.function!.positionalParameters[i].type,
@@ -2550,9 +2547,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       forwardingParams[function.positionalParameters[i]] = type;
     }
     for (var hostParam in function.namedParameters) {
-      VariableDeclaration targetParam = forwardingTarget
-          .function!
-          .namedParameters
+      Variable targetParam = forwardingTarget.function!.namedParameters
           .firstWhere((p) => p.name == hostParam.name);
       forwardingParams[hostParam] = forwardingSubstitution!.substituteType(
         targetParam.type,
@@ -2650,8 +2645,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   /// Returns true if type of [param] should be checked.
   bool _parameterNeedsTypeCheck(
-    VariableDeclaration param,
-    Map<VariableDeclaration, DartType>? forwardingParameterTypes,
+    Variable param,
+    Map<Variable, DartType>? forwardingParameterTypes,
   ) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !param.isCovariantByDeclaration &&
@@ -2672,7 +2667,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   bool _hasSkippableTypeChecks(
     FunctionNode function,
     Map<TypeParameter, DartType>? forwardingBounds,
-    Map<VariableDeclaration, DartType>? forwardingParamTypes,
+    Map<Variable, DartType>? forwardingParamTypes,
   ) {
     for (var typeParam in function.typeParameters) {
       if (_typeParameterNeedsBoundCheck(typeParam, forwardingBounds)) {
@@ -2724,8 +2719,8 @@ class BytecodeGenerator extends RecursiveVisitor {
   };
 
   void _genArgumentTypeCheck(
-    VariableDeclaration variable,
-    Map<VariableDeclaration, DartType>? forwardingParameterTypes,
+    Variable variable,
+    Map<Variable, DartType>? forwardingParameterTypes,
   ) {
     final DartType type = (forwardingParameterTypes != null)
         ? forwardingParameterTypes[variable]!
@@ -4870,7 +4865,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     finallyBlocks.remove(node);
   }
 
-  bool _skipVariableInitialization(VariableDeclaration v, bool isCaptured) {
+  bool _skipVariableInitialization(Variable v, bool isCaptured) {
     // We can skip variable initialization if the variable is supposed to be
     // initialized to null and it's captured. This is because all the slots in
     // the capture context are implicitly initialized to null.
@@ -4888,7 +4883,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     _handleVariableInitialization(node);
   }
 
@@ -4902,7 +4897,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     _handleVariableInitialization(node.variable);
   }
 
-  void _handleVariableInitialization(VariableDeclaration node) {
+  void _handleVariableInitialization(Variable node) {
     if (!node.isConst) {
       final bool isCaptured = locals.isCaptured(node.variable);
       final initializer = node.initializer;

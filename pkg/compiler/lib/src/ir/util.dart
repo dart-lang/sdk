@@ -21,12 +21,12 @@ String nodeToDebugString(ir.Node node, [int textLength = 40]) {
 
 /// Comparator for the canonical order for named parameters.
 // TODO(johnniwinther): Remove this when named parameters are sorted in dill.
-int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
+int namedOrdering(ir.Variable a, ir.Variable b) {
   return a.name!.compareTo(b.name!);
 }
 
 /// Comparator for the declaration order of parameters.
-int nativeOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
+int nativeOrdering(ir.Variable a, ir.Variable b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 

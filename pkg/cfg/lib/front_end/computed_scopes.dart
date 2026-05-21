@@ -22,8 +22,7 @@ final class ComputedScopes implements Scopes {
         .nonNullable,
       );
       thisVariable =
-          member.function?.thisVariable ??
-          ast.VariableDeclaration('this', type: type);
+          member.function?.thisVariable ?? ast.Variable('this', type: type);
     }
     final builder = _ScopeBuilder(this);
     member.accept(builder);
@@ -310,7 +309,7 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(ast.VariableDeclaration node) {
+  void defaultVariable(ast.Variable node) {
     _declareVariable(node.variable);
     node.visitChildren(this);
   }

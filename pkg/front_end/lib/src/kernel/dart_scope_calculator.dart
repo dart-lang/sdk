@@ -17,7 +17,7 @@ class DartScope {
   final Class? cls;
   final Member? member;
   final bool isStatic;
-  final Map<String, VariableDeclaration> variables;
+  final Map<String, Variable> variables;
   final List<TypeParameter> typeParameters;
 
   DartScope(
@@ -32,7 +32,7 @@ class DartScope {
 
   Map<String, DartType> variablesAsMapToType() {
     Map<String, DartType> result = {};
-    for (MapEntry<String, VariableDeclaration> entry in variables.entries) {
+    for (MapEntry<String, Variable> entry in variables.entries) {
       result[entry.key] = entry.value.type;
     }
     return result;
@@ -62,7 +62,7 @@ class DartScope2 {
   final Class? cls;
   final Member? member;
   final bool isStatic;
-  final Map<String, VariableDeclaration> variables;
+  final Map<String, Variable> variables;
   final List<TypeParameter> typeParameters;
 
   DartScope2(
@@ -96,8 +96,8 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   final List<DartScope2> findScopes = [];
   int? closestLessOrEqualFoundOffset;
 
-  final Set<VariableDeclaration> hoistedUnwritten = {};
-  final List<List<VariableDeclaration>> scopes = [];
+  final Set<Variable> hoistedUnwritten = {};
+  final List<List<Variable>> scopes = [];
   final List<List<TypeParameter>> typeParameterScopes = [];
 
   Class? _currentCls = null;
@@ -115,9 +115,9 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void addFound(TreeNode node) {
-    Map<String, VariableDeclaration> definitions = {};
-    for (List<VariableDeclaration> scope in scopes) {
-      for (VariableDeclaration decl in scope) {
+    Map<String, Variable> definitions = {};
+    for (List<Variable> scope in scopes) {
+      for (Variable decl in scope) {
         String? name = decl.name;
         if (name != null &&
             !decl.isSynthesized &&
@@ -271,10 +271,10 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
     // The constructor is special in that the parameters from the contained
     // function node is in scope in the initializers.
     node.function.accept(this);
-    for (VariableDeclaration param in node.function.positionalParameters) {
+    for (Variable param in node.function.positionalParameters) {
       scopes.last.add(param);
     }
-    for (VariableDeclaration param in node.function.namedParameters) {
+    for (Variable param in node.function.namedParameters) {
       scopes.last.add(param);
     }
     for (Initializer initializer in node.initializers) {
@@ -376,9 +376,9 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
-  void defaultVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     if (node.isHoisted) hoistedUnwritten.add(node);
-    super.defaultVariableDeclaration(node);
+    super.defaultVariable(node);
     // Declare it after.
     scopes.last.add(node);
   }
@@ -563,13 +563,12 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
 
   static bool _allHaveTheSameDefinitions(List<DartScope2> scopes) {
     if (scopes.isEmpty) return false;
-    Map<String, VariableDeclaration> variables = scopes.first.variables;
+    Map<String, Variable> variables = scopes.first.variables;
     for (int i = 1; i < scopes.length; i++) {
       DartScope2 scope = scopes[i];
       if (scope.variables.length != variables.length) return false;
-      for (MapEntry<String, VariableDeclaration> entry
-          in scope.variables.entries) {
-        VariableDeclaration? existing = variables[entry.key];
+      for (MapEntry<String, Variable> entry in scope.variables.entries) {
+        Variable? existing = variables[entry.key];
         if (existing == null) {
           return false;
         } else {
@@ -699,13 +698,13 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       return [filtered[1]];
     }
     if (filtered.length == 2 &&
-        filtered[0].node is VariableDeclaration &&
+        filtered[0].node is Variable &&
         filtered[1].node is FieldInitializer) {
       // Pick the FieldInitializer (i.e. have the variable in scope).
       return [filtered[1]];
     }
     if (filtered.length == 2 &&
-        filtered[0].node is VariableDeclaration &&
+        filtered[0].node is Variable &&
         filtered[1].node is VariableGet &&
         filtered[1].node.parent?.parent is SuperInitializer) {
       // E.g. `Foo(super.bar)`.
@@ -720,7 +719,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       return [filtered[1]];
     }
     if (filtered.length == 2 &&
-        filtered[0].node is VariableDeclaration &&
+        filtered[0].node is Variable &&
         filtered[1].node is VariableGet &&
         filtered[0].node.parent?.parent is Procedure &&
         (filtered[0].node.parent?.parent as Procedure).isRedirectingFactory) {
@@ -739,7 +738,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       return [filtered[0]];
     }
     if (filtered.length == 2 &&
-        filtered[0].node is VariableDeclaration &&
+        filtered[0].node is Variable &&
         filtered[1].node is VariableGet &&
         filtered[0].node.parent?.parent is Constructor &&
         filtered[1].node.parent?.parent is Arguments) {
@@ -872,7 +871,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
         filtered[1].node is FunctionNode &&
         filtered[2].node is ReturnStatement &&
         filtered[3].node is Let &&
-        filtered[4].node is VariableDeclaration) {
+        filtered[4].node is Variable) {
       // The 10 is not special. This has just been observed to contain lots of
       // scopes.
       return filtered[0];
@@ -883,8 +882,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       // The 10 is not special. This has just been observed to contain lots of
       // scopes.
       for (int i = 3; i < filtered.length - 1; i++) {
-        if (filtered[i].node is Let &&
-            filtered[i + 1].node is VariableDeclaration) {
+        if (filtered[i].node is Let && filtered[i + 1].node is Variable) {
           return filtered[0];
         }
       }
@@ -898,8 +896,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
             filtered[i + 1].node is FunctionNode &&
             filtered[i + 2].node is ReturnStatement) {
           for (int j = i + 1; j < filtered.length - 1; j++) {
-            if (filtered[j].node is Let &&
-                filtered[j + 1].node is VariableDeclaration) {
+            if (filtered[j].node is Let && filtered[j + 1].node is Variable) {
               return filtered[0];
             }
           }
@@ -927,8 +924,8 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
 
   static DartScope2? _looksLikePatternMatching(List<DartScope2> filtered) {
     if (filtered.length > 5 &&
-        filtered[0].node is VariableDeclaration &&
-        (filtered[0].node as VariableDeclaration).isHoisted) {
+        filtered[0].node is Variable &&
+        (filtered[0].node as Variable).isHoisted) {
       // The 5 is not special. This has just been observed to contain lots of
       // scopes.
       // Pattern matching looks something like this:
@@ -963,13 +960,13 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       }
     }
     if (filtered.length > 5 &&
-        filtered[0].node is VariableDeclaration &&
-        filtered[1].node is VariableDeclaration &&
+        filtered[0].node is Variable &&
+        filtered[1].node is Variable &&
         filtered.last.node is LocalFunctionInvocation) {
       // It's beginning to look a lot like a late lowered nullable pattern
       // matching case.
-      VariableDeclaration variable1 = filtered[0].node as VariableDeclaration;
-      VariableDeclaration variable2 = filtered[1].node as VariableDeclaration;
+      Variable variable1 = filtered[0].node as Variable;
+      Variable variable2 = filtered[1].node as Variable;
       if (variable1.isSynthesized &&
           variable1.name?.startsWith("#") == true &&
           variable2.isSynthesized &&
@@ -981,8 +978,8 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       }
     }
     if (filtered.length <= 4 &&
-        filtered[0].node is VariableDeclaration &&
-        (filtered[0].node as VariableDeclaration).isHoisted &&
+        filtered[0].node is Variable &&
+        (filtered[0].node as Variable).isHoisted &&
         filtered.last.node is VariableSet &&
         (filtered.last.node as VariableSet).variable == filtered[0].node) {
       return filtered.last;
@@ -991,28 +988,28 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   static DartScope2? _looksLikeLateLoweredLocal(List<DartScope2> filtered) {
-    VariableDeclaration? variable1;
-    VariableDeclaration? variable2;
+    Variable? variable1;
+    Variable? variable2;
     if (filtered.length > 5 &&
-        filtered[0].node is VariableDeclaration &&
-        filtered[1].node is VariableDeclaration) {
+        filtered[0].node is Variable &&
+        filtered[1].node is Variable) {
       // A nullable one, e.g. `late Foo? foo` becomes something like
       // ```
       // Foo? #foo;
       // bool #foo#isSet = false;
       // ```
-      variable1 = filtered[0].node as VariableDeclaration;
-      variable2 = filtered[1].node as VariableDeclaration;
+      variable1 = filtered[0].node as Variable;
+      variable2 = filtered[1].node as Variable;
     } else if (filtered.length > 5 &&
-        filtered[0].node is VariableDeclaration &&
-        filtered[2].node is VariableDeclaration) {
+        filtered[0].node is Variable &&
+        filtered[2].node is Variable) {
       // A non-nullable one, e.g. `late Foo foo` becomes something like
       // ```
       // Foo? #foo;
       // Foo #foo#get() => bla bla
       // ```
-      variable1 = filtered[0].node as VariableDeclaration;
-      variable2 = filtered[2].node as VariableDeclaration;
+      variable1 = filtered[0].node as Variable;
+      variable2 = filtered[2].node as Variable;
     }
     if (variable1 != null && variable2 != null) {
       // isLateLoweredLocalName/isLateLoweredLocalSetter/etc is in the CFE so we

@@ -423,8 +423,7 @@ abstract class CombinedMemberSignatureBase {
           );
           break;
         case ProcedureKind.Setter:
-          VariableDeclaration parameter =
-              member.function.positionalParameters.first;
+          Variable parameter = member.function.positionalParameters.first;
           combinedMemberSignature = _createSetterMemberSignature(
             declarationNode,
             indexedContainer,
@@ -537,7 +536,7 @@ abstract class CombinedMemberSignatureBase {
     DartType type, {
     required bool isCovariantByDeclaration,
     required bool isCovariantByClass,
-    VariableDeclaration? parameter,
+    Variable? parameter,
     required bool copyLocation,
   }) {
     Reference? reference = indexedContainer?.lookupSetterReference(member.name);
@@ -559,7 +558,7 @@ abstract class CombinedMemberSignatureBase {
       fileUri = declarationNode.fileUri;
       fileOffset = fileStartOffset = fileEndOffset = declarationNode.fileOffset;
     }
-    VariableDeclaration setterParameter;
+    Variable setterParameter;
     if (_isClosureContextLoweringEnabled) {
       // Coverage-ignore-block(suite): Not run.
       setterParameter =
@@ -630,18 +629,18 @@ abstract class CombinedMemberSignatureBase {
       fileOffset = fileStartOffset = fileEndOffset = declarationNode.fileOffset;
     }
     FunctionNode function = procedure.function;
-    List<VariableDeclaration> positionalParameters = [];
+    List<Variable> positionalParameters = [];
     FreshTypeParametersFromStructuralParameters freshTypeParameters =
         getFreshTypeParametersFromStructuralParameters(
           functionType.typeParameters,
         );
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (int i = 0; i < function.positionalParameters.length; i++) {
-      VariableDeclaration parameter = function.positionalParameters[i];
+      Variable parameter = function.positionalParameters[i];
       DartType parameterType = freshTypeParameters.substitute(
         functionType.positionalParameters[i],
       );
-      VariableDeclaration positionalParameter;
+      Variable positionalParameter;
       if (_isClosureContextLoweringEnabled) {
         // Coverage-ignore-block(suite): Not run.
         positionalParameter =
@@ -672,10 +671,7 @@ abstract class CombinedMemberSignatureBase {
       positionalParameters.add(positionalParameter);
     }
 
-    VariableDeclaration cloneNamedParameter(
-      VariableDeclaration parameter,
-      NamedType namedType,
-    ) {
+    Variable cloneNamedParameter(Variable parameter, NamedType namedType) {
       if (_isClosureContextLoweringEnabled) {
         // Coverage-ignore-block(suite): Not run.
         return new NamedParameter(
@@ -706,11 +702,11 @@ abstract class CombinedMemberSignatureBase {
       }
     }
 
-    List<VariableDeclaration> namedParameters = [];
+    List<Variable> namedParameters = [];
     int namedParameterCount = function.namedParameters.length;
     if (namedParameterCount == 1) {
       NamedType namedType = functionType.namedParameters.first;
-      VariableDeclaration parameter = function.namedParameters.first;
+      Variable parameter = function.namedParameters.first;
       namedParameters.add(cloneNamedParameter(parameter, namedType));
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
@@ -718,7 +714,7 @@ abstract class CombinedMemberSignatureBase {
         namedTypes[namedType.name] = namedType;
       }
       for (int i = 0; i < namedParameterCount; i++) {
-        VariableDeclaration parameter = function.namedParameters[i];
+        Variable parameter = function.namedParameters[i];
         NamedType namedParameterType = namedTypes[parameter.name]!;
         namedParameters.add(cloneNamedParameter(parameter, namedParameterType));
       }

@@ -274,7 +274,7 @@ class TypeCheckingVisitor
         );
       }
     }
-    for (VariableDeclaration namedParameter in node.namedParameters) {
+    for (Variable namedParameter in node.namedParameters) {
       if (!namedParameter.isRequired) {
         handleOptionalParameter(
           namedParameter,
@@ -304,7 +304,7 @@ class TypeCheckingVisitor
   }
 
   void handleOptionalParameter(
-    VariableDeclaration parameter, {
+    Variable parameter, {
     required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMethod,
   }) {
     Expression? initializer = parameter.initializer;
@@ -1256,7 +1256,7 @@ class TypeCheckingVisitor
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariable(Variable node) {
     if (node.initializer != null) {
       node.initializer = checkExpressionAndAssignability(
         node.initializer!,
@@ -1276,9 +1276,9 @@ class TypeCheckingVisitor
   }
 
   void _handleVariableStatement(VariableStatement node) {
-    if (node.initializer != null) {
-      node.initializer = checkExpressionAndAssignability(
-        node.initializer!,
+    if (node.variable.initializer != null) {
+      node.variable.initializer = checkExpressionAndAssignability(
+        node.variable.initializer!,
         node.variable.type,
       );
     }
@@ -1342,7 +1342,7 @@ class TypeCheckingVisitor
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    visitVariableDeclaration(node.variable);
+    visitVariable(node.variable);
   }
 
   @override

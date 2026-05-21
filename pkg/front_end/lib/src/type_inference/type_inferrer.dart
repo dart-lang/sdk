@@ -41,8 +41,7 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
-  get flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis;
 
   AssignedVariablesImpl get assignedVariables;
 
@@ -66,7 +65,7 @@ abstract class TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -79,7 +78,7 @@ abstract class TypeInferrer {
     required Uri fileUri,
     required ConstructorContext constructorContext,
     required Initializer initializer,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -125,7 +124,7 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
-  late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
+  late final FlowAnalysis<TreeNode, Statement, Expression, Variable>
   flowAnalysis = new FlowAnalysis(
     operations,
     assignedVariables,
@@ -261,7 +260,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -336,14 +335,14 @@ class TypeInferrerImpl implements TypeInferrer {
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = visitor.beginFunctionBodyInference(
         [
-          for (VariableDeclaration positionalParameter
+          for (Variable positionalParameter
               in redirectingFactoryFunction.positionalParameters)
             new InternalPositionalParameter(
               astVariable: positionalParameter as PositionalParameter,
               isImplicitlyTyped: false,
               fileOffset: positionalParameter.fileOffset,
             ),
-          for (VariableDeclaration namedParameter
+          for (Variable namedParameter
               in redirectingFactoryFunction.namedParameters)
             new InternalNamedParameter(
               astVariable: namedParameter as NamedParameter,
@@ -358,7 +357,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
     List<Argument> arguments = [];
     int positionalCount = 0;
-    for (VariableDeclaration parameter
+    for (Variable parameter
         in redirectingFactoryFunction.positionalParameters) {
       flowAnalysis.declare(
         parameter,
@@ -384,8 +383,7 @@ class TypeInferrerImpl implements TypeInferrer {
       arguments.add(new PositionalArgument(variableGet));
       positionalCount++;
     }
-    for (VariableDeclaration parameter
-        in redirectingFactoryFunction.namedParameters) {
+    for (Variable parameter in redirectingFactoryFunction.namedParameters) {
       flowAnalysis.declare(
         parameter,
         new SharedTypeView(parameter.type),
@@ -448,7 +446,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required Uri fileUri,
     required ConstructorContext constructorContext,
     required Initializer initializer,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -554,8 +552,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
-  get flowAnalysis => impl.flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis =>
+      impl.flowAnalysis;
 
   @override
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
@@ -587,7 +585,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -617,7 +615,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required Uri fileUri,
     required ConstructorContext constructorContext,
     required Initializer initializer,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -740,5 +738,5 @@ abstract class ConstructorContext {
   FunctionSignature get signature;
 
   /// The variable used for `this`, if any.
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 }

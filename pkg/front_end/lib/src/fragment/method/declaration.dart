@@ -135,7 +135,7 @@ class MethodDeclarationImpl
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _encoding.thisVariable;
+  Variable? get thisVariable => _encoding.thisVariable;
 
   @override
   void becomeNative(SourceLoader loader) {
@@ -273,7 +273,7 @@ class MethodDeclarationImpl
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -283,7 +283,7 @@ class MethodDeclarationImpl
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     _encoding.registerFunctionBody(
       body: body,
@@ -314,7 +314,7 @@ abstract class MethodFragmentDeclaration {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 
   DartType get returnTypeContext;
@@ -325,7 +325,7 @@ abstract class MethodFragmentDeclaration {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -333,5 +333,5 @@ abstract class MethodFragmentDeclaration {
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
-  VariableDeclaration? getTearOffParameter(int index);
+  Variable? getTearOffParameter(int index);
 }
