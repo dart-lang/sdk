@@ -1,6 +1,19 @@
-## 3.12.0
+## 3.12.1
 
 **Released on:** Unreleased
+
+This is a patch release that:
+
+- Fixes a bug `ThreadLocal` which manifests as some static fields in `dart:*`
+  libraries being reset across suspension points, e.g. `print()` bypasses
+  an override specified by the current `Zone` after suspension.
+  (issue [#63408])
+
+[#63408]: https://github.com/dart-lang/sdk/issues/63408
+
+## 3.12.0
+
+**Released on:** 2026-05-20
 
 ### Language
 

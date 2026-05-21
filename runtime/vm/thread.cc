@@ -269,6 +269,9 @@ void Thread::set_default_tag(const UserTag& tag) {
 }
 
 void Thread::set_thread_locals(const Array& thread_locals) {
+  if (isolate_ != nullptr) {
+    isolate_->isolate_object_store()->set_thread_locals(thread_locals);
+  }
   thread_locals_ = thread_locals.ptr();
 }
 
@@ -421,10 +424,6 @@ void Thread::EnterIsolate(Isolate* isolate) {
                              /*bypass_safepoint=*/false);
     thread->SetupMutatorState();
     thread->SetupDartMutatorState(isolate);
-
-    if (!isolate->is_vm_isolate()) {
-      thread->set_thread_locals(Array::empty_array());
-    }
   }
 
   isolate->scheduled_mutator_thread_ = thread;
@@ -1639,6 +1638,7 @@ void Thread::ResetMutatorState() {
 
 void Thread::SetupDartMutatorState(Isolate* isolate) {
   field_table_values_ = isolate->field_table_->table();
+  thread_locals_ = isolate->isolate_object_store()->thread_locals();
 
   SetupDartMutatorStateDependingOnSnapshot(isolate->group());
 }
@@ -1678,6 +1678,7 @@ void Thread::ResetDartMutatorState() {
 
   field_table_values_ = nullptr;
   shared_field_table_values_ = nullptr;
+  thread_locals_ = Array::null();
   ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
 }

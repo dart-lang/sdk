@@ -1006,6 +1006,8 @@ ErrorPtr Dart::InitializeIsolate(Thread* T,
     I->field_table()->MarkReadyToUse();
   }
 
+  T->set_thread_locals(Object::empty_array());
+
   const auto& error =
       Error::Handle(Z, I->isolate_object_store()->PreallocateObjects());
   if (!error.IsNull()) {
