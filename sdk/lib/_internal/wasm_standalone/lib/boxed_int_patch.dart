@@ -21,7 +21,7 @@ class BoxedInt {
 }
 
 String _intToString(int value, int radix) {
-  return JSStringImpl.fromRefUnchecked(
+  return EmbedderStringImpl.fromRefUnchecked(
     i64ToString(WasmI64.fromInt(value), WasmI32.fromInt(radix)),
   );
 }

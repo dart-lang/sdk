@@ -31,15 +31,11 @@ extension StringUncheckedOperations on String {
 }
 
 /// A string managed by the WebAssembly embedder.
-///
-/// This is not necessarily a JavaScript string, but the `JSStringImpl` name is
-/// referenced a lot in the compiler and since this class and it's counterpart
-/// in the JS target have the same structure (wrapping an externref), adopting
-/// the same name avoids conditional names in the compiler.
-final class JSStringImpl implements String, StringUncheckedOperationsBase {
+final class EmbedderStringImpl
+    implements String, StringUncheckedOperationsBase {
   WasmExternRef? _ref;
 
-  JSStringImpl.fromRefUnchecked(this._ref);
+  EmbedderStringImpl.fromRefUnchecked(this._ref);
 
   WasmExternRef? get wrappedExternRef => _ref;
 
@@ -99,23 +95,23 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
         .toString();
   }
 
-  static JSStringImpl fromAsciiBytes(
+  static EmbedderStringImpl fromAsciiBytes(
     WasmArray<WasmI8> source,
     int start,
     int end,
   ) {
     final length = WasmI32.fromInt(end - start);
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       embedder.stringFromAsciiBytes(source, WasmI32.fromInt(start), length),
     );
   }
 
-  static JSStringImpl fromCharCodeArray(
+  static EmbedderStringImpl fromCharCodeArray(
     WasmArray<WasmI16> source,
     int start,
     int end,
   ) {
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       embedder.stringFromCharCodeArray(
         source,
         WasmI32.fromInt(start),
@@ -127,23 +123,23 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @pragma("wasm:initialize-at-startup")
   static final _stringFromCodePointBuffer = WasmArray<WasmI16>(2);
 
-  static JSStringImpl fromCharCode(int charCode) {
+  static EmbedderStringImpl fromCharCode(int charCode) {
     final array = _stringFromCodePointBuffer;
     array.write(0, charCode);
-    return JSStringImpl.fromCharCodeArray(array, 0, 1);
+    return EmbedderStringImpl.fromCharCodeArray(array, 0, 1);
   }
 
-  static JSStringImpl fromCodePoint(int codePoint) {
+  static EmbedderStringImpl fromCodePoint(int codePoint) {
     final array = _stringFromCodePointBuffer;
     if (codePoint <= 0xffff) {
       array.write(0, codePoint);
-      return JSStringImpl.fromCharCodeArray(array, 0, 1);
+      return EmbedderStringImpl.fromCharCodeArray(array, 0, 1);
     }
     final low = 0xDC00 | (codePoint & 0x3ff);
     final high = 0xD7C0 + (codePoint >> 10);
     array.write(0, high);
     array.write(1, low);
-    return JSStringImpl.fromCharCodeArray(array, 0, 2);
+    return EmbedderStringImpl.fromCharCodeArray(array, 0, 2);
   }
 
   @override
@@ -187,10 +183,10 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   @pragma('wasm:pure-function')
   String operator +(String other) {
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       embedder.stringConcat(
         wrappedExternRef,
-        unsafeCast<JSStringImpl>(other).wrappedExternRef,
+        unsafeCast<EmbedderStringImpl>(other).wrappedExternRef,
       ),
     );
   }
@@ -217,19 +213,19 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
         }
         return result.toString();
       }
-      return JSStringImpl.fromRefUnchecked(
+      return EmbedderStringImpl.fromRefUnchecked(
         embedder.stringReplaceAllString(
           wrappedExternRef,
-          unsafeCast<JSStringImpl>(from).wrappedExternRef,
-          unsafeCast<JSStringImpl>(to).wrappedExternRef,
+          unsafeCast<EmbedderStringImpl>(from).wrappedExternRef,
+          unsafeCast<EmbedderStringImpl>(to).wrappedExternRef,
         ),
       );
     } else if (from is EmbedderRegExp) {
-      return JSStringImpl.fromRefUnchecked(
+      return EmbedderStringImpl.fromRefUnchecked(
         embedder.stringReplaceAllRegExp(
           wrappedExternRef,
           from._regexp,
-          unsafeCast<JSStringImpl>(to).wrappedExternRef,
+          unsafeCast<EmbedderStringImpl>(to).wrappedExternRef,
         ),
       );
     } else {
@@ -260,12 +256,12 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   }
 
   String _replaceRange(int start, int end, String replacement) {
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       embedder.stringReplaceRange(
         wrappedExternRef,
         WasmI32.fromInt(start),
         WasmI32.fromInt(end),
-        unsafeCast<JSStringImpl>(replacement).wrappedExternRef,
+        unsafeCast<EmbedderStringImpl>(replacement).wrappedExternRef,
       ),
     );
   }
@@ -326,7 +322,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @override
   @pragma('wasm:prefer-inline')
   String _substringUnchecked(int start, int end) =>
-      JSStringImpl.fromRefUnchecked(
+      EmbedderStringImpl.fromRefUnchecked(
         embedder.stringSubstring(
           wrappedExternRef,
           WasmI32.fromInt(start),
@@ -340,7 +336,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     if (embedder.stringEquals(toLower, wrappedExternRef).toBool()) {
       return this;
     } else {
-      return JSStringImpl.fromRefUnchecked(toLower);
+      return EmbedderStringImpl.fromRefUnchecked(toLower);
     }
   }
 
@@ -350,7 +346,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     if (embedder.stringEquals(toUpper, wrappedExternRef).toBool()) {
       return this;
     } else {
-      return JSStringImpl.fromRefUnchecked(toUpper);
+      return EmbedderStringImpl.fromRefUnchecked(toUpper);
     }
   }
 
@@ -391,7 +387,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
       );
     }
 
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       embedder.stringRepeat(wrappedExternRef, WasmI32.fromInt(times)),
     );
   }
@@ -420,7 +416,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   int indexOf(Pattern pattern, [int start = 0]) {
     final length = this.length;
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, length);
-    if (pattern is JSStringImpl) {
+    if (pattern is EmbedderStringImpl) {
       return embedder
           .stringIndexOfString(
             wrappedExternRef,
@@ -447,7 +443,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     } else {
       RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, length);
     }
-    if (pattern is JSStringImpl) {
+    if (pattern is EmbedderStringImpl) {
       if (start + pattern.length > length) {
         start = length - pattern.length;
       }
@@ -500,20 +496,21 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   @pragma("wasm:prefer-inline")
   String operator [](int index) {
     IndexErrorUtils.checkIndex(index, length);
-    return JSStringImpl.fromCharCode(_codeUnitAtUnchecked(index));
+    return EmbedderStringImpl.fromCharCode(_codeUnitAtUnchecked(index));
   }
 
   @override
   @pragma('wasm:prefer-inline')
   bool operator ==(Object other) =>
-      other is JSStringImpl && embedder.stringEquals(_ref, other._ref).toBool();
+      other is EmbedderStringImpl &&
+      embedder.stringEquals(_ref, other._ref).toBool();
 
   @override
   @pragma('wasm:prefer-inline')
   int compareTo(String other) => embedder
       .stringCompare(
         wrappedExternRef,
-        unsafeCast<JSStringImpl>(other).wrappedExternRef,
+        unsafeCast<EmbedderStringImpl>(other).wrappedExternRef,
       )
       .toIntSigned();
 
@@ -527,6 +524,6 @@ String _stringIdentity(String string) => string;
 
 @patch
 @pragma('wasm:prefer-inline')
-JSStringImpl embedderStringFromDartString(String s) {
-  return unsafeCast<JSStringImpl>(s);
+EmbedderStringImpl embedderStringFromDartString(String s) {
+  return unsafeCast<EmbedderStringImpl>(s);
 }

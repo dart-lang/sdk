@@ -772,7 +772,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   @override
   ConstantInfo? visitStringConstant(StringConstant constant) {
-    ClassInfo info = translator.classInfo[translator.jsStringClass]!;
+    ClassInfo info = translator.classInfo[translator.stringImplClass]!;
     final standalone = translator.options.standalone;
 
     return createConstant(
@@ -1598,7 +1598,7 @@ class TypeOfConstantVisitor extends ConstantVisitor<w.RefType>
 
   @override
   w.RefType visitStringConstant(StringConstant constant) {
-    return _typeOfClass(translator.jsStringClass);
+    return _typeOfClass(translator.stringImplClass);
   }
 
   @override

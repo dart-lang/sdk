@@ -27,7 +27,7 @@ final class _EmbedderStackTrace implements StackTrace {
 
   @override
   String toString() {
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       stackTraceToString(_embedderStackTrace),
     );
   }

@@ -36,7 +36,7 @@ WasmVoid _invokeMain(WasmArray<WasmExternRef?> args) {
   try {
     final dartArgs = <String>[];
     for (var i = 0; i < args.length; i++) {
-      dartArgs.add(JSStringImpl.fromRefUnchecked(args[i]));
+      dartArgs.add(EmbedderStringImpl.fromRefUnchecked(args[i]));
     }
 
     _invokeMainInternal(dartArgs);

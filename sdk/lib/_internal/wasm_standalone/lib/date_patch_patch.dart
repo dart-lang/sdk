@@ -14,7 +14,7 @@ class DateTime {
 
   @patch
   static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
-      JSStringImpl.fromRefUnchecked(
+      EmbedderStringImpl.fromRefUnchecked(
         timeZoneNameForClampedSeconds(WasmI64.fromInt(secondsSinceEpoch)),
       );
 

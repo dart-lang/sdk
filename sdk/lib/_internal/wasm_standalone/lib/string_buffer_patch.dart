@@ -70,7 +70,9 @@ class StringBuffer {
 
   @patch
   String toString() {
-    return JSStringImpl.fromRefUnchecked(stringBufferToString(_hostBuffer));
+    return EmbedderStringImpl.fromRefUnchecked(
+      stringBufferToString(_hostBuffer),
+    );
   }
 
   void _writeString(String str) {

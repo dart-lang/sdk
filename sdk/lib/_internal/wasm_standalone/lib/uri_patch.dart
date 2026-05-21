@@ -11,7 +11,7 @@ import 'dart:_wasm';
 class Uri {
   @patch
   static Uri get base {
-    final currentUri = JSStringImpl.fromRefUnchecked(baseUri());
+    final currentUri = EmbedderStringImpl.fromRefUnchecked(baseUri());
     if (currentUri != null) {
       return Uri.parse(currentUri);
     }

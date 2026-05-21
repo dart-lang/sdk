@@ -35,7 +35,7 @@ final class EmbedderRegExp implements RegExp {
     if (!embedder.regexpIsRegexp(compiled).toBool()) {
       // The returned value is the stringified JavaScript exception. Turn it
       // into a Dart exception.
-      final errorMessage = JSStringImpl.fromRefUnchecked(compiled);
+      final errorMessage = EmbedderStringImpl.fromRefUnchecked(compiled);
       throw FormatException('Illegal RegExp pattern ($errorMessage)', pattern);
     }
 
@@ -133,7 +133,9 @@ final class _EmbedderMatch implements RegExpMatch {
       _match,
       WasmI32.fromInt(group),
     );
-    return contents.isNull ? null : JSStringImpl.fromRefUnchecked(contents);
+    return contents.isNull
+        ? null
+        : EmbedderStringImpl.fromRefUnchecked(contents);
   }
 
   @override
@@ -145,7 +147,7 @@ final class _EmbedderMatch implements RegExpMatch {
   late final List<String> groupNames = List.generate(
     embedder.regexpMatchGetNamedGroups(_match).toIntUnsigned(),
     (i) {
-      return JSStringImpl.fromRefUnchecked(
+      return EmbedderStringImpl.fromRefUnchecked(
         embedder.regexpMatchGetGroupName(_match, WasmI32.fromInt(i)),
       );
     },
@@ -162,7 +164,9 @@ final class _EmbedderMatch implements RegExpMatch {
       _match,
       WasmI32.fromInt(groupIndex),
     );
-    return contents.isNull ? null : JSStringImpl.fromRefUnchecked(contents);
+    return contents.isNull
+        ? null
+        : EmbedderStringImpl.fromRefUnchecked(contents);
   }
 }
 

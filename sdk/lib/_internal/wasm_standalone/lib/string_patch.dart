@@ -56,7 +56,7 @@ class String {
         : length;
     if (end <= start) return '';
 
-    return JSStringImpl.fromAsciiBytes(
+    return EmbedderStringImpl.fromAsciiBytes(
       charCodes.data,
       charCodes.offsetInElements + start,
       charCodes.offsetInElements + end,
@@ -80,7 +80,7 @@ class String {
     end += offset;
 
     final data = charCodes.data;
-    return JSStringImpl.fromCharCodeArray(data, start, end);
+    return EmbedderStringImpl.fromCharCodeArray(data, start, end);
   }
 
   static String? _fromWasmListBaseCharCodes(
@@ -106,7 +106,7 @@ class String {
       }
       dst.write(i, charCode);
     }
-    return JSStringImpl.fromCharCodeArray(dst, 0, count);
+    return EmbedderStringImpl.fromCharCodeArray(dst, 0, count);
   }
 
   static String _fromIterableCharCodes(
@@ -130,7 +130,7 @@ class String {
       it.moveNext();
     }
 
-    // Convert to WasmArray for JSStringImpl.fromCharCodeArray.
+    // Convert to WasmArray for EmbedderStringImpl.fromCharCodeArray.
     final charCodesLength = (end ?? length) - start;
     if (charCodesLength <= 0) return "";
     final typedArrayLength = charCodesLength * 2;
@@ -152,13 +152,13 @@ class String {
       }
     }
 
-    return JSStringImpl.fromCharCodeArray(list, 0, index);
+    return EmbedderStringImpl.fromCharCodeArray(list, 0, index);
   }
 
   @patch
   @pragma("wasm:prefer-inline")
   factory String.fromCharCode(int charCode) {
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(charCode, 0x10ffff);
-    return JSStringImpl.fromCodePoint(charCode);
+    return EmbedderStringImpl.fromCodePoint(charCode);
   }
 }

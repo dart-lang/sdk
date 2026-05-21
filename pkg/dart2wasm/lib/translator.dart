@@ -104,6 +104,9 @@ class Translator with KernelNodes {
   final ClosedWorldClassHierarchy hierarchy;
   late final ClassHierarchySubtypes subtypes;
 
+  @override
+  bool get isStandalone => options.standalone;
+
   // TFA-inferred metadata.
   late final Map<TreeNode, DirectCallMetadata> directCallMetadata =
       (component.metadata[DirectCallMetadataRepository.repositoryTag]
@@ -371,7 +374,7 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    jsStringClass: jsStringClass,
+    stringImplClass: stringImplClass,
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in

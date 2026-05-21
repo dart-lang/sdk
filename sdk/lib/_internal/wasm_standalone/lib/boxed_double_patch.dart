@@ -11,7 +11,7 @@ import 'dart:_wasm';
 class BoxedDouble {
   @patch
   String toString() {
-    return JSStringImpl.fromRefUnchecked(
+    return EmbedderStringImpl.fromRefUnchecked(
       embedder.f64ToString(WasmF64.fromDouble(value)),
     );
   }
@@ -48,12 +48,13 @@ class BoxedDouble {
     return result;
   }
 
-  String _toStringAsFixed(int fractionDigits) => JSStringImpl.fromRefUnchecked(
-    embedder.f64ToFixed(
-      WasmF64.fromDouble(this),
-      WasmI32.fromInt(fractionDigits),
-    ),
-  );
+  String _toStringAsFixed(int fractionDigits) =>
+      EmbedderStringImpl.fromRefUnchecked(
+        embedder.f64ToFixed(
+          WasmF64.fromDouble(this),
+          WasmI32.fromInt(fractionDigits),
+        ),
+      );
 
   @patch
   String toStringAsExponential([int? fractionDigits]) {
@@ -83,7 +84,7 @@ class BoxedDouble {
   }
 
   String _toStringAsExponential(int? fractionDigits) =>
-      JSStringImpl.fromRefUnchecked(
+      EmbedderStringImpl.fromRefUnchecked(
         fractionDigits == null
             ? embedder.f64ToExponential(WasmF64.fromDouble(this))
             : embedder.f64ToExponentialWithFractionDigits(
@@ -113,7 +114,7 @@ class BoxedDouble {
   }
 
   String _toStringAsPrecision(int fractionDigits) =>
-      JSStringImpl.fromRefUnchecked(
+      EmbedderStringImpl.fromRefUnchecked(
         embedder.f64ToPrecision(
           WasmF64.fromDouble(this),
           WasmI32.fromInt(fractionDigits),
