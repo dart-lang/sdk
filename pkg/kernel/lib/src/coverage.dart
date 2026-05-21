@@ -986,8 +986,14 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitLegacyVariable(LegacyVariable node) {
-    visited.add(NodeKind.LegacyVariable);
+  void visitNominalParameter(NominalParameter node) {
+    visited.add(NodeKind.NominalParameter);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeVariable(TypeVariable node) {
+    visited.add(NodeKind.TypeVariable);
     node.visitChildren(this);
   }
 
@@ -1028,14 +1034,8 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitTypeVariable(TypeVariable node) {
-    visited.add(NodeKind.TypeVariable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitNominalParameter(NominalParameter node) {
-    visited.add(NodeKind.NominalParameter);
+  void visitLegacyVariable(LegacyVariable node) {
+    visited.add(NodeKind.LegacyVariable);
     node.visitChildren(this);
   }
 

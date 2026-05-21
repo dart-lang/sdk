@@ -200,6 +200,510 @@ sealed class Variable extends VariableBase
   R accept1<R, A>(VariableVisitor1<R, A> visitor, A arg);
 }
 
+/// Declaration of a local variable.
+///
+/// This may occur as a statement, but is also used in several non-statement
+/// contexts, such as in [ForStatement], [Catch], and [FunctionNode].
+///
+/// When this occurs as a statement, it must be a direct child of a [Block].
+//
+// DESIGN TODO: Should we remove the 'final' modifier from variables?
+class LegacyVariable extends TreeNode implements Variable, Annotatable {
+  /// Offset of the equals sign in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
+  /// if the equals sign offset is not available (e.g. if not initialized)
+  /// (this is the default if none is specifically set).
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEqualsOffset];
+
+  /// List of metadata annotations on the variable declaration.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  /// The name of the variable or parameter as provided in the source code.
+  ///
+  /// If this variable is synthesized, for instance the variable of a [Let]
+  /// expression, the name can be `null`.
+  String? _name;
+
+  @override
+  int flags = 0;
+
+  /// The declared or inferred type of the variable.
+  @override
+  DartType type; // Not null, defaults to dynamic.
+
+  /// Offset of the declaration, set and used when writing the binary.
+  @override
+  int binaryOffsetNoTag = -1;
+
+  /// For locals, this is the initial value.
+  /// For parameters, this is the default value.
+  ///
+  /// Should be null in other cases.
+  @override
+  Expression? initializer; // May be null.
+
+  LegacyVariable(
+    this._name, {
+    this.initializer,
+    this.type = const DynamicType(),
+    int flags = -1,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isInitializingFormal = false,
+    bool isSuperInitializingFormal = false,
+    bool isCovariantByDeclaration = false,
+    bool isLate = false,
+    bool isRequired = false,
+    bool isLowered = false,
+    bool isSynthesized = false,
+    bool isHoisted = false,
+    bool hasDeclaredInitializer = false,
+    bool isWildcard = false,
+  }) {
+    initializer?.parent = this;
+    if (flags != -1) {
+      this.flags = flags;
+    } else {
+      this.isFinal = isFinal;
+      this.isConst = isConst;
+      this.isInitializingFormal = isInitializingFormal;
+      this.isSuperInitializingFormal = isSuperInitializingFormal;
+      this.isCovariantByDeclaration = isCovariantByDeclaration;
+      this.isLate = isLate;
+      this.isRequired = isRequired;
+      this.isLowered = isLowered;
+      this.hasDeclaredInitializer = hasDeclaredInitializer;
+      this.isSynthesized = isSynthesized;
+      this.isHoisted = isHoisted;
+      this.isWildcard = isWildcard;
+    }
+    assert(
+      _name != null || this.isSynthesized,
+      "Only synthesized variables can have no name.",
+    );
+  }
+
+  /// Creates a synthetic variable with the given expression as initializer.
+  LegacyVariable.forValue(
+    this.initializer, {
+    bool isFinal = true,
+    bool isConst = false,
+    bool isInitializingFormal = false,
+    bool isSuperInitializingFormal = false,
+    bool isLate = false,
+    bool isRequired = false,
+    bool isLowered = false,
+    this.type = const DynamicType(),
+  }) {
+    initializer?.parent = this;
+    this.isFinal = isFinal;
+    this.isConst = isConst;
+    this.isInitializingFormal = isInitializingFormal;
+    this.isSuperInitializingFormal = isSuperInitializingFormal;
+    this.isLate = isLate;
+    this.isRequired = isRequired;
+    this.isLowered = isLowered;
+    this.hasDeclaredInitializer = true;
+    this.isSynthesized = true;
+  }
+
+  /// The name of the variable as provided in the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  @override
+  String? get name => _name;
+
+  @override
+  void set name(String? value) {
+    assert(
+      value != null || isSynthesized,
+      "Only synthesized variables can have no name.",
+    );
+    _name = value;
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
+  }
+
+  static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
+  static const int FlagConst = 1 << 1;
+  static const int FlagHasDeclaredInitializer = 1 << 2;
+  static const int FlagInitializingFormal = 1 << 3;
+  static const int FlagCovariantByClass = 1 << 4;
+  static const int FlagLate = 1 << 5;
+  static const int FlagRequired = 1 << 6;
+  static const int FlagCovariantByDeclaration = 1 << 7;
+  static const int FlagLowered = 1 << 8;
+  static const int FlagSynthesized = 1 << 9;
+  static const int FlagHoisted = 1 << 10;
+  static const int FlagWildcard = 1 << 11;
+  static const int FlagSuperInitializingFormal = 1 << 12;
+  static const int FlagErroneouslyInitialized = 1 << 13;
+
+  /// Whether the variable is declared with the `final` keyword.
+  @override
+  bool get isFinal => flags & FlagFinal != 0;
+
+  /// Whether the variable is declared with the `const` keyword.
+  @override
+  bool get isConst => flags & FlagConst != 0;
+
+  /// Whether the parameter is declared with the `covariant` keyword.
+  @override
+  bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
+
+  /// Whether the variable is declared as an initializing formal parameter of
+  /// a constructor.
+  @informative
+  @override
+  bool get isInitializingFormal => flags & FlagInitializingFormal != 0;
+
+  /// Whether the variable is declared as a super initializing formal parameter
+  /// of a constructor.
+  @informative
+  @override
+  bool get isSuperInitializingFormal =>
+      flags & FlagSuperInitializingFormal != 0;
+
+  @informative
+  @override
+  bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
+
+  /// If this [LegacyVariable] is a parameter of a method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed.
+  @override
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
+
+  /// Whether the variable is declared with the `late` keyword.
+  ///
+  /// The `late` modifier is only supported on local variables and not on
+  /// parameters.
+  @override
+  bool get isLate => flags & FlagLate != 0;
+
+  /// Whether the parameter is declared with the `required` keyword.
+  ///
+  /// The `required` modifier is only supported on named parameters and not on
+  /// positional parameters and local variables.
+  @override
+  bool get isRequired => flags & FlagRequired != 0;
+
+  /// Whether the variable is part of a lowering.
+  ///
+  /// If a variable is part of a lowering its name may be synthesized so that it
+  /// doesn't reflect the name used in the source code and might not have a
+  /// one-to-one correspondence with the variable in the source.
+  ///
+  /// Lowering is used for instance of encoding of 'this' in extension instance
+  /// members and encoding of late locals.
+  @override
+  bool get isLowered => flags & FlagLowered != 0;
+
+  /// Whether this variable is synthesized, that is, it is _not_ declared in
+  /// the source code.
+  ///
+  /// The name of a variable can only be omitted if the variable is synthesized.
+  /// Otherwise, its name is as provided in the source code.
+  @override
+  bool get isSynthesized => flags & FlagSynthesized != 0;
+
+  /// Whether the declaration of this variable is has been moved to an earlier
+  /// source location.
+  ///
+  /// This is for instance the case for variables declared in a pattern, where
+  /// the lowering requires the variable to be declared before the expression
+  /// that performs that matching in which its initialization occurs.
+  @override
+  bool get isHoisted => flags & FlagHoisted != 0;
+
+  /// Whether the variable has an initializer, either by declaration or copied
+  /// from an original declaration.
+  ///
+  /// Note that the variable might have a synthesized initializer expression,
+  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
+  /// For instance, for duplicate variable names, an invalid expression is set
+  /// as the initializer of the second variable.
+  @override
+  bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
+
+  @override
+  bool get isWildcard => flags & FlagWildcard != 0;
+
+  /// Whether the variable is assignable.
+  ///
+  /// This is `true` if the variable is neither constant nor final, or if it
+  /// is late final without an initializer.
+  @override
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) return initializer == null;
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  void set isFinal(bool value) {
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
+  }
+
+  @override
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagCovariantByDeclaration)
+        : (flags & ~FlagCovariantByDeclaration);
+  }
+
+  @override
+  void set isInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagInitializingFormal)
+        : (flags & ~FlagInitializingFormal);
+  }
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagSuperInitializingFormal)
+        : (flags & ~FlagSuperInitializingFormal);
+  }
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    flags = value
+        ? (flags | FlagErroneouslyInitialized)
+        : (flags & ~FlagErroneouslyInitialized);
+  }
+
+  @override
+  void set isCovariantByClass(bool value) {
+    flags = value
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
+  }
+
+  @override
+  void set isLate(bool value) {
+    flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
+  }
+
+  @override
+  void set isRequired(bool value) {
+    flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
+  }
+
+  @override
+  void set isLowered(bool value) {
+    flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  @override
+  void set isSynthesized(bool value) {
+    assert(
+      value || _name != null,
+      "Only synthesized variables can have no name.",
+    );
+    flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
+  }
+
+  @override
+  void set isHoisted(bool value) {
+    flags = value ? (flags | FlagHoisted) : (flags & ~FlagHoisted);
+  }
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    flags = value
+        ? (flags | FlagHasDeclaredInitializer)
+        : (flags & ~FlagHasDeclaredInitializer);
+  }
+
+  @override
+  void set isWildcard(bool value) {
+    // TODO(kallentu): Change the name to be unique with other wildcard
+    // variables.
+    flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations = const <Expression>[];
+  }
+
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
+
+  @override
+  R accept<R>(VariableVisitor<R> v) => v.visitLegacyVariable(this);
+
+  @override
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
+      v.visitLegacyVariable(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+    type.accept(v);
+    initializer?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+    type = v.visitDartType(type);
+    if (initializer != null) {
+      initializer = v.transform(initializer!);
+      initializer?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+    type = v.visitDartType(type, cannotRemoveSentinel);
+    if (initializer != null) {
+      initializer = v.transformOrRemoveExpression(initializer!);
+      initializer?.parent = this;
+    }
+  }
+
+  /// Returns a possibly synthesized name for this variable, consistent with
+  /// the names used across all [toString] calls.
+  @override
+  String toString() {
+    return "VariableDeclaration(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    AstPrinter printer = new AstPrinter(defaultAstTextStrategy);
+    printer.writeVariableInitialization(this, includeInitializer: false);
+    return printer.getText();
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeVariableInitialization(this);
+    printer.write(';');
+  }
+
+  @override
+  String? get cosmeticName => name;
+
+  @override
+  void set cosmeticName(String? value) {
+    name = value;
+  }
+
+  @override
+  VariableInitialization? get variableInitialization {
+    throw new UnsupportedError("${this.runtimeType}.variableInitialization");
+  }
+
+  @override
+  void set variableInitialization(VariableInitialization? value) {
+    throw new UnsupportedError("${this.runtimeType}.variableInitialization");
+  }
+
+  @override
+  // TODO(62620): Conforming to [Variable] interface. Remove this.
+  VariableContext? get context {
+    throw new UnsupportedError("${this.runtimeType}.context");
+  }
+
+  @override
+  // TODO(62620): Conforming to [Variable] interface. Remove this.
+  void set context(VariableContext? value) {
+    throw new UnsupportedError("${this.runtimeType}.context=");
+  }
+
+  @override
+  Variable get asVariableDeclaration => this;
+
+  @override
+  Variable get variable => this;
+
+  @override
+  void set variable(Variable value) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  bool get hasHasDeclaredInitializer => true;
+
+  @override
+  bool get hasIsConst => true;
+
+  @override
+  bool get hasIsCovariantByClass => true;
+
+  @override
+  bool get hasIsCovariantByDeclaration => true;
+
+  @override
+  bool get hasIsErroneouslyInitialized => true;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsHoisted => true;
+
+  @override
+  bool get hasIsInitializingFormal => true;
+
+  @override
+  bool get hasIsLate => true;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsRequired => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => true;
+
+  @override
+  bool get hasIsSynthesized => true;
+
+  @override
+  bool get hasIsWildcard => true;
+}
+
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
 /// the [VariableContext] it appears in. [VariableInitializationBase]
 /// (which is a [Statement]) marks the spot of the original variable declaration
