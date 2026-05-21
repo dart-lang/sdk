@@ -113,7 +113,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   final List<void Function(DartFileEditBuilder)> changes = [];
 
-  _Visitor({
+  new({
     required this.rejectStats,
     required this.fileContents,
     required this.path,

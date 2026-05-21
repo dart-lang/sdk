@@ -53,7 +53,7 @@ class _TextFormatter with CodeGenerator {
   /// True if the output should be Javadoc compatible.
   final bool javadocStyle;
 
-  _TextFormatter(this.width, this.javadocStyle);
+  new(this.width, this.javadocStyle);
 
   /// Process an HTML node.
   void add(dom.Node node) {
