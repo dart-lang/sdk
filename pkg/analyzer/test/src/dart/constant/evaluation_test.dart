@@ -98,12 +98,11 @@ int 6
   }
 
   test_declaration_staticError_notAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const int x = 'foo';
-''',
-      [error(diag.invalidAssignment, 14, 5)],
-    );
+//            ^^^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_dotShorthand_enum_simple() async {
@@ -146,19 +145,17 @@ bool true
   }
 
   test_dotShorthand_equalEqual_constructor_lhsShorthand() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
 
 const v = .new() == A();
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 36, 6),
-        error(diag.dotShorthandUndefinedInvocation, 37, 3),
-      ],
-    );
+//        ^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//         ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+''');
   }
 
   test_dotShorthand_equalEqual_field() async {
@@ -178,55 +175,46 @@ bool true
   }
 
   test_dotShorthand_equalEqual_method_error() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static A method() => A();
 }
 
 const v = A() == .method();
-''',
-      [
-        error(diag.constWithNonConst, 51, 3),
-        error(diag.constInitializedWithNonConstantValue, 51, 3),
-      ],
-    );
+//        ^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_dotShorthand_method_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static A method() => A();
 }
 const A a = .method();
-''',
-      [error(diag.constEvalMethodInvocation, 52, 9)],
-    );
+//          ^^^^^^^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
+''');
   }
 
   test_dotShorthand_missingContext_invocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const a = .new();
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 10, 6),
-        error(diag.dotShorthandUndefinedInvocation, 11, 3),
-      ],
-    );
+//        ^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//         ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+''');
   }
 
   test_dotShorthand_missingContext_propertyAccess() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const a = .id;
-''',
-      [
-        error(diag.dotShorthandMissingContext, 10, 3),
-        error(diag.constInitializedWithNonConstantValue, 10, 3),
-      ],
-    );
+//        ^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_dotShorthand_propertyAccess() async {
@@ -264,17 +252,16 @@ E
   }
 
   test_enum_argument_methodInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 enum E {
   enumValue(["text"].map((x) => x));
+//          ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
 
   const E(this.strings);
   final Iterable<String> strings;
 }
-''',
-      [error(diag.constEvalMethodInvocation, 21, 22)],
-    );
+''');
   }
 
   /// Enum constants can reference other constants.
@@ -528,27 +515,21 @@ bool false
   }
 
   test_equalEqual_invalidLeft() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const v = a == 1;
-''',
-      [
-        error(diag.undefinedIdentifier, 10, 1),
-        error(diag.constInitializedWithNonConstantValue, 10, 1),
-      ],
-    );
+//        ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_equalEqual_invalidRight() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const v = 1 == a;
-''',
-      [
-        error(diag.undefinedIdentifier, 15, 1),
-        error(diag.constInitializedWithNonConstantValue, 15, 1),
-      ],
-    );
+//             ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_equalEqual_list_matchingTypeArgs_explicit() async {
@@ -674,33 +655,31 @@ bool false
   }
 
   test_equalEqual_userClass_hasEqEq() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   bool operator ==(other) => false;
 }
 
 const v = A() == 0;
-''',
-      [error(diag.constEvalPrimitiveEquality, 72, 8)],
-    );
+//        ^^^^^^^^
+// [diag.constEvalPrimitiveEquality] In constant expressions, operands of the equality operator must have primitive equality.
+''');
     var result = _topLevelVar('v');
     _assertNull(result);
   }
 
   test_equalEqual_userClass_hasHashCode() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   int get hashCode => 0;
 }
 
 const v = A() == 0;
-''',
-      [error(diag.constEvalPrimitiveEquality, 61, 8)],
-    );
+//        ^^^^^^^^
+// [diag.constEvalPrimitiveEquality] In constant expressions, operands of the equality operator must have primitive equality.
+''');
     var result = _topLevelVar('v');
     _assertNull(result);
   }
@@ -722,17 +701,16 @@ bool false
   }
 
   test_equalEqual_userClass_hasPrimitiveEquality_language219() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 class A {
   const A();
 }
 
 const v = A() == 0;
-''',
-      [error(diag.constEvalTypeBoolNumString, 52, 8)],
-    );
+//        ^^^^^^^^
+// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
+''');
     var result = _topLevelVar('v');
     _assertNull(result);
   }
@@ -754,17 +732,16 @@ bool true
   }
 
   test_equalEqual_userClass_noPrimitiveEquality() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   bool operator ==(other) => false;
 }
 
 const v = A() == A();
-''',
-      [error(diag.constEvalPrimitiveEquality, 72, 10)],
-    );
+//        ^^^^^^^^^^
+// [diag.constEvalPrimitiveEquality] In constant expressions, operands of the equality operator must have primitive equality.
+''');
   }
 
   test_hasPrimitiveEquality_bool() async {
@@ -1436,52 +1413,48 @@ bool false
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<X> {
   const A();
   void m() {
     const x = X;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//            ^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 49, 1),
-        error(diag.constTypeParameter, 53, 1),
-      ],
-    );
+''');
     var result = _localVar('x');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension on Object {
   int operator +(Object other) => 0;
 }
 
 const Object v1 = 0;
 const v2 = v1 + v1;
-''',
-      [error(diag.constEvalExtensionMethod, 94, 7)],
-    );
+//         ^^^^^^^
+// [diag.constEvalExtensionMethod] Extension methods can't be used in constant expressions.
+''');
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension type const A(int it) {
   int operator +(Object other) => 0;
 }
 
 const v1 = A(1);
 const v2 = v1 + 2;
-''',
-      [error(diag.constEvalExtensionTypeMethod, 101, 6)],
-    );
+//         ^^^^^^
+// [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
+''');
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -1557,12 +1530,11 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> -2;
-''',
-      [error(diag.constEvalThrowsException, 10, 17)],
-    );
+//        ^^^^^^^^^^^^^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+''');
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -1614,12 +1586,11 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_positive_negativeBits() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> -2;
-''',
-      [error(diag.constEvalThrowsException, 10, 11)],
-    );
+//        ^^^^^^^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+''');
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -1659,43 +1630,37 @@ bool true
   }
 
   test_visitBinaryExpression_questionQuestion_invalid_notNull() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final x = 0;
 const c = x ?? 1;
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 23, 1),
-        error(diag.deadCode, 25, 4),
-        error(diag.deadNullAwareExpression, 28, 1),
-      ],
-    );
+//        ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//          ^^^^
+// [diag.deadCode] Dead code.
+//             ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+''');
   }
 
   test_visitBinaryExpression_questionQuestion_notNull_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 final x = 1;
 const c = 0 ?? x;
-''',
-      [
-        error(diag.deadCode, 25, 4),
-        error(diag.constInitializedWithNonConstantValue, 28, 1),
-        error(diag.deadNullAwareExpression, 28, 1),
-      ],
-    );
+//          ^^^^
+// [diag.deadCode] Dead code.
+//             ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+''');
   }
 
   test_visitConditionalExpression_eager_invalid_int_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const c = null ? 1 : 0;
-''',
-      [
-        error(diag.nonBoolCondition, 10, 4),
-        error(diag.constEvalTypeBool, 10, 4),
-      ],
-    );
+//        ^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+// [diag.constEvalTypeBool] In constant expressions, operands of this operator must be of type 'bool'.
+''');
   }
 
   test_visitConditionalExpression_instantiatedFunctionType_variable() async {
@@ -1730,58 +1695,51 @@ const x = kIsWeb ? 0 : 1;
   }
 
   test_visitConditionalExpression_unknownCondition_errorInConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool kIsWeb = identical(0, 0.0);
 
 var a = 2;
 const x = A(kIsWeb ? 0 : a);
+//                       ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 
 class A {
   const A(int _);
 }
-''',
-      [
-        error(diag.invalidConstant, 76, 1),
-        error(diag.constInitializedWithNonConstantValue, 76, 1),
-      ],
-    );
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitConditionalExpression_unknownCondition_undefinedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? a : b;
-''',
-      [
-        error(diag.undefinedIdentifier, 58, 1),
-        error(diag.constInitializedWithNonConstantValue, 58, 1),
-        error(diag.undefinedIdentifier, 62, 1),
-      ],
-    );
+//                 ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                     ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitConstructorDeclaration_cycle() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final A a;
   const A() : a = const A();
+//      ^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
 }
 
-''',
-      [error(diag.recursiveConstantConstructor, 31, 1)],
-    );
+''');
   }
 
   test_visitConstructorDeclaration_cycle_subclass_issue46735() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void main() {
   const EmptyInjector();
 }
@@ -1790,6 +1748,8 @@ abstract class BaseInjector {
   final BaseInjector parent;
 
   const BaseInjector([BaseInjector? parent])
+//      ^^^^^^^^^^^^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
       : parent = parent ?? const EmptyInjector();
 }
 
@@ -1799,26 +1759,22 @@ abstract class Injector implements BaseInjector {
 
 class EmptyInjector extends BaseInjector implements Injector {
   const EmptyInjector();
+//      ^^^^^^^^^^^^^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
 }
-''',
-      [
-        error(diag.recursiveConstantConstructor, 110, 12),
-        error(diag.recursiveConstantConstructor, 344, 13),
-      ],
-    );
+''');
   }
 
   test_visitConstructorDeclaration_field_asExpression_nonConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic y = 2;
 class A {
   const A();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'x' is initialized with a non-constant value.
   final x = y as num;
 }
-''',
-      [error(diag.constConstructorWithFieldInitializedByNonConst, 27, 5)],
-    );
+''');
   }
 
   test_visitConstructorReference_generic_named() async {
@@ -2165,17 +2121,16 @@ C<int> Function()
   }
 
   test_visitFunctionReference_defaultConstructorValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) => t;
 
 class C<T> {
   final void Function(T) p;
   const C({this.p = f});
+//                  ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
 }
-''',
-      [error(diag.constWithTypeParametersFunctionTearoff, 83, 1)],
-    );
+''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
@@ -2228,13 +2183,12 @@ void Function(int)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_notMatchingBound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>(T a) {}
 const g = f<String>;
-''',
-      [error(diag.typeArgumentNotMatchingBounds, 42, 6)],
-    );
+//          ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+''');
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(String)
@@ -2246,62 +2200,58 @@ void Function(String)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_notType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = foo<true>;
-''',
-      [
-        error(diag.constEvalTypeNum, 30, 8),
-        error(diag.undefinedOperator, 33, 1),
-        error(diag.equalityCannotBeEqualityOperand, 38, 1),
-        error(diag.missingIdentifier, 39, 1),
-      ],
-    );
+//        ^^^^^^^^
+// [diag.constEvalTypeNum] In constant expressions, operands of this operator must be of type 'num'.
+//           ^
+// [diag.undefinedOperator] The operator '<' isn't defined for the type 'void Function<T>(T)'.
+//                ^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
+//                 ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var result = _topLevelVar('g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooFew() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T, U>(T a, U b) {}
 const g = foo<int>;
-''',
-      [error(diag.wrongNumberOfTypeArgumentsElement, 41, 5)],
-    );
+//           ^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The function 'foo' is declared with 2 type parameters, but 1 type arguments are given.
+''');
     var result = _topLevelVar('g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooMany() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = foo<int, String>;
-''',
-      [error(diag.wrongNumberOfTypeArgumentsElement, 33, 13)],
-    );
+//           ^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The function 'foo' is declared with 1 type parameters, but 2 type arguments are given.
+''');
     var result = _topLevelVar('g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 
 class C<U> {
   void m() {
     const g = f<U>;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'g' isn't used.
+//              ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 55, 1),
-        error(diag.constWithTypeParametersFunctionTearoff, 61, 1),
-      ],
-    );
+''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentElements() async {
@@ -2537,20 +2487,18 @@ bool true
   }
 
   test_visitFunctionReference_wildcard_local() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 test() {
   void _() {}
+//^^^^^^^^^^^
+// [diag.deadCode] Dead code.
   const c = _;
+//          ^
+// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
   print(c);
 }
-''',
-      [
-        error(diag.deadCode, 11, 11),
-        error(diag.undefinedIdentifier, 35, 1),
-        error(diag.constInitializedWithNonConstantValue, 35, 1),
-      ],
-    );
+''');
   }
 
   test_visitFunctionReference_wildcard_top() async {
@@ -2561,23 +2509,20 @@ const c = _;
   }
 
   test_visitInstanceCreationExpression_invalidNamedArg() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({ required int x });
 }
 const a = A(x: false);
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 58, 5),
-        error(diag.constConstructorParamTypeMismatch, 55, 8),
-      ],
-    );
+//          ^^^^^^^^
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+//             ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+''');
   }
 
   test_visitInstanceCreationExpression_invalidNamedArg_superParam() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({ required int x });
 }
@@ -2585,32 +2530,27 @@ class B extends A {
   const B({ required super.x });
 }
 const a = B(x: false);
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 113, 5),
-        error(diag.constConstructorParamTypeMismatch, 110, 8),
-      ],
-    );
+//          ^^^^^^^^
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+//             ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+''');
   }
 
   test_visitInstanceCreationExpression_invalidPositionalArg() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int x);
 }
 const a = A(false);
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 42, 5),
-        error(diag.constConstructorParamTypeMismatch, 42, 5),
-      ],
-    );
+//          ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
   }
 
   test_visitInstanceCreationExpression_invalidPositionalArg_superParam() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int x);
 }
@@ -2618,29 +2558,25 @@ class B extends A {
   const B(super.x);
 }
 const a = B(false);
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 84, 5),
-        error(diag.constConstructorParamTypeMismatch, 84, 5),
-      ],
-    );
+//          ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
   }
 
   test_visitInstanceCreationExpression_missingNamedArg() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({required int x });
 }
 const a = A();
-''',
-      [error(diag.missingRequiredArgument, 52, 1)],
-    );
+//        ^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
+''');
   }
 
   test_visitInstanceCreationExpression_missingNamedArg_superParam() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({required int x });
 }
@@ -2648,26 +2584,24 @@ class B extends A {
   const B({required super.x });
 }
 const a = B();
-''',
-      [error(diag.missingRequiredArgument, 106, 1)],
-    );
+//        ^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
+''');
   }
 
   test_visitInstanceCreationExpression_missingPositionalArg() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int x);
 }
 const a = A();
-''',
-      [error(diag.notEnoughPositionalArgumentsNameSingular, 42, 1)],
-    );
+//          ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
+''');
   }
 
   test_visitInstanceCreationExpression_missingPositionalArg_superParam() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int x);
 }
@@ -2675,9 +2609,9 @@ class B extends A {
   const B(super.x);
 }
 const a = B();
-''',
-      [error(diag.notEnoughPositionalArgumentsNameSingular, 84, 1)],
-    );
+//          ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'B.new', but 0 found.
+''');
   }
 
   test_visitInstanceCreationExpression_noArgs() async {
@@ -2697,16 +2631,13 @@ A
   }
 
   test_visitInstanceCreationExpression_noConstConstructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 const a = A();
-''',
-      [
-        error(diag.constWithNonConst, 21, 3),
-        error(diag.constInitializedWithNonConstantValue, 21, 3),
-      ],
-    );
+//        ^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitInstanceCreationExpression_simpleArgs() async {
@@ -2728,41 +2659,37 @@ A
   }
 
   test_visitInstanceCreationExpression_unknown() async {
-    await assertErrorsInCode(
-      '''
+    // TODO(kallentu): This should not be reported.
+    // https://github.com/dart-lang/sdk/issues/50441
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   const C.named();
 }
 
 const x = C<int>.();
-''',
-      [
-        // TODO(kallentu): This should not be reported.
-        // https://github.com/dart-lang/sdk/issues/50441
-        error(diag.classInstantiationAccessToUnknownMember, 45, 8),
-        error(diag.constInitializedWithNonConstantValue, 45, 8),
-        error(diag.missingIdentifier, 52, 1),
-      ],
-    );
+//        ^^^^^^^^
+// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named '('.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
   }
 
   test_visitInterpolationExpression_list() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = '${const [2]}';
-''',
-      [error(diag.constEvalTypeBoolNumString, 11, 12)],
-    );
+//         ^^^^^^^^^^^^
+// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
+''');
   }
 
   test_visitIsExpression_is_functionType_correctTypes() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo(int a) {}
 const c = foo is void Function(int);
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 29, 25)],
-    );
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
+''');
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
@@ -2771,16 +2698,15 @@ bool true
   }
 
   test_visitIsExpression_is_instanceOfSameClass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a is A;
+//        ^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 class A {
   const A();
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 31, 6)],
-    );
+''');
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -2789,19 +2715,18 @@ bool true
   }
 
   test_visitIsExpression_is_instanceOfSubclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = const B();
 const b = a is A;
+//        ^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 class A {
   const A();
 }
 class B extends A {
   const B();
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 31, 6)],
-    );
+''');
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -2848,16 +2773,15 @@ bool false
   }
 
   test_visitIsExpression_isNot_instanceOfSameClass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a is! A;
+//        ^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 class A {
   const A();
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 31, 7)],
-    );
+''');
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
@@ -2866,19 +2790,18 @@ bool false
   }
 
   test_visitIsExpression_isNot_instanceOfSubclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = const B();
 const b = a is! A;
+//        ^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 class A {
   const A();
 }
 class B extends A {
   const B();
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 31, 7)],
-    );
+''');
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
@@ -2900,38 +2823,34 @@ bool true
   }
 
   test_visitListLiteral_forElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = [for (int i = 0; i < 3; i++) i];
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 10, 31),
-        error(diag.constEvalForElement, 11, 29),
-      ],
-    );
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalForElement] Constant expressions don't support 'for' elements.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic c = 2;
 const x = [1, if (c) 2 else 3, 4];
-''',
-      [error(diag.nonBoolCondition, 39, 1)],
-    );
+//                ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = [1, if (1) 2 else 3, 4];
-''',
-      [error(diag.nonBoolCondition, 18, 1)],
-    );
+//                ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
@@ -2965,16 +2884,15 @@ List
   }
 
   test_visitListLiteral_listElement_field_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final String bar = '';
   const A();
   List<String> foo() => const [bar];
+//                             ^^^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
 }
-''',
-      [error(diag.nonConstantListElement, 79, 3)],
-    );
+''');
   }
 
   test_visitListLiteral_listElement_field_static() async {
@@ -3024,13 +2942,12 @@ List
   }
 
   test_visitListLiteral_spreadElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic a = 5;
 const x = <int>[...a];
-''',
-      [error(diag.constSpreadExpectedListOrSet, 40, 1)],
-    );
+//                 ^
+// [diag.constSpreadExpectedListOrSet] A list or a set is expected in this spread.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
@@ -3073,37 +2990,34 @@ List
   }
 
   test_visitMethodInvocation_notIdentical() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() {
   return 3;
 }
 const a = f();
-''',
-      [error(diag.constEvalMethodInvocation, 34, 3)],
-    );
+//        ^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
+''');
   }
 
   test_visitNamedType_typeLiteral_typeParameter_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(Object? x) {
   if (x case const (T)) {}
+//                  ^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
 }
-''',
-      [error(diag.constTypeParameter, 43, 1)],
-    );
+''');
   }
 
   test_visitNamedType_typeLiteral_typeParameter_nested2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(Object? x) {
   if (x case const (List<T>)) {}
+//                  ^^^^^^^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
 }
-''',
-      [error(diag.constTypeParameter, 43, 7)],
-    );
+''');
   }
 
   test_visitPrefixedIdentifier_function() async {
@@ -3187,34 +3101,19 @@ void Function<T>(T)
   }
 
   test_visitPrefixedIdentifier_length_invalidTarget() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void main() {
   const RequiresNonEmptyList([1]);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalPropertyAccess][context 1] The property 'length' can't be accessed on the type 'List<int>' in a constant expression.
 }
 
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
+//                                                       ^^^^^^^^^^^^^^
+// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.
 }
-''',
-      [
-        error(
-          diag.constEvalPropertyAccess,
-          16,
-          31,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              138,
-              14,
-              textContains: [
-                "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_visitPrefixExpression_bitNot() async {
@@ -3229,33 +3128,31 @@ int -43
   }
 
   test_visitPrefixExpression_extensionMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension on Object {
   int operator -() => 0;
 }
 
 const Object v1 = 1;
 const v2 = -v1;
-''',
-      [error(diag.constEvalExtensionMethod, 82, 3)],
-    );
+//         ^^^
+// [diag.constEvalExtensionMethod] Extension methods can't be used in constant expressions.
+''');
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
 
   test_visitPrefixExpression_extensionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {
   int operator -() => 0;
 }
 
 const v1 = A(1);
 const v2 = -v1;
-''',
-      [error(diag.constEvalExtensionTypeMethod, 89, 3)],
-    );
+//         ^^^
+// [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
+''');
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -3286,15 +3183,13 @@ bool false
   }
 
   test_visitPrefixExpression_negated_bool() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = -true;
-''',
-      [
-        error(diag.undefinedOperator, 10, 1),
-        error(diag.constEvalTypeNum, 10, 5),
-      ],
-    );
+//        ^
+// [diag.undefinedOperator] The operator 'unary-' isn't defined for the type 'bool'.
+//        ^^^^^
+// [diag.constEvalTypeNum] In constant expressions, operands of this operator must be of type 'num'.
+''');
   }
 
   test_visitPrefixExpression_negated_double() async {
@@ -3447,13 +3342,12 @@ Record({int f1, int f2})
   }
 
   test_visitRecordLiteral_namedField_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final bar = '';
 ({String bar, }) foo() => const (bar: bar, );
-''',
-      [error(diag.nonConstantRecordField, 54, 3)],
-    );
+//                                    ^^^
+// [diag.nonConstantRecordField] The fields in a const record literal must be constants.
+''');
   }
 
   test_visitRecordLiteral_objectField_generic() async {
@@ -3498,13 +3392,12 @@ Record(int, int, int)
   }
 
   test_visitRecordLiteral_positionalField_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final bar = '';
 (String, ) foo() => const (bar, );
-''',
-      [error(diag.nonConstantRecordField, 43, 3)],
-    );
+//                         ^^^
+// [diag.nonConstantRecordField] The fields in a const record literal must be constants.
+''');
   }
 
   test_visitRecordLiteral_withoutEnvironment() async {
@@ -3524,44 +3417,40 @@ Record(int, String, {bool c})
   }
 
   test_visitSetOrMapLiteral_ambiguous() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const l = [];
 const ambiguous = {...l, 1: 2};
-''',
-      [error(diag.ambiguousSetOrMapLiteralBoth, 32, 12)],
-    );
+//                ^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralBoth] The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these.
+''');
   }
 
   test_visitSetOrMapLiteral_ambiguous_either() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const int? i = 1;
 const res  = {...?i};
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 31, 7)],
-    );
+//           ^^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
+''');
   }
 
   test_visitSetOrMapLiteral_ambiguous_expression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const m = {1: 1};
 const res = {...m, 2};
-''',
-      [error(diag.ambiguousSetOrMapLiteralBoth, 30, 9)],
-    );
+//          ^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralBoth] The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these.
+''');
   }
 
   test_visitSetOrMapLiteral_ambiguous_inList() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const l = [];
 const ambiguous = {...l, 1: 2};
+//                ^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralBoth] The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these.
 const anotherList = [...ambiguous];
-''',
-      [error(diag.ambiguousSetOrMapLiteralBoth, 32, 12)],
-    );
+''');
   }
 
   test_visitSetOrMapLiteral_map_complexKey() async {
@@ -3594,41 +3483,36 @@ Map
   }
 
   test_visitSetOrMapLiteral_map_forElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {1: null, for (final i in const []) i: null};
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 10, 44),
-        error(diag.constEvalForElement, 20, 33),
-      ],
-    );
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalForElement] Constant expressions don't support 'for' elements.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_forElement_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {1: null, if (true) for (final i in const []) i: null};
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 10, 54),
-        error(diag.constEvalForElement, 30, 33),
-      ],
-    );
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalForElement] Constant expressions don't support 'for' elements.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_ifElement_nonBoolCondition() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
-''',
-      [error(diag.nonBoolCondition, 51, 7)],
-    );
+//                   ^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -3674,19 +3558,16 @@ Map
   }
 
   test_visitSetOrMapLiteral_map_spread_notMap() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = ['string'];
 const Map<String, int> alwaysInclude = {
   'anotherString': 0,
   ...x,
+//   ^
+// [diag.constSpreadExpectedMap] A map is expected in this spread.
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
 };
-''',
-      [
-        error(diag.constSpreadExpectedMap, 90, 1),
-        error(diag.notMapSpread, 90, 1),
-      ],
-    );
+''');
   }
 
   test_visitSetOrMapLiteral_map_spread_null() async {
@@ -3743,28 +3624,25 @@ Set
   }
 
   test_visitSetOrMapLiteral_set_forElement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const Set set = {};
 const x = {for (final i in set) i};
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 30, 24),
-        error(diag.constEvalForElement, 31, 22),
-      ],
-    );
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//         ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalForElement] Constant expressions don't support 'for' elements.
+''');
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_set_ifElement_nonBoolCondition() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
-''',
-      [error(diag.nonBoolCondition, 50, 7)],
-    );
+//                   ^^^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+''');
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -3981,17 +3859,16 @@ void Function(int, {int? b})
   }
 
   test_visitUnaryExpression_extensionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {
   int operator -() => 0;
 }
 
 const v1 = A(1);
 const v2 = -v1;
-''',
-      [error(diag.constEvalExtensionTypeMethod, 89, 3)],
-    );
+//         ^^^
+// [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
+''');
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -4271,37 +4148,35 @@ class B extends A {
   }
 
   test_visitAsExpression_instanceOfSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a as B;
+//        ^^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
 class A {
   const A();
 }
 class B extends A {
   const B();
 }
-''',
-      [error(diag.constEvalThrowsException, 31, 6)],
-    );
+''');
     var result = _topLevelVar('b');
     _assertNull(result);
   }
 
   test_visitAsExpression_instanceOfUnrelatedClass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a as B;
+//        ^^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
 class A {
   const A();
 }
 class B {
   const B();
 }
-''',
-      [error(diag.constEvalThrowsException, 31, 6)],
-    );
+''');
     var result = _topLevelVar('b');
     _assertNull(result);
   }
@@ -4331,20 +4206,18 @@ double 5.5
   }
 
   test_visitBinaryExpression_add_instance_String() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
   String operator +(String other) => other;
 }
 
 const c = C() + 1;
-''',
-      [
-        error(diag.constEvalTypeNumString, 80, 7),
-        error(diag.argumentTypeNotAssignable, 86, 1),
-      ],
-    );
+//        ^^^^^^^
+// [diag.constEvalTypeNumString] In constant expressions, operands of this operator must be of type 'num' or 'String'.
+//              ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+''');
   }
 
   test_visitBinaryExpression_add_int_int() async {
@@ -4381,36 +4254,32 @@ bool false
   }
 
   test_visitBinaryExpression_and_bool_false_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = false && a;
-''',
-      [
-        error(diag.deadCode, 33, 4),
-        error(diag.constInitializedWithNonConstantValue, 36, 1),
-      ],
-    );
+//              ^^^^
+// [diag.deadCode] Dead code.
+//                 ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_and_bool_invalid_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = a && false;
-''',
-      [error(diag.constInitializedWithNonConstantValue, 27, 1)],
-    );
+//        ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_and_bool_invalid_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = a && true;
-''',
-      [error(diag.constInitializedWithNonConstantValue, 27, 1)],
-    );
+//        ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_and_bool_known_known() async {
@@ -4431,13 +4300,12 @@ const c = false & b;
   }
 
   test_visitBinaryExpression_and_bool_true_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = true && a;
-''',
-      [error(diag.constInitializedWithNonConstantValue, 27, 9)],
-    );
+//        ^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_and_bool_unknown_known() async {
@@ -4471,15 +4339,13 @@ int 10
   }
 
   test_visitBinaryExpression_and_mixed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 3 & false;
-''',
-      [
-        error(diag.constEvalTypeBoolInt, 10, 9),
-        error(diag.argumentTypeNotAssignable, 14, 5),
-      ],
-    );
+//        ^^^^^^^^^
+// [diag.constEvalTypeBoolInt] In constant expressions, operands of this operator must be of type 'bool' or 'int'.
+//            ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+''');
   }
 
   test_visitBinaryExpression_divide_double_double() async {
@@ -4527,12 +4393,11 @@ double Infinity
   }
 
   test_visitBinaryExpression_eqeq_double_double_nan_left() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = double.nan == 2.3;
-''',
-      [error(diag.unnecessaryNanComparisonFalse, 10, 13)],
-    );
+//        ^^^^^^^^^^^^^
+// [diag.unnecessaryNanComparisonFalse] A double can't equal 'double.nan', so the condition is always 'false'.
+''');
     // This test case produces a warning, but the value of the constant should
     // be `false`.
     var result = _topLevelVar('c');
@@ -4543,12 +4408,11 @@ bool false
   }
 
   test_visitBinaryExpression_eqeq_double_double_nan_right() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 2.3 == double.nan;
-''',
-      [error(diag.unnecessaryNanComparisonFalse, 14, 13)],
-    );
+//            ^^^^^^^^^^^^^
+// [diag.unnecessaryNanComparisonFalse] A double can't equal 'double.nan', so the condition is always 'false'.
+''');
     // This test case produces a warning, but the value of the constant should
     // be `false`.
     var result = _topLevelVar('c');
@@ -4603,27 +4467,21 @@ bool true
   }
 
   test_visitBinaryExpression_notEqual_invalidLeft() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = a != 3;
-''',
-      [
-        error(diag.undefinedIdentifier, 10, 1),
-        error(diag.constInitializedWithNonConstantValue, 10, 1),
-      ],
-    );
+//        ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_notEqual_invalidRight() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 2 != a;
-''',
-      [
-        error(diag.undefinedIdentifier, 15, 1),
-        error(diag.constInitializedWithNonConstantValue, 15, 1),
-      ],
-    );
+//             ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_notEqual_string_string() async {
@@ -4638,33 +4496,30 @@ bool true
   }
 
   test_visitBinaryExpression_or_bool_false_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = false || a;
-''',
-      [error(diag.constInitializedWithNonConstantValue, 27, 10)],
-    );
+//        ^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_or_bool_invalid_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = a || false;
-''',
-      [error(diag.constInitializedWithNonConstantValue, 27, 1)],
-    );
+//        ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_or_bool_invalid_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = a || true;
-''',
-      [error(diag.constInitializedWithNonConstantValue, 27, 1)],
-    );
+//        ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_or_bool_known_known() async {
@@ -4685,16 +4540,14 @@ const c = false | b;
   }
 
   test_visitBinaryExpression_or_bool_true_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = false;
 const c = true || a;
-''',
-      [
-        error(diag.deadCode, 32, 4),
-        error(diag.constInitializedWithNonConstantValue, 35, 1),
-      ],
-    );
+//             ^^^^
+// [diag.deadCode] Dead code.
+//                ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitBinaryExpression_or_bool_unknown_known() async {
@@ -4725,12 +4578,11 @@ const c = 3 | 5;
   }
 
   test_visitBinaryExpression_or_known_known() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true || false;
-''',
-      [error(diag.deadCode, 15, 8)],
-    );
+//             ^^^^^^^^
+// [diag.deadCode] Dead code.
+''');
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
@@ -4739,15 +4591,13 @@ bool true
   }
 
   test_visitBinaryExpression_or_mixed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 3 | false;
-''',
-      [
-        error(diag.constEvalTypeBoolInt, 10, 9),
-        error(diag.argumentTypeNotAssignable, 14, 5),
-      ],
-    );
+//        ^^^^^^^^^
+// [diag.constEvalTypeBoolInt] In constant expressions, operands of this operator must be of type 'bool' or 'int'.
+//            ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+''');
   }
 
   test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
@@ -4760,13 +4610,12 @@ const c = 'a' ?? 'b';
   }
 
   test_visitBinaryExpression_questionQuestion_null_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = null ?? new C();
+//                ^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 class C {}
-''',
-      [error(diag.constInitializedWithNonConstantValue, 18, 7)],
-    );
+''');
   }
 
   test_visitBinaryExpression_questionQuestion_null_notNull() async {
@@ -4831,15 +4680,13 @@ const c = 3 ^ 5;
   }
 
   test_visitBinaryExpression_xor_mixed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 3 ^ false;
-''',
-      [
-        error(diag.constEvalTypeBoolInt, 10, 9),
-        error(diag.argumentTypeNotAssignable, 14, 5),
-      ],
-    );
+//        ^^^^^^^^^
+// [diag.constEvalTypeBoolInt] In constant expressions, operands of this operator must be of type 'bool' or 'int'.
+//            ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+''');
   }
 
   test_visitBoolLiteral_false() async {
@@ -4867,12 +4714,11 @@ bool true
   }
 
   test_visitConditionalExpression_eager_false_int_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = false ? 1 : 0;
-''',
-      [error(diag.deadCode, 18, 1)],
-    );
+//                ^
+// [diag.deadCode] Dead code.
+''');
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
@@ -4881,12 +4727,11 @@ int 0
   }
 
   test_visitConditionalExpression_eager_true_int_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1 : 0;
-''',
-      [error(diag.deadCode, 21, 1)],
-    );
+//                   ^
+// [diag.deadCode] Dead code.
+''');
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 1
@@ -4895,38 +4740,32 @@ int 1
   }
 
   test_visitConditionalExpression_eager_true_int_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1 : x;
-''',
-      [
-        error(diag.undefinedIdentifier, 21, 1),
-        error(diag.deadCode, 21, 1),
-        error(diag.constInitializedWithNonConstantValue, 21, 1),
-      ],
-    );
+//                   ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.deadCode] Dead code.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitConditionalExpression_eager_true_invalid_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true ? x : 0;
-''',
-      [
-        error(diag.undefinedIdentifier, 17, 1),
-        error(diag.constInitializedWithNonConstantValue, 17, 1),
-        error(diag.deadCode, 21, 1),
-      ],
-    );
+//               ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                   ^
+// [diag.deadCode] Dead code.
+''');
   }
 
   test_visitConditionalExpression_lazy_false_int_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = false ? 1 : 0;
-''',
-      [error(diag.deadCode, 18, 1)],
-    );
+//                ^
+// [diag.deadCode] Dead code.
+''');
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
@@ -4935,50 +4774,43 @@ int 0
   }
 
   test_visitConditionalExpression_lazy_false_int_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = false ? 1 : new C();
-''',
-      [
-        error(diag.deadCode, 18, 1),
-        error(diag.constInitializedWithNonConstantValue, 22, 7),
-        error(diag.newWithNonType, 26, 1),
-      ],
-    );
+//                ^
+// [diag.deadCode] Dead code.
+//                    ^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                        ^
+// [diag.newWithNonType] The name 'C' isn't a class.
+''');
   }
 
   test_visitConditionalExpression_lazy_false_invalid_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = false ? new C() : 0;
-''',
-      [
-        error(diag.deadCode, 18, 7),
-        error(diag.constInitializedWithNonConstantValue, 18, 7),
-        error(diag.newWithNonType, 22, 1),
-      ],
-    );
+//                ^^^^^^^
+// [diag.deadCode] Dead code.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                    ^
+// [diag.newWithNonType] The name 'C' isn't a class.
+''');
   }
 
   test_visitConditionalExpression_lazy_invalid_int_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 3 ? 1 : 0;
-''',
-      [
-        error(diag.nonBoolCondition, 10, 1),
-        error(diag.constEvalTypeBool, 10, 1),
-      ],
-    );
+//        ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+// [diag.constEvalTypeBool] In constant expressions, operands of this operator must be of type 'bool'.
+''');
   }
 
   test_visitConditionalExpression_lazy_true_int_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1 : 0;
-''',
-      [error(diag.deadCode, 21, 1)],
-    );
+//                   ^
+// [diag.deadCode] Dead code.
+''');
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 1
@@ -4987,47 +4819,41 @@ int 1
   }
 
   test_visitConditionalExpression_lazy_true_int_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1: new C();
-''',
-      [
-        error(diag.deadCode, 20, 7),
-        error(diag.constInitializedWithNonConstantValue, 20, 7),
-        error(diag.newWithNonType, 24, 1),
-      ],
-    );
+//                  ^^^^^^^
+// [diag.deadCode] Dead code.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                      ^
+// [diag.newWithNonType] The name 'C' isn't a class.
+''');
   }
 
   test_visitConditionalExpression_lazy_true_invalid_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = true ? new C() : 0;
+//               ^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                         ^
+// [diag.deadCode] Dead code.
 class C {}
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 17, 7),
-        error(diag.deadCode, 27, 1),
-      ],
-    );
+''');
   }
 
   test_visitConditionalExpression_lazy_unknown_int_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = identical(0, 0.0) ? 1 : new Object();
-''',
-      [error(diag.constInitializedWithNonConstantValue, 34, 12)],
-    );
+//                                ^^^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitConditionalExpression_lazy_unknown_invalid_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = identical(0, 0.0) ? 1 : new Object();
-''',
-      [error(diag.constInitializedWithNonConstantValue, 34, 12)],
-    );
+//                                ^^^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitDoubleLiteral() async {
@@ -5121,14 +4947,13 @@ bool false
   }
 
   test_visitIsExpression_is_null_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = null;
 const b = a is dynamic;
+//        ^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 class A {}
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 26, 12)],
-    );
+''');
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -5137,14 +4962,13 @@ bool true
   }
 
   test_visitIsExpression_is_null_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = null;
 const b = a is Null;
+//        ^^^^^^^^^
+// [diag.typeCheckIsNull] Tests for null should be done with '== null'.
 class A {}
-''',
-      [error(diag.typeCheckIsNull, 26, 9)],
-    );
+''');
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -5231,8 +5055,7 @@ int 42
   }
 
   test_visitPropertyAccess_length_extension() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension ExtObject on Object {
   int get length => 4;
 }
@@ -5240,42 +5063,27 @@ extension ExtObject on Object {
 class B {
   final l;
   const B(Object o) : l = o.length;
+//                        ^^^^^^^^
+// [context 1] The error is in the field initializer of 'B', and occurs here.
 }
 
 const b = B('');
-''',
-      [
-        error(
-          diag.constEvalExtensionMethod,
-          128,
-          5,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              105,
-              8,
-              textContains: [
-                "The error is in the field initializer of 'B', and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^
+// [diag.constEvalExtensionMethod][context 1] Extension methods can't be used in constant expressions.
+''');
   }
 
   test_visitPropertyAccess_length_extensionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const A(String it) {
   int get length => 0;
 }
 
 const v1 = A('');
 const v2 = v1.length;
-''',
-      [error(diag.constEvalExtensionTypeMethod, 91, 9)],
-    );
+//         ^^^^^^^^^
+// [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
+''');
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -5295,35 +5103,21 @@ int 3
   }
 
   test_visitPropertyAccess_length_unresolvedType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   final l;
   const B(String o) : l = o.length;
+//                        ^^^^^^^^
+// [context 1] The error is in the field initializer of 'B', and occurs here.
 }
 
 const y = B(x);
-''',
-      [
-        error(
-          diag.constEvalTypeString,
-          70,
-          4,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              47,
-              8,
-              textContains: [
-                "The error is in the field initializer of 'B', and occurs here.",
-              ],
-            ),
-          ],
-        ),
-        error(diag.undefinedIdentifier, 72, 1),
-        error(diag.constWithNonConstantArgument, 72, 1),
-      ],
-    );
+//        ^^^^
+// [diag.constEvalTypeString][context 1] In constant expressions, operands of this operator must be of type 'String'.
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+''');
   }
 
   test_visitSimpleIdentifier_dynamic() async {
@@ -5348,19 +5142,17 @@ int 42
   }
 
   test_visitSimpleIdentifier_wildcard_local() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 test() {
   const _ = true;
   const c = _;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//          ^
+// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 35, 1, messageContainsAll: ["'c'"]),
-        error(diag.undefinedIdentifier, 39, 1),
-        error(diag.constInitializedWithNonConstantValue, 39, 1),
-      ],
-    );
+''');
   }
 
   test_visitSimpleIdentifier_wildcard_top() async {
@@ -5393,15 +5185,13 @@ String abc
   }
 
   test_visitStringInterpolation_invalid() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const c = 'a${f()}c';
-''',
-      [
-        error(diag.undefinedFunction, 14, 1),
-        error(diag.constInitializedWithNonConstantValue, 14, 3),
-      ],
-    );
+//            ^
+// [diag.undefinedFunction] The function 'f' isn't defined.
+//            ^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_visitStringInterpolation_valid() async {
@@ -5497,63 +5287,35 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 @reflectiveTest
 class InstanceCreationEvaluatorTest extends ConstantVisitorTestSupport {
   test_assertInitializer_assertIsNot_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : assert(0 is! int);
+//            ^^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
+//                   ^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
 
 const a = const A(null);
-''',
-      [
-        error(diag.unnecessaryTypeCheckFalse, 31, 9),
-        error(
-          diag.constEvalThrowsException,
-          56,
-          13,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              24,
-              17,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-        error(diag.extraPositionalArguments, 64, 4),
-      ],
-    );
+//        ^^^^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+//                ^^^^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
+''');
   }
 
   test_assertInitializer_assertIsNot_null_nullableType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   const A() : assert(null is! T);
+//            ^^^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 
 const a = const A<int?>();
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          60,
-          15,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              27,
-              18,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_assertIsNot_true() async {
@@ -5574,24 +5336,19 @@ A
   }
 
   test_assertInitializer_class_privateNamedParameters_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int _x;
+//          ^^
+// [diag.unusedField] The value of the field '_x' isn't used.
   const A({required this._x}) : assert(_x > 0);
+//                              ^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 const a = A(x: 0);
-''',
-      [
-        error(diag.unusedField, 22, 2),
-        error(
-          diag.constEvalThrowsException,
-          86,
-          7,
-          contextMessages: [message(testFile, 58, 14)],
-        ),
-      ],
-    );
+//        ^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 <null>
@@ -5599,17 +5356,18 @@ const a = A(x: 0);
   }
 
   test_assertInitializer_class_privateNamedParameters_multiple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int _x;
+//          ^^
+// [diag.unusedField] The value of the field '_x' isn't used.
   final int _y;
+//          ^^
+// [diag.unusedField] The value of the field '_y' isn't used.
   const A({required this._x, required this._y}) : assert(_x < _y);
 }
 const a = A(x: 1, y: 2);
-''',
-      [error(diag.unusedField, 22, 2), error(diag.unusedField, 38, 2)],
-    );
+''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
@@ -5625,16 +5383,15 @@ A
   }
 
   test_assertInitializer_class_privateNamedParameters_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int _x;
+//          ^^
+// [diag.unusedField] The value of the field '_x' isn't used.
   const A({required this._x}) : assert(_x > 0);
 }
 const a = A(x: 1);
-''',
-      [error(diag.unusedField, 22, 2)],
-    );
+''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
@@ -5648,32 +5405,17 @@ A
   }
 
   test_assertInitializer_enum_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 class A {
   const A(E e) : assert(e != E.a);
+//               ^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 const c = const A(E.a);
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          73,
-          12,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              43,
-              16,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_enum_true() async {
@@ -5701,57 +5443,35 @@ A
   }
 
   test_assertInitializer_indirect() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int i)
   : assert(i == 1); // (2)
+//  ^^^^^^^^^^^^^^
+// [context 2] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 class B extends A {
   const B(int i) : super(i);
+//      ^
+// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
 }
 main() {
   print(const B(2)); // (1)
+//      ^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1][context 2] Evaluation of this constant expression throws an exception.
 }
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          124,
-          10,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              84,
-              1,
-              textContains: [
-                "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
-              ],
-            ),
-            contextMessage(
-              testFile,
-              31,
-              14,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_assertInitializer_intInDoubleContext_assertIsDouble_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(double x): assert(x is double);
+//                          ^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
 const a = const A(0);
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 38, 11)],
-    );
+''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
@@ -5764,31 +5484,16 @@ A
   }
 
   test_assertInitializer_intInDoubleContext_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A(double x): assert((x + 3) / 2 == 1.5);
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 const a = const A(1);
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          71,
-          10,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              31,
-              26,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_intInDoubleContext_true() async {
@@ -5810,43 +5515,27 @@ A
   }
 
   test_assertInitializer_simple_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A(): assert(1 is String);
+//           ^^^^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 const a = const A();
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          56,
-          9,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              23,
-              19,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_simple_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(): assert(1 is int);
+//                  ^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
 const a = const A();
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 30, 8)],
-    );
+''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
@@ -5857,57 +5546,35 @@ A
   }
 
   test_assertInitializer_simpleInSuperInitializer_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A(): assert(1 is String);
+//           ^^^^^^^^^^^^^^^^^^^
+// [context 2] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 class B extends A {
   const B() : super();
+//      ^
+// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
 }
 const b = const B();
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          101,
-          9,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              74,
-              1,
-              textContains: [
-                "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
-              ],
-            ),
-            contextMessage(
-              testFile,
-              23,
-              19,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^
+// [diag.constEvalThrowsException][context 1][context 2] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_simpleInSuperInitializer_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(): assert(1 is int);
+//                  ^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
 class B extends A {
   const B() : super();
 }
 const b = const B();
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 30, 8)],
-    );
+''');
     var result = _topLevelVar('b');
     assertDartObjectText(result, '''
 B
@@ -5921,90 +5588,47 @@ B
   }
 
   test_assertInitializer_usingArgument_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A(int x): assert(x > 0);
+//                ^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 const a = const A(0);
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          55,
-          10,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              28,
-              13,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_usingArgument_false_withMessage() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int x): assert(x > 0, '$x must be greater than 0');
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here.
 }
 const a = const A(0);
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          84,
-          10,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              28,
-              42,
-              textContains: [
-                "The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_usingArgument_false_withMessage_cannotCompute() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int x): assert(x > 0, '${throw ''}');
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
+//                                 ^^^^^^^^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constConstructorThrowsException] Const constructors can't throw exceptions.
+//                                          ^^^
+// [diag.deadCode] Dead code.
 }
 const a = const A(0);
-''',
-      [
-        error(diag.invalidConstant, 45, 8),
-        error(diag.constConstructorThrowsException, 45, 8),
-        error(diag.deadCode, 54, 3),
-        error(
-          diag.constEvalThrowsException,
-          70,
-          10,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              28,
-              28,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_assertInitializer_usingArgument_true() async {
@@ -6160,18 +5784,17 @@ const right = b == {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_nonConstant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = bool.fromEnvironment('dart.library.js_util');
 var b = 7;
 var x = const A([if (a) b]);
+//                      ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
 
 class A {
   const A(List<int> p);
 }
-''',
-      [error(diag.nonConstantListElement, 91, 1)],
-    );
+''');
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set() async {
@@ -6225,18 +5848,17 @@ const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElementElse_nonConstant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = bool.fromEnvironment('dart.library.js_util');
 var b = 7;
 var x = const A([if (a) 3 else b]);
+//                             ^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
 
 class A {
   const A(List<int> p);
 }
-''',
-      [error(diag.nonConstantListElement, 98, 1)],
-    );
+''');
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
@@ -6252,18 +5874,17 @@ const x = [3, if (a) ...[1] else ...[1, 2], 4];
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_recordField_nonConstant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = bool.fromEnvironment('dart.library.js_util');
 var b = 7;
 var x = const A((b, ));
+//               ^
+// [diag.invalidConstant] Invalid constant value.
 
 class A {
   const A((int, ) p);
 }
-''',
-      [error(diag.invalidConstant, 84, 1)],
-    );
+''');
   }
 
   test_bool_hasEnvironment() async {
@@ -6283,17 +5904,16 @@ bool true
   }
 
   test_class_constructor_duplicateInitialization_fieldInitializer_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 1;
   const A() : x = 2;
+//            ^
+// [diag.fieldInitializedInInitializerAndDeclaration] Fields can't be initialized in the constructor if they are final and were already initialized at their declaration.
 }
 
 const a = A();
-''',
-      [error(diag.fieldInitializedInInitializerAndDeclaration, 43, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6304,17 +5924,16 @@ A
   }
 
   test_class_constructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 1;
   const A(this.x);
+//             ^
+// [diag.finalInitializedInDeclarationAndConstructor] 'x' is final and was given a value when it was declared, so it can't be set to a new value.
 }
 
 const a = A(2);
-''',
-      [error(diag.finalInitializedInDeclarationAndConstructor, 44, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6327,17 +5946,16 @@ A
   }
 
   test_class_constructor_duplicateInitialization_initializer_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A() : x = 1, x = 2;
+//                   ^
+// [diag.fieldInitializedByMultipleInitializers] The field 'x' can't be initialized twice in the same constructor.
 }
 
 const a = A();
-''',
-      [error(diag.fieldInitializedByMultipleInitializers, 46, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6348,17 +5966,16 @@ A
   }
 
   test_class_constructor_duplicateInitialization_initializingFormal_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x) : x = 1;
+//                  ^
+// [diag.fieldInitializedInParameterAndInitializer] Fields can't be initialized in both the parameter list and the initializers.
 }
 
 const a = A(2);
-''',
-      [error(diag.fieldInitializedInParameterAndInitializer, 45, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 1
@@ -6371,80 +5988,75 @@ A
   }
 
   test_class_field_declarationInitializer_nonConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 0;
 class A {
   final int f = x;
+//              ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
   const A();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'f' is initialized with a non-constant value.
 }
 const a = A();
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 37, 1),
-        error(diag.invalidConstant, 37, 1),
-        error(diag.constConstructorWithFieldInitializedByNonConst, 42, 5),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 <null>
 ''');
   }
 
   test_class_field_declarationInitializer_thisReference_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 0;
   final int f = x;
+//              ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+// [diag.implicitThisReferenceInInitializer] The instance member 'x' can't be accessed in an initializer.
   const A();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'f' is initialized with a non-constant value.
 }
 const a = A();
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 45, 1),
-        error(diag.invalidConstant, 45, 1),
-        error(diag.implicitThisReferenceInInitializer, 45, 1),
-        error(diag.constConstructorWithFieldInitializedByNonConst, 50, 5),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 <null>
 ''');
   }
 
   test_class_field_declarationInitializer_thisReference_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   final int f = x;
+//              ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+// [diag.implicitThisReferenceInInitializer] The instance member 'x' can't be accessed in an initializer.
   const A();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'f' is initialized with a non-constant value.
 }
 const a = A();
-''',
-      [
-        error(diag.constInitializedWithNonConstantValue, 44, 1),
-        error(diag.invalidConstant, 44, 1),
-        error(diag.implicitThisReferenceInInitializer, 44, 1),
-        error(diag.constConstructorWithFieldInitializedByNonConst, 49, 5),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 <null>
 ''');
   }
 
   test_class_primaryConstructor_assert_false() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   this : assert(x > 0);
+//       ^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 const a = A(0);
-''',
-      [error(diag.constEvalThrowsException, 59, 4)],
-    );
+//        ^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_class_primaryConstructor_assert_true() async {
@@ -6484,23 +6096,17 @@ A
   }
 
   test_class_primaryConstructor_duplicateDefinition_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(final int x) {
+//                      ^
+// [context 1] The first definition of this name.
   final int x = 1;
+//          ^
+// [diag.duplicateDefinition][context 1] The name 'x' is already defined.
 }
 
 const a = A(2);
-''',
-      [
-        error(
-          diag.duplicateDefinition,
-          41,
-          1,
-          contextMessages: [message(testFile, 24, 1)],
-        ),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6513,23 +6119,16 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_fieldInitializer_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A() {
   final int x = 1;
   this : x = 2;
+//       ^
+// [diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor] Fields can't be initialized in both the primary constructor and at their declaration.
 }
 
 const a = A();
-''',
-      [
-        error(
-          diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
-          46,
-          1,
-        ),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6540,22 +6139,15 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(this.x) {
+//                 ^
+// [diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor] Fields can't be initialized in both the primary constructor parameter list and at their declaration.
   final int x = 1;
 }
 
 const a = A(2);
-''',
-      [
-        error(
-          diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
-          19,
-          1,
-        ),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6568,17 +6160,16 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_initializer_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A() {
   final int x;
   this : x = 1, x = 2;
+//              ^
+// [diag.fieldInitializedByMultipleInitializers] The field 'x' can't be initialized twice in the same constructor.
 }
 
 const a = A();
-''',
-      [error(diag.fieldInitializedByMultipleInitializers, 49, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6589,19 +6180,17 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_initializingFormal_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(this.x) {
+//            ^^^^^^
+// [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
   this : x = 2;
+//       ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
 
 const a = A(1);
-''',
-      [
-        error(diag.initializingFormalForNonExistentField, 14, 6),
-        error(diag.initializerForNonExistentField, 33, 5),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   x: int 2
@@ -6632,14 +6221,13 @@ A
   }
 
   test_class_primaryConstructor_fieldInitializer_functionExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
+//    ^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'foo' is initialized with a non-constant value.
   final int Function() foo = () => x;
 }
-''',
-      [error(diag.constConstructorWithFieldInitializedByNonConst, 6, 5)],
-    );
+''');
   }
 
   test_class_primaryConstructor_fieldInitializer_multipleInvocations() async {
@@ -6688,32 +6276,29 @@ A
   }
 
   test_class_primaryConstructor_fieldInitializer_topLevel_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final x = 1;
 class const A() {
+//    ^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'y' is initialized with a non-constant value.
   final int y = x + 2;
+//              ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 }
 const a = A();
-''',
-      [
-        error(diag.constConstructorWithFieldInitializedByNonConst, 19, 5),
-        error(diag.invalidConstant, 47, 1),
-        error(diag.constInitializedWithNonConstantValue, 47, 1),
-      ],
-    );
+''');
   }
 
   test_class_primaryConstructor_fieldInitializer_topLevel_final_noInvocation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final x = 1;
 class const A(int p) {
+//    ^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'y' is initialized with a non-constant value.
   final int y = x + p;
 }
-''',
-      [error(diag.constConstructorWithFieldInitializedByNonConst, 19, 5)],
-    );
+''');
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalNamed_noArgument() async {
@@ -7128,43 +6713,40 @@ B
   }
 
   test_class_primaryConstructor_initializer_assert_nonConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 1;
 class const A() {
   this : assert(x > 0);
+//              ^
+// [diag.invalidConstant] Invalid constant value.
 }
-''',
-      [error(diag.invalidConstant, 45, 1)],
-    );
+''');
   }
 
   test_class_primaryConstructor_initializer_field_nonConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 1;
 class const A() {
   final int f;
   this : f = x;
+//           ^
+// [diag.invalidConstant] Invalid constant value.
 }
-''',
-      [error(diag.invalidConstant, 57, 1)],
-    );
+''');
   }
 
   test_class_primaryConstructor_initializer_super_nonConstantArgument() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int x = 1;
 class A {
   const A(int a);
 }
 class const B() extends A {
   this : super(x);
+//             ^
+// [diag.invalidConstant] Invalid constant value.
 }
-''',
-      [error(diag.invalidConstant, 84, 1)],
-    );
+''');
   }
 
   test_class_primaryConstructor_redirect_fieldInitializer() async {
@@ -7187,20 +6769,18 @@ A
   }
 
   test_class_primaryConstructor_redirect_fieldInitializer_nonRedirectingSecondary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
   const A.named(int z) : this(z * 2);
   const A.other() {}
+//      ^^^^^^^
+// [diag.nonRedirectingGenerativeConstructorWithPrimary] Classes with primary constructors can't have non-redirecting generative constructors.
+//                ^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
 const a = A.named(10);
-''',
-      [
-        error(diag.nonRedirectingGenerativeConstructorWithPrimary, 92, 7),
-        error(diag.constConstructorWithBody, 102, 1),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 A
   y: int 21
@@ -7238,33 +6818,19 @@ B
   }
 
   test_dotShorthand_assertInitializer_assertIsNot_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : assert(0 is! int);
+//            ^^^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
+//                   ^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
 
 const A a = .new();
-''',
-      [
-        error(diag.unnecessaryTypeCheckFalse, 31, 9),
-        error(
-          diag.constEvalThrowsException,
-          58,
-          6,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              24,
-              17,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//          ^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_dotShorthand_assertInitializer_assertIsNot_true() async {
@@ -7285,32 +6851,17 @@ A
   }
 
   test_dotShorthand_assertInitializer_enum_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 class A {
   const A(E e) : assert(e != .a);
+//               ^^^^^^^^^^^^^^^
+// [context 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
 }
 const A a = .new(.a);
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          74,
-          8,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              43,
-              15,
-              textContains: [
-                "The exception is 'The assertion in this constant expression failed.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//          ^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_dotShorthand_assertInitializer_enum_true() async {
@@ -7338,20 +6889,19 @@ A
   }
 
   test_dotShorthand_assertInitializer_simpleInSuperInitializer_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(): assert(1 is int);
+//                  ^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
 class B extends A {
   const B() : super();
 }
 const B b = .new();
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 30, 8)],
-    );
+''');
     var result = _topLevelVar('b');
-    assertDartObjectText(result, '''
+    assertDartObjectText(result, r'''
 B
   (super): A
     constructorInvocation
@@ -7472,18 +7022,16 @@ class C {
   const C({required this.one});
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 const C c = .new();
-''',
-      [error(diag.missingRequiredArgument, 30, 3)],
-    );
+//           ^^^
+// [diag.missingRequiredArgument] The named parameter 'one' is required, but there's no corresponding argument.
+''');
   }
 
   test_dotShorthand_nonConstantArgument_issue60963() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int cannotBeConst;
   A(): cannotBeConst = 0;
@@ -7491,27 +7039,24 @@ class A {
 extension type const B(A a) {}
 
 const B b = .new(A());
-''',
-      [
-        error(diag.constWithNonConst, 108, 3),
-        error(diag.constInitializedWithNonConstantValue, 108, 3),
-      ],
-    );
+//               ^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_enum_constructor_duplicateInitialization_fieldInitializer_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final int x = 1;
   const E() : x = 2;
+//            ^
+// [diag.fieldInitializedInInitializerAndDeclaration] Fields can't be initialized in the constructor if they are final and were already initialized at their declaration.
 }
 
 const a = E.v;
-''',
-      [error(diag.fieldInitializedInInitializerAndDeclaration, 47, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 E
   _name: String v
@@ -7524,18 +7069,17 @@ E
   }
 
   test_enum_constructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(2);
   final int x = 1;
   const E(this.x);
+//             ^
+// [diag.finalInitializedInDeclarationAndConstructor] 'x' is final and was given a value when it was declared, so it can't be set to a new value.
 }
 
 const a = E.v;
-''',
-      [error(diag.finalInitializedInDeclarationAndConstructor, 51, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 E
   _name: String v
@@ -7550,18 +7094,17 @@ E
   }
 
   test_enum_constructor_duplicateInitialization_initializer_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final int x;
   const E() : x = 1, x = 2;
+//                   ^
+// [diag.fieldInitializedByMultipleInitializers] The field 'x' can't be initialized twice in the same constructor.
 }
 
 const a = E.v;
-''',
-      [error(diag.fieldInitializedByMultipleInitializers, 50, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 E
   _name: String v
@@ -7574,18 +7117,17 @@ E
   }
 
   test_enum_constructor_duplicateInitialization_initializingFormal_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(1);
   final int x;
   const E(this.x) : x = 2;
+//                  ^
+// [diag.fieldInitializedInParameterAndInitializer] Fields can't be initialized in both the parameter list and the initializers.
 }
 
 const a = E.v;
-''',
-      [error(diag.fieldInitializedInParameterAndInitializer, 52, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 E
   _name: String v
@@ -7600,25 +7142,19 @@ E
   }
 
   test_enum_primaryConstructor_duplicateDefinition_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E(final int x) {
+//               ^
+// [context 1] The first definition of this name.
   v(2);
 
   final int x = 1;
+//          ^
+// [diag.duplicateDefinition][context 1] The name 'x' is already defined.
 }
 
 const a = E.v;
-''',
-      [
-        error(
-          diag.duplicateDefinition,
-          43,
-          1,
-          contextMessages: [message(testFile, 17, 1)],
-        ),
-      ],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 E
   _name: String v
@@ -7633,18 +7169,17 @@ E
   }
 
   test_enum_primaryConstructor_duplicateInitialization_initializer_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   final int x;
   this : x = 1, x = 2;
+//              ^
+// [diag.fieldInitializedByMultipleInitializers] The field 'x' can't be initialized twice in the same constructor.
 }
 
 const a = E.v;
-''',
-      [error(diag.fieldInitializedByMultipleInitializers, 47, 1)],
-    );
+''');
     assertDartObjectText(_topLevelVar('a'), r'''
 E
   _name: String v
@@ -7657,29 +7192,27 @@ E
   }
 
   test_enum_primaryConstructor_fieldInitializer_functionExpression_explicitConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum const E(int x) {
+//   ^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'foo' is initialized with a non-constant value.
   v(0);
 
   final int Function() foo = () => x;
 }
-''',
-      [error(diag.constConstructorWithFieldInitializedByNonConst, 5, 5)],
-    );
+''');
   }
 
   test_enum_primaryConstructor_fieldInitializer_functionExpression_implicitConst() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E(int x) {
+//   ^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'foo' is initialized with a non-constant value.
   v(0);
 
   final int Function() foo = () => x;
 }
-''',
-      [error(diag.constConstructorWithFieldInitializedByNonConst, 5, 1)],
-    );
+''');
   }
 
   test_field_deferred_issue48991() async {
@@ -7691,8 +7224,7 @@ class A {
 const aa = A();
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as a;
 
 class B {
@@ -7701,10 +7233,10 @@ class B {
 
 main() {
   print(const B(a.aa));
+//                ^^
+// [diag.constConstructorConstantFromDeferredLibrary] Constant values from a deferred library can't be used as values in a 'const' constructor.
 }
-''',
-      [error(diag.constConstructorConstantFromDeferredLibrary, 93, 2)],
-    );
+''');
   }
 
   test_field_imported_staticConst() async {
@@ -7820,34 +7352,19 @@ A<int, String>
   }
 
   test_fieldInitializer_typeParameter_withoutConstructorTearoffs() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart=2.12
 class A<T> {
   final Object f;
   const A(): f = T;
+//               ^
+// [context 1] The error is in the field initializer of 'A', and occurs here.
+// [diag.invalidConstant] Invalid constant value.
 }
 const a = const A<int>();
-''',
-      [
-        error(diag.invalidConstant, 62, 1),
-        error(
-          diag.constTypeParameter,
-          77,
-          14,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              62,
-              1,
-              textContains: [
-                "The error is in the field initializer of 'A', and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^^^^^
+// [diag.constTypeParameter][context 1] Type parameters can't be used in a constant expression.
+''');
     var result = _topLevelVar('a');
     _assertNull(result);
   }
@@ -7891,8 +7408,7 @@ int 42
   }
 
   test_issue47351() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo {
   final int bar;
   const Foo(this.bar);
@@ -7900,17 +7416,14 @@ class Foo {
 
 int bar = 2;
 const a = const Foo(bar);
-''',
-      [
-        error(diag.constWithNonConstantArgument, 88, 3),
-        error(diag.constInitializedWithNonConstantValue, 88, 3),
-      ],
-    );
+//                  ^^^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_issue47603() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final void Function() c;
   const C(this.c);
@@ -7918,15 +7431,16 @@ class C {
 
 void main() {
   const C(() {});
+//        ^^^^^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 }
-''',
-      [error(diag.constWithNonConstantArgument, 83, 5)],
-    );
+''');
   }
 
   test_issue49389() async {
-    await assertErrorsInCode(
-      '''
+    // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
+    // NamedExpressions.
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo {
   const Foo({required this.bar});
   final Map<String, String> bar;
@@ -7935,14 +7449,10 @@ class Foo {
 void main() {
   final data = <String, String>{};
   const Foo(bar: data);
+//               ^^^^
+// [diag.invalidConstant] Invalid constant value.
 }
-''',
-      [
-        // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
-        // NamedExpressions.
-        error(diag.invalidConstant, 148, 4),
-      ],
-    );
+''');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55467')
@@ -8392,54 +7902,27 @@ B<int>
   }
 
   test_superInitializer_paramTypeMismatch_indirect() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final double d;
   const C(this.d);
 }
 class D extends C {
   const D(d) : super(d);
+//      ^
+// [context 1] The evaluated constructor 'C' is called by 'D' and 'D' is defined here.
+//                   ^
+// [context 3] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.
 }
 class E extends D {
   const E(e) : super(e);
+//      ^
+// [context 2] The evaluated constructor 'D' is called by 'E' and 'E' is defined here.
 }
 const f = const E('0.0');
-''',
-      [
-        error(
-          diag.constEvalThrowsException,
-          153,
-          14,
-          contextMessages: [
-            contextMessage(
-              testFile,
-              77,
-              1,
-              textContains: [
-                "The evaluated constructor 'C' is called by 'D' and 'D' is defined here.",
-              ],
-            ),
-            contextMessage(
-              testFile,
-              124,
-              1,
-              textContains: [
-                "The evaluated constructor 'D' is called by 'E' and 'E' is defined here.",
-              ],
-            ),
-            contextMessage(
-              testFile,
-              90,
-              1,
-              textContains: [
-                "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//        ^^^^^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1][context 2][context 3] Evaluation of this constant expression throws an exception.
+''');
   }
 
   test_superInitializer_typeParameter() async {
@@ -8530,19 +8013,16 @@ A
   }
 
   test_wildcard_regularInitializer_initializerList() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int _;
   final int y;
   const A(this._): y = _;
+//                     ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.implicitThisReferenceInInitializer] The instance member '_' can't be accessed in an initializer.
 }
-''',
-      [
-        error(diag.invalidConstant, 63, 1),
-        error(diag.implicitThisReferenceInInitializer, 63, 1),
-      ],
-    );
+''');
   }
 
   test_wildcard_superInitializer() async {
@@ -8575,10 +8055,11 @@ B
   }
 
   test_wildcard_superInitializer_multiple_optionalPositional() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int _;
+//          ^
+// [diag.unusedField] The value of the field '_' isn't used.
   final int y;
   const A([this._ = 1, this.y = 2]);
 }
@@ -8586,9 +8067,7 @@ class B extends A {
   const B([super._ = 3, super._ = 4]);
 }
 const a = const B(10);
-''',
-      [error(diag.unusedField, 22, 1)],
-    );
+''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 B

@@ -4,15 +4,16 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticTypeAnalyzerTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -43,18 +44,16 @@ late Derived<Derived<int>> derivedDerivedInt;
   }
 
   test_flatten_inhibit_recursion() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
 class B extends A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
 late A a;
 late B b;
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveInterfaceInheritance, 27, 1),
-      ],
-    );
+''');
     var aType = findElement2.topVar('a').type;
     var bType = findElement2.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither class contains Future
@@ -65,22 +64,21 @@ late B b;
   }
 
   test_flatten_related_derived_types() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class Derived<T> implements Future<T> {}
 abstract class A extends Derived<int> implements Derived<num> {}
+//             ^
+// [diag.conflictingGenericInterfaces] The class 'A' can't implement both 'Derived<int>' and 'Derived<num>' because the type arguments are different.
+// [diag.conflictingGenericInterfaces] The class 'A' can't implement both 'Future<int>' and 'Future<num>' because the type arguments are different.
+//                                               ^^^^^^^^^^^^
+// [diag.implementsSuperClass] 'abstract class Derived<T> implements Future<T>' can't be used in both the 'extends' and 'implements' clauses.
 abstract class B1 implements Future<num> {}
 abstract class B2 extends B1 implements Future<int> {}
+//             ^^
+// [diag.conflictingGenericInterfaces] The class 'B2' can't implement both 'Future<num>' and 'Future<int>' because the type arguments are different.
 late A a;
 late B2 b;
-''',
-      [
-        error(diag.conflictingGenericInterfaces, 65, 1),
-        error(diag.conflictingGenericInterfaces, 65, 1),
-        error(diag.implementsSuperClass, 99, 12),
-        error(diag.conflictingGenericInterfaces, 174, 2),
-      ],
-    );
+''');
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
     var aType = findElement2.topVar('a').type;
@@ -92,20 +90,18 @@ late B2 b;
   }
 
   test_flatten_related_types() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A1 implements Future<int> {}
 abstract class A2 extends A1 implements Future<num> {}
+//             ^^
+// [diag.conflictingGenericInterfaces] The class 'A2' can't implement both 'Future<int>' and 'Future<num>' because the type arguments are different.
 abstract class B1 implements Future<num> {}
 abstract class B2 extends B1 implements Future<int> {}
+//             ^^
+// [diag.conflictingGenericInterfaces] The class 'B2' can't implement both 'Future<num>' and 'Future<int>' because the type arguments are different.
 late A2 a;
 late B2 b;
-''',
-      [
-        error(diag.conflictingGenericInterfaces, 59, 2),
-        error(diag.conflictingGenericInterfaces, 158, 2),
-      ],
-    );
+''');
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
     var aType = findElement2.topVar('a').type;
@@ -139,26 +135,24 @@ late B2 b;
   }
 
   test_flatten_unrelated_types() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A1 implements Future<int> {}
 abstract class A2 extends A1 implements Future<String> {}
+//             ^^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'catchError': Future.catchError (Future<int> Function(Function, {bool Function(Object)? test})), Future.catchError (Future<String> Function(Function, {bool Function(Object)? test})).
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'then': Future.then (Future<R> Function<R>(FutureOr<R> Function(int), {Function? onError})), Future.then (Future<R> Function<R>(FutureOr<R> Function(String), {Function? onError})).
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'whenComplete': Future.whenComplete (Future<int> Function(FutureOr<void> Function())), Future.whenComplete (Future<String> Function(FutureOr<void> Function())).
+// [diag.conflictingGenericInterfaces] The class 'A2' can't implement both 'Future<int>' and 'Future<String>' because the type arguments are different.
 abstract class B1 implements Future<String> {}
 abstract class B2 extends B1 implements Future<int> {}
+//             ^^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'catchError': Future.catchError (Future<String> Function(Function, {bool Function(Object)? test})), Future.catchError (Future<int> Function(Function, {bool Function(Object)? test})).
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'then': Future.then (Future<R> Function<R>(FutureOr<R> Function(String), {Function? onError})), Future.then (Future<R> Function<R>(FutureOr<R> Function(int), {Function? onError})).
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'whenComplete': Future.whenComplete (Future<String> Function(FutureOr<void> Function())), Future.whenComplete (Future<int> Function(FutureOr<void> Function())).
+// [diag.conflictingGenericInterfaces] The class 'B2' can't implement both 'Future<String>' and 'Future<int>' because the type arguments are different.
 late A2 a;
 late B2 b;
-''',
-      [
-        error(diag.inconsistentInheritance, 59, 2),
-        error(diag.inconsistentInheritance, 59, 2),
-        error(diag.inconsistentInheritance, 59, 2),
-        error(diag.conflictingGenericInterfaces, 59, 2),
-        error(diag.inconsistentInheritance, 164, 2),
-        error(diag.inconsistentInheritance, 164, 2),
-        error(diag.inconsistentInheritance, 164, 2),
-        error(diag.conflictingGenericInterfaces, 164, 2),
-      ],
-    );
+''');
     var aType = findElement2.topVar('a').type;
     var bType = findElement2.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more

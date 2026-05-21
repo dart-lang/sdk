@@ -6,7 +6,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -146,12 +145,12 @@ class LineInfoTest {
 @reflectiveTest
 class NodeReplacerTest extends ParserDiagnosticsTest {
   void test_adjacentStrings() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   'aaa' 'bbb';
 }
 ''');
-    var adjacentStrings = findNode.adjacentStrings('aaa');
+    var adjacentStrings = parseResult.findNode.adjacentStrings('aaa');
     _assertReplaceInList(
       destination: adjacentStrings,
       child: adjacentStrings.strings[0],
@@ -160,14 +159,14 @@ void f() {
   }
 
   void test_annotation() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @prefix.A<int>.named(args)
 @prefix.B<double>.named(args)
 void f() {}
 ''');
     _assertReplacementForChildren<Annotation>(
-      destination: findNode.annotation('prefix.A'),
-      source: findNode.annotation('prefix.B'),
+      destination: parseResult.findNode.annotation('prefix.A'),
+      source: parseResult.findNode.annotation('prefix.B'),
       childAccessors: [
         (node) => node.arguments!,
         (node) => node.constructorName!,
@@ -178,12 +177,12 @@ void f() {}
   }
 
   void test_argumentList() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   g(0, 1);
 }
 ''');
-    var argumentList = findNode.argumentList('(0, 1)');
+    var argumentList = parseResult.findNode.argumentList('(0, 1)');
     _assertReplaceInList(
       destination: argumentList,
       child: argumentList.arguments[0],
@@ -192,43 +191,43 @@ void f() {
   }
 
   void test_asExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   0 as int;
   1 as int;
 }
 ''');
     _assertReplacementForChildren<AsExpression>(
-      destination: findNode.as_('0 as'),
-      source: findNode.as_('1 as'),
+      destination: parseResult.findNode.as_('0 as'),
+      source: parseResult.findNode.as_('1 as'),
       childAccessors: [(node) => node.expression, (node) => node.type],
     );
   }
 
   void test_assertStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   assert(true, 'first');
   assert(true, 'second');
 }
 ''');
     _assertReplacementForChildren<AssertStatement>(
-      destination: findNode.assertStatement('first'),
-      source: findNode.assertStatement('second'),
+      destination: parseResult.findNode.assertStatement('first'),
+      source: parseResult.findNode.assertStatement('second'),
       childAccessors: [(node) => node.condition, (node) => node.message!],
     );
   }
 
   void test_assignmentExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   a = 0;
   b = 1;
 }
 ''');
     _assertReplacementForChildren<AssignmentExpression>(
-      destination: findNode.assignment('a ='),
-      source: findNode.assignment('b ='),
+      destination: parseResult.findNode.assignment('a ='),
+      source: parseResult.findNode.assignment('b ='),
       childAccessors: [
         (node) => node.leftHandSide,
         (node) => node.rightHandSide,
@@ -237,41 +236,41 @@ void f() {
   }
 
   void test_awaitExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() async {
   await 0;
   await 1;
 }
 ''');
     _assertReplacementForChildren<AwaitExpression>(
-      destination: findNode.awaitExpression('0'),
-      source: findNode.awaitExpression('1'),
+      destination: parseResult.findNode.awaitExpression('0'),
+      source: parseResult.findNode.awaitExpression('1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_binaryExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   0 + 1;
   1 + 2;
 }
 ''');
     _assertReplacementForChildren<BinaryExpression>(
-      destination: findNode.binary('0 + 1'),
-      source: findNode.binary('1 + 2'),
+      destination: parseResult.findNode.binary('0 + 1'),
+      source: parseResult.findNode.binary('1 + 2'),
       childAccessors: [(node) => node.leftOperand, (node) => node.rightOperand],
     );
   }
 
   void test_block() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   print(0);
   print(1);
 }
 ''');
-    var block = findNode.block('{');
+    var block = parseResult.findNode.block('{');
     _assertReplaceInList(
       destination: block,
       child: block.statements[0],
@@ -280,7 +279,7 @@ void f() {
   }
 
   void test_blockFunctionBody() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   print('fff');
 }
@@ -290,14 +289,14 @@ void g() {
 }
 ''');
     _assertReplacementForChildren<BlockFunctionBody>(
-      destination: findNode.blockFunctionBody('fff'),
-      source: findNode.blockFunctionBody('ggg'),
+      destination: parseResult.findNode.blockFunctionBody('fff'),
+      source: parseResult.findNode.blockFunctionBody('ggg'),
       childAccessors: [(node) => node.block, (node) => node.block],
     );
   }
 
   void test_breakStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   while (true) {
     break first;
@@ -306,20 +305,20 @@ void f() {
 }
 ''');
     _assertReplacementForChildren<BreakStatement>(
-      destination: findNode.breakStatement('first'),
-      source: findNode.breakStatement('second'),
+      destination: parseResult.findNode.breakStatement('first'),
+      source: parseResult.findNode.breakStatement('second'),
       childAccessors: [(node) => node.label!],
     );
   }
 
   void test_cascadeExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   0..foo..bar;
   1..foo;
 }
 ''');
-    var cascadeExpression = findNode.cascade('0');
+    var cascadeExpression = parseResult.findNode.cascade('0');
     _assertReplaceInList(
       destination: cascadeExpression,
       child: cascadeExpression.cascadeSections[0],
@@ -327,22 +326,22 @@ void f() {
     );
 
     _assertReplacementForChildren<CascadeExpression>(
-      destination: findNode.cascade('0'),
-      source: findNode.cascade('1'),
+      destination: parseResult.findNode.cascade('0'),
+      source: parseResult.findNode.cascade('1'),
       childAccessors: [(node) => node.target],
     );
   }
 
   void test_catchClause() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   try {} on E catch (e, st) {}
   try {} on E2 catch (e2, st2) {}
 }
 ''');
     _assertReplacementForChildren<CatchClause>(
-      destination: findNode.catchClause('(e,'),
-      source: findNode.catchClause('(e2,'),
+      destination: parseResult.findNode.catchClause('(e,'),
+      source: parseResult.findNode.catchClause('(e2,'),
       childAccessors: [
         (node) => node.exceptionType!,
         (node) => node.exceptionParameter!,
@@ -353,7 +352,7 @@ void f() {
   }
 
   void test_classTypeAlias() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 /// Comment A.
 @myA1
 @myA2
@@ -362,11 +361,11 @@ class A<T> = A0 with M implements I;
 /// Comment B.
 class B<U> = B0 with N implements J;
 ''');
-    var destination = findNode.classTypeAlias('A<T>');
+    var destination = parseResult.findNode.classTypeAlias('A<T>');
     _assertAnnotatedNode(destination);
     _assertReplacementForChildren<ClassTypeAlias>(
       destination: destination,
-      source: findNode.classTypeAlias('B<U>'),
+      source: parseResult.findNode.classTypeAlias('B<U>'),
       childAccessors: [
         (node) => node.documentationComment!,
         (node) => node.superclass,
@@ -382,11 +381,11 @@ class B<U> = B0 with N implements J;
   }
 
   void test_comment() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 /// Has [foo] and [bar].
 void f() {}
 ''');
-    var comment = findNode.comment('Has');
+    var comment = parseResult.findNode.comment('Has');
     _assertReplaceInList(
       destination: comment,
       child: comment.references[0],
@@ -395,25 +394,25 @@ void f() {}
   }
 
   void test_commentReference() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 /// Has [foo] and [bar].
 void f() {}
 ''');
     _assertReplacementForChildren<CommentReference>(
-      destination: findNode.commentReference('foo'),
-      source: findNode.commentReference('bar'),
+      destination: parseResult.findNode.commentReference('foo'),
+      source: parseResult.findNode.commentReference('bar'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_compilationUnit() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 import 'a.dart';
 import 'b.dart';
 class A {}
 class B {}
 ''');
-    var unit = findNode.unit;
+    var unit = parseResult.findNode.unit;
     _assertReplaceInList(
       destination: unit,
       child: unit.directives[0],
@@ -427,15 +426,15 @@ class B {}
   }
 
   void test_conditionalExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   true ? 0 : 1;
   false ? 2 : 3;
 }
 ''');
     _assertReplacementForChildren<ConditionalExpression>(
-      destination: findNode.conditionalExpression('true'),
-      source: findNode.conditionalExpression('false'),
+      destination: parseResult.findNode.conditionalExpression('true'),
+      source: parseResult.findNode.conditionalExpression('false'),
       childAccessors: [
         (node) => node.condition,
         (node) => node.thenExpression,
@@ -445,7 +444,7 @@ void f() {
   }
 
   void test_constantPattern() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(x) async {
   if (x case 0) {}
   if (x case 1) {}
@@ -453,15 +452,17 @@ void f(x) async {
 ''');
     _assertReplacementForChildren<ConstantPattern>(
       destination:
-          findNode.caseClause('0').guardedPattern.pattern as ConstantPattern,
+          parseResult.findNode.caseClause('0').guardedPattern.pattern
+              as ConstantPattern,
       source:
-          findNode.caseClause('1').guardedPattern.pattern as ConstantPattern,
+          parseResult.findNode.caseClause('1').guardedPattern.pattern
+              as ConstantPattern,
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_constructorDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   @myA1
   @myA2
@@ -473,15 +474,15 @@ class B {
 }
 ''');
     _assertReplacementForChildren<ConstructorDeclaration>(
-      destination: findNode.constructor('A.named'),
-      source: findNode.constructor('B.named'),
+      destination: parseResult.findNode.constructor('A.named'),
+      source: parseResult.findNode.constructor('B.named'),
       childAccessors: [(node) => node.body, (node) => node.parameters],
     );
-    _assertAnnotatedNode(findNode.constructor('A.named'));
+    _assertAnnotatedNode(parseResult.findNode.constructor('A.named'));
   }
 
   void test_constructorDeclaration_redirectedConstructor() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   factory A() = R;
 }
@@ -491,41 +492,41 @@ class B {
 }
 ''');
     _assertReplacementForChildren<ConstructorDeclaration>(
-      destination: findNode.constructor('factory A'),
-      source: findNode.constructor('factory B'),
+      destination: parseResult.findNode.constructor('factory A'),
+      source: parseResult.findNode.constructor('factory B'),
       childAccessors: [(node) => node.redirectedConstructor!],
     );
   }
 
   void test_constructorFieldInitializer() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A() : a = 0, b = 1;
 }
 ''');
     _assertReplacementForChildren<ConstructorFieldInitializer>(
-      destination: findNode.constructorFieldInitializer('a ='),
-      source: findNode.constructorFieldInitializer('b ='),
+      destination: parseResult.findNode.constructorFieldInitializer('a ='),
+      source: parseResult.findNode.constructorFieldInitializer('b ='),
       childAccessors: [(node) => node.fieldName, (node) => node.expression],
     );
   }
 
   void test_constructorName() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   new prefix.A.foo();
   new prefix.B.bar();
 }
 ''');
     _assertReplacementForChildren<ConstructorName>(
-      destination: findNode.constructorName('A.foo'),
-      source: findNode.constructorName('B.bar'),
+      destination: parseResult.findNode.constructorName('A.foo'),
+      source: parseResult.findNode.constructorName('B.bar'),
       childAccessors: [(node) => node.type, (node) => node.name!],
     );
   }
 
   void test_continueStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   while (true) {
     continue first;
@@ -534,74 +535,74 @@ void f() {
 }
 ''');
     _assertReplacementForChildren<ContinueStatement>(
-      destination: findNode.continueStatement('first'),
-      source: findNode.continueStatement('second'),
+      destination: parseResult.findNode.continueStatement('first'),
+      source: parseResult.findNode.continueStatement('second'),
       childAccessors: [(node) => node.label!],
     );
   }
 
   void test_declaredIdentifier() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   for (int i in []) {}
   for (double j in []) {}
 }
 ''');
     _assertReplacementForChildren<DeclaredIdentifier>(
-      destination: findNode.declaredIdentifier('i in'),
-      source: findNode.declaredIdentifier('j in'),
+      destination: parseResult.findNode.declaredIdentifier('i in'),
+      source: parseResult.findNode.declaredIdentifier('j in'),
       childAccessors: [(node) => node.type!],
     );
   }
 
   void test_defaultFormalParameter() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f({int a = 0, double b = 1}) {}
 ''');
     _assertReplacementForChildren<FormalParameter>(
-      destination: findNode.formalParameter('a ='),
-      source: findNode.formalParameter('b ='),
+      destination: parseResult.findNode.formalParameter('a ='),
+      source: parseResult.findNode.formalParameter('b ='),
       childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
   void test_doStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f({int a = 0, double b = 1}) {}
 ''');
     _assertReplacementForChildren<FormalParameter>(
-      destination: findNode.formalParameter('a ='),
-      source: findNode.formalParameter('b ='),
+      destination: parseResult.findNode.formalParameter('a ='),
+      source: parseResult.findNode.formalParameter('b ='),
       childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
   void test_enumBody_constants() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 enum E1 {one}
 enum E2 {two}
 ''');
     _assertReplaceInList(
-      destination: findNode.enumDeclaration('enum E1').body,
-      child: findNode.enumConstantDeclaration('one'),
-      replacement: findNode.enumConstantDeclaration('two'),
+      destination: parseResult.findNode.enumDeclaration('enum E1').body,
+      child: parseResult.findNode.enumConstantDeclaration('one'),
+      replacement: parseResult.findNode.enumConstantDeclaration('two'),
     );
   }
 
   void test_enumBody_members() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 enum E1 {one; void foo() {}}
 enum E2 {two; void bar() {}}
 ''');
     _assertReplaceInList(
-      destination: findNode.enumDeclaration('enum E1').body,
-      child: findNode.methodDeclaration('foo'),
-      replacement: findNode.methodDeclaration('bar'),
+      destination: parseResult.findNode.enumDeclaration('enum E1').body,
+      child: parseResult.findNode.methodDeclaration('foo'),
+      replacement: parseResult.findNode.methodDeclaration('bar'),
     );
   }
 
   void test_enumConstantDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 enum E {
   @myA1
   @myA2
@@ -609,17 +610,17 @@ enum E {
   bbb;
 }
 ''');
-    _assertAnnotatedNode(findNode.enumConstantDeclaration('aaa'));
+    _assertAnnotatedNode(parseResult.findNode.enumConstantDeclaration('aaa'));
   }
 
   void test_enumDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 enum E1<T> with M1 implements I1 {one, two}
 enum E2<U> with M2 implements I2 {one, two}
 ''');
     _assertReplacementForChildren<EnumDeclaration>(
-      destination: findNode.enumDeclaration('enum E1'),
-      source: findNode.enumDeclaration('enum E2'),
+      destination: parseResult.findNode.enumDeclaration('enum E1'),
+      source: parseResult.findNode.enumDeclaration('enum E2'),
       childAccessors: [
         (node) => node.withClause!,
         (node) => node.implementsClause!,
@@ -628,13 +629,13 @@ enum E2<U> with M2 implements I2 {one, two}
   }
 
   void test_exportDirective() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 export 'a.dart' hide A show B;
 export 'b.dart';
 ''');
-    var export_a = findNode.export('a.dart');
+    var export_a = parseResult.findNode.export('a.dart');
     _assertAnnotatedNode(export_a);
     _assertReplaceInList(
       destination: export_a,
@@ -642,52 +643,52 @@ export 'b.dart';
       replacement: export_a.combinators[1],
     );
     _assertReplacementForChildren<ExportDirective>(
-      destination: findNode.export('a.dart'),
-      source: findNode.export('b.dart'),
+      destination: parseResult.findNode.export('a.dart'),
+      source: parseResult.findNode.export('b.dart'),
       childAccessors: [(node) => node.uri],
     );
   }
 
   void test_expressionFunctionBody() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() => 0;
 void g() => 1;
 ''');
     _assertReplacementForChildren<ExpressionFunctionBody>(
-      destination: findNode.expressionFunctionBody('0'),
-      source: findNode.expressionFunctionBody('1'),
+      destination: parseResult.findNode.expressionFunctionBody('0'),
+      source: parseResult.findNode.expressionFunctionBody('1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_expressionStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   0;
   1;
 }
 ''');
     _assertReplacementForChildren<ExpressionStatement>(
-      destination: findNode.expressionStatement('0'),
-      source: findNode.expressionStatement('1'),
+      destination: parseResult.findNode.expressionStatement('0'),
+      source: parseResult.findNode.expressionStatement('1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_extendsClause() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A extends A0 {}
 class B extends B0 {}
 ''');
     _assertReplacementForChildren<ExtendsClause>(
-      destination: findNode.extendsClause('A0'),
-      source: findNode.extendsClause('B0'),
+      destination: parseResult.findNode.extendsClause('A0'),
+      source: parseResult.findNode.extendsClause('B0'),
       childAccessors: [(node) => node.superclass],
     );
   }
 
   void test_extensionDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 /// Comment A.
 @myA1
 @myA2
@@ -696,11 +697,11 @@ extension E<T> on int {}
 /// Comment B.
 extension F<U> on double {}
 ''');
-    var destination = findNode.extensionDeclaration('E<T>');
+    var destination = parseResult.findNode.extensionDeclaration('E<T>');
     _assertAnnotatedNode(destination);
     _assertReplacementForChildren<ExtensionDeclaration>(
       destination: destination,
-      source: findNode.extensionDeclaration('F<U>'),
+      source: parseResult.findNode.extensionDeclaration('F<U>'),
       childAccessors: [
         (node) => node.documentationComment!,
         (node) => node.typeParameters!,
@@ -713,7 +714,7 @@ extension F<U> on double {}
   }
 
   void test_fieldDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   @myA1
   @myA2
@@ -722,29 +723,29 @@ class A {
 }
 class B extends B0 {}
 ''');
-    _assertAnnotatedNode(findNode.fieldDeclaration('foo'));
+    _assertAnnotatedNode(parseResult.findNode.fieldDeclaration('foo'));
     _assertReplacementForChildren<FieldDeclaration>(
-      destination: findNode.fieldDeclaration('foo'),
-      source: findNode.fieldDeclaration('bar'),
+      destination: parseResult.findNode.fieldDeclaration('foo'),
+      source: parseResult.findNode.fieldDeclaration('bar'),
       childAccessors: [(node) => node.fields],
     );
   }
 
   void test_fieldFormalParameter() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A([int this.foo = 0, double this.bar = 1]);
 }
 ''');
     _assertReplacementForChildren<FieldFormalParameter>(
-      destination: findNode.fieldFormalParameter('foo ='),
-      source: findNode.fieldFormalParameter('bar ='),
+      destination: parseResult.findNode.fieldFormalParameter('foo ='),
+      source: parseResult.findNode.fieldFormalParameter('bar ='),
       childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
   void test_fieldFormalParameter_functionTyped() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A(
     @myA1
@@ -754,11 +755,11 @@ class A {
   );
 }
 ''');
-    var foo = findNode.fieldFormalParameter('foo');
+    var foo = parseResult.findNode.fieldFormalParameter('foo');
     _assertFormalParameterMetadata(foo);
     _assertReplacementForChildren<FieldFormalParameter>(
-      destination: findNode.fieldFormalParameter('foo'),
-      source: findNode.fieldFormalParameter('bar'),
+      destination: parseResult.findNode.fieldFormalParameter('foo'),
+      source: parseResult.findNode.fieldFormalParameter('bar'),
       childAccessors: [
         (node) => node.type!,
         (node) => node.functionTypedSuffix!,
@@ -767,80 +768,80 @@ class A {
   }
 
   void test_forEachPartsWithDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   for (int a in []) {}
   for (int b in []) {}
 }
 ''');
     _assertReplacementForChildren<ForEachPartsWithDeclaration>(
-      destination: findNode.forEachPartsWithDeclaration('a in'),
-      source: findNode.forEachPartsWithDeclaration('b in'),
+      destination: parseResult.findNode.forEachPartsWithDeclaration('a in'),
+      source: parseResult.findNode.forEachPartsWithDeclaration('b in'),
       childAccessors: [(node) => node.loopVariable, (node) => node.iterable],
     );
   }
 
   void test_forEachPartsWithIdentifier() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   for (a in []) {}
   for (b in []) {}
 }
 ''');
     _assertReplacementForChildren<ForEachPartsWithIdentifier>(
-      destination: findNode.forEachPartsWithIdentifier('a in'),
-      source: findNode.forEachPartsWithIdentifier('b in'),
+      destination: parseResult.findNode.forEachPartsWithIdentifier('a in'),
+      source: parseResult.findNode.forEachPartsWithIdentifier('b in'),
       childAccessors: [(node) => node.identifier, (node) => node.iterable],
     );
   }
 
   void test_forEachPartsWithPattern() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   for (var (a) in []) {}
   for (var (b) in []) {}
 }
 ''');
     _assertReplacementForChildren<ForEachPartsWithPattern>(
-      destination: findNode.forEachPartsWithPattern('(a)'),
-      source: findNode.forEachPartsWithPattern('(b)'),
+      destination: parseResult.findNode.forEachPartsWithPattern('(a)'),
+      source: parseResult.findNode.forEachPartsWithPattern('(b)'),
       childAccessors: [(node) => node.iterable],
     );
   }
 
   void test_forEachStatement_withIdentifier() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(int a) {
   for (a in []) {}
   for (b in []) {}
 }
 ''');
     _assertReplacementForChildren<ForStatement>(
-      destination: findNode.forStatement('a in'),
-      source: findNode.forStatement('b in'),
+      destination: parseResult.findNode.forStatement('a in'),
+      source: parseResult.findNode.forStatement('b in'),
       childAccessors: [(node) => node.body, (node) => node.forLoopParts],
     );
   }
 
   void test_formalParameterList() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(int a, int b) {}
 ''');
     _assertReplaceInList(
-      destination: findNode.formalParameterList('int a'),
-      child: findNode.regularFormalParameter('int a'),
-      replacement: findNode.regularFormalParameter('int b'),
+      destination: parseResult.findNode.formalParameterList('int a'),
+      child: parseResult.findNode.regularFormalParameter('int a'),
+      replacement: parseResult.findNode.regularFormalParameter('int b'),
     );
   }
 
   void test_forPartsWithDeclarations() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   for (int i = 0; i < 8; i++, i += 2) {}
   for (int j = 0; j < 8; j++) {}
 }
 ''');
-    var for_i = findNode.forPartsWithDeclarations('i = 0');
+    var for_i = parseResult.findNode.forPartsWithDeclarations('i = 0');
     _assertReplaceInList(
       destination: for_i,
       child: for_i.updaters[0],
@@ -848,19 +849,19 @@ void f() {
     );
     _assertReplacementForChildren<ForPartsWithDeclarations>(
       destination: for_i,
-      source: findNode.forPartsWithDeclarations('j = 0'),
+      source: parseResult.findNode.forPartsWithDeclarations('j = 0'),
       childAccessors: [(node) => node.variables, (node) => node.condition!],
     );
   }
 
   void test_forPartsWithExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   for (i = 0; i < 8; i++, i += 2) {}
   for (j = 0; j < 8; j++) {}
 }
 ''');
-    var for_i = findNode.forPartsWithExpression('i = 0');
+    var for_i = parseResult.findNode.forPartsWithExpression('i = 0');
     _assertReplaceInList(
       destination: for_i,
       child: for_i.updaters[0],
@@ -868,7 +869,7 @@ void f() {
     );
     _assertReplacementForChildren<ForPartsWithExpression>(
       destination: for_i,
-      source: findNode.forPartsWithExpression('j = 0'),
+      source: parseResult.findNode.forPartsWithExpression('j = 0'),
       childAccessors: [
         (node) => node.initialization!,
         (node) => node.condition!,
@@ -877,16 +878,16 @@ void f() {
   }
 
   void test_functionDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 int f() => 0;
 double g() => 0;
 ''');
-    _assertAnnotatedNode(findNode.functionDeclaration('f()'));
+    _assertAnnotatedNode(parseResult.findNode.functionDeclaration('f()'));
     _assertReplacementForChildren<FunctionDeclaration>(
-      destination: findNode.functionDeclaration('f()'),
-      source: findNode.functionDeclaration('g()'),
+      destination: parseResult.findNode.functionDeclaration('f()'),
+      source: parseResult.findNode.functionDeclaration('g()'),
       childAccessors: [
         (node) => node.functionExpression,
         (node) => node.returnType!,
@@ -895,21 +896,21 @@ double g() => 0;
   }
 
   void test_functionDeclarationStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   void g() {}
   void h() {}
 }
 ''');
     _assertReplacementForChildren<FunctionDeclarationStatement>(
-      destination: findNode.functionDeclarationStatement('g()'),
-      source: findNode.functionDeclarationStatement('h()'),
+      destination: parseResult.findNode.functionDeclarationStatement('g()'),
+      source: parseResult.findNode.functionDeclarationStatement('h()'),
       childAccessors: [(node) => node.functionDeclaration],
     );
   }
 
   void test_functionExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f<T>(int a) {
   0;
 }
@@ -917,10 +918,10 @@ void g<U>(double b) {
   1;
 }
 ''');
-    var destination = findNode.functionExpression('T>');
+    var destination = parseResult.findNode.functionExpression('T>');
     _assertReplacementForChildren<FunctionExpression>(
       destination: destination,
-      source: findNode.functionExpression('U>'),
+      source: parseResult.findNode.functionExpression('U>'),
       childAccessors: [
         (node) => node.body,
         (node) => node.parameters!,
@@ -934,15 +935,15 @@ void g<U>(double b) {
   }
 
   void test_functionExpressionInvocation() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   (g)<int>(0);
   (h)<double>(1);
 }
 ''');
     _assertReplacementForChildren<FunctionExpressionInvocation>(
-      destination: findNode.functionExpressionInvocation('<int>'),
-      source: findNode.functionExpressionInvocation('<double>'),
+      destination: parseResult.findNode.functionExpressionInvocation('<int>'),
+      source: parseResult.findNode.functionExpressionInvocation('<double>'),
       childAccessors: [
         (node) => node.function,
         (node) => node.typeArguments!,
@@ -952,17 +953,17 @@ void f() {
   }
 
   void test_functionTypeAlias() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 typedef int F<T>(int a);
 typedef double G<U>(double b);
 ''');
-    var destination = findNode.functionTypeAlias('int F');
+    var destination = parseResult.findNode.functionTypeAlias('int F');
     _assertAnnotatedNode(destination);
     _assertReplacementForChildren<FunctionTypeAlias>(
       destination: destination,
-      source: findNode.functionTypeAlias('double G'),
+      source: parseResult.findNode.functionTypeAlias('double G'),
       childAccessors: [
         (node) => node.parameters,
         (node) => node.returnType!,
@@ -976,16 +977,18 @@ typedef double G<U>(double b);
   }
 
   void test_functionTypedFormalParameterSuffix() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(
   int a<T>(int a1),
   double b<U>(double b2),
 ) {}
 ''');
-    var destination = findNode.functionTypedFormalParameterSuffix('T>');
+    var destination = parseResult.findNode.functionTypedFormalParameterSuffix(
+      'T>',
+    );
     _assertReplacementForChildren<FunctionTypedFormalParameterSuffix>(
       destination: destination,
-      source: findNode.functionTypedFormalParameterSuffix('U>'),
+      source: parseResult.findNode.functionTypedFormalParameterSuffix('U>'),
       childAccessors: [
         (node) => node.typeParameters!,
         (node) => node.formalParameters,
@@ -998,14 +1001,14 @@ void f(
   }
 
   void test_genericFunctionType() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 typedef A = int Function<T>(int a);
 typedef B = double Function<U>(double b);
 ''');
-    var destination = findNode.genericFunctionType('Function<T>');
+    var destination = parseResult.findNode.genericFunctionType('Function<T>');
     _assertReplacementForChildren<GenericFunctionType>(
       destination: destination,
-      source: findNode.genericFunctionType('Function<U>'),
+      source: parseResult.findNode.genericFunctionType('Function<U>'),
       childAccessors: [
         (node) => node.returnType!,
         (node) => node.typeParameters!,
@@ -1019,17 +1022,17 @@ typedef B = double Function<U>(double b);
   }
 
   void test_genericTypeAlias() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 typedef A<T> = int;
 typedef B<U> = double;
 ''');
-    var destination = findNode.genericTypeAlias('A<T>');
+    var destination = parseResult.findNode.genericTypeAlias('A<T>');
     _assertAnnotatedNode(destination);
     _assertReplacementForChildren<GenericTypeAlias>(
       destination: destination,
-      source: findNode.genericTypeAlias('B<U>'),
+      source: parseResult.findNode.genericTypeAlias('B<U>'),
       childAccessors: [(node) => node.typeParameters!, (node) => node.type],
     );
     _assertRemovalForNullableChild<GenericTypeAlias>(
@@ -1039,10 +1042,10 @@ typedef B<U> = double;
   }
 
   void test_hideCombinator() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 import '' hide A, B;
 ''');
-    var node = findNode.hideCombinator('hide');
+    var node = parseResult.findNode.hideCombinator('hide');
     _assertReplaceInList(
       destination: node,
       child: node.hiddenNames[0],
@@ -1051,7 +1054,7 @@ import '' hide A, B;
   }
 
   void test_ifStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   if (true) {
     0;
@@ -1066,8 +1069,8 @@ void f() {
 }
 ''');
     _assertReplacementForChildren<IfStatement>(
-      destination: findNode.ifStatement('true'),
-      source: findNode.ifStatement('false'),
+      destination: parseResult.findNode.ifStatement('true'),
+      source: parseResult.findNode.ifStatement('false'),
       childAccessors: [
         (node) => node.expression,
         (node) => node.thenStatement,
@@ -1077,10 +1080,10 @@ void f() {
   }
 
   void test_implementsClause() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A implements I, J {}
 ''');
-    var node = findNode.implementsClause('implements');
+    var node = parseResult.findNode.implementsClause('implements');
     _assertReplaceInList(
       destination: node,
       child: node.interfaces[0],
@@ -1089,13 +1092,13 @@ class A implements I, J {}
   }
 
   void test_importDirective() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 import 'a.dart' hide A show B;
 import 'b.dart';
 ''');
-    var import_a = findNode.import('a.dart');
+    var import_a = parseResult.findNode.import('a.dart');
     _assertAnnotatedNode(import_a);
     _assertReplaceInList(
       destination: import_a,
@@ -1103,36 +1106,36 @@ import 'b.dart';
       replacement: import_a.combinators[1],
     );
     _assertReplacementForChildren<ImportDirective>(
-      destination: findNode.import('a.dart'),
-      source: findNode.import('b.dart'),
+      destination: parseResult.findNode.import('a.dart'),
+      source: parseResult.findNode.import('b.dart'),
       childAccessors: [(node) => node.uri],
     );
   }
 
   void test_indexExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   a[0];
   b[1];
 }
 ''');
     _assertReplacementForChildren<IndexExpression>(
-      destination: findNode.index('[0]'),
-      source: findNode.index('[1]'),
+      destination: parseResult.findNode.index('[0]'),
+      source: parseResult.findNode.index('[1]'),
       childAccessors: [(node) => node.target!, (node) => node.index],
     );
   }
 
   void test_instanceCreationExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   new A(0);
   new B(1);
 }
 ''');
     _assertReplacementForChildren<InstanceCreationExpression>(
-      destination: findNode.instanceCreation('A('),
-      source: findNode.instanceCreation('B('),
+      destination: parseResult.findNode.instanceCreation('A('),
+      source: parseResult.findNode.instanceCreation('B('),
       childAccessors: [
         (node) => node.constructorName,
         (node) => node.argumentList,
@@ -1141,40 +1144,40 @@ void f() {
   }
 
   void test_interpolationExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   '$foo $bar';
 }
 ''');
     _assertReplacementForChildren<InterpolationExpression>(
-      destination: findNode.interpolationExpression('foo'),
-      source: findNode.interpolationExpression('bar'),
+      destination: parseResult.findNode.interpolationExpression('foo'),
+      source: parseResult.findNode.interpolationExpression('bar'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_isExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   0 is int;
   1 is double;
 }
 ''');
     _assertReplacementForChildren<IsExpression>(
-      destination: findNode.isExpression('0 is'),
-      source: findNode.isExpression('1 is'),
+      destination: parseResult.findNode.isExpression('0 is'),
+      source: parseResult.findNode.isExpression('1 is'),
       childAccessors: [(node) => node.expression, (node) => node.type],
     );
   }
 
   void test_labeledStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   foo: bar: 0;
   baz: 1;
 }
 ''');
-    var foo = findNode.labeledStatement('foo');
+    var foo = parseResult.findNode.labeledStatement('foo');
     _assertReplaceInList(
       destination: foo,
       child: foo.labels[0],
@@ -1182,18 +1185,18 @@ void f() {
     );
     _assertReplacementForChildren<LabeledStatement>(
       destination: foo,
-      source: findNode.labeledStatement('baz'),
+      source: parseResult.findNode.labeledStatement('baz'),
       childAccessors: [(node) => node.statement],
     );
   }
 
   void test_libraryDirective() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 library foo;
 ''');
-    var node = findNode.singleLibraryDirective;
+    var node = parseResult.findNode.singleLibraryDirective;
     _assertAnnotatedNode(node);
     _assertReplacementForChildren<LibraryDirective>(
       destination: node,
@@ -1203,40 +1206,40 @@ library foo;
   }
 
   void test_listLiteral() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   <int>[0, 1];
   <double>[];
 }
 ''');
-    var node = findNode.listLiteral('[0');
+    var node = parseResult.findNode.listLiteral('[0');
     _assertReplaceInList(
       destination: node,
       child: node.elements[0],
       replacement: node.elements[1],
     );
     _assertReplacementForChildren<ListLiteral>(
-      destination: findNode.listLiteral('<int>'),
-      source: findNode.listLiteral('<double>'),
+      destination: parseResult.findNode.listLiteral('<int>'),
+      source: parseResult.findNode.listLiteral('<double>'),
       childAccessors: [(node) => node.typeArguments!],
     );
   }
 
   void test_mapLiteralEntry() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   <int, int>{0: 1, 2: 3};
 }
 ''');
     _assertReplacementForChildren<MapLiteralEntry>(
-      destination: findNode.mapLiteralEntry('0: 1'),
-      source: findNode.mapLiteralEntry('2: 3'),
+      destination: parseResult.findNode.mapLiteralEntry('0: 1'),
+      source: parseResult.findNode.mapLiteralEntry('2: 3'),
       childAccessors: [(node) => node.key, (node) => node.value],
     );
   }
 
   void test_methodDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   @myA1
   @myA2
@@ -1249,11 +1252,11 @@ class A {
   }
 }
 ''');
-    var destination = findNode.methodDeclaration('a<T>');
+    var destination = parseResult.findNode.methodDeclaration('a<T>');
     _assertAnnotatedNode(destination);
     _assertReplacementForChildren<MethodDeclaration>(
       destination: destination,
-      source: findNode.methodDeclaration('b<U>'),
+      source: parseResult.findNode.methodDeclaration('b<U>'),
       childAccessors: [
         (node) => node.returnType!,
         (node) => node.typeParameters!,
@@ -1268,15 +1271,15 @@ class A {
   }
 
   void test_methodInvocation() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   a.foo<int>(0);
   b.bar<double>(1);
 }
 ''');
     _assertReplacementForChildren<MethodInvocation>(
-      destination: findNode.methodInvocation('foo'),
-      source: findNode.methodInvocation('bar'),
+      destination: parseResult.findNode.methodInvocation('foo'),
+      source: parseResult.findNode.methodInvocation('bar'),
       childAccessors: [
         (node) => node.target!,
         (node) => node.typeArguments!,
@@ -1286,7 +1289,7 @@ void f() {
   }
 
   void test_mixinDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 mixin A<T> on A0 implements I {
@@ -1296,11 +1299,11 @@ mixin B<U> on B0 implements J {
   void b() {}
 }
 ''');
-    var destination = findNode.mixinDeclaration('A<T>');
+    var destination = parseResult.findNode.mixinDeclaration('A<T>');
     _assertAnnotatedNode(destination);
     _assertReplacementForChildren<MixinDeclaration>(
       destination: destination,
-      source: findNode.mixinDeclaration('B<U>'),
+      source: parseResult.findNode.mixinDeclaration('B<U>'),
       childAccessors: [
         (node) => node.typeParameters!,
         (node) => node.onClause!,
@@ -1315,27 +1318,27 @@ mixin B<U> on B0 implements J {
   }
 
   void test_namedArgument() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   g(foo: 0, bar: 1);
 }
 ''');
     _assertReplacementForChildren<NamedArgument>(
-      destination: findNode.namedArgument('foo'),
-      source: findNode.namedArgument('bar'),
+      destination: parseResult.findNode.namedArgument('foo'),
+      source: parseResult.findNode.namedArgument('bar'),
       childAccessors: [(node) => node.argumentExpression],
     );
   }
 
   void test_nameWithTypeParameters() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A<T> {}
 class B<U> {}
 ''');
-    var destination = findNode.nameWithTypeParameters('A<T>');
+    var destination = parseResult.findNode.nameWithTypeParameters('A<T>');
     _assertReplacementForChildren<NameWithTypeParameters>(
       destination: destination,
-      source: findNode.nameWithTypeParameters('B<U>'),
+      source: parseResult.findNode.nameWithTypeParameters('B<U>'),
       childAccessors: [(node) => node.typeParameters!],
     );
     _assertRemovalForNullableChild<NameWithTypeParameters>(
@@ -1345,64 +1348,64 @@ class B<U> {}
   }
 
   void test_nativeFunctionBody() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() native 'foo';
 void g() native 'bar';
 ''');
     _assertReplacementForChildren<NativeFunctionBody>(
-      destination: findNode.nativeFunctionBody('foo'),
-      source: findNode.nativeFunctionBody('bar'),
+      destination: parseResult.findNode.nativeFunctionBody('foo'),
+      source: parseResult.findNode.nativeFunctionBody('bar'),
       childAccessors: [(node) => node.stringLiteral!],
     );
   }
 
   void test_parenthesizedExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   (0);
   (1);
 }
 ''');
     _assertReplacementForChildren<ParenthesizedExpression>(
-      destination: findNode.parenthesized('0'),
-      source: findNode.parenthesized('1'),
+      destination: parseResult.findNode.parenthesized('0'),
+      source: parseResult.findNode.parenthesized('1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_partDirective() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 part 'a.dart';
 part 'b.dart';
 ''');
-    var part_a = findNode.part('a.dart');
+    var part_a = parseResult.findNode.part('a.dart');
     _assertAnnotatedNode(part_a);
     _assertReplacementForChildren<PartDirective>(
-      destination: findNode.part('a.dart'),
-      source: findNode.part('b.dart'),
+      destination: parseResult.findNode.part('a.dart'),
+      source: parseResult.findNode.part('b.dart'),
       childAccessors: [(node) => node.uri],
     );
   }
 
   void test_partOfDirective() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 part of 'a.dart';
 ''');
-    var partOf_a = findNode.partOf('a.dart');
+    var partOf_a = parseResult.findNode.partOf('a.dart');
     _assertAnnotatedNode(partOf_a);
     _assertReplacementForChildren<PartOfDirective>(
-      destination: findNode.partOf('a.dart'),
-      source: findNode.partOf('a.dart'),
+      destination: parseResult.findNode.partOf('a.dart'),
+      source: parseResult.findNode.partOf('a.dart'),
       childAccessors: [(node) => node.uri!],
     );
   }
 
   void test_patternAssignment() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   int a;
   int b;
@@ -1411,77 +1414,79 @@ void f() {
 }
 ''');
     _assertReplacementForChildren<PatternAssignment>(
-      destination: findNode.patternAssignment('0'),
-      source: findNode.patternAssignment('1'),
+      destination: parseResult.findNode.patternAssignment('0'),
+      source: parseResult.findNode.patternAssignment('1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_patternVariableDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   var (a) = 0;
   var (b) = 1;
 }
 ''');
     _assertReplacementForChildren<PatternVariableDeclaration>(
-      destination: findNode.patternVariableDeclaration('0'),
-      source: findNode.patternVariableDeclaration('1'),
+      destination: parseResult.findNode.patternVariableDeclaration('0'),
+      source: parseResult.findNode.patternVariableDeclaration('1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_postfixExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   a++;
   b++;
 }
 ''');
     _assertReplacementForChildren<PostfixExpression>(
-      destination: findNode.postfix('a++'),
-      source: findNode.postfix('b++'),
+      destination: parseResult.findNode.postfix('a++'),
+      source: parseResult.findNode.postfix('b++'),
       childAccessors: [(node) => node.operand],
     );
   }
 
   void test_prefixedIdentifier() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   a.foo;
   b.bar;
 }
 ''');
     _assertReplacementForChildren<PrefixedIdentifier>(
-      destination: findNode.prefixed('a.foo'),
-      source: findNode.prefixed('b.bar'),
+      destination: parseResult.findNode.prefixed('a.foo'),
+      source: parseResult.findNode.prefixed('b.bar'),
       childAccessors: [(node) => node.prefix, (node) => node.identifier],
     );
   }
 
   void test_prefixExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   ++a;
   ++b;
 }
 ''');
     _assertReplacementForChildren<PrefixExpression>(
-      destination: findNode.prefix('++a'),
-      source: findNode.prefix('++b'),
+      destination: parseResult.findNode.prefix('++a'),
+      source: parseResult.findNode.prefix('++b'),
       childAccessors: [(node) => node.operand],
     );
   }
 
   void test_primaryConstructorDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A<T>.a(int a) {}
 class B<U>.b(double b) {}
 ''');
-    var destination = findNode.primaryConstructorDeclaration('A<T>');
+    var destination = parseResult.findNode.primaryConstructorDeclaration(
+      'A<T>',
+    );
     _assertReplacementForChildren<PrimaryConstructorDeclaration>(
       destination: destination,
-      source: findNode.primaryConstructorDeclaration('B<U>'),
+      source: parseResult.findNode.primaryConstructorDeclaration('B<U>'),
       childAccessors: [
         (node) => node.typeParameters!,
         (node) => node.constructorName!,
@@ -1495,26 +1500,26 @@ class B<U>.b(double b) {}
   }
 
   void test_propertyAccess() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   (a).foo;
   (b).bar;
 }
 ''');
     _assertReplacementForChildren<PropertyAccess>(
-      destination: findNode.propertyAccess('(a)'),
-      source: findNode.propertyAccess('(b)'),
+      destination: parseResult.findNode.propertyAccess('(a)'),
+      source: parseResult.findNode.propertyAccess('(b)'),
       childAccessors: [(node) => node.target!, (node) => node.propertyName],
     );
   }
 
   void test_recordLiteral() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   (1, 2);
 }
 ''');
-    var node = findNode.recordLiteral('(1');
+    var node = parseResult.findNode.recordLiteral('(1');
     _assertReplaceInList(
       destination: node,
       child: node.fields[0],
@@ -1523,7 +1528,7 @@ void f() {
   }
 
   void test_redirectingConstructorInvocation() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A.named();
   A.foo() : this.named(0);
@@ -1531,8 +1536,8 @@ class A {
 }
 ''');
     _assertReplacementForChildren<RedirectingConstructorInvocation>(
-      destination: findNode.redirectingConstructorInvocation('(0)'),
-      source: findNode.redirectingConstructorInvocation('(1)'),
+      destination: parseResult.findNode.redirectingConstructorInvocation('(0)'),
+      source: parseResult.findNode.redirectingConstructorInvocation('(1)'),
       childAccessors: [
         (node) => node.constructorName!,
         (node) => node.argumentList,
@@ -1541,18 +1546,20 @@ class A {
   }
 
   void test_regularFormalParameter() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f([int a = 0, double b = 1]) {}
 ''');
     _assertReplacementForChildren<RegularFormalParameter>(
-      destination: findNode.formalParameter('a =') as RegularFormalParameter,
-      source: findNode.formalParameter('b =') as RegularFormalParameter,
+      destination:
+          parseResult.findNode.formalParameter('a =') as RegularFormalParameter,
+      source:
+          parseResult.findNode.formalParameter('b =') as RegularFormalParameter,
       childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
   void test_regularFormalParameter_functionTyped() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(
   @myA1
   @myA2
@@ -1560,11 +1567,15 @@ void f(
   double b<U>(double b2),
 ) {}
 ''');
-    var a = findNode.formalParameter('a<T>');
+    var a = parseResult.findNode.formalParameter('a<T>');
     _assertFormalParameterMetadata(a);
     _assertReplacementForChildren<RegularFormalParameter>(
-      destination: findNode.formalParameter('a<T>') as RegularFormalParameter,
-      source: findNode.formalParameter('b<U>') as RegularFormalParameter,
+      destination:
+          parseResult.findNode.formalParameter('a<T>')
+              as RegularFormalParameter,
+      source:
+          parseResult.findNode.formalParameter('b<U>')
+              as RegularFormalParameter,
       childAccessors: [
         (node) => node.type!,
         (node) => node.functionTypedSuffix!,
@@ -1573,58 +1584,58 @@ void f(
   }
 
   void test_relationalPattern() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(x) {
   if (x case > 0) {}
   if (x case > 1) {}
 }
 ''');
     _assertReplacementForChildren<RelationalPattern>(
-      destination: findNode.relationalPattern('> 0'),
-      source: findNode.relationalPattern('> 1'),
+      destination: parseResult.findNode.relationalPattern('> 0'),
+      source: parseResult.findNode.relationalPattern('> 1'),
       childAccessors: [(node) => node.operand],
     );
   }
 
   void test_returnStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   return 0;
   return 1;
 }
 ''');
     _assertReplacementForChildren<ReturnStatement>(
-      destination: findNode.returnStatement('0;'),
-      source: findNode.returnStatement('1;'),
+      destination: parseResult.findNode.returnStatement('0;'),
+      source: parseResult.findNode.returnStatement('1;'),
       childAccessors: [(node) => node.expression!],
     );
   }
 
   void test_setOrMapLiteral() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   <int, int>{0: 1, 2: 3};
   <double, double>{};
 }
 ''');
-    var node = findNode.setOrMapLiteral('<int');
+    var node = parseResult.findNode.setOrMapLiteral('<int');
     _assertReplaceInList(
       destination: node,
       child: node.elements[0],
       replacement: node.elements[1],
     );
     _assertReplacementForChildren<SetOrMapLiteral>(
-      destination: findNode.setOrMapLiteral('<int'),
-      source: findNode.setOrMapLiteral('<double'),
+      destination: parseResult.findNode.setOrMapLiteral('<int'),
+      source: parseResult.findNode.setOrMapLiteral('<double'),
       childAccessors: [(node) => node.typeArguments!],
     );
   }
 
   void test_showCombinator() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 import '' show A, B;
 ''');
-    var node = findNode.showCombinator('show');
+    var node = parseResult.findNode.showCombinator('show');
     _assertReplaceInList(
       destination: node,
       child: node.shownNames[0],
@@ -1633,7 +1644,7 @@ import '' show A, B;
   }
 
   void test_simpleFormalParameter() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(
   @myA1
   @myA2
@@ -1641,22 +1652,22 @@ void f(
   int b
 ) {}
 ''');
-    var a = findNode.regularFormalParameter('int a');
+    var a = parseResult.findNode.regularFormalParameter('int a');
     _assertFormalParameterMetadata(a);
     _assertReplacementForChildren<RegularFormalParameter>(
       destination: a,
-      source: findNode.regularFormalParameter('int b'),
+      source: parseResult.findNode.regularFormalParameter('int b'),
       childAccessors: [(node) => node.type!],
     );
   }
 
   void test_stringInterpolation() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   'my $foo other $bar';
 }
 ''');
-    var node = findNode.stringInterpolation('foo');
+    var node = parseResult.findNode.stringInterpolation('foo');
     _assertReplaceInList(
       destination: node,
       child: node.elements[0],
@@ -1665,15 +1676,15 @@ void f() {
   }
 
   void test_superConstructorInvocation() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A.foo() : super.first(0);
   A.bar() : super.second(0);
 }
 ''');
     _assertReplacementForChildren<SuperConstructorInvocation>(
-      destination: findNode.superConstructorInvocation('first'),
-      source: findNode.superConstructorInvocation('second'),
+      destination: parseResult.findNode.superConstructorInvocation('first'),
+      source: parseResult.findNode.superConstructorInvocation('second'),
       childAccessors: [
         (node) => node.constructorName!,
         (node) => node.argumentList,
@@ -1682,7 +1693,7 @@ class A {
   }
 
   void test_superFormalParameter() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A([num a = 0]);
 }
@@ -1693,14 +1704,14 @@ class B extends A {
 }
 ''');
     _assertReplacementForChildren<SuperFormalParameter>(
-      destination: findNode.superFormalParameter('a1 ='),
-      source: findNode.superFormalParameter('a2 ='),
+      destination: parseResult.findNode.superFormalParameter('a1 ='),
+      source: parseResult.findNode.superFormalParameter('a2 ='),
       childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
   void test_superFormalParameter_functionTyped() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A(int foo<T>(int a));
 }
@@ -1711,8 +1722,8 @@ class B extends A {
 }
 ''');
     _assertReplacementForChildren<SuperFormalParameter>(
-      destination: findNode.superFormalParameter('bar1'),
-      source: findNode.superFormalParameter('bar2'),
+      destination: parseResult.findNode.superFormalParameter('bar1'),
+      source: parseResult.findNode.superFormalParameter('bar2'),
       childAccessors: [
         (node) => node.type!,
         (node) => node.functionTypedSuffix!,
@@ -1721,7 +1732,7 @@ class B extends A {
   }
 
   void test_switchCase_language219() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 // @dart = 2.19
 void f() {
   switch (x) {
@@ -1731,16 +1742,16 @@ void f() {
   }
 }
 ''');
-    _assertSwitchMember(findNode.switchCase('case 0'));
+    _assertSwitchMember(parseResult.findNode.switchCase('case 0'));
     _assertReplacementForChildren<SwitchCase>(
-      destination: findNode.switchCase('case 0'),
-      source: findNode.switchCase('case 1'),
+      destination: parseResult.findNode.switchCase('case 0'),
+      source: parseResult.findNode.switchCase('case 1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_switchDefault() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   switch (x) {
     foo: bar:
@@ -1748,11 +1759,11 @@ void f() {
   }
 }
 ''');
-    _assertSwitchMember(findNode.switchDefault('default: 0'));
+    _assertSwitchMember(parseResult.findNode.switchDefault('default: 0'));
   }
 
   void test_switchStatement_language219() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 // @dart = 2.19
 void f() {
   switch (0) {
@@ -1763,48 +1774,50 @@ void f() {
 }
 ''');
     _assertReplaceInList(
-      destination: findNode.switchStatement('(0)'),
-      child: findNode.switchCase('case 0'),
-      replacement: findNode.switchCase('case 1'),
+      destination: parseResult.findNode.switchStatement('(0)'),
+      child: parseResult.findNode.switchCase('case 0'),
+      replacement: parseResult.findNode.switchCase('case 1'),
     );
     _assertReplacementForChildren<SwitchStatement>(
-      destination: findNode.switchStatement('(0)'),
-      source: findNode.switchStatement('(1)'),
+      destination: parseResult.findNode.switchStatement('(0)'),
+      source: parseResult.findNode.switchStatement('(1)'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_throwExpression() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   throw 0;
   throw 1;
 }
 ''');
     _assertReplacementForChildren<ThrowExpression>(
-      destination: findNode.throw_('throw 0'),
-      source: findNode.throw_('throw 1'),
+      destination: parseResult.findNode.throw_('throw 0'),
+      source: parseResult.findNode.throw_('throw 1'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_topLevelVariableDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 @myA1
 @myA2
 var a = 0;
 var b = 1;
 ''');
-    _assertAnnotatedNode(findNode.topLevelVariableDeclaration('a = 0'));
+    _assertAnnotatedNode(
+      parseResult.findNode.topLevelVariableDeclaration('a = 0'),
+    );
     _assertReplacementForChildren<TopLevelVariableDeclaration>(
-      destination: findNode.topLevelVariableDeclaration('a = 0'),
-      source: findNode.topLevelVariableDeclaration('b = 1'),
+      destination: parseResult.findNode.topLevelVariableDeclaration('a = 0'),
+      source: parseResult.findNode.topLevelVariableDeclaration('b = 1'),
       childAccessors: [(node) => node.variables],
     );
   }
 
   void test_tryStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   try { // 0
     0;
@@ -1821,48 +1834,48 @@ void f() {
 }
 ''');
     _assertReplaceInList(
-      destination: findNode.tryStatement('// 0'),
-      child: findNode.catchClause('E1'),
-      replacement: findNode.catchClause('E2'),
+      destination: parseResult.findNode.tryStatement('// 0'),
+      child: parseResult.findNode.catchClause('E1'),
+      replacement: parseResult.findNode.catchClause('E2'),
     );
     _assertReplacementForChildren<TryStatement>(
-      destination: findNode.tryStatement('// 0'),
-      source: findNode.tryStatement('// 1'),
+      destination: parseResult.findNode.tryStatement('// 0'),
+      source: parseResult.findNode.tryStatement('// 1'),
       childAccessors: [(node) => node.body, (node) => node.finallyBlock!],
     );
   }
 
   void test_typeArgumentList() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   g<int, double>();
 }
 ''');
     _assertReplaceInList(
-      destination: findNode.typeArgumentList('<int'),
-      child: findNode.namedType('int'),
-      replacement: findNode.namedType('double'),
+      destination: parseResult.findNode.typeArgumentList('<int'),
+      child: parseResult.findNode.namedType('int'),
+      replacement: parseResult.findNode.namedType('double'),
     );
   }
 
   void test_typeParameter() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A<T extends int, U extends double> {}
 ''');
     _assertReplacementForChildren<TypeParameter>(
-      destination: findNode.typeParameter('T extends'),
-      source: findNode.typeParameter('U extends'),
+      destination: parseResult.findNode.typeParameter('T extends'),
+      source: parseResult.findNode.typeParameter('U extends'),
       childAccessors: [(node) => node.bound!],
     );
   }
 
   void test_typeParameterList() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A<T, U> {}
 ''');
     // Find from the offset after the `<` because NodeLocator usually picks
     // the name for the offset between the name and `<`.
-    var node = findNode.typeParameterList('T, U>');
+    var node = parseResult.findNode.typeParameterList('T, U>');
     _assertReplaceInList(
       destination: node,
       child: node.typeParameters[0],
@@ -1871,68 +1884,68 @@ class A<T, U> {}
   }
 
   void test_variableDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   var a = 0;
   var b = 1;
 }
 ''');
     _assertReplacementForChildren<VariableDeclaration>(
-      destination: findNode.variableDeclaration('a = 0'),
-      source: findNode.variableDeclaration('b = 1'),
+      destination: parseResult.findNode.variableDeclaration('a = 0'),
+      source: parseResult.findNode.variableDeclaration('b = 1'),
       childAccessors: [(node) => node.initializer!],
     );
   }
 
   void test_variableDeclarationList() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   int a = 0, b = 1;
   double c = 2;
 }
 ''');
     _assertReplaceInList(
-      destination: findNode.variableDeclarationList('int a'),
-      child: findNode.variableDeclaration('a = 0'),
-      replacement: findNode.variableDeclaration('b = 1'),
+      destination: parseResult.findNode.variableDeclarationList('int a'),
+      child: parseResult.findNode.variableDeclaration('a = 0'),
+      replacement: parseResult.findNode.variableDeclaration('b = 1'),
     );
     _assertReplacementForChildren<VariableDeclarationList>(
-      destination: findNode.variableDeclarationList('int a'),
-      source: findNode.variableDeclarationList('double c'),
+      destination: parseResult.findNode.variableDeclarationList('int a'),
+      source: parseResult.findNode.variableDeclarationList('double c'),
       childAccessors: [(node) => node.type!],
     );
   }
 
   void test_variableDeclarationStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   int a = 0;
   double b = 1;
 }
 ''');
     _assertReplacementForChildren<VariableDeclarationStatement>(
-      destination: findNode.variableDeclarationStatement('int a'),
-      source: findNode.variableDeclarationStatement('double b'),
+      destination: parseResult.findNode.variableDeclarationStatement('int a'),
+      source: parseResult.findNode.variableDeclarationStatement('double b'),
       childAccessors: [(node) => node.variables],
     );
   }
 
   void test_whenClause() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   if (x case 0 when 1) {}
   if (x case 0 when 2) {}
 }
 ''');
     _assertReplacementForChildren<WhenClause>(
-      destination: findNode.whenClause('when 1'),
-      source: findNode.whenClause('when 2'),
+      destination: parseResult.findNode.whenClause('when 1'),
+      source: parseResult.findNode.whenClause('when 2'),
       childAccessors: [(node) => node.expression],
     );
   }
 
   void test_whileStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() {
   while (true) {
     0;
@@ -1943,17 +1956,17 @@ void f() {
 }
 ''');
     _assertReplacementForChildren<WhileStatement>(
-      destination: findNode.whileStatement('(true)'),
-      source: findNode.whileStatement('(false)'),
+      destination: parseResult.findNode.whileStatement('(true)'),
+      source: parseResult.findNode.whileStatement('(false)'),
       childAccessors: [(node) => node.condition, (node) => node.body],
     );
   }
 
   void test_withClause() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A with M, N {}
 ''');
-    var node = findNode.withClause('with');
+    var node = parseResult.findNode.withClause('with');
     _assertReplaceInList(
       destination: node,
       child: node.mixinTypes[0],
@@ -1962,15 +1975,15 @@ class A with M, N {}
   }
 
   void test_yieldStatement() {
-    var findNode = _parseStringToFindNode(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f() sync* {
   yield 0;
   yield 1;
 }
 ''');
     _assertReplacementForChildren<YieldStatement>(
-      destination: findNode.yieldStatement('yield 0;'),
-      source: findNode.yieldStatement('yield 1'),
+      destination: parseResult.findNode.yieldStatement('yield 0;'),
+      source: parseResult.findNode.yieldStatement('yield 1'),
       childAccessors: [(node) => node.expression],
     );
   }
@@ -2053,11 +2066,6 @@ void f() sync* {
       child: node.statements[0],
       replacement: node.statements[1],
     );
-  }
-
-  FindNode _parseStringToFindNode(String content) {
-    var parseResult = parseStringWithErrors(content);
-    return parseResult.findNode;
   }
 }
 

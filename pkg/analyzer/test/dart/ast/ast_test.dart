@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -676,42 +675,42 @@ void f() {
   }
 
   void test_isNullAware_cascade_false() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a..[0];
 }
 ''');
-    var expression = findNode.index('[0]');
+    var expression = parseResult.findNode.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a?..[0];
 }
 ''');
-    var expression = findNode.index('[0]');
+    var expression = parseResult.findNode.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 
   void test_isNullAware_false() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a[0];
 }
 ''');
-    var expression = findNode.index('[0]');
+    var expression = parseResult.findNode.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a?[0];
 }
 ''');
-    var expression = findNode.index('[0]');
+    var expression = parseResult.findNode.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 }
@@ -930,42 +929,42 @@ class A {
 @reflectiveTest
 class MethodInvocationTest extends _AstTest {
   void test_isNullAware_cascade() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a..foo();
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
+    var invocation = parseResult.findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a?..foo();
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
+    var invocation = parseResult.findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularInvocation() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a.foo();
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
+    var invocation = parseResult.findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a?.foo();
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
+    var invocation = parseResult.findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1189,42 +1188,42 @@ E f() => g;
 @reflectiveTest
 class PropertyAccessTest extends _AstTest {
   void test_isNullAware_cascade() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a..foo;
 }
 ''');
-    var invocation = findNode.propertyAccess('foo');
+    var invocation = parseResult.findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a?..foo;
 }
 ''');
-    var invocation = findNode.propertyAccess('foo');
+    var invocation = parseResult.findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularPropertyAccess() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   (a).foo;
 }
 ''');
-    var invocation = findNode.propertyAccess('foo');
+    var invocation = parseResult.findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a?.foo;
 }
 ''');
-    var invocation = findNode.propertyAccess('foo');
+    var invocation = parseResult.findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1323,74 +1322,74 @@ final x = List<String>.^foo();
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   foo(0);
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
+    var invocation = parseResult.findNode.methodInvocation('foo');
     var identifier = invocation.methodName;
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inMethodInvocation_withTarget() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   a.foo();
 }
 ''');
-    var invocation = findNode.methodInvocation('foo');
+    var invocation = parseResult.findNode.methodInvocation('foo');
     var identifier = invocation.methodName;
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPrefixedIdentifier_name() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   prefix.foo;
 }
 ''');
-    var identifier = findNode.simple('foo');
+    var identifier = parseResult.findNode.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPrefixedIdentifier_prefix() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   prefix.foo;
 }
 ''');
-    var identifier = findNode.simple('prefix');
+    var identifier = parseResult.findNode.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inPropertyAccess_name() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   prefix?.foo;
 }
 ''');
-    var identifier = findNode.simple('foo');
+    var identifier = parseResult.findNode.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPropertyAccess_target() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   prefix?.foo;
 }
 ''');
-    var identifier = findNode.simple('prefix');
+    var identifier = parseResult.findNode.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inReturnStatement() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   return test;
 }
 ''');
-    var identifier = findNode.simple('test');
+    var identifier = parseResult.findNode.simple('test');
     expect(identifier.isQualified, isFalse);
   }
 
@@ -1435,12 +1434,12 @@ void f() {
       throw UnimplementedError();
     }
 
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   $code;
 }
 ''');
-    return findNode.simple('test');
+    return parseResult.findNode.simple('test');
   }
 
   /// Return the top-most node in the AST structure containing the given
@@ -1587,18 +1586,18 @@ final v = $code;
 @reflectiveTest
 class SpreadElementTest extends _AstTest {
   void test_notNullAwareSpread() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 final x = [...foo];
 ''');
-    var spread = findNode.spreadElement('...foo');
+    var spread = parseResult.findNode.spreadElement('...foo');
     expect(spread.isNullAware, isFalse);
   }
 
   void test_nullAwareSpread() {
-    var findNode = _parseStringToFindNode('''
+    var parseResult = parseStringWithErrors('''
 final x = [...?foo];
 ''');
-    var spread = findNode.spreadElement('...?foo');
+    var spread = parseResult.findNode.spreadElement('...?foo');
     expect(spread.isNullAware, isTrue);
   }
 }
@@ -1880,11 +1879,6 @@ class _AssignmentKind {
 }
 
 class _AstTest extends ParserDiagnosticsTest {
-  FindNode _parseStringToFindNode(String content) {
-    var parseResult = parseStringWithErrors(content);
-    return parseResult.findNode;
-  }
-
   T _parseStringToNode<T extends AstNode>(String codeWithMark) {
     var offset = codeWithMark.indexOf('^');
     expect(offset, isNot(equals(-1)), reason: 'missing ^');

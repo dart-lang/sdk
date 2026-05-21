@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -1058,17 +1057,16 @@ m() {
   }
 
   test_member_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x.isEven;
+//  ^^^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 20, 6)],
-    );
+''');
 
-    var node = findNode.simple('isEven');
+    var node = findNode.simple('isEven;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: isEven

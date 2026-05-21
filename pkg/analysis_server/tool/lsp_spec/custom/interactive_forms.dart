@@ -17,19 +17,26 @@ final interactiveFormClasses = <LspEntity>[
       type: 'FormField',
       canBeUndefined: true,
       comment:
-          'Defines the questions and validation errors. This is a '
-          'server-to-client field.',
+          'FormFields defines the questions and validation errors in previous '
+          'answers to the same questions.\n\n'
+          'This is a server-to-client field. The language server defines '
+          'these, and the client uses them to render the form.\n\n'
+          'The interactive phase is considered complete when the server '
+          'returns a response where this slice is omitted.',
     ),
     field(
       'formAnswers',
       array: true,
       type: 'LSPAny',
+      canBeUndefined: true,
       comment:
-          'The values for the form questions.\n\n'
-          'When sent by the language server, this acts as preserved/previous '
-          'input.\n\n'
-          'When sent by the client (in a resolve request), this is required '
-          'when formFields are defined.',
+          'FormAnswers contains the values for the form questions.\n\n'
+          'When sent by the language server, this field is optional but '
+          'recommended to support editing previous values.\n\n'
+          'When sent by the language client as part of the ResolveXXX request, '
+          'this field is required. The slice must have the same length as '
+          'FormFields (one answer per question), where the answer at index i '
+          'corresponds to the field at index i.',
     ),
     field(
       'data',
@@ -38,6 +45,28 @@ final interactiveFormClasses = <LspEntity>[
       comment: 'Context preserved for the server.',
     ),
   ]),
+  interface(
+    'InteractiveExecuteCommandParams',
+    baseTypes: ['InteractiveParams', 'ExecuteCommandParams'],
+    [
+      field(
+        'command',
+        type: 'String',
+        comment: 'The identifier of the actual command handler.',
+      ),
+      field(
+        'arguments',
+        type: 'LSPAny',
+        array: true,
+        canBeUndefined: true,
+        comment: 'Arguments that the command should be invoked with.',
+      ),
+    ],
+    comment:
+        'InteractiveExecuteCommandParams extends the standard LSP '
+        'ExecuteCommandParams with the experimental fields for interactive '
+        'forms.',
+  ),
 
   interface('FormField', [
     field(
@@ -72,19 +101,31 @@ final interactiveFormClasses = <LspEntity>[
   ], comment: 'A single question in a form and its validation state.'),
 
   // Field kinds
-  interface('FormFieldType', abstract: true, [
-    field('kind', type: 'String'),
-  ]), // Base
+  interface('FormFieldType', abstract: true, [field('kind', type: 'String')]),
   interface('FormFieldTypeString', baseType: 'FormFieldType', [
     field('kind', type: 'string', literal: true),
   ], comment: 'A text input.'),
   interface(
-    'FormFieldTypeDocumentURI',
+    'FormFieldTypeFile',
     baseType: 'FormFieldType',
-    [field('kind', type: 'documentURI', literal: true)],
+    [
+      field('kind', type: 'file', literal: true),
+      field(
+        'existence',
+        type: 'FileExistence',
+        comment: 'Existence constraint.',
+      ),
+      field(
+        'type',
+        type: 'FileType',
+        comment:
+            'Type specifies the set of allowed file types (regular file, '
+            'directory, etc).\n\n'
+            'Only applicable against existing file.',
+      ),
+    ],
     comment:
-        'FormFieldTypeDocumentURI defines an input for a file or directory '
-        'URI.\n\n'
+        'FormFieldTypeFile defines an input for a file or directory URI.\n\n'
         'The client determines the best mechanism to collect this information '
         'from the user (e.g., a graphical file picker, a text input with '
         'autocomplete, etc).\n\n'
@@ -92,27 +133,82 @@ final interactiveFormClasses = <LspEntity>[
         'defined in the LSP specification: '
         'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri',
   ),
+  LspEnum(
+    name: 'FileExistence',
+    typeOfValues: TypeReference.int,
+    members: [
+      // Values should be powers of 2 to allow New|Existing.
+      Constant(
+        name: 'New',
+        type: TypeReference.int,
+        value: '1',
+        comment: 'The file has not yet been created.',
+      ),
+      Constant(
+        name: 'Existing',
+        type: TypeReference.int,
+        value: '2',
+        comment: 'The file exists already.',
+      ),
+    ],
+    comment:
+        'FileExistence whether the file denoted by a DocumentURI exists.\n\n'
+        'It is a bit set allowing combinations of existence states. For '
+        'example, New|Existing allows either state.',
+  ),
+  LspEnum(
+    name: 'FileType',
+    typeOfValues: TypeReference.int,
+    members: [
+      // Values should be powers of 2 to allow Regular|Directory.
+      Constant(
+        name: 'Regular',
+        type: TypeReference.int,
+        value: '1',
+        comment: 'The resource could be a regular file.',
+      ),
+      Constant(
+        name: 'Directory',
+        type: TypeReference.int,
+        value: '2',
+        comment: 'The resource could be a directory.',
+      ),
+    ],
+    comment:
+        'FileType represents the expected filesystem resource type.\n\n'
+        'It is a bit set allowing combinations of file types. For example, '
+        'Regular|Directory allows either types.',
+  ),
   interface('FormFieldTypeBool', baseType: 'FormFieldType', [
     field('kind', type: 'bool', literal: true),
   ], comment: 'A boolean input.'),
   interface('FormFieldTypeNumber', baseType: 'FormFieldType', [
     field('kind', type: 'number', literal: true),
   ], comment: 'A numeric input.'),
-  interface('FormFieldTypeEnum', baseType: 'FormFieldType', [
-    field('kind', type: 'enum', literal: true),
-    field(
-      'name',
-      type: 'string',
-      canBeUndefined: true,
-      comment: 'An optional identifier for the enum type.',
-    ),
-    field(
-      'entries',
-      array: true,
-      type: 'FormEnumEntry',
-      comment: 'The list of allowable options.',
-    ),
-  ], comment: 'A numeric input.'),
+  interface(
+    'FormFieldTypeEnum',
+    baseType: 'FormFieldType',
+    [
+      field('kind', type: 'enum', literal: true),
+      field(
+        'name',
+        type: 'string',
+        canBeUndefined: true,
+        comment: 'An optional identifier for the enum type.',
+      ),
+      field(
+        'entries',
+        array: true,
+        type: 'FormEnumEntry',
+        comment: 'The list of allowable options.',
+      ),
+    ],
+    comment:
+        'FormFieldTypeEnum defines a selection from a set of values.\n\n'
+        'Use this type when:\n'
+        '- The number of options is small (e.g., < 20).\n'
+        '- All options are known at the time the form is created.\n',
+  ),
   interface('FormEnumEntry', [
     field(
       'value',
@@ -127,5 +223,15 @@ final interactiveFormClasses = <LspEntity>[
       type: 'string',
       comment: 'The human-readable label presented to the user.',
     ),
-  ], comment: 'A numeric input.'),
+  ], comment: 'A single option in an enumeration.'),
+  interface('FormFieldTypeList', baseType: 'FormFieldType', [
+    field('kind', type: 'list', literal: true),
+    field(
+      'elementType',
+      type: 'FormFieldType',
+      comment:
+          'ElementType specifies the type of the items in the list. '
+          'Recursive reference to the union type.',
+    ),
+  ], comment: 'A homogenous list of items.'),
 ];

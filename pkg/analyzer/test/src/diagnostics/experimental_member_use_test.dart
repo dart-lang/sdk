@@ -7,6 +7,7 @@ import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,6 +16,7 @@ main() {
     defineReflectiveTests(ExperimentalInstantiateTest);
     defineReflectiveTests(ExperimentalMemberUseTest);
     defineReflectiveTests(ExperimentalMixinTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -779,16 +781,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f(A a) {
   a.foo;
+//  ^^^
+// [diag.experimentalMemberUse] 'foo' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 3)],
-    );
+''');
   }
 
   test_field_implicitSetter() async {
@@ -1377,16 +1378,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:aaa/a.dart';
 
 void f() {
   A();
+//^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 43, 1)],
-    );
+''');
   }
 
   test_instanceCreation_unnamedConstructor() async {

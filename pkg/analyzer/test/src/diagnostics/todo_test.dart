@@ -6,77 +6,70 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TodoTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TodoTest extends PubPackageResolutionTest {
   test_eof() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {}
 // TODO: Implement something else
-''',
-      [error(diag.todo, 13, 30, text: 'TODO: Implement something else')],
-    );
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.todo] TODO: Implement something else
+''');
   }
 
   test_fixme() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   // FIXME: Implement
+//   ^^^^^^^^^^^^^^^^
+// [diag.fixme] FIXME: Implement
 }
-''',
-      [error(diag.fixme, 14, 16, text: 'FIXME: Implement')],
-    );
+''');
   }
 
   test_hack() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   // HACK: This is a hack
+//   ^^^^^^^^^^^^^^^^^^^^
+// [diag.hack] HACK: This is a hack
 }
-''',
-      [error(diag.hack, 14, 20, text: 'HACK: This is a hack')],
-    );
+''');
   }
 
   test_todo_multiLineComment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   /* TODO: Implement */
+//   ^^^^^^^^^^^^^^^
+// [diag.todo] TODO: Implement
   /* TODO: Implement*/
+//   ^^^^^^^^^^^^^^^
+// [diag.todo] TODO: Implement
 }
-''',
-      [
-        error(diag.todo, 14, 15, text: 'TODO: Implement'),
-        error(diag.todo, 38, 15, text: 'TODO: Implement'),
-      ],
-    );
+''');
   }
 
   test_todo_multiLineComment2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
 /*
 TODO: Implement1
+// [diag.todo][column 1][length 16] TODO: Implement1
 TODO: Implement2
+// [diag.todo][column 1][length 16] TODO: Implement2
 */
 }
-''',
-      [
-        error(diag.todo, 12, 16, text: 'TODO: Implement1'),
-        error(diag.todo, 29, 16, text: 'TODO: Implement2'),
-      ],
-    );
+''');
   }
 
   test_todo_multiLineCommentWrapped() async {
@@ -188,14 +181,13 @@ main() {
   }
 
   test_todo_singleLineComment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   // TODO: Implement
+//   ^^^^^^^^^^^^^^^
+// [diag.todo] TODO: Implement
 }
-''',
-      [error(diag.todo, 14, 15, text: 'TODO: Implement')],
-    );
+''');
   }
 
   test_todo_singleLineCommentDoubleCommented() async {
@@ -230,14 +222,13 @@ main() {
   }
 
   test_todo_singleLineCommentFollowedByDartdoc() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // TODO: Implement something
+// ^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.todo] TODO: Implement something
 /// This is the function documentation
 void f() {}
-''',
-      [error(diag.todo, 3, 25, text: 'TODO: Implement something')],
-    );
+''');
   }
 
   test_todo_singleLineCommentLessIndentedContinuation() async {
@@ -349,13 +340,12 @@ main() {
   }
 
   test_undone() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   // UNDONE: This was undone
+//   ^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.undone] UNDONE: This was undone
 }
-''',
-      [error(diag.undone, 14, 23, text: 'UNDONE: This was undone')],
-    );
+''');
   }
 }

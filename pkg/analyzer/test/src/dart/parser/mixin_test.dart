@@ -410,6 +410,37 @@ MixinDeclaration
 ''');
   }
 
+  void test_implementsClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {}
+mixin M on C implements A, (int, int), B {}
+//                         ^^^^^^^^^^
+// [diag.expectedNamedTypeImplements] Expected the name of a class or mixin.
+''');
+
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin @11
+  name: M @17
+  onClause: MixinOnClause
+    onKeyword: on @19
+    superclassConstraints
+      NamedType
+        name: C @22
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @24
+    interfaces
+      NamedType
+        name: A @35
+      NamedType
+        name: B @50
+  body: BlockClassBody
+    leftBracket: { @52
+    rightBracket: } @53
+''', withOffsets: true);
+  }
+
   test_method_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {
@@ -471,6 +502,78 @@ MixinDeclaration
 ''');
   }
 
+  void test_modifiers_base() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// text
+base mixin M {}
+''');
+
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  baseKeyword: base
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_final() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+final mixin M {}
+// [diag.finalMixin][column 1][length 5] A mixin can't be declared 'final'.
+''');
+
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_interface() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+interface mixin M {}
+// [diag.interfaceMixin][column 1][length 9] A mixin can't be declared 'interface'.
+''');
+
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_sealed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+sealed mixin M {}
+// [diag.sealedMixin][column 1][length 6] A mixin can't be declared 'sealed'.
+''');
+
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_nameWithTypeParameters_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M<T> {}
@@ -490,6 +593,31 @@ MixinDeclaration
     leftBracket: {
     rightBracket: }
 ''');
+  }
+
+  void test_onClause_recordType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+mixin M on A, (int, int), B {}
+//            ^^^^^^^^^^
+// [diag.expectedNamedTypeOn] Expected the name of a class or mixin.
+''');
+
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin @0
+  name: M @6
+  onClause: MixinOnClause
+    onKeyword: on @8
+    superclassConstraints
+      NamedType
+        name: A @11
+      NamedType
+        name: B @26
+  body: BlockClassBody
+    leftBracket: { @28
+    rightBracket: } @29
+''', withOffsets: true);
   }
 
   test_operator_augment() {

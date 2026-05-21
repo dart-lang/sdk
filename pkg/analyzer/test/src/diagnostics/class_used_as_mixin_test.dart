@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassUsedAsMixinTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -26,16 +27,14 @@ class Bar with Comparable<int> {
   }
 
   test_coreLib_dartCoreEnum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A with Enum {}
+//                    ^^^^
+// [diag.classUsedAsMixin] The class 'Enum' can't be used as a mixin because it's neither a mixin class nor a mixin.
 abstract class B = Object with Enum;
-''',
-      [
-        error(diag.classUsedAsMixin, 22, 4),
-        error(diag.classUsedAsMixin, 61, 4),
-      ],
-    );
+//                             ^^^^
+// [diag.classUsedAsMixin] The class 'Enum' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_coreLib_dartCoreEnum_language219() async {

@@ -19881,6 +19881,9 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   }
 
   static ExecuteCommandParams fromJson(Map<String, Object?> json) {
+    if (InteractiveExecuteCommandParams.canParse(json, nullLspJsonReporter)) {
+      return InteractiveExecuteCommandParams.fromJson(json);
+    }
     final argumentsJson = json['arguments'];
     final arguments =
         (argumentsJson as List<Object?>?)?.map((item) => item).toList();

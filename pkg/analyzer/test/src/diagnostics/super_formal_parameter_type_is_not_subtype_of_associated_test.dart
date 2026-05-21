@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,18 +18,17 @@ main() {
 class SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest
     extends PubPackageResolutionTest {
   test_generic_requiredPositional_explicit_notSubtype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T a);
 }
 
 class B extends A<int> {
   B(num super.a);
+//            ^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'num' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 65, 1)],
-    );
+''');
   }
 
   test_generic_requiredPositional_explicit_same() async {
@@ -56,18 +56,17 @@ class B extends A<num> {
   }
 
   test_requiredNamed_explicit_notSubtype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int a});
 }
 
 class B extends A {
   B({required num super.a});
+//                      ^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'num' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 80, 1)],
-    );
+''');
   }
 
   test_requiredNamed_explicit_same() async {
@@ -107,34 +106,32 @@ class B extends A {
   }
 
   test_requiredPositional_explicit_notSubtype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
 
 class B extends A {
   B(num super.a);
+//            ^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'num' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 59, 1)],
-    );
+''');
   }
 
   /// No implicit coercions, like downcast from `dynamic`.
   test_requiredPositional_explicit_notSubtype_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
 
 class B extends A {
   B(dynamic super.a);
+//                ^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'dynamic' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 63, 1)],
-    );
+''');
   }
 
   test_requiredPositional_explicit_same() async {

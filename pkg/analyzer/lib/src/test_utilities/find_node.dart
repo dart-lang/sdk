@@ -180,6 +180,8 @@ class FindNode {
 
   RecordLiteral get singleRecordLiteral => _single();
 
+  RecordTypeAnnotation get singleRecordTypeAnnotation => _single();
+
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 

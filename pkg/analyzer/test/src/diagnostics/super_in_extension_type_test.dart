@@ -2,30 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperInExtensionTypeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SuperInExtensionTypeTest extends PubPackageResolutionTest {
   test_binaryOperator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
   void f() {
     super + 0;
+//  ^^^^^
+// [diag.superInExtensionType] The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass.
   }
 }
-''',
-      [error(diag.superInExtensionType, 44, 5)],
-    );
+''');
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -45,16 +45,15 @@ BinaryExpression
   }
 
   test_methodInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
   void f() {
     super.foo();
+//  ^^^^^
+// [diag.superInExtensionType] The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass.
   }
 }
-''',
-      [error(diag.superInExtensionType, 44, 5)],
-    );
+''');
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -76,16 +75,15 @@ MethodInvocation
   }
 
   test_propertyAccess() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
   void f() {
     super.foo;
+//  ^^^^^
+// [diag.superInExtensionType] The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass.
   }
 }
-''',
-      [error(diag.superInExtensionType, 44, 5)],
-    );
+''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''

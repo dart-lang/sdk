@@ -4,15 +4,16 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleResolverTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -522,19 +523,17 @@ SimpleIdentifier
   }
 
   test_forEachLoops_nonConflicting() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   List list = [1,2,3];
   for (int x in list) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   for (int x in list) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 40, 1),
-        error(diag.unusedLocalVariable, 65, 1),
-      ],
-    );
+''');
   }
 
   test_forLoops_nonConflicting() async {
@@ -585,8 +584,7 @@ SimpleIdentifier
   }
 
   test_getter_fromMixins_property_access() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   get x => null;
@@ -597,10 +595,10 @@ mixin M2 {
 class C extends B with M1, M2 {}
 void main() {
   var y = new C().x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 124, 1)],
-    );
+''');
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
@@ -649,9 +647,10 @@ main() {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'missing.dart' as p;
+//     ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'missing.dart'.
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
 p.T c = new p.T();
@@ -666,9 +665,7 @@ class G extends Object with p.V {}
 class H extends D<p.W> {
   H(int i) : super(i);
 }
-''',
-      [error(diag.uriDoesNotExist, 7, 14)],
-    );
+''');
   }
 
   test_import_show_doesNotExist() async {
@@ -677,9 +674,10 @@ class H extends D<p.W> {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'missing.dart' show q, r, t, u, T, U, V, W;
+//     ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'missing.dart'.
 int a = q + r.s;
 String b = t(a) + u(v: 0);
 T c = new T();
@@ -694,9 +692,7 @@ class G extends Object with V {}
 class H extends D<W> {
   H(int i) : super(i);
 }
-''',
-      [error(diag.uriDoesNotExist, 7, 14)],
-    );
+''');
   }
 
   test_import_spaceInUri() async {
@@ -724,14 +720,13 @@ f() {
   }
 
   test_indexExpression_typeParameters_invalidAssignmentWarning() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
-}''',
-      [error(diag.invalidAssignment, 44, 4)],
-    );
+//          ^^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
+}''');
   }
 
   test_indirectOperatorThroughCall() async {
@@ -764,12 +759,13 @@ class A {
   }
 
   test_isValidMixin_badSuperclass() async {
-    await assertErrorsInCode(
+    await resolveTestCodeWithDiagnostics(
       r'''
 class A extends B {}
 class B {}
-class C = Object with A;''',
-      [error(diag.classUsedAsMixin, 54, 1)],
+class C = Object with A;
+//                    ^
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.''',
     );
 
     var a = findElement2.class_('A');
@@ -777,13 +773,14 @@ class C = Object with A;''',
   }
 
   test_isValidMixin_constructor() async {
-    await assertErrorsInCode(
+    await resolveTestCodeWithDiagnostics(
       r'''
 class A {
   A() {}
 }
-class C = Object with A;''',
-      [error(diag.classUsedAsMixin, 43, 1)],
+class C = Object with A;
+//                    ^
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.''',
     );
 
     var a = findElement2.class_('A');

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnawaitedReturnInTryBlockTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -33,17 +34,16 @@ Future<int> foo(dynamic v) async {
   }
 
   Future<void> test_dynamic_returnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 foo() async {
   try {
     return Future.value(42);
+//  ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
   } catch (_) {}
   return Future.value(42);
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 26, 6)],
-    );
+''');
   }
 
   Future<void> test_finallyBlock() async {
@@ -58,43 +58,42 @@ Future<int> foo() async {
   }
 
   Future<void> test_futureOr() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 Future<int> foo(FutureOr<int> v) async {
   try {
     return v;
+//  ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
   } catch (_) {}
   return v;
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 75, 6)],
-    );
+''');
   }
 
   Future<void> test_futureOr_returnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 FutureOr<int> foo() async {
   try {
     return Future.value(42);
+//  ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
   } catch (_) {}
   return Future.value(42);
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 62, 6)],
-    );
+''');
   }
 
   Future<void> test_futureSubtype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async {
   try {
     return MyFuture();
+//  ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
   } catch (_) {}
   return MyFuture();
 }
@@ -103,24 +102,21 @@ class MyFuture implements Future<int> {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 38, 6)],
-    );
+''');
   }
 
   Future<void> test_insideBlock() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<void> foo() async {
   try {
     {
       return Future<Null>.value(null);
+//    ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
     }
   } catch (_) {}
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 47, 6)],
-    );
+''');
   }
 
   Future<void> test_insideClosure() async {
@@ -136,97 +132,90 @@ void foo() {
   }
 
   Future<void> test_insideClosure_functionExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void foo() {
   try {
     var x = () async => return Future.value(null);
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//                      ^^^^^^
+// [diag.unexpectedToken] Unexpected text 'return'.
   } catch (_) {}
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 29, 1),
-        error(diag.unexpectedToken, 45, 6),
-      ],
-    );
+''');
   }
 
   Future<void> test_invalidType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 foo() async {
   return unknown;
+//       ^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'unknown'.
 }
-''',
-      [error(diag.undefinedIdentifier, 23, 7)],
-    );
+''');
   }
 
   Future<void> test_localFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   Future<int> foo() async {
     try {
       return Future.value(0);
+//    ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
     } catch (_) {}
     return 0;
   }
   foo();
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 55, 6)],
-    );
+''');
   }
 
   Future<void> test_localFunctionExpression_blockBody() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   var foo = () async {
     try {
       return Future.value(0);
+//    ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
     } catch (_) {}
     return 0;
   };
   foo();
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 50, 6)],
-    );
+''');
   }
 
   Future<void> test_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   Future<int> foo() async {
     try {
       return Future.value(0);
+//    ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
     } catch (_) {}
     return 0;
   }
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 54, 6)],
-    );
+''');
   }
 
   Future<void> test_nestedTry() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async {
   try {
     try {
     } catch (_) {
       return Future.value(42);
+//    ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
     }
   } catch (_) {}
   return -1;
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 68, 6)],
-    );
+''');
   }
 
   Future<void> test_nonFuture() async {
@@ -252,33 +241,31 @@ Future<int> foo() {
   }
 
   Future<void> test_stream() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 Stream<int> foo() async* {
   try {
     yield 42;
     return Future.value(42);
+//  ^^^^^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
   } catch (_) {}
 }
-''',
-      [error(diag.returnInGenerator, 75, 6)],
-    );
+''');
   }
 
   Future<void> test_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo<T extends Future<int>>(T v) async {
   try {
     return v;
+//  ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
   } catch (_) {}
   return v;
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 64, 6)],
-    );
+''');
   }
 
   Future<void> test_withinTryCatch() async {
@@ -293,40 +280,37 @@ Future<int> foo() async {
   }
 
   Future<void> test_withinTryCatch_withinTryBlock() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async {
   try {
     try {} catch (_) {
       return Future.value(42);
+//    ^^^^^^
+// [diag.unawaitedReturnInTryBlock] Returning a 'Future' without 'await' inside a try block.
     }
   } catch (_) {}
   return -1;
 }
-''',
-      [error(diag.unawaitedReturnInTryBlock, 63, 6)],
-    );
+''');
   }
 
   Future<void> test_wrongType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> foo() async {
   return '';
+//       ^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'foo' because it has a return type of 'Future<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 35, 2)],
-    );
+''');
   }
 
   Future<void> test_wrongType2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<int>? foo() async {
   return Future<Null>.value(null);
+//       ^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Future<Null>' can't be returned from the function 'foo' because it has a return type of 'Future<int>?'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 36, 24)],
-    );
+''');
   }
 }

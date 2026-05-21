@@ -164,6 +164,71 @@ Comment
 ''');
   }
 
+  void test_commentReference_beforeAbstractClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/** [String] */ abstract class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @5
+    tokens
+      /** [String] */ @0
+  abstractKeyword: abstract @16
+  classKeyword: class @25
+  namePart: NameWithTypeParameters
+    typeName: A @31
+  body: BlockClassBody
+    leftBracket: { @33
+    rightBracket: } @34
+''', withOffsets: true);
+  }
+
+  void test_commentReference_beforeAnnotatedClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// See [int] and [String]
+/// and [Object].
+@Annotation
+abstract class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @9
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @19
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @36
+    tokens
+      /// See [int] and [String] @0
+      /// and [Object]. @27
+  metadata
+    Annotation
+      atSign: @ @45
+      name: SimpleIdentifier
+        token: Annotation @46
+  abstractKeyword: abstract @57
+  classKeyword: class @66
+  namePart: NameWithTypeParameters
+    typeName: A @72
+  body: BlockClassBody
+    leftBracket: { @74
+    rightBracket: } @75
+''', withOffsets: true);
+  }
+
   test_commentReference_blockComment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /** [a]. */
@@ -180,6 +245,73 @@ Comment
   tokens
     /** [a]. */
 ''');
+  }
+
+  void test_commentReference_complexBeforeClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// This dartdoc comment [should] be ignored
+@Annotation
+/// This dartdoc comment is [included].
+// a non dartdoc comment [inbetween]
+/// See [int] and [String] but `not [a]`
+/// ```
+/// This [code] block should be ignored
+/// ```
+/// and [Object].
+abstract class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: included @86
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @143
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @153
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @240
+    tokens
+      /// This dartdoc comment is [included]. @57
+      /// See [int] and [String] but `not [a]` @134
+      /// ``` @175
+      /// This [code] block should be ignored @183
+      /// ``` @223
+      /// and [Object]. @231
+    codeBlocks
+      MdCodeBlock
+        infoString: <empty>
+        type: CodeBlockType.fenced
+        lines
+          MdCodeBlockLine
+            offset: 178
+            length: 4
+          MdCodeBlockLine
+            offset: 186
+            length: 36
+          MdCodeBlockLine
+            offset: 226
+            length: 4
+  metadata
+    Annotation
+      atSign: @ @45
+      name: SimpleIdentifier
+        token: Annotation @46
+  abstractKeyword: abstract @249
+  classKeyword: class @258
+  namePart: NameWithTypeParameters
+    typeName: A @264
+  body: BlockClassBody
+    leftBracket: { @266
+    rightBracket: } @267
+''', withOffsets: true);
   }
 
   test_commentReference_empty() {

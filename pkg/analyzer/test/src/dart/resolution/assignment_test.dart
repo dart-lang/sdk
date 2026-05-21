@@ -4843,25 +4843,23 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_staticMethod_superSetter_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set x(num _) {}
 }
 
 class B extends A {
   static void x() {}
+//            ^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'x' and have instance member 'A.x' with the same name.
 
   void f() {
     x = 2;
+//  ^
+// [diag.assignmentToMethod] Methods can't be assigned a value.
   }
 }
-''',
-      [
-        error(diag.conflictingStaticAndInstance, 65, 1),
-        error(diag.assignmentToMethod, 90, 1),
-      ],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4921,14 +4919,13 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_synthetic_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(int y) {
   = y;
+//^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [error(diag.missingIdentifier, 18, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('= y');
 
@@ -5100,8 +5097,7 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topGetter_superSetter_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set x(num _) {}
 }
@@ -5112,11 +5108,11 @@ class B extends A {
 
   void f() {
     x = 2;
+//  ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
   }
 }
-''',
-      [error(diag.assignmentToFinal, 86, 1)],
-    );
+''');
 
     var assignment = findNode.assignment('x = 2');
 

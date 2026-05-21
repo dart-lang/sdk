@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -717,16 +716,15 @@ BinaryExpression
   }
 
   test_bangEq_extensionOverride_left() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f(int a) {
   E(a) != 0;
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 46, 2)],
-    );
+''');
 
     assertResolvedNodeText(findNode.binary('!= 0'), r'''
 BinaryExpression
@@ -756,14 +754,13 @@ BinaryExpression
   }
 
   test_bangEqEq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a !== b;
+//  ^
+// [diag.unsupportedOperator] The '!==' operator is not supported.
 }
-''',
-      [error(diag.unsupportedOperator, 22, 1)],
-    );
+''');
 
     assertResolvedNodeText(findNode.binary('a !== b'), r'''
 BinaryExpression
@@ -809,16 +806,15 @@ BinaryExpression
   }
 
   test_eqEq_extensionOverride_left() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f(int a) {
   E(a) == 0;
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionOperator, 46, 2)],
-    );
+''');
 
     assertResolvedNodeText(findNode.binary('== 0'), r'''
 BinaryExpression
@@ -874,14 +870,13 @@ BinaryExpression
   }
 
   test_eqEq_invalidType_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(A a) {
+//     ^
+// [diag.undefinedClass] Undefined class 'A'.
   a == 0;
 }
-''',
-      [error(diag.undefinedClass, 7, 1)],
-    );
+''');
 
     var node = findNode.binary('a == 0');
     assertResolvedNodeText(node, r'''
@@ -902,14 +897,13 @@ BinaryExpression
   }
 
   test_eqEqEq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a === b;
+//  ^
+// [diag.unsupportedOperator] The '===' operator is not supported.
 }
-''',
-      [error(diag.unsupportedOperator, 22, 1)],
-    );
+''');
 
     assertResolvedNodeText(findNode.binary('a === b'), r'''
 BinaryExpression

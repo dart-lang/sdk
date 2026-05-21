@@ -4,15 +4,16 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../src/dart/resolution/context_collection_resolution.dart';
+import '../../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FragmentOffsetTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -84,13 +85,12 @@ class C = Object with M;
   }
 
   test_classFragment_classTypeAlias_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class = Object with M;
-''',
-      [error(diag.missingIdentifier, 17, 1)],
-    );
+//    ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var classTypeAlias = findNode.classTypeAlias('Object with M');
     checkOffsetInRange<ClassFragment>(
       classTypeAlias,
@@ -99,14 +99,13 @@ class = Object with M;
   }
 
   test_classFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the class declaration isn't at offset 0
 
 class {}
-''',
-      [error(diag.missingIdentifier, 72, 1)],
-    );
+//    ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var classDeclaration = findNode.classDeclaration('class {}');
     checkOffsetInRange<ClassFragment>(
       classDeclaration,
@@ -131,14 +130,13 @@ class C {}
   }
 
   test_constructorFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [error(diag.missingIdentifier, 14, 1)],
-    );
+''');
     var constructorDeclaration = findNode.constructor('C.()');
     checkOffsetInRange<ConstructorFragment>(
       constructorDeclaration,
@@ -199,14 +197,13 @@ enum E { e1 }
   }
 
   test_enumFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the enum declaration isn't at offset 0
 
 enum { e1 }
-''',
-      [error(diag.missingIdentifier, 70, 1)],
-    );
+//   ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var enumDeclaration = findNode.enumDeclaration('enum { e1 }');
     checkOffsetInRange<EnumFragment>(
       enumDeclaration,
@@ -254,14 +251,13 @@ extension type E(int i) {}
   }
 
   test_extensionTypeFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the extension type declaration isn't at offset 0
 
 extension type(int i) {}
-''',
-      [error(diag.missingIdentifier, 89, 1)],
-    );
+//            ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var extensionTypeDeclaration = findNode.extensionTypeDeclaration(
       'extension type(int i)',
     );
@@ -287,18 +283,16 @@ class C {
   }
 
   test_fieldFormalParameterFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? x;
   C(this.);
+//  ^^^^^
+// [diag.initializingFormalForNonExistentField] '' isn't a field in the enclosing class.
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [
-        error(diag.initializingFormalForNonExistentField, 24, 5),
-        error(diag.missingIdentifier, 29, 1),
-      ],
-    );
+''');
     var parameter = findNode.fieldFormalParameter('this.');
     checkOffsetInRange<FieldFormalParameterFragment>(
       parameter,
@@ -388,12 +382,11 @@ void f(int x) {}
   }
 
   test_formalParameterFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((int x)) {}
-''',
-      [error(diag.missingIdentifier, 7, 1)],
-    );
+//     ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var function = findNode.functionDeclaration('f(');
     var parameter =
         function.functionExpression.parameters!.parameters[0]
@@ -406,12 +399,11 @@ void f((int x)) {}
   }
 
   test_formalParameterFragment_missingName2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void (int x)) {}
-''',
-      [error(diag.missingIdentifier, 12, 1)],
-    );
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var function = findNode.functionDeclaration('f(');
     var parameter =
         function.functionExpression.parameters!.parameters[0]
@@ -745,14 +737,13 @@ mixin M {}
   }
 
   test_mixinFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the mixin declaration isn't at offset 0
 
 mixin {}
-''',
-      [error(diag.missingIdentifier, 72, 1)],
-    );
+//    ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var mixinDeclaration = findNode.mixinDeclaration('mixin {}');
     checkOffsetInRange<MixinFragment>(
       mixinDeclaration,
@@ -801,13 +792,12 @@ import 'dart:math' as a; // second
   }
 
   test_prefixFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
 import 'dart:async' as;
-''',
-      [error(diag.missingIdentifier, 47, 1)],
-    );
+//                    ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var importDirective = findNode.import('as;');
     checkOffsetInRange<PrefixFragment>(
       importDirective,
@@ -895,18 +885,17 @@ class C extends B {
   }
 
   test_superFormalParameterFragment_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   B([int? i]);
 }
 
 class C extends B {
   C(super.);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [error(diag.missingIdentifier, 58, 1)],
-    );
+''');
     var parameter = findNode.superFormalParameter('super.');
     checkOffsetInRange<SuperFormalParameterFragment>(
       parameter,
@@ -987,14 +976,14 @@ typedef void F();
   }
 
   test_typeAliasFragment_functionTypeAlias_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the function type alias declaration isn't at offset 0
+// [diag.unusedElement][column 1][length 0] The declaration '<unnamed>' isn't referenced.
 
 typedef void();
-''',
-      [error(diag.unusedElement, 0, 0), error(diag.missingIdentifier, 92, 1)],
-    );
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var functionTypeAlias = findNode.functionTypeAlias('void()');
     checkOffsetInRange<TypeAliasFragment>(
       functionTypeAlias,
@@ -1015,14 +1004,14 @@ typedef T = int;
   }
 
   test_typeAliasFragment_genericTypeAlias_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library; // Ensures that the generic type alias declaration isn't at offset 0
+// [diag.unusedElement][column 1][length 0] The declaration '<unnamed>' isn't referenced.
 
 typedef = int;
-''',
-      [error(diag.unusedElement, 0, 0), error(diag.missingIdentifier, 87, 1)],
-    );
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
     var genericTypeAlias = findNode.genericTypeAlias('= int');
     checkOffsetInRange<TypeAliasFragment>(
       genericTypeAlias,

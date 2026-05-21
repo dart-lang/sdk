@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/wolf/ir/ast_to_ir.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
@@ -17,11 +16,13 @@ import 'package:test/test.dart' show fail;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/context_collection_resolution.dart';
+import '../../dart/resolution/node_text_expectations.dart';
 import 'utils.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstToIRTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -1781,15 +1782,14 @@ test() {
   }
 
   test_variableDeclarationList_singleVariable_uninitialized_unsound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 test() {
   int i;
   return i; // UNSOUND
+//       ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'i' must be assigned before it can be used.
 }
-''',
-      [error(diag.notAssignedPotentiallyNonNullableLocalVariable, 27, 1)],
-    );
+''');
     analyze(findNode.singleFunctionDeclaration);
     check(astNodes)[findNode.variableDeclarationList('int i')].not(
       (s) => s.instructions.any((s) => s.opcode.equals(Opcode.writeLocal)),

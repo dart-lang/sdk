@@ -2,41 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperInInvalidContextTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SuperInInvalidContextTest extends PubPackageResolutionTest {
   test_binaryExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = super + 0;
-''',
-      [error(diag.superInInvalidContext, 8, 5)],
-    );
+//      ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+''');
   }
 
   test_class_field_instance() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 class B extends A {
   var f = super.foo;
+//        ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 63, 5)],
-    );
+''');
   }
 
   test_class_field_instance_late() async {
@@ -52,53 +51,49 @@ class B extends A {
   }
 
   test_class_field_static() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 class B extends A {
   static var f = super.foo;
+//               ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 70, 5)],
-    );
+''');
   }
 
   test_class_field_static_late() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 class B extends A {
   static late var f = super.foo;
+//                    ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 75, 5)],
-    );
+''');
   }
 
   test_constructorInitializer_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
 }
 class B extends A {
   var f;
   B() : f = super.m();
+//          ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 62, 5)],
-    );
+''');
   }
 
   test_constructorInitializer_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class S {
   final int f;
   S(this.f);
@@ -106,15 +101,14 @@ class S {
 
 class C extends S {
   C() : super(super.f);
+//            ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 75, 5)],
-    );
+''');
   }
 
   test_constructorInitializer_this() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class S {
   final int f;
   S(this.f);
@@ -122,82 +116,77 @@ class S {
 
 class C extends S {
   C() : this.other(super.f);
+//                 ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
   C.other(int a) : super(a);
 }
-''',
-      [error(diag.superInInvalidContext, 80, 5)],
-    );
+''');
   }
 
   test_factoryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
 }
 class B extends A {
   factory B() {
     super.m();
+//  ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
     return B._();
   }
   B._();
 }
-''',
-      [error(diag.superInInvalidContext, 61, 5)],
-    );
+''');
   }
 
   test_instanceVariableInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var a;
 }
 class B extends A {
  var b = super.a;
+//       ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 50, 5)],
-    );
+''');
   }
 
   test_methodInvocation_extension_field_static() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   static final v = super.foo();
+//                 ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 40, 5)],
-    );
+''');
   }
 
   test_methodInvocation_extension_method_static() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   static void foo() {
     super.foo();
+//  ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
   }
 }
-''',
-      [error(diag.superInInvalidContext, 47, 5)],
-    );
+''');
   }
 
   test_mixin_field_instance() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 mixin M on A {
   var f = super.foo;
+//        ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 58, 5)],
-    );
+''');
   }
 
   test_mixin_field_instance_late() async {
@@ -213,77 +202,72 @@ mixin M on A {
   }
 
   test_mixin_field_static() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 mixin M on A {
   static var f = super.foo;
+//               ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 65, 5)],
-    );
+''');
   }
 
   test_mixin_field_static_late() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 mixin M on A {
   static late var f = super.foo;
+//                    ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 70, 5)],
-    );
+''');
   }
 
   test_propertyAccess_extension_field_static() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 extension E on int {
   static var f = super.foo;
+//               ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 71, 5)],
-    );
+''');
   }
 
   test_propertyAccess_extension_field_static_late() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 extension E on int {
   static late var f = super.foo;
+//                    ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 76, 5)],
-    );
+''');
   }
 
   test_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static m() {}
 }
 class B extends A {
   static n() { return super.m(); }
+//                    ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 70, 5)],
-    );
+''');
 
     var node = findNode.methodInvocation('super.m()');
     assertResolvedNodeText(node, r'''
@@ -305,17 +289,16 @@ MethodInvocation
   }
 
   test_staticVariableInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int a = 0;
 }
 class B extends A {
   static int b = super.a;
+//               ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 69, 5)],
-    );
+''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -333,44 +316,40 @@ PropertyAccess
   }
 
   test_topLevelFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   super.f();
+//^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
-''',
-      [error(diag.superInInvalidContext, 8, 5)],
-    );
+''');
   }
 
   test_topLevelVariableInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = super.y;
-''',
-      [error(diag.superInInvalidContext, 8, 5)],
-    );
+//      ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+''');
   }
 
   test_valid() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
 }
 class B extends A {
   B() {
     var v = super.m();
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   }
   n() {
     var v = super.m();
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 57, 1),
-        error(diag.unusedLocalVariable, 92, 1),
-      ],
-    );
+''');
   }
 }
