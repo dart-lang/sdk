@@ -110,8 +110,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
 
       final nullAwareParent = nullAware.parent;
       final nullAwareParentParent = nullAwareParent.parent;
-      if (nullAwareParent is ir.VariableDeclaration &&
-          nullAwareParentParent is ir.Let) {
+      if (nullAwareParent is ir.Variable && nullAwareParentParent is ir.Let) {
         _NullAwareExpression? outer = _getNullAwareExpression(
           nullAwareParentParent,
         );
@@ -268,8 +267,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
         receiverGet = node;
       }
     }
-  } else if (nodeParent is ir.VariableDeclaration &&
-      nodeParentParent is ir.Let) {
+  } else if (nodeParent is ir.Variable && nodeParentParent is ir.Let) {
     _NullAwareExpression? nullAware = _getNullAwareExpression(nodeParentParent);
     if (nullAware != null && _isInvokeToString(nullAware.expression)) {
       // Detected
@@ -449,7 +447,7 @@ ir.InstanceGet? _extractGetRuntimeType(ir.TreeNode node) =>
 /// expression. [let] returns the let node created for the encoding.
 class _NullAwareExpression {
   final ir.Let let;
-  final ir.VariableDeclaration syntheticVariable;
+  final ir.Variable syntheticVariable;
   final ir.Expression expression;
 
   _NullAwareExpression(this.let, this.syntheticVariable, this.expression);

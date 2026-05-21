@@ -45,9 +45,9 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  VariableDeclaration? getTearOffParameter(int index);
+  Variable? getTearOffParameter(int index);
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 
@@ -92,7 +92,7 @@ abstract class ConstructorEncoding {
   void registerFunctionBody({
     required Statement? body,
     Scope? scope,
-    VariableDeclaration? thisVariable,
+    Variable? thisVariable,
   });
 
   void registerNoBodyConstructor();
@@ -140,7 +140,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   void registerFunctionBody({
     required Statement? body,
     Scope? scope,
-    VariableDeclaration? thisVariable,
+    Variable? thisVariable,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
@@ -195,7 +195,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  Variable? get thisVariable => null;
 
   @override
   List<TypeParameter>? get thisTypeParameters => null;
@@ -401,7 +401,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -504,7 +504,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisVariable] holds the synthetically added `this`
   /// parameter.
-  VariableDeclaration? _thisVariable;
+  Variable? _thisVariable;
 
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisTypeParameters] holds the type parameters copied
@@ -529,7 +529,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   void registerFunctionBody({
     required Statement? body,
     Scope? scope,
-    VariableDeclaration? thisVariable,
+    Variable? thisVariable,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
@@ -703,7 +703,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  VariableDeclaration? get thisVariable {
+  Variable? get thisVariable {
     assert(
       _thisVariable != null,
       "ProcedureBuilder.thisVariable has not been set.",
@@ -748,7 +748,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -771,7 +771,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       return;
     }
     if (!_isExternal) {
-      VariableDeclaration thisVariable = this.thisVariable!;
+      Variable thisVariable = this.thisVariable!;
       VariableStatement thisVariableStatement = extern.createVariableStatement(
         thisVariable,
       );
@@ -1391,14 +1391,14 @@ class _RegularConstructorContext implements ConstructorContext {
   }
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  Variable? get thisVariable => null;
 }
 
 class _ExtensionTypeConstructorContext implements ConstructorContext {
   final SourceConstructorBuilder _builder;
 
   @override
-  final VariableDeclaration thisVariable;
+  final Variable thisVariable;
 
   _ExtensionTypeConstructorContext(this._builder, this.thisVariable);
 

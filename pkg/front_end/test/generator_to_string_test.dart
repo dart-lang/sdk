@@ -50,7 +50,7 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         StringLiteral,
         TypeParameter,
-        VariableDeclaration,
+        Variable,
         VariableGet,
         defaultLanguageVersion;
 import 'package:kernel/class_hierarchy.dart';
@@ -82,10 +82,8 @@ Future<void> main() async {
       hasNamedBeforePositional: false,
       positionalCount: 1,
     );
-    Expression expression = new VariableGet(
-      new VariableDeclaration("expression"),
-    );
-    Expression index = new VariableGet(new VariableDeclaration("index"));
+    Expression expression = new VariableGet(new Variable("expression"));
+    Expression index = new VariableGet(new Variable("index"));
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLoader loader = new KernelTarget(
       c,
@@ -179,10 +177,7 @@ Future<void> main() async {
       new TypeParameter("T", const DynamicType(), const DynamicType()),
       loader: null,
     );
-    VariableDeclaration variable = new VariableDeclaration(
-      null,
-      isSynthesized: true,
-    );
+    Variable variable = new Variable(null, isSynthesized: true);
 
     TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl();
     engine.prepareTopLevel(coreTypes, hierarchy);

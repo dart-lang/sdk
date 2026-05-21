@@ -292,7 +292,7 @@ class BodyBuilderTest extends BodyBuilderImpl {
     LocalScope? formalParameterScope,
     required ClassHierarchy hierarchy,
     required CoreTypes coreTypes,
-    VariableDeclaration? thisVariable,
+    Variable? thisVariable,
     List<TypeParameter>? thisTypeParameters,
     required Uri uri,
     required AssignedVariablesImpl assignedVariables,

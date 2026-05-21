@@ -293,8 +293,8 @@ FunctionExpression createFunctionExpression(
 FunctionNode createFunctionNode(
   Statement? body, {
   List<TypeParameter>? typeParameters,
-  List<VariableDeclaration>? positionalParameters,
-  List<VariableDeclaration>? namedParameters,
+  List<Variable>? positionalParameters,
+  List<Variable>? namedParameters,
   int? requiredParameterCount,
   DartType returnType = const DynamicType(),
   required int fileOffset,
@@ -357,15 +357,15 @@ Field createImmutableField(
     ..fileEndOffset = fileEndOffset;
 }
 
-/// Creates an initialized (but mutable) [VariableDeclaration] of the static
+/// Creates an initialized (but mutable) [Variable] of the static
 /// [type].
-VariableDeclaration createInitializedVariable(
+Variable createInitializedVariable(
   Expression expression,
   DartType type, {
   required int fileOffset,
   String? name,
 }) {
-  return new VariableDeclaration(
+  return new Variable(
     name,
     initializer: expression,
     type: type,
@@ -491,7 +491,7 @@ LabeledStatement createLabeledStatement(
 
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
-Let createLet(VariableDeclaration variable, Expression body) {
+Let createLet(Variable variable, Expression body) {
   return new Let(variable, body)..fileOffset = variable.fileOffset;
 }
 
@@ -506,7 +506,7 @@ Let createLetEffect({required Expression effect, required Expression result}) {
 /// Creates an invocation of the local function [variable] with the provided
 /// [arguments].
 LocalFunctionInvocation createLocalFunctionInvocation(
-  VariableDeclaration variable, {
+  Variable variable, {
   Arguments? arguments,
   required int fileOffset,
 }) {
@@ -624,7 +624,7 @@ LogicalExpression createOrExpression(
 }
 
 // TODO(johnniwinther): Should this require a type?
-VariableDeclaration createParameterVariable(
+Variable createParameterVariable(
   String? name, {
   DartType type = const DynamicType(),
   required int fileOffset,
@@ -637,7 +637,7 @@ VariableDeclaration createParameterVariable(
   Expression? initializer,
   bool hasDeclaredInitializer = false,
 }) {
-  return new VariableDeclaration(
+  return new Variable(
       name,
       type: type,
       isCovariantByDeclaration: isCovariantByDeclaration,
@@ -853,40 +853,36 @@ TypeParameter createTypeParameter(String? name, {required int fileOffset}) {
   return new TypeParameter(name)..fileOffset = fileOffset;
 }
 
-/// Creates an uninitialized [VariableDeclaration] of the static [type].
-VariableDeclaration createUninitializedVariable(
+/// Creates an uninitialized [Variable] of the static [type].
+Variable createUninitializedVariable(
   DartType type, {
   required int fileOffset,
   bool isFinal = false,
 }) {
-  return new VariableDeclaration(
-    null,
-    type: type,
-    isSynthesized: true,
-    isFinal: isFinal,
-  )..fileOffset = fileOffset;
+  return new Variable(null, type: type, isSynthesized: true, isFinal: isFinal)
+    ..fileOffset = fileOffset;
 }
 
-/// Creates a [VariableDeclaration] for [expression] with the static [type]
+/// Creates a [Variable] for [expression] with the static [type]
 /// using `expression.fileOffset` as the file offset for the declaration.
 // TODO(johnniwinther): Merge the use of this with [createVariableCache].
-VariableDeclaration createVariable(Expression expression, DartType type) {
+Variable createVariable(Expression expression, DartType type) {
   assert(expression is! ThisExpression);
-  return new VariableDeclaration.forValue(expression, type: type)
+  return new Variable.forValue(expression, type: type)
     ..fileOffset = expression.fileOffset;
 }
 
-/// Creates a [VariableDeclaration] for caching [expression] of the static
+/// Creates a [Variable] for caching [expression] of the static
 /// [type] using `expression.fileOffset` as the file offset for the declaration.
-VariableDeclaration createVariableCache(Expression expression, DartType type) {
-  return new VariableDeclaration.forValue(expression, type: type)
+Variable createVariableCache(Expression expression, DartType type) {
+  return new Variable.forValue(expression, type: type)
     ..fileOffset = expression.fileOffset;
 }
 
 /// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
 /// file offset for the expression.
 VariableGet createVariableGet(
-  VariableDeclaration variable, {
+  Variable variable, {
   DartType? promotedType,
   int? fileOffset,
 }) {
@@ -897,7 +893,7 @@ VariableGet createVariableGet(
 
 /// Creates a [VariableSet] of [variable] with the [value].
 Expression createVariableSet(
-  VariableDeclaration variable,
+  Variable variable,
   Expression value, {
   bool allowFinalAssignment = false,
   required int fileOffset,
@@ -917,6 +913,6 @@ Expression createVariableSet(
   }
 }
 
-VariableStatement createVariableStatement(VariableDeclaration variable) {
+VariableStatement createVariableStatement(Variable variable) {
   return new VariableStatement(variable)..fileOffset = variable.fileOffset;
 }

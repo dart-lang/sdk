@@ -183,7 +183,7 @@ extension CheckHelper on ProblemReporting {
     }
     if (function.namedParameters.isNotEmpty) {
       for (int i = 0; i < function.namedParameters.length; i++) {
-        VariableDeclaration parameter = function.namedParameters[i];
+        Variable parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name!)) {
           return diag.valueForRequiredParameterNotProvidedError
               .withArguments(parameterName: parameter.name!)

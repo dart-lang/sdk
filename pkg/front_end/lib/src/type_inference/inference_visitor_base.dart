@@ -69,15 +69,14 @@ Set<Object> _computeExplicitlyTypedParameterSet(
 ) {
   Set<Object> result = {};
   int unnamedParameterIndex = 0;
-  for (VariableDeclaration positionalParameter
+  for (Variable positionalParameter
       in functionExpression.function.positionalParameters) {
     int key = unnamedParameterIndex++;
     if (!(positionalParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
-  for (VariableDeclaration namedParameter
-      in functionExpression.function.namedParameters) {
+  for (Variable namedParameter in functionExpression.function.namedParameters) {
     String key = namedParameter.name!;
     if (!(namedParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
@@ -114,12 +113,12 @@ enum MethodContravarianceCheckKind {
 Expression _hoist(
   Expression expression,
   DartType type,
-  List<VariableDeclaration>? hoistedExpressions,
+  List<Variable>? hoistedExpressions,
 ) {
   if (hoistedExpressions != null &&
       !isThisExpression(expression) &&
       expression is! FunctionExpression) {
-    VariableDeclaration variable = createVariable(expression, type);
+    Variable variable = createVariable(expression, type);
     hoistedExpressions.add(variable);
     return createVariableGet(variable);
   }
@@ -162,8 +161,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
-  get flowAnalysis => _inferrer.flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis =>
+      _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable] and for caching types.
@@ -811,10 +810,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
         // Replace expression with:
         // `let t = expression in t == null ? null : t.call`
-        VariableDeclaration t = new VariableDeclaration.forValue(
-          expression,
-          type: expressionType,
-        )..fileOffset = fileOffset;
+        Variable t = new Variable.forValue(expression, type: expressionType)
+          ..fileOffset = fileOffset;
         tearOff = new Let(
           t,
           new ConditionalExpression(
@@ -1713,7 +1710,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     InvocationTargetType invocationTargetType,
     TypeArguments? typeArguments,
     ActualArguments arguments, {
-    List<VariableDeclaration>? hoistedExpressions,
+    List<Variable>? hoistedExpressions,
     bool isSpecialCasedBinaryOperator = false,
     bool isSpecialCasedTernaryOperator = false,
     DartType? receiverType,
@@ -1751,7 +1748,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     FunctionType calleeType,
     TypeArguments? typeArguments,
     ActualArguments actualArguments,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     bool isSpecialCasedBinaryOperator = false,
     bool isSpecialCasedTernaryOperator = false,
     DartType? receiverType,
@@ -1794,7 +1791,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<DartType>? inferredTypes;
     FunctionTypeInstantiator? instantiator;
 
-    List<VariableDeclaration>? localHoistedExpressions;
+    List<Variable>? localHoistedExpressions;
     int hoistingEndIndex;
     if (isConst) {
       // Hoisting is never needed for constant expressions.
@@ -1814,7 +1811,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (actualArguments.hasNamedBeforePositional &&
         hoistedExpressions == null &&
         !isConst) {
-      hoistedExpressions = localHoistedExpressions = <VariableDeclaration>[];
+      hoistedExpressions = localHoistedExpressions = <Variable>[];
     }
 
     TypeConstraintGatherer? gatherer;
@@ -2255,7 +2252,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
     // (including required, positional optional, and named optional parameters).
     // If any type `Pi` is missing, denote it as `_`.
-    List<VariableDeclaration> formals = [
+    List<Variable> formals = [
       ...function.positionalParameters,
       ...function.namedParameters,
     ];
@@ -2363,13 +2360,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    List<VariableDeclaration> positionalParameters =
-        function.positionalParameters;
+    List<Variable> positionalParameters = function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
-      VariableDeclaration parameter = positionalParameters[i];
+      Variable parameter = positionalParameters[i];
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      VariableDeclaration parameterAstVariable =
+      Variable parameterAstVariable =
           (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
@@ -2386,10 +2382,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..parent = parameter;
       }
     }
-    for (VariableDeclaration parameter in function.namedParameters) {
+    for (Variable parameter in function.namedParameters) {
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      VariableDeclaration parameterAstVariable =
+      Variable parameterAstVariable =
           (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
@@ -2407,7 +2403,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    for (VariableDeclaration parameter in function.namedParameters) {
+    for (Variable parameter in function.namedParameters) {
       InternalVariable formal = parameter as InternalVariable;
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
@@ -2547,7 +2543,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     InvocationInferenceResult result = inferInvocation(
@@ -2591,7 +2587,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     InvocationInferenceResult result = inferInvocation(
@@ -2633,7 +2629,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isExpressionInvocation,
     required bool isImplicitCall,
     Name? implicitInvocationPropertyName,
@@ -2682,7 +2678,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     assert(
@@ -2846,7 +2842,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     assert(target.isCallFunction || target.isNullableCallFunction);
@@ -2881,7 +2877,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
-      VariableDeclaration variable = receiver.variable;
+      Variable variable = receiver.variable;
       TreeNode? parent = variable.parent;
       if (parent is FunctionDeclaration) {
         assert(
@@ -3031,7 +3027,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isImplicitCall,
     required bool isSpecialCasedBinaryOperator,
     required bool isSpecialCasedTernaryOperator,
@@ -3238,14 +3234,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required TypeArguments? typeArguments,
     required ActualArguments arguments,
     required DartType typeContext,
-    required List<VariableDeclaration>? hoistedExpressions,
+    required List<Variable>? hoistedExpressions,
     required bool isExpressionInvocation,
   }) {
     Expression originalReceiver = receiver;
 
-    List<VariableDeclaration>? locallyHoistedExpressions;
+    List<Variable>? locallyHoistedExpressions;
     if (hoistedExpressions == null) {
-      hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
+      hoistedExpressions = locallyHoistedExpressions = <Variable>[];
     }
     if (arguments.positionalCount > 0 || arguments.namedCount > 0) {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
@@ -3439,7 +3435,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isExpressionInvocation,
   }) {
     assert(
@@ -3476,7 +3472,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   ExpressionInferenceResult _insertHoistedExpression(
     ExpressionInferenceResult result,
-    List<VariableDeclaration>? hoistedExpressions,
+    List<Variable>? hoistedExpressions,
   ) {
     if (hoistedExpressions != null && hoistedExpressions.isNotEmpty) {
       Expression expression = result.expression;
@@ -3497,7 +3493,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+    List<Variable>? hoistedExpressions, {
     required bool isExpressionInvocation,
   }) {
     assert(
@@ -3542,7 +3538,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool isExpressionInvocation,
     required bool isImplicitCall,
     Name? implicitInvocationPropertyName,
-    List<VariableDeclaration>? hoistedExpressions,
+    List<Variable>? hoistedExpressions,
     ObjectAccessTarget? target,
   }) {
     target ??= findInterfaceMember(
@@ -4535,8 +4531,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             )..fileOffset = fileOffset,
           )..fileOffset = fileOffset;
         } else {
-          VariableDeclaration valueVariable = createVariable(value, valueType);
-          VariableDeclaration assignmentVariable = createVariable(
+          Variable valueVariable = createVariable(value, valueType);
+          Variable assignmentVariable = createVariable(
             new StaticInvocation(
               writeTarget.member as Procedure,
               new Arguments(
@@ -4755,10 +4751,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (uninstantiatedType.isPotentiallyNullable) {
         // Replace expression with:
         // `let t = expression in t == null ? null : t<...>`
-        VariableDeclaration t = new VariableDeclaration.forValue(
-          expression,
-          type: uninstantiatedType,
-        )..fileOffset = expression.fileOffset;
+        Variable t = new Variable.forValue(expression, type: uninstantiatedType)
+          ..fileOffset = expression.fileOffset;
 
         Expression nullCheck = new EqualsNull(
           new VariableGet(t)..fileOffset = expression.fileOffset,
@@ -5039,7 +5033,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     if (expression is VariableGet) {
-      VariableDeclaration variable = expression.variable;
+      Variable variable = expression.variable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
         return diag.invalidCastLocalFunction;
       }
@@ -5716,7 +5710,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// [parameters] are those of the function being inferred.
   ScopeProviderInfo beginFunctionBodyInference(
-    List<VariableDeclaration> parameters, {
+    List<Variable> parameters, {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
   });
@@ -5800,12 +5794,7 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 }
 
 class _WhyNotPromotedVisitor
-    implements
-        NonPromotionReasonVisitor<
-          List<LocatedMessage>,
-          Node,
-          VariableDeclaration
-        > {
+    implements NonPromotionReasonVisitor<List<LocatedMessage>, Node, Variable> {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
@@ -5814,7 +5803,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<VariableDeclaration> reason,
+    DemoteViaExplicitWrite<Variable> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
@@ -6123,7 +6112,7 @@ class _ArgumentInfo {
 
 extension on List<_ArgumentInfo> {
   (List<Expression> positional, List<NamedExpression> named) computeArguments({
-    required List<VariableDeclaration>? hoistedExpressions,
+    required List<Variable>? hoistedExpressions,
     required int hoistingEndIndex,
   }) {
     List<Expression> positional = [];
@@ -6415,7 +6404,7 @@ class ExtensionSetData {
 
 /// Data resulting from the inference of a pattern in a for-in element.
 class PatternForInData {
-  final VariableDeclaration loopVariable;
+  final Variable loopVariable;
   final Expression iterable;
   final PatternVariableDeclaration Function() computePatternVariableDeclaration;
 

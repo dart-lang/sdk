@@ -571,7 +571,7 @@ class KernelToElementMap implements IrToElementMap {
     List<DartType> parameterTypes = <DartType>[];
     List<DartType> optionalParameterTypes = <DartType>[];
 
-    DartType getParameterType(ir.VariableDeclaration variable) {
+    DartType getParameterType(ir.Variable variable) {
       // isCovariant implies this FunctionNode is a class Procedure.
       var isCovariant =
           variable.isCovariantByDeclaration || variable.isCovariantByClass;
@@ -581,7 +581,7 @@ class KernelToElementMap implements IrToElementMap {
       );
     }
 
-    for (ir.VariableDeclaration variable in node.positionalParameters) {
+    for (ir.Variable variable in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
         optionalParameterTypes.add(getParameterType(variable));
       } else {
@@ -591,10 +591,9 @@ class KernelToElementMap implements IrToElementMap {
     List<String> namedParameters = <String>[];
     Set<String> requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = <DartType>[];
-    List<ir.VariableDeclaration> sortedNamedParameters =
-        node.namedParameters.toList()
-          ..sort((a, b) => a.name!.compareTo(b.name!));
-    for (ir.VariableDeclaration variable in sortedNamedParameters) {
+    List<ir.Variable> sortedNamedParameters = node.namedParameters.toList()
+      ..sort((a, b) => a.name!.compareTo(b.name!));
+    for (ir.Variable variable in sortedNamedParameters) {
       namedParameters.add(variable.name!);
       namedParameterTypes.add(getParameterType(variable));
       if (variable.isRequired) {
@@ -903,9 +902,8 @@ class KernelToElementMap implements IrToElementMap {
     int typeParameters = node.typeParameters.length;
     List<String> namedParameters = <String>[];
     Set<String> requiredNamedParameters = <String>{};
-    List<ir.VariableDeclaration> sortedNamedParameters =
-        node.namedParameters.toList()
-          ..sort((a, b) => a.name!.compareTo(b.name!));
+    List<ir.Variable> sortedNamedParameters = node.namedParameters.toList()
+      ..sort((a, b) => a.name!.compareTo(b.name!));
     for (var variable in sortedNamedParameters) {
       namedParameters.add(variable.name!);
       if (variable.isRequired) {

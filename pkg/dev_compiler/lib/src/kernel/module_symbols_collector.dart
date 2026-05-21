@@ -19,7 +19,7 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   final Map<Class, String> _classJsNames;
   final Map<Member, String> _memberJsNames;
   final Map<Procedure, String> _procedureJsNames;
-  final Map<VariableDeclaration, String> _variableJsNames;
+  final Map<Variable, String> _variableJsNames;
 
   ModuleSymbolsCollector(
     String moduleName,
@@ -187,7 +187,7 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     var kind = node.isInitializingFormal
         ? VariableSymbolKind.formal
         : VariableSymbolKind.local;
@@ -198,7 +198,7 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   }
 
   VariableSymbol _createVariableSymbol(
-    VariableDeclaration node,
+    Variable node,
     VariableSymbolKind kind,
   ) => VariableSymbol(
     name: node.name!,

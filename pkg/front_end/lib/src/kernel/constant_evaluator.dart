@@ -168,7 +168,7 @@ class ConstantsTransformer extends RemovingTransformer {
   /// Whether to preserve constant [Field]s. All use-sites will be rewritten.
   bool get keepFields => backend.keepFields;
 
-  /// Whether to preserve constant [VariableDeclaration]s. All use-sites will be
+  /// Whether to preserve constant [Variable]s. All use-sites will be
   /// rewritten.
   bool get keepLocals => backend.keepLocals;
 
@@ -403,7 +403,7 @@ class ConstantsTransformer extends RemovingTransformer {
     transformTypeParameterList(node.typeParameters, node);
     final int positionalParameterCount = node.positionalParameters.length;
     for (int i = 0; i < positionalParameterCount; ++i) {
-      final VariableDeclaration variable = node.positionalParameters[i];
+      final Variable variable = node.positionalParameters[i];
       transformAnnotations(variable.annotations, variable);
       Expression? initializer = variable.initializer;
       if (initializer != null) {
@@ -413,7 +413,7 @@ class ConstantsTransformer extends RemovingTransformer {
         )..parent = variable;
       }
     }
-    for (final VariableDeclaration variable in node.namedParameters) {
+    for (final Variable variable in node.namedParameters) {
       transformAnnotations(variable.annotations, variable);
       Expression? initializer = variable.initializer;
       if (initializer != null) {
@@ -452,9 +452,7 @@ class ConstantsTransformer extends RemovingTransformer {
     TreeNode? removalSentinel,
   ) {
     if (removalSentinel != null) {
-      VariableDeclaration? variable = transformOrRemoveVariableDeclaration(
-        node.variable,
-      );
+      Variable? variable = transformOrRemoveVariableDeclaration(node.variable);
       if (variable == null) {
         return removalSentinel;
       }
@@ -468,10 +466,7 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
-  TreeNode defaultVariableDeclaration(
-    VariableDeclaration node,
-    TreeNode? removalSentinel,
-  ) {
+  TreeNode defaultVariable(Variable node, TreeNode? removalSentinel) {
     transformAnnotations(node.annotations, node);
 
     Expression? initializer = node.initializer;
@@ -1008,16 +1003,15 @@ class ConstantsTransformer extends RemovingTransformer {
       );
     } else {
       // matchResultVariable: int RVAR = -1;
-      VariableDeclaration matchResultVariable = extern
-          .createInitializedVariable(
-            extern.createIntLiteral(
-              typeEnvironment.coreTypes,
-              -1,
-              fileOffset: node.fileOffset,
-            ),
-            typeEnvironment.coreTypes.intNonNullableRawType,
-            fileOffset: node.fileOffset,
-          );
+      Variable matchResultVariable = extern.createInitializedVariable(
+        extern.createIntLiteral(
+          typeEnvironment.coreTypes,
+          -1,
+          fileOffset: node.fileOffset,
+        ),
+        typeEnvironment.coreTypes.intNonNullableRawType,
+        fileOffset: node.fileOffset,
+      );
       LabeledStatement innerLabeledStatement = extern.createLabeledStatement(
         dummyStatement,
         fileOffset: node.fileOffset,
@@ -1050,7 +1044,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
       List<SwitchCase> replacementCases = [];
 
-      List<VariableDeclaration> declaredVariableHelpers = [];
+      List<Variable> declaredVariableHelpers = [];
 
       List<Statement> cases = [];
 
@@ -1079,7 +1073,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
       // TODO(johnniwinther): Remove this when an error is reported in case of
       // variables and labels on the same switch case.
-      Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
+      Map<String, List<Variable>> declaredVariablesByName = {};
 
       // In weak mode we need to throw on `null` for non-nullable types.
       bool needsThrowForNull = false;
@@ -1096,8 +1090,8 @@ class ConstantsTransformer extends RemovingTransformer {
 
         // TODO(cstefantsova): Make sure an error is reported if the variables
         // declared in the heads aren't compatible to each other.
-        Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
-          for (VariableDeclaration variable in switchCase.jointVariables)
+        Map<String, Variable> caseDeclaredVariableHelpersByName = {
+          for (Variable variable in switchCase.jointVariables)
             variable.name!: extern.createUninitializedVariable(
               const DynamicType(),
               // Avoid step debugging on the declaration of intermediate
@@ -1110,10 +1104,10 @@ class ConstantsTransformer extends RemovingTransformer {
 
         bool isContinueTarget = switchCaseIndex.containsKey(switchCase);
 
-        List<VariableDeclaration> caseVariables = [];
+        List<Variable> caseVariables = [];
 
         // TODO(johnniwinther): Is there a way to avoid these name clashes?
-        Map<String, List<VariableDeclaration>> caseVariablesByName = {};
+        Map<String, List<Variable>> caseVariablesByName = {};
 
         Expression? caseCondition;
         for (
@@ -1128,18 +1122,17 @@ class ConstantsTransformer extends RemovingTransformer {
           if (isContinueTarget) {
             // TODO(johnniwinther): In this case it should be an error to have
             // any variables. This is not currently reported.
-            for (VariableDeclaration declaredVariable
-                in pattern.declaredVariables) {
+            for (Variable declaredVariable in pattern.declaredVariables) {
               replacementStatements.add(
                 extern.createVariableStatement(declaredVariable),
               );
             }
 
-            for (VariableDeclaration variable in pattern.declaredVariables) {
+            for (Variable variable in pattern.declaredVariables) {
               (declaredVariablesByName[variable.name!] ??= []).add(variable);
             }
           } else {
-            for (VariableDeclaration variable in pattern.declaredVariables) {
+            for (Variable variable in pattern.declaredVariables) {
               (caseVariablesByName[variable.name!] ??= []).add(variable);
             }
             caseVariables.addAll(pattern.declaredVariables);
@@ -1160,11 +1153,10 @@ class ConstantsTransformer extends RemovingTransformer {
             );
           }
 
-          for (VariableDeclaration declaredVariable
-              in pattern.declaredVariables) {
+          for (Variable declaredVariable in pattern.declaredVariables) {
             String variableName = declaredVariable.name!;
 
-            VariableDeclaration? variableHelper =
+            Variable? variableHelper =
                 caseDeclaredVariableHelpersByName[variableName];
             if (variableHelper != null) {
               // headCondition: `headCondition` &&
@@ -1208,11 +1200,10 @@ class ConstantsTransformer extends RemovingTransformer {
           }
         }
 
-        for (List<VariableDeclaration> variables
-            in caseVariablesByName.values) {
+        for (List<Variable> variables in caseVariablesByName.values) {
           if (variables.length > 1) {
             for (int i = 0; i < variables.length; i++) {
-              VariableDeclaration variable = variables[i];
+              Variable variable = variables[i];
               variable.isLowered = true;
               variable.name = createJoinedIntermediateName(variable.name!, i);
             }
@@ -1223,7 +1214,7 @@ class ConstantsTransformer extends RemovingTransformer {
           caseDeclaredVariableHelpersByName.values,
         );
 
-        for (VariableDeclaration jointVariable in switchCase.jointVariables) {
+        for (Variable jointVariable in switchCase.jointVariables) {
           // In case of [InvalidExpression], there's an error associated with
           // the variable, and it shouldn't be initialized.
           if (jointVariable.initializer is! InvalidExpression) {
@@ -1273,8 +1264,7 @@ class ConstantsTransformer extends RemovingTransformer {
             ],
             [node.fileOffset],
             extern.createBlock([
-              for (VariableDeclaration jointVariable
-                  in switchCase.jointVariables)
+              for (Variable jointVariable in switchCase.jointVariables)
                 extern.createVariableStatement(jointVariable),
               if (body is! Block || body.statements.isNotEmpty) body,
             ], fileOffset: node.fileOffset),
@@ -1297,7 +1287,7 @@ class ConstantsTransformer extends RemovingTransformer {
           replacementCases.add(replacementCase);
         } else {
           caseBlock = extern.createBlock([
-            for (VariableDeclaration jointVariable in switchCase.jointVariables)
+            for (Variable jointVariable in switchCase.jointVariables)
               extern.createVariableStatement(jointVariable),
             if (body is! Block || body.statements.isNotEmpty) body,
           ], fileOffset: switchCase.fileOffset);
@@ -1331,7 +1321,7 @@ class ConstantsTransformer extends RemovingTransformer {
         }
         cases.add(
           extern.createBlock([
-            for (VariableDeclaration caseVariable in caseVariables)
+            for (Variable caseVariable in caseVariables)
               extern.createVariableStatement(caseVariable),
             caseBlock,
             if (breakStatement != null)
@@ -1369,8 +1359,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
       // TODO(johnniwinther): Find a better way to avoid name clashes between
       // cases.
-      for (List<VariableDeclaration> variables
-          in declaredVariablesByName.values) {
+      for (List<Variable> variables in declaredVariablesByName.values) {
         if (variables.length > 1) {
           for (int i = 1; i < variables.length; i++) {
             variables[i].name = '${variables[i].name}${"#$i"}';
@@ -1387,10 +1376,9 @@ class ConstantsTransformer extends RemovingTransformer {
         replacementStatements = [
           extern.createVariableStatement(matchResultVariable),
           ...replacementStatements,
-          for (VariableDeclaration declaration in matchingCache.declarations)
+          for (Variable declaration in matchingCache.declarations)
             extern.createVariableStatement(declaration),
-          for (VariableDeclaration declaredVariableHelper
-              in declaredVariableHelpers)
+          for (Variable declaredVariableHelper in declaredVariableHelpers)
             extern.createVariableStatement(declaredVariableHelper),
           innerLabeledStatement,
           extern.createSwitchStatement(
@@ -1404,10 +1392,9 @@ class ConstantsTransformer extends RemovingTransformer {
       } else {
         replacementStatements = [
           ...replacementStatements,
-          for (VariableDeclaration declaration in matchingCache.declarations)
+          for (Variable declaration in matchingCache.declarations)
             extern.createVariableStatement(declaration),
-          for (VariableDeclaration declaredVariableHelper
-              in declaredVariableHelpers)
+          for (Variable declaredVariableHelper in declaredVariableHelpers)
             extern.createVariableStatement(declaredVariableHelper),
           ...cases,
         ];
@@ -1646,17 +1633,17 @@ class ConstantsTransformer extends RemovingTransformer {
     }
 
     List<Statement> cacheVariables = [
-      for (VariableDeclaration declaration in matchingCache.declarations)
+      for (Variable declaration in matchingCache.declarations)
         extern.createVariableStatement(declaration),
     ];
-    Iterable<VariableDeclaration> declarations =
+    Iterable<Variable> declarations =
         node.patternGuard.pattern.declaredVariables;
     Statement ifStatement;
     if (declarations.isNotEmpty) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
       ifStatement = extern.createBlock([
-        for (VariableDeclaration declaration in declarations)
+        for (Variable declaration in declarations)
           extern.createVariableStatement(declaration),
         extern.createIfStatement(
           condition,
@@ -1720,7 +1707,7 @@ class ConstantsTransformer extends RemovingTransformer {
         replacementStatements,
       );
       replacementStatements = [
-        for (VariableDeclaration declaration in matchingCache.declarations)
+        for (Variable declaration in matchingCache.declarations)
           extern.createVariableStatement(declaration),
         ...replacementStatements,
       ];
@@ -1730,7 +1717,7 @@ class ConstantsTransformer extends RemovingTransformer {
         inCacheInitializer: false,
       );
       replacementStatements = [
-        for (VariableDeclaration declaration in matchingCache.declarations)
+        for (Variable declaration in matchingCache.declarations)
           extern.createVariableStatement(declaration),
         // TODO(cstefantsova): Provide a better diagnostic message.
         extern.createIfStatement(
@@ -1762,8 +1749,7 @@ class ConstantsTransformer extends RemovingTransformer {
       ];
     }
     replacementStatements = [
-      for (VariableDeclaration declaredVariable
-          in node.pattern.declaredVariables)
+      for (Variable declaredVariable in node.pattern.declaredVariables)
         extern.createVariableStatement(declaredVariable),
       ...replacementStatements,
     ];
@@ -1814,10 +1800,9 @@ class ConstantsTransformer extends RemovingTransformer {
         effects: effects,
       );
       replacementStatements = [
-        for (VariableDeclaration declaration in matchingCache.declarations)
+        for (Variable declaration in matchingCache.declarations)
           extern.createVariableStatement(declaration),
-        for (VariableDeclaration declaredVariable
-            in node.pattern.declaredVariables)
+        for (Variable declaredVariable in node.pattern.declaredVariables)
           extern // Coverage-ignore(suite): Not run.
               .createVariableStatement(declaredVariable),
         ...replacementStatements,
@@ -1832,10 +1817,9 @@ class ConstantsTransformer extends RemovingTransformer {
       );
 
       replacementStatements = [
-        for (VariableDeclaration declaration in matchingCache.declarations)
+        for (Variable declaration in matchingCache.declarations)
           extern.createVariableStatement(declaration),
-        for (VariableDeclaration declaredVariable
-            in node.pattern.declaredVariables)
+        for (Variable declaredVariable in node.pattern.declaredVariables)
           extern // Coverage-ignore(suite): Not run.
               .createVariableStatement(declaredVariable),
         // TODO(cstefantsova): Provide a better diagnostic message.
@@ -1998,7 +1982,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
     Expression replacement;
     if (primitiveEqualConstantsOnly) {
-      VariableDeclaration valueVariable = extern.createUninitializedVariable(
+      Variable valueVariable = extern.createUninitializedVariable(
         node.staticType!,
         // Avoid step debugging on the declarations of the value variable.
         // TODO(johnniwinther): Find a more systematic way of omitting
@@ -2081,7 +2065,7 @@ class ConstantsTransformer extends RemovingTransformer {
       );
 
       // valueVariable: `valueType` valueVariable;
-      VariableDeclaration valueVariable = extern.createUninitializedVariable(
+      Variable valueVariable = extern.createUninitializedVariable(
         node.staticType!,
         // Avoid step debugging on the declaration of the value variable.
         // TODO(johnniwinther): Find a more systematic way of omitting
@@ -2162,8 +2146,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
         cases.add(
           extern.createBlock([
-            for (VariableDeclaration declaredVariable
-                in pattern.declaredVariables)
+            for (Variable declaredVariable in pattern.declaredVariables)
               extern.createVariableStatement(declaredVariable),
             extern.createIfStatement(
               caseCondition,
@@ -2228,7 +2211,7 @@ class ConstantsTransformer extends RemovingTransformer {
       replacement = extern.createBlockExpression(
         extern.createBlock([
           extern.createVariableStatement(valueVariable),
-          for (VariableDeclaration declaration in matchingCache.declarations)
+          for (Variable declaration in matchingCache.declarations)
             extern.createVariableStatement(declaration),
           labeledStatement,
         ], fileOffset: node.fileOffset),
@@ -2262,7 +2245,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitVariableGet(VariableGet node, TreeNode? removalSentinel) {
-    final VariableDeclaration variable = node.variable;
+    final Variable variable = node.variable;
     if (variable.isConst) {
       // TODO(63414): Obtain the initializer parent uniformly rather than using
       // the 'switch'.
@@ -3711,7 +3694,7 @@ class ConstantEvaluator
         env.addTypeParameterValue(klass.typeParameters[i], typeArguments[i]);
       }
       for (int i = 0; i < function.positionalParameters.length; i++) {
-        final VariableDeclaration parameter = function.positionalParameters[i];
+        final Variable parameter = function.positionalParameters[i];
         final Constant value = (i < positionalArguments.length)
             ? positionalArguments[i]
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
@@ -3719,7 +3702,7 @@ class ConstantEvaluator
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      for (final VariableDeclaration parameter in function.namedParameters) {
+      for (final Variable parameter in function.namedParameters) {
         final Constant value =
             namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
@@ -3744,7 +3727,7 @@ class ConstantEvaluator
             if (constant is AbortConstant) return constant;
             instanceBuilder!.setFieldValue(init.field, constant);
           case LocalInitializer():
-            final VariableDeclaration variable = init.variable;
+            final Variable variable = init.variable;
             Constant constant = _evaluateSubexpression(variable.initializer!);
             if (constant is AbortConstant) return constant;
             env.addVariableValue(variable, constant);
@@ -4901,7 +4884,7 @@ class ConstantEvaluator
     //
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
-    final VariableDeclaration variable = node.variable;
+    final Variable variable = node.variable;
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           // Coverage-ignore(suite): Not run.
@@ -4938,7 +4921,7 @@ class ConstantEvaluator
   @override
   Constant visitVariableSet(VariableSet node) {
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
-      final VariableDeclaration variable = node.variable;
+      final Variable variable = node.variable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
       Constant? result = env.updateVariableValue(variable, value);
@@ -4949,7 +4932,7 @@ class ConstantEvaluator
       return createEvaluationErrorConstant(
         node,
         diag.constEvalError.withArguments(
-          message: 'VariableDeclaration set of an unknown value.',
+          message: 'Variable set of an unknown value.',
         ),
       );
     }
@@ -5058,7 +5041,7 @@ class ConstantEvaluator
   }
 
   Constant _getFromEnvironmentDefaultValue(Procedure target) {
-    VariableDeclaration variable = target.function.namedParameters.singleWhere(
+    Variable variable = target.function.namedParameters.singleWhere(
       (v) => v.name == 'defaultValue',
     );
     return evaluateExpressionInContext(target, variable.initializer!);
@@ -5341,7 +5324,7 @@ class ConstantEvaluator
         env.addTypeParameterValue(function.typeParameters[i], typeArguments[i]);
       }
       for (int i = 0; i < function.positionalParameters.length; i++) {
-        final VariableDeclaration parameter = function.positionalParameters[i];
+        final Variable parameter = function.positionalParameters[i];
         final Constant value = (i < positionalArguments.length)
             ? positionalArguments[i]
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
@@ -5349,7 +5332,7 @@ class ConstantEvaluator
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      for (final VariableDeclaration parameter in function.namedParameters) {
+      for (final Variable parameter in function.namedParameters) {
         final Constant value =
             namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
@@ -6369,7 +6352,7 @@ class StatementConstantEvaluator
   }
 
   @override
-  ExecutionStatus visitVariableDeclaration(VariableDeclaration node) {
+  ExecutionStatus visitVariable(Variable node) {
     Constant value;
     if (node.initializer != null) {
       value = evaluate(node.initializer!);
@@ -6536,15 +6519,14 @@ class EvaluationEnvironment {
       <TypeParameter, DartType>{};
 
   /// The references to values of the parameters/variables in scope.
-  final Map<VariableDeclaration, EvaluationReference> _variables =
-      <VariableDeclaration, EvaluationReference>{};
+  final Map<Variable, EvaluationReference> _variables =
+      <Variable, EvaluationReference>{};
 
   /// The variables that hold unevaluated constants.
   ///
   /// Variables are removed from this set when looked up, leaving only the
   /// unread variables at the end.
-  final Set<VariableDeclaration> _unreadUnevaluatedVariables =
-      new Set<VariableDeclaration>();
+  final Set<Variable> _unreadUnevaluatedVariables = new Set<Variable>();
 
   final EvaluationEnvironment? _parent;
 
@@ -6565,14 +6547,14 @@ class EvaluationEnvironment {
     _typeParameters[parameter] = value;
   }
 
-  void addVariableValue(VariableDeclaration variable, Constant value) {
+  void addVariableValue(Variable variable, Constant value) {
     _variables[variable] = new EvaluationReference(value);
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.add(variable);
     }
   }
 
-  Constant? updateVariableValue(VariableDeclaration variable, Constant value) {
+  Constant? updateVariableValue(Variable variable, Constant value) {
     EvaluationReference? reference = _variables[variable];
     if (reference != null) {
       reference.value = value;
@@ -6581,7 +6563,7 @@ class EvaluationEnvironment {
     return _parent?.updateVariableValue(variable, value);
   }
 
-  Constant? lookupVariable(VariableDeclaration variable) {
+  Constant? lookupVariable(Variable variable) {
     Constant? value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
@@ -6596,8 +6578,7 @@ class EvaluationEnvironment {
     if (_unreadUnevaluatedVariables.isEmpty) return const [];
     // Coverage-ignore(suite): Not run.
     return _unreadUnevaluatedVariables.map<UnevaluatedConstant>(
-      (VariableDeclaration variable) =>
-          _variables[variable]!.value as UnevaluatedConstant,
+      (Variable variable) => _variables[variable]!.value as UnevaluatedConstant,
     );
   }
 
@@ -6890,7 +6871,7 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
   }
 }
 
-bool _isFormalParameter(VariableDeclaration variable) {
+bool _isFormalParameter(Variable variable) {
   final TreeNode? parent = variable.parent;
   if (variable is FunctionParameter) {
     return true;
@@ -6909,7 +6890,7 @@ class _InlinedBlock extends Block {
 class _PatternSwitchStatementInfo {
   /// The variable used as the switch expression in the generated
   /// [SwitchStatement].
-  final VariableDeclaration switchIndexVariable;
+  final Variable switchIndexVariable;
 
   /// The labeled statement that wraps the case matching.
   ///

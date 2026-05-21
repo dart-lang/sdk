@@ -186,11 +186,7 @@ class _ParameterInfo {
   bool get canBeEliminated =>
       (!isUsed || (isNeverPassed || isConstant && !isChecked) && !isWritten);
 
-  void observeParameter(
-    Member member,
-    VariableDeclaration param,
-    SignatureShaker shaker,
-  ) {
+  void observeParameter(Member member, Variable param, SignatureShaker shaker) {
     final Type? type = shaker.typeFlowAnalysis.argumentType(member, param);
 
     // A parameter is considered constant if the TFA has inferred it to have a
@@ -231,7 +227,7 @@ class _Collect extends RecursiveVisitor {
   final CoreTypes coreTypes;
 
   /// Parameters of the current function.
-  final Map<VariableDeclaration, _ParameterInfo> localParameters = {};
+  final Map<Variable, _ParameterInfo> localParameters = {};
 
   /// Set of [VariableGet] nodes corresponding to parameters in the current
   /// function which are passed as arguments to eligible calls. They are tracked
@@ -249,11 +245,11 @@ class _Collect extends RecursiveVisitor {
     useDependencies.clear();
     final FunctionNode fun = member.function!;
     for (int i = 0; i < fun.positionalParameters.length; i++) {
-      final VariableDeclaration param = fun.positionalParameters[i];
+      final Variable param = fun.positionalParameters[i];
       localParameters[param] = info.ensurePositional(i)
         ..observeParameter(member, param, shaker);
     }
-    for (VariableDeclaration param in fun.namedParameters) {
+    for (Variable param in fun.namedParameters) {
       localParameters[param] = info.ensureNamed(param.name!)
         ..observeParameter(member, param, shaker);
     }
@@ -370,8 +366,8 @@ class _Transform extends RecursiveVisitor {
   final SignatureShaker shaker;
 
   late StaticTypeContext typeContext;
-  final Map<VariableDeclaration, Constant> eliminatedParams = {};
-  final Set<VariableDeclaration> unusedParams = {};
+  final Map<Variable, Constant> eliminatedParams = {};
+  final Set<Variable> unusedParams = {};
   final List<LocalInitializer> addedInitializers = [];
 
   _Transform(this.shaker);
@@ -379,7 +375,7 @@ class _Transform extends RecursiveVisitor {
   void eliminateUsedParameter(
     Member member,
     _ParameterInfo param,
-    VariableDeclaration variable,
+    Variable variable,
   ) {
     Constant value;
     if (param.isConstant) {
@@ -414,8 +410,8 @@ class _Transform extends RecursiveVisitor {
 
     if (!info.transformNeeded(function)) return;
 
-    final List<VariableDeclaration> positional = [];
-    final List<VariableDeclaration> named = [];
+    final List<Variable> positional = [];
+    final List<Variable> named = [];
     // 1. All positional parameters that are always passed and can't be
     //    eliminated, as required positional parameters.
     int firstNotAlwaysPassed = function.positionalParameters.length;
@@ -425,7 +421,7 @@ class _Transform extends RecursiveVisitor {
         firstNotAlwaysPassed = i;
         break;
       }
-      final VariableDeclaration variable = function.positionalParameters[i];
+      final Variable variable = function.positionalParameters[i];
       if (param.isUsed) {
         if (param.canBeEliminated) {
           eliminateUsedParameter(member, param, variable);
@@ -440,10 +436,9 @@ class _Transform extends RecursiveVisitor {
     }
     // 2. All named parameters that are always passed and can't be eliminated,
     //    as required positional parameters, alphabetically by name.
-    final List<VariableDeclaration> sortedNamed =
-        function.namedParameters.toList()
-          ..sort((var1, var2) => var1.name!.compareTo(var2.name!));
-    for (VariableDeclaration variable in sortedNamed) {
+    final List<Variable> sortedNamed = function.namedParameters.toList()
+      ..sort((var1, var2) => var1.name!.compareTo(var2.name!));
+    for (Variable variable in sortedNamed) {
       final _ParameterInfo param = info.named[variable.name!]!;
       if (param.isAlwaysPassed) {
         if (param.isUsed) {
@@ -471,7 +466,7 @@ class _Transform extends RecursiveVisitor {
     ) {
       final _ParameterInfo param = info.positional[i];
       assert(!param.isAlwaysPassed);
-      final VariableDeclaration variable = function.positionalParameters[i];
+      final Variable variable = function.positionalParameters[i];
       if (param.isUsed) {
         if (param.canBeEliminated) {
           eliminateUsedParameter(member, param, variable);
@@ -491,7 +486,7 @@ class _Transform extends RecursiveVisitor {
     }
     // 4. All named parameters that are not always passed and can't be
     //    eliminated, as named parameters in alphabetical order.
-    for (VariableDeclaration variable in sortedNamed) {
+    for (Variable variable in sortedNamed) {
       final _ParameterInfo param = info.named[variable.name!]!;
       if (!param.isAlwaysPassed) {
         if (param.isUsed) {
@@ -595,13 +590,13 @@ class _Transform extends RecursiveVisitor {
       return exp is VariableGet && unusedParams.contains(exp.variable);
     }
 
-    Map<Expression, VariableDeclaration> hoisted = {};
+    Map<Expression, Variable> hoisted = {};
     if (hoistingNeeded) {
       if (call is Initializer) {
         final Constructor constructor = call.parent as Constructor;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            VariableDeclaration argVar = VariableDeclaration(
+            Variable argVar = Variable(
               null,
               initializer: arg,
               type: arg.getStaticType(typeContext),
@@ -619,7 +614,7 @@ class _Transform extends RecursiveVisitor {
         Expression current = call as Expression;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            VariableDeclaration argVar = VariableDeclaration(
+            Variable argVar = Variable(
               null,
               initializer: arg,
               type: arg.getStaticType(typeContext),
@@ -633,7 +628,7 @@ class _Transform extends RecursiveVisitor {
         if (receiver != null && mayHaveOrSeeSideEffects(receiver)) {
           assert(!isUnusedParam(receiver));
           assert(receiver.parent == call);
-          final VariableDeclaration receiverVar = VariableDeclaration(
+          final Variable receiverVar = Variable(
             null,
             initializer: receiver,
             type: receiver.getStaticType(typeContext),

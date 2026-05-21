@@ -31,7 +31,7 @@ Uri computePackageConfig(Uri repoDir) =>
 /// nominality. For instance the name of a variable declaration is taking as
 /// defining its identity.
 const Map<String, String?> _declarativeClassesNames = const {
-  // TODO(johnniwinther): This should be [VariableDeclaration].
+  // TODO(johnniwinther): This should be [Variable].
   'LegacyVariable': 'name',
   'TypeParameter': 'name',
   'StructuralParameter': 'name',
@@ -64,7 +64,7 @@ const Set<String> _interchangeableClasses = const {
   'DartType',
   'Initializer',
   'Pattern',
-  'VariableDeclaration',
+  'Variable',
 };
 
 /// Names of subclasses of [NamedNode] that do _not_ have a `visitXReference`
@@ -254,7 +254,7 @@ enum AstClassKind {
 
   /// A node class that declares a nominal entity but used without reference.
   ///
-  /// For instance [VariableDeclaration] which introduces a new entity when it
+  /// For instance [Variable] which introduces a new entity when it
   /// occurs in a [Block] but is used as a reference when it occurs in a
   /// [VariableGet].
   declarative,
@@ -399,7 +399,7 @@ enum AstFieldKind {
 
   /// A reference to a declarative [Node].
   ///
-  /// For instance the reference to [VariableDeclaration] in [VariableGet].
+  /// For instance the reference to [Variable] in [VariableGet].
   use,
 
   /// A list of values.

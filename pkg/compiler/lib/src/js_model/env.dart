@@ -744,10 +744,7 @@ mixin FunctionDataForEachParameterMixin implements FunctionData {
     void Function(DartType type, String? name, ConstantValue? defaultValue) f, {
     bool isNative = false,
   }) {
-    void handleParameter(
-      ir.VariableDeclaration parameter, {
-      bool isOptional = true,
-    }) {
+    void handleParameter(ir.Variable parameter, {bool isOptional = true}) {
       DartType type = elementMap.getDartType(parameter.type);
       String? name = parameter.name;
       ConstantValue? defaultValue;
@@ -764,7 +761,7 @@ mixin FunctionDataForEachParameterMixin implements FunctionData {
     }
 
     forEachOrderedParameterByFunctionNode(functionNode, parameterStructure, (
-      ir.VariableDeclaration parameter, {
+      ir.Variable parameter, {
       required bool isOptional,
       required bool isElided,
     }) {

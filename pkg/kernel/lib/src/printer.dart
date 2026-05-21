@@ -99,7 +99,7 @@ class AstPrinter {
   int _constantLevel = 0;
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
-  late final Map<VariableDeclaration, String> _variableDeclarationNames = {};
+  late final Map<Variable, String> _variableDeclarationNames = {};
   late final Map<VariableBase, String> _variableNames = {};
 
   AstPrinter(this._strategy);
@@ -264,7 +264,7 @@ class AstPrinter {
         if (name != null) {
           return name;
         }
-        return _variableDeclarationNames[node as VariableDeclaration] ??=
+        return _variableDeclarationNames[node as Variable] ??=
             '#${_variableDeclarationNames.length}';
     }
   }
@@ -518,7 +518,7 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeVariableInitialization(
-    VariableDeclaration node, {
+    Variable node, {
     bool includeModifiersAndType = true,
     bool? isLate,
     DartType? type,
@@ -561,7 +561,7 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeExpressionVariable(
-    VariableDeclaration node, {
+    Variable node, {
     bool includeModifiersAndType = true,
     bool? isLate,
     DartType? type,

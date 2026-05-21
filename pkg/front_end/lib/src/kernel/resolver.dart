@@ -520,7 +520,7 @@ class Resolver {
         constantContext: constantContext,
         initializers: initializers,
         forPrimaryConstructor: forPrimaryConstructor,
-        parameters: <VariableDeclaration>[
+        parameters: <Variable>[
           for (FormalParameterBuilder formal
               in bodyBuilderContext.formals ?? [])
             formal.variable,
@@ -873,9 +873,9 @@ class Resolver {
     required LookupScope scope,
     required Token token,
     required Procedure procedure,
-    required List<VariableDeclaration> extraKnownVariables,
+    required List<Variable> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
-    required VariableDeclaration? extensionThis,
+    required Variable? extensionThis,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -921,7 +921,7 @@ class Resolver {
         : new List<FormalParameterBuilder>.generate(
             parameters.positionalParameters.length,
             (int i) {
-              VariableDeclaration formal = parameters.positionalParameters[i];
+              Variable formal = parameters.positionalParameters[i];
               String formalName = formal.name!;
               bool isWildcard =
                   libraryFeatures.wildcardVariables.isEnabled &&
@@ -958,7 +958,7 @@ class Resolver {
     Expression expression = result.expression;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
-        VariableDeclaration variable = formals[i].variable;
+        Variable variable = formals[i].variable;
         context.typeInferrer.flowAnalysis.declare(
           variable,
           new SharedTypeView(variable.type),
@@ -966,7 +966,7 @@ class Resolver {
         );
       }
     }
-    for (VariableDeclaration extraVariable in extraKnownVariables) {
+    for (Variable extraVariable in extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
         extraVariable,
         new SharedTypeView(extraVariable.type),
@@ -979,10 +979,10 @@ class Resolver {
     // TODO(cstefantsova): Remove special-casing over
     // ExpressionCompilerProcedureBodyBuildContext below by computing formals in
     // it.
-    List<VariableDeclaration> formalParameters =
+    List<Variable> formalParameters =
         bodyBuilderContext is ExpressionCompilerProcedureBodyBuildContext
         ? []
-        : <VariableDeclaration>[
+        : <Variable>[
             for (FormalParameterBuilder formal
                 in bodyBuilderContext.formals ?? [])
               formal.variable,
@@ -1126,7 +1126,7 @@ class Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
     required ConstantContext constantContext,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required LocalScope? formalParameterScope,
     required ThisVariable? internalThisVariable,
@@ -1155,7 +1155,7 @@ class Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
     required LocalScope? formalParameterScope,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required ConstantContext constantContext,
     required ThisVariable? internalThisVariable,
@@ -1240,7 +1240,7 @@ class Resolver {
       assignedVariables.read(variable.astVariable);
     }
     return intern.createVariableGet(
-      variable as VariableDeclaration,
+      variable as Variable,
       fileOffset: fileOffset,
     );
   }
@@ -1248,7 +1248,7 @@ class Resolver {
   void _declareFormals({
     required TypeInferrer typeInferrer,
     required BodyBuilderContext bodyBuilderContext,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
     required List<FormalParameterBuilder>? formals,
   }) {
     if (thisVariable != null && bodyBuilderContext.isConstructor) {
@@ -1263,7 +1263,7 @@ class Resolver {
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
-        VariableDeclaration variable = parameter.variable;
+        Variable variable = parameter.variable;
         // TODO(62401): Remove the cast when the flow analysis uses
         // [InternalExpressionVariable]s.
         typeInferrer.flowAnalysis.declare(
@@ -1289,7 +1289,7 @@ class Resolver {
     required ConstantContext constantContext,
     required List<Initializer> initializers,
     required bool forPrimaryConstructor,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
   }) {
@@ -1353,7 +1353,7 @@ class Resolver {
     required Statement? body,
     required Uri fileUri,
     required BodyBuilderContext bodyBuilderContext,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
     required List<Initializer> initializers,
     required ConstantContext constantContext,
     required ThisVariable? internalThisVariable,
@@ -1401,7 +1401,7 @@ class Resolver {
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,
             );
-            VariableDeclaration originParameter = parameter.variable;
+            Variable originParameter = parameter.variable;
             initializer = context.typeInferrer.inferParameterInitializer(
               fileUri: fileUri,
               initializer: initializer,
@@ -1414,8 +1414,9 @@ class Resolver {
             }
             parameter.initializerWasInferred = true;
           }
-          VariableDeclaration? tearOffParameter = bodyBuilderContext
-              .getTearOffParameter(declaredParameterIndex);
+          Variable? tearOffParameter = bodyBuilderContext.getTearOffParameter(
+            declaredParameterIndex,
+          );
           if (tearOffParameter != null) {
             Expression tearOffInitializer = _simpleCloner.cloneInContext(
               initializer!,
@@ -1430,7 +1431,7 @@ class Resolver {
       }
     }
 
-    late List<VariableDeclaration>? parameters = <VariableDeclaration>[
+    late List<Variable>? parameters = <Variable>[
       for (FormalParameterBuilder formal in bodyBuilderContext.formals ?? [])
         formal.variable,
     ];

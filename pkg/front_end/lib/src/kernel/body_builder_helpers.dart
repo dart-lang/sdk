@@ -292,11 +292,11 @@ class FormalParameters extends Parameters {
         returnTypeBuilder?.build(library, TypeUse.returnType) ??
         const DynamicType();
     int requiredParameterCount = 0;
-    List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
-    List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
+    List<Variable> positionalParameters = <Variable>[];
+    List<Variable> namedParameters = <Variable>[];
     if (parameters != null) {
       for (FormalParameterBuilder formal in parameters!) {
-        VariableDeclaration parameter = formal.build(library);
+        Variable parameter = formal.build(library);
         if (formal.isPositional) {
           positionalParameters.add(parameter);
           if (formal.isRequiredPositional) requiredParameterCount++;
@@ -304,7 +304,7 @@ class FormalParameters extends Parameters {
           namedParameters.add(parameter);
         }
       }
-      namedParameters.sort((VariableDeclaration a, VariableDeclaration b) {
+      namedParameters.sort((Variable a, Variable b) {
         return a.name!.compareTo(b.name!);
       });
     }

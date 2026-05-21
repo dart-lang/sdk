@@ -75,7 +75,7 @@ class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
 
   @override
   DartType? computeNodeValue(Id id, TreeNode node) {
-    if (node is VariableDeclaration || node is LocalFunction) {
+    if (node is Variable || node is LocalFunction) {
       return typeInferenceResult.inferredVariableTypes[node];
     }
     return null;

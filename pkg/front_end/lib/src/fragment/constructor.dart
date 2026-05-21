@@ -146,7 +146,7 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
       _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  Variable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   ExtensionScope get extensionScope {

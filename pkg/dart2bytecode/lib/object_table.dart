@@ -734,10 +734,7 @@ class ParameterFlags {
     return null;
   }
 
-  static int getVariableDeclarationFlags(
-    VariableDeclaration variable,
-    bool isCode,
-  ) {
+  static int getVariableDeclarationFlags(Variable variable, bool isCode) {
     int flags = 0;
     if (isCode) {
       if (variable.isCovariantByDeclaration) {

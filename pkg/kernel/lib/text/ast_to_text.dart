@@ -146,8 +146,7 @@ String componentToString(Component node) {
 }
 
 class NameSystem {
-  final Namer<VariableDeclaration> variables =
-      new NormalNamer<VariableDeclaration>('#t');
+  final Namer<Variable> variables = new NormalNamer<Variable>('#t');
   final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters = new NormalNamer<TypeParameter>(
     '#T',
@@ -162,7 +161,7 @@ class NameSystem {
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
-  String nameVariable(VariableDeclaration node) => variables.getName(node);
+  String nameVariable(Variable node) => variables.getName(node);
   String nameLibrary(Reference node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
@@ -243,7 +242,7 @@ class NameSystem {
 }
 
 abstract class Annotator {
-  String annotateVariable(Printer printer, VariableDeclaration node);
+  String annotateVariable(Printer printer, Variable node);
   String annotateReturn(Printer printer, FunctionNode node);
   String annotateField(Printer printer, Field node);
 }
@@ -369,11 +368,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  String getVariableName(VariableDeclaration node) {
+  String getVariableName(Variable node) {
     return node.cosmeticName ?? syntheticNames.nameVariable(node);
   }
 
-  String getVariableReference(VariableDeclaration node) {
+  String getVariableReference(Variable node) {
     return getVariableName(node);
   }
 
@@ -673,7 +672,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       if (showOffsets && node is TreeNode) {
         writeWord("[${node.fileOffset}]");
       }
-      if (showMetadata && node is TreeNode && node is! VariableDeclaration) {
+      if (showMetadata && node is TreeNode && node is! Variable) {
         writeMetadata(
           node,
           separateLines: node is Member || node is FunctionDeclaration,
@@ -980,8 +979,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void writeParameterList(
-    List<VariableDeclaration> positional,
-    List<VariableDeclaration> named,
+    List<Variable> positional,
+    List<Variable> named,
     int requiredParameterCount,
   ) {
     writeSymbol('(');
@@ -1112,7 +1111,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord(getTypedefReference(typedefNode));
   }
 
-  void writeVariableReference(VariableDeclaration variable) {
+  void writeVariableReference(Variable variable) {
     final bool highlight = shouldHighlight(variable);
     if (highlight) {
       startHighlight(variable);
@@ -1255,7 +1254,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     endLine(';');
   }
 
-  void writeExpressionVariable(VariableDeclaration node) {
+  void writeExpressionVariable(Variable node) {
     // TODO(cstefantsova): Printer of the new variables is broken.
     if (node is LegacyVariable && node is! FunctionParameter) {
       writeVariableDeclaration(node);
@@ -2717,13 +2716,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeSpace();
     writeWord('catch');
     writeSymbol('(');
-    VariableDeclaration? exception = node.exception;
+    Variable? exception = node.exception;
     if (exception != null) {
       writeExpressionVariable(exception);
     } else {
       writeWord('no-exception-var');
     }
-    VariableDeclaration? stackTrace = node.stackTrace;
+    Variable? stackTrace = node.stackTrace;
     if (stackTrace != null) {
       writeComma();
       writeExpressionVariable(stackTrace);
@@ -2781,10 +2780,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeFunction(node.function, name: getVariableName(node.variable));
   }
 
-  void writeVariableDeclaration(
-    VariableDeclaration node, {
-    bool useVarKeyword = false,
-  }) {
+  void writeVariableDeclaration(Variable node, {bool useVarKeyword = false}) {
     switch (node) {
       case LocalVariable():
       case CatchVariable():
@@ -2846,7 +2842,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void writeVariableStatement(VariableStatement node) {
-    VariableDeclaration variable = node.variable;
+    Variable variable = node.variable;
     if (node is VariableInitialization) {
       if (showOffsets) writeWord("[${node.fileOffset}]");
       if (showMetadata) writeMetadata(node);

@@ -352,8 +352,7 @@ class ForwardingNode {
         List<Expression> positionalArguments = new List.generate(
           function.positionalParameters.length,
           (int index) {
-            VariableDeclaration parameter =
-                function.positionalParameters[index];
+            Variable parameter = function.positionalParameters[index];
             int fileOffset = parameter.fileOffset;
             Expression expression = extern.createVariableGet(parameter);
             DartType superParameterType = type.positionalParameters[index];
@@ -381,7 +380,7 @@ class ForwardingNode {
         List<NamedExpression> namedArguments = new List.generate(
           function.namedParameters.length,
           (int index) {
-            VariableDeclaration parameter = function.namedParameters[index];
+            Variable parameter = function.namedParameters[index];
             int fileOffset = parameter.fileOffset;
             Expression expression = extern.createVariableGet(parameter);
             DartType superParameterType = type.namedParameters
@@ -441,7 +440,7 @@ class ForwardingNode {
       case ProcedureKind.Setter:
         DartType superParameterType = _combinedMemberSignature
             .getMemberTypeForTarget(superTarget);
-        VariableDeclaration parameter = function.positionalParameters[0];
+        Variable parameter = function.positionalParameters[0];
         int fileOffset = parameter.fileOffset;
         Expression expression = extern.createVariableGet(parameter);
         if (isForwardingSemiStub) {
@@ -564,16 +563,12 @@ class ForwardingNode {
     FunctionType signatureType = procedure.function.computeFunctionType(
       procedure.enclosingLibrary.nonNullable,
     );
-    List<VariableDeclaration> positionalParameters =
+    List<Variable> positionalParameters =
         procedure.function.positionalParameters;
-    List<VariableDeclaration> namedParameters =
-        procedure.function.namedParameters;
+    List<Variable> namedParameters = procedure.function.namedParameters;
     int requiredParameterCount = procedure.function.requiredParameterCount;
     bool hasUpdate = false;
-    bool updateNullability(
-      VariableDeclaration parameter, {
-      required bool isRequired,
-    }) {
+    bool updateNullability(Variable parameter, {required bool isRequired}) {
       // Parameters in nnbd libraries that backends might not be able to pass
       // a non-null value for must be nullable. This allows backends to do the
       // appropriate parameter checks in the forwarder stub for null placeholder
@@ -586,7 +581,7 @@ class ForwardingNode {
     }
 
     for (int i = 0; i < positionalParameters.length; i++) {
-      VariableDeclaration parameter = positionalParameters[i];
+      Variable parameter = positionalParameters[i];
       bool isRequired = i < requiredParameterCount;
       if (updateNullability(parameter, isRequired: isRequired)) {
         parameter.type = parameter.type.withDeclaredNullability(
@@ -596,7 +591,7 @@ class ForwardingNode {
       }
     }
 
-    for (VariableDeclaration parameter in namedParameters) {
+    for (Variable parameter in namedParameters) {
       if (updateNullability(parameter, isRequired: parameter.isRequired)) {
         parameter.type = parameter.type.withDeclaredNullability(
           Nullability.nullable,

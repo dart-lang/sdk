@@ -638,7 +638,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
   // Has no initializer.
-  VariableDeclaration variable;
+  Variable variable;
 
   Expression iterable;
 
@@ -1225,8 +1225,8 @@ class TryCatch extends Statement {
 
 class Catch extends TreeNode implements ScopeProvider {
   DartType guard; // Not null, defaults to dynamic.
-  VariableDeclaration? exception;
-  VariableDeclaration? stackTrace;
+  Variable? exception;
+  Variable? stackTrace;
   Statement body;
 
   @override
@@ -1468,8 +1468,7 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-class LegacyVariable extends TreeNode
-    implements VariableDeclaration, Annotatable {
+class LegacyVariable extends TreeNode implements Variable, Annotatable {
   /// Offset of the equals sign in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
@@ -1912,13 +1911,13 @@ class LegacyVariable extends TreeNode
   }
 
   @override
-  VariableDeclaration get asVariableDeclaration => this;
+  Variable get asVariableDeclaration => this;
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}.variable=");
   }
 
@@ -1968,20 +1967,19 @@ class LegacyVariable extends TreeNode
 /// Declaration of a local variable.
 abstract class VariableStatement extends Statement {
   /// The declared variable.
-  abstract final VariableDeclaration variable;
+  abstract final Variable variable;
 
   /// The declared initializer, if any.
   abstract Expression? initializer;
 
-  factory VariableStatement(VariableDeclaration variable) =
-      LegacyVariableStatement;
+  factory VariableStatement(Variable variable) = LegacyVariableStatement;
 }
 
 /// Declaration of a local variable.
 class LegacyVariableStatement extends Statement implements VariableStatement {
   /// The declared variable.
   @override
-  VariableDeclaration variable;
+  Variable variable;
 
   LegacyVariableStatement(this.variable) {
     variable.parent = this;
@@ -2036,7 +2034,7 @@ class LegacyVariableStatement extends Statement implements VariableStatement {
 ///
 /// The body of the function may use [variable] as its self-reference.
 class FunctionDeclaration extends Statement implements LocalFunction {
-  VariableDeclaration variable; // Is final and has no initializer.
+  Variable variable; // Is final and has no initializer.
 
   @override
   FunctionNode function;
@@ -2098,7 +2096,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 class VariableInitialization extends Statement
     implements VariableStatement, ContextConsumer {
   @override
-  VariableDeclaration variable;
+  Variable variable;
 
   @override
   Expression? initializer;

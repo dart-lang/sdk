@@ -41,7 +41,7 @@ import "package:kernel/ast.dart"
         Procedure,
         TreeNode,
         TypeParameter,
-        VariableDeclaration;
+        Variable;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import "package:testing/src/log.dart" show splitLines;
@@ -222,7 +222,7 @@ class OutputParametersMatches
             fail(tests, "Compiled expression contains named parameters."),
           );
         }
-        List<VariableDeclaration> positionals =
+        List<Variable> positionals =
             compiledProcedure.function.positionalParameters;
         if (positionals.length != test.definitions.length) {
           return Future.value(

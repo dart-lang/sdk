@@ -148,7 +148,7 @@ sealed class SetterEncoding {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   Procedure get writeTarget;
 
@@ -200,7 +200,7 @@ sealed class SetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 }
 
@@ -227,7 +227,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  Variable? get thisVariable => null;
 
   @override
   Procedure get writeTarget => _procedure!;
@@ -333,7 +333,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      VariableDeclaration parameter = new VariableDeclarationImpl(
+      Variable parameter = new VariableDeclarationImpl(
         "#synthetic",
         fileOffset: TreeNode.noOffset,
       );
@@ -484,7 +484,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -531,7 +531,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       _clonedDeclarationTypeParameters != null ? function.typeParameters : null;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable;
+  Variable? get thisVariable => _thisFormal.variable;
 
   @override
   Procedure get writeTarget => _procedure!;
@@ -659,8 +659,8 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       // Replace illegal parameters by single dummy parameter (after #this).
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      VariableDeclaration thisParameter = function.positionalParameters[0];
-      VariableDeclaration parameter = new VariableDeclarationImpl(
+      Variable thisParameter = function.positionalParameters[0];
+      Variable parameter = new VariableDeclarationImpl(
         "#synthetic",
         fileOffset: TreeNode.noOffset,
       );
@@ -856,7 +856,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(

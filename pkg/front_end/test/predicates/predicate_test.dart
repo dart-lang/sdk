@@ -215,7 +215,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  void defaultVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     Object? identity;
     String? name;
     String? tag;
@@ -257,7 +257,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.name] = name;
       }
     }
-    super.defaultVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override

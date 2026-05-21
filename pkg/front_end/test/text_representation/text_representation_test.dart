@@ -187,7 +187,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   String? computeNodeValue(Id id, TreeNode node) {
     if (node is ConstantExpression) {
       return node.constant.toText(strategy);
-    } else if (node is VariableDeclaration) {
+    } else if (node is Variable) {
       DartType type = node.type;
       return type.toText(strategy);
     }
@@ -199,13 +199,12 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
     ActualData<String> value1,
     ActualData<String> value2,
   ) {
-    // Prefer [VariableDeclaration] over [ConstantExpression]. This is done to
+    // Prefer [Variable] over [ConstantExpression]. This is done to
     // avoid conflict between a parameter and its implicit initializer.
-    if (value1.object is ConstantExpression &&
-        value2.object is VariableDeclaration) {
+    if (value1.object is ConstantExpression && value2.object is Variable) {
       return value2;
     } else if (value2.object is ConstantExpression &&
-        value1.object is VariableDeclaration) {
+        value1.object is Variable) {
       return value1;
     }
     return super.mergeData(value1, value2);

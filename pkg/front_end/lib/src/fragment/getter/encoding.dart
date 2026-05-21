@@ -133,7 +133,7 @@ sealed class GetterEncoding implements InferredTypeListener {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -184,7 +184,7 @@ sealed class GetterEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 }
 
@@ -231,7 +231,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  Variable? get thisVariable => null;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -467,7 +467,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -517,7 +517,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       _clonedDeclarationTypeParameters != null ? function.typeParameters : null;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable;
+  Variable? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -815,7 +815,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(

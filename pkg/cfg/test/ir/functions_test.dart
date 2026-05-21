@@ -165,7 +165,7 @@ void main() {
   test('local function', () {
     final member = coreTypes.futureValueFactory;
     final localFunction = ast.FunctionDeclaration(
-      ast.VariableDeclaration('foo'),
+      ast.Variable('foo'),
       ast.FunctionNode(
         ast.Block([]),
         returnType: coreTypes.boolNonNullableRawType,

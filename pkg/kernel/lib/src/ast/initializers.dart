@@ -323,7 +323,7 @@ class RedirectingInitializer extends Initializer {
 /// The variable is in scope for the remainder of the initializer list, but is
 /// not in scope in the constructor body.
 class LocalInitializer extends Initializer {
-  VariableDeclaration variable;
+  Variable variable;
 
   LocalInitializer(this.variable) {
     variable.parent = this;

@@ -1301,7 +1301,7 @@ class Translator with KernelNodes {
     // Look up the closure representation for the signature.
     int typeCount = functionNode.typeParameters.length;
     int positionalCount = functionNode.positionalParameters.length;
-    final List<VariableDeclaration> namedParamsSorted =
+    final List<Variable> namedParamsSorted =
         functionNode.namedParameters.toList()
           ..sort((p1, p2) => p1.name!.compareTo(p2.name!));
     List<String> names = namedParamsSorted.map((p) => p.name!).toList();
@@ -1665,7 +1665,7 @@ class Translator with KernelNodes {
   }
 
   bool needToCheckParameter(
-    VariableDeclaration parameter, {
+    Variable parameter, {
     required bool uncheckedEntry,
   }) {
     if (options.omitImplicitTypeChecks) return false;
@@ -1678,9 +1678,9 @@ class Translator with KernelNodes {
   ({
     List<TypeParameter> typeParameters,
     List<DartType> typeParametersToTypeCheck,
-    List<VariableDeclaration> positional,
+    List<Variable> positional,
     List<DartType> positionalToTypeCheck,
-    List<VariableDeclaration> named,
+    List<Variable> named,
     List<DartType> namedToTypeCheck,
   })
   getParametersToCheck(Member member) {
@@ -1688,9 +1688,8 @@ class Translator with KernelNodes {
     final List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
-    final List<VariableDeclaration> positional =
-        memberFunction.positionalParameters;
-    final List<VariableDeclaration> named = memberFunction.namedParameters;
+    final List<Variable> positional = memberFunction.positionalParameters;
+    final List<Variable> named = memberFunction.namedParameters;
 
     // If this is a CFE-inserted `forwarding-stub` then the types we have to
     // check against are those from the forwarding target.
@@ -1740,16 +1739,14 @@ class Translator with KernelNodes {
     return [for (final param in typeParameters) param.bound];
   }
 
-  List<DartType> _typesFromPositionalParameters(
-    List<VariableDeclaration> typeParameters,
-  ) {
+  List<DartType> _typesFromPositionalParameters(List<Variable> typeParameters) {
     if (typeParameters.isEmpty) return const [];
     return [for (final param in typeParameters) param.type];
   }
 
   List<DartType> _typeFromNamedParameters(
-    List<VariableDeclaration> namedOrder,
-    List<VariableDeclaration> namedType,
+    List<Variable> namedOrder,
+    List<Variable> namedType,
   ) {
     if (namedOrder.isEmpty) return const [];
     final namedTypes = <DartType>[];
@@ -1945,7 +1942,7 @@ class Translator with KernelNodes {
     );
   }
 
-  bool canSkipImplicitCheck(VariableDeclaration node) {
+  bool canSkipImplicitCheck(Variable node) {
     return inferredArgTypeMetadata[node]?.skipCheck ?? false;
   }
 
@@ -1955,7 +1952,7 @@ class Translator with KernelNodes {
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
-  DartType typeOfParameterVariable(VariableDeclaration node, bool isRequired) {
+  DartType typeOfParameterVariable(Variable node, bool isRequired) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
@@ -1984,7 +1981,7 @@ class Translator with KernelNodes {
 
   // The type to use assuming the argument was already checked (in case a
   // covariant check is needed).
-  DartType typeOfCheckedParameterVariable(VariableDeclaration node) {
+  DartType typeOfCheckedParameterVariable(Variable node) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
@@ -2004,10 +2001,7 @@ class Translator with KernelNodes {
     return _inferredTypeOfField(node) ?? node.type;
   }
 
-  w.ValueType translateTypeOfParameter(
-    VariableDeclaration node,
-    bool isRequired,
-  ) {
+  w.ValueType translateTypeOfParameter(Variable node, bool isRequired) {
     return translateType(typeOfParameterVariable(node, isRequired));
   }
 
@@ -2015,7 +2009,7 @@ class Translator with KernelNodes {
     return translateType(typeOfField(node));
   }
 
-  w.ValueType translateTypeOfLocalVariable(VariableDeclaration node) {
+  w.ValueType translateTypeOfLocalVariable(Variable node) {
     DartType dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
     if (dartType is InterfaceType) {
       final info = classInfo[dartType.classNode];
@@ -2030,7 +2024,7 @@ class Translator with KernelNodes {
     return translateType(dartType);
   }
 
-  DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
+  DartType? _inferredTypeOfParameterVariable(Variable node) {
     return _filterInferredType(node.type, inferredArgTypeMetadata[node]);
   }
 
@@ -2045,7 +2039,7 @@ class Translator with KernelNodes {
     return _filterInferredType(node.type, inferredTypeMetadata[node]);
   }
 
-  DartType? _inferredTypeOfLocalVariable(VariableDeclaration node) {
+  DartType? _inferredTypeOfLocalVariable(Variable node) {
     InferredType? inferredType = inferredTypeMetadata[node];
     if (node.isFinal) {
       inferredType ??= inferredTypeMetadata[node.initializer];

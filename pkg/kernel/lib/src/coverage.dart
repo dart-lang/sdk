@@ -993,37 +993,37 @@ class CoverageVisitor implements Visitor<void> {
 
   @override
   void visitLocalVariable(LocalVariable node) {
-    visited.add(VariableDeclarationKind.LocalVariable);
+    visited.add(VariableKind.LocalVariable);
     node.visitChildren(this);
   }
 
   @override
   void visitCatchVariable(CatchVariable node) {
-    visited.add(VariableDeclarationKind.CatchVariable);
+    visited.add(VariableKind.CatchVariable);
     node.visitChildren(this);
   }
 
   @override
   void visitPositionalParameter(PositionalParameter node) {
-    visited.add(VariableDeclarationKind.PositionalParameter);
+    visited.add(VariableKind.PositionalParameter);
     node.visitChildren(this);
   }
 
   @override
   void visitNamedParameter(NamedParameter node) {
-    visited.add(VariableDeclarationKind.NamedParameter);
+    visited.add(VariableKind.NamedParameter);
     node.visitChildren(this);
   }
 
   @override
   void visitThisVariable(ThisVariable node) {
-    visited.add(VariableDeclarationKind.ThisVariable);
+    visited.add(VariableKind.ThisVariable);
     node.visitChildren(this);
   }
 
   @override
   void visitSyntheticVariable(SyntheticVariable node) {
-    visited.add(VariableDeclarationKind.SyntheticVariable);
+    visited.add(VariableKind.SyntheticVariable);
     node.visitChildren(this);
   }
 
@@ -1481,7 +1481,7 @@ enum StatementKind {
   YieldStatement,
 }
 
-enum VariableDeclarationKind {
+enum VariableKind {
   CatchVariable,
   LocalVariable,
   NamedParameter,
@@ -1519,7 +1519,7 @@ Set<Object> missingNodes(CoverageVisitor visitor) {
     ...InitializerKind.values,
     ...PatternKind.values,
     ...StatementKind.values,
-    ...VariableDeclarationKind.values,
+    ...VariableKind.values,
     ...DartTypeKind.values,
   };
   all.removeAll(visitor.visited);
@@ -1570,13 +1570,9 @@ Set<StatementKind> missingStatements(CoverageVisitor visitor) {
   return all;
 }
 
-/// Returns the set of [VariableDeclarationKind]s not visited by [visitor].
-Set<VariableDeclarationKind> missingVariableDeclarations(
-  CoverageVisitor visitor,
-) {
-  Set<VariableDeclarationKind> all = new Set<VariableDeclarationKind>.of(
-    VariableDeclarationKind.values,
-  );
+/// Returns the set of [VariableKind]s not visited by [visitor].
+Set<VariableKind> missingVariables(CoverageVisitor visitor) {
+  Set<VariableKind> all = new Set<VariableKind>.of(VariableKind.values);
   all.removeAll(visitor.visited);
   return all;
 }

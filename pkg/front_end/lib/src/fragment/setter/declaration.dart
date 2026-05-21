@@ -153,7 +153,7 @@ class RegularSetterDeclaration
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _encoding.thisVariable;
+  Variable? get thisVariable => _encoding.thisVariable;
 
   @override
   Procedure get writeTarget => _encoding.writeTarget;
@@ -316,7 +316,7 @@ class RegularSetterDeclaration
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals == null ||
@@ -395,7 +395,7 @@ abstract class SetterFragmentDeclaration {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -412,7 +412,7 @@ abstract class SetterFragmentDeclaration {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 
   DartType get returnTypeContext;

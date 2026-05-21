@@ -45,7 +45,7 @@ class LateVarInitTransformer {
       Nullability.nonNullable,
     );
     final fn = FunctionDeclaration(
-      VariableDeclaration(
+      Variable(
         "#${node.variable.name}#initializer",
         type: functionType,
         isSynthesized: true,

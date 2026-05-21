@@ -24,7 +24,7 @@ const String _locationFieldName = r'_location';
 
 bool _hasNamedParameter(FunctionNode function, String name) {
   return function.namedParameters.any(
-    (VariableDeclaration parameter) => parameter.name == name,
+    (Variable parameter) => parameter.name == name,
   );
 }
 
@@ -34,11 +34,8 @@ bool _hasNamedArgument(Arguments arguments, String argumentName) {
   );
 }
 
-VariableDeclaration? _getNamedParameter(
-  FunctionNode function,
-  String parameterName,
-) {
-  for (VariableDeclaration parameter in function.namedParameters) {
+Variable? _getNamedParameter(FunctionNode function, String parameterName) {
+  for (Variable parameter in function.namedParameters) {
     if (parameter.name == parameterName) {
       return parameter;
     }
@@ -87,10 +84,7 @@ void _maybeAddCreationLocationArgument(
 
 /// Adds a named parameter to a function if the function does not already have
 /// a named parameter with the name or optional positional parameters.
-bool _maybeAddNamedParameter(
-  FunctionNode function,
-  VariableDeclaration variable,
-) {
+bool _maybeAddNamedParameter(FunctionNode function, Variable variable) {
   if (_hasNamedParameter(function, _creationLocationParameterName)) {
     // Gracefully handle if this method is called on a function that has already
     // been transformed.
@@ -177,9 +171,7 @@ class _WidgetCallSiteTransformer extends Transformer {
   @override
   Procedure visitProcedure(Procedure node) {
     if (_isWidgetFactory(node)) {
-      final VariableDeclaration locationParameter = node
-          .function
-          .namedParameters
+      final Variable locationParameter = node.function.namedParameters
           .firstWhere(
             (parameter) => parameter.name == _creationLocationParameterName,
           );
@@ -306,7 +298,7 @@ class _WidgetCallSiteTransformer extends Transformer {
         // location parameter of the surrounding factory since it isn't a
         // constant expression.
         !isConst) {
-      final VariableDeclaration? creationLocationParameter = _getNamedParameter(
+      final Variable? creationLocationParameter = _getNamedParameter(
         _currentFactory!.function,
         _creationLocationParameterName,
       );
@@ -500,7 +492,7 @@ class WidgetCreatorTracker {
           _creationLocationParameterName,
         ),
       );
-      final VariableDeclaration variable = new VariableDeclaration(
+      final Variable variable = new Variable(
         _creationLocationParameterName,
         type: new InterfaceType(
           tracking.locationClass,
@@ -771,7 +763,7 @@ class WidgetCreatorTracker {
       if (procedure.isFactory) {
         _maybeAddNamedParameter(
           procedure.function,
-          new VariableDeclaration(
+          new Variable(
             _creationLocationParameterName,
             type: new InterfaceType(
               tracking.locationClass,
@@ -804,7 +796,7 @@ class WidgetCreatorTracker {
         return;
       }
 
-      final VariableDeclaration variable = new VariableDeclaration(
+      final Variable variable = new Variable(
         _creationLocationParameterName,
         type: new InterfaceType(
           tracking.locationClass,
@@ -878,7 +870,7 @@ class WidgetCreatorTracker {
       if (method != null && _hasWidgetFactoryAnnotation(method)) {
         _maybeAddNamedParameter(
           method.function,
-          new VariableDeclaration(
+          new Variable(
             _creationLocationParameterName,
             type: new InterfaceType(
               _locationClass!,
@@ -892,7 +884,7 @@ class WidgetCreatorTracker {
       if (tearOff != null && _hasWidgetFactoryAnnotation(tearOff)) {
         _maybeAddNamedParameter(
           tearOff.function,
-          new VariableDeclaration(
+          new Variable(
             _creationLocationParameterName,
             type: new InterfaceType(
               _locationClass!,

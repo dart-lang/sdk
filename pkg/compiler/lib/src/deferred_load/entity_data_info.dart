@@ -578,7 +578,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(ir.VariableDeclaration node) {
+  void defaultVariable(ir.Variable node) {
     // We avoid visiting metadata on the parameter declaration by only visiting
     // the initializer. The type cannot hold constants so can kan skip that
     // as well.

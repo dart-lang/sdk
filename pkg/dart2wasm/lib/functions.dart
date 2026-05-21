@@ -684,7 +684,7 @@ List<w.ValueType> _getConstructorInputTypes(
   Translator translator,
   Constructor member,
   List<TypeParameter> typeParameters,
-  List<VariableDeclaration> parameters,
+  List<Variable> parameters,
   w.ValueType Function(DartType) translateType,
 ) {
   final List<w.ValueType> inputs = [];

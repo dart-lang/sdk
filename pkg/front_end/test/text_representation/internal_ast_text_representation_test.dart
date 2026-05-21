@@ -47,7 +47,7 @@ void testStatement(
 }
 
 void testVariableDeclaration(
-  VariableDeclaration node,
+  Variable node,
   String normal, {
   String? verbose,
   String? limited,
@@ -224,20 +224,16 @@ void main() {
 void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
-      new VariableStatement(new VariableDeclaration('a')),
-      new VariableStatement(new VariableDeclaration('b')),
+      new VariableStatement(new Variable('a')),
+      new VariableStatement(new Variable('b')),
     ], dummyUri),
     '''
 dynamic a, b;''',
   );
   testStatement(
     forest.variablesDeclaration([
-      new VariableStatement(
-        new VariableDeclaration('a', type: const VoidType()),
-      ),
-      new VariableStatement(
-        new VariableDeclaration('b', initializer: new NullLiteral()),
-      ),
+      new VariableStatement(new Variable('a', type: const VoidType())),
+      new VariableStatement(new Variable('b', initializer: new NullLiteral())),
     ], dummyUri),
     '''
 void a, b = null;''',
@@ -249,21 +245,18 @@ void _testTryStatement() {
   Block emptyBlock2 = new Block([]);
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
-  Catch emptyCatchBlock = new Catch(
-    new VariableDeclaration('e'),
-    new Block([]),
-  );
+  Catch emptyCatchBlock = new Catch(new Variable('e'), new Block([]));
   Catch emptyCatchBlockOnVoid = new Catch(
-    new VariableDeclaration('e'),
+    new Variable('e'),
     new Block([]),
     guard: const VoidType(),
   );
   Catch returnCatchBlock = new Catch(
-    new VariableDeclaration('e'),
+    new Variable('e'),
     new Block([new ReturnStatement()]),
   );
   Catch returnCatchBlockOnVoid = new Catch(
-    new VariableDeclaration('e'),
+    new Variable('e'),
     new Block([new ReturnStatement()]),
     guard: const VoidType(),
   );
@@ -827,9 +820,7 @@ continue label0;''',
 }
 
 void _testCascade() {
-  VariableDeclaration variable = new VariableDeclaration.forValue(
-    new IntLiteral(0),
-  );
+  Variable variable = new Variable.forValue(new IntLiteral(0));
   Cascade cascade = new Cascade(variable, isNullAware: false);
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {} => #0''');
@@ -878,9 +869,7 @@ void _testDeferredCheck() {
     library,
     'pre',
   );
-  VariableDeclaration check = new VariableDeclaration.forValue(
-    new CheckLibraryIsLoaded(dependency),
-  );
+  Variable check = new Variable.forValue(new CheckLibraryIsLoaded(dependency));
   testExpression(
     new DeferredCheck(check, new IntLiteral(0), fileOffset: TreeNode.noOffset),
     '''
@@ -1601,7 +1590,7 @@ void _testIfNullPropertySet() {
 }
 
 void _testIfNullSet() {
-  VariableDeclaration variable = new VariableDeclaration('foo');
+  Variable variable = new Variable('foo');
   testExpression(
     new IfNullSet(
       new VariableGet(variable),

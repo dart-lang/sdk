@@ -32,7 +32,7 @@ TreeNode transformAsExpression(
 
   if (canBeReducedToNullCheckAndCast(node, operandType, env)) {
     // Transform 'x as T' to 'Let tmp = x in (tmp == null) ? tmp as T : tmp'.
-    final tmp = VariableDeclaration(
+    final tmp = Variable(
       null,
       initializer: node.operand,
       type: operandType,

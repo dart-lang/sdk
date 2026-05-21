@@ -315,7 +315,7 @@ class ForInElement extends ControlFlowElement
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  VariableDeclaration? variable;
+  Variable? variable;
 
   ForInEncoding? encoding;
 
@@ -477,7 +477,7 @@ class PatternForElement extends ControlFlowElementImpl
     with ControlFlowElementMixin
     implements ForElementBase {
   PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
+  List<Variable> intermediateVariables;
 
   // May be empty, but not null.
   @override
@@ -755,7 +755,7 @@ class PatternForMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ForMapEntryBase, ControlFlowMapEntry {
   PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
+  List<Variable> intermediateVariables;
 
   @override
   final List<VariableStatement> variables;
@@ -826,7 +826,7 @@ class ForInMapEntry extends TreeNode
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  VariableDeclaration? variable;
+  Variable? variable;
 
   ForInEncoding? encoding;
 

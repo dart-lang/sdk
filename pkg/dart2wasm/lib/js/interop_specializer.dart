@@ -48,7 +48,7 @@ abstract class _Specializer {
 
   /// The parameters that determine arity of the interop procedure that is
   /// created from this config.
-  List<VariableDeclaration> get parameters;
+  List<Variable> get parameters;
 
   /// Returns the string that will be the body of the JS trampoline.
   ///
@@ -94,9 +94,9 @@ abstract class _Specializer {
   Procedure _getRawInteropProcedure() {
     // Initialize variable declarations.
     List<String> jsParameterStrings = [];
-    List<VariableDeclaration> dartPositionalParameters = [];
+    List<Variable> dartPositionalParameters = [];
     for (int i = 0; i < parameters.length; i++) {
-      final VariableDeclaration parameter = parameters[i];
+      final Variable parameter = parameters[i];
       final DartType parameterType = parameter.type;
       final interopFunctionParameterType =
           parameterType == _util.coreTypes.doubleNonNullableRawType
@@ -104,7 +104,7 @@ abstract class _Specializer {
           : _util.nullableWasmExternRefType;
       String parameterString = 'x$i';
       dartPositionalParameters.add(
-        VariableDeclaration(
+        Variable(
           parameterString,
           type: interopFunctionParameterType,
           isSynthesized: true,
@@ -197,7 +197,7 @@ abstract class _ProcedureSpecializer extends _Specializer {
   _ProcedureSpecializer(super.context, super.interopMethod, super.jsString);
 
   @override
-  List<VariableDeclaration> get parameters => function.positionalParameters;
+  List<Variable> get parameters => function.positionalParameters;
 
   /// Returns an invocation of a specialized JS method meant to be used in a
   /// procedure-level lowering.
@@ -352,8 +352,10 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
   );
 
   @override
-  List<VariableDeclaration> get parameters => function.positionalParameters
-      .sublist(0, invocation.arguments.positional.length);
+  List<Variable> get parameters => function.positionalParameters.sublist(
+    0,
+    invocation.arguments.positional.length,
+  );
 
   /// Returns an invocation of a specialized JS method meant to be used in an
   /// invocation-level lowering.
@@ -367,7 +369,7 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     final List<Expression> jsifiedArguments = [];
     final List<Expression> arguments = invocation.arguments.positional;
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = VariableDeclaration(
+      final temp = Variable(
         null,
         initializer: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
@@ -463,7 +465,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
   bool get isSetter => false;
 
   @override
-  List<VariableDeclaration> get parameters {
+  List<Variable> get parameters {
     // Compute the named parameters that were used in the given `invocation`.
     // Note that we preserve the procedure's ordering and not the invocation's.
     // This is also used below for the names of object literal arguments in
@@ -480,7 +482,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
   ///
   /// This defaults to the name of the [variable], but can be changed with a
   /// `@JS()` annotation.
-  String _jsKey(VariableDeclaration variable) {
+  String _jsKey(Variable variable) {
     // Only support `@JS` renaming on extension type object literal
     // constructors.
     final changedName = interopMethod.isExtensionTypeMember
@@ -527,7 +529,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
         .toList();
     final List<Expression> jsifiedArguments = [];
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = VariableDeclaration(
+      final temp = Variable(
         null,
         initializer: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),

@@ -156,7 +156,7 @@ class ConstantsBackend {
   bool get alwaysInlineConstants => true;
 
   /// Inline control of constant variables. The given constant expression
-  /// is the initializer of a [Field] or [VariableDeclaration] node.
+  /// is the initializer of a [Field] or [Variable] node.
   /// If this method returns `true`, the variable will be inlined at all
   /// points of reference and the variable itself removed (unless overridden
   /// by the `keepFields` or `keepLocals` properties).
@@ -184,7 +184,7 @@ class ConstantsBackend {
   /// All use-sites will be rewritten based on [shouldInlineConstant].
   bool get keepFields => true;
 
-  /// If `true` constant [VariableDeclaration]s are not removed from the AST
+  /// If `true` constant [Variable]s are not removed from the AST
   /// even when use-sites are inlined.
   ///
   /// All use-sites will be rewritten based on [shouldInlineConstant].

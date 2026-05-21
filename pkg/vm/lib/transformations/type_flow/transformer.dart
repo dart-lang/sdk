@@ -267,11 +267,7 @@ class MoveFieldInitializers {
         }
         final Initializer newInit = initializedFields.contains(f)
             ? LocalInitializer(
-                VariableDeclaration(
-                  null,
-                  initializer: initExpr,
-                  isSynthesized: true,
-                ),
+                Variable(null, initializer: initExpr, isSynthesized: true),
               )
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
@@ -314,7 +310,7 @@ class CleanupAnnotations extends RecursiveVisitor {
   }
 
   void _cleanupAnnotations(Node node, List<Expression> annotations) {
-    if (node is VariableDeclaration ||
+    if (node is Variable ||
         node is Member ||
         node is Class ||
         node is Library) {
@@ -899,12 +895,12 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  defaultVariableDeclaration(VariableDeclaration node) {
+  defaultVariable(Variable node) {
     final inferredType = _typeFlowAnalysis.capturedVariableType(node);
     if (inferredType != null) {
       _setInferredType(node, inferredType);
     }
-    super.defaultVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override
@@ -1150,7 +1146,7 @@ class TreeShaker {
     }
   }
 
-  void addUsedParameters(List<VariableDeclaration> params) {
+  void addUsedParameters(List<Variable> params) {
     for (var param in params) {
       // Do not visit initializer (default value) of a parameter as it is
       // going to be removed during pass 2.
@@ -1207,11 +1203,7 @@ class FieldMorpher {
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter =
-          new VariableDeclaration(
-              'value',
-              type: field.type,
-              isSynthesized: true,
-            )
+          new Variable('value', type: field.type, isSynthesized: true)
             ..isCovariantByDeclaration = field.isCovariantByDeclaration
             ..isCovariantByClass = field.isCovariantByClass
             ..fileOffset = field.fileOffset;
@@ -1436,7 +1428,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
     return new LocalInitializer(
-      new VariableDeclaration(
+      new Variable(
         null,
         initializer: _makeUnreachableCall(args),
         isSynthesized: true,
@@ -1916,7 +1908,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
       if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
-            VariableDeclaration(
+            Variable(
               null,
               initializer: node.value,
               isSynthesized: true,

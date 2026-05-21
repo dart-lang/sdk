@@ -40,7 +40,7 @@ import 'external_ast_helper.dart' as extern;
 /// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 typedef SharedMatchContext =
-    shared.MatchContext<TreeNode, Expression, Pattern, VariableDeclaration>;
+    shared.MatchContext<TreeNode, Expression, Pattern, Variable>;
 
 mixin InternalTreeNode implements TreeNode {
   @override
@@ -457,7 +457,7 @@ class ActualArguments extends TreeNode with InternalTreeNode {
 class Cascade extends InternalExpression {
   /// The temporary variable holding the cascade receiver expression in its
   /// initializer;
-  VariableDeclaration variable;
+  Variable variable;
 
   /// `true` if the access is null-aware, i.e. of the form `a?..b()`.
   final bool isNullAware;
@@ -515,7 +515,7 @@ class Cascade extends InternalExpression {
 
 /// Internal expression representing an anonymous method invocation.
 class AnonymousMethodExpression extends InternalExpression {
-  VariableDeclaration variable;
+  Variable variable;
   Expression body;
   final bool isCascade;
   final bool isImplicitlyTyped;
@@ -562,7 +562,7 @@ class AnonymousMethodExpression extends InternalExpression {
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in the replacement.
 class DeferredCheck extends InternalExpression {
-  VariableDeclaration variable;
+  Variable variable;
   Expression expression;
 
   DeferredCheck(this.variable, this.expression, {required int fileOffset}) {
@@ -750,7 +750,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
 class FunctionDeclarationImpl extends FunctionDeclaration {
   bool hasImplicitReturnType = false;
 
-  FunctionDeclarationImpl(VariableDeclaration variable, FunctionNode function)
+  FunctionDeclarationImpl(Variable variable, FunctionNode function)
     : super(variable, function);
 
   static void setHasImplicitReturnType(
@@ -968,12 +968,12 @@ class ReturnStatementImpl extends ReturnStatement {
   }
 }
 
-/// Front end specific implementation of [VariableDeclaration].
+/// Front end specific implementation of [Variable].
 class VariableDeclarationImpl extends LegacyVariable
     with InternalVariableMixin
     implements InternalVariable {
   @override
-  VariableDeclaration get astVariable => this;
+  Variable get astVariable => this;
 
   @override
   final bool forSyntheticToken;
@@ -1136,10 +1136,10 @@ class InternalLocalVariable extends TreeNode
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration variable) {
+  void set variable(Variable variable) {
     throw new UnsupportedError("${this.runtimeType}.variable=");
   }
 
@@ -1176,13 +1176,13 @@ class InternalPositionalParameter extends TreeNode
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [Variable] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [Variable] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1248,10 +1248,10 @@ class InternalPositionalParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
@@ -1282,13 +1282,13 @@ class InternalNamedParameter extends TreeNode
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [Variable] interface. Remove this.
   List<VariableContext>? get capturedContexts {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [Variable] interface. Remove this.
   void set capturedContexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
@@ -1373,10 +1373,10 @@ class InternalNamedParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
@@ -1852,11 +1852,11 @@ mixin DelegatingVariableMixin on InternalVariableMixin
 
   @override
   // Coverage-ignore(suite): Not run.
-  VariableDeclaration get variable => astVariable.variable;
+  Variable get variable => astVariable.variable;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void set variable(VariableDeclaration value) {
+  void set variable(Variable value) {
     astVariable.variable = value;
   }
 
@@ -1878,7 +1878,7 @@ abstract interface class InternalVariable implements IVariable, Annotatable {
   /// * using [astVariable] as a part of the generated AST,
   /// * checking semantic properties of an AST node, such as [isExtensionThis]
   ///   in `lowering_predicates.dart`.
-  VariableDeclaration get astVariable;
+  Variable get astVariable;
 
   bool get forSyntheticToken;
 
@@ -1902,14 +1902,14 @@ abstract interface class InternalVariable implements IVariable, Annotatable {
   ///
   /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
   /// lowering is enabled.
-  abstract VariableDeclaration? lateGetter;
+  abstract Variable? lateGetter;
 
   /// The synthesized local setter function for an assignable lowered late
   /// variable.
   ///
   /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
   /// lowering is enabled.
-  abstract VariableDeclaration? lateSetter;
+  abstract Variable? lateSetter;
 
   /// Is `true` if this a lowered late final variable without an initializer.
   ///
@@ -1947,10 +1947,10 @@ mixin InternalVariableMixin on TreeNode implements InternalVariable {
   bool isStaticLate = false;
 
   @override
-  VariableDeclaration? lateGetter;
+  Variable? lateGetter;
 
   @override
-  VariableDeclaration? lateSetter;
+  Variable? lateSetter;
 
   @override
   bool isLateFinalWithoutInitializer = false;
@@ -1962,7 +1962,7 @@ mixin InternalVariableMixin on TreeNode implements InternalVariable {
   String? lateName;
 
   @override
-  VariableDeclaration get asVariableDeclaration => this as VariableDeclaration;
+  Variable get asVariableDeclaration => this as Variable;
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -5678,13 +5678,13 @@ sealed class _BaseForInElement extends InternalForInElement {
   /// inferring the for-in iterable.
   DartType _computeElementTypeContext(InferenceVisitorBase visitor);
 
-  /// Computes the [VariableDeclaration] that will be used in the emitted
+  /// Computes the [Variable] that will be used in the emitted
   /// [ForInStatement].
   ///
   /// This can be the variable declared as the for-in element or a synthetic
   /// variable, when there is no declared variable or it doesn't suffice for
   /// the correct runtime behavior.
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -5695,12 +5695,12 @@ sealed class _BaseForInElement extends InternalForInElement {
   /// assignment to the for-in element.
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   });
 
   /// Helper for creating a synthetic variable declaration for the emitted
   /// [ForInStatement].
-  VariableDeclaration _createSyntheticVariableDeclaration(
+  Variable _createSyntheticVariableDeclaration(
     DartType type, {
     required int forOffset,
     required bool isClosureContextLoweringEnabled,
@@ -5732,7 +5732,7 @@ sealed class _BaseForInElement extends InternalForInElement {
       isAsync: isAsync,
     );
     DartType inferredType = iterableResult.inferredType;
-    VariableDeclaration variable = _computeLoopVariable(
+    Variable variable = _computeLoopVariable(
       visitor,
       inferredType,
       forOffset: forOffset,
@@ -5756,21 +5756,21 @@ sealed class _VariableForInElement extends _BaseForInElement {
 
   _VariableForInElement({required this.error});
 
-  VariableDeclaration get _variableDeclaration;
+  Variable get _variableDeclaration;
 
   /// If the assignment to [variableDeclaration] needs additional steps, like
   /// a type coercion, this holds a synthetic variable declaration used as an
   /// intermediate step.
-  VariableDeclaration? _variableForSideEffect;
+  Variable? _variableForSideEffect;
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
     required bool isClosureContextLoweringEnabled,
   }) {
-    VariableDeclaration loopVariable;
+    Variable loopVariable;
     DartType loopVariableType;
     bool checkAssignment = true;
     if (_variableDeclaration.variable case InternalVariable variable) {
@@ -5787,7 +5787,7 @@ sealed class _VariableForInElement extends _BaseForInElement {
       loopVariableType = _variableDeclaration.type;
     }
     if (checkAssignment) {
-      VariableDeclaration tempVariable = _createSyntheticVariableDeclaration(
+      Variable tempVariable = _createSyntheticVariableDeclaration(
         type,
         forOffset: forOffset,
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
@@ -5827,7 +5827,7 @@ sealed class _VariableForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     return new ForInEncoding(
       preLoopError: error,
@@ -5849,8 +5849,7 @@ class VariableInitializationForInElement extends _VariableForInElement {
   });
 
   @override
-  VariableDeclaration get _variableDeclaration =>
-      variableInitialization.variable;
+  Variable get _variableDeclaration => variableInitialization.variable;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -5887,7 +5886,7 @@ class SingleVariableDeclarationForInElement extends _VariableForInElement {
   });
 
   @override
-  VariableDeclaration get _variableDeclaration => variableStatement.variable;
+  Variable get _variableDeclaration => variableStatement.variable;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -5959,7 +5958,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     return new ForInEncoding(
       preLoopError: error,
@@ -5970,7 +5969,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
   }
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6008,7 +6007,7 @@ class UnassignableForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     return new ForInEncoding(
       preLoopError: error,
@@ -6021,7 +6020,7 @@ class UnassignableForInElement extends _BaseForInElement {
   }
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6101,7 +6100,7 @@ class InvalidForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     return new ForInEncoding(
       bodyPrologue: extern.createBlock([
@@ -6111,7 +6110,7 @@ class InvalidForInElement extends _BaseForInElement {
   }
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6129,7 +6128,7 @@ class InvalidForInElement extends _BaseForInElement {
 /// an already defined local variable.
 class ExistingVariableForInElement extends _BaseForInElement {
   /// The variable used as the for-in element.
-  final VariableDeclaration variable;
+  final Variable variable;
 
   /// The file offset of the variable name.
   final int nameOffset;
@@ -6165,7 +6164,7 @@ class ExistingVariableForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     ExpressionInferenceResult result = visitor.inferVariableSet(
       variable: variable as InternalVariable,
@@ -6183,7 +6182,7 @@ class ExistingVariableForInElement extends _BaseForInElement {
   }
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6243,7 +6242,7 @@ class PropertyForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     ExpressionInferenceResult result = visitor.inferPropertySet(
       fileOffset: nameOffset,
@@ -6264,7 +6263,7 @@ class PropertyForInElement extends _BaseForInElement {
   }
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6314,7 +6313,7 @@ class StaticForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     ExpressionInferenceResult result = visitor.inferStaticSet(
       member: target,
@@ -6332,7 +6331,7 @@ class StaticForInElement extends _BaseForInElement {
   }
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6416,7 +6415,7 @@ class ExtensionForInElement extends _BaseForInElement {
   @override
   ForInEncoding _computeEncoding(
     InferenceVisitorBase visitor, {
-    required VariableDeclaration loopVariable,
+    required Variable loopVariable,
   }) {
     ExpressionInferenceResult result = visitor.inferExtensionSet(
       data: _data,
@@ -6433,7 +6432,7 @@ class ExtensionForInElement extends _BaseForInElement {
   }
 
   @override
-  VariableDeclaration _computeLoopVariable(
+  Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6467,9 +6466,9 @@ class ForInEncoding {
 
 /// The result of inferring a for-in loop element and iterable.
 class ForInHeaderResult {
-  /// The [VariableDeclaration] that should be used as the variable in the
+  /// The [Variable] that should be used as the variable in the
   /// emitted [ForInStatement].
-  final VariableDeclaration loopVariable;
+  final Variable loopVariable;
 
   /// The [Expression] that should be used as the iterable in the emitted
   /// [ForInStatement].

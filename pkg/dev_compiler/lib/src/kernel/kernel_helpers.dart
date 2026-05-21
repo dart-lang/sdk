@@ -207,7 +207,7 @@ bool _isProcedureFromForeignHelper(String name, Procedure p) =>
 
 /// Whether the parameter [p] is covariant (either explicitly `covariant` or
 /// implicitly due to generics) and needs a check for soundness.
-bool isCovariantParameter(VariableDeclaration p) {
+bool isCovariantParameter(Variable p) {
   return p.isCovariantByDeclaration || p.isCovariantByClass;
 }
 
@@ -420,7 +420,7 @@ class InterfaceTypeExtractor extends RecursiveVisitor {
 /// Replaces [VariableGet] nodes with a different expression defined by a
 /// replacement map.
 class VariableGetReplacer extends Transformer {
-  final Map<VariableDeclaration, Expression> _replacements;
+  final Map<Variable, Expression> _replacements;
 
   VariableGetReplacer(this._replacements);
 
@@ -460,7 +460,7 @@ class BasicInlineTester extends TreeVisitorDefault<bool> {
   ///
   /// This is essential to preserve the execution order of the expressions
   /// passed as arguments.
-  List<VariableDeclaration>? _expectedArgumentOrder;
+  List<Variable>? _expectedArgumentOrder;
 
   /// The position in [_expectedArgumentOrder] to begin looking for the next
   /// used argument.

@@ -153,7 +153,7 @@ abstract class JsToElementMap {
 
   /// Make a mapping from closed-over variables to the context fields where they
   /// are stored.
-  Map<ir.VariableDeclaration, JContextField> makeContextContainer(
+  Map<ir.Variable, JContextField> makeContextContainer(
     KernelScopeInfo info,
     MemberEntity member,
   );
@@ -291,7 +291,7 @@ abstract class KernelToLocalsMap {
   MemberEntity get currentMember;
 
   /// Returns the [Local] for [node].
-  Local getLocalVariable(ir.VariableDeclaration node);
+  Local getLocalVariable(ir.Variable node);
 
   /// Returns the [Local] for the [typeVariable].
   Local getLocalTypeVariableEntity(TypeVariableEntity typeVariable);
@@ -599,7 +599,7 @@ void forEachOrderedParameterByFunctionNode(
   ir.FunctionNode node,
   ParameterStructure parameterStructure,
   void Function(
-    ir.VariableDeclaration parameter, {
+    ir.Variable parameter, {
     required bool isOptional,
     required bool isElided,
   })
@@ -611,7 +611,7 @@ void forEachOrderedParameterByFunctionNode(
     position < node.positionalParameters.length;
     position++
   ) {
-    ir.VariableDeclaration variable = node.positionalParameters[position];
+    ir.Variable variable = node.positionalParameters[position];
     f(
       variable,
       isOptional: position >= parameterStructure.requiredPositionalParameters,
@@ -623,13 +623,13 @@ void forEachOrderedParameterByFunctionNode(
     return;
   }
 
-  List<ir.VariableDeclaration> namedParameters = node.namedParameters.toList();
+  List<ir.Variable> namedParameters = node.namedParameters.toList();
   if (useNativeOrdering) {
     namedParameters.sort(nativeOrdering);
   } else {
     namedParameters.sort(namedOrdering);
   }
-  for (ir.VariableDeclaration variable in namedParameters) {
+  for (ir.Variable variable in namedParameters) {
     f(
       variable,
       isOptional: true,
@@ -641,12 +641,12 @@ void forEachOrderedParameterByFunctionNode(
 void forEachOrderedParameter(
   JsToElementMap elementMap,
   FunctionEntity function,
-  void Function(ir.VariableDeclaration parameter, {required bool isElided}) f,
+  void Function(ir.Variable parameter, {required bool isElided}) f,
 ) {
   ParameterStructure parameterStructure = function.parameterStructure;
 
   void handleParameter(
-    ir.VariableDeclaration parameter, {
+    ir.Variable parameter, {
     required bool isOptional,
     required bool isElided,
   }) {

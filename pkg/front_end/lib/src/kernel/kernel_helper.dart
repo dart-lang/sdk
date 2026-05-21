@@ -143,9 +143,8 @@ class DelayedDefaultValueCloner {
         } else if (i < positionalSuperParameters.length) {
           int? superParameterIndex = positionalSuperParameters[i];
           if (superParameterIndex != null) {
-            VariableDeclaration originalParameter =
-                _original.positionalParameters[i];
-            VariableDeclaration synthesizedParameter =
+            Variable originalParameter = _original.positionalParameters[i];
+            Variable synthesizedParameter =
                 _synthesized.positionalParameters[superParameterIndex];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
@@ -183,10 +182,9 @@ class DelayedDefaultValueCloner {
           int? originalNamedParameterIndex =
               originalNamedParameterIndices[superParameterName];
           if (originalNamedParameterIndex != null) {
-            VariableDeclaration originalParameter =
+            Variable originalParameter =
                 _original.namedParameters[originalNamedParameterIndex];
-            VariableDeclaration synthesizedParameter =
-                _synthesized.namedParameters[i];
+            Variable synthesizedParameter = _synthesized.namedParameters[i];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
               synthesizedParameter,
@@ -201,8 +199,7 @@ class DelayedDefaultValueCloner {
       }
     } else {
       for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-        VariableDeclaration synthesizedParameter =
-            _synthesized.positionalParameters[i];
+        Variable synthesizedParameter = _synthesized.positionalParameters[i];
         if (i < _original.positionalParameters.length) {
           if (i >= _synthesized.requiredParameterCount) {
             if (i < _original.requiredParameterCount) {
@@ -234,15 +231,14 @@ class DelayedDefaultValueCloner {
         }
       }
       if (_synthesized.namedParameters.isNotEmpty) {
-        Map<String, VariableDeclaration> originalParameters = {};
+        Map<String, Variable> originalParameters = {};
         for (int i = 0; i < _original.namedParameters.length; i++) {
           originalParameters[_original.namedParameters[i].name!] =
               _original.namedParameters[i];
         }
         for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-          VariableDeclaration synthesizedParameter =
-              _synthesized.namedParameters[i];
-          VariableDeclaration? originalParameter =
+          Variable synthesizedParameter = _synthesized.namedParameters[i];
+          Variable? originalParameter =
               originalParameters[synthesizedParameter.name!];
           if (originalParameter != null) {
             if (!originalParameter.isRequired &&
@@ -266,10 +262,7 @@ class DelayedDefaultValueCloner {
     _hasCloned = true;
   }
 
-  void _cloneInitializer(
-    VariableDeclaration originalParameter,
-    VariableDeclaration clonedParameter,
-  ) {
+  void _cloneInitializer(Variable originalParameter, Variable clonedParameter) {
     if (originalParameter.initializer != null) {
       CloneVisitorNotMembers cloner = _cloner ??= new CloneVisitorNotMembers();
       clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
@@ -280,8 +273,8 @@ class DelayedDefaultValueCloner {
   }
 
   void _cloneDefaultValueForSuperParameters(
-    VariableDeclaration originalParameter,
-    VariableDeclaration synthesizedParameter,
+    Variable originalParameter,
+    Variable synthesizedParameter,
     TypeEnvironment typeEnvironment, {
     required bool isOptional,
   }) {
@@ -339,10 +332,9 @@ class TypeDependency {
   void copyInferred() {
     if (_hasBeenInferred) return;
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
-      VariableDeclaration synthesizedParameter =
+      Variable synthesizedParameter =
           synthesized.function!.positionalParameters[i];
-      VariableDeclaration originalParameter =
-          original.function!.positionalParameters[i];
+      Variable originalParameter = original.function!.positionalParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );
@@ -352,10 +344,8 @@ class TypeDependency {
       }
     }
     for (int i = 0; i < original.function!.namedParameters.length; i++) {
-      VariableDeclaration synthesizedParameter =
-          synthesized.function!.namedParameters[i];
-      VariableDeclaration originalParameter =
-          original.function!.namedParameters[i];
+      Variable synthesizedParameter = synthesized.function!.namedParameters[i];
+      Variable originalParameter = original.function!.namedParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );

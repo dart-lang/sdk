@@ -144,7 +144,7 @@ class _PrimaryConstructorBodyBuildingContext
       _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  Variable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   LookupScope get typeParameterScope {

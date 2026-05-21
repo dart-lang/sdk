@@ -153,7 +153,7 @@ class RegularGetterDeclaration
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _encoding.thisVariable;
+  Variable? get thisVariable => _encoding.thisVariable;
 
   @override
   void becomeNative(SourceLoader loader) {
@@ -312,7 +312,7 @@ class RegularGetterDeclaration
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     assert(
       asyncModifier.kind == this.asyncModifier.kind,
@@ -357,7 +357,7 @@ abstract class GetterFragmentDeclaration {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -372,7 +372,7 @@ abstract class GetterFragmentDeclaration {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 
   DartType get returnTypeContext;

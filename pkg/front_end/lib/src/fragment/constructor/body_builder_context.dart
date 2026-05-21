@@ -49,7 +49,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     return _declaration.getTearOffParameter(index);
   }
 
@@ -110,7 +110,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,

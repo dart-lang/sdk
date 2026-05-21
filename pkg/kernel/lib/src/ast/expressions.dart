@@ -202,7 +202,7 @@ class InvalidExpression extends Expression {
 
 class VariableGet extends Expression {
   /// The target variable.
-  VariableDeclaration variable;
+  Variable variable;
 
   /// Null if not promoted.
   DartType? promotedType;
@@ -270,7 +270,7 @@ class VariableGet extends Expression {
 /// Evaluates to the value of [value].
 class VariableSet extends Expression {
   /// The target variable.
-  VariableDeclaration variable;
+  Variable variable;
 
   Expression value;
 
@@ -2335,7 +2335,7 @@ class FunctionInvocation extends InstanceInvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
-  VariableDeclaration variable;
+  Variable variable;
 
   @override
   Arguments arguments;
@@ -5150,7 +5150,7 @@ class FileUriConstantExpression extends ConstantExpression
 
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
-  VariableDeclaration variable; // Must have an initializer.
+  Variable variable; // Must have an initializer.
   Expression body;
 
   Let(this.variable, this.body) {

@@ -24,7 +24,7 @@ sealed class VariableBase extends TreeNode implements Annotatable {
 }
 
 /// This is a helper class to enable mixing a mixin into concrete
-/// implementations of the sealed class [VariableDeclaration]. It's not supposed
+/// implementations of the sealed class [Variable]. It's not supposed
 /// to be used as a type annotation, but purely for declaring the class
 /// hierarchy.
 abstract interface class IVariable implements TreeNode {
@@ -52,7 +52,7 @@ abstract interface class IVariable implements TreeNode {
   abstract int binaryOffsetNoTag;
   abstract List<VariableContext>? capturedContexts;
   abstract int fileEqualsOffset;
-  abstract VariableDeclaration variable;
+  abstract Variable variable;
   void clearAnnotations();
 
   VariableContext? get context;
@@ -73,11 +73,11 @@ abstract interface class IVariable implements TreeNode {
   bool get hasIsWildcard;
   bool get hasIsSuperInitializingFormal;
   bool get hasIsErroneouslyInitialized;
-  VariableDeclaration get asVariableDeclaration;
+  Variable get asVariableDeclaration;
 }
 
 /// The root of the sealed hierarchy of non-type variables.
-sealed class VariableDeclaration extends VariableBase
+sealed class Variable extends VariableBase
     implements IVariable, ContextConsumer {
   /// Static type of the variable.
   @override
@@ -123,7 +123,7 @@ sealed class VariableDeclaration extends VariableBase
   @override
   abstract bool isErroneouslyInitialized;
 
-  factory VariableDeclaration(
+  factory Variable(
     String? name, {
     Expression? initializer,
     DartType type,
@@ -142,7 +142,7 @@ sealed class VariableDeclaration extends VariableBase
     bool isWildcard,
   }) = LegacyVariable;
 
-  factory VariableDeclaration.forValue(
+  factory Variable.forValue(
     Expression? initializer, {
     bool isFinal,
     bool isConst,
@@ -154,7 +154,7 @@ sealed class VariableDeclaration extends VariableBase
     DartType type,
   }) = LegacyVariable.forValue;
 
-  VariableDeclaration.empty();
+  Variable.empty();
 
   @override
   bool get hasIsFinal;
@@ -189,7 +189,7 @@ sealed class VariableDeclaration extends VariableBase
   bool get isAssignable;
 
   @override
-  VariableDeclaration get asVariableDeclaration => this;
+  Variable get asVariableDeclaration => this;
 
   abstract String? name;
 
@@ -204,7 +204,7 @@ sealed class VariableDeclaration extends VariableBase
 /// the [VariableContext] it appears in. [VariableInitializationBase]
 /// (which is a [Statement]) marks the spot of the original variable declaration
 /// in the Dart program.
-class LocalVariable extends VariableDeclaration {
+class LocalVariable extends Variable {
   @override
   String? cosmeticName;
 
@@ -501,10 +501,10 @@ class LocalVariable extends VariableDeclaration {
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration variable) {
+  void set variable(Variable variable) {
     throw new UnsupportedError("${this.runtimeType}.variable=");
   }
 
@@ -530,7 +530,7 @@ class LocalVariable extends VariableDeclaration {
 ///     } catch (e, s) {
 ///       bar();
 ///     }
-class CatchVariable extends VariableDeclaration {
+class CatchVariable extends Variable {
   final String catchVariableName;
 
   @override
@@ -822,10 +822,10 @@ class CatchVariable extends VariableDeclaration {
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration variable) {
+  void set variable(Variable variable) {
     throw new UnsupportedError("${this.runtimeType}.variable=");
   }
 
@@ -844,7 +844,7 @@ class CatchVariable extends VariableDeclaration {
 }
 
 /// Abstract parameter class, the parent for positional and named parameters.
-sealed class FunctionParameter extends VariableDeclaration {
+sealed class FunctionParameter extends Variable {
   Expression? defaultValue;
 
   FunctionParameter({
@@ -1189,10 +1189,10 @@ class PositionalParameter extends FunctionParameter {
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
@@ -1350,16 +1350,16 @@ class NamedParameter extends FunctionParameter {
   }
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
 
 /// The variable storage for `this`.
-class ThisVariable extends VariableDeclaration {
+class ThisVariable extends Variable {
   @override
   String get cosmeticName => "this-variable";
 
@@ -1637,10 +1637,10 @@ class ThisVariable extends VariableDeclaration {
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration variable) {
+  void set variable(Variable variable) {
     throw new UnsupportedError("${this.runtimeType}.variable=");
   }
 
@@ -1657,7 +1657,7 @@ class ThisVariable extends VariableDeclaration {
 
 /// A variable introduced during desugaring. Such variables don't correspond to
 /// any variable declared by the programmer.
-class SyntheticVariable extends VariableDeclaration {
+class SyntheticVariable extends Variable {
   @override
   String? cosmeticName;
 
@@ -1931,10 +1931,10 @@ class SyntheticVariable extends VariableDeclaration {
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  VariableDeclaration get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(VariableDeclaration variable) {
+  void set variable(Variable variable) {
     throw new UnsupportedError("${this.runtimeType}.variable=");
   }
 

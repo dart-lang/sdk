@@ -132,7 +132,7 @@ bool _lateIsInitialized(dynamic value) {
 }
 
 class BinaryBuilder {
-  final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
+  final List<Variable> variableStack = <Variable>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
   int labelStackBase = 0;
   int switchCaseStackBase = 0;
@@ -2124,8 +2124,8 @@ class BinaryBuilder {
     readUInt30(); // total parameter count.
     int requiredParameterCount = readUInt30();
     int variableStackHeight = variableStack.length;
-    List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
-    List<VariableDeclaration> named = readAndPushVariableDeclarationList();
+    List<Variable> positional = readAndPushVariableDeclarationList();
+    List<Variable> named = readAndPushVariableDeclarationList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
     RedirectingFactoryTarget? redirectingFactoryTarget;
@@ -2210,7 +2210,7 @@ class BinaryBuilder {
     final List<TypeParameter> typeParameters = typeParameterStack
         .cast<TypeParameter>()
         .toList();
-    final List<VariableDeclaration> variables = variableStack.toList();
+    final List<Variable> variables = variableStack.toList();
     final Library currentLibrary = _currentLibrary!;
     result.lazyBuilder = () {
       _byteOffset = savedByteOffset;
@@ -2234,20 +2234,20 @@ class BinaryBuilder {
     };
   }
 
-  void pushVariableDeclaration(VariableDeclaration variable) {
+  void pushVariableDeclaration(Variable variable) {
     variableStack.add(variable);
   }
 
-  void pushVariableDeclarations(List<VariableDeclaration> variables) {
+  void pushVariableDeclarations(List<Variable> variables) {
     variableStack.addAll(variables);
   }
 
-  VariableDeclaration readVariableReference() {
+  Variable readVariableReference() {
     readUInt30(); // offset of the variable declaration in the binary.
     return _readVariableReferenceInternal();
   }
 
-  VariableDeclaration _readVariableReferenceInternal() {
+  Variable _readVariableReferenceInternal() {
     int index = readUInt30();
     if (index >= variableStack.length) {
       throw fail(
@@ -2763,7 +2763,7 @@ class BinaryBuilder {
 
   Expression _readLocalFunctionInvocation() {
     int offset = readOffset();
-    VariableDeclaration variable = readVariableReference();
+    Variable variable = readVariableReference();
     return new LocalFunctionInvocation(
       variable,
       readArguments(),
@@ -3146,7 +3146,7 @@ class BinaryBuilder {
 
   Expression _readLet() {
     int offset = readOffset();
-    VariableDeclaration variable = readVariableDeclaration();
+    Variable variable = readVariableDeclaration();
     int stackHeight = variableStack.length;
     pushVariableDeclaration(variable);
     Expression body = readExpression();
@@ -3279,14 +3279,14 @@ class BinaryBuilder {
     );
   }
 
-  List<VariableDeclaration> _readVariableReferenceList() {
+  List<Variable> _readVariableReferenceList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
       return emptyListOfVariableDeclaration;
     }
-    return new List<VariableDeclaration>.generate(
+    return new List<Variable>.generate(
       length,
       (_) => readVariableReference(),
       growable: useGrowableLists,
@@ -3315,7 +3315,7 @@ class BinaryBuilder {
 
   AssignedVariablePattern _readAssignedVariablePattern() {
     int fileOffset = readOffset();
-    VariableDeclaration variable = readVariableReference();
+    Variable variable = readVariableReference();
     DartType? matchedType = readDartTypeOption();
     bool needsCheck = readByte() == 1;
     return AssignedVariablePattern(variable)
@@ -3346,8 +3346,7 @@ class BinaryBuilder {
   InvalidPattern _readInvalidPattern() {
     int fileOffset = readOffset();
     Expression invalidExpression = readExpression();
-    List<VariableDeclaration> declaredVariables =
-        readAndPushVariableDeclarationList();
+    List<Variable> declaredVariables = readAndPushVariableDeclarationList();
     return InvalidPattern(
       invalidExpression,
       declaredVariables: declaredVariables,
@@ -3472,8 +3471,7 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     Pattern left = _readPattern();
     Pattern right = _readPattern();
-    List<VariableDeclaration> orPatternJointVariables =
-        _readVariableReferenceList();
+    List<Variable> orPatternJointVariables = _readVariableReferenceList();
     return new OrPattern(
       left,
       right,
@@ -3530,7 +3528,7 @@ class BinaryBuilder {
   VariablePattern _readVariablePattern() {
     int fileOffset = readOffset();
     DartType? type = readDartTypeOption();
-    VariableDeclaration variable = readVariableDeclaration();
+    Variable variable = readVariableDeclaration();
     DartType? matchedType = readDartTypeOption();
     return new VariablePattern(type, variable)
       ..matchedValueType = matchedType
@@ -3840,7 +3838,7 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     int bodyOffset = readOffset();
-    VariableDeclaration variable = readAndPushVariableDeclaration();
+    Variable variable = readAndPushVariableDeclaration();
     Expression iterable = readExpression();
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
@@ -3932,19 +3930,19 @@ class BinaryBuilder {
   }
 
   VariableStatement _readVariableStatement() {
-    VariableDeclaration variable = _readVariableDeclaration();
+    Variable variable = _readVariableDeclaration();
     return new VariableStatement(variable)..fileOffset = variable.fileOffset;
   }
 
-  VariableDeclaration _readVariableDeclaration() {
-    VariableDeclaration variable = readVariableDeclaration();
+  Variable _readVariableDeclaration() {
+    Variable variable = readVariableDeclaration();
     variableStack.add(variable); // Will be popped by the enclosing scope.
     return variable;
   }
 
   Statement _readFunctionDeclaration() {
     int offset = readOffset();
-    VariableDeclaration variable = readVariableDeclaration();
+    Variable variable = readVariableDeclaration();
     variableStack.add(variable); // Will be popped by the enclosing scope.
     final LocalFunctionId id = LocalFunctionId(readUInt30());
     return new FunctionDeclaration(variable, readFunctionNode())
@@ -3982,8 +3980,8 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     DartType guard = readDartType();
-    VariableDeclaration? exception = readAndPushVariableDeclarationOption();
-    VariableDeclaration? stackTrace = readAndPushVariableDeclarationOption();
+    Variable? exception = readAndPushVariableDeclarationOption();
+    Variable? stackTrace = readAndPushVariableDeclarationOption();
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
@@ -4433,7 +4431,7 @@ class BinaryBuilder {
   }
 
   List<VariableStatement> readAndPushVariableStatementList() {
-    List<VariableDeclaration> list = readAndPushVariableDeclarationList();
+    List<Variable> list = readAndPushVariableDeclarationList();
     return new List.generate(
       list.length,
       (int index) =>
@@ -4442,39 +4440,39 @@ class BinaryBuilder {
     );
   }
 
-  List<VariableDeclaration> readAndPushVariableDeclarationList() {
+  List<Variable> readAndPushVariableDeclarationList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
       return emptyListOfVariableDeclaration;
     }
-    return new List<VariableDeclaration>.generate(
+    return new List<Variable>.generate(
       length,
       (_) => readAndPushVariableDeclaration(),
       growable: useGrowableLists,
     );
   }
 
-  VariableDeclaration? readAndPushVariableDeclarationOption() {
+  Variable? readAndPushVariableDeclarationOption() {
     return readAndCheckOptionTag() ? readAndPushVariableDeclaration() : null;
   }
 
-  VariableDeclaration readAndPushVariableDeclaration() {
-    VariableDeclaration variable = readVariableDeclaration();
+  Variable readAndPushVariableDeclaration() {
+    Variable variable = readVariableDeclaration();
     variableStack.add(variable);
     return variable;
   }
 
-  VariableDeclaration readVariableDeclaration() {
+  Variable readVariableDeclaration() {
     int offset = readOffset();
     int fileEqualsOffset = readOffset();
     // The [VariableDeclaration] instance is not created at this point yet,
     // so `null` is temporarily set as the parent of the annotation nodes.
     List<Expression> annotations = readAnnotationList(null);
     int flags = readUInt30();
-    VariableDeclaration node =
-        new VariableDeclaration(
+    Variable node =
+        new Variable(
             readStringOrNullIfEmpty(),
             type: readDartType(),
             initializer: readExpressionOption(),
@@ -4759,10 +4757,10 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  VariableDeclaration readVariableDeclaration() {
+  Variable readVariableDeclaration() {
     final int nodeOffset = _byteOffset;
     final bool hasMetadata = _hasMetadata(_byteOffset);
-    final VariableDeclaration result = super.readVariableDeclaration();
+    final Variable result = super.readVariableDeclaration();
     return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 

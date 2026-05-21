@@ -74,7 +74,7 @@ class ForInLowering {
       //   }
       final valueVariable = stmt.variable;
 
-      final streamVariable = new VariableDeclaration(
+      final streamVariable = new Variable(
         ForInVariables.stream,
         initializer: stmt.iterable,
         type: stmt.iterable.getStaticType(staticTypeContext),
@@ -86,7 +86,7 @@ class ForInLowering {
         staticTypeContext.nullable,
         [valueVariable.type],
       );
-      final forIteratorVariable = VariableDeclaration(
+      final forIteratorVariable = Variable(
         ForInVariables.forIterator,
         initializer: new ConstructorInvocation(
           coreTypes.streamIteratorDefaultConstructor,
@@ -124,7 +124,7 @@ class ForInLowering {
 
         // let _ = asyncStarMoveNextCall in (condition)
         whileCondition = new Let(
-          new VariableDeclaration(
+          new Variable(
             null,
             initializer: asyncStarMoveNextCall,
             isSynthesized: true,
@@ -292,8 +292,7 @@ class ForInLowering {
     ]);
   }
 
-  (VariableDeclaration, Statement)
-  _createSyncForIteratorVariableAndInitialization({
+  (Variable, Statement) _createSyncForIteratorVariableAndInitialization({
     required Expression initializer,
     required DartType type,
     required int fileOffset,
@@ -309,7 +308,7 @@ class ForInLowering {
       );
       return (variable, initialization);
     } else {
-      final variableAndInitialization = VariableDeclaration(
+      final variableAndInitialization = Variable(
         ForInVariables.syncForIterator,
         initializer: initializer,
         type: type,
@@ -323,7 +322,7 @@ class ForInLowering {
   }
 
   Statement _ensureSyncForLoopVariableInitialization({
-    required VariableDeclaration variable,
+    required Variable variable,
     required Expression initializer,
   }) {
     if (isClosureContextLoweringEnabled) {

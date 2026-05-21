@@ -253,7 +253,7 @@ mixin FinalizableTransformer on Transformer {
     return inScope(node, () => super.visitSwitchStatement(node));
   }
 
-  bool _possiblyUninitialized(VariableDeclaration declaration) {
+  bool _possiblyUninitialized(Variable declaration) {
     if (declaration.isLate) {
       // Also mark late variables with initializers as uninitialized.
       // Otherwise we would would start running the initializer in a fence.
@@ -271,15 +271,15 @@ mixin FinalizableTransformer on Transformer {
   }
 
   @override
-  TreeNode defaultVariableDeclaration(VariableDeclaration node) {
-    node = super.defaultVariableDeclaration(node) as VariableDeclaration;
+  TreeNode defaultVariable(Variable node) {
+    node = super.defaultVariable(node) as Variable;
     if (_currentScope == null) {
       // Global variable.
       return node;
     }
     if (_isFinalizable(node.type)) {
       if (_possiblyUninitialized(node)) {
-        final alwaysInitializedDeclaration = VariableDeclaration(
+        final alwaysInitializedDeclaration = Variable(
           ':${node.name}:finalizableValue',
           type: node.type.withDeclaredNullability(Nullability.nullable),
         );
@@ -553,7 +553,7 @@ mixin FinalizableTransformer on Transformer {
     Expression expression,
     List<Expression> declarations,
   ) {
-    final resultVariable = VariableDeclaration(
+    final resultVariable = Variable(
       ":expressionValueWrappedFinalizable",
       initializer: expression,
       type: staticTypeContext!.getExpressionType(expression),
@@ -647,11 +647,11 @@ class FindCaptures extends RecursiveVisitor {
   }
 
   @override
-  void defaultVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     if (_isFinalizable(node.type)) {
       _currentScope.addDeclaration(node);
     }
-    super.defaultVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override
@@ -695,16 +695,15 @@ class _Scope {
   /// like to prevent arbitrary reorderings when generating code from this.
   ///
   /// Includes [_possiblyUninitializedDeclarations] keys.
-  final List<VariableDeclaration> _declarations = [];
+  final List<Variable> _declarations = [];
 
   /// The late and non-nullable Finalizable declarations in this scope mapped
   /// to nullable non-late variables that contain the same value.
   ///
   /// The map is mutable, because we populate it during visiting statements.
-  final Map<VariableDeclaration, VariableDeclaration>
-  _possiblyUninitializedDeclarations = {};
+  final Map<Variable, Variable> _possiblyUninitializedDeclarations = {};
 
-  /// [ThisExpression] is not a [VariableDeclaration] and needs to be tracked
+  /// [ThisExpression] is not a [Variable] and needs to be tracked
   /// separately.
   final bool declaresThis;
 
@@ -736,22 +735,22 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     return nonIndented.replaceAll('\n', (' ' * indentation) + '\n');
   }
 
-  void addDeclaration(VariableDeclaration declaration) {
+  void addDeclaration(Variable declaration) {
     _declarations.add(declaration);
     allDeclarationsIsEmpty = false;
   }
 
   void addPossiblyUninitializedDeclaration(
-    VariableDeclaration possiblyUninitialized,
-    VariableDeclaration nullableValue,
+    Variable possiblyUninitialized,
+    Variable nullableValue,
   ) {
     assert(possiblyUninitialized.parent is VariableStatement);
     _possiblyUninitializedDeclarations[possiblyUninitialized] = nullableValue;
     addDeclaration(possiblyUninitialized);
   }
 
-  VariableDeclaration? alwaysInitializedDeclaration(
-    VariableDeclaration possiblyUninitialized, {
+  Variable? alwaysInitializedDeclaration(
+    Variable possiblyUninitialized, {
     required bool checkAncestorScopes,
   }) {
     final resultThisScope =
@@ -768,8 +767,8 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     );
   }
 
-  VariableDeclaration variableToFence(
-    VariableDeclaration declaration, {
+  Variable variableToFence(
+    Variable declaration, {
     required bool checkAncestorScopes,
   }) {
     final possibleValueToFence = alwaysInitializedDeclaration(
@@ -791,7 +790,7 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   /// All declarations in this and parent scopes.
   ///
   /// Excluding `this`.
-  List<VariableDeclaration> get allDeclarations => [
+  List<Variable> get allDeclarations => [
     ...?parent?.allDeclarations,
     ..._declarations,
   ];
@@ -806,9 +805,9 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     return parent?.capturingScope;
   }();
 
-  Map<VariableDeclaration, bool>? _captures;
+  Map<Variable, bool>? _captures;
 
-  Map<VariableDeclaration, bool> get captures {
+  Map<Variable, bool> get captures {
     if (_captures != null) {
       return _captures!;
     }
@@ -820,7 +819,7 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
 
   bool _capturesThis = false;
 
-  void addCapture(VariableDeclaration declaration) {
+  void addCapture(Variable declaration) {
     final capturingScope_ = capturingScope;
     if (capturingScope_ == null) {
       // We're not in a nested closure.

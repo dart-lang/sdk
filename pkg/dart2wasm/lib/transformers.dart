@@ -35,7 +35,7 @@ class _WasmTransformer extends Transformer {
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
-  final Set<VariableDeclaration> _implicitFinalVariables = {};
+  final Set<Variable> _implicitFinalVariables = {};
 
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
@@ -278,11 +278,11 @@ class _WasmTransformer extends Transformer {
   }
 
   @override
-  defaultVariableDeclaration(VariableDeclaration node) {
+  defaultVariable(Variable node) {
     if (!node.isFinal) {
       _implicitFinalVariables.add(node);
     }
-    return super.defaultVariableDeclaration(node);
+    return super.defaultVariable(node);
   }
 
   @override
@@ -407,7 +407,7 @@ class _WasmTransformer extends Transformer {
       );
     }
 
-    final iterator = VariableDeclaration(
+    final iterator = Variable(
       "#forIterator",
       initializer: iteratorInitializer..fileOffset = iterable.fileOffset,
       type: iteratorType,
@@ -415,7 +415,7 @@ class _WasmTransformer extends Transformer {
     )..fileOffset = iterable.fileOffset;
 
     // Only used when `isAsync` is true.
-    final jumpSentinel = VariableDeclaration(
+    final jumpSentinel = Variable(
       "#jumpSentinel",
       initializer: ConstantExpression(BoolConstant(false)),
       type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable),
@@ -492,7 +492,7 @@ class _WasmTransformer extends Transformer {
   }
 
   InstanceInvocation _addToController(
-    VariableDeclaration controller,
+    Variable controller,
     Expression expression,
     int fileOffset,
   ) {
@@ -615,14 +615,14 @@ class _WasmTransformer extends Transformer {
       const VoidType(),
     ]);
 
-    final pausedVar = VariableDeclaration(
+    final pausedVar = Variable(
       '#paused',
       initializer: null,
       type: pausedVarType,
       isSynthesized: true,
     );
 
-    final cancelCompleterVar = VariableDeclaration(
+    final cancelCompleterVar = Variable(
       '#cancelCompleter',
       initializer: null,
       type: InterfaceType(_completerClass, Nullability.nullable, [
@@ -631,7 +631,7 @@ class _WasmTransformer extends Transformer {
       isSynthesized: true,
     );
 
-    final isDoneVar = VariableDeclaration(
+    final isDoneVar = Variable(
       '#isDone',
       type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable),
       initializer: ConstantExpression(BoolConstant(false)),
@@ -704,7 +704,7 @@ class _WasmTransformer extends Transformer {
       ),
     );
 
-    final onCancelCallbackVar = VariableDeclaration(
+    final onCancelCallbackVar = Variable(
       "#onCancelCallback",
       initializer: onCancelCallback,
     );
@@ -713,7 +713,7 @@ class _WasmTransformer extends Transformer {
       FunctionNode(makePauseCheck(), returnType: const VoidType()),
     );
 
-    final onResumeCallbackVar = VariableDeclaration(
+    final onResumeCallbackVar = Variable(
       "#onResumeCallback",
       initializer: onResumeCallback,
     );
@@ -733,7 +733,7 @@ class _WasmTransformer extends Transformer {
     );
 
     // var #controller = ...
-    final controllerVar = VariableDeclaration(
+    final controllerVar = Variable(
       '#controller',
       initializer: controllerInitializer..fileOffset = fileOffset,
       type: controllerObjectType,
@@ -749,9 +749,9 @@ class _WasmTransformer extends Transformer {
 
     // The body will be wrapped with a `try-catch` to pass the error to the
     // controller, and `try-finally` to close the controller.
-    final exceptionVar = VariableDeclaration(null, isSynthesized: true);
+    final exceptionVar = Variable(null, isSynthesized: true);
 
-    final stackTraceVar = VariableDeclaration(
+    final stackTraceVar = Variable(
       null,
       isSynthesized: true,
       type: coreTypes.stackTraceRawType(Nullability.nonNullable),
@@ -850,7 +850,7 @@ class _WasmTransformer extends Transformer {
       Nullability.nonNullable,
     );
 
-    final bodyVar = VariableDeclaration(
+    final bodyVar = Variable(
       '#body',
       initializer: bodyInitializer..fileOffset = fileOffset,
       type: bodyFunctionType,
@@ -1156,8 +1156,8 @@ class _WasmTransformer extends Transformer {
 }
 
 class _AsyncStarFrame {
-  final VariableDeclaration controllerVar;
-  final VariableDeclaration pausedVar;
+  final Variable controllerVar;
+  final Variable pausedVar;
   final DartType emittedValueType;
 
   _AsyncStarFrame(this.controllerVar, this.pausedVar, this.emittedValueType);
@@ -1304,7 +1304,7 @@ class PushPopWasmArrayTransformer {
     );
 
     // var newArray = WasmArray<T>(nextCapacity)
-    final newArrayVariable = VariableDeclaration(
+    final newArrayVariable = Variable(
       'newArray',
       initializer: arrayAllocation,
       type: InterfaceType(_wasmArrayClass, Nullability.nonNullable, [
@@ -1471,7 +1471,7 @@ class PushPopWasmArrayTransformer {
     );
 
     // final temp = array[length]
-    final arrayGetVariable = VariableDeclaration.forValue(
+    final arrayGetVariable = Variable.forValue(
       arrayGet,
       isFinal: true,
       type: elementType,
@@ -1500,7 +1500,7 @@ class PushPopWasmArrayTransformer {
 }
 
 class _VariableCollector extends RecursiveVisitor {
-  Set<VariableDeclaration> variables = {};
+  Set<Variable> variables = {};
 
   @override
   void visitVariableGet(VariableGet node) {

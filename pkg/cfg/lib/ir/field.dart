@@ -32,7 +32,7 @@ sealed class SyntheticField extends ast.Field {
 /// Field of the context object.
 /// Context fields hold values of captured variables.
 final class ContextField extends SyntheticField {
-  final ast.VariableDeclaration variable;
+  final ast.Variable variable;
   final int index;
 
   ContextField(this.variable, this.index)

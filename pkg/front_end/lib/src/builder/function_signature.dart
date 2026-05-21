@@ -28,7 +28,7 @@ class FunctionNodeSignature implements FunctionSignature {
   @override
   Map<String, ParameterInfo> get namedParameters {
     Map<String, ParameterInfo> map = {};
-    for (VariableDeclaration formal in _function.namedParameters) {
+    for (Variable formal in _function.namedParameters) {
       map[formal.name!] = (
         type: formal.type,
         hasDeclaredInitializer: formal.hasDeclaredInitializer,
@@ -40,7 +40,7 @@ class FunctionNodeSignature implements FunctionSignature {
   @override
   List<ParameterInfo> get positionalParameters {
     List<ParameterInfo> list = [];
-    for (VariableDeclaration formal in _function.positionalParameters) {
+    for (Variable formal in _function.positionalParameters) {
       list.add((
         type: formal.type,
         hasDeclaredInitializer: formal.hasDeclaredInitializer,

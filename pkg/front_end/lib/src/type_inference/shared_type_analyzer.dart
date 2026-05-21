@@ -22,7 +22,7 @@ class SharedTypeAnalyzerErrors
           TreeNode,
           Statement,
           Expression,
-          VariableDeclaration,
+          Variable,
           Pattern,
           InvalidExpression
         > {
@@ -74,7 +74,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression duplicateAssignmentPatternVariable({
-    required VariableDeclaration variable,
+    required Variable variable,
     required Pattern original,
     required Pattern duplicate,
   }) {
@@ -154,8 +154,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void inconsistentJoinedPatternVariable({
-    required VariableDeclaration variable,
-    required VariableDeclaration component,
+    required Variable variable,
+    required Variable component,
   }) {
     // TODO(johnniwinther): How should we handle errors that are not report
     // here? Should we have a sentinel error node, allow a nullable result, or ?

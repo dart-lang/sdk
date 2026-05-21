@@ -611,7 +611,7 @@ class EffectExpression implements DelayedExpression {
 /// to [_target].
 class DelayedAssignment extends DelayedExpression {
   final MatchingCache _cache;
-  final VariableDeclaration _target;
+  final Variable _target;
   final DartType _type;
   final DelayedExpression _value;
   final bool hasEffect;
@@ -634,7 +634,7 @@ class DelayedAssignment extends DelayedExpression {
   }) {
     if (effects != null && hasEffect) {
       // Coverage-ignore-block(suite): Not run.
-      VariableDeclaration tempVariable = _cache.createTemporaryVariable(
+      Variable tempVariable = _cache.createTemporaryVariable(
         _type,
         fileOffset: fileOffset,
       );
@@ -682,7 +682,7 @@ class DelayedAssignment extends DelayedExpression {
     List<Statement>? effects,
   }) {
     if (effects != null && hasEffect) {
-      VariableDeclaration tempVariable = _cache.createTemporaryVariable(
+      Variable tempVariable = _cache.createTemporaryVariable(
         _type,
         fileOffset: fileOffset,
       );

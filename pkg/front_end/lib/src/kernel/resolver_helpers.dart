@@ -13,7 +13,7 @@ typedef BodyBuilderCreator =
       LocalScope? formalParameterScope,
       required ClassHierarchy hierarchy,
       required CoreTypes coreTypes,
-      VariableDeclaration? thisVariable,
+      Variable? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       required Uri uri,
       required AssignedVariablesImpl assignedVariables,
@@ -39,7 +39,7 @@ class ResolverForTesting extends Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
     required LocalScope? formalParameterScope,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required ConstantContext constantContext,
     required ThisVariable? internalThisVariable,
@@ -217,7 +217,7 @@ class _InitializerBuilder {
 
   ScopeProviderInfo? _inferInitializer(
     Initializer initializer, {
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -245,7 +245,7 @@ class _InitializerBuilder {
     required List<Initializer> initializers,
     required AsyncModifier asyncModifier,
     required bool forPrimaryConstructor,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
   }) {
@@ -629,7 +629,7 @@ class _InitializerBuilder {
     required SourceLibraryBuilder libraryBuilder,
     required TypeInferrer typeInferrer,
     required _SuperParameterArguments? superParameterArguments,
-    required List<VariableDeclaration> parameters,
+    required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -754,7 +754,7 @@ class _InitializerBuilder {
           int positionalSuperParameterCount =
               superTarget.function.positionalParameters.length;
           Set<String> superTargetNamedParameterNames = {
-            for (VariableDeclaration namedParameter
+            for (Variable namedParameter
                 in superTarget.function.namedParameters)
               ?namedParameter // Coverage-ignore(suite): Not run.
                   .name,

@@ -434,7 +434,7 @@ abstract class Generator {
 /// If the variable is final or read-only (like a parameter in a catch clause) a
 /// [ReadOnlyAccessGenerator] is created instead.
 class VariableUseGenerator extends Generator {
-  final VariableDeclaration variable;
+  final Variable variable;
 
   VariableUseGenerator(
     ExpressionGeneratorHelper helper,
@@ -641,7 +641,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   ForInLateFinalVariableUseGenerator(
     ExpressionGeneratorHelper helper,
     Token token,
-    VariableDeclaration variable,
+    Variable variable,
   ) : super(helper, token, variable);
 
   @override
@@ -959,7 +959,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   /// The synthetic variable used for 'this' in instance extension members
   /// and instance extension type members/constructor bodies.
-  VariableDeclaration? thisVariable;
+  Variable? thisVariable;
 
   ThisPropertyAccessGenerator(
     ExpressionGeneratorHelper helper,
@@ -2560,7 +2560,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   /// instance method.
   // TODO(johnniwinther): Handle static access to extension instance members,
   // in which case the access is erroneous and [extensionThis] is `null`.
-  final VariableDeclaration extensionThis;
+  final Variable extensionThis;
 
   /// The type parameters synthetically added to  the current extension
   /// instance method.
@@ -2584,7 +2584,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Token token,
     Extension extension,
     Name targetName,
-    VariableDeclaration extensionThis,
+    Variable extensionThis,
     List<TypeParameter>? extensionTypeParameters,
     MemberBuilder? getterBuilder,
     MemberBuilder? setterBuilder,

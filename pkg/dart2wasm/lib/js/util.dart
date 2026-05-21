@@ -746,16 +746,14 @@ class CoreTypesUtil {
       extensionIndex.isStaticInteropType(type) ||
       extensionIndex.isExternalDartReferenceType(type);
 
-  Expression variableCheckConstant(
-    VariableDeclaration variable,
-    Constant constant,
-  ) => StaticInvocation(
-    coreTypes.identicalProcedure,
-    Arguments([VariableGet(variable), ConstantExpression(constant)]),
-  );
+  Expression variableCheckConstant(Variable variable, Constant constant) =>
+      StaticInvocation(
+        coreTypes.identicalProcedure,
+        Arguments([VariableGet(variable), ConstantExpression(constant)]),
+      );
 
   Expression variableGreaterThanOrEqualToConstant(
-    VariableDeclaration variable,
+    Variable variable,
     Constant constant,
   ) => InstanceInvocation(
     InstanceAccessKind.Instance,
@@ -807,7 +805,7 @@ class CoreTypesUtil {
       final conversionProcedure = _dartConversionProcedure(
         expectedTypeExtensionTypeErasure,
       );
-      final invocationValueVar = VariableDeclaration(
+      final invocationValueVar = Variable(
         '#jsInvocation',
         initializer: invocation,
         type: nullableWasmExternRefType,
@@ -839,13 +837,13 @@ class CoreTypesUtil {
       //      } else {
       //        throw;
       //      }
-      VariableDeclaration v = VariableDeclaration(
+      Variable v = Variable(
         '#vardouble',
         initializer: AsExpression(expression, coreTypes.doubleNullableRawType),
         type: coreTypes.doubleNullableRawType,
         isSynthesized: true,
       );
-      VariableDeclaration v2 = VariableDeclaration(
+      Variable v2 = Variable(
         '#varint',
         initializer: invokeMethod(v, numToIntTarget),
         type: coreTypes.intNonNullableRawType,
@@ -951,7 +949,7 @@ StaticInvocation invokeOneArg(Procedure target, Expression arg) =>
     StaticInvocation(target, Arguments([arg]));
 
 InstanceInvocation invokeMethod(
-  VariableDeclaration receiver,
+  Variable receiver,
   Procedure target, [
   Arguments? arguments,
 ]) => InstanceInvocation(
@@ -967,7 +965,7 @@ bool parametersNeedParens(List<String> parameters) =>
     parameters.isEmpty || parameters.length > 1;
 
 Expression jsifyValue(
-  VariableDeclaration variable,
+  Variable variable,
   DartType expectedType,
   CoreTypesUtil coreTypes,
   TypeEnvironment typeEnv,

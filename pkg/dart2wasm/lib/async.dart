@@ -364,7 +364,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     super.visitExpressionStatement(node);
   }
 
-  void _generateAwait(AwaitExpression node, VariableDeclaration awaitValueVar) {
+  void _generateAwait(AwaitExpression node, Variable awaitValueVar) {
     // Find the current context.
     Context? context;
     TreeNode contextOwner = node;

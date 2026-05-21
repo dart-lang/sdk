@@ -71,7 +71,7 @@ sealed class CFunction {
   bool get hasNamedParameters =>
       functionNode?.namedParameters.isNotEmpty ?? false;
 
-  ast.VariableDeclaration _getOptionalOrNamedParameter(int index) =>
+  ast.Variable _getOptionalOrNamedParameter(int index) =>
       hasOptionalPositionalParameters
       ? functionNode!.positionalParameters[index - numberOfImplicitParameters]
       : functionNode!.namedParameters[index -

@@ -745,7 +745,7 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -755,7 +755,7 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  VariableDeclaration? get thisVariable => _encoding.thisVariable;
+  Variable? get thisVariable => _encoding.thisVariable;
 
   @override
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
@@ -764,7 +764,7 @@ mixin _ConstructorEncodingMixin
   void registerFunctionBody(
     Statement? body,
     Scope? scope,
-    VariableDeclaration? thisVariable,
+    Variable? thisVariable,
   ) {
     _encoding.registerFunctionBody(
       body: body,
@@ -1471,20 +1471,20 @@ abstract class ConstructorFragmentDeclaration {
   void registerFunctionBody(
     Statement? body,
     Scope? scope,
-    VariableDeclaration? thisVariable,
+    Variable? thisVariable,
   );
 
   void registerNoBodyConstructor();
 
-  VariableDeclaration? get thisVariable;
+  Variable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 
   void becomeNative(SourceLoader loader);
 
-  /// Returns the [VariableDeclaration] for the tear off, if any, of the
+  /// Returns the [Variable] for the tear off, if any, of the
   /// [index]th formal parameter declared in the constructor.
-  VariableDeclaration? getTearOffParameter(int index);
+  Variable? getTearOffParameter(int index);
 
   LocalScope computeFormalParameterScope(LookupScope parent);
 

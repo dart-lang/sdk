@@ -59,7 +59,7 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) =>
+  Variable? getTearOffParameter(int index) =>
       _declaration.getTearOffParameter(index);
 
   @override

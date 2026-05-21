@@ -16,7 +16,7 @@ import 'source_library_builder.dart';
 import 'source_type_parameter_builder.dart';
 
 /// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter
-/// [VariableDeclaration]s for [declaredFormals] and adds them to [function].
+/// [Variable]s for [declaredFormals] and adds them to [function].
 ///
 /// If [classTypeParameters] the bounds on type parameters and formal parameter
 /// types will be marked as `isCovariantByClass` depending on their use of the
@@ -60,7 +60,7 @@ void buildTypeParametersAndFormals(
   if (declaredFormals != null) {
     for (int i = 0; i < declaredFormals.length; i++) {
       FormalParameterBuilder formal = declaredFormals[i];
-      VariableDeclaration parameter =
+      Variable parameter =
           (formal.build(libraryBuilder) as InternalVariable).astVariable;
       if (needsCheckVisitor != null) {
         if (parameter.type.accept(needsCheckVisitor)) {
