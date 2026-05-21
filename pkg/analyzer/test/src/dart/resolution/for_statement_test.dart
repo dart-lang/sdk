@@ -642,14 +642,14 @@ ForStatement
               equals: =
               initializer: SimpleStringLiteral
                 literal: 'a'
-              declaredFragment: isPublic i@152
+              declaredFragment: isPublic i@61
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
         expression: SimpleIdentifier
           token: i
-          element: i@152
+          element: i@61
           staticType: String
         semicolon: ;
     rightBracket: }
@@ -1555,14 +1555,14 @@ ForStatement
               initializer: IntegerLiteral
                 literal: 1
                 staticType: int
-              declaredFragment: isPublic a@165
+              declaredFragment: isPublic a@67
                 element: hasImplicitType isPublic
                   type: int
         semicolon: ;
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@165
+          element: a@67
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -2220,14 +2220,14 @@ ForStatement
               initializer: IntegerLiteral
                 literal: 1
                 staticType: int
-              declaredFragment: isPublic a@145
+              declaredFragment: isPublic a@53
                 element: hasImplicitType isPublic
                   type: int
         semicolon: ;
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          element: a@145
+          element: a@53
           staticType: int
         semicolon: ;
     rightBracket: }

@@ -44,8 +44,6 @@ void f() {
 //                                  ^^^^^^^^^^^^^^^^^^^^^
 // [diag.duplicateIgnore] The diagnostic 'unused_local_variable' doesn't need to be ignored here because it's already being ignored.
   var x = 0;
-//    ^
-// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
   }
@@ -78,8 +76,6 @@ void f() {}
 //                    ^^^^^^^^^
 // [diag.duplicateIgnore] The diagnostic 'lint' doesn't need to be ignored here because it's already being ignored.
 void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
-//          ^^^
-// [diag.avoidTypesAsParameterNamesFormalParameter] The parameter name 'int' matches a visible type name.
 ''');
   }
 

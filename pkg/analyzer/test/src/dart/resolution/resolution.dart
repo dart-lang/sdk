@@ -459,11 +459,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   /// Resolves [code] and checks that its inline diagnostic markers match the
   /// diagnostics. Unmarked code is expected to have no diagnostics.
   Future<void> resolveTestCodeWithDiagnostics(String code) async {
-    addTestFile(code);
+    var cleanCode = removeDiagnosticExpectations(code);
+    addTestFile(cleanCode);
     await resolveTestFile();
 
     var actual = updateExpectedDiagnostics(
-      content: code,
+      content: cleanCode,
       actualDiagnostics: result.diagnostics,
     );
     if (actual != code) {

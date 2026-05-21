@@ -805,7 +805,7 @@ main() {
 void f() {
   int v;
   if (false) {
-// [diag.deadCode][column 14][length 77] Dead code.
+// [diag.deadCode][column 14][length 25] Dead code.
     // not assigned
   } else {
     v = 0;
@@ -868,7 +868,7 @@ void f() {
 void f() {
   int v;
   if (!true) {
-// [diag.deadCode][column 14][length 77] Dead code.
+// [diag.deadCode][column 14][length 25] Dead code.
     // not assigned
   } else {
     v = 0;

@@ -5,12 +5,14 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
     defineReflectiveTests(DeadCodeTest_Language219);
     defineReflectiveTests(DeadCodeTest_AnonymousMethodsExperiment);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -194,7 +196,7 @@ Never foo() => throw "Never";
 test() {
   int i = 0;
   for (foo(); (i = 42) < 0;) {}
-// [diag.deadCode][column 15][length 81] Dead code.
+// [diag.deadCode][column 15][length 29] Dead code.
   return i;
 }
 ''');
@@ -551,7 +553,7 @@ class C {
 class A {
   int x;
   A() : x = throw 0 {
-// [diag.deadCode][column 21][length 64] Dead code.
+// [diag.deadCode][column 21][length 12] Dead code.
     x;
   }
 }
@@ -1072,7 +1074,7 @@ void f(bool c) {
 //  ^^^^^^^^^^^^
 // [diag.deadCode] Dead code.
     print('');
-// [diag.deadCode][column 5][length 89] Dead code.
+// [diag.deadCode][column 5][length 38] Dead code.
   } while (c);
   print('');
 }
@@ -1092,7 +1094,7 @@ void f(bool c) {
 //  ^^^^^^^^^^^^
 // [diag.deadCode] Dead code.
     print('');
-// [diag.deadCode][column 5][length 65] Dead code.
+// [diag.deadCode][column 5][length 14] Dead code.
   }
 }
 ''');
@@ -1521,7 +1523,7 @@ void f() {
     {
       return;
       2;
-// [diag.deadCode][column 7][length 59] Dead code.
+// [diag.deadCode][column 7][length 8] Dead code.
     }
   }
 }
@@ -1585,7 +1587,7 @@ main() {
     2;
     return;
     3;
-// [diag.deadCode][column 5][length 62] Dead code.
+// [diag.deadCode][column 5][length 11] Dead code.
   }
   4;
 }
@@ -1607,7 +1609,7 @@ void f() {
     await resolveTestCodeWithDiagnostics(r'''
 void f() {
   if (false) {
-// [diag.deadCode][column 14][length 64] Dead code.
+// [diag.deadCode][column 14][length 12] Dead code.
     1;
   } else {
     2;
@@ -1623,7 +1625,7 @@ void f() {
   if (true) {
     1;
   } else {
-// [diag.deadCode][column 10][length 64] Dead code.
+// [diag.deadCode][column 10][length 12] Dead code.
     2;
   }
   3;
@@ -1640,7 +1642,7 @@ void g(A a) {
   a.f(0);
 //^^^
 // [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
-// [diag.deadCode][column 6][length 175] Dead code.
+// [diag.deadCode][column 6][length 16] Dead code.
   print(1);
 }
 ''');
@@ -1652,7 +1654,7 @@ void g(Never f) {
   (f)(0);
 //^^^
 // [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
-// [diag.deadCode][column 6][length 175] Dead code.
+// [diag.deadCode][column 6][length 16] Dead code.
   print(1);
 }
 ''');
@@ -1664,7 +1666,7 @@ void g(Never f) {
   f(0);
 //^
 // [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
-// [diag.deadCode][column 4][length 173] Dead code.
+// [diag.deadCode][column 4][length 16] Dead code.
   print(1);
 }
 ''');
@@ -1992,7 +1994,7 @@ f() {
   print(1);
   return;
   print(2);
-// [diag.deadCode][column 3][length 82] Dead code.
+// [diag.deadCode][column 3][length 31] Dead code.
   return;
   print(3);
 }

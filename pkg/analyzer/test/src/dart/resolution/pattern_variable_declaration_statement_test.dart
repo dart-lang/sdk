@@ -142,7 +142,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: a@149
+  element: a@34
   staticType: InvalidType
 ''');
   }

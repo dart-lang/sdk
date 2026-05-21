@@ -2693,7 +2693,7 @@ ExtensionTypeDeclaration
               equals: =
               initializer: SimpleStringLiteral
                 literal: 'not a type'
-              declaredFragment: <testLibraryFragment> int@107
+              declaredFragment: <testLibraryFragment> int@49
         semicolon: ;
         declaredFragment: <null>
     rightBracket: }

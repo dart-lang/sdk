@@ -41,8 +41,9 @@ String removeTrailingLineTerminator(String content) {
 
 /// Returns [content] with canonical diagnostic expectation markers.
 ///
-/// Existing diagnostic expectation marker lines are removed before the new
-/// markers are inserted, so [content] can be either unmarked or already marked.
+/// The [content] must not include diagnostic expectation marker lines. Use
+/// [removeDiagnosticExpectations] before analysis, and pass the analyzed
+/// content here.
 String updateExpectedDiagnostics({
   required String content,
   required List<Diagnostic> actualDiagnostics,
@@ -60,7 +61,16 @@ final class _ExpectedDiagnosticsUpdater {
 
   _ExpectedDiagnosticsUpdater(String content)
     : lines = _Line.parse(content),
-      lineInfo = LineInfo.fromContent(content);
+      lineInfo = LineInfo.fromContent(content) {
+    for (var line in lines) {
+      if (_LineMarker.isMarker(line)) {
+        throw StateError(
+          'Expected content without diagnostic expectation markers, '
+          'found one on line ${line.number}.',
+        );
+      }
+    }
+  }
 
   String update(List<Diagnostic> actualDiagnostics) {
     _generateMarkers(actualDiagnostics);
@@ -90,10 +100,7 @@ final class _ExpectedDiagnosticsUpdater {
 
       var id = nextContextId++;
       contextRefs.add(id);
-      var location = _markerLocation(
-        offset: contextMessage.offset,
-        length: contextMessage.length,
-      );
+      var location = _markerLocation(offset: contextMessage.offset);
       var line = lines[location.lineNumber - 1];
       var presentation = _markerPresentation(
         line,
@@ -115,10 +122,7 @@ final class _ExpectedDiagnosticsUpdater {
       );
     }
 
-    var location = _markerLocation(
-      offset: diagnostic.offset,
-      length: diagnostic.length,
-    );
+    var location = _markerLocation(offset: diagnostic.offset);
     var line = lines[location.lineNumber - 1];
     var presentation = _markerPresentation(
       line,
@@ -150,32 +154,8 @@ final class _ExpectedDiagnosticsUpdater {
   }
 
   /// Returns where a generated marker should be written for an actual range.
-  ///
-  /// For a normal diagnostic range, the marker belongs on the line reported by
-  /// [LineInfo]. For a zero-length diagnostic, the diagnostic is often an
-  /// insertion point rather than a source span. If the input is already
-  /// marked, that insertion point can be pushed into the existing marker
-  /// comments, or to the empty line after them, even though the marker should
-  /// still be attached to the preceding real source line. In that case, keep
-  /// the marker on the source line and express the insertion point as the
-  /// column after its last character.
-  ({int lineNumber, int column}) _markerLocation({
-    required int offset,
-    required int length,
-  }) {
+  ({int lineNumber, int column}) _markerLocation({required int offset}) {
     var location = lineInfo.getLocation(offset);
-    if (length == 0) {
-      // Only zero-length diagnostics can legitimately move onto marker-only
-      // text from a previous update. A non-zero range on a marker line would
-      // describe the marker comment itself, not an insertion point in code.
-      var targetLine = _targetLineForMarkerShift(location.lineNumber);
-      if (targetLine != null) {
-        return (
-          lineNumber: targetLine.number,
-          column: targetLine.text.length + 1,
-        );
-      }
-    }
     return (lineNumber: location.lineNumber, column: location.columnNumber);
   }
 
@@ -204,59 +184,10 @@ final class _ExpectedDiagnosticsUpdater {
     );
   }
 
-  /// Finds the real source line that owns a shifted zero-length marker.
-  ///
-  /// The updater accepts both clean source and source that already contains
-  /// diagnostic expectation comments. Existing marker comments are removed when
-  /// the new content is written, but actual diagnostics are computed before
-  /// that removal. This matters for zero-length diagnostics near the end of a
-  /// line or file: after a previous update, the analyzer may report the same
-  /// insertion point as being on a marker line, or on the empty line
-  /// immediately following marker lines.
-  ///
-  /// This method recognizes only those shifted positions. If [lineNumber]
-  /// points at ordinary source text, or at an empty line that is not directly
-  /// after a marker, there is nothing to repair and `null` is returned.
-  /// Otherwise the search walks backward over marker lines and returns the
-  /// nearest preceding non-marker line, which is where the regenerated marker
-  /// should be attached.
-  _Line? _targetLineForMarkerShift(int lineNumber) {
-    if (lineNumber < 1 || lineNumber > lines.length) {
-      return null;
-    }
-
-    var line = lines[lineNumber - 1];
-    if (!_LineMarker.isMarker(line)) {
-      // A non-marker line normally owns the reported offset. The one exception
-      // is the synthetic empty line after existing markers, which can be where
-      // EOF-style zero-length diagnostics land.
-      var previousLine = lineNumber > 1 ? lines[lineNumber - 2] : null;
-      if (line.text.isNotEmpty ||
-          previousLine == null ||
-          !_LineMarker.isMarker(previousLine)) {
-        return null;
-      }
-    }
-
-    // The reported line is either a marker line or the empty line just after
-    // marker lines. Walk back to the line these markers annotate.
-    for (var index = lineNumber - 2; index >= 0; index--) {
-      var previousLine = lines[index];
-      if (!_LineMarker.isMarker(previousLine)) {
-        return previousLine;
-      }
-    }
-    return null;
-  }
-
   String _writeContent() {
     var buffer = StringBuffer();
     var isFirstLine = true;
     for (var line in lines) {
-      if (_LineMarker.isMarker(line)) {
-        continue;
-      }
-
       if (isFirstLine) {
         isFirstLine = false;
       } else {

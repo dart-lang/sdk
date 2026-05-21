@@ -33,7 +33,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@149
+  element: v@34
   staticType: InvalidType
 ''');
   }
@@ -168,7 +168,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@194
+  element: v@75
   staticType: void Function()
 ''');
   }
@@ -195,7 +195,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@210
+  element: v@91
   staticType: void Function()
 ''');
   }
@@ -221,7 +221,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@193
+  element: v@74
   staticType: dynamic
 ''');
   }
@@ -248,7 +248,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@209
+  element: v@90
   staticType: dynamic
 ''');
   }
@@ -274,7 +274,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@195
+  element: v@76
   staticType: void Function()
 ''');
   }
@@ -301,7 +301,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@211
+  element: v@92
   staticType: void Function()
 ''');
   }
@@ -327,7 +327,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@194
+  element: v@75
   staticType: dynamic
 ''');
   }
@@ -354,7 +354,7 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  element: v@210
+  element: v@91
   staticType: dynamic
 ''');
   }

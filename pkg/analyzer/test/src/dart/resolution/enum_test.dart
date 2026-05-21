@@ -21,7 +21,7 @@ class EnumDeclarationResolutionTest extends PubPackageResolutionTest {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(() {
-// [diag.constWithNonConstantArgument][column 5][length 193] Arguments of a constant creation must be constant expressions.
+// [diag.constWithNonConstantArgument][column 5][length 69] Arguments of a constant creation must be constant expressions.
     Object? x = 0;
     if (x is int) {
       x.isEven;
@@ -1838,7 +1838,7 @@ FieldDeclaration
           token: foo
           element: <null>
           staticType: InvalidType
-        declaredFragment: <testLibraryFragment> bar@206
+        declaredFragment: <testLibraryFragment> bar@39
   semicolon: ;
   declaredFragment: <null>
 ''');
