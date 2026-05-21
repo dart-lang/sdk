@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/clients/dart_style/rewrite_cascade.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -47,11 +46,12 @@ class RewriteCascadeTest extends ParserDiagnosticsTest {
     };
 
     void assertSingle({required String input, required String expected}) {
-      var statement = _parseStringToFindNode('''
+      var parseResult = parseStringWithErrors('''
 void f() {
   $input
 }
-''').expressionStatement(input);
+''');
+      var statement = parseResult.findNode.expressionStatement(input);
       var result = fixCascadeByParenthesizingTarget(
         expressionStatement: statement,
         cascadeExpression: statement.expression as CascadeExpression,
@@ -67,11 +67,12 @@ void f() {
 
   test_insertCascadeTargetIntoExpression() {
     void assertSingle({required String input, required String expected}) {
-      var statement = _parseStringToFindNode('''
+      var parseResult = parseStringWithErrors('''
 void f() {
   $input;
     }
-    ''').expressionStatement(input);
+    ''');
+      var statement = parseResult.findNode.expressionStatement(input);
       var cascadeExpression = statement.expression as CascadeExpression;
       var result = insertCascadeTargetIntoExpression(
         expression: cascadeExpression.cascadeSections.single,
@@ -97,10 +98,5 @@ void f() {
     for (var entry in pairs.entries) {
       assertSingle(input: entry.key, expected: entry.value);
     }
-  }
-
-  FindNode _parseStringToFindNode(String content) {
-    var parseResult = parseStringWithErrors(content);
-    return parseResult.findNode;
   }
 }
