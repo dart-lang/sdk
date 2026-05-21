@@ -301,11 +301,9 @@ class ForInLowering {
       final variable = SyntheticVariable(
         cosmeticName: ForInVariables.syncForIterator,
         type: type,
-      );
-      final initialization = VariableInitialization(
-        variable: variable,
         initializer: initializer,
       );
+      final initialization = VariableInitialization(variable: variable);
       return (variable, initialization);
     } else {
       final variableAndInitialization = Variable(
@@ -325,14 +323,12 @@ class ForInLowering {
     required Variable variable,
     required Expression initializer,
   }) {
+    initializer.parent = variable;
+    variable..initializer = initializer;
     if (isClosureContextLoweringEnabled) {
-      return VariableInitialization(
-        variable: variable,
-        initializer: initializer,
-      )..fileOffset = variable.fileOffset;
+      return VariableInitialization(variable: variable)
+        ..fileOffset = variable.fileOffset;
     } else {
-      initializer.parent = variable;
-      variable..initializer = initializer;
       return VariableStatement(variable)..fileOffset = variable.fileOffset;
     }
   }

@@ -5965,16 +5965,10 @@ class EquivalenceStrategy {
     if (!checkVariableInitialization_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableInitialization_initializer(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkVariableInitialization_capturedContexts(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkVariableInitialization_flags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkVariableInitialization_fileOffset(visitor, node, other)) {
@@ -6125,6 +6119,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLocalVariable_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_binaryOffsetNoTag(visitor, node, other)) {
@@ -6321,6 +6318,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSyntheticVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkSyntheticVariable_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSyntheticVariable_binaryOffsetNoTag(visitor, node, other)) {
@@ -13326,18 +13326,6 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.variable, other.variable, 'variable');
   }
 
-  bool checkVariableInitialization_initializer(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkNodes(
-      node.initializer,
-      other.initializer,
-      'initializer',
-    );
-  }
-
   bool checkVariableInitialization_capturedContexts(
     EquivalenceVisitor visitor,
     VariableInitialization node,
@@ -13359,19 +13347,6 @@ class EquivalenceStrategy {
     VariableInitialization other,
   ) {
     return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkVariableInitialization_annotations(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkLists(
-      node.annotations,
-      other.annotations,
-      visitor.checkNodes,
-      'annotations',
-    );
   }
 
   bool checkVariableInitialization_fileOffset(
@@ -13642,6 +13617,18 @@ class EquivalenceStrategy {
   ) {
     'context';
     return checkVariableContext(visitor, node.context, other.context);
+  }
+
+  bool checkLocalVariable_initializer(
+    EquivalenceVisitor visitor,
+    LocalVariable node,
+    LocalVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
+    );
   }
 
   bool checkLocalVariable_binaryOffsetNoTag(
@@ -14112,6 +14099,18 @@ class EquivalenceStrategy {
   ) {
     'context';
     return checkVariableContext(visitor, node.context, other.context);
+  }
+
+  bool checkSyntheticVariable_initializer(
+    EquivalenceVisitor visitor,
+    SyntheticVariable node,
+    SyntheticVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
+    );
   }
 
   bool checkSyntheticVariable_binaryOffsetNoTag(

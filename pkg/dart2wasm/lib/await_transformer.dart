@@ -349,12 +349,14 @@ class _AwaitTransformer extends Transformer {
       VariableStatement decl = stmt.variables[i];
       temps.add(Variable(null, type: decl.variable.type, isSynthesized: true));
       loopBody.add(decl);
-      if (decl.initializer != null) {
+      if (decl.variable.initializer != null) {
         initializers.addAll(initEffects[i]);
         initializers.add(
-          ExpressionStatement(VariableSet(decl.variable, decl.initializer!)),
+          ExpressionStatement(
+            VariableSet(decl.variable, decl.variable.initializer!),
+          ),
         );
-        decl.initializer = null;
+        decl.variable.initializer = null;
       }
       updates.add(
         ExpressionStatement(

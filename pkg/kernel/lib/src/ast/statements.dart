@@ -1464,9 +1464,6 @@ abstract class VariableStatement extends Statement {
   /// The declared variable.
   abstract final Variable variable;
 
-  /// The declared initializer, if any.
-  abstract Expression? initializer;
-
   factory VariableStatement(Variable variable) = LegacyVariableStatement;
 }
 
@@ -1478,14 +1475,6 @@ class LegacyVariableStatement extends Statement implements VariableStatement {
 
   LegacyVariableStatement(this.variable) {
     variable.parent = this;
-  }
-
-  @override
-  Expression? get initializer => variable.initializer;
-
-  @override
-  void set initializer(Expression? value) {
-    variable.initializer = value;
   }
 
   @override
@@ -1593,9 +1582,6 @@ class VariableInitialization extends Statement
   @override
   Variable variable;
 
-  @override
-  Expression? initializer;
-
   /// Contexts of the variables captured by the late variable initializer.
   ///
   /// If [variable] isn't `late`, [capturedContexts] should be `null`.
@@ -1604,7 +1590,6 @@ class VariableInitialization extends Statement
 
   VariableInitialization({
     required this.variable,
-    required this.initializer,
     bool hasDeclaredInitializer = false,
   }) {
     variable.variableInitialization = this;
@@ -1642,29 +1627,17 @@ class VariableInitialization extends Statement
   @override
   void transformChildren(Transformer v) {
     variable = v.transform(variable)..parent = this;
-    v.transformList(annotations, this);
-    if (initializer != null) {
-      initializer = v.transform(initializer!);
-      initializer?.parent = this;
-    }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     variable = v.transformOrRemove(variable, cannotRemoveSentinel)!
       ..parent = this;
-    v.transformExpressionList(annotations, this);
-    if (initializer != null) {
-      initializer = v.transformOrRemoveExpression(initializer!);
-      initializer?.parent = this;
-    }
   }
 
   @override
   void visitChildren(Visitor v) {
     variable.accept(v);
-    visitList(annotations, v);
-    initializer?.accept(v);
   }
 
   @override
@@ -1675,23 +1648,10 @@ class VariableInitialization extends Statement
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write(printer.getVariableName(variable));
-    if (initializer case var initializer?) {
+    if (variable.initializer case var initializer?) {
       printer.write(' := ');
       printer.writeExpression(initializer);
     }
     printer.write(';');
-  }
-
-  List<Expression> annotations = const <Expression>[];
-
-  void addAnnotation(Expression node) {
-    if (annotations.isEmpty) {
-      annotations = <Expression>[];
-    }
-    annotations.add(node..parent = this);
-  }
-
-  void clearAnnotations() {
-    annotations = const <Expression>[];
   }
 }

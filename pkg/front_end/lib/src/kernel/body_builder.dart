@@ -3405,6 +3405,7 @@ class BodyBuilderImpl extends StackListenerImpl
           isLate: isLate,
           isWildcard: isWildcard,
           fileOffset: identifier.nameOffset,
+          initializer: initializer,
         ),
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
@@ -3412,7 +3413,7 @@ class BodyBuilderImpl extends StackListenerImpl
       );
       variableInitialization = intern.createVariableInitialization(
         variable: internalVariable.asVariableDeclaration,
-        initializer: initializer,
+
         hasDeclaredInitializer: initializer != null,
         fileOffset: offsetForToken(equalsToken),
       );
@@ -8354,7 +8355,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (lvalue is VariableInitialization) {
       // Variable initializers are not supported. An error has already been
       // reported by the parser.
-      lvalue.initializer = null;
+      lvalue.variable.initializer = null;
       lvalue.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.

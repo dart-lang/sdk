@@ -27,7 +27,7 @@ sealed class VariableBase extends TreeNode implements Annotatable {
 /// implementations of the sealed class [Variable]. It's not supposed
 /// to be used as a type annotation, but purely for declaring the class
 /// hierarchy.
-abstract interface class IVariable implements TreeNode {
+abstract interface class IVariable implements TreeNode, Annotatable {
   abstract DartType type;
   abstract String? cosmeticName;
   abstract VariableInitialization? variableInitialization;
@@ -723,6 +723,10 @@ class LocalVariable extends Variable {
 
   VariableContext? _context;
 
+  @override
+  // TODO(johnniwinther): Remove this.
+  Expression? initializer;
+
   LocalVariable({
     this.cosmeticName,
     required DartType? type,
@@ -730,12 +734,14 @@ class LocalVariable extends Variable {
     bool isConst = false,
     bool isLate = false,
     bool isWildcard = false,
+    this.initializer,
   }) : type = type ?? const DynamicType(),
        super.empty() {
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isLate = isLate;
     this.isWildcard = isWildcard;
+    this.initializer?.parent = this;
   }
 
   @override
@@ -897,7 +903,7 @@ class LocalVariable extends Variable {
   bool get isAssignable {
     if (isConst) return false;
     if (isFinal) {
-      if (isLate) return variableInitialization?.initializer == null;
+      if (isLate) return initializer == null;
       return false;
     }
     return true;
@@ -911,13 +917,28 @@ class LocalVariable extends Variable {
       v.visitLocalVariable(this, arg);
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transform(initializer!);
+      initializer?.parent = this;
+    }
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transformOrRemoveExpression(initializer!);
+      initializer?.parent = this;
+    }
+  }
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+    initializer?.accept(v);
+  }
 
   @override
   String toString() {
@@ -927,20 +948,6 @@ class LocalVariable extends Variable {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpressionVariable(this);
-  }
-
-  @override
-  Expression? get initializer => variableInitialization?.initializer;
-
-  @override
-  void set initializer(Expression? value) {
-    if (value != null && variableInitialization == null) {
-      throw new StateError(
-        "Attempt to assign initializer to variable "
-        "without an initialization node.",
-      );
-    }
-    variableInitialization!.initializer = value;
   }
 
   @override
@@ -1241,13 +1248,19 @@ class CatchVariable extends Variable {
       v.visitCatchVariable(this, arg);
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+  }
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+  }
 
   @override
   String toString() {
@@ -1623,13 +1636,19 @@ class PositionalParameter extends FunctionParameter {
       v.visitPositionalParameter(this, arg);
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+  }
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+  }
 
   @override
   String toString() {
@@ -1784,13 +1803,19 @@ class NamedParameter extends FunctionParameter {
       v.visitNamedParameter(this, arg);
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+  }
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+  }
 
   @override
   String toString() {
@@ -2053,13 +2078,19 @@ class ThisVariable extends Variable {
       v.visitThisVariable(this, arg);
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+  }
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+  }
 
   @override
   String toString() {
@@ -2177,7 +2208,14 @@ class SyntheticVariable extends Variable {
 
   VariableContext? _context;
 
-  SyntheticVariable({this.cosmeticName, required this.type}) : super.empty();
+  @override
+  // TODO(johnniwinther): Remove this.
+  Expression? initializer;
+
+  SyntheticVariable({this.cosmeticName, required this.type, this.initializer})
+    : super.empty() {
+    this.initializer?.parent = this;
+  }
 
   @override
   VariableContext? get context {
@@ -2343,13 +2381,28 @@ class SyntheticVariable extends Variable {
       v.visitSyntheticVariable(this, arg);
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transform(initializer!);
+      initializer?.parent = this;
+    }
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transformOrRemoveExpression(initializer!);
+      initializer?.parent = this;
+    }
+  }
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+    initializer?.accept(v);
+  }
 
   @override
   String toString() {
@@ -2358,20 +2411,6 @@ class SyntheticVariable extends Variable {
 
   @override
   bool get isAssignable => !isConst && !isFinal;
-
-  @override
-  Expression? get initializer => variableInitialization?.initializer;
-
-  @override
-  void set initializer(Expression? value) {
-    if (value != null && variableInitialization == null) {
-      throw new StateError(
-        "Attempt to assign initializer to variable "
-        "without an initialization node.",
-      );
-    }
-    variableInitialization!.initializer = value;
-  }
 
   @override
   String? get name => cosmeticName;

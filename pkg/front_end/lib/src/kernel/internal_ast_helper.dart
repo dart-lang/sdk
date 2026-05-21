@@ -606,6 +606,7 @@ LocalVariable createLocalVariable({
   bool isLate = false,
   bool isWildcard = false,
   required int fileOffset,
+  Expression? initializer,
 }) {
   return new LocalVariable(
     cosmeticName: cosmeticName,
@@ -614,6 +615,7 @@ LocalVariable createLocalVariable({
     isConst: isConst,
     isLate: isLate,
     isWildcard: isWildcard,
+    initializer: initializer,
   )..fileOffset = fileOffset;
 }
 
@@ -1212,13 +1214,11 @@ InternalVariableGet createVariableGet(
 
 VariableInitialization createVariableInitialization({
   required Variable variable,
-  required Expression? initializer,
   required bool hasDeclaredInitializer,
   required int fileOffset,
 }) {
   return new VariableInitialization(
     variable: variable,
-    initializer: initializer,
     hasDeclaredInitializer: hasDeclaredInitializer,
   )..fileOffset = fileOffset;
 }

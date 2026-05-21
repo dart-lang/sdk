@@ -1276,9 +1276,9 @@ class TypeCheckingVisitor
   }
 
   void _handleVariableStatement(VariableStatement node) {
-    if (node.initializer != null) {
-      node.initializer = checkExpressionAndAssignability(
-        node.initializer!,
+    if (node.variable.initializer != null) {
+      node.variable.initializer = checkExpressionAndAssignability(
+        node.variable.initializer!,
         node.variable.type,
       );
     }

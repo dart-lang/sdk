@@ -2846,7 +2846,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (node is VariableInitialization) {
       if (showOffsets) writeWord("[${node.fileOffset}]");
       if (showMetadata) writeMetadata(node);
-      writeAnnotationList(node.annotations, separateLines: false);
       writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
       bool hasImplicitInitializer =
           variable.initializer is NullLiteral ||

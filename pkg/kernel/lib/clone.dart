@@ -755,6 +755,7 @@ class CloneVisitorNotMembers
       new LocalVariable(
           cosmeticName: node.cosmeticName,
           type: visitOptionalType(node.type),
+          initializer: cloneOptional(node.initializer),
         )
         ..flags = node.flags
         ..annotations = _cloneAnnotations(node)
@@ -769,6 +770,7 @@ class CloneVisitorNotMembers
       SyntheticVariable(
           cosmeticName: node.cosmeticName,
           type: visitType(node.type),
+          initializer: cloneOptional(node.initializer),
         )
         ..flags = node.flags
         ..annotations = _cloneAnnotations(node)
@@ -816,14 +818,8 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitVariableInitialization(VariableInitialization node) {
-    return new VariableInitialization(
-        variable: clone(node.variable),
-        initializer: cloneOptional(node.initializer),
-      )
-      ..flags = node.flags
-      ..annotations = cloneAnnotations && !node.annotations.isEmpty
-          ? node.annotations.map(clone).toList()
-          : const <Expression>[];
+    return new VariableInitialization(variable: clone(node.variable))
+      ..flags = node.flags;
   }
 
   @override
