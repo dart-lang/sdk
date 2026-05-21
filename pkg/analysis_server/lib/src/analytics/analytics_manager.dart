@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -22,6 +21,7 @@ import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:collection/collection.dart';
 import 'package:memory_usage/memory_usage.dart';
 import 'package:meta/meta.dart';
@@ -56,9 +56,6 @@ class AnalyticsManager {
 
   /// The object used to send analytics.
   final Analytics analytics;
-
-  /// The environment variables.
-  final Map<String, String> _environment;
 
   /// Data about the current session, or `null` if the [startUp] method has not
   /// been invoked.
@@ -105,8 +102,7 @@ class AnalyticsManager {
 
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
-  AnalyticsManager(this.analytics, {Map<String, String>? environment})
-    : _environment = environment ?? Platform.environment {
+  AnalyticsManager(this.analytics) {
     if (analytics is! NoOpAnalytics) {
       periodicTimer = Timer.periodic(Duration(minutes: 30), (_) {
         _sendPeriodicData();
@@ -752,10 +748,10 @@ class AnalyticsManager {
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
 
     // Record the start of the session.
-    var ideName = _environment['DASH__IDE_NAME'] ?? '';
-    var ideVersion = _environment['DASH__IDE_VERSION'] ?? '';
-    var pluginName = _environment['DASH__PLUGIN_NAME'] ?? '';
-    var pluginVersion = _environment['DASH__PLUGIN_VERSION'] ?? '';
+    var ideName = platform.environment['DASH__IDE_NAME'] ?? '';
+    var ideVersion = platform.environment['DASH__IDE_VERSION'] ?? '';
+    var pluginName = platform.environment['DASH__PLUGIN_NAME'] ?? '';
+    var pluginVersion = platform.environment['DASH__PLUGIN_VERSION'] ?? '';
 
     analytics.send(
       Event.serverSession(
