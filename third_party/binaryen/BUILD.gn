@@ -28,6 +28,7 @@ config("binaryen_flags") {
     } else {
       # GCC
       cflags += [
+        "-Wno-array-bounds",
         "-Wno-dangling-pointer",
         "-Wno-deprecated",
         "-Wno-init-list-lifetime",
