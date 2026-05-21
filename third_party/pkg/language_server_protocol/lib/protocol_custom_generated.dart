@@ -2244,6 +2244,8 @@ class FileExistence implements ToJsonable {
   bool operator ==(Object other) =>
       other is FileExistence && other._value == _value;
 
+  bool hasFlag(FileExistence value) => (_value & value._value) == value._value;
+
   @override
   int toJson() => _value;
 
@@ -2251,6 +2253,10 @@ class FileExistence implements ToJsonable {
   String toString() => _value.toString();
 
   static bool canParse(Object? obj, LspJsonReporter reporter) => obj is int;
+
+  static FileExistence combine(List<FileExistence> values) =>
+      FileExistence(values.fold<int>(
+          0, (combinedValue, value) => combinedValue | value._value));
 }
 
 /// FileType represents the expected filesystem resource type.
@@ -2274,6 +2280,8 @@ class FileType implements ToJsonable {
   @override
   bool operator ==(Object other) => other is FileType && other._value == _value;
 
+  bool hasFlag(FileType value) => (_value & value._value) == value._value;
+
   @override
   int toJson() => _value;
 
@@ -2281,6 +2289,9 @@ class FileType implements ToJsonable {
   String toString() => _value.toString();
 
   static bool canParse(Object? obj, LspJsonReporter reporter) => obj is int;
+
+  static FileType combine(List<FileType> values) => FileType(values.fold<int>(
+      0, (combinedValue, value) => combinedValue | value._value));
 }
 
 class FlutterOutline implements ToJsonable {

@@ -15,6 +15,30 @@ void main() {
 
 ast.ArrayType _array(String name) => ast.ArrayType(_simple(name));
 
+/// Helper to create a constant with defaults.
+ast.Constant _constant(Object value, {String name = 'x', String? type}) {
+  return ast.Constant(
+    name: name,
+    type: type != null ? ast.TypeReference(type) : ast.TypeReference.lspAny,
+    value: value.toString(),
+  );
+}
+
+/// Helper to create a enum with defaults.
+ast.LspEnum _enum({
+  String name = 'x',
+  String type = 'int',
+  bool flags = false,
+  required List<ast.Member> members,
+}) {
+  return ast.LspEnum(
+    name: name,
+    typeOfValues: ast.TypeReference(type),
+    flags: flags,
+    members: members,
+  );
+}
+
 ast.TypeReference _simple(String name) => ast.TypeReference(name);
 
 ast.UnionType _union(List<String> names) =>
@@ -22,6 +46,27 @@ ast.UnionType _union(List<String> names) =>
 
 @reflectiveTest
 class DartTest {
+  void test_flags_requiresPowerOfTwo_double() {
+    expect(
+      () => _enum(flags: true, members: [_constant(1.2)]),
+      throwsA(isA<AssertionError>()),
+    );
+  }
+
+  void test_flags_requiresPowerOfTwo_nonPowerOfTwo() {
+    expect(
+      () => _enum(flags: true, members: [_constant(3)]),
+      throwsA(isA<AssertionError>()),
+    );
+  }
+
+  void test_flags_requiresPowerOfTwo_string() {
+    expect(
+      () => _enum(flags: true, members: [_constant('test')]),
+      throwsA(isA<AssertionError>()),
+    );
+  }
+
   void test_mapping_arrays() {
     expect(_array('string').dartTypeWithTypeArgs, equals('List<String>'));
   }

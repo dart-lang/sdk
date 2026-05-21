@@ -23,6 +23,10 @@ bool isNullType(TypeBase t) =>
 bool isObjectType(TypeBase t) =>
     resolveTypeAlias(t).dartTypeWithTypeArgs == 'Object';
 
+bool _isPowerOfTwo(int x) {
+  return x > 0 && (x & (x - 1)) == 0;
+}
+
 class AbstractGetter extends Member {
   final TypeBase type;
 
@@ -178,14 +182,23 @@ abstract class LspEntity {
 /// An enum parsed from the LSP JSON model.
 class LspEnum extends LspEntity {
   final TypeBase typeOfValues;
+  final bool flags;
   final List<Member> members;
   LspEnum({
     required super.name,
     super.comment,
     super.isProposed,
     required this.typeOfValues,
+    this.flags = false,
     required this.members,
-  }) {
+  }) : assert(
+         !flags ||
+             members
+                 .whereType<Constant>()
+                 .map((member) => int.tryParse(member.value))
+                 .every((value) => value != null && _isPowerOfTwo(value)),
+         'flags enums require all enum values to be int powers of two.',
+       ) {
     members.sortBy((member) => member.name.toLowerCase());
   }
 }

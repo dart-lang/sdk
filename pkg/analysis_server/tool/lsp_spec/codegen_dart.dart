@@ -686,6 +686,22 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
       'static const $memberName = $namespaceName$constructorName($value);',
     );
   });
+  if (namespace.flags) {
+    buffer
+      ..writeln()
+      ..writeIndentedln(
+        'static $namespaceName combine(List<$namespaceName> values) =>',
+      )
+      ..indent()
+      ..writeIndentedln(
+        '$namespaceName$constructorName(values.fold<$dartType>(0, (combinedValue, value) => combinedValue | value._value));',
+      )
+      ..outdent()
+      ..writeln()
+      ..writeIndentedln(
+        'bool hasFlag($namespaceName value) => (_value & value._value) == value._value;',
+      );
+  }
   buffer
     ..writeln()
     ..writeIndentedln('@override $dartType toJson() => _value;')
