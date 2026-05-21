@@ -8,8 +8,12 @@ This is a patch release that:
   libraries being reset across suspension points, e.g. `print()` bypasses
   an override specified by the current `Zone` after suspension.
   (issue [#63408])
+- Fixes sporadic `dart analyze` crash on Windows ARM64, where analysis server
+  crashes on shutdown trying to delete perf_witness control socket.
+  (issue [#63343])
 
 [#63408]: https://github.com/dart-lang/sdk/issues/63408
+[#63343]: https://github.com/dart-lang/sdk/issues/63343
 
 ## 3.12.0
 
