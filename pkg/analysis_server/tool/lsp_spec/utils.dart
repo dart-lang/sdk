@@ -34,6 +34,7 @@ Interface interface(
   String name,
   List<Member> fields, {
   String? baseType,
+  List<String>? baseTypes,
   String? comment,
   bool abstract = false,
 }) {
@@ -41,7 +42,10 @@ Interface interface(
     name: name,
     abstract: abstract,
     comment: comment,
-    baseTypes: [if (baseType != null) TypeReference(baseType)],
+    baseTypes: [
+      if (baseType != null) TypeReference(baseType),
+      ...?baseTypes?.map(TypeReference.new),
+    ],
     members: fields,
   );
 }
