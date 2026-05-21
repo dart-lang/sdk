@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl;
@@ -43,7 +42,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
       .getAnalysisOptionsForFile(request.file)
       .codeStyleOptions;
 
-  bool get isInTestDirectory => request.compilationUnit.inTestDir;
+  bool get isInTestDirectory => request.isInTestDirectory;
 }
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {

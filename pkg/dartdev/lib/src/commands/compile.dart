@@ -70,6 +70,16 @@ enum Sanitizer {
     }
     return null;
   }
+
+  static List<Sanitizer> available() {
+    final v = Platform.version;
+    if (v.contains('"linux_x64"') || v.contains('"linux_arm64"')) {
+      return [none, asan, msan, tsan];
+    } else if (v.contains('"linux_riscv64"')) {
+      return [none, asan, tsan];
+    }
+    return [none];
+  }
 }
 
 bool checkFile(String sourcePath) {
@@ -608,14 +618,7 @@ Remove debugging information from the output and save it separately to the speci
     if (commandName != aotSnapshotCmdName) {
       return ['none'];
     }
-
-    final v = Platform.version;
-    if (v.contains('"linux_x64"') || v.contains('"linux_arm64"')) {
-      return ['none', 'asan', 'msan', 'tsan'];
-    } else if (v.contains('"linux_riscv64"')) {
-      return ['none', 'asan', 'tsan'];
-    }
-    return ['none'];
+    return Sanitizer.available().map((s) => s.name).toList();
   }
 
   @override

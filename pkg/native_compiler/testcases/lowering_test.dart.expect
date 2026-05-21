@@ -33,6 +33,33 @@ B0 = EntryBlock()
   ParallelMove input(NullConstant(null) -> R0)
   Return(v9)   # RA: (R0)
 
+--- D.
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v6)   # RA: (R0)
+
+--- E.
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  DirectCall D.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v6)   # RA: (R0)
+
+--- F.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  DirectCall E.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v4)   # RA: (R0)
+
 --- test1
 B0 = EntryBlock()
   Constant(0)
@@ -400,6 +427,51 @@ B0 = EntryBlock()
   DirectCall print(v32)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove input(NullConstant(null) -> R0)
   Return(v15)   # RA: (R0)
+
+--- allocateObjects
+B0 = EntryBlock()
+  v4 = Constant(<int, double>)
+  v11 = Constant(null)
+  v20 = Constant(<String, int, double>)
+  v22 = Constant(<String, num, double>)
+  v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R5)
+  ParallelMove input(<int, double> -> R1)
+  v5 = AllocateObject D<int, double>(v4)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[0])
+  DirectCall D.(v5)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[0] -> R1)
+  DirectCall print(v5)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(<String, int, double> -> R1)
+  v8 = AllocateObject E<int, double>(v20)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[1])
+  DirectCall E.(v8)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[1] -> R1)
+  DirectCall print(v8)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R4)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R4 -> R1)
+  TypeArguments(v11, v1, <allocateObjects.K%, List<allocateObjects.K%>>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove input(NullConstant(null) -> R2, vloc:R4 -> R1)
+  v21 = TypeArguments(v11, v1, <String, allocateObjects.K%, List<allocateObjects.K%>>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R1)
+  ParallelMove input(vloc:R1 -> R1)
+  v13 = AllocateObject E<allocateObjects.K%, List<allocateObjects.K%>>(v21)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[2])
+  DirectCall E.(v13)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R1)
+  DirectCall print(v13)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(<String, num, double> -> R1)
+  v23 = AllocateObject F(v22)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[3])
+  DirectCall F.(v23)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[3] -> R1)
+  DirectCall print(v23)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v11)   # RA: (R0)
 
 --- main
 B0 = EntryBlock()

@@ -69,6 +69,13 @@ abstract class Workspace {
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a Workspace.
 abstract class WorkspacePackageImpl implements WorkspacePackage {
+  static const Set<String> _testDirectoryNames = {
+    'test',
+    'integration_test',
+    'test_driver',
+    'testing',
+  };
+
   @override
   bool get canHavePublicApi => true;
 
@@ -113,7 +120,14 @@ abstract class WorkspacePackageImpl implements WorkspacePackage {
 
   @override
   bool isInTestDirectory(File file) {
-    return false;
+    return isInTestDirectoryUnder(root, file);
+  }
+
+  @protected
+  bool isInTestDirectoryUnder(Folder root, File file) {
+    return _testDirectoryNames.any((name) {
+      return root.getChildAssumingFolder(name).contains(file.path);
+    });
   }
 
   /// Return a map from the names of packages to the absolute and normalized

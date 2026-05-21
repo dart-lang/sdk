@@ -27,6 +27,15 @@ class ComputeStatusFailure extends ComputeStatus {
 /// The result that signals the success.
 class ComputeStatusSuccess extends ComputeStatus {}
 
+/// A version of [RefactoringProducer] that has parameters, allowing the user
+/// to provide additional values (such as a name or target file) when executed.
+abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
+  ParameterizedRefactoringProducer(super.refactoringContext);
+
+  /// Return a list of the parameters to send to the client.
+  List<CommandParameter> get parameters;
+}
+
 /// An object that can compute a refactoring in a Dart file.
 abstract class RefactoringProducer {
   /// The context in which the refactoring was requested.
@@ -54,9 +63,6 @@ abstract class RefactoringProducer {
   ResolvedLibraryResult get libraryResult {
     return refactoringContext.resolvedLibraryResult;
   }
-
-  /// Return a list of the parameters to send to the client.
-  List<CommandParameter> get parameters;
 
   /// Return the search engine used to search outside the resolved library.
   SearchEngine get searchEngine => refactoringContext.searchEngine;

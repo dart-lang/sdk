@@ -101,11 +101,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   BestPracticesVerifier(
     this._diagnosticReporter,
     TypeProviderImpl typeProvider,
-    this._currentLibrary,
-    CompilationUnit unit, {
+    this._currentLibrary, {
     required TypeSystemImpl typeSystem,
     required AnalysisOptions analysisOptions,
     required WorkspacePackageImpl? workspacePackage,
+    required bool inTestDirectory,
   }) : _nullType = typeProvider.nullType,
        _typeSystem = typeSystem,
        _strictInference = analysisOptions.strictInference,
@@ -149,9 +149,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
        ),
        _invalidAccessVerifier = _InvalidAccessVerifier(
          _diagnosticReporter,
-         unit,
          _currentLibrary,
          workspacePackage,
+         inTestDirectory: inTestDirectory,
        ),
        _mustCallSuperVerifier = MustCallSuperVerifier(_diagnosticReporter),
        _nullSafeApiVerifier = NullSafeApiVerifier(
@@ -1602,13 +1602,13 @@ class _InvalidAccessVerifier {
 
   _InvalidAccessVerifier(
     this._diagnosticReporter,
-    CompilationUnit unit,
     this._library,
-    this._workspacePackage,
-  ) : _inTemplateSource = _library.firstFragment.source.fullName.contains(
-        _templateExtension,
-      ),
-      _inTestDirectory = unit.inTestDir;
+    this._workspacePackage, {
+    required bool inTestDirectory,
+  }) : _inTemplateSource = _library.firstFragment.source.fullName.contains(
+         _templateExtension,
+       ),
+       _inTestDirectory = inTestDirectory;
 
   /// Produces a warning if [identifier] is accessed from an invalid location.
   ///

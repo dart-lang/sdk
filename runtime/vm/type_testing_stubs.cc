@@ -1262,7 +1262,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
-                              Definition* type_arguments) {
+                              Definition* type_arguments,
+                              bool convert_to_instance_type_arguments) {
   // The [type_arguments] can, in the general case, be any kind of [Definition]
   // but generally (in order of expected frequency)
   //
@@ -1286,15 +1287,28 @@ void RegisterTypeArgumentsUse(const Function& function,
   if (ConstantInstr* constant = type_arguments->AsConstant()) {
     const Object& object = constant->value();
     ASSERT(object.IsNull() || object.IsTypeArguments());
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(TypeArguments::RawCast(object.ptr()));
-    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
+    auto& ta = TypeArguments::Handle(TypeArguments::RawCast(object.ptr()));
+    if (convert_to_instance_type_arguments) {
+      if (!ta.IsNull() && (ta.Length() > klass.NumTypeParameters())) {
+        // Account for sharing of larger type arguments vectors.
+        ta = ta.TruncatedTo(klass.NumTypeParameters());
+      }
+      ta = klass.GetInstanceTypeArguments(Thread::Current(), ta);
+    }
+    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
     if (instantiate->type_arguments()->BindsToConstant() &&
         !instantiate->type_arguments()->BoundConstant().IsNull()) {
-      const auto& ta =
-          TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
+      auto& ta = TypeArguments::Handle(TypeArguments::RawCast(
+          instantiate->type_arguments()->BoundConstant().ptr()));
+      if (convert_to_instance_type_arguments) {
+        if (!ta.IsNull() && (ta.Length() > klass.NumTypeParameters())) {
+          // Account for sharing of larger type arguments vectors.
+          ta = ta.TruncatedTo(klass.NumTypeParameters());
+        }
+        ta = klass.GetInstanceTypeArguments(Thread::Current(), ta);
+      }
       type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
     }
   } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
@@ -1362,7 +1376,8 @@ void RegisterTypeArgumentsUse(const Function& function,
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
-                              Definition* type_arguments) {
+                              Definition* type_arguments,
+                              bool convert_to_instance_type_arguments) {
   // We only have a [TypeUsageInfo] object available durin AOT compilation.
   UNREACHABLE();
 }

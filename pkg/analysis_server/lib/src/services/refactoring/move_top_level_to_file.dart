@@ -22,7 +22,7 @@ import 'package:language_server_protocol/protocol_generated.dart';
 /// A refactoring that will move one or more top-level declarations to a
 /// different file. The destination file can either be a new file or an existing
 /// file.
-class MoveTopLevelToFile extends RefactoringProducer {
+class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
   /// Return the name used for this command when communicating with the client
   /// (and for analytics).
   static const String commandName = 'dart.refactor.move_top_level_to_file';

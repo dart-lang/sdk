@@ -10,6 +10,9 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidUseOfVisibleForTestingMemberTest);
+    defineReflectiveTests(
+      InvalidUseOfVisibleForTestingMemberWithTestInAncestorPathTest,
+    );
   });
 }
 
@@ -469,6 +472,36 @@ void f() {
 //^
 // [diag.invalidUseOfVisibleForTestingMember] The member 'A' can only be used within 'package:test/lib1.dart' or a test.
 }
+''');
+  }
+}
+
+@reflectiveTest
+class InvalidUseOfVisibleForTestingMemberWithTestInAncestorPathTest
+    extends PubPackageResolutionTest {
+  @override
+  String get testPackageRootPath => '/home/test/my';
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
+  test_method_inAncestorTestDir() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  void a() {}
+}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart';
+void f() => A().a();
+//              ^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'a' can only be used within 'package:test/lib1.dart' or a test.
 ''');
   }
 }

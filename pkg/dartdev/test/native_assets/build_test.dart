@@ -350,6 +350,39 @@ void main(List<String> args) {
       },
     );
   }
+
+  for (var sanitizer in ['asan', 'msan', 'tsan']) {
+    test('dart build cli --target-sanitizer $sanitizer', timeout: longTimeout,
+        () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--target-sanitizer',
+            sanitizer,
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+        final Directory binDir = File(Platform.resolvedExecutable).parent;
+        final sanitizedRuntime =
+            File.fromUri(binDir.uri.resolve('dartaotruntime_$sanitizer'));
+        if (sanitizedRuntime.existsSync()) {
+          expect(result.exitCode, 0);
+          final relativeExeUri = relativeBundleUri
+              .resolve('bin/')
+              .resolve(OS.current.executableFileName('dart_app'));
+          final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+          expect(await File.fromUri(absoluteExeUri).exists(), true);
+        } else {
+          expect(result.stderr, contains('dartaotruntime_$sanitizer'));
+          expect(result.exitCode, 255);
+        }
+      });
+    }, skip: !Platform.isLinux);
+  }
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

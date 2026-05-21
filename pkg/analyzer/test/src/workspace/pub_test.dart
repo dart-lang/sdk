@@ -816,6 +816,71 @@ class PubPackageTest extends WorkspacePackageTest {
       pubPackage.isInTestDirectory(getFile('$myPackageRootPath/test/a.dart')),
       isTrue,
     );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/integration_test/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/test_driver/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/testing/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/lib/a.dart'),
+      ),
+      isFalse,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/test/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/integration_test/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/test_driver/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/testing/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // Note, workspace-root relative path.
+    // Even though it has `test` segment, it has nothing with out package.
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myWorkspacePath/test/my/lib/a.dart'),
+      ),
+      isFalse,
+    );
   }
 
   void test_packagesAvailableTo() {
@@ -826,6 +891,22 @@ class PubPackageTest extends WorkspacePackageTest {
       packages.packages.map((e) => e.name),
       unorderedEquals(['p1', 'workspace']),
     );
+  }
+
+  test_sourceIsInPublicApi() {
+    var pubPackage = myPackage as PubPackage;
+
+    bool isInPublicApi(String path) {
+      return pubPackage.sourceIsInPublicApi(FileSource(newFile(path, '')));
+    }
+
+    expect(isInPublicApi('$myPackageRootPath/lib/a.dart'), isTrue);
+    expect(isInPublicApi('$myPackageRootPath/lib/src/a.dart'), isFalse);
+    expect(isInPublicApi('$myPackageRootPath/test/a.dart'), isFalse);
+
+    expect(isInPublicApi('$myPackageGeneratedPath/my/lib/a.dart'), isTrue);
+    expect(isInPublicApi('$myPackageGeneratedPath/my/lib/src/a.dart'), isFalse);
+    expect(isInPublicApi('$myPackageGeneratedPath/test/lib/a.dart'), isFalse);
   }
 
   Source _sourceWithFileUri(String path) {

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/refactoring/move_selected_formal_pa
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:analysis_server/src/services/refactoring/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/refactoring/remove_import_prefix.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A function that can be executed to create a refactoring producer.
@@ -70,7 +71,9 @@ class RefactoringProcessor {
           return;
         }
 
-        var parameters = producer.parameters;
+        var parameters = producer is ParameterizedRefactoringProducer
+            ? producer.parameters
+            : <CommandParameter>[];
         // In debug mode, throw if we produced a refactoring that has parameters
         // without default values that are not supported by the client.
         assert(
