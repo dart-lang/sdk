@@ -99,6 +99,7 @@ class Interface extends LspEntity {
   final List<TypeReference> baseTypes;
   final List<Member> members;
   final bool abstract;
+  final bool sealed;
 
   Interface({
     required super.name,
@@ -107,6 +108,7 @@ class Interface extends LspEntity {
     this.baseTypes = const [],
     required this.members,
     this.abstract = false,
+    this.sealed = false,
   }) {
     baseTypes.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
     members.sortBy((member) => member.name.toLowerCase());

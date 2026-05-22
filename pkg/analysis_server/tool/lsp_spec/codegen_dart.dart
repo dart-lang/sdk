@@ -965,7 +965,7 @@ void _writeFromJsonConstructor(
       ..outdent()
       ..writeIndentedln('}');
   }
-  if (interface.abstract) {
+  if (interface.abstract || interface.sealed) {
     buffer.writeIndentedln(
       'throw ArgumentError('
       "'Supplied map is not valid for any subclass of ${interface.name}'"
@@ -1053,6 +1053,7 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
 
   buffer
     ..writeIndented(interface.abstract ? 'abstract ' : '')
+    ..write(interface.sealed ? 'sealed ' : '')
     ..write('class ${interface.name} ');
   var allBaseTypes = interface.baseTypes
       .map((t) => t.dartTypeWithTypeArgs)
