@@ -292,14 +292,14 @@ class _MatcherBuilder {
     } else if (parent is RedirectingConstructorInvocation) {
       var grandparent = parent.parent;
       if (grandparent is ConstructorDeclaration) {
-        _addMatcher(
-          components: [
-            parent.constructorName?.name ?? '',
-            // TODO(scheglov): support primary constructors
-            grandparent.typeName!.name,
-          ],
-          kinds: [ElementKind.constructorKind],
-        );
+        var typeName =
+            grandparent.declaredFragment?.element.enclosingElement.name;
+        if (typeName != null) {
+          _addMatcher(
+            components: [parent.constructorName?.name ?? '', typeName],
+            kinds: [ElementKind.constructorKind],
+          );
+        }
       }
     } else if (parent is SuperConstructorInvocation) {
       var superclassName = parent.element?.enclosingElement.name;
