@@ -445,33 +445,6 @@ bool _canParseListFlutterWidgetPreviewDetails(
   return true;
 }
 
-bool _canParseListFormEnumEntry(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        (value is! List<Object?> ||
-            value.any((item) => !FormEnumEntry.canParse(item, reporter)))) {
-      reporter.reportError('must be of type List<FormEnumEntry>');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseListFormField(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2826,77 +2799,6 @@ class FlutterWidgetPreviews implements ToJsonable {
   }
 }
 
-/// A single option in an enumeration.
-class FormEnumEntry implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    FormEnumEntry.canParse,
-    FormEnumEntry.fromJson,
-  );
-
-  /// The human-readable label presented to the user.
-  final String description;
-
-  /// The unique string identifier for this option.
-  ///
-  /// This is the value that will be sent back to the server in `FormAnswers` if
-  /// the user selects this option.
-  final String value;
-
-  FormEnumEntry({
-    required this.description,
-    required this.value,
-  });
-  @override
-  int get hashCode => Object.hash(
-        description,
-        value,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is FormEnumEntry &&
-        other.runtimeType == FormEnumEntry &&
-        description == other.description &&
-        value == other.value;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['description'] = description;
-    result['value'] = value;
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'description',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseString(obj, reporter, 'value',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type FormEnumEntry');
-      return false;
-    }
-  }
-
-  static FormEnumEntry fromJson(Map<String, Object?> json) {
-    final descriptionJson = json['description'];
-    final description = descriptionJson as String;
-    final valueJson = json['value'];
-    final value = valueJson as String;
-    return FormEnumEntry(
-      description: description,
-      value: value,
-    );
-  }
-}
-
 /// A single question in a form and its validation state.
 class FormField implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -3040,12 +2942,6 @@ sealed class FormFieldType implements ToJsonable {
     if (FormFieldTypeFile.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeFile.fromJson(json);
     }
-    if (FormFieldTypeEnum.canParse(json, nullLspJsonReporter)) {
-      return FormFieldTypeEnum.fromJson(json);
-    }
-    if (FormFieldTypeList.canParse(json, nullLspJsonReporter)) {
-      return FormFieldTypeList.fromJson(json);
-    }
     if (FormFieldTypeBool.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeBool.fromJson(json);
     }
@@ -3113,99 +3009,6 @@ class FormFieldTypeBool implements FormFieldType, ToJsonable {
     final kind = kindJson as String;
     return FormFieldTypeBool(
       kind: kind,
-    );
-  }
-}
-
-/// FormFieldTypeEnum defines a selection from a set of values.
-///
-/// Use this type when:
-/// - The number of options is small (e.g., < 20).
-/// - All options are known at the time the form is created.
-class FormFieldTypeEnum implements FormFieldType, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    FormFieldTypeEnum.canParse,
-    FormFieldTypeEnum.fromJson,
-  );
-
-  /// The list of allowable options.
-  final List<FormEnumEntry> entries;
-
-  @override
-  final String kind;
-
-  /// An optional identifier for the enum type.
-  final String? name;
-  FormFieldTypeEnum({
-    required this.entries,
-    this.kind = 'enum',
-    this.name,
-  }) {
-    if (kind != 'enum') {
-      throw 'kind may only be the literal \'enum\'';
-    }
-  }
-  @override
-  int get hashCode => Object.hash(
-        lspHashCode(entries),
-        kind,
-        name,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is FormFieldTypeEnum &&
-        other.runtimeType == FormFieldTypeEnum &&
-        const DeepCollectionEquality().equals(entries, other.entries) &&
-        kind == other.kind &&
-        name == other.name;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['entries'] = entries.map((item) => item.toJson()).toList();
-    result['kind'] = kind;
-    if (name != null) {
-      result['name'] = name;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseListFormEnumEntry(obj, reporter, 'entries',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'enum')) {
-        return false;
-      }
-      return _canParseString(obj, reporter, 'name',
-          allowsUndefined: true, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type FormFieldTypeEnum');
-      return false;
-    }
-  }
-
-  static FormFieldTypeEnum fromJson(Map<String, Object?> json) {
-    final entriesJson = json['entries'];
-    final entries = (entriesJson as List<Object?>)
-        .map((item) => FormEnumEntry.fromJson(item as Map<String, Object?>))
-        .toList();
-    final kindJson = json['kind'];
-    final kind = kindJson as String;
-    final nameJson = json['name'];
-    final name = nameJson as String?;
-    return FormFieldTypeEnum(
-      entries: entries,
-      kind: kind,
-      name: name,
     );
   }
 }
@@ -3302,80 +3105,6 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
       existence: existence,
       kind: kind,
       type: type,
-    );
-  }
-}
-
-/// A homogenous list of items.
-class FormFieldTypeList implements FormFieldType, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    FormFieldTypeList.canParse,
-    FormFieldTypeList.fromJson,
-  );
-
-  /// ElementType specifies the type of the items in the list. Recursive
-  /// reference to the union type.
-  final FormFieldType elementType;
-
-  @override
-  final String kind;
-
-  FormFieldTypeList({
-    required this.elementType,
-    this.kind = 'list',
-  }) {
-    if (kind != 'list') {
-      throw 'kind may only be the literal \'list\'';
-    }
-  }
-  @override
-  int get hashCode => Object.hash(
-        elementType,
-        kind,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is FormFieldTypeList &&
-        other.runtimeType == FormFieldTypeList &&
-        elementType == other.elementType &&
-        kind == other.kind;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['elementType'] = elementType.toJson();
-    result['kind'] = kind;
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseFormFieldType(obj, reporter, 'elementType',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'list');
-    } else {
-      reporter.reportError('must be of type FormFieldTypeList');
-      return false;
-    }
-  }
-
-  static FormFieldTypeList fromJson(Map<String, Object?> json) {
-    final elementTypeJson = json['elementType'];
-    final elementType =
-        FormFieldType.fromJson(elementTypeJson as Map<String, Object?>);
-    final kindJson = json['kind'];
-    final kind = kindJson as String;
-    return FormFieldTypeList(
-      elementType: elementType,
-      kind: kind,
     );
   }
 }
